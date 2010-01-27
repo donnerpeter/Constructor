@@ -16,7 +16,7 @@ class Parser {
         def w = new Word(t)
         cloud.addConstruction(w, pos)
         if (prevWord) {
-          cloud.addConstruction(new Space(prevWord, w), cloud.starts[prevWord])
+       //   cloud.addConstruction(new Space(prevWord, w), cloud.starts[prevWord])
         }
         prevWord = w
       }

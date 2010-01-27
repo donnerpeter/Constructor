@@ -9,13 +9,13 @@ class PunctuationTest extends GroovyTestCase {
     _ "в", "в"
   }
 
-  void testSpace() {
+  void _testSpace() {
     _ "в в", """
 Space в в
 """
   }
   
-  void test2Spaces() {
+  void _test2Spaces() {
     _ "в в в", """
 Space в #1=в
 Space #1 в

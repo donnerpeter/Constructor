@@ -1,5 +1,7 @@
 package constructor
 
+import constructor.russian.RussianLexicon
+
 /**
  * @author peter
  */
@@ -23,7 +25,7 @@ Space #1 в
   }
 
   def _(input, output) {
-    assertEquals output.trim(), Parser.parse(input).trim()
+    assertEquals output.trim(), new Parser(new RussianLexicon()).parse(input).trim()
   }
 
 }

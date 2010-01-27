@@ -4,21 +4,29 @@ package constructor
  * @author peter
  */
 class Parser {
+  Lexicon lexicon
 
-  static String parse(String input) {
+
+  def Parser(lexicon) {
+    this.lexicon = lexicon;
+  }
+
+  String parse(String input) {
     Cloud cloud = new Cloud()
-    def prevWord = null
     StringTokenizer tokenizer = new StringTokenizer(input)
     while (tokenizer.hasMoreTokens()) {
       def pos = tokenizer.currentPosition
       def t = tokenizer.nextToken()
       if (!t.trim().isEmpty()) {
-        def w = new Word(t)
-        cloud.addConstruction(w, pos)
-        if (prevWord) {
-       //   cloud.addConstruction(new Space(prevWord, w), cloud.starts[prevWord])
+        def c = lexicon.recognize(t, null)
+        if (c) {
+          cloud.addConstruction(c, pos)
         }
-        prevWord = w
+        else {
+          def w = new Word(t)
+          cloud.addConstruction(w, pos)
+        }
+
       }
     }
 

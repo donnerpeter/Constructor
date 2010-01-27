@@ -9,9 +9,16 @@ class Cloud {
   Map<Construction, Integer> starts = [:]
 
   def addConstruction(Construction c, int at) {
+    if (usages[c]) {
+      return
+    }
+
     starts[c] = at
     usages.get(c, new HashSet())
-    c.args.each { arg -> usages.get(arg, new HashSet()) << c }
+    c.args.each {arg ->
+      addConstruction(arg, -1)
+      usages[arg] << c
+    }
   }
 
   def prettyPrint() {

@@ -2,6 +2,7 @@ package constructor.russian
 
 import constructor.Construction
 import constructor.Lexicon
+import constructor.Space
 import constructor.Word
 
 /**
@@ -9,7 +10,11 @@ import constructor.Word
  */
 class RussianLexicon extends Lexicon {
 
-  Construction recognize(String s, Construction last) {
+  def RussianLexicon() {
+    storage["в течение"] = { return new Word("в течение") }
+  }
+
+  Construction recognize(String s) {
     if ((s.endsWith("ое")
             || s.endsWith("ой")
             || s.endsWith("ых")

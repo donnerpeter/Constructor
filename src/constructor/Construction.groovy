@@ -21,7 +21,8 @@ class Construction {
   }
 
   String prettyPrint(Closure varName, String indent) {
-    def a = [name] + args.collect({ arg ->
+    def prettyName = name.contains(' ') ? "'$name'" : name
+    def a = [prettyName] + args.collect({ arg ->
       def prefix = varName(arg)
       if (!prefix || prefix.endsWith("=")) {
         return prefix + arg.prettyPrint(varName, indent + "  ")

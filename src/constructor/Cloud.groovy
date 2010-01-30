@@ -7,18 +7,20 @@ class Cloud {
   def comparator = { c1, c2 -> starts[c1] - starts[c2]} as Comparator
   Map<Construction, Set<Construction>> usages = [:]
   Map<Construction, Integer> starts = [:]
+  Map<List, Closure> expectations = [:]
 
   def addConstruction(Construction c, int at) {
-    if (usages[c]) {
-      return
-    }
-
     starts[c] = at
-    usages.get(c, new HashSet())
+    usages[c] = [] as Set
     c.args.each {arg ->
-      addConstruction(arg, -1)
       usages[arg] << c
     }
+
+    expectations.clone().each {pattern, action ->
+      match(pattern, action)
+    }
+
+    c.activate(new ParsingContext(cloud:this))
   }
 
   def prettyPrint() {
@@ -43,4 +45,36 @@ class Cloud {
     return sb.toString()
   }
 
+  def findBefore(Class hint, int pos) {
+    def result = null
+    starts.each {c, p ->
+      if (p + c.name.size() <= pos && hint.isInstance(c)) {
+        result = c
+      }
+    }
+    return result
+  }
+
+  def match(List pattern, Closure action) {
+    expectations[pattern] = action
+    def result = false
+    if (pattern[0] instanceof Construction) {
+      def pos = starts[pattern[0]] + pattern[0].name.size()
+      starts.clone().each {c, p ->
+        if (p >= pos && pattern[1].isInstance(c)) {
+          expectations.remove pattern
+          addConstruction action([pattern[0], c]), pos
+        }
+      }
+    }
+    else if (pattern[1] instanceof Construction) {
+      def pos = starts[pattern[1]]
+      starts.clone().each {c, p ->
+        if (p + c.name.size() <= pos && pattern[0].isInstance(c)) {
+          expectations.remove pattern
+          addConstruction action([c, pattern[1]]), p
+        }
+      }
+    }
+  }
 }

@@ -34,4 +34,8 @@ class Construction {
     return a.join(separator)
   }
 
+  def activate(ParsingContext ctx) {
+    
+  }
+
 }

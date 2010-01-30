@@ -19,7 +19,8 @@ class Parser {
       def suitable = lexicon.storage.keySet().sort({s1, s2 -> s2.size() - s1.size()}).findAll {input.substring(pos).startsWith(it) }
       if (suitable) {
         def best = suitable[0]
-        cloud.addConstruction(lexicon.storage[best](), pos)
+        Construction c = lexicon.storage[best]()
+        cloud.addConstruction(c, pos)
         pos += best.size()
       } else {
         def space = input.indexOf(' ', pos)

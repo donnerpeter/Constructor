@@ -4,6 +4,7 @@ import constructor.Construction
 import constructor.Lexicon
 import constructor.Space
 import constructor.Word
+import constructor.ParsingContext
 
 /**
  * @author peter
@@ -11,7 +12,22 @@ import constructor.Word
 class RussianLexicon extends Lexicon {
 
   def RussianLexicon() {
-    storage["в течение"] = { return new Word("в течение") }
+    //storage["в течение"] = { return new Word("в течение") }
+    storage["Власти"] = { return new Noun("Власти") }
+    storage["московской"] = { return new Word("московской") {
+
+      def Object activate(ParsingContext ctx) {
+        ctx.expect([this, Noun]) { new Construction("AdjNoun", it) }
+      }
+
+    } }
+    storage["управы"] = { return new Noun("управы") {
+
+      def Object activate(ParsingContext ctx) {
+        ctx.expect([Noun, this]) { new Construction("Posess", it) }
+      }
+
+    } }
   }
 
   Construction recognize(String s) {
@@ -44,3 +60,5 @@ class RussianLexicon extends Lexicon {
   }
 
 }
+
+

@@ -8,12 +8,18 @@ class Cloud {
   Map<Construction, Set<Construction>> usages = [:]
   Map<Construction, Integer> starts = [:]
   Map<List, Closure> expectations = [:]
+  LinkedList<Construction> active = new LinkedList<Construction>()
 
   def addConstruction(Construction c, int at) {
     starts[c] = at
     usages[c] = [] as Set
     c.args.each {arg ->
       usages[arg] << c
+    }
+
+    active.addFirst(c)
+    if (active.size() > 7) {
+      active.removeLast()
     }
 
     expectations.clone().each {pattern, action ->
@@ -45,10 +51,11 @@ class Cloud {
     return sb.toString()
   }
 
-  def findBefore(Class hint, int pos) {
+  def findAfter(Class hint, int pos) {
     def result = null
-    starts.each {c, p ->
-      if (p + c.name.size() <= pos && hint.isInstance(c)) {
+    active.clone().each {c ->
+      def p = starts[c]
+      if (p >= pos && hint.isInstance(c)) {
         result = c
       }
     }
@@ -57,19 +64,26 @@ class Cloud {
 
   def match(List pattern, Closure action) {
     expectations[pattern] = action
-    def result = false
     if (pattern[0] instanceof Construction) {
       def pos = starts[pattern[0]] + pattern[0].name.size()
-      starts.clone().each {c, p ->
-        if (p >= pos && pattern[1].isInstance(c)) {
+      def next = findAfter(pattern[1], pos)
+      if (next) {
+        if (pattern.size() > 2) {
+          def nnext = findAfter(pattern[2], starts[next] + next.name.size())
+          if (nnext) {
+            expectations.remove pattern
+            addConstruction action([pattern[0], next, nnext]), pos
+          }
+        } else {
           expectations.remove pattern
-          addConstruction action([pattern[0], c]), pos
+          addConstruction action([pattern[0], next]), pos
         }
       }
     }
     else if (pattern[1] instanceof Construction) {
       def pos = starts[pattern[1]]
-      starts.clone().each {c, p ->
+      active.clone().each {c ->
+        def p = starts[c]
         if (p + c.name.size() <= pos && pattern[0].isInstance(c)) {
           expectations.remove pattern
           addConstruction action([c, pattern[1]]), p

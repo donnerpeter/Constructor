@@ -28,6 +28,8 @@ class RussianLexicon extends Lexicon {
       }
 
     } }
+    storage['\"'] = { return new Quote() }
+    storage['Крылатское'] = { return new Word('Крылатское') }
   }
 
   Construction recognize(String s) {
@@ -61,4 +63,28 @@ class RussianLexicon extends Lexicon {
 
 }
 
+class Quote extends Construction {
 
+  def Quote() {
+    super('\"', []);
+  }
+
+  def Object activate(ParsingContext ctx) {
+    ctx.expect([this, Construction, Quote], { return new Quoted(it) })
+  }
+
+
+}
+
+class Quoted extends Construction {
+
+  def Quoted(args) {
+    super("Quoted", args);
+  }
+
+  def Object activate(ParsingContext ctx) {
+    ctx.expect([Noun, this]) { return new Construction("Appos", it) }
+  }
+
+
+}

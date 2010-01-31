@@ -8,6 +8,7 @@ class Construction {
   List<Construction> args
   private Map<List, Closure> expectations = [:]
   private Set pings = [] as Set
+  private deactivate = false
 
   def Construction(String name, List<Construction> args) {
     this.name = name;
@@ -48,28 +49,28 @@ class Construction {
   }
 
   def activate(ParsingContext ctx) {
-    expectations.each { pattern, action -> ctx.expect(pattern, action) }
+    if (deactivate) {
+      ctx.deactivate(this)
+    }
+    expectations.each {pattern, action -> ctx.expect(pattern, action) }
   }
 
   Construction aka(Object ... msg) {
-    Set pings = msg as Set
-    pings.addAll(this.pings)
-    return new Construction(name, args, expectations, pings)
+    this.pings.addAll(msg as Set)
+    return this
   }
 
   Construction expect(List pattern, Closure action) {
     for (i in 0..pattern.size()-1) {
       if (pattern[i] == "_") pattern[i] = this
     }
-    Map expectations = this.expectations.clone()
     expectations[pattern] = action
-    def result = new Construction(name, args, expectations, pings)
-    result.expectations.each { k, v ->
-      for (i in 0..k.size()-1) {
-        if (k[i] == this) k[i] = result
-      }
-    }
-    return result
+    return this
+  }
+
+  Construction infamous() {
+    deactivate = true
+    return this
   }
 
 }

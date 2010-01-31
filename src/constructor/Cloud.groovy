@@ -28,7 +28,9 @@ class Cloud {
       }
     }
 
-    c.activate(new ParsingContext(cloud:this))
+    if (active.contains(c)) {
+      c.activate(new ParsingContext(cloud:this))
+    }
   }
 
   def prettyPrint() {
@@ -120,14 +122,20 @@ class Cloud {
   }
 
   def promote(Construction c) {
-    demote(c)
+    active.remove(c)
     active.addFirst(c)
     if (active.size() > 7) {
-      active.removeLast()
+      def last = active.removeLast()
+      clearExpectations(last)
     }
   }
 
   def demote(Construction c) {
     active.remove(c)
+    clearExpectations(c)
+  }
+
+  private def clearExpectations(Construction c) {
+    expectations.clone().each {k, v -> if (k.contains(c)) expectations.remove(k) }
   }
 }

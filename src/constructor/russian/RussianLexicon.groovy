@@ -16,9 +16,9 @@ class RussianLexicon extends Lexicon {
         new Construction("When", it)
       }
     } }
-    storage["Власти"] = { new Word("Власти").aka("nominative", "noun") }
-    storage["московской"] = { new Word("московской").expect(["_", "noun"]) { new Construction("AdjNoun", it) } }
-    storage["управы"] = { new Word("управы").aka("noun").expect(["noun", "_"]) { new Construction("NounGenitive", it) {
+    storage["Власти"] = { new Word("Власти").aka("nominative", "noun")/*.expect(["_", "genitive"]) { new Construction("NounObj", it) }*/}
+    storage["московской"] = { new Word("московской").expect(["_", "noun"]) { new Construction("AdjNoun", it).infamous() } }
+    storage["управы"] = { new Word("управы").aka("noun", "genitive").expect(["noun", "_"]) { new Construction("NounGenitive", it) {
 
           def Object activate(ParsingContext ct) {
             ct.reactivate(args[0])
@@ -26,7 +26,9 @@ class RussianLexicon extends Lexicon {
 
         } }
       }
-    storage['"'] = { new Word('"').aka('"').expect(["_", Construction, '"']) { return new Quoted(it) } }
+    storage['"'] = {
+      new Word('"').aka('"').expect(["_", Construction, '"']) {
+        return new Quoted(it) } }
     storage['Крылатское'] = { new Word('Крылатское') }
     storage['намерены'] = { 
       new Word('намерены').expect(["nominative", "_"]) { new Construction("SubjPred", it) }.expect(["_", "infinitive"]) { new Construction("XComp", it) }
@@ -38,9 +40,14 @@ class RussianLexicon extends Lexicon {
     storage['о'] = { new Word("о").expect(["_", "prepositional"]) {
       new Construction("Prepos", it).expect(["noun", "_"]) { new Construction("About", [it[1], it[0]])} }
     }
-    storage['сносе'] = { new Word("сносе").aka("noun", "prepositional").expect(["_", "genitive"]) { new Construction("NounObj", it) } }
-    storage['незаконных'] = { new Word("незаконных").expect(["_", "genitive"]) { new Construction("AdjNoun", it)} }
+    storage['сносе'] = { new Word("сносе").aka("noun", "prepositional").expect(["_", "genitive"]) { new Construction("NounObj", it).infamous() } }
+    storage['незаконных'] = { new Word("незаконных").expect(["_", "genitive"]) { new Construction("AdjNoun", it).infamous()} }
     storage['строений'] = { new Word("строений").aka("noun", "genitive") }
+    storage['в'] = { new Word("в").expect(["_", "prepositional"]) {
+      new Construction("Prepos", it).expect(["noun", "_"]) { new Construction("Where", [it[1], it[0]]).infamous()} }
+    }
+    storage['поселке'] = { new Word("поселке").aka("noun", "prepositional") }
+    storage['Речник'] = { new Word("Речник") }
   }
 
 }

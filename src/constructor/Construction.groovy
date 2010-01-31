@@ -35,12 +35,12 @@ class Construction {
     def a = [prettyName] + args.collect({arg ->
       def prefix = varName(arg)
       if (!prefix || prefix.endsWith("=")) {
-        return prefix + arg.prettyPrint(varName, indent + "  ")
+        return prefix + arg.prettyPrint(varName, indent + "\t")
       }
       return prefix
     })
 
-    String separator = oneLiner() ? " " : "\n$indent  "
+    String separator = oneLiner() ? " " : "\n$indent\t"
     return a.join(separator)
   }
 

@@ -17,10 +17,7 @@ class Cloud {
       usages[arg] << c
     }
 
-    active.addFirst(c)
-    if (active.size() > 7) {
-      active.removeLast()
-    }
+    promote(c)
 
     expectations.clone().each {pattern, action ->
       match(pattern, action)
@@ -51,15 +48,42 @@ class Cloud {
     return sb.toString()
   }
 
-  def findAfter(Class hint, int pos) {
+  def findAfter(hint, int pos) {
     def result = null
     active.clone().each {c ->
       def p = starts[c]
-      if (p >= pos && hint.isInstance(c)) {
+      if (p >= pos && isAccepted(hint, c)) {
         result = c
       }
     }
     return result
+  }
+
+  private def isAccepted(hint, Construction c) {
+    if (hint instanceof Class) {
+      hint.isInstance(c)
+    } else {
+      c.ping(hint)
+    }
+  }
+
+  def findBefore(hint, int pos) {
+    def result = null
+    active.clone().each {c ->
+      def p = starts[c]
+      if (p + c.name.size() <= pos && isAccepted(hint, c)) {
+        if (result && starts[result] > p) {
+          return
+        }
+        result = c
+      }
+    }
+    return result
+  }
+
+  private def executeAction(action, args) {
+    args.each { promote(it) }
+    addConstruction action(args), starts[args[0]]
   }
 
   def match(List pattern, Closure action) {
@@ -72,23 +96,33 @@ class Cloud {
           def nnext = findAfter(pattern[2], starts[next] + next.name.size())
           if (nnext) {
             expectations.remove pattern
-            addConstruction action([pattern[0], next, nnext]), pos
+            executeAction action, [pattern[0], next, nnext]
           }
         } else {
           expectations.remove pattern
-          addConstruction action([pattern[0], next]), pos
+          executeAction action, [pattern[0], next]
         }
       }
     }
     else if (pattern[1] instanceof Construction) {
       def pos = starts[pattern[1]]
-      active.clone().each {c ->
-        def p = starts[c]
-        if (p + c.name.size() <= pos && pattern[0].isInstance(c)) {
-          expectations.remove pattern
-          addConstruction action([c, pattern[1]]), p
-        }
+      def prev = findBefore(pattern[0], pos)
+      if (prev) {
+        expectations.remove pattern
+        executeAction action, [prev, pattern[1]]
       }
     }
+  }
+
+  def promote(Construction c) {
+    demote(c)
+    active.addFirst(c)
+    if (active.size() > 7) {
+      active.removeLast()
+    }
+  }
+
+  def demote(Construction c) {
+    active.remove(c)
   }
 }

@@ -13,9 +13,18 @@ class RussianLexicon extends Lexicon {
 
   def RussianLexicon() {
     //storage["в течение"] = { return new Word("в течение") }
-    storage["Власти"] = { return new Noun("Власти") }
-    storage["московской"] = { return new Word("московской") {
+    storage["Власти"] = { return new Noun("Власти") {
 
+      def Object ping(Object message) {
+        if (message == "nominative") {
+          return true
+        }
+        return super.ping(message);
+      }
+
+    } }
+    storage["московской"] = { return new Word("московской") {
+                                                                                        
       def Object activate(ParsingContext ctx) {
         ctx.expect([this, Noun]) { new Construction("AdjNoun", it) }
       }
@@ -24,12 +33,26 @@ class RussianLexicon extends Lexicon {
     storage["управы"] = { return new Noun("управы") {
 
       def Object activate(ParsingContext ctx) {
-        ctx.expect([Noun, this]) { new Construction("Posess", it) }
+        ctx.expect([Noun, this]) { new Construction("NounGenitive", it) {
+
+          def Object activate(ParsingContext ct) {
+            ct.reactivate(args[0])
+          }
+
+        } }
       }
 
     } }
     storage['\"'] = { return new Quote() }
     storage['Крылатское'] = { return new Word('Крылатское') }
+    storage['намерены'] = { 
+      return new Word('намерены') {
+
+      def Object activate(ParsingContext ctx) {
+        ctx.expect(["nominative", this]) { new Construction("SubjPred", it) }
+      }
+
+    } }
   }
 
   Construction recognize(String s) {
@@ -82,7 +105,14 @@ class Quoted extends Construction {
     super("Quoted", args);
   }
 
+  def Object ping(Object message) {
+    return super.ping(message);
+  }
+
   def Object activate(ParsingContext ctx) {
+    ctx.deactivate(args[0])
+    ctx.deactivate(args[1])
+    ctx.deactivate(args[2])
     ctx.expect([Noun, this]) { return new Construction("Appos", it) }
   }
 

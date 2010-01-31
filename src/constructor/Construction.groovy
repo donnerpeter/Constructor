@@ -34,6 +34,9 @@ class Construction {
     return a.join(separator)
   }
 
+  def ping(message) {
+  }
+
   def activate(ParsingContext ctx) {
     
   }

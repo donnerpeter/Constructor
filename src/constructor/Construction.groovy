@@ -15,13 +15,6 @@ class Construction {
     this.args = args;
   }
 
-  def Construction(name, args, expectations, pings) {
-    this.name = name;
-    this.args = args;
-    this.expectations = expectations;
-    this.pings = pings;
-  }
-
   def String toString() {
     return prettyPrint({""}, "");
   }

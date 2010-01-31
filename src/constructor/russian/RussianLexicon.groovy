@@ -38,11 +38,9 @@ class RussianLexicon extends Lexicon {
     storage['о'] = { new Word("о").expect(["_", "prepositional"]) {
       new Construction("Prepos", it).expect(["noun", "_"]) { new Construction("About", [it[1], it[0]])} }
     }
-    storage['сносе'] = { new Word("сносе").aka("noun", "prepositional") }
-  }
-
-  Construction recognize(String s) {
-    return null
+    storage['сносе'] = { new Word("сносе").aka("noun", "prepositional").expect(["_", "genitive"]) { new Construction("NounObj", it) } }
+    storage['незаконных'] = { new Word("незаконных").expect(["_", "genitive"]) { new Construction("AdjNoun", it)} }
+    storage['строений'] = { new Word("строений").aka("noun", "genitive") }
   }
 
 }

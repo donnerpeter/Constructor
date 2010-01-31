@@ -12,7 +12,7 @@ class Parser {
   }
 
   String parse(String input) {
-    input += " "
+    input = input.replace('\n', ' ') + " "
     Cloud cloud = new Cloud()
     int pos = 0
     while (pos < input.size()) {

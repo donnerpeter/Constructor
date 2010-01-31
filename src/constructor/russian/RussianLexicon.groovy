@@ -33,7 +33,12 @@ class RussianLexicon extends Lexicon {
       }
 
     storage['месяца'] = { new Word("месяца").aka("noun") }
-    storage['решить'] = { new Word("решить").aka("infinitive", "clause") }
+    storage['решить'] = { new Word("решить").aka("infinitive", "clause").expect(["_", "accusative"]) { new Construction("Obj", it) } }
+    storage['вопрос'] = { new Word("вопрос").aka("noun", "accusative") }
+    storage['о'] = { new Word("о").expect(["_", "prepositional"]) {
+      new Construction("Prepos", it).expect(["noun", "_"]) { new Construction("About", [it[1], it[0]])} }
+    }
+    storage['сносе'] = { new Word("сносе").aka("noun", "prepositional") }
   }
 
   Construction recognize(String s) {

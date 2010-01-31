@@ -12,7 +12,21 @@ import constructor.ParsingContext
 class RussianLexicon extends Lexicon {
 
   def RussianLexicon() {
-    //storage["в течение"] = { return new Word("в течение") }
+    storage["в течение"] = { return new Word("в течение") {
+
+      def Object activate(ParsingContext ctx) {
+        ctx.expect([this, Noun]) { new Construction("Prepos", it) {
+
+          def Object activate(ParsingContext ct) {
+            ct.expect([this, "clause"]) {
+              new Construction("When", it)
+              }
+          }
+
+        } }
+      }
+
+    } }
     storage["Власти"] = { return new Noun("Власти") {
 
       def Object ping(Object message) {
@@ -50,6 +64,19 @@ class RussianLexicon extends Lexicon {
 
       def Object activate(ParsingContext ctx) {
         ctx.expect(["nominative", this]) { new Construction("SubjPred", it) }
+        ctx.expect([this, "infinitive"]) { new Construction("XComp", it) }
+      }
+
+    } }
+
+    storage['месяца'] = { new Noun("месяца") }
+    storage['решить'] = { new Verb("решить") {
+
+      def Object ping(Object message) {
+        if (message == "infinitive" || message == "clause") {
+          return true
+        }
+        return super.ping(message);
       }
 
     } }
@@ -116,5 +143,13 @@ class Quoted extends Construction {
     ctx.expect([Noun, this]) { return new Construction("Appos", it) }
   }
 
+
+}
+
+class Verb extends Construction {
+
+  def Verb(name) {
+    super(name, [])
+  }
 
 }

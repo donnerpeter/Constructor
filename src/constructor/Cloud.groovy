@@ -14,13 +14,18 @@ class Cloud {
     starts[c] = at
     usages[c] = [] as Set
     c.args.each {arg ->
+      if (usages[arg] == null) {
+        assert usages[arg]
+      }
       usages[arg] << c
     }
 
     promote(c)
 
     expectations.clone().each {pattern, action ->
-      match(pattern, action)
+      if (expectations.containsKey(pattern)) {
+        match(pattern, action)
+      }
     }
 
     c.activate(new ParsingContext(cloud:this))

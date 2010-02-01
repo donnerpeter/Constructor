@@ -4,14 +4,14 @@ package constructor
  * @author peter
  */
 class Cloud {
-  def comparator = { c1, c2 -> starts[c1] - starts[c2]} as Comparator
+  def comparator = { c1, c2 -> ranges[c1].fromInt - ranges[c2].fromInt} as Comparator
   Map<Construction, Set<Construction>> usages = [:]
-  Map<Construction, Integer> starts = [:]
+  Map<Construction, IntRange> ranges = [:]
   Map<List, Closure> expectations = [:]
   LinkedList<Construction> active = new LinkedList<Construction>()
 
-  def addConstruction(Construction c, int at) {
-    starts[c] = at
+  def addConstruction(Construction c, IntRange range) {
+    ranges[c] = range
     usages[c] = [] as Set
     c.args.each {arg ->
       if (usages[arg] == null) {
@@ -58,7 +58,7 @@ class Cloud {
   def findAfter(hint, int pos) {
     def result = null
     active.clone().each {c ->
-      def p = starts[c]
+      def p = ranges[c].fromInt
       if (p >= pos && isAccepted(hint, c)) {
         result = c
       }
@@ -77,9 +77,9 @@ class Cloud {
   def findBefore(hint, int pos) {
     def result = null
     active.clone().each {c ->
-      def p = starts[c]
-      if (p + c.name.size() <= pos && isAccepted(hint, c)) {
-        if (result && starts[result] > p) {
+      def p = ranges[c].fromInt
+      if (ranges[c].toInt <= pos && isAccepted(hint, c)) {
+        if (result && ranges[result].fromInt > p) {
           return
         }
         result = c
@@ -89,18 +89,24 @@ class Cloud {
   }
 
   private def executeAction(action, args) {
-    args.each { promote(it) }
-    addConstruction action(args), starts[args[0]]
+    int _min = Integer.MAX_VALUE
+    int _max = Integer.MIN_VALUE
+    args.each {
+      _min = Math.min(_min, ranges[it].fromInt)
+      _max = Math.max(_max, ranges[it].toInt)
+      promote(it)
+    }
+    addConstruction action(args), _min.._max
   }
 
   def match(List pattern, Closure action) {
     expectations[pattern] = action
     if (pattern[0] instanceof Construction) {
-      def pos = starts[pattern[0]] + pattern[0].name.size()
+      def pos = ranges[pattern[0]].toInt
       def next = findAfter(pattern[1], pos)
       if (next) {
         if (pattern.size() > 2) {
-          def nnext = findAfter(pattern[2], starts[next] + next.name.size())
+          def nnext = findAfter(pattern[2], ranges[next].toInt)
           if (nnext) {
             expectations.remove pattern
             executeAction action, [pattern[0], next, nnext]
@@ -112,7 +118,7 @@ class Cloud {
       }
     }
     else if (pattern[1] instanceof Construction) {
-      def pos = starts[pattern[1]]
+      def pos = ranges[pattern[1]].fromInt
       def prev = findBefore(pattern[0], pos)
       if (prev) {
         expectations.remove pattern

@@ -20,7 +20,7 @@ class Parser {
       if (suitable) {
         def best = suitable[0]
         Construction c = lexicon.storage[best]()
-        cloud.addConstruction(c, pos)
+        cloud.addConstruction(c, pos..pos+best.size())
         pos += best.size()
       } else {
         def space = input.indexOf(' ', pos)
@@ -31,10 +31,10 @@ class Parser {
         def word = input[pos..space-1]
         def c = lexicon.recognize(word)
         if (c) {
-          cloud.addConstruction(c, pos)
+          cloud.addConstruction(c, pos..pos+word.size())
         }
         else {
-          cloud.addConstruction(new Word(word), pos)
+          cloud.addConstruction(new Word(word), pos..pos+word.size())
         }
         pos = space+1
       }

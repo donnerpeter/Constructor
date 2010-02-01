@@ -7,9 +7,10 @@ class ParsingContext {
   def construction
   Cloud cloud
   int pos
+  Map<List, Closure> expectations = [:]
 
   def expect(List args, Closure action) {
-    cloud.match(args, action)
+    expectations[args] = action
   }
 
   def reactivate(Construction construction) {

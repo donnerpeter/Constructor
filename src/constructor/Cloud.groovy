@@ -8,6 +8,7 @@ class Cloud {
   Map<Construction, Set<Construction>> usages = [:]
   Map<Construction, IntRange> ranges = [:]
   Map<List, Closure> expectations = [:]
+  Set<List> recalcExpectations = new LinkedHashSet<List>()
   LinkedList<Construction> active = new LinkedList<Construction>()
 
   def addConstruction(Construction c, IntRange range) {
@@ -22,14 +23,37 @@ class Cloud {
 
     promote(c)
 
-    expectations.clone().each {pattern, action ->
-      if (expectations.containsKey(pattern)) {
-        match(pattern, action)
-      }
-    }
+    checkExpectations(expectations.keySet())
 
     if (active.contains(c)) {
-      c.activate(new ParsingContext(cloud:this))
+      def ctx = new ParsingContext(cloud: this)
+      c.activate(ctx)
+
+      expectations.putAll(ctx.expectations)
+
+      checkExpectations(ctx.expectations.keySet())
+    }
+  }
+
+  private def checkExpectations(Set<List> toRecalc) {
+    recalcExpectations.addAll(toRecalc)
+    while (recalcExpectations) {
+      List pattern = recalcExpectations.iterator().next()
+      recalcExpectations.remove(pattern)
+      def lists = match(pattern)
+      if (lists) {
+        def action = expectations.remove(pattern)
+        lists.each {
+          int _min = Integer.MAX_VALUE
+          int _max = Integer.MIN_VALUE
+          it.each {
+            _min = Math.min(_min, ranges[it].fromInt)
+            _max = Math.max(_max, ranges[it].toInt)
+            promote(it)
+          }
+          addConstruction(action(it), _min.._max)
+        }
+      }
     }
   }
 
@@ -57,7 +81,7 @@ class Cloud {
 
   def findAfter(hint, int pos) {
     def result = null
-    active.clone().each {c ->
+    active.each {c ->
       def p = ranges[c].fromInt
       if (p >= pos && isAccepted(hint, c)) {
         result = c
@@ -76,7 +100,7 @@ class Cloud {
 
   def findBefore(hint, int pos) {
     def result = null
-    active.clone().each {c ->
+    active.each {c ->
       def p = ranges[c].fromInt
       if (ranges[c].toInt <= pos && isAccepted(hint, c)) {
         if (result && ranges[result].fromInt > p) {
@@ -88,19 +112,10 @@ class Cloud {
     return result
   }
 
-  private def executeAction(action, args) {
-    int _min = Integer.MAX_VALUE
-    int _max = Integer.MIN_VALUE
-    args.each {
-      _min = Math.min(_min, ranges[it].fromInt)
-      _max = Math.max(_max, ranges[it].toInt)
-      promote(it)
-    }
-    addConstruction action(args), _min.._max
-  }
 
-  def match(List pattern, Closure action) {
-    expectations[pattern] = action
+
+  List<List<Construction>> match(List pattern) {
+    def result = []
     if (pattern[0] instanceof Construction) {
       def pos = ranges[pattern[0]].toInt
       def next = findAfter(pattern[1], pos)
@@ -108,12 +123,10 @@ class Cloud {
         if (pattern.size() > 2) {
           def nnext = findAfter(pattern[2], ranges[next].toInt)
           if (nnext) {
-            expectations.remove pattern
-            executeAction action, [pattern[0], next, nnext]
+            result << [pattern[0], next, nnext]
           }
         } else {
-          expectations.remove pattern
-          executeAction action, [pattern[0], next]
+          result << [pattern[0], next]
         }
       }
     }
@@ -121,10 +134,10 @@ class Cloud {
       def pos = ranges[pattern[1]].fromInt
       def prev = findBefore(pattern[0], pos)
       if (prev) {
-        expectations.remove pattern
-        executeAction action, [prev, pattern[1]]
+        result << [prev, pattern[1]]
       }
     }
+    result
   }
 
   def promote(Construction c) {

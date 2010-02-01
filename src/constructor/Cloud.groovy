@@ -155,6 +155,11 @@ class Cloud {
   }
 
   private def clearExpectations(Construction c) {
-    expectations.clone().each {k, v -> if (k.contains(c)) expectations.remove(k) }
+    expectations.clone().each {k, v ->
+      if (k.contains(c)) {
+        expectations.remove(k)
+        recalcExpectations.remove(k)
+      }
+    }
   }
 }

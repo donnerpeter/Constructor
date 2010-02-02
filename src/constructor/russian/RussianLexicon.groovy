@@ -27,7 +27,24 @@ class RussianLexicon extends Lexicon {
         } }
       }
     storage['"'] = {
-      new Word('"').aka('"').expect(["_", Construction, '"']) {
+      new Word('"'){
+
+        def Boolean ping(Object message) {
+          if (message == name) {
+            return true
+          }
+          return super.ping(message);
+        }
+
+        def activate(ParsingContext ctx) {
+          ctx.pushColor()
+          ctx.expect([this, Construction, '"']) {
+            return new Quoted(it)
+          }
+        }
+
+
+      }.aka('"').expect(["_", Construction, '"']) {
         return new Quoted(it) } }
     storage['Крылатское'] = { new Word('Крылатское') }
     storage['намерены'] = { 
@@ -59,6 +76,7 @@ class Quoted extends Construction {
   }
 
   def Object activate(ParsingContext ctx) {
+    ctx.popColor(args[2], this)
     ctx.deactivate(args[0])
     ctx.deactivate(args[1])
     ctx.deactivate(args[2])

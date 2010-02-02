@@ -7,9 +7,11 @@ class Cloud {
   def comparator = { c1, c2 -> ranges[c1].fromInt - ranges[c2].fromInt} as Comparator
   Map<Construction, Set<Construction>> usages = [:]
   Map<Construction, IntRange> ranges = [:]
+  Map<Construction, Integer> colors = [:]
   Map<List, Closure> expectations = [:]
   Set<List> recalcExpectations = new LinkedHashSet<List>()
   LinkedList<Construction> active = new LinkedList<Construction>()
+  int curColor = 0, maxColor = 0
 
   def addConstruction(Construction c, IntRange range) {
     ranges[c] = range
@@ -20,6 +22,7 @@ class Cloud {
       }
       usages[arg] << c
     }
+    colors[c] = curColor
 
     promote(c)
 
@@ -28,6 +31,14 @@ class Cloud {
     if (active.contains(c)) {
       def ctx = new ParsingContext(cloud: this)
       c.activate(ctx)
+
+      if (ctx.colorDelta == 1) {
+        maxColor++
+        curColor = maxColor
+      } else if (ctx.colorDelta == -1) {
+        curColor = 0
+        ctx.oldColored.each { colors[it] = curColor }
+      }
 
       expectations.putAll(ctx.expectations)
 
@@ -74,7 +85,7 @@ class Cloud {
 
     StringBuilder sb = new StringBuilder()
     roots.each { c ->
-      sb.append(c.prettyPrint(varNameGenerator, "")).append("\n")
+      sb.append(c.prettyPrint(varNameGenerator, "", colors)).append("\n")
     }
     return sb.toString()
   }

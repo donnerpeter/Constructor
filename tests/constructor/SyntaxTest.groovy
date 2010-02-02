@@ -19,7 +19,7 @@ SubjPred #1 #3=намерены
 AdjNoun московской #2
 Appos
 	#2
-	Quoted " Крылатское "
+	Quoted " Крылатское{1} "
 XComp #3 #4=решить
 When
 	Prepos 'в течение' месяца
@@ -35,7 +35,7 @@ Where
 	#7
 Appos
 	#8
-	Quoted " Речник "
+	Quoted " Речник{2} "
 """
   }
 

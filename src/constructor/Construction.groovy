@@ -16,19 +16,24 @@ class Construction {
   }
 
   def String toString() {
-    return prettyPrint({""}, "");
+    return prettyPrint({""}, "", [:]);
   }
 
   boolean oneLiner() {
     return args.every { it.args.size() == 0 }
   }
 
-  String prettyPrint(Closure varName, String indent) {
+  String prettyPrint(Closure varName, String indent, Map<Construction, Integer> colors) {
     def prettyName = name.contains(' ') ? "'$name'" : name
+    def color = colors[this]
+    if (args.isEmpty() && color) {
+      return "$prettyName{$color}"
+    }
+
     def a = [prettyName] + args.collect({arg ->
       def prefix = varName(arg)
       if (!prefix || prefix.endsWith("=")) {
-        return prefix + arg.prettyPrint(varName, indent + "\t")
+        return prefix + arg.prettyPrint(varName, indent + "\t", colors)
       }
       return prefix
     })

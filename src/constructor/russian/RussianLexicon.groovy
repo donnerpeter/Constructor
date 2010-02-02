@@ -1,9 +1,6 @@
 package constructor.russian
 
-import constructor.Construction
-import constructor.Lexicon
-import constructor.Word
-import constructor.ParsingContext
+import constructor.*
 
 /**
  * @author peter
@@ -37,9 +34,9 @@ class RussianLexicon extends Lexicon {
         }
 
         def activate(ParsingContext ctx) {
-          ctx.pushColor()
-          ctx.expect([this, Construction, '"']) {
-            return new Quoted(it)
+          Colored colored = ctx.pushColor()
+          ctx.expect([this, '"']) {
+            return new Quoted([it[0], colored, it[1]])
           }
         }
 

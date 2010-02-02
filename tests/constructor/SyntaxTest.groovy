@@ -18,24 +18,32 @@ NounGenitive #1=Власти #2=управы
 SubjPred #1 #3=намерены
 AdjNoun московской #2
 Appos
-	#2
-	Quoted " Крылатское{1} "
+  #2
+  Quoted
+    "
+    Color{1}
+      Крылатское
+    "
 XComp #3 #4=решить
 When
-	Prepos 'в течение' месяца
-	#4
+  Prepos 'в течение' месяца
+  #4
 Obj #4 #5=вопрос
 About
-	Prepos о #6=сносе
-	#5
+  Prepos о #6=сносе
+  #5
 NounObj #6 #7=строений
 AdjNoun незаконных #7
 Where
-	Prepos в #8=поселке
-	#7
+  Prepos в #8=поселке
+  #7
 Appos
-	#8
-	Quoted " Речник{2} "
+  #8
+  Quoted
+    "
+    Color{2}
+      Речник
+    "
 """
   }
 

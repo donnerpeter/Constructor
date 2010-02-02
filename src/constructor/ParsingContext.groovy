@@ -23,12 +23,11 @@ class ParsingContext {
     cloud.demote(construction)
   }
 
-  def pushColor() {
-    colorDelta = 1
+  Colored pushColor() {
+    cloud.pushColor(pos)
   }
   
   def popColor(Construction... outsideConstructions) {
-    colorDelta = -1
     oldColored = outsideConstructions
   }
 }

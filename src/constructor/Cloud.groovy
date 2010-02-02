@@ -24,6 +24,10 @@ class Cloud {
     }
     colors[c] = curColor
 
+    if (c instanceof Colored) {
+      return
+    }
+
     promote(c)
 
     checkExpectations(expectations.keySet())
@@ -32,10 +36,7 @@ class Cloud {
       def ctx = new ParsingContext(cloud: this)
       c.activate(ctx)
 
-      if (ctx.colorDelta == 1) {
-        maxColor++
-        curColor = maxColor
-      } else if (ctx.colorDelta == -1) {
+      if (ctx.oldColored.size() > 0) {
         curColor = 0
         ctx.oldColored.each { colors[it] = curColor }
       }
@@ -44,6 +45,14 @@ class Cloud {
 
       checkExpectations(ctx.expectations.keySet())
     }
+  }
+
+  Colored pushColor(int pos) {
+    maxColor++
+    curColor = maxColor
+    def colored = new Colored(curColor)
+    addConstruction(colored, pos..pos)
+    return colored
   }
 
   private def checkExpectations(Set<List> toRecalc) {
@@ -69,6 +78,10 @@ class Cloud {
   }
 
   def prettyPrint() {
+    prettyPrint(0, "")
+  }
+
+  def prettyPrint(int color, String indent) {
     int curVarIndex = 0
     Map<Construction, String> varNames = [:]
     Closure varNameGenerator = {c ->
@@ -81,11 +94,14 @@ class Cloud {
       return (varNames[c] = "#${++curVarIndex}") + "="
     }
 
-    def roots = usages.keySet().sort(comparator).findAll {usages[it].isEmpty()}
+    def roots = usages.keySet().sort(comparator).findAll {usages[it].isEmpty() && colors[it]==color }
 
     StringBuilder sb = new StringBuilder()
-    roots.each { c ->
-      sb.append(c.prettyPrint(varNameGenerator, "", colors)).append("\n")
+    roots.each {c ->
+      if (sb.size() > 0) {
+        sb.append("\n")
+      }
+      sb.append(indent).append(c.prettyPrint(varNameGenerator, indent, this))
     }
     return sb.toString()
   }

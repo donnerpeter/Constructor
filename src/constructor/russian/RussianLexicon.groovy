@@ -14,16 +14,9 @@ class RussianLexicon extends Lexicon {
         new Construction("When", it)
       }
     } }
-    storage["Власти"] = { new Word("Власти").aka("nominative", "noun")/*.expect(["_", "genitive"]) { new Construction("NounObj", it) }*/}
+    storage["Власти"] = { new Word("Власти").aka("nominative", "noun").expect(["_", "genitive"]) { new Construction("NounObj", it) }}
     storage["московской"] = { new Word("московской").expect(["_", "noun"]) { new Construction("AdjNoun", it) } }
-    storage["управы"] = { new Word("управы").aka("noun", "genitive").expect(["noun", "_"]) { new Construction("NounGenitive", it) {
-
-          def Object activate(ParsingContext ct) {
-            ct.reactivate(args[0])
-          }
-
-        } }
-      }
+    storage["управы"] = { new Word("управы").aka("noun", "genitive") }
 
     storage['Крылатское'] = { new Word('Крылатское') }
     storage['намерены'] = { 
@@ -36,11 +29,17 @@ class RussianLexicon extends Lexicon {
     storage['о'] = { new Word("о").expect(["_", "prepositional"]) {
       new Construction("Prepos", it).expect(["noun", "_"]) { new Construction("About", [it[1], it[0]])} }
     }
-    storage['сносе'] = { new Word("сносе").aka("noun", "prepositional").expect(["_", "genitive"]) { new Construction("NounObj", it) } }
+    storage['сносе'] = { new Word("сносе").aka("noun", "prepositional", "locatable").expect(["_", "genitive"]) { new Construction("NounObj", it) } }
     storage['незаконных'] = { new Word("незаконных").expect(["_", "genitive"]) { new Construction("AdjNoun", it)} }
-    storage['строений'] = { new Word("строений").aka("noun", "genitive") }
+    storage['строений'] = { new Word("строений").aka("noun", "genitive", "locatable") }
     storage['в'] = { new Word("в").expect(["_", "prepositional"]) {
-      new Construction("Prepos", it).expect(["noun", "_"]) { new Construction("Where", [it[1], it[0]])} }
+      new Construction("Prepos", it)
+              .expect([["noun", "locatable"], "_"]) { new Construction("Where", [it[1], it[0]])}
+              .expect([["clause", "locatable"], "_"]) { new Construction("Where", [it[1], it[0]])}
+              }
+    }
+    storage['во'] = { new Word("во").expect(["_", ["accusative", "time"]]) {
+      new Construction("Prepos", it).expect(["clause", "_"]) { new Construction("When", [it[1], it[0]])} }
     }
     storage['поселке'] = { new Word("поселке").aka("noun", "prepositional") }
     storage['Речник'] = { new Word("Речник") }
@@ -56,6 +55,17 @@ class RussianLexicon extends Lexicon {
       new Construction("Prepos", it).expect(["clause", "_"]) { new Construction("When", [it[1], it[0]])} }
     }
     storage['месяц'] = { new Word("месяц").aka("noun", "accusative") }
+    storage['сообщил'] = {
+      new Word("сообщил").aka("clause", "locatable")
+              .expect(["_", "nominative"]) {
+        new Construction("SubjPred", [it[1], it[0]]) }
+              .expect(["Quoted", ",", "-", "_"]) { new Construction("DirectSpeech", it) }
+              .expect(["_", "dative"]) { new Construction("Goal", it) }
+    }
+    storage['журналистам'] = { new Word("журналистам").aka("noun", "dative") }
+    storage['вторник'] = { new Word("вторник").aka("noun", "accusative", "time") }
+    storage['поселке'] = { new Word("поселке").aka("noun", "prepositional") }
+    storage['глава'] = { new Word("глава").aka("noun", "nominative").expect(["_", "genitive"]) { new Construction("NounObj", it)} }
 
   }
 
@@ -77,6 +87,9 @@ class RussianLexicon extends Lexicon {
 
       }.aka('"').expect(["_", Construction, '"']) {
         return new Quoted(it) } }
+
+    storage[','] = { new Word(",").aka(",") }
+    storage['-'] = { new Word("-").aka("-") }
   }
 
 }
@@ -85,6 +98,10 @@ class Quoted extends Construction {
 
   def Quoted(args) {
     super("Quoted", args);
+  }
+
+  def ping(Object message) {
+    message == name
   }
 
   def Object activate(ParsingContext ctx) {

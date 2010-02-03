@@ -4,7 +4,9 @@ package constructor
  * @author peter
  */
 class Cloud {
-  def comparator = { c1, c2 -> ranges[c1].fromInt - ranges[c2].fromInt} as Comparator
+  def comparator = { c1, c2 ->
+    return ranges[c1].fromInt - ranges[c2].fromInt ?: ranges[c1].toInt - ranges[c2].toInt
+  } as Comparator
   Map<Construction, Set<Construction>> usages = [:]
   Map<Construction, IntRange> ranges = [:]
   Map<Construction, Integer> colors = [:]
@@ -63,15 +65,15 @@ class Cloud {
       def lists = match(pattern)
       if (lists) {
         def action = expectations.remove(pattern)
-        lists.each {
+        lists.each { argList ->
           int _min = Integer.MAX_VALUE
           int _max = Integer.MIN_VALUE
-          it.each {
-            _min = Math.min(_min, ranges[it].fromInt)
-            _max = Math.max(_max, ranges[it].toInt)
-            promote(it)
+          argList.each { arg ->
+            _min = Math.min(_min, ranges[arg].fromInt)
+            _max = Math.max(_max, ranges[arg].toInt)
+            promote(arg)
           }
-          addConstruction(action(it), _min.._max)
+          addConstruction(action(argList), _min.._max)
         }
       }
     }
@@ -164,6 +166,19 @@ class Cloud {
         result << [prev, pattern[1]]
       }
     }
+    else if (pattern.size() == 4 && pattern[3] instanceof Construction) {
+        def prev2 = findBefore(pattern[2], ranges[pattern[3]].fromInt)
+        if (prev2) {
+          def prev1 = findBefore(pattern[1], ranges[prev2].fromInt)
+          if (prev1) {
+            def prev0 = findBefore(pattern[0], ranges[prev1].fromInt)
+            if (prev0) {
+              result<< [prev0, prev1, prev2, pattern[3]]
+            }
+
+          }
+        }
+      }
     result
   }
 

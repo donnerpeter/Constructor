@@ -64,10 +64,7 @@ class RussianLexicon extends Lexicon {
       new Word('"'){
 
         def Boolean ping(Object message) {
-          if (message == name) {
-            return true
-          }
-          return super.ping(message);
+          message == name
         }
 
         def activate(ParsingContext ctx) {

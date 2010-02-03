@@ -7,5 +7,6 @@ class Word extends Construction {
 
   def Word(String name) {
     super(name, [])
+    famous()
   }
 }

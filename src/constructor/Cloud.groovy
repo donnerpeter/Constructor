@@ -118,8 +118,8 @@ class Cloud {
   }
 
   private def isAccepted(hint, Construction c) {
-    if (hint instanceof Class) {
-      hint.isInstance(c)
+    if (hint instanceof List) {
+      return hint.every { isAccepted(it, c) }
     } else {
       c.ping(hint)
     }
@@ -171,9 +171,28 @@ class Cloud {
     active.remove(c)
     active.addFirst(c)
     if (active.size() > 7) {
-      def last = active.removeLast()
-      clearExpectations(last)
+      Construction weak = weakest()
+      active.remove(weak)
+      clearExpectations(weak)
     }
+  }
+
+  def weakest() {
+    def happy = active[1..<active.size()].findAll { isHappy(it) }
+    if (!happy.isEmpty()) {
+      def infamous = happy.findAll { !it.famous }
+      if (!infamous.isEmpty()) {
+        return infamous[-1]
+      }
+
+      return happy[-1]
+    }
+
+    return active.last()
+  }
+
+  def isHappy(Construction c) {
+    return findExpectations(c).isEmpty()
   }
 
   def demote(Construction c) {
@@ -181,12 +200,13 @@ class Cloud {
     clearExpectations(c)
   }
 
+  def findExpectations(Construction c) {
+    expectations.keySet().findAll {k -> k.contains(c) }
+  }
+
   private def clearExpectations(Construction c) {
-    expectations.clone().each {k, v ->
-      if (k.contains(c)) {
-        expectations.remove(k)
-        recalcExpectations.remove(k)
-      }
-    }
+    def exps = findExpectations(c)
+    expectations.keySet().removeAll(exps)
+    recalcExpectations.removeAll(exps)
   }
 }

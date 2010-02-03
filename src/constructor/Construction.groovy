@@ -9,7 +9,7 @@ class Construction {
   List<Construction> args
   private Map<List, Closure> expectations = [:]
   private Set pings = [] as Set
-  private deactivate = false
+  def famous = false
 
   def Construction(String name, List<Construction> args) {
     this.name = name;
@@ -17,7 +17,8 @@ class Construction {
   }
 
   def String toString() {
-    return "($name $args)";
+    if (args.isEmpty()) return name
+    return "(" + ([name] + args).join(' ') + ")";
   }
 
   boolean oneLiner() {
@@ -43,9 +44,6 @@ class Construction {
   }
 
   def activate(ParsingContext ctx) {
-    if (deactivate) {
-      ctx.deactivate(this)
-    }
     expectations.each {pattern, action -> ctx.expect(pattern, action) }
   }
 
@@ -62,8 +60,8 @@ class Construction {
     return this
   }
 
-  Construction infamous() {
-    deactivate = true
+  Construction famous() {
+    famous = true
     return this
   }
 

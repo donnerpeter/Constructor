@@ -75,6 +75,11 @@ class Cloud {
           }
           addConstruction(action(argList), _min.._max)
         }
+      } else {
+        def anchor = pattern.findIndexOf { it instanceof Construction }
+        if (anchor > 0 && !activeBefore(ranges[pattern[anchor]].fromInt)) {
+          expectations.remove(pattern)
+        }
       }
     }
   }
@@ -127,11 +132,15 @@ class Cloud {
     }
   }
 
+  def activeBefore(int pos) {
+    active.findAll { ranges[it].toInt <= pos }
+  }
+
   def findBefore(hint, int pos) {
     def result = null
-    active.each {c ->
+    activeBefore(pos).each {c ->
       def p = ranges[c].fromInt
-      if (ranges[c].toInt <= pos && isAccepted(hint, c)) {
+      if (isAccepted(hint, c)) {
         if (result && ranges[result].fromInt > p) {
           return
         }
@@ -184,16 +193,19 @@ class Cloud {
 
   def promote(Construction c) {
     active.remove(c)
-    active.addFirst(c)
-    if (active.size() > 7) {
+    if (active.size() >= 7) {
       Construction weak = weakest()
+      if (weak.tracked) {
+        weakest()
+      }
       active.remove(weak)
       clearExpectations(weak)
     }
+    active.addFirst(c)
   }
 
-  def weakest() {
-    def happy = active[1..<active.size()].findAll { isHappy(it) }
+  Construction weakest() {
+    def happy = active.findAll { isHappy(it) }
     if (!happy.isEmpty()) {
       def infamous = happy.findAll { !it.famous }
       if (!infamous.isEmpty()) {

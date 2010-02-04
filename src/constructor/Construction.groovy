@@ -10,6 +10,7 @@ class Construction {
   private Map<List, Closure> expectations = [:]
   private Set pings = [] as Set
   def famous = false
+  def tracked = false
 
   def Construction(String name, List<Construction> args) {
     this.name = name;
@@ -64,5 +65,12 @@ class Construction {
     famous = true
     return this
   }
+
+  Construction track() {
+    tracked = true
+    return this
+  }
+
+
 
 }

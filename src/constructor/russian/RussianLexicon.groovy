@@ -66,6 +66,9 @@ class RussianLexicon extends Lexicon {
     storage['вторник'] = { new Word("вторник").aka("noun", "accusative", "time") }
     storage['поселке'] = { new Word("поселке").aka("noun", "prepositional") }
     storage['глава'] = { new Word("глава").aka("noun", "nominative").expect(["_", "genitive"]) { new Construction("NounObj", it)} }
+    storage['Виталий'] = { new Word("Виталий").expect(["_", "Surname"]) {
+      new Construction("NameSurname", it).expect(["nominative", "_"]) { new Construction("Named", it) } }}
+    storage['Никитин'] = { new Word("Никитин").aka("Surname") }
 
   }
 
@@ -98,6 +101,7 @@ class Quoted extends Construction {
 
   def Quoted(args) {
     super("Quoted", args);
+    famous()
   }
 
   def ping(Object message) {

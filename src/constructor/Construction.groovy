@@ -53,7 +53,7 @@ class Construction {
     return this
   }
 
-  Construction expect(List pattern, Closure action) {
+  Construction expect(List pattern, action) {
     for (i in 0..pattern.size()-1) {
       if (pattern[i] == "_") pattern[i] = this
     }

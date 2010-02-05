@@ -7,11 +7,11 @@ class ParsingContext {
   def construction
   Cloud cloud
   int pos
-  Map<List, Closure> expectations = [:]
+  Map expectations = [:]
   int colorDelta = 0
   Construction[] oldColored = []
 
-  def expect(List args, Closure action) {
+  def expect(List args, action) {
     expectations[args] = action
   }
 

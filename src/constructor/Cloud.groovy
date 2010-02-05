@@ -73,7 +73,8 @@ class Cloud {
             _max = Math.max(_max, ranges[arg].toInt)
             promote(arg)
           }
-          addConstruction(action(argList), _min.._max)
+          def result = action instanceof Closure ? action(argList) : ((ConstructionBuilder) action).build(argList)
+          addConstruction(result, _min.._max)
         }
       } else {
         def anchor = pattern.findIndexOf { it instanceof Construction }

@@ -10,79 +10,57 @@ class Cloud {
   Map<Construction, Set<Construction>> usages = [:]
   Map<Construction, IntRange> ranges = [:]
   Map<Construction, Integer> colors = [:]
-  Map<List, Closure> expectations = [:]
-  Set<List> recalcExpectations = new LinkedHashSet<List>()
-  LinkedList<Construction> active = new LinkedList<Construction>()
-  int curColor = 0, maxColor = 0
+  Map<IntRange, Colored> colorRanges = [:]
+  LinkedHashMap<Construction, Boolean> active = new LinkedHashMap<Construction, Boolean>()
+  int maxColor = 0
 
-  def addConstruction(Construction c, IntRange range) {
+  def addConstruction(Construction _c, IntRange range) {
+    initConstruction(_c, range)
+
+    LinkedList<Construction> queue = new LinkedList<Construction>()
+    queue << _c
+    
+    while (queue) {
+      def c = queue.removeFirst()
+      promote c
+      if (c.tracked) {
+        c
+      }
+      active.keySet().each {ac ->
+        def ctx = new ParsingContext(cloud: this)
+        def happy = ac.activate(ctx)
+        if (!happy && ac.name.contains('все')) {
+          happy
+        }
+        active[ac] = happy
+        ctx.newConstructions.each {newC ->
+          initConstruction(newC, compositeRange(newC))
+          queue << newC
+        }
+      }
+    }
+  }
+
+  private IntRange compositeRange(newC) {
+    int _min = Integer.MAX_VALUE
+    int _max = Integer.MIN_VALUE
+    newC.args.each {arg ->
+      _min = Math.min(_min, ranges[arg].fromInt)
+      _max = Math.max(_max, ranges[arg].toInt)
+    }
+    return _min.._max
+  }
+
+  private def initConstruction(Construction c, IntRange range) {
     ranges[c] = range
     usages[c] = [] as Set
+    colors[c] = 0
     c.args.each {arg ->
-      if (usages[arg] == null) {
-        assert usages[arg]
-      }
-      usages[arg] << c
-    }
-    colors[c] = curColor
-
-    if (c instanceof Colored) {
-      return
-    }
-
-    promote(c)
-
-    checkExpectations(expectations.keySet())
-
-    if (active.contains(c)) {
-      def ctx = new ParsingContext(cloud: this)
-      c.activate(ctx)
-
-      if (ctx.oldColored.size() > 0) {
-        curColor = 0
-        ctx.oldColored.each { colors[it] = curColor }
-      }
-
-      expectations.putAll(ctx.expectations)
-
-      checkExpectations(ctx.expectations.keySet())
-    }
-  }
-
-  Colored pushColor(int pos) {
-    maxColor++
-    curColor = maxColor
-    def colored = new Colored(curColor)
-    addConstruction(colored, pos..pos)
-    return colored
-  }
-
-  private def checkExpectations(Set<List> toRecalc) {
-    recalcExpectations.addAll(toRecalc)
-    while (recalcExpectations) {
-      List pattern = recalcExpectations.iterator().next()
-      recalcExpectations.remove(pattern)
-      def lists = match(pattern)
-      if (lists) {
-        def action = expectations.remove(pattern)
-        lists.each { argList ->
-          int _min = Integer.MAX_VALUE
-          int _max = Integer.MIN_VALUE
-          argList.each { arg ->
-            _min = Math.min(_min, ranges[arg].fromInt)
-            _max = Math.max(_max, ranges[arg].toInt)
-            promote(arg)
-          }
-          def result = action instanceof Closure ? action(argList) : ((ConstructionBuilder) action).build(argList)
-          addConstruction(result, _min.._max)
+        if (usages[arg] == null) {
+          assert usages[arg]
         }
-      } else {
-        def anchor = pattern.findIndexOf { it instanceof Construction }
-        if (anchor > 0 && !activeBefore(ranges[pattern[anchor]].fromInt)) {
-          expectations.remove(pattern)
-        }
+        usages[arg] << c
       }
-    }
   }
 
   def prettyPrint() {
@@ -114,9 +92,9 @@ class Cloud {
     return sb.toString()
   }
 
-  def findAfter(hint, int pos) {
+  Construction findAfter(hint, int pos) {
     def result = null
-    active.each {c ->
+    active.keySet().each {c ->
       def p = ranges[c].fromInt
       if (p >= pos && isAccepted(hint, c)) {
         result = c
@@ -125,7 +103,7 @@ class Cloud {
     return result
   }
 
-  private def isAccepted(hint, Construction c) {
+  def isAccepted(hint, Construction c) {
     if (hint instanceof List) {
       return hint.every { isAccepted(it, c) }
     } else {
@@ -134,10 +112,10 @@ class Cloud {
   }
 
   def activeBefore(int pos) {
-    active.findAll { ranges[it].toInt <= pos }
+    active.keySet().toArray().findAll { ranges[it].toInt <= pos }
   }
 
-  def findBefore(hint, int pos) {
+  Construction findBefore(hint, int pos) {
     def result = null
     activeBefore(pos).each {c ->
       def p = ranges[c].fromInt
@@ -193,48 +171,50 @@ class Cloud {
   }
 
   def promote(Construction c) {
-    active.remove(c)
+    if (c.tracked) {
+      c
+    }
+    def old = active.remove(c)
     if (active.size() >= 7) {
       Construction weak = weakest()
       if (weak.tracked) {
         weakest()
       }
       active.remove(weak)
-      clearExpectations(weak)
     }
-    active.addFirst(c)
+    active[c] = old
   }
 
   Construction weakest() {
-    def happy = active.findAll { isHappy(it) }
+    def happy = active.keySet().toArray().findAll { active[it] }
     if (!happy.isEmpty()) {
-      def infamous = happy.findAll { !it.famous }
-      if (!infamous.isEmpty()) {
-        return infamous[-1]
+      def colored = happy.findAll { colors[it] > 0 }
+      if (!colored.isEmpty()) {
+        return colored[0]
       }
 
-      return happy[-1]
+      return happy.iterator().next()
     }
 
-    return active.last()
-  }
-
-  def isHappy(Construction c) {
-    return findExpectations(c).isEmpty()
+    return active.keySet().iterator().next()
   }
 
   def demote(Construction c) {
     active.remove(c)
-    clearExpectations(c)
   }
 
-  def findExpectations(Construction c) {
-    expectations.keySet().findAll {k -> k.contains(c) }
-  }
-
-  private def clearExpectations(Construction c) {
-    def exps = findExpectations(c)
-    expectations.keySet().removeAll(exps)
-    recalcExpectations.removeAll(exps)
+  Colored coloredRange(IntRange range) {
+    def c = colorRanges[range]
+    if (!c) {
+      def newColor = ++maxColor
+      colorRanges[range] = c = new Colored(newColor)
+      initConstruction(c, range)
+      ranges.each {ec, r ->
+        if (r.fromInt >= range.fromInt && r.toInt <= range.toInt) {
+          colors[ec] = newColor
+        }
+      }
+    }
+    return c
   }
 }

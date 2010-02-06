@@ -14,10 +14,10 @@ class RussianLexicon extends Lexicon {
     noun("Власти", "nominative").expect(["_", "genitive"], cons("NounObj"))
     adj("московской", "genitive")
     noun("управы", "genitive")
-    word('Крылатское')
+    word('Крылатское').famous()
     word('намерены').expect(["nominative", "_"], cons("SubjPred")).expect(["_", "infinitive"], cons("XComp"))
     noun("месяца", "genitive")
-    word("решить").aka("infinitive", "clause").expect(["_", "accusative"], cons("Obj"))
+    word("решить").famous().aka("infinitive", "clause").expect(["_", "accusative"], cons("Obj"))
     noun("вопрос", "accusative")
     word("о").expect(["_", "prepositional"], cons("Prepos").expect(["noun", "_"]) { new Construction("About", [it[1], it[0]])})
     noun("сносе", "prepositional").aka("locatable").expect(["_", "genitive"], cons("NounObj"))
@@ -29,10 +29,10 @@ class RussianLexicon extends Lexicon {
                     expect([["clause", "locatable"], "_"]) { new Construction("Where", [it[1], it[0]])})
     word("во").expect(["_", ["accusative", "time"]], cons("Prepos").expect(["clause", "_"]) { new Construction("When", [it[1], it[0]])})
     noun("поселке", "prepositional")
-    word("Речник")
+    word("Речник").famous()
     noun("Мы", "nominative").aka("1pl")
-    word("планируем").expect([["nominative", "1pl"], "_"], cons("SubjPred")).expect(["_", "infinitive"], cons("XComp"))
-    word("снести").aka("infinitive", "clause").expect(["accusative", "_"]) { new Construction("Obj", [it[1], it[0]]) }
+    word("планируем").expect([["nominative", "1pl"], "_"], cons("SubjPred").consumes(0)).expect(["_", "infinitive"], cons("XComp").consumes(1))
+    word("снести").famous().aka("infinitive", "clause").expect(["accusative", "_"]) { new Construction("Obj", [it[1], it[0]]).consumes(1) }
     word("все").expect(["_", "accusative"], cons("Quantifier"))
     adj("незаконные", "accusative")
     noun("постройки", "accusative")
@@ -40,13 +40,13 @@ class RussianLexicon extends Lexicon {
     noun("месяц", "accusative")
     word("сообщил").aka("clause", "locatable").expect(["_", "nominative"]) {
         new Construction("SubjPred", [it[1], it[0]])
-      }.expect(["Quoted", ",", "-", "_"], cons("DirectSpeech")).expect(["_", "dative"], cons("Goal"))
+      }.expect(["Quoted", ",", "-", "_"], cons("DirectSpeech").consumes(0, 1, 2)).expect(["_", "dative"], cons("Goal").consumes(1))
     noun("журналистам", "dative")
     noun("вторник", "accusative").aka("time")
     noun("поселке", "prepositional")
     noun("глава", "nominative").expect(["_", "genitive"], cons("NounObj"))
-    word("Виталий").expect(["_", "Surname"], cons("NameSurname").expect(["nominative", "_"], cons("Named")))
-    word("Никитин").aka("Surname")
+    word("Виталий").famous().expect(["_", "Surname"], cons("NameSurname").expect(["nominative", "_"], cons("Named")))
+    word("Никитин").famous().aka("Surname")
 
   }
 
@@ -55,11 +55,11 @@ class RussianLexicon extends Lexicon {
   }
 
   def noun(String name, String _case) {
-    return word(name).aka("noun", _case)
+    return word(name).aka("noun", _case).famous()
   }
 
   ConstructionBuilder word(String name) {
-    def cb = cons(name).famous()
+    def cb = cons(name)
     storage[name] = cb
     return cb
   }
@@ -71,41 +71,30 @@ class RussianLexicon extends Lexicon {
   def specials() {
     storage['"'] = new ConstructionBuilder('"') {
 
-      def Construction build(Object args) {
+      Construction build(List<Construction> args) {
         return new Construction(name, []) {
 
-          def activate(ParsingContext ctx) {
-            Colored colored = ctx.pushColor()
-            ctx.expect([this, '"']) {
-              return new Quoted([it[0], colored, it[1]])
+          boolean activate(ParsingContext ctx) {
+            if (ctx.usedIn(this, "Quoted")) {
+              return true
             }
+
+            def pair = ctx.findAfter(this, '"')
+            if (pair) {
+              ctx.addConstruction(
+                      new Construction("Quoted", [this, ctx.coloredBetween(this, pair), pair]).aka("Quoted").expect(["noun", "_"], cons("Appos")).consumes(0, 1, 2)
+              )
+              return true
+            }
+            return false
           }
 
-        }.famous().aka(name).expect(["_", Construction, '"']) {
-          return new Quoted(it) } }
+        }.famous() }
     }
 
-    word(',').aka(',').famous()
-    word('-').aka('-').famous()
+    word(',').famous()
+    word('-').famous()
+
   }
-
-}
-
-class Quoted extends Construction {
-
-  def Quoted(args) {
-    super("Quoted", args);
-    famous().aka(name)
-    track()
-  }
-
-  def Object activate(ParsingContext ctx) {
-    ctx.popColor(args[2], this)
-    ctx.deactivate(args[0])
-    ctx.deactivate(args[1])
-    ctx.deactivate(args[2])
-    ctx.expect(["noun", this]) { return new Construction("Appos", it) }
-  }
-
 
 }

@@ -1,5 +1,7 @@
 package constructor
 
+import com.sun.jmx.mbeanserver.OpenConverter.CompositeBuilderViaConstructor.Constr
+
 /**
  * @author peter
  */
@@ -9,12 +11,14 @@ class Construction {
   List<Construction> args
   private Map<List, Closure> expectations = [:]
   private Set pings = [] as Set
+  private Set<Construction> consumedArgs = [] as Set
   def famous = false
   def tracked = false
 
   def Construction(String name, List<Construction> args) {
     this.name = name;
     this.args = args;
+    pings << name
   }
 
   def String toString() {
@@ -44,8 +48,40 @@ class Construction {
     pings.contains(message)
   }
 
-  def activate(ParsingContext ctx) {
-    expectations.each {pattern, action -> ctx.expect(pattern, action) }
+  private def consumed(Construction c) {
+    return consumedArgs.contains(c)
+  }
+
+  Construction consumes(int... argIndices) {
+    argIndices.each { consumedArgs << args[it] }
+    this
+  }
+
+  boolean activate(ParsingContext ctx) {
+    def happy = true
+    expectations.each {pattern, action ->
+      def mockArgs = pattern.collect { new Construction("Mock", []) }
+      def mockResult = action instanceof Closure ? action(mockArgs) : ((ConstructionBuilder)action).build(mockArgs)
+      if (!ctx.usedIn(this, mockResult.pings as String[])) {
+        def argLists = ctx.cloud.match(pattern)
+        if (argLists) {
+          argLists.each {args ->
+            def result = action instanceof Closure ? action(args) : action.build(args)
+            ctx.addConstruction result
+          }
+        } else {
+          def anchor = pattern.indexOf(this)
+          if (anchor > 0 && !ctx.cloud.activeBefore(ctx.cloud.ranges[pattern[anchor]].fromInt)) {
+          } else {
+            happy = false
+          }
+        }
+      }
+    }
+    if (happy && famous && ctx.cloud.usages[this].findAll { it.consumed(this) }.isEmpty()) {
+      return false
+    }
+    return happy
   }
 
   Construction aka(Object ... msg) {
@@ -54,10 +90,7 @@ class Construction {
   }
 
   Construction expect(List pattern, action) {
-    for (i in 0..pattern.size()-1) {
-      if (pattern[i] == "_") pattern[i] = this
-    }
-    expectations[pattern] = action
+    expectations[pattern.collect { it == "_" ? this : it }] = action
     return this
   }
 

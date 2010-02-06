@@ -9,6 +9,7 @@ class ConstructionBuilder {
   private def tracked = false
   private Set<String> akas = []
   private Map expectations = [:]
+  private Set<Integer> consumedArgs = [] as Set
 
   def ConstructionBuilder(String name) {
     this.name = name;
@@ -33,13 +34,20 @@ class ConstructionBuilder {
     return this
   }
 
-  def build(args) {
+  Construction build(List<Construction> args) {
     def c = new Construction(name, args)
     c.famous = famous
     c.tracked = tracked
     c.aka(akas.toArray())
     expectations.each { k, v -> c.expect(k, v) }
+    c.consumes(consumedArgs as int[])
     return c
   }
+
+  ConstructionBuilder consumes(int... argIndices) {
+    consumedArgs.addAll(argIndices as List)
+    return this
+  }
+
 
 }

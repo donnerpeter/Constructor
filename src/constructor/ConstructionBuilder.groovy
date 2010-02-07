@@ -8,7 +8,7 @@ class ConstructionBuilder {
   private def famous = false
   private def tracked = false
   private Set<String> akas = []
-  private Map<List, ConstructionBuilder> expectations = [:]
+  private Map<?, ConstructionBuilder> expectations = [:]
   private Set<Integer> consumedArgs = [] as Set
 
   def ConstructionBuilder(String name) {
@@ -35,18 +35,7 @@ class ConstructionBuilder {
   }
 
   ConstructionBuilder expect(Map<?, Integer> pattern, ConstructionBuilder action) {
-    def list = pattern.keySet() as List
-    expectations[list] = new ConstructionBuilder(action.name) {
-
-      def Construction build(List<Construction> args) {
-        def permuted = new Construction[args.size()] as List
-        args.eachWithIndex { arg, i ->
-          permuted[pattern[list[i]]] = arg
-        }
-        action.build(permuted)
-      }
-
-    }
+    expectations[pattern] = action
     return this
   }
 

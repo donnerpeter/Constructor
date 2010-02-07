@@ -86,9 +86,30 @@ class Construction {
   }
 
   Construction expect(List pattern, ConstructionBuilder action) {
-    expectations[pattern.collect { it == "_" ? this : it }] = action
+    expectations[substitute(pattern)] = action
     return this
   }
+
+  private List substitute(List pattern) {
+    return pattern.collect { it == "_" ? this : it }
+  }
+
+  Construction expect(Map<?, Integer> pattern, ConstructionBuilder action) {
+    def list = pattern.keySet() as List
+    expectations[substitute(list)] = new ConstructionBuilder(action.name) {
+
+      def Construction build(List<Construction> args) {
+        def permuted = new Construction[args.size()] as List
+        args.eachWithIndex { arg, i ->
+          permuted[pattern[list[i]]] = arg
+        }
+        action.build(permuted)
+      }
+
+    }
+    return this
+  }
+
 
   Construction famous() {
     famous = true

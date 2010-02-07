@@ -15,7 +15,7 @@ class RussianLexicon extends Lexicon {
     adj("московской", "genitive")
     noun("управы", "genitive")
     word('Крылатское').famous()
-    word('намерены').expect(["nominative", "_"], cons("SubjPred")).expect(["_", "infinitive"], cons("XComp"))
+    word('намерены').expect(["nominative":1, "_":0], cons("SubjPred")).expect(["_", "infinitive"], cons("XComp"))
     noun("месяца", "genitive")
     word("решить").famous().aka("infinitive", "clause").expect(["_", "accusative"], cons("Obj"))
     noun("вопрос", "accusative")
@@ -39,14 +39,14 @@ class RussianLexicon extends Lexicon {
     word("за").expect(["_", "accusative"], cons("Prepos").expect(["clause":1, "_":0], cons("When")))
     noun("месяц", "accusative")
     word("сообщил").aka("clause", "locatable").
-            expect(["_":1, "nominative":0], cons("SubjPred")).
-            expect(["Quoted", ",", "-", "_"], cons("DirectSpeech").consumes(0, 1, 2)).
+            expect(["_", "nominative"], cons("SubjPred")).
+            expect(["Quoted":1, ",":2, "-":3, "_":0], cons("DirectSpeech").consumes(0, 1, 2)).
             expect(["_", "dative"], cons("Goal").consumes(1))
     noun("журналистам", "dative")
     noun("вторник", "accusative").aka("time")
     noun("поселке", "prepositional")
     noun("глава", "nominative").expect(["_", "genitive"], cons("NounObj"))
-    word("Виталий").famous().expect(["_", "Surname"], cons("NameSurname").expect(["nominative", "_"], cons("Named")))
+    word("Виталий").famous().expect(["_", "Surname"], cons("NameSurname").expect(["nominative":1, "_":0], cons("Named")))
     word("Никитин").famous().aka("Surname")
 
   }
@@ -83,7 +83,7 @@ class RussianLexicon extends Lexicon {
             def pair = ctx.findAfter(this, '"')
             if (pair) {
               ctx.addConstruction(
-                      new Construction("Quoted", [this, ctx.coloredBetween(this, pair), pair]).aka("Quoted").expect(["noun", "_"], cons("Appos")).consumes(0, 1, 2)
+                      new Construction("Quoted", [this, ctx.coloredBetween(this, pair), pair]).aka("Quoted").expect(["noun":1, "_":0], cons("Appos")).consumes(0, 1, 2)
               )
               return true
             }

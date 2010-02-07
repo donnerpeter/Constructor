@@ -1,7 +1,5 @@
 package constructor
 
-import com.sun.jmx.mbeanserver.OpenConverter.CompositeBuilderViaConstructor.Constr
-
 /**
  * @author peter
  */
@@ -9,7 +7,7 @@ class Construction {
   static def TAB = "  "
   String name
   List<Construction> args
-  private Map<List, Closure> expectations = [:]
+  private Map<List, ConstructionBuilder> expectations = [:]
   private Set pings = [] as Set
   private Set<Construction> consumedArgs = [] as Set
   def famous = false
@@ -59,14 +57,12 @@ class Construction {
 
   boolean activate(ParsingContext ctx) {
     def happy = true
-    expectations.each {pattern, action ->
-      def mockArgs = pattern.collect { new Construction("Mock", []) }
-      def mockResult = action instanceof Closure ? action(mockArgs) : ((ConstructionBuilder)action).build(mockArgs)
-      if (!ctx.usedIn(this, mockResult.pings as String[])) {
+    expectations.each {pattern, ConstructionBuilder builder ->
+      if (!ctx.usedIn(this, builder.name)) {
         def argLists = ctx.cloud.match(pattern)
         if (argLists) {
           argLists.each {args ->
-            def result = action instanceof Closure ? action(args) : action.build(args)
+            def result = builder.build(args)
             ctx.addConstruction result
           }
         } else {
@@ -89,7 +85,7 @@ class Construction {
     return this
   }
 
-  Construction expect(List pattern, action) {
+  Construction expect(List pattern, ConstructionBuilder action) {
     expectations[pattern.collect { it == "_" ? this : it }] = action
     return this
   }

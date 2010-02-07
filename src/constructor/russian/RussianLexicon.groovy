@@ -19,28 +19,29 @@ class RussianLexicon extends Lexicon {
     noun("месяца", "genitive")
     word("решить").famous().aka("infinitive", "clause").expect(["_", "accusative"], cons("Obj"))
     noun("вопрос", "accusative")
-    word("о").expect(["_", "prepositional"], cons("Prepos").expect(["noun", "_"]) { new Construction("About", [it[1], it[0]])})
+    word("о").expect(["_", "prepositional"], cons("Prepos").expect(["noun":1, "_":0], cons("About")))
     noun("сносе", "prepositional").aka("locatable").expect(["_", "genitive"], cons("NounObj"))
     adj("незаконных", "genitive")
     noun("строений", "genitive").aka("locatable")
     word("в").expect(["_", "prepositional"],
             cons("Prepos").
-                    expect([["noun", "locatable"], "_"]) { new Construction("Where", [it[1], it[0]])}.
-                    expect([["clause", "locatable"], "_"]) { new Construction("Where", [it[1], it[0]])})
-    word("во").expect(["_", ["accusative", "time"]], cons("Prepos").expect(["clause", "_"]) { new Construction("When", [it[1], it[0]])})
+                    expect([["noun", "locatable"]:1, "_":0], cons("Where")).
+                    expect([["clause", "locatable"]:1, "_":0], cons("Where")))
+    word("во").expect(["_", ["accusative", "time"]], cons("Prepos").expect(["clause":1, "_":0], cons("When")))
     noun("поселке", "prepositional")
     word("Речник").famous()
     noun("Мы", "nominative").aka("1pl")
     word("планируем").expect([["nominative", "1pl"], "_"], cons("SubjPred").consumes(0)).expect(["_", "infinitive"], cons("XComp").consumes(1))
-    word("снести").famous().aka("infinitive", "clause").expect(["accusative", "_"]) { new Construction("Obj", [it[1], it[0]]).consumes(1) }
+    word("снести").famous().aka("infinitive", "clause").expect(["accusative":1, "_":0], cons("Obj").consumes(1))
     word("все").expect(["_", "accusative"], cons("Quantifier"))
     adj("незаконные", "accusative")
     noun("постройки", "accusative")
-    word("за").expect(["_", "accusative"], cons("Prepos").expect(["clause", "_"]) { new Construction("When", [it[1], it[0]])})
+    word("за").expect(["_", "accusative"], cons("Prepos").expect(["clause":1, "_":0], cons("When")))
     noun("месяц", "accusative")
-    word("сообщил").aka("clause", "locatable").expect(["_", "nominative"]) {
-        new Construction("SubjPred", [it[1], it[0]])
-      }.expect(["Quoted", ",", "-", "_"], cons("DirectSpeech").consumes(0, 1, 2)).expect(["_", "dative"], cons("Goal").consumes(1))
+    word("сообщил").aka("clause", "locatable").
+            expect(["_":1, "nominative":0], cons("SubjPred")).
+            expect(["Quoted", ",", "-", "_"], cons("DirectSpeech").consumes(0, 1, 2)).
+            expect(["_", "dative"], cons("Goal").consumes(1))
     noun("журналистам", "dative")
     noun("вторник", "accusative").aka("time")
     noun("поселке", "prepositional")

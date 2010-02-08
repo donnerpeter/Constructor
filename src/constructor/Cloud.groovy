@@ -142,15 +142,22 @@ class Cloud {
     def result = []
     if (pattern[0] instanceof Construction) {
       def pos = ranges[pattern[0]].toInt
-      def next = findAfter(pattern[1], pos)
-      if (next) {
+      def next1 = findAfter(pattern[1], pos)
+      if (next1) {
         if (pattern.size() > 2) {
-          def nnext = findAfter(pattern[2], ranges[next].toInt)
-          if (nnext) {
-            result << [pattern[0], next, nnext]
+          def next2 = findAfter(pattern[2], ranges[next1].toInt)
+          if (next2) {
+            if (pattern.size() > 3) {
+              def next3 = findAfter(pattern[3], ranges[next1].toInt)
+              if (next3) {
+                result << [pattern[0], next1, next2, next3]
+              }
+            } else {
+              result << [pattern[0], next1, next2]
+            }
           }
         } else {
-          result << [pattern[0], next]
+          result << [pattern[0], next1]
         }
       }
     }
@@ -161,19 +168,28 @@ class Cloud {
         result << [prev, pattern[1]]
       }
     }
-    else if (pattern.size() == 4 && pattern[3] instanceof Construction) {
-        def prev2 = findBefore(pattern[2], ranges[pattern[3]].fromInt)
-        if (prev2) {
-          def prev1 = findBefore(pattern[1], ranges[prev2].fromInt)
-          if (prev1) {
-            def prev0 = findBefore(pattern[0], ranges[prev1].fromInt)
-            if (prev0) {
-              result<< [prev0, prev1, prev2, pattern[3]]
-            }
-
+    else if (pattern.size() == 3 && pattern[2] instanceof Construction) {
+        def prev1 = findBefore(pattern[1], ranges[pattern[2]].fromInt)
+        if (prev1) {
+          def prev0 = findBefore(pattern[0], ranges[prev1].fromInt)
+          if (prev0) {
+            result<< [prev0, prev1, pattern[2]]
           }
         }
       }
+      else if (pattern.size() == 4 && pattern[3] instanceof Construction) {
+          def prev2 = findBefore(pattern[2], ranges[pattern[3]].fromInt)
+          if (prev2) {
+            def prev1 = findBefore(pattern[1], ranges[prev2].fromInt)
+            if (prev1) {
+              def prev0 = findBefore(pattern[0], ranges[prev1].fromInt)
+              if (prev0) {
+                result<< [prev0, prev1, prev2, pattern[3]]
+              }
+
+            }
+          }
+        }
     result
   }
 

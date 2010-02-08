@@ -10,6 +10,7 @@ class ConstructionBuilder {
   private Set<String> akas = []
   private Map<?, ConstructionBuilder> expectations = [:]
   private Set<Integer> consumedArgs = [] as Set
+  private Set<Integer> demotedArgs = [] as Set
 
   def ConstructionBuilder(String name) {
     this.name = name;
@@ -46,10 +47,15 @@ class ConstructionBuilder {
     c.aka(akas.toArray())
     expectations.each { k, v -> c.expect(k, v) }
     c.consumes(consumedArgs as int[])
+    c.demotes(demotedArgs as int[])
     return c
   }
 
   ConstructionBuilder consumes(int... argIndices) {
+    consumedArgs.addAll(argIndices as List)
+    return this
+  }
+  ConstructionBuilder demotes(int... argIndices) {
     consumedArgs.addAll(argIndices as List)
     return this
   }

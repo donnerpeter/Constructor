@@ -55,7 +55,7 @@ DirectSpeech
   Quoted
     "
     Color{1}
-      SubjPred Мы #1=планируем
+      SubjPred #1=планируем Мы
       XComp #1 #2=снести
       Quantifier все #3=постройки
       AdjNoun незаконные #3

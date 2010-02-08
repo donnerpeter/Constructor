@@ -22,22 +22,29 @@ class Cloud {
     
     while (queue) {
       def c = queue.removeFirst()
+      if (!c.shouldActivate()) {
+        continue
+      }
+
       promote c
       if (c.tracked) {
         c
       }
+      def toDemote = []
       active.keySet().each {ac ->
         def ctx = new ParsingContext(cloud: this)
         def happy = ac.activate(ctx)
-        if (!happy && ac.name.contains('все')) {
+        if (!happy) {
           happy
         }
         active[ac] = happy
         ctx.newConstructions.each {newC ->
           initConstruction(newC, compositeRange(newC))
           queue << newC
+          toDemote.addAll(newC.demotedArgs)
         }
       }
+      toDemote.each { demote it }
     }
   }
 
@@ -186,14 +193,15 @@ class Cloud {
   }
 
   Construction weakest() {
-    def happy = active.keySet().toArray().findAll { active[it] }
-    if (!happy.isEmpty()) {
-      def colored = happy.findAll { colors[it] > 0 }
-      if (!colored.isEmpty()) {
-        return colored[0]
-      }
+    def oldestFirst = active.keySet().toArray()
+    def colored = oldestFirst.findAll { colors[it] > 0 }
+    if (!colored.isEmpty()) {
+      return colored[0]
+    }
 
-      return happy.iterator().next()
+    def happy = oldestFirst.findAll { active[it] }
+    if (!happy.isEmpty()) {
+      return happy[0]
     }
 
     return active.keySet().iterator().next()

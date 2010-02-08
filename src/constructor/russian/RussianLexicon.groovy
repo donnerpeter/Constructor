@@ -9,46 +9,53 @@ class RussianLexicon extends Lexicon {
 
   def RussianLexicon() {
     specials()
-    word("в течение").expect(["_", "genitive"], cons("Prepos").expect(["_", "clause"], cons("When")))
+    preposition("в течение", "genitive") { it.expect(["_", "clause"], cons("When")) }
 
     noun("Власти", "nominative").expect(["_", "genitive"], cons("NounObj"))
     adj("московской", "genitive")
     noun("управы", "genitive")
     word('Крылатское').famous()
-    word('намерены').expect(["nominative":1, "_":0], cons("SubjPred")).expect(["_", "infinitive"], cons("XComp"))
+    word('намерены').expect(["nominative": 1, "_": 0], cons("SubjPred")).expect(["_", "infinitive"], cons("XComp"))
     noun("месяца", "genitive")
-    word("решить").famous().aka("infinitive", "clause").expect(["_", "accusative"], cons("Obj"))
+    infinitive("решить").expect(["_", "accusative"], cons("Obj"))
     noun("вопрос", "accusative")
-    word("о").expect(["_", "prepositional"], cons("Prepos").expect(["noun":1, "_":0], cons("About")))
+    preposition("о", "prepositional") {it.expect(["noun": 1, "_": 0], cons("About"))}
     noun("сносе", "prepositional").aka("locatable").expect(["_", "genitive"], cons("NounObj"))
     adj("незаконных", "genitive")
     noun("строений", "genitive").aka("locatable")
-    word("в").expect(["_", "prepositional"],
-            cons("Prepos").
-                    expect([["noun", "locatable"]:1, "_":0], cons("Where")).
-                    expect([["clause", "locatable"]:1, "_":0], cons("Where")))
-    word("во").expect(["_", ["accusative", "time"]], cons("Prepos").expect(["clause":1, "_":0], cons("When")))
+    preposition("в", "prepositional") { it.
+                    expect([["noun", "locatable"]: 1, "_": 0], cons("Where")).
+                    expect([["clause", "locatable"]: 1, "_": 0], cons("Where"))}
+    preposition("во", ["accusative", "time"]) { it.expect(["clause": 1, "_": 0], cons("When"))}
     noun("поселке", "prepositional")
     word("Речник").famous()
     noun("Мы", "nominative").aka("1pl")
     word("планируем").expect([["nominative", "1pl"], "_"], cons("SubjPred").consumes(0)).expect(["_", "infinitive"], cons("XComp").consumes(1))
-    word("снести").famous().aka("infinitive", "clause").expect(["accusative":1, "_":0], cons("Obj").consumes(1))
+    infinitive("снести").expect(["accusative": 1, "_": 0], cons("Obj").consumes(1))
     word("все").expect(["_", "accusative"], cons("Quantifier"))
     adj("незаконные", "accusative")
     noun("постройки", "accusative")
-    word("за").expect(["_", "accusative"], cons("Prepos").expect(["clause":1, "_":0], cons("When")))
+    preposition("за", "accusative") {it.expect(["clause": 1, "_": 0], cons("When"))}
     noun("месяц", "accusative")
     word("сообщил").aka("clause", "locatable").
             expect(["_", "nominative"], cons("SubjPred")).
-            expect(["Quoted":1, ",":2, "-":3, "_":0], cons("DirectSpeech").consumes(0, 1, 2)).
+            expect(["Quoted": 1, ",": 2, "-": 3, "_": 0], cons("DirectSpeech").consumes(0, 1, 2)).
             expect(["_", "dative"], cons("Goal").consumes(1))
     noun("журналистам", "dative")
     noun("вторник", "accusative").aka("time")
     noun("поселке", "prepositional")
     noun("глава", "nominative").expect(["_", "genitive"], cons("NounObj"))
-    word("Виталий").famous().expect(["_", "Surname"], cons("NameSurname").expect(["nominative":1, "_":0], cons("Named")))
+    word("Виталий").famous().expect(["_", "Surname"], cons("NameSurname").expect(["nominative": 1, "_": 0], cons("Named")))
     word("Никитин").famous().aka("Surname")
 
+  }
+
+  private ConstructionBuilder infinitive(String s) {
+    return word(s).famous().aka("infinitive", "clause")
+  }
+
+  private ConstructionBuilder preposition(String s, _case, Closure binding) {
+    return word(s).expect(["_", _case], binding(cons("Prepos")))
   }
 
   private ConstructionBuilder adj(String name, String _case) {

@@ -169,27 +169,27 @@ class Cloud {
       }
     }
     else if (pattern.size() == 3 && pattern[2] instanceof Construction) {
-        def prev1 = findBefore(pattern[1], ranges[pattern[2]].fromInt)
+      def prev1 = findBefore(pattern[1], ranges[pattern[2]].fromInt)
+      if (prev1) {
+        def prev0 = findBefore(pattern[0], ranges[prev1].fromInt)
+        if (prev0) {
+          result<< [prev0, prev1, pattern[2]]
+        }
+      }
+    }
+    else if (pattern.size() == 4 && pattern[3] instanceof Construction) {
+      def prev2 = findBefore(pattern[2], ranges[pattern[3]].fromInt)
+      if (prev2) {
+        def prev1 = findBefore(pattern[1], ranges[prev2].fromInt)
         if (prev1) {
           def prev0 = findBefore(pattern[0], ranges[prev1].fromInt)
           if (prev0) {
-            result<< [prev0, prev1, pattern[2]]
+            result<< [prev0, prev1, prev2, pattern[3]]
           }
+
         }
       }
-      else if (pattern.size() == 4 && pattern[3] instanceof Construction) {
-          def prev2 = findBefore(pattern[2], ranges[pattern[3]].fromInt)
-          if (prev2) {
-            def prev1 = findBefore(pattern[1], ranges[prev2].fromInt)
-            if (prev1) {
-              def prev0 = findBefore(pattern[0], ranges[prev1].fromInt)
-              if (prev0) {
-                result<< [prev0, prev1, prev2, pattern[3]]
-              }
-
-            }
-          }
-        }
+    }
     result
   }
 

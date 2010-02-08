@@ -86,7 +86,7 @@ class Construction {
     return happy
   }
 
-  Construction aka(Object ... msg) {
+  Construction aka(Object... msg) {
     this.pings.addAll(msg as Set)
     return this
   }

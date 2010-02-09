@@ -3,45 +3,45 @@ package constructor
 /**
  * @author peter
  */
-class ConstructionBuilder {
+class Descriptor {
   def name
   private def famous = false
   private def tracked = false
   private Set<String> akas = []
-  private Map<?, ConstructionBuilder> expectations = [:]
+  private Map<?, Descriptor> expectations = [:]
   private Set<Integer> consumedArgs = [] as Set
   private Set<Integer> demotedArgs = [] as Set
 
-  def ConstructionBuilder(String name) {
+  def Descriptor(String name) {
     this.name = name;
   }
 
-  ConstructionBuilder aka(String... akas) {
+  Descriptor aka(String... akas) {
     this.akas.addAll(Arrays.asList(akas))
     return this
   }
 
-  ConstructionBuilder track() {
+  Descriptor track() {
     tracked = true
     this
   }
-  ConstructionBuilder famous() {
+  Descriptor famous() {
     famous = true
     this
   }
 
-  ConstructionBuilder expect(List pattern, action) {
+  Descriptor expect(List pattern, action) {
     expectations[pattern] = action
     return this
   }
 
-  ConstructionBuilder expect(Map<?, Integer> pattern, ConstructionBuilder action) {
+  Descriptor expect(Map<?, Integer> pattern, Descriptor action) {
     expectations[pattern] = action
     return this
   }
 
   Construction build(List<Construction> args) {
-    def c = new Construction(name, args)
+    def c = new Construction(this, args)
     c.famous = famous
     c.tracked = tracked
     c.aka(akas.toArray())
@@ -51,12 +51,12 @@ class ConstructionBuilder {
     return c
   }
 
-  ConstructionBuilder consumes(int... argIndices) {
+  Descriptor consumes(int... argIndices) {
     consumedArgs.addAll(argIndices as List)
     return this
   }
-  ConstructionBuilder demotes(int... argIndices) {
-    consumedArgs.addAll(argIndices as List)
+  Descriptor demotes(int... argIndices) {
+    demotedArgs.addAll(argIndices as List)
     return this
   }
 

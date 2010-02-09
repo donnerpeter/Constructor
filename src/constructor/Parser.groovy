@@ -34,7 +34,7 @@ class Parser {
           cloud.addConstruction(c, pos..pos+word.size())
         }
         else {
-          cloud.addConstruction(new Construction(word, []), pos..pos+word.size())
+          cloud.addConstruction(new Descriptor(word).build([]), pos..pos+word.size())
         }
         pos = space+1
       }

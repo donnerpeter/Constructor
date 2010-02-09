@@ -4,7 +4,7 @@ package constructor
  * @author peter
  */
 class Lexicon {
-  Map<String, ConstructionBuilder> storage = [:]
+  Map<String, Descriptor> storage = [:]
 
   Construction recognize(String s) {
     null

@@ -6,17 +6,19 @@ package constructor
 class Construction {
   static def TAB = "  "
   String name
+  Descriptor descr
   List<Construction> args
-  private Map<List, ConstructionBuilder> expectations = [:]
+  private Map<List, Descriptor> expectations = [:]
   private Set pings = [] as Set
   private Set<Construction> consumedArgs = [] as Set
   Set<Construction> demotedArgs = [] as Set
   def famous = false
   def tracked = false
 
-  def Construction(String name, List<Construction> args) {
-    this.name = name;
+  def Construction(Descriptor descr, List<Construction> args) {
+    this.descr = descr
     this.args = args;
+    name = descr.name;
     pings << name
   }
 
@@ -63,7 +65,7 @@ class Construction {
 
   boolean activate(ParsingContext ctx) {
     def happy = true
-    expectations.each {pattern, ConstructionBuilder builder ->
+    expectations.each {pattern, Descriptor builder ->
       if (!ctx.usedIn(this, builder.name)) {
         def argLists = ctx.cloud.match(pattern)
         if (argLists) {
@@ -91,7 +93,7 @@ class Construction {
     return this
   }
 
-  Construction expect(List pattern, ConstructionBuilder action) {
+  Construction expect(List pattern, Descriptor action) {
     expectations[substitute(pattern)] = action
     return this
   }
@@ -100,9 +102,9 @@ class Construction {
     return pattern.collect { it == "_" ? this : it }
   }
 
-  Construction expect(Map<?, Integer> pattern, ConstructionBuilder action) {
+  Construction expect(Map<?, Integer> pattern, Descriptor action) {
     def list = pattern.keySet() as List
-    expectations[substitute(list)] = new ConstructionBuilder(action.name) {
+    expectations[substitute(list)] = new Descriptor(action.name) {
 
       def Construction build(List<Construction> args) {
         def permuted = new Construction[args.size()] as List

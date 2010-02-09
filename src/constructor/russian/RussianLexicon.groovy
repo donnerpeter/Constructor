@@ -64,21 +64,21 @@ class RussianLexicon extends Lexicon {
 
   }
 
-  private ConstructionBuilder infinitive(String s) {
+  private Descriptor infinitive(String s) {
     return word(s).famous().aka("infinitive", "clause")
   }
 
-  private ConstructionBuilder verb(String s, String agr) {
+  private Descriptor verb(String s, String agr) {
     return word(s).aka("clause").
             expect([["nominative", agr]:1, "_":0], cons("SubjPred").consumes(1)).
             expect(["_", ["nominative", agr]], cons("SubjPred").consumes(1))
   }
 
-  private ConstructionBuilder preposition(String s, _case, Closure binding) {
+  private Descriptor preposition(String s, _case, Closure binding) {
     return word(s).expect(["_", _case], binding(cons("Prepos").consumes(1)))
   }
 
-  private ConstructionBuilder adj(String name, String _case) {
+  private Descriptor adj(String name, String _case) {
     return word(name).expect(["_", _case], cons("AdjNoun"))
   }
 
@@ -86,21 +86,21 @@ class RussianLexicon extends Lexicon {
     return word(name).aka("noun", _case).famous()
   }
 
-  ConstructionBuilder word(String name) {
+  Descriptor word(String name) {
     def cb = cons(name)
     storage[name] = cb
     return cb
   }
 
-  ConstructionBuilder cons(String name) {
-    return new ConstructionBuilder(name)
+  Descriptor cons(String name) {
+    return new Descriptor(name)
   }
 
   def specials() {
-    storage['"'] = new ConstructionBuilder('"') {
+    storage['"'] = new Descriptor('"') {
 
       Construction build(List<Construction> args) {
-        return new Construction(name, []) {
+        return new Construction(this, []) {
 
           boolean activate(ParsingContext ctx) {
             if (ctx.usedIn(this, "Quoted")) {
@@ -110,9 +110,8 @@ class RussianLexicon extends Lexicon {
             def pair = ctx.findAfter(this, '"')
             if (pair) {
               def newargs = [this, ctx.coloredBetween(this, pair), pair]
-              ctx.addConstruction(
-                      new Construction("Quoted", newargs).aka("Quoted").expect(["noun":1, "_":0], cons("Appos")).consumes(0, 1, 2).demotes(0, 1, 2)
-              )
+              def descr = cons("Quoted").expect(["noun":1, "_":0], cons("Appos")).consumes(0, 1, 2).demotes(0, 1, 2)
+              ctx.addConstruction(descr.build(newargs))
               return true
             }
             return false

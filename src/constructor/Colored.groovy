@@ -7,7 +7,7 @@ class Colored extends Construction {
   int color
 
   def Colored(color) {
-    super("Color" + color, []);
+    super(new Descriptor("Color" + color), []);
     this.color = color;
   }
 

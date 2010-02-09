@@ -41,7 +41,7 @@ class Cloud {
         ctx.newConstructions.each {newC ->
           initConstruction(newC, compositeRange(newC))
           queue << newC
-          toDemote.addAll(newC.demotedArgs)
+          newC.descr.demotedArgs.each { i -> toDemote << newC.args[i] }
         }
       }
       toDemote.each { demote it }

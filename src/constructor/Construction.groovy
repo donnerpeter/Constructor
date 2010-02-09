@@ -11,7 +11,6 @@ class Construction {
   private Map<List, Descriptor> expectations = [:]
   private Set pings = [] as Set
   private Set<Construction> consumedArgs = [] as Set
-  Set<Construction> demotedArgs = [] as Set
   def famous = false
   def tracked = false
 
@@ -50,11 +49,6 @@ class Construction {
 
   Construction consumes(int... argIndices) {
     argIndices.each { consumedArgs << args[it] }
-    this
-  }
-
-  Construction demotes(int... argIndices) {
-    argIndices.each { demotedArgs << args[it] }
     this
   }
 

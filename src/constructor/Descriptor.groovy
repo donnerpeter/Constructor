@@ -10,7 +10,7 @@ class Descriptor {
   private Set<String> pings = [] as Set
   private Map<?, Descriptor> expectations = [:]
   private Set<Integer> consumedArgs = [] as Set
-  private Set<Integer> demotedArgs = [] as Set
+  Set<Integer> demotedArgs = [] as Set
 
   def Descriptor(String name) {
     this.name = name
@@ -47,7 +47,6 @@ class Descriptor {
     c.tracked = tracked
     expectations.each { k, v -> c.expect(k, v) }
     c.consumes(consumedArgs as int[])
-    c.demotes(demotedArgs as int[])
     return c
   }
 
@@ -64,7 +63,5 @@ class Descriptor {
   def ping(Construction c, message) {
     pings.contains(message)
   }
-
-
 
 }

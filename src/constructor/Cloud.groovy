@@ -22,7 +22,7 @@ class Cloud {
     
     while (queue) {
       def c = queue.removeFirst()
-      if (!c.shouldActivate()) {
+      if (!c.descr.shouldActivate()) {
         continue
       }
 
@@ -33,7 +33,7 @@ class Cloud {
       def toDemote = []
       active.keySet().each {ac ->
         def ctx = new ParsingContext(cloud: this)
-        def happy = ac.activate(ctx)
+        def happy = ac.descr.activate(ac, ctx)
         if (!happy) {
           happy
         }
@@ -114,7 +114,7 @@ class Cloud {
     if (hint instanceof List) {
       return hint.every { isAccepted(it, c) }
     } else {
-      c.descr.ping(c, hint)
+      c.descr.ping(hint)
     }
   }
 
@@ -138,10 +138,10 @@ class Cloud {
 
 
 
-  List<List<Construction>> match(List pattern) {
+  List<List<Construction>> match(Construction cur, List pattern) {
     def result = []
-    if (pattern[0] instanceof Construction) {
-      def pos = ranges[pattern[0]].toInt
+    if (pattern[0] == "_") {
+      def pos = ranges[cur].toInt
       def next1 = findAfter(pattern[1], pos)
       if (next1) {
         if (pattern.size() > 2) {
@@ -150,41 +150,41 @@ class Cloud {
             if (pattern.size() > 3) {
               def next3 = findAfter(pattern[3], ranges[next1].toInt)
               if (next3) {
-                result << [pattern[0], next1, next2, next3]
+                result << [cur, next1, next2, next3]
               }
             } else {
-              result << [pattern[0], next1, next2]
+              result << [cur, next1, next2]
             }
           }
         } else {
-          result << [pattern[0], next1]
+          result << [cur, next1]
         }
       }
     }
-    else if (pattern[1] instanceof Construction) {
-      def pos = ranges[pattern[1]].fromInt
+    else if (pattern[1] == "_") {
+      def pos = ranges[cur].fromInt
       def prev = findBefore(pattern[0], pos)
       if (prev) {
-        result << [prev, pattern[1]]
+        result << [prev, cur]
       }
     }
-    else if (pattern.size() == 3 && pattern[2] instanceof Construction) {
-      def prev1 = findBefore(pattern[1], ranges[pattern[2]].fromInt)
+    else if (pattern.size() == 3 && pattern[2] == "_") {
+      def prev1 = findBefore(pattern[1], ranges[cur].fromInt)
       if (prev1) {
         def prev0 = findBefore(pattern[0], ranges[prev1].fromInt)
         if (prev0) {
-          result<< [prev0, prev1, pattern[2]]
+          result<< [prev0, prev1, cur]
         }
       }
     }
-    else if (pattern.size() == 4 && pattern[3] instanceof Construction) {
-      def prev2 = findBefore(pattern[2], ranges[pattern[3]].fromInt)
+    else if (pattern.size() == 4 && pattern[3] == "_") {
+      def prev2 = findBefore(pattern[2], ranges[cur].fromInt)
       if (prev2) {
         def prev1 = findBefore(pattern[1], ranges[prev2].fromInt)
         if (prev1) {
           def prev0 = findBefore(pattern[0], ranges[prev1].fromInt)
           if (prev0) {
-            result<< [prev0, prev1, prev2, pattern[3]]
+            result<< [prev0, prev1, prev2, cur]
           }
 
         }

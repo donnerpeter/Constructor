@@ -8,9 +8,7 @@ class Construction {
   String name
   Descriptor descr
   List<Construction> args
-  private Map<List, Descriptor> expectations = [:]
   private Set<Construction> consumedArgs = [] as Set
-  def famous = false
   def tracked = false
 
   def Construction(Descriptor descr, List<Construction> args) {
@@ -43,75 +41,8 @@ class Construction {
     return a.join(separator)
   }
 
-  private def consumed(Construction c) {
+  def consumed(Construction c) {
     return consumedArgs.contains(c)
   }
-
-  boolean activate(ParsingContext ctx) {
-    def happy = true
-    expectations.each {pattern, Descriptor builder ->
-      if (!ctx.usedIn(this, builder.name)) {
-        def argLists = ctx.cloud.match(pattern)
-        if (argLists) {
-          argLists.each {args ->
-            def result = builder.build(args)
-            ctx.addConstruction result
-          }
-        } else {
-          def anchor = pattern.indexOf(this)
-          if (anchor > 0 && !ctx.cloud.activeBefore(ctx.cloud.ranges[pattern[anchor]].fromInt)) {
-          } else {
-            happy = false
-          }
-        }
-      }
-    }
-    if (happy && famous && ctx.cloud.usages[this].findAll { it.consumed(this) }.isEmpty()) {
-      return false
-    }
-    return happy
-  }
-
-  Construction expect(List pattern, Descriptor action) {
-    expectations[substitute(pattern)] = action
-    return this
-  }
-
-  private List substitute(List pattern) {
-    return pattern.collect { it == "_" ? this : it }
-  }
-
-  Construction expect(Map<?, Integer> pattern, Descriptor action) {
-    def list = pattern.keySet() as List
-    expectations[substitute(list)] = new Descriptor(action.name) {
-
-      def Construction build(List<Construction> args) {
-        def permuted = new Construction[args.size()] as List
-        args.eachWithIndex { arg, i ->
-          permuted[pattern[list[i]]] = arg
-        }
-        action.build(permuted)
-      }
-
-    }
-    return this
-  }
-
-
-  Construction famous() {
-    famous = true
-    return this
-  }
-
-  Construction track() {
-    tracked = true
-    return this
-  }
-
-  boolean shouldActivate() {
-    return famous || !expectations.isEmpty()
-  }
-
-
 
 }

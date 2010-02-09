@@ -57,7 +57,7 @@ class RussianLexicon extends Lexicon {
     noun("строения", "genitive")
     word("к").famous()
     noun("сносу", "dative")
-    verb("готовится", "3sg").expect(["к":1, "dative":2, "_":0], cons("Oblique").consumes(1, 2)).track()
+    verb("готовится", "3sg").expect(["к":1, "dative":2, "_":0], cons("Oblique").consumes(1, 2))
     word("третий").expect(["_", "nominative"], cons("Order")).consumes(0)
     noun("дом", "nominative").aka("3sg")
 
@@ -99,26 +99,22 @@ class RussianLexicon extends Lexicon {
   def specials() {
     storage['"'] = new Descriptor('"') {
 
-      Construction build(List<Construction> args) {
-        return new Construction(this, []) {
+      boolean activate(Construction c, ParsingContext ctx) {
+        if (ctx.usedIn(c, "Quoted")) {
+          return true
+        }
 
-          boolean activate(ParsingContext ctx) {
-            if (ctx.usedIn(this, "Quoted")) {
-              return true
-            }
+        def pair = ctx.findAfter(c, '"')
+        if (pair) {
+          def newArgs = [c, ctx.coloredBetween(c, pair), pair]
+          def descr = cons("Quoted").expect(["noun":1, "_":0], cons("Appos")).consumes(0, 1, 2).demotes(0, 1, 2)
+          ctx.addConstruction(descr.build(newArgs))
+          return true
+        }
+        return false
+      }
 
-            def pair = ctx.findAfter(this, '"')
-            if (pair) {
-              def newargs = [this, ctx.coloredBetween(this, pair), pair]
-              def descr = cons("Quoted").expect(["noun":1, "_":0], cons("Appos")).consumes(0, 1, 2).demotes(0, 1, 2)
-              ctx.addConstruction(descr.build(newargs))
-              return true
-            }
-            return false
-          }
-
-        }.famous() }
-    }
+    }.famous()
 
     word(',').famous()
     word('-').famous()

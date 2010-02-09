@@ -8,7 +8,7 @@ class Descriptor {
   private def famous = false
   private def tracked = false
   private Set<String> pings = [] as Set
-  private Map<?, Descriptor> expectations = [:]
+  private Map<List, Descriptor> expectations = [:]
   Set<Integer> consumedArgs = [] as Set
   Set<Integer> demotedArgs = [] as Set
 
@@ -37,15 +37,24 @@ class Descriptor {
   }
 
   Descriptor expect(Map<?, Integer> pattern, Descriptor action) {
-    expectations[pattern] = action
+    def list = pattern.keySet() as List
+    expectations[list] = new Descriptor(action.name) {
+
+      def Construction build(List<Construction> args) {
+        def permuted = new Construction[args.size()] as List
+        args.eachWithIndex { arg, i ->
+          permuted[pattern[list[i]]] = arg
+        }
+        action.build(permuted)
+      }
+
+    }
     return this
   }
 
   Construction build(List<Construction> args) {
     def c = new Construction(this, args)
-    c.famous = famous
     c.tracked = tracked
-    expectations.each { k, v -> c.expect(k, v) }
     return c
   }
 
@@ -59,8 +68,36 @@ class Descriptor {
     return this
   }
 
-  def ping(Construction c, message) {
+  def ping(message) {
     pings.contains(message)
   }
+
+  boolean activate(Construction c, ParsingContext ctx) {
+    def happy = true
+    expectations.each {pattern, Descriptor builder ->
+      if (!ctx.usedIn(c, builder.name)) {
+        def argLists = ctx.cloud.match(c, pattern)
+        if (argLists) {
+          argLists.each {args ->
+            def result = builder.build(args)
+            ctx.addConstruction result
+          }
+        } else {
+          if (pattern.indexOf("_") == 0 || ctx.cloud.activeBefore(ctx.cloud.ranges[c].fromInt).size() > 0) {
+            happy = false
+          }
+        }
+      }
+    }
+    if (happy && famous && ctx.cloud.usages[this].findAll { it.consumed(c) }.isEmpty()) {
+      return false
+    }
+    return happy
+  }
+
+  boolean shouldActivate() {
+    return famous || !expectations.isEmpty()
+  }
+
 
 }

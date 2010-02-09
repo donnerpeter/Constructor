@@ -114,7 +114,7 @@ class Cloud {
     if (hint instanceof List) {
       return hint.every { isAccepted(it, c) }
     } else {
-      c.ping(hint)
+      c.descr.ping(c, hint)
     }
   }
 

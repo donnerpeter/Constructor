@@ -7,17 +7,18 @@ class Descriptor {
   def name
   private def famous = false
   private def tracked = false
-  private Set<String> akas = []
+  private Set<String> pings = [] as Set
   private Map<?, Descriptor> expectations = [:]
   private Set<Integer> consumedArgs = [] as Set
   private Set<Integer> demotedArgs = [] as Set
 
   def Descriptor(String name) {
-    this.name = name;
+    this.name = name
+    pings << name
   }
 
   Descriptor aka(String... akas) {
-    this.akas.addAll(Arrays.asList(akas))
+    this.pings.addAll(Arrays.asList(akas))
     return this
   }
 
@@ -44,7 +45,6 @@ class Descriptor {
     def c = new Construction(this, args)
     c.famous = famous
     c.tracked = tracked
-    c.aka(akas.toArray())
     expectations.each { k, v -> c.expect(k, v) }
     c.consumes(consumedArgs as int[])
     c.demotes(demotedArgs as int[])
@@ -55,10 +55,16 @@ class Descriptor {
     consumedArgs.addAll(argIndices as List)
     return this
   }
+  
   Descriptor demotes(int... argIndices) {
     demotedArgs.addAll(argIndices as List)
     return this
   }
+
+  def ping(Construction c, message) {
+    pings.contains(message)
+  }
+
 
 
 }

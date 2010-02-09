@@ -19,7 +19,6 @@ class Construction {
     this.descr = descr
     this.args = args;
     name = descr.name;
-    pings << name
   }
 
   def String toString() {
@@ -43,10 +42,6 @@ class Construction {
 
     String separator = oneLiner() ? " " : "\n$indent$TAB"
     return a.join(separator)
-  }
-
-  def ping(message) {
-    pings.contains(message)
   }
 
   private def consumed(Construction c) {
@@ -86,11 +81,6 @@ class Construction {
       return false
     }
     return happy
-  }
-
-  Construction aka(Object... msg) {
-    this.pings.addAll(msg as Set)
-    return this
   }
 
   Construction expect(List pattern, Descriptor action) {

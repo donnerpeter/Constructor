@@ -16,6 +16,7 @@ class Construction {
     this.args = args;
     name = descr.name;
     descr.consumedArgs.each { this.consumedArgs << args[it] }
+    tracked = descr.isTracked()
   }
 
   def String toString() {

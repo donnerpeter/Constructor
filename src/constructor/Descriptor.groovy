@@ -100,4 +100,5 @@ class Descriptor {
   }
 
 
+  boolean isTracked() { tracked }
 }

@@ -53,9 +53,7 @@ class Descriptor {
   }
 
   Construction build(List<Construction> args) {
-    def c = new Construction(this, args)
-    c.tracked = tracked
-    return c
+    return new Construction(this, args)
   }
 
   Descriptor consumes(int... argIndices) {

@@ -9,7 +9,7 @@ class Descriptor {
   private def tracked = false
   private Set<String> pings = [] as Set
   private Map<?, Descriptor> expectations = [:]
-  private Set<Integer> consumedArgs = [] as Set
+  Set<Integer> consumedArgs = [] as Set
   Set<Integer> demotedArgs = [] as Set
 
   def Descriptor(String name) {
@@ -46,7 +46,6 @@ class Descriptor {
     c.famous = famous
     c.tracked = tracked
     expectations.each { k, v -> c.expect(k, v) }
-    c.consumes(consumedArgs as int[])
     return c
   }
 

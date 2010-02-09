@@ -9,7 +9,6 @@ class Construction {
   Descriptor descr
   List<Construction> args
   private Map<List, Descriptor> expectations = [:]
-  private Set pings = [] as Set
   private Set<Construction> consumedArgs = [] as Set
   def famous = false
   def tracked = false
@@ -18,6 +17,7 @@ class Construction {
     this.descr = descr
     this.args = args;
     name = descr.name;
+    descr.consumedArgs.each { this.consumedArgs << args[it] }
   }
 
   def String toString() {
@@ -45,11 +45,6 @@ class Construction {
 
   private def consumed(Construction c) {
     return consumedArgs.contains(c)
-  }
-
-  Construction consumes(int... argIndices) {
-    argIndices.each { consumedArgs << args[it] }
-    this
   }
 
   boolean activate(ParsingContext ctx) {

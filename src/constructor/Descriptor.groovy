@@ -87,7 +87,7 @@ class Descriptor {
         }
       }
     }
-    if (happy && famous && ctx.cloud.usages[this].findAll { it.consumed(c) }.isEmpty()) {
+    if (happy && famous && ctx.cloud.usages[c].findAll { it.consumed(c) }.isEmpty()) {
       return false
     }
     return happy

@@ -52,14 +52,14 @@ DirectSpeech
   Quoted
     "
     Color{1}
-      SubjPred #1=планируем Мы
-      XComp #1 #2=снести
-      Quantifier все #3=постройки
-      AdjNoun незаконные #3
-      Obj #2 #3
+      SubjPred #2=планируем Мы
+      XComp #2 #3=снести
+      Quantifier все #4=постройки
+      AdjNoun незаконные #4
+      Obj #3 #4
       When
         Prepos за месяц
-        #2
+        #3
     "
   ,
   -
@@ -70,18 +70,18 @@ When
 Where
   Prepos в поселке
   #1
-SubjPred #1 #2=глава
-NounObj #2 #3=управы
+SubjPred #1 #5=глава
+NounObj #5 #6=управы
 Named
   NameSurname Виталий Никитин
-  #2
+  #5
 Appos
   Quoted
     "
     Color{2}
       Крылатское
     "
-  #3  
+  #6  
 """
   }
 
@@ -101,6 +101,43 @@ Oblique #3=готовится к сносу
 SubjPred #3 #4=дом
 Order третий #4
 """
+  }
+
+  public void testRechnik4() {
+    _ '''"Когда приставы нам дают "добро",
+мы эти дома сносим. Мы не снесли ни одного дома, в котором бы проживали местные жители", - сказал чиновник.
+''', """
+DirectSpeech
+  #1=сказал
+  Quoted
+    "
+    Color{1}
+      When
+        XWhen Когда #2='дают "добро"'
+        ,
+        #3=сносим
+      SubjPred #2 приставы
+      Goal #2 нам
+      SubjPred #3 мы
+      Demonstrative эти #4=дома
+      Obj #3 #4
+      .
+      SubjPred #5=снесли Мы
+      NegObj не #5 ни одного #6=дома
+      Relative #7=котором #6 ,
+      Where
+        Prepos в #7
+        #8=проживали
+      Subjunctive бы #8
+      SubjPred #8 #9=жители
+      AdjNoun местные #9
+    "
+  ,
+  -
+SubjPred #1 чиновник
+.
+"""
+
   }
 
   def _(input, output) {

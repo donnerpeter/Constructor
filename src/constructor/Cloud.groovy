@@ -34,15 +34,22 @@ class Cloud {
       active.keySet().each {ac ->
         def ctx = new ParsingContext(cloud: this)
         def happy = ac.descr.activate(ac, ctx)
-        if (!happy) {
-          happy
-        }
-        active[ac] = happy
         ctx.newConstructions.each {newC ->
           initConstruction(newC, compositeRange(newC))
           queue << newC
           newC.descr.demotedArgs.each { i -> toDemote << newC.args[i] }
         }
+
+        if (ac.tracked) {
+          if (!happy) {
+            ac.descr.activate(ac, ctx)
+          }
+          if (happy) {
+            ac.descr.activate(ac, ctx)
+          }
+        }
+        active[ac] = happy
+
       }
       toDemote.each { demote it }
     }
@@ -71,10 +78,6 @@ class Cloud {
   }
 
   def prettyPrint() {
-    prettyPrint(0, "")
-  }
-
-  def prettyPrint(int color, String indent) {
     int curVarIndex = 0
     Map<Construction, String> varNames = [:]
     Closure varNameGenerator = {c ->
@@ -86,6 +89,11 @@ class Cloud {
       }
       return (varNames[c] = "#${++curVarIndex}") + "="
     }
+
+    prettyPrint(0, "", varNameGenerator)
+  }
+
+  def prettyPrint(int color, String indent, Closure varNameGenerator) {
 
     def roots = usages.keySet().sort(comparator).findAll {usages[it].isEmpty() && colors[it]==color }
 
@@ -148,7 +156,7 @@ class Cloud {
           def next2 = findAfter(pattern[2], ranges[next1].toInt)
           if (next2) {
             if (pattern.size() > 3) {
-              def next3 = findAfter(pattern[3], ranges[next1].toInt)
+              def next3 = findAfter(pattern[3], ranges[next2].toInt)
               if (next3) {
                 result << [cur, next1, next2, next3]
               }
@@ -165,7 +173,29 @@ class Cloud {
       def pos = ranges[cur].fromInt
       def prev = findBefore(pattern[0], pos)
       if (prev) {
-        result << [prev, cur]
+        if (pattern.size() > 2) {
+          def next1 = findAfter(pattern[2], pos)
+          if (next1) {
+            if (pattern.size() > 3) {
+              def next2 = findAfter(pattern[3], ranges[next1].toInt)
+              if (next2) {
+                if (pattern.size() > 4) {
+                  def next3 = findAfter(pattern[4], ranges[next2].toInt)
+                  if (next3) {
+                    result << [prev, cur, next1, next2, next3]
+                  }
+                } else {
+                  result << [prev, cur, next1, next2]
+                }
+
+              }
+            } else {
+              result << [prev, cur, next1]
+            }
+          }
+        } else {
+          result << [prev, cur]
+        }
       }
     }
     else if (pattern.size() == 3 && pattern[2] == "_") {

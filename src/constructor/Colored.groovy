@@ -12,7 +12,7 @@ class Colored extends Construction {
   }
 
   def String prettyPrint(Closure varName, String indent, Cloud cloud) {
-    return "Color{$color}\n" + cloud.prettyPrint(color, indent + TAB)
+    return "Color{$color}\n" + cloud.prettyPrint(color, indent + TAB, varName)
   }
 
 

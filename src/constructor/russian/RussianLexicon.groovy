@@ -19,47 +19,51 @@ class RussianLexicon extends Lexicon {
     preposition("с", "genitive") {it.expect(["_", "clause"], cons("When"))}
 
     noun("Власти", "nominative").aka("pl").expect(["_", "genitive"], cons("NounObj"))
-    adj("московской", "genitive")
     noun("управы", "genitive")
-    word('Крылатское').famous()
-    verb('намерены', "pl").expect(["_", "infinitive"], cons("XComp").consumes(1))
     noun("месяца", "genitive")
-    infinitive("решить").expect(["_", "accusative"], cons("Obj").consumes(1))
     noun("вопрос", "accusative")
     noun("сносе", "prepositional").aka("locatable").expect(["_", "genitive"], cons("NounObj").consumes(1))
-    adj("незаконных", "genitive")
     noun("строений", "genitive").aka("locatable")
     noun("поселке", "prepositional")
-    word("Речник").famous()
     noun("Мы", "nominative").aka("1pl")
-    verb("планируем", "1pl").expect(["_", "infinitive"], cons("XComp").consumes(1))
-    infinitive("снести").expect(["accusative": 1, "_": 0], cons("Obj").consumes(1))
-    word("все").expect(["_", "accusative"], cons("Quantifier"))
-    adj("незаконные", "accusative")
     noun("постройки", "accusative")
     noun("месяц", "accusative")
-    verb("сообщил", "masc").aka("locatable").
-            expect(["Quoted": 1, ",": 2, "-": 3, "_": 0], cons("DirectSpeech").consumes(1, 2, 3)).
-            expect(["_", ["dative", "animate"]], cons("Goal").consumes(1)).
-            expect(["_", ",", "что", "clause"], cons("Comp").consumes(1, 2, 3).demotes(1, 2))
     noun("журналистам", "dative").aka("animate") //todo hack
     noun("вторник", "accusative").aka("time")
     noun("поселке", "prepositional")
     noun("глава", "nominative").aka("masc").expect(["_", "genitive"], cons("NounObj").consumes(1))
+    noun("Он", "nominative").aka("masc")
+    noun("утра", "genitive")
+    noun("строения", "genitive")
+    noun("сносу", "dative")
+    noun("дом", "nominative").aka("3sg")
+
+    adj("московской", "genitive")
+    adj("незаконных", "genitive")
+    adj("незаконные", "accusative")
+
+    verb('намерены', "pl").expect(["_", "infinitive"], cons("XComp").consumes(1))
+    verb("планируем", "1pl").expect(["_", "infinitive"], cons("XComp").consumes(1))
+    verb("сообщил", "masc").aka("locatable").
+            expect(["Quoted": 1, ",": 2, "-": 3, "_": 0], cons("DirectSpeech").consumes(1, 2, 3)).
+            expect(["_", ["dative", "animate"]], cons("Goal").consumes(1)).
+            expect(["_", ",", "что", "clause"], cons("Comp").consumes(1, 2, 3).demotes(1, 2))
+    verb("демонтированы", "pl")
+    verb("готовится", "3sg").expect(["к":1, "dative":2, "_":0], cons("Oblique").consumes(1, 2))
+
+    infinitive("решить").expect(["_", "accusative"], cons("Obj").consumes(1))
+    infinitive("снести").expect(["accusative": 1, "_": 0], cons("Obj").consumes(1))
+
+    word('Крылатское').famous()
+    word("Речник").famous()
+    word("все").expect(["_", "accusative"], cons("Quantifier"))
     word("Виталий").famous().expect(["_", "Surname"], cons("NameSurname").expect(["nominative": 1, "_": 0], cons("Named")))
     word("Никитин").famous().aka("Surname")
-    noun("Он", "nominative").aka("masc")
     word("что").famous()
-    noun("утра", "genitive")
     word("уже").expect(["_", "clause"], cons("Already").consumes(0))
-    verb("демонтированы", "pl")
     word("два").expect(["_", "genitive"], cons("Quantity").famous().consumes(0, 1).aka("nominative", "pl"))
-    noun("строения", "genitive")
     word("к").famous()
-    noun("сносу", "dative")
-    verb("готовится", "3sg").expect(["к":1, "dative":2, "_":0], cons("Oblique").consumes(1, 2))
     word("третий").expect(["_", "nominative"], cons("Order")).consumes(0)
-    noun("дом", "nominative").aka("3sg")
 
 
   }

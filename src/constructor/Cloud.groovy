@@ -69,12 +69,7 @@ class Cloud {
     ranges[c] = range
     usages[c] = [] as Set
     colors[c] = 0
-    c.args.each {arg ->
-        if (usages[arg] == null) {
-          assert usages[arg]
-        }
-        usages[arg] << c
-      }
+    c.args.each { usages[it] << c }
   }
 
   def prettyPrint() {
@@ -111,30 +106,22 @@ class Cloud {
     def result = null
     active.keySet().each {c ->
       def p = ranges[c].fromInt
-      if (p >= pos && isAccepted(hint, c)) {
+      if (p >= pos && c.isAccepted(hint)) {
         result = c
       }
     }
     return result
   }
 
-  def isAccepted(hint, Construction c) {
-    if (hint instanceof List) {
-      return hint.every { isAccepted(it, c) }
-    } else {
-      c.descr.ping(hint)
-    }
-  }
-
-  def activeBefore(int pos) {
+  Collection<Construction> activeBefore(int pos) {
     active.keySet().toArray().findAll { ranges[it].toInt <= pos }
   }
 
   Construction findBefore(hint, int pos) {
     def result = null
-    activeBefore(pos).each {c ->
+    activeBefore(pos).each { Construction c ->
       def p = ranges[c].fromInt
-      if (isAccepted(hint, c)) {
+      if (c.isAccepted(hint)) {
         if (result && ranges[result].fromInt > p) {
           return
         }
@@ -144,7 +131,9 @@ class Cloud {
     return result
   }
 
-
+  Collection<Construction> allAt(int pos, boolean after) {
+    usages.keySet().findAll { pos == (after ? ranges[it].fromInt : ranges[it].toInt) }
+  }
 
   List<List<Construction>> match(Construction cur, List pattern) {
     def pivot = pattern.indexOf("_")

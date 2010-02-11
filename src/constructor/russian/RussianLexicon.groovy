@@ -125,7 +125,7 @@ class RussianLexicon extends Lexicon {
     storage['"'] = new Descriptor('"') {
 
       boolean activate(Construction c, ParsingContext ctx) {
-        if (ctx.usedIn(c, "Quoted")) {
+        if (ctx.usages(c, "Quoted")) {
           return true
         }
 

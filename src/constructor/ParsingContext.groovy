@@ -23,8 +23,8 @@ class ParsingContext {
     newConstructions << c
   }
 
-  boolean usedIn(Construction c, String[] hint) {
-    cloud.usages[c].find { cloud.isAccepted(hint as List, it) } != null
+  Collection<Construction> usages(Construction c, hint) {
+    return cloud.usages[c].findAll { it.isAccepted(hint) }
   }
 
   Construction coloredBetween(Construction from, Construction to) {

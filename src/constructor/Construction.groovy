@@ -46,4 +46,13 @@ class Construction {
     return consumedArgs.contains(c)
   }
 
+  def isAccepted(hint) {
+    if (hint instanceof List) {
+      return hint.every { isAccepted(it) }
+    } else {
+      return descr.ping(hint)
+    }
+  }
+
+
 }

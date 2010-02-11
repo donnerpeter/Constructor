@@ -73,7 +73,7 @@ class Descriptor {
   boolean activate(Construction c, ParsingContext ctx) {
     def happy = true
     expectations.each {pattern, Descriptor builder ->
-      if (!ctx.usedIn(c, builder.name)) {
+      if (!ctx.usages(c, builder.name)) {
         def argLists = ctx.cloud.match(c, pattern)
         if (argLists) {
           argLists.each {args ->

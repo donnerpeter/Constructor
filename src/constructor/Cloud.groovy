@@ -147,80 +147,22 @@ class Cloud {
 
 
   List<List<Construction>> match(Construction cur, List pattern) {
-    def result = []
-    if (pattern[0] == "_") {
-      def pos = ranges[cur].toInt
-      def next1 = findAfter(pattern[1], pos)
-      if (next1) {
-        if (pattern.size() > 2) {
-          def next2 = findAfter(pattern[2], ranges[next1].toInt)
-          if (next2) {
-            if (pattern.size() > 3) {
-              def next3 = findAfter(pattern[3], ranges[next2].toInt)
-              if (next3) {
-                result << [cur, next1, next2, next3]
-              }
-            } else {
-              result << [cur, next1, next2]
-            }
-          }
-        } else {
-          result << [cur, next1]
-        }
-      }
+    def pivot = pattern.indexOf("_")
+    List<Construction> result = new Construction[pattern.size()] as List
+    result[pivot] = cur
+    def c = cur
+    for (int i = pivot - 1; i >= 0; i--) {
+      def prev = findBefore(pattern[i], ranges[c].fromInt)
+      if (!prev) return []
+      result[i] = c = prev
     }
-    else if (pattern[1] == "_") {
-      def pos = ranges[cur].fromInt
-      def prev = findBefore(pattern[0], pos)
-      if (prev) {
-        if (pattern.size() > 2) {
-          def next1 = findAfter(pattern[2], pos)
-          if (next1) {
-            if (pattern.size() > 3) {
-              def next2 = findAfter(pattern[3], ranges[next1].toInt)
-              if (next2) {
-                if (pattern.size() > 4) {
-                  def next3 = findAfter(pattern[4], ranges[next2].toInt)
-                  if (next3) {
-                    result << [prev, cur, next1, next2, next3]
-                  }
-                } else {
-                  result << [prev, cur, next1, next2]
-                }
-
-              }
-            } else {
-              result << [prev, cur, next1]
-            }
-          }
-        } else {
-          result << [prev, cur]
-        }
-      }
+    c = cur
+    for (int i = pivot + 1; i < pattern.size(); i++) {
+      def next = findAfter(pattern[i], ranges[c].toInt)
+      if (!next) return []
+      result[i] = c = next
     }
-    else if (pattern.size() == 3 && pattern[2] == "_") {
-      def prev1 = findBefore(pattern[1], ranges[cur].fromInt)
-      if (prev1) {
-        def prev0 = findBefore(pattern[0], ranges[prev1].fromInt)
-        if (prev0) {
-          result<< [prev0, prev1, cur]
-        }
-      }
-    }
-    else if (pattern.size() == 4 && pattern[3] == "_") {
-      def prev2 = findBefore(pattern[2], ranges[cur].fromInt)
-      if (prev2) {
-        def prev1 = findBefore(pattern[1], ranges[prev2].fromInt)
-        if (prev1) {
-          def prev0 = findBefore(pattern[0], ranges[prev1].fromInt)
-          if (prev0) {
-            result<< [prev0, prev1, prev2, cur]
-          }
-
-        }
-      }
-    }
-    result
+    return [result]
   }
 
   def promote(Construction c) {

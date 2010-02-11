@@ -80,7 +80,11 @@ class Cloud {
       if (varNames[c]) {
         return varNames[c] + ""
       }
-      if (usages[c].findAll { reduced.contains(it) }.size() < 2) {
+      def useCount = usages[c].findAll { reduced.contains(it) }.size()
+      if (!(c instanceof Colored) && usages[c].findAll { colors[c] != colors[it] }) {
+        useCount++
+      }
+      if (useCount < 2) {
         return ""
       }
       return (varNames[c] = "#${++curVarIndex}") + "="
@@ -103,7 +107,9 @@ class Cloud {
   }
 
   def prettyPrint(int color, String indent, Closure varNameGenerator) {
-    def roots = reduce().sort(comparator).findAll {usages[it].isEmpty() && colors[it]==color }
+    def roots = reduce().sort(comparator).findAll {
+      colors[it]==color && !(it instanceof Colored) && usages[it].findAll { colors[it]==color }.isEmpty()
+    }
 
     StringBuilder sb = new StringBuilder()
     roots.each {c ->
@@ -208,7 +214,7 @@ class Cloud {
       colorRanges[range] = c = new Colored(newColor)
       initConstruction(c, range)
       ranges.each {ec, r ->
-        if (r.fromInt >= range.fromInt && r.toInt <= range.toInt) {
+        if (r.fromInt >= range.fromInt && r.toInt <= range.toInt && !colors[ec]) {
           colors[ec] = newColor
         }
       }

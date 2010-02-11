@@ -104,34 +104,39 @@ Order третий #4
   }
 
   public void testRechnik4() {
-    _ '''"Когда приставы нам дают добро,
+    _ '''"Когда приставы нам дают "добро",
 мы эти дома сносим. Мы не снесли ни одного дома, в котором бы проживали местные жители", - сказал чиновник.
 ''', """
 DirectSpeech
   #1=сказал
   Quoted
     "
-    Color{1}
+    Color{2}
       When
         XWhen Когда #2=дают
         ,
         #3=сносим
       SubjPred #2 приставы
       Goal #2 нам
-      'дать добро' #2 добро
+      'дать добро' #2 #4=добро
+      Quoted
+        "
+        Color{1}
+          #4
+        "
       SubjPred #3 мы
-      Demonstrative эти #4=дома
-      Obj #3 #4
+      Demonstrative эти #5=дома
+      Obj #3 #5
       .
-      SubjPred #5=снесли Мы
-      NegObj не #5 ни одного #6=дома
-      Relative #7=котором #6 ,
+      SubjPred #6=снесли Мы
+      NegObj не #6 ни одного #7=дома
+      Relative #8=котором #7 ,
       Where
-        Prepos в #7
-        #8=проживали
-      Subjunctive бы #8
-      SubjPred #8 #9=жители
-      AdjNoun местные #9
+        Prepos в #8
+        #9=проживали
+      Subjunctive бы #9
+      SubjPred #9 #10=жители
+      AdjNoun местные #10
     "
   ,
   -

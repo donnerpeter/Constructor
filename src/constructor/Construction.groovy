@@ -29,17 +29,15 @@ class Construction {
   }
 
   String prettyPrint(Closure varName, String indent, Cloud cloud) {
-    def prettyName = name.contains(' ') ? "'$name'" : name
-    def a = [prettyName] + args.collect({arg ->
-      def prefix = varName(arg)
-      if (!prefix || prefix.endsWith("=")) {
-        return prefix + arg.prettyPrint(varName, indent + TAB, cloud)
-      }
+    def prefix = varName(this)
+    if (prefix && !prefix.endsWith("=")) {
       return prefix
-    })
+    }
 
+    def prettyName = name.contains(' ') ? "'$name'" : name
+    def a = [prettyName] + args.collect({ it.prettyPrint(varName, indent + TAB, cloud) })
     String separator = oneLiner() ? " " : "\n$indent$TAB"
-    return a.join(separator)
+    return prefix + a.join(separator)
   }
 
   def consumed(Construction c) {

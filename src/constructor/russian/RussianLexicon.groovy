@@ -21,17 +21,16 @@ class RussianLexicon extends Lexicon {
     preposition("с", "genitive") {it.expect(["_", "clause"], cons("When"))}
 
     noun("Власти", "nominative").aka("pl").expect(["_", "genitive"], cons("NounObj"))
-    noun("управы", "genitive")
+    noun("управы", "genitive").aka("nameable")
     noun("месяца", "genitive")
     noun("вопрос", "accusative")
     noun("сносе", "prepositional").aka("locatable").expect(["_", "genitive"], cons("NounObj").consumes(1))
     noun("строений", "genitive").aka("locatable")
-    noun("поселке", "prepositional")
+    noun("поселке", "prepositional").aka("nameable")
     noun("постройки", "accusative")
     noun("месяц", "accusative")
     noun("журналистам", "dative").aka("animate") //todo hack
     noun("вторник", "accusative").aka("time")
-    noun("поселке", "prepositional")
     noun("глава", "nominative").aka("masc").expect(["_", "genitive"], cons("NounObj").consumes(1))
     noun("утра", "genitive")
     noun("строения", "genitive")
@@ -140,7 +139,7 @@ class RussianLexicon extends Lexicon {
         def pair = ctx.findAfter(c, '"')
         if (pair && !ctx.near(pair, false, "Space") && !ctx.usages(pair, "Quoted")) {
           def newArgs = [c, ctx.coloredBetween(c, pair), pair]
-          def descr = cons("Quoted").expect(["noun":1, "_":0], cons("Appos")).consumes(0, 1, 2).demotes(0, 1, 2)
+          def descr = cons("Quoted").expect(["nameable":1, "_":0], cons("Appos")).consumes(0, 1, 2).demotes(0, 1, 2)
           ctx.addConstruction(descr.build(newArgs))
           return true
         }

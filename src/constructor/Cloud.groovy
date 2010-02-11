@@ -31,7 +31,7 @@ class Cloud {
         c
       }
       def toDemote = []
-      active.keySet().each {ac ->
+      (active.keySet() as List).reverse().each {ac ->
         def ctx = new ParsingContext(cloud: this)
         def happy = ac.descr.activate(ac, ctx)
         ctx.newConstructions.each {newC ->
@@ -75,11 +75,12 @@ class Cloud {
   def prettyPrint() {
     int curVarIndex = 0
     Map<Construction, String> varNames = [:]
+    def reduced = reduce()
     Closure varNameGenerator = {c ->
       if (varNames[c]) {
         return varNames[c] + ""
       }
-      if (usages[c].size() < 2) {
+      if (usages[c].findAll { reduced.contains(it) }.size() < 2) {
         return ""
       }
       return (varNames[c] = "#${++curVarIndex}") + "="
@@ -88,9 +89,21 @@ class Cloud {
     prettyPrint(0, "", varNameGenerator)
   }
 
-  def prettyPrint(int color, String indent, Closure varNameGenerator) {
+  def reduce() {
+    def toExclude = [] as Set
+    def all = usages.keySet()
+    all.each { it ->
+      if (it.name == "Space") {
+        toExclude << it
+      }
 
-    def roots = usages.keySet().sort(comparator).findAll {usages[it].isEmpty() && colors[it]==color && it.name != "Space" }
+      toExclude += it.descr.incompatible(it, this)
+    }
+    return all-toExclude
+  }
+
+  def prettyPrint(int color, String indent, Closure varNameGenerator) {
+    def roots = reduce().sort(comparator).findAll {usages[it].isEmpty() && colors[it]==color }
 
     StringBuilder sb = new StringBuilder()
     roots.each {c ->

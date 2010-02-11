@@ -41,6 +41,7 @@ class RussianLexicon extends Lexicon {
     noun("приставы", "nominative").aka("3pl")
     noun("жители", "nominative").aka("pl")
     noun("чиновник", "nominative").aka("masc")
+    noun("добро", "accusative")
 
     noun("Мы", "nominative").aka("1pl")
     noun("мы", "nominative").aka("1pl")
@@ -61,7 +62,10 @@ class RussianLexicon extends Lexicon {
     verb("сказал", "masc").expect(["Quoted": 1, ",": 2, "-": 3, "_": 0], cons("DirectSpeech").consumes(1, 2, 3))
     verb("демонтированы", "pl")
     verb("готовится", "3sg").expect(["к":1, "dative":2, "_":0], cons("Oblique").consumes(1, 2))
-    verb('дают \"добро\"', "3pl").expect(["dative":1, "_":0], cons("Goal").consumes(1)) //todo hack
+    verb('дают', "3pl").
+            expect(["_", "добро"], cons("дать добро").consumes(1).suppresses(0, "Obj")).
+            expect(["dative":1, "_":0], cons("Goal").consumes(1)).
+            expect(["_", "accusative"], cons("Obj").consumes(1))
     verb("сносим", "1pl").expect(["accusative":1, "_":0], cons("Obj").consumes(1))
     verb("снесли", "1pl").expect(["не", "_", "ни", "одного", "genitive"], cons("NegObj").consumes(0, 2, 3, 4))
     verb("проживали", "pl").aka("locatable")
@@ -94,8 +98,12 @@ class RussianLexicon extends Lexicon {
   }
 
   private Descriptor verb(String s, String agr) {
-    return word(s).aka("clause").
-            expect([["nominative", agr]:1, "_":0], cons("SubjPred").consumes(1)).
+    return verb(word(s), agr)
+  }
+
+  def verb(Descriptor descriptor, String agr) {
+    return descriptor.aka("clause").
+            expect([["nominative", agr]: 1, "_": 0], cons("SubjPred").consumes(1)).
             expect(["_", ["nominative", agr]], cons("SubjPred").consumes(1))
   }
 
@@ -130,7 +138,7 @@ class RussianLexicon extends Lexicon {
         }
 
         def pair = ctx.findAfter(c, '"')
-        if (pair) {
+        if (pair && !ctx.near(pair, false, "Space") && !ctx.usages(pair, "Quoted")) {
           def newArgs = [c, ctx.coloredBetween(c, pair), pair]
           def descr = cons("Quoted").expect(["noun":1, "_":0], cons("Appos")).consumes(0, 1, 2).demotes(0, 1, 2)
           ctx.addConstruction(descr.build(newArgs))

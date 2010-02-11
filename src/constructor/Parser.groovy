@@ -25,6 +25,7 @@ class Parser {
       } else {
         def space = input.indexOf(' ', pos)
         if (space == pos) {
+          cloud.addConstruction(new Descriptor("Space").build([]), space..space+1)
           pos++
           continue
         }

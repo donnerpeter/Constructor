@@ -1,5 +1,7 @@
 package constructor
 
+import constructor.util.Pair
+
 /**
  * @author peter
  */
@@ -11,6 +13,7 @@ class Descriptor {
   private Map<List, Descriptor> expectations = [:]
   Set<Integer> consumedArgs = [] as Set
   Set<Integer> demotedArgs = [] as Set
+  private Set<Pair<Integer, String>> suppressions = [] as Set
 
   def Descriptor(String name) {
     this.name = name
@@ -99,4 +102,19 @@ class Descriptor {
 
 
   boolean isTracked() { tracked }
+
+  Descriptor suppresses(int argNumber, String relation) {
+    suppressions << new Pair(argNumber, relation)
+    return this
+  }
+
+  List<Construction> incompatible(Construction my, Cloud cloud) {
+    def result = []
+    suppressions.each {
+      def name = it.snd
+      def orphan = my.args[it.fst]
+      result += cloud.usages[orphan].findAll { it.name == name }
+    }
+    return result
+  }
 }

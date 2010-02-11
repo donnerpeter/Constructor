@@ -31,5 +31,9 @@ class ParsingContext {
     cloud.coloredRange(cloud.ranges[from].toInt..cloud.ranges[to].fromInt)
   }
 
+  Construction near(Construction c, boolean after, hint) {
+    def range = cloud.ranges[c]
+    return cloud.allAt(after ? range.toInt : range.fromInt, after).find { it.isAccepted(hint) }
+  }
 }
 

@@ -95,7 +95,7 @@ class Cloud {
 
   def prettyPrint(int color, String indent, Closure varNameGenerator) {
 
-    def roots = usages.keySet().sort(comparator).findAll {usages[it].isEmpty() && colors[it]==color }
+    def roots = usages.keySet().sort(comparator).findAll {usages[it].isEmpty() && colors[it]==color && it.name != "Space" }
 
     StringBuilder sb = new StringBuilder()
     roots.each {c ->

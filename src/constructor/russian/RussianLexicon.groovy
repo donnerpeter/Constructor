@@ -137,7 +137,7 @@ class RussianLexicon extends Lexicon {
         }
 
         def pair = ctx.findAfter(c, '"')
-        if (pair && !ctx.near(pair, false, "Space") && !ctx.usages(pair, "Quoted")) {
+        if (pair && !ctx.near(pair, false, "Space") && !ctx.usages(pair, "Quoted")) { // todo hack
           def newArgs = [c, ctx.coloredBetween(c, pair), pair]
           def descr = cons("Quoted").expect(["nameable":1, "_":0], cons("Appos")).consumes(0, 1, 2).demotes(0, 1, 2)
           ctx.addConstruction(descr.build(newArgs))

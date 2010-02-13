@@ -19,25 +19,25 @@ class TransitiveVerb extends Descriptor {
 
   boolean activate(Construction cur, ParsingContext ctx) {
     if (ctx.cloud.finished.contains(cur)) {
-      def oldS = ctx.usages(cur, "SubjPred")
-      def oldO = ctx.usages(cur, "Obj")
+      def oldS = ctx.usages(cur, RussianLexicon.subject.name)
+      def oldO = ctx.usages(cur, RussianLexicon.object.name)
       if (!oldS || !oldO) {
         (oldS + oldO).each { ctx.cloud.weak << it }
 
         def s = ctx.findAll(cur, ["nominative", agr])
         def o = ctx.findAll(cur, "accusative")
         if (s.size() == 1) {
-          ctx.addConstruction(new Descriptor("SubjPred").consumes(1).build([cur, s[0]]))
+          ctx.addConstruction(RussianLexicon.subject.build([cur, s[0]]))
           o.remove(s[0])
           s.clear()
         }
         if (o.size() == 1) {
-          ctx.addConstruction(new Descriptor("Obj").consumes(1).build([cur, o[0]]))
+          ctx.addConstruction(RussianLexicon.object.build([cur, o[0]]))
           s.remove o[0]
           o.clear()
         }
         if (s.size() == 1) {
-          ctx.addConstruction(new Descriptor("SubjPred").consumes(1).build([cur, s[0]]))
+          ctx.addConstruction(RussianLexicon.subject.build([cur, s[0]]))
           o.remove(s[0])
           s.clear()
         }
@@ -48,11 +48,11 @@ class TransitiveVerb extends Descriptor {
 
     def s = ctx.findBefore(cur, ["nominative", agr])
     if (!s) s = ctx.findAfter(cur, ["nominative", agr])
-    if (s) ctx.addConstruction(new Descriptor("SubjPred").consumes(1).build([cur, s]))
+    if (s) ctx.addConstruction(RussianLexicon.subject.build([cur, s]))
 
     def o = ctx.findAfter(cur, "accusative")
     if (!o) o = ctx.findBefore(cur, "accusative")
-    if (o) ctx.addConstruction(new Descriptor("Obj").consumes(1).build([cur, o]))
+    if (o) ctx.addConstruction(RussianLexicon.object.build([cur, o]))
 
     return super.activate(cur, ctx);
   }

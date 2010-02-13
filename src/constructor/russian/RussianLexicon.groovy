@@ -6,6 +6,8 @@ import constructor.*
  * @author peter
  */
 class RussianLexicon extends Lexicon {
+  static def subject = cons("SubjPred").consumes(1).identifyArgs([1:"nominative"])
+  static def object = cons("Obj").consumes(1).identifyArgs([1:"accusative"])
 
   def RussianLexicon() {
     specials()
@@ -69,15 +71,15 @@ class RussianLexicon extends Lexicon {
     verb("демонтированы", "pl")
     verb("готовится", "3sg").expect(["к":1, "dative":2, "_":0], cons("Oblique").consumes(1, 2))
     verb('дают', "3pl").
-            expect(["_", "добро"], cons("дать добро").consumes(1).suppresses(0, "Obj")).
+            expect(["_", "добро"], cons("дать добро").consumes(1).suppresses(0, object.name)).
             expect(["dative":1, "_":0], cons("Goal").consumes(1)).
-            expect(["_", "accusative"], cons("Obj").consumes(1))
-    verb("сносим", "1pl").expect(["accusative":1, "_":0], cons("Obj").consumes(1))
+            expect(["_", "accusative"], object)
+    verb("сносим", "1pl").expect(["accusative":1, "_":0], object)
     verb("снесли", "1pl").expect(["не", "_", "ни", "одного", "genitive"], cons("NegObj").consumes(0, 2, 3, 4))
     verb("проживали", "pl").aka("locatable")
 
-    infinitive("решить").expect(["_", "accusative"], cons("Obj").consumes(1))
-    infinitive("снести").expect(["accusative": 1, "_": 0], cons("Obj").consumes(1))
+    infinitive("решить").expect(["_", "accusative"], object)
+    infinitive("снести").expect(["accusative": 1, "_": 0], object)
 
     word('Крылатское').famous()
     word("Речник").famous()
@@ -109,8 +111,8 @@ class RussianLexicon extends Lexicon {
 
   def verb(Descriptor descriptor, String agr) {
     return descriptor.aka("clause").
-            expect([["nominative", agr]: 1, "_": 0], cons("SubjPred").consumes(1)).
-            expect(["_", ["nominative", agr]], cons("SubjPred").consumes(1))
+            expect([["nominative", agr]: 1, "_": 0], subject).
+            expect(["_", ["nominative", agr]], subject)
   }
 
   private Descriptor preposition(String s, _case, Closure binding) {
@@ -118,7 +120,7 @@ class RussianLexicon extends Lexicon {
   }
 
   private Descriptor adj(String name, String _case) {
-    return word(name).expect(["_", _case], cons("AdjNoun"))
+    return word(name).expect(["_", _case], cons("AdjNoun").identifyArgs([1:_case]))
   }
 
   def noun(String name, String _case) {
@@ -131,7 +133,7 @@ class RussianLexicon extends Lexicon {
     return cb
   }
 
-  Descriptor cons(String name) {
+  static Descriptor cons(String name) {
     return new Descriptor(name)
   }
 

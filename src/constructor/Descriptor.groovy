@@ -14,6 +14,7 @@ class Descriptor {
   Set<Integer> consumedArgs = [] as Set
   Set<Integer> demotedArgs = [] as Set
   private Set<Pair<Integer, String>> suppressions = [] as Set
+  private Map<Integer, Object> argPings = [:]
 
   def Descriptor(String name) {
     this.name = name
@@ -117,4 +118,22 @@ class Descriptor {
     }
     return result
   }
+
+  Descriptor identifyArgs(List pings) {
+    pings.eachWithIndex { p, i -> argPings[i] = p }
+    this
+  }
+
+  Descriptor identifyArgs(Map pings) {
+    argPings.putAll(pings)
+    this
+  }
+
+  def argumentPing(i) {
+    argPings[i] ?: []
+  }
+
+  String toString() { "Descriptor:" + name }
+
+
 }

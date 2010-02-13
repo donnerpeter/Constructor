@@ -40,15 +40,26 @@ class Construction {
     return prefix + a.join(separator)
   }
 
+  boolean equals(o) {
+    if (is(o)) return true
+    if (args.empty) return false
+
+    return o != null && o.class == this.class && o.name == name && o.args == args
+  }
+
+  int hashCode() {
+    return name.hashCode() + args.hashCode();
+  }
+
   def consumed(Construction c) {
     return consumedArgs.contains(c)
   }
 
-  def isAccepted(hint) {
+  def isAccepted(hint, Cloud cloud) {
     if (hint instanceof List) {
-      return hint.every { isAccepted(it) }
+      return hint.every { isAccepted(it, cloud) }
     } else {
-      return descr.ping(hint)
+      return descr.ping(hint, new ParsingContext(this, cloud))
     }
   }
 

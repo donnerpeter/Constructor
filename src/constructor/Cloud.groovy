@@ -11,6 +11,8 @@ class Cloud {
   Map<Construction, IntRange> ranges = [:]
   Map<Construction, Integer> colors = [:]
   Map<IntRange, Colored> colorRanges = [:]
+  Set<Construction> finished = []
+  Set<Construction> weak = []
   LinkedHashMap<Construction, Boolean> active = new LinkedHashMap<Construction, Boolean>()
   int maxColor = 0
 
@@ -30,29 +32,34 @@ class Cloud {
       if (c.tracked) {
         c
       }
-      def toDemote = []
-      (active.keySet() as List).reverse().each {ac ->
-        def ctx = new ParsingContext(cloud: this)
-        def happy = ac.descr.activate(ac, ctx)
-        ctx.newConstructions.each {newC ->
-          initConstruction(newC, compositeRange(newC))
-          queue << newC
-          newC.descr.demotedArgs.each { i -> toDemote << newC.args[i] }
-        }
-
-        if (ac.tracked) {
-          if (!happy) {
-            ac.descr.activate(ac, ctx)
-          }
-          if (happy) {
-            ac.descr.activate(ac, ctx)
-          }
-        }
-        active[ac] = happy
-
-      }
-      toDemote.each { demote it }
+      updateActive(queue)
+      updateActive(queue)
     }
+  }
+
+  def updateActive(LinkedList<Construction> queue) {
+    def toDemote = []
+    (active.keySet() as List).reverse().each { Construction ac ->
+      def ctx = new ParsingContext(ac, this)
+      def happy = ac.descr.activate(ac, ctx)
+      ctx.newConstructions.each {newC ->
+        initConstruction(newC, compositeRange(newC))
+        queue << newC
+        newC.descr.demotedArgs.each { i -> toDemote << newC.args[i] }
+      }
+
+      if (ac.tracked) {
+        if (!happy) {
+          ac.descr.activate(ac, ctx)
+        }
+        if (happy) {
+          ac.descr.activate(ac, ctx)
+        }
+      }
+      active[ac] = happy
+
+    }
+    toDemote.each { demote it }
   }
 
   private IntRange compositeRange(newC) {
@@ -101,9 +108,9 @@ class Cloud {
         toExclude << it
       }
 
-      toExclude += it.descr.incompatible(it, this)
+      toExclude += it.descr.incompatible(it, new ParsingContext(it, this))
     }
-    return all-toExclude
+    return all-toExclude-weak
   }
 
   def prettyPrint(int color, String indent, Closure varNameGenerator) {
@@ -125,7 +132,7 @@ class Cloud {
     def result = null
     active.keySet().each {c ->
       def p = ranges[c].fromInt
-      if (p >= pos && c.isAccepted(hint)) {
+      if (p >= pos && c.isAccepted(hint, this)) {
         result = c
       }
     }
@@ -140,7 +147,7 @@ class Cloud {
     def result = null
     activeBefore(pos).each { Construction c ->
       def p = ranges[c].fromInt
-      if (c.isAccepted(hint)) {
+      if (c.isAccepted(hint, this)) {
         if (result && ranges[result].fromInt > p) {
           return
         }

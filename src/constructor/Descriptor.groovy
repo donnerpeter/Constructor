@@ -69,7 +69,7 @@ class Descriptor {
     return this
   }
 
-  def ping(message) {
+  def ping(message, ParsingContext ctx) {
     pings.contains(message)
   }
 
@@ -108,12 +108,12 @@ class Descriptor {
     return this
   }
 
-  List<Construction> incompatible(Construction my, Cloud cloud) {
+  List<Construction> incompatible(Construction my, ParsingContext ctx) {
     def result = []
     suppressions.each {
       def name = it.snd
       def orphan = my.args[it.fst]
-      result += cloud.usages[orphan].findAll { it.name == name }
+      result += ctx.usages(orphan, name)
     }
     return result
   }

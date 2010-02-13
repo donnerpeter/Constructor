@@ -42,6 +42,9 @@ class RussianLexicon extends Lexicon {
     noun("чиновник", "nominative").aka("masc")
     noun("добро", "accusative")
 
+    storage["мать"] = new Ambiguous("мать")
+    storage["дочь"] = new Ambiguous("дочь")
+
     noun("Мы", "nominative").aka("1pl")
     noun("мы", "nominative").aka("1pl")
     noun("Он", "nominative").aka("masc")
@@ -51,7 +54,11 @@ class RussianLexicon extends Lexicon {
     adj("незаконных", "genitive")
     adj("незаконные", "accusative")
     adj("местные", "nominative")
+    adj("родная", "nominative").aka("nom")
+    adj("родную", "accusative").aka("acc")
 
+    storage['любит'] = new TransitiveVerb('любит', '3sg')
+    
     verb('намерены', "pl").expect(["_", "infinitive"], cons("XComp").consumes(1))
     verb("планируем", "1pl").expect(["_", "infinitive"], cons("XComp").consumes(1))
     verb("сообщил", "masc").aka("locatable").

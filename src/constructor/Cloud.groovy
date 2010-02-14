@@ -21,7 +21,7 @@ class Cloud {
 
     LinkedList<Construction> queue = new LinkedList<Construction>()
     queue << _c
-    
+
     while (queue) {
       def c = queue.removeFirst()
       if (!c.descr.shouldActivate()) {
@@ -30,16 +30,22 @@ class Cloud {
 
       promote c
       if (c.tracked) {
+        println "added $c; active=${this.active}"
         c
       }
-      updateActive(queue)
-      updateActive(queue)
+      updateActive(queue, c == _c)
+      updateActive(queue, false)
     }
   }
 
-  def updateActive(LinkedList<Construction> queue) {
+  def updateActive(LinkedList<Construction> queue, boolean skipFirst) {
     def toDemote = []
     (active.keySet() as List).reverse().each { Construction ac ->
+      if (skipFirst) {
+        skipFirst = false
+        return
+      }
+
       def ctx = new ParsingContext(ac, this)
       def happy = ac.descr.activate(ac, ctx)
       ctx.newConstructions.each {newC ->
@@ -188,6 +194,7 @@ class Cloud {
     if (active.size() >= 7) {
       Construction weak = weakest()
       if (weak.tracked) {
+        println "Removing $c, active=$active"
         weakest()
       }
       active.remove(weak)

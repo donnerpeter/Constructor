@@ -3,46 +3,56 @@ package constructor.russian
 import constructor.Descriptor
 import constructor.Construction
 import constructor.ParsingContext
-import constructor.Cloud
 
 /**
  * @author peter
  */
 class Ambiguous extends Descriptor {
+  List<Descriptor> variants = []
 
   def Ambiguous(name) {
     super(name);
-    aka('3sg')
+    variants << new Descriptor(name) {
+
+      boolean activate(Construction c, ParsingContext ctx) {
+        def clause = ctx.findBefore(c, "clause")
+        if (clause && ctx.usages(clause, RussianLexicon.subject.name)) {
+          ctx.markFinished(clause)
+        }
+        return true
+      }
+
+    }.aka("noun", "nominative", "3sg").famous()
+    variants << new Descriptor(name).aka("noun", "accusative", "3sg").famous()
     famous()
   }
 
   def ping(message, ParsingContext ctx) {
-    //todo generalize ambiguous words
-    def subjUsages = ctx.strongUsages(ctx.relativeTo, "SubjPred")
-    def objUsages = ctx.strongUsages(ctx.relativeTo, "Obj")
-    ctx.strongUsages(ctx.relativeTo, "AdjNoun").each { usg ->
-      if (usg.args[0].isAccepted("nom", ctx.cloud)) subjUsages << usg
-      if (usg.args[0].isAccepted("acc", ctx.cloud)) objUsages << usg
-    }
-    if (message == "nominative" && !objUsages) {
-      return true
-    }
-    if (message == "accusative" && !subjUsages) {
-      return true
-    }
+    def pinged = variants.findAll { it.ping(message, ctx) }
+    if (!pinged) return false
+    if (pinged.size() == variants.size()) return true
 
-    return super.ping(message, ctx);
+    def intersect = usedVariants(ctx).intersect(pinged)
+    return intersect.size() > 0
+  }
+
+  def usedVariants(ParsingContext ctx) {
+    Set<Descriptor> result = variants as Set
+    def strongUsages = ctx.strongUsages(ctx.relativeTo, [])
+    strongUsages.each { usg ->
+      def msg = usg.descr.argumentPing(usg.args.indexOf(ctx.relativeTo))
+
+      result -= result.findAll { var -> !var.ping(msg, ctx) }
+    }
+    return result
   }
 
   boolean activate(Construction c, ParsingContext ctx) {
-    if (ping("nominative", ctx) && !ping("accusative", ctx)) {
-      def clause = ctx.findBefore(c, "clause")
-      if (clause && ctx.usages(clause, "SubjPred")) {
-        ctx.markFinished(clause)
-      }
+    def happy = true
+    usedVariants(ctx).each {
+      happy &= it.activate(c, ctx)
     }
-
-    return super.activate(c, ctx);
+    return happy
   }
 
 

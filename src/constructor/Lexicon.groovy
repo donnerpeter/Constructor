@@ -6,8 +6,4 @@ package constructor
 class Lexicon {
   Map<String, Descriptor> storage = [:]
 
-  Construction recognize(String s) {
-    null
-  }
-
 }

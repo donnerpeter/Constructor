@@ -24,26 +24,21 @@ class Parser {
         pos += best.size()
       } else {
         def space = input.indexOf(' ', pos)
-        if (space == pos) {
-          cloud.addConstruction(new Descriptor("Space").build([]), space..space+1)
-          pos++
-          continue
-        }
-        def word = input[pos..space-1]
-        def c = lexicon.recognize(word)
-        if (c) {
-          cloud.addConstruction(c, pos..pos+word.size())
-        }
-        else {
+        if (space > pos) {
+          def word = input[pos..space-1]
           cloud.addConstruction(new Descriptor(word).build([]), pos..pos+word.size())
         }
-        cloud.addConstruction(new Descriptor("Space").build([]), space..space+1)
+        cloud.addConstruction(makeSpace(), space..space+1)
         pos = space+1
       }
     }
 
     return cloud.prettyPrint()
 
+  }
+
+  private Construction makeSpace() {
+    return new Descriptor("Space").build([])
   }
 
 }

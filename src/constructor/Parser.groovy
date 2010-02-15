@@ -19,16 +19,16 @@ class Parser {
       def suitable = lexicon.storage.keySet().sort({s1, s2 -> s2.size() - s1.size()}).findAll {input.substring(pos).startsWith(it) }
       if (suitable) {
         def best = suitable[0]
-        def builder = lexicon.storage[best]
-        cloud.addConstruction(builder.build([]), pos..pos + best.size())
+        def builders = lexicon.storage[best]
+        cloud.addConstructions(builders.collect { it.build([])}, pos..pos + best.size())
         pos += best.size()
       } else {
         def space = input.indexOf(' ', pos)
         if (space > pos) {
           def word = input[pos..space-1]
-          cloud.addConstruction(new Descriptor(word).build([]), pos..pos+word.size())
+          cloud.addConstructions([new Descriptor(word).build([])], pos..pos+word.size())
         }
-        cloud.addConstruction(makeSpace(), space..space+1)
+        cloud.addConstructions([new Descriptor("Space").build([])], space..space+1)
         pos = space+1
       }
     }

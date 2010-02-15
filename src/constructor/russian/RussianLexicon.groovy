@@ -44,8 +44,8 @@ class RussianLexicon extends Lexicon {
     noun("чиновник", "nominative").aka("masc")
     noun("добро", "accusative")
 
-    storage["мать"] = new Ambiguous("мать")
-    storage["дочь"] = new Ambiguous("дочь")
+    store(new Ambiguous("мать"))
+    store(new Ambiguous("дочь"))
 
     noun("Мы", "nominative").aka("1pl")
     noun("мы", "nominative").aka("1pl")
@@ -59,7 +59,7 @@ class RussianLexicon extends Lexicon {
     adj("родная", "nominative").aka("nom")
     adj("родную", "accusative").aka("acc")
 
-    storage['любит'] = new TransitiveVerb('любит', '3sg')
+    store(new TransitiveVerb('любит', '3sg'))
     
     verb('намерены', "pl").expect(["_", "infinitive"], cons("XComp").consumes(1))
     verb("планируем", "1pl").expect(["_", "infinitive"], cons("XComp").consumes(1))
@@ -128,8 +128,11 @@ class RussianLexicon extends Lexicon {
   }
 
   Descriptor word(String name) {
-    def cb = cons(name)
-    storage[name] = cb
+    return store(cons(name))
+  }
+
+  private def store(Descriptor cb) {
+    storage.get(cb.name, []) << cb
     return cb
   }
 
@@ -138,7 +141,7 @@ class RussianLexicon extends Lexicon {
   }
 
   def specials() {
-    storage['"'] = new Descriptor('"') {
+    store(new Descriptor('"') {
 
       boolean activate(Construction c, ParsingContext ctx) {
         if (ctx.usages(c, "Quoted")) {
@@ -155,7 +158,7 @@ class RussianLexicon extends Lexicon {
         return false
       }
 
-    }.famous()
+    }.famous())
 
     word(',').famous()
     word('-').famous()

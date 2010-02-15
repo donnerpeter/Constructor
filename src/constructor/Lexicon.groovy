@@ -4,6 +4,6 @@ package constructor
  * @author peter
  */
 class Lexicon {
-  Map<String, Descriptor> storage = [:]
+  Map<String, List<Descriptor>> storage = [:]
 
 }

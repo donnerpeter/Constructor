@@ -16,11 +16,10 @@ class Cloud {
   LinkedHashMap<Construction, Boolean> active = new LinkedHashMap<Construction, Boolean>()
   int maxColor = 0
 
-  def addConstruction(Construction _c, IntRange range) {
-    initConstruction(_c, range)
+  def addConstructions(List<Construction> competitors, IntRange range) {
+    competitors.each { initConstruction(it, range) }
 
-    LinkedList<Construction> queue = new LinkedList<Construction>()
-    queue << _c
+    LinkedList<Construction> queue = new LinkedList<Construction>(competitors)
 
     while (queue) {
       def c = queue.removeFirst()
@@ -33,7 +32,7 @@ class Cloud {
         println "added $c; active=${this.active}"
         c
       }
-      updateActive(queue, c == _c)
+      updateActive(queue, competitors.contains(c))
       updateActive(queue, false)
     }
   }

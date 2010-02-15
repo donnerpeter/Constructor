@@ -13,6 +13,7 @@ class Cloud {
   Map<IntRange, Colored> colorRanges = [:]
   Set<Construction> finished = []
   Set<Construction> weak = []
+  Set expectations = [] as Set
   LinkedHashMap<Construction, Boolean> active = new LinkedHashMap<Construction, Boolean>()
   int maxColor = 0
 
@@ -20,6 +21,8 @@ class Cloud {
     competitors.each { initConstruction(it, range) }
 
     LinkedList<Construction> queue = new LinkedList<Construction>(competitors)
+
+    expectations.clear()
 
     while (queue) {
       def c = queue.removeFirst()
@@ -177,9 +180,12 @@ class Cloud {
       result[i] = c = prev
     }
     c = cur
-    for (int i = pivot + 1; i < pattern.size(); i++) {
+    for (i in pivot + 1..<pattern.size()) {
       def next = findAfter(pattern[i], ranges[c].toInt)
-      if (!next) return []
+      if (!next) {
+        expectations << pattern[i]
+        return []
+      }
       result[i] = c = next
     }
     return [result]

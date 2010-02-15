@@ -6,7 +6,7 @@ import constructor.util.Pair
  * @author peter
  */
 class Descriptor {
-  def name
+  String name
   private def famous = false
   private def tracked = false
   private Set<String> pings = [] as Set

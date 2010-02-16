@@ -38,14 +38,17 @@ class RussianLexicon extends Lexicon {
     noun("строения", "genitive")
     noun("сносу", "dative")
     noun("дом", "nominative").aka("3sg")
-    noun("дома", "accusative").aka("genitive") //todo hack
+    noun("дома", "accusative")
+    noun("дома", "genitive")
     noun("приставы", "nominative").aka("3pl")
     noun("жители", "nominative").aka("pl")
     noun("чиновник", "nominative").aka("masc")
     noun("добро", "accusative")
 
-    store(new Ambiguous("мать"))
-    store(new Ambiguous("дочь"))
+    noun("мать", "nominative").aka("3sg")
+    noun("мать", "accusative").aka("3sg")
+    noun("дочь", "nominative").aka("3sg")
+    noun("дочь", "accusative").aka("3sg")
 
     noun("Мы", "nominative").aka("1pl")
     noun("мы", "nominative").aka("1pl")
@@ -124,7 +127,7 @@ class RussianLexicon extends Lexicon {
   }
 
   def noun(String name, String _case) {
-    return word(name).aka("noun", _case).famous()
+    return store(new Noun(name, _case))
   }
 
   Descriptor word(String name) {

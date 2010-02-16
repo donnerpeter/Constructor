@@ -34,7 +34,11 @@ class ParsingContext {
   }
 
   def addConstruction(Construction c) {
-    usedArgs += (c.args - relativeTo)
+    c.args.each {
+      if (it != relativeTo) {
+        usedArgs += cloud.competitors[it]
+      }
+    }
     cloud.weak.remove c
     if (cloud.ranges.containsKey(c)) return
 

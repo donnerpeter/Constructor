@@ -25,21 +25,16 @@ class TransitiveVerb extends Descriptor {
         (oldS + oldO).each { ctx.cloud.weak << it }
 
         def s = ctx.findAll(cur, ["nominative", agr])
-        def o = ctx.findAll(cur, "accusative")
         if (s.size() == 1) {
           ctx.addConstruction(RussianLexicon.subject.build([cur, s[0]]))
-          o.remove(s[0])
-          s.clear()
         }
+        def o = ctx.findAll(cur, "accusative")
         if (o.size() == 1) {
           ctx.addConstruction(RussianLexicon.object.build([cur, o[0]]))
-          s.remove o[0]
-          o.clear()
         }
+        s = ctx.findAll(cur, ["nominative", agr])
         if (s.size() == 1) {
           ctx.addConstruction(RussianLexicon.subject.build([cur, s[0]]))
-          o.remove(s[0])
-          s.clear()
         }
 
       }

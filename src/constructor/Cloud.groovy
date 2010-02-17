@@ -113,24 +113,7 @@ class Cloud {
   }
 
   def prettyPrint() {
-    int curVarIndex = 0
-    Map<Construction, String> varNames = [:]
-    def reduced = reduce()
-    Closure varNameGenerator = {c ->
-      if (varNames[c]) {
-        return varNames[c] + ""
-      }
-      def useCount = usages[c].findAll { reduced.contains(it) }.size()
-      if (!(c instanceof Colored) && usages[c].findAll { colors[c] != colors[it] }) {
-        useCount++
-      }
-      if (useCount < 2) {
-        return ""
-      }
-      return (varNames[c] = "#${++curVarIndex}") + "="
-    }
-
-    prettyPrint(0, "", varNameGenerator)
+    prettyPrint(0, "", new VarNameGenerator(this))
   }
 
   def reduce() {
@@ -146,7 +129,7 @@ class Cloud {
     return all-toExclude-weak
   }
 
-  def prettyPrint(int color, String indent, Closure varNameGenerator) {
+  def prettyPrint(int color, String indent, VarNameGenerator varNameGenerator) {
     def roots = reduce().sort(comparator).findAll {
       colors[it]==color && !(it instanceof Colored) && usages[it].findAll { colors[it]==color }.isEmpty()
     }
@@ -246,7 +229,7 @@ class Cloud {
     if (active.size() >= 7) {
       Construction weak = weakest()
       if (weak.tracked) {
-        println "Removing $c, active=$active"
+        println "Removing $weak, active=$active"
         weakest()
       }
       active.remove(weak)

@@ -24,19 +24,20 @@ class Construction {
     return "(" + ([name] + args).join(' ') + ")";
   }
 
-  boolean oneLiner() {
-    return args.every { it.args.size() == 0 && !(it instanceof Colored) }
+  private boolean oneLiner(VarNameGenerator varName) {
+    return args.every { (it.args.size() == 0 || varName.isUsage(it)) && !(it instanceof Colored) }
   }
 
-  String prettyPrint(Closure varName, String indent, Cloud cloud) {
-    def prefix = varName(this)
-    if (prefix && !prefix.endsWith("=")) {
-      return prefix
+  String prettyPrint(VarNameGenerator varName, String indent, Cloud cloud) {
+    if (varName.isUsage(this)) {
+      return varName.prefix(this)
     }
 
+    def prefix = varName.prefix(this)
+    String separator = oneLiner(varName) ? " " : "\n$indent$TAB"
+    
     def prettyName = name.contains(' ') ? "'$name'" : name
     def a = [prettyName] + args.collect({ it.prettyPrint(varName, indent + TAB, cloud) })
-    String separator = oneLiner() ? " " : "\n$indent$TAB"
     return prefix + a.join(separator)
   }
 

@@ -146,6 +146,41 @@ SubjPred #1 чиновник
 
   }
 
+  public void testRechnik5() throws Exception {
+    _ 'По его словам, всего в поселке "Речник" планируется к сносу 42 постройки, из которых по 37 уже есть судебные решения.', """
+
+Source
+  'По словам' По его словам ,
+  #1=планируется
+'Всего+Утверждение о количестве'
+  всего
+  #1
+  #2=Quantity 42 постройки
+Where
+  Prepos в #3=поселке
+  #1
+Appos
+  Quoted
+    "
+    Color{1}
+      Речник
+    "
+  #3
+Oblique #1 к сносу
+SubjPred #1 #2
+Relative #4=которых #2 ,
+Subset #5=37 из #4
+Copula
+  #6=решения
+  #7=есть
+  Prepos #8=по #5
+About #6 #8 #5
+Already уже #7
+AdjNoun судебные #6
+.
+"""
+  }
+
   def _(input, output) {
     assertEquals output.trim(), new Parser(new RussianLexicon()).parse(input).trim()
   }

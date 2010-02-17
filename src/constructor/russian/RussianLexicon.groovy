@@ -6,7 +6,7 @@ import constructor.*
  * @author peter
  */
 class RussianLexicon extends Lexicon {
-  static def subject = cons("SubjPred").consumes(1).identifyArgs([1:"nominative"])
+  static def subject = cons("SubjPred").consumes(1).identifyArgs([1:"nominative"]) //todo rename SubjPred
   static def object = cons("Obj").consumes(1).identifyArgs([1:"accusative"])
 
   def RussianLexicon() {
@@ -21,22 +21,24 @@ class RussianLexicon extends Lexicon {
     preposition("во", ["accusative", "time"]) { it.expect(["clause": 1, "_": 0], cons("When"))}
     preposition("за", "accusative") {it.expect(["clause": 1, "_": 0], cons("When"))}
     preposition("с", "genitive") {it.expect(["_", "clause"], cons("When"))}
+    preposition("по", "dative") { it.famous() }.famous()
 
     noun("Власти", "nominative").aka("pl").expect(["_", "genitive"], cons("NounObj"))
     noun("управы", "genitive").aka("nameable")
     noun("месяца", "genitive")
     noun("вопрос", "accusative")
     noun("сносе", "prepositional").aka("locatable").expect(["_", "genitive"], cons("NounObj").consumes(1))
+    noun("сносу", "dative")
     noun("строений", "genitive").aka("locatable")
     noun("поселке", "prepositional").aka("nameable")
     noun("постройки", "accusative")
+    noun("постройки", "genitive")
     noun("месяц", "accusative")
     noun("журналистам", "dative").aka("animate") //todo hack
     noun("вторник", "accusative").aka("time")
     noun("глава", "nominative").aka("masc").expect(["_", "genitive"], cons("NounObj").consumes(1))
     noun("утра", "genitive")
     noun("строения", "genitive")
-    noun("сносу", "dative")
     noun("дом", "nominative").aka("3sg")
     noun("дома", "accusative")
     noun("дома", "genitive")
@@ -44,6 +46,8 @@ class RussianLexicon extends Lexicon {
     noun("жители", "nominative").aka("pl")
     noun("чиновник", "nominative").aka("masc")
     noun("добро", "accusative")
+    noun("словам", "dative")
+    noun("решения", "nominative").expect(["по":1, "dative":2, "_":0], cons("About").consumes(1, 2))
 
     noun("мать", "nominative").aka("3sg")
     noun("мать", "accusative").aka("3sg")
@@ -59,13 +63,17 @@ class RussianLexicon extends Lexicon {
     adj("незаконных", "genitive")
     adj("незаконные", "accusative")
     adj("местные", "nominative")
+    adj("судебные", "nominative")
     adj("родная", "nominative").aka("nom")
     adj("родную", "accusative").aka("acc")
 
     store(new TransitiveVerb('любит', '3sg'))
     
     verb('намерены', "pl").expect(["_", "infinitive"], cons("XComp").consumes(1))
+
     verb("планируем", "1pl").expect(["_", "infinitive"], cons("XComp").consumes(1))
+    verb("планируется", "3sg").aka("locatable").expect(["_", "к", "dative"], cons("Oblique").consumes(1, 2))
+
     verb("сообщил", "masc").aka("locatable").
             expect(["Quoted": 1, ",": 2, "-": 3, "_": 0], cons("DirectSpeech").consumes(1, 2, 3)).
             expect(["_", ["dative", "animate"]], cons("Goal").consumes(1)).
@@ -80,6 +88,7 @@ class RussianLexicon extends Lexicon {
     verb("сносим", "1pl").expect(["accusative":1, "_":0], object)
     verb("снесли", "1pl").expect(["не", "_", "ни", "одного", "genitive"], cons("NegObj").consumes(0, 2, 3, 4))
     verb("проживали", "pl").aka("locatable")
+    verb("есть", "pl").expect(["Prepos":2, "_":1, "nominative":0], cons("Copula"))
 
     infinitive("решить").expect(["_", "accusative"], object)
     infinitive("снести").expect(["accusative": 1, "_": 0], object)
@@ -87,6 +96,7 @@ class RussianLexicon extends Lexicon {
     word('Крылатское').famous()
     word("Речник").famous()
     word("одного").famous()
+    word("его").famous()
     word("не").famous()
     word("ни").famous()
     word("все").expect(["_", "accusative"], cons("Quantifier"))
@@ -100,9 +110,17 @@ class RussianLexicon extends Lexicon {
     word("Когда").expect(["_", "clause"], cons("XWhen").consumes(0).expect(["_", ",", "clause"], cons("When").consumes(1)))
     word("эти").expect(["_", "accusative"], cons("Demonstrative"))
     word("котором").aka("prepositional").expect(["noun":1, ",":2, "_":0], cons("Relative"))
+    word("которых").aka("genitive").expect(["NP":1, ",":2, "_":0], cons("Relative"))
     word("бы").expect(["_", "clause"], cons("Subjunctive"))
+    word("По").expect(["_", "его", "словам", ","], cons("По словам").consumes(0, 1, 2, 3).expect(["_", "clause"], cons("Source")))
+    word("42").expect(["_", "genitive"], cons("Quantity").famous().consumes(0, 1).aka("nominative", "3sg", "NP"))
+    word("37").expect(["_", "genitive"], cons("Quantity")).aka("number", "dative") //todo let numbers have any case
+    word("всего").expect(["_", "clause", "Quantity"], cons("Всего+Утверждение о количестве"))
+    word("из").expect(["_":1, "genitive":2, "number":0], cons("Subset"))
 
   }
+
+  def _t(Descriptor d) { d.track() }
 
   private Descriptor infinitive(String s) {
     return word(s).famous().aka("infinitive", "clause")
@@ -152,7 +170,7 @@ class RussianLexicon extends Lexicon {
         }
 
         def pair = ctx.findAfter(c, '"')
-        if (pair && !ctx.near(pair, false, "Space") && !ctx.usages(pair, "Quoted")) { // todo hack
+        if (pair && !ctx.near(pair, false, "Space") && !ctx.usages(pair, "Quoted")) { // todo true handling of nested quotes
           def newArgs = [c, ctx.coloredBetween(c, pair), pair]
           def descr = cons("Quoted").expect(["nameable":1, "_":0], cons("Appos")).consumes(0, 1, 2).demotes(0, 1, 2)
           ctx.addConstruction(descr.build(newArgs))

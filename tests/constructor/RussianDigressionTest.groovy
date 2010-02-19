@@ -40,7 +40,7 @@ SubjPred #2 дочь
   }
 
   def _(input, output) {
-    assertEquals output.trim(), new Parser(new RussianLexicon()).parse(input).trim()
+    assertEquals output.trim(), new Parser(new RussianLexicon()).parse(input).prettyPrint().trim()
   }
 
 }

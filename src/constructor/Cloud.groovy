@@ -259,8 +259,8 @@ class Cloud {
   Colored coloredRange(IntRange range) {
     def c = colorRanges[range]
     if (!c) {
-      def newColor = ++maxColor
-      colorRanges[range] = c = new Colored(newColor)
+      int newColor = ++maxColor
+      colorRanges[range] = c = new Colored(newColor, this)
       initConstruction(c, range)
       ranges.each {ec, r ->
         if (r.fromInt >= range.fromInt && r.toInt <= range.toInt && !colors[ec]) {
@@ -269,5 +269,24 @@ class Cloud {
       }
     }
     return c
+  }
+
+  private def semantics(Construction c, Map sem) {
+    if (sem[c]) {
+      return sem[c]
+    }
+
+    def args = c.args.collect { semantics(it, sem) }
+    def result = c.descr.buildSemantics(args)
+    sem[c] = result
+    return result
+  }
+
+  def semantics(int color) {
+    def set = new FrameSet()
+    Map frames = [:]
+    reduce().findAll { colors[it] == color && !(it instanceof Colored) }.sort(comparator).each { semantics(it, frames) }
+    frames.values().each { if (it instanceof Frame) set.addFrame(it) }
+    return set
   }
 }

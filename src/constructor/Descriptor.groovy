@@ -15,6 +15,7 @@ class Descriptor {
   Set<Integer> demotedArgs = [] as Set
   private Set<Pair<Integer, String>> suppressions = [] as Set
   private Map<Integer, Object> argPings = [:]
+  private Closure _semantics
 
   def Descriptor(String name) {
     this.name = name
@@ -134,6 +135,21 @@ class Descriptor {
   }
 
   String toString() { "Descriptor:" + name }
+
+  def buildSemantics(List args) {
+    if (!_semantics) {
+      def frame = new Frame(name)
+      args.eachWithIndex { a, i -> frame["$i"] = a}
+      return frame
+    }
+
+    return _semantics.call(args)
+  }
+
+  Descriptor semantics(Closure c) {
+    _semantics = c
+    this
+  }
 
 
 }

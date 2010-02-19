@@ -25,22 +25,19 @@ XComp #3 #4=решить
 When
   Prepos 'в течение' месяца
   #4
-Obj #4 #5=вопрос
-About
-  Prepos о #6=сносе
-  #5
-NounObj #6 #7=строений
-AdjNoun незаконных #7
+'Решить вопрос' #4 вопрос о #5=сносе
+NounObj #5 #6=строений
+AdjNoun незаконных #6
 Where
-  Prepos в #8=поселке
-  #7
+  Prepos в #7=поселке
+  #6
 Appos
   Quoted
     "
     Color{2}
       Речник
     "
-  #8
+  #7
 """
   }
   
@@ -182,7 +179,7 @@ AdjNoun судебные #6
   }
 
   def _(input, output) {
-    assertEquals output.trim(), new Parser(new RussianLexicon()).parse(input).trim()
+    assertEquals output.trim(), new Parser(new RussianLexicon()).parse(input).prettyPrint().trim()
   }
 
 }

@@ -11,7 +11,7 @@ class Parser {
     this.lexicon = lexicon;
   }
 
-  String parse(String input) {
+  Cloud parse(String input) {
     input = input.replace('\n', ' ') + " "
     Cloud cloud = new Cloud()
     int pos = 0
@@ -33,7 +33,7 @@ class Parser {
       }
     }
 
-    return cloud.prettyPrint()
+    return cloud
 
   }
 

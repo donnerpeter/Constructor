@@ -13,9 +13,17 @@ class Frame {
     this.name = name;
   }
 
-  def getAt(String name) { attributes[name] }
+  def getAt(String name) {
+    def result = attributes[name]
+    if (result instanceof SlotReference) {
+      return result.frame[result.slot]
+    }
+    return result
+  }
 
   def putAt(String name, value) { attributes[name] = value }
+
+  def ref(String name) { new SlotReference(frame:this, slot:name) }
 
   def String toString() {
     if (attributes) {
@@ -31,12 +39,15 @@ class Frame {
 
     def prefix = gen.prefix(this)
     String result = prefix + name
-    attributes.each { n, v ->
+    attributes.keySet().each { n ->
+      def v = this[n]
+      if (!v) return
+
       result += "\n$indent|$n:"
       if (!(v instanceof Frame)) {
         result += " " + v
       }
-      else if (!v.attributes) {
+      else if (!v.attributes || gen.isUsage(v)) {
         result += " " + v.prettyPrint(gen, indent)
       }
       else {

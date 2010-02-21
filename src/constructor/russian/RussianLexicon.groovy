@@ -75,7 +75,7 @@ class RussianLexicon extends Lexicon {
     store(new TransitiveVerb('любит', '3sg'))
     
     verb('намерены', "pl").
-            expect(["_", "infinitive"], cons("XComp").consumes(1).semantics { args -> args[0]["action"] = args[1]; args[0] }).
+            expect(["_", "infinitive"], cons("XComp").consumes(1).semantics { it[0]["action"] = it[1]; it[1]["agent"] = it[0].ref("who"); it[0] }).
             semantics { new Frame("intention") }
 
     verb("планируем", "1pl").expect(["_", "infinitive"], cons("XComp").consumes(1))

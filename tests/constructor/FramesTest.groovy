@@ -13,13 +13,14 @@ class FramesTest extends GroovyTestCase {
 незаконных строений в поселке "Речник"''', """
 intention
 |who:
-  authorities
+  #1=authorities
   |of:
     council
     |part_of: Москва
     |name: Крылатское
 |action:
   decide_on
+  |agent: #1
   |time:
     deadline
     |unit: month

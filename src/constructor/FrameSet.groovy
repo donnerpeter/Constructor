@@ -27,7 +27,8 @@ class FrameSet {
       return
     }
 
-    frame.attributes.each { name, value ->
+    frame.attributes.keySet().each { name ->
+      def value = frame[name]
       if (value instanceof Frame) {
         addFrame(value)
         usages[value] << frame

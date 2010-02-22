@@ -27,8 +27,8 @@ intention
   |theme:
     demolition
     |of:
-      set
-      |component: building
+      building
+      |quantity: plural
       |legal: -
       |location:
         housing_development

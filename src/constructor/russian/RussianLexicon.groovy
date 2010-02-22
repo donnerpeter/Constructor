@@ -34,7 +34,7 @@ class RussianLexicon extends Lexicon {
     noun("вопрос", "accusative")
     noun("сносе", "prepositional").aka("locatable").expect(["_", "genitive"], cons("NounObj").consumes(1).semantics { it[0]["of"] = it[1]; it[0]}).semantics { new Frame("demolition")}
     noun("сносу", "dative")
-    noun("строений", "genitive").aka("locatable").semantics { def f = new Frame("set"); f["component"] = new Frame("building"); f }
+    noun("строений", "genitive").aka("locatable").semantics { def f = new Frame("building"); f["quantity"] = "plural"; f }
     noun("поселке", "prepositional").aka("nameable").semantics { new Frame("housing_development") }
     noun("постройки", "accusative")
     noun("постройки", "genitive")

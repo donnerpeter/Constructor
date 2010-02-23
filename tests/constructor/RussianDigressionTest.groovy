@@ -10,14 +10,14 @@ class RussianDigressionTest extends GroovyTestCase {
 
   public void testMotherDaughter() throws Exception {
     _ "мать любит дочь", """
-SubjPred #1=любит мать
+Subject #1=любит мать
 Obj #1 дочь
 """
   }
 
   public void testMotherDaughter1() throws Exception {
     _ "мать любит родную дочь", """
-SubjPred #1=любит мать
+Subject #1=любит мать
 Obj #1 #2=дочь
 AdjNoun родную #2
 """
@@ -26,7 +26,7 @@ AdjNoun родную #2
   public void testMotherDaughter2() throws Exception {
     _ "мать любит родная дочь", """
 Obj #1=любит мать
-SubjPred #1 #2=дочь
+Subject #1 #2=дочь
 AdjNoun родная #2
 """
   }
@@ -35,7 +35,7 @@ AdjNoun родная #2
     _ "родную мать любит дочь", """
 AdjNoun родную #1=мать
 Obj #2=любит #1
-SubjPred #2 дочь
+Subject #2 дочь
 """
   }
 

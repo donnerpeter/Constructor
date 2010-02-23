@@ -6,7 +6,7 @@ import constructor.*
  * @author peter
  */
 class RussianLexicon extends Lexicon {
-  static def subject = cons("SubjPred").consumes(1).identifyArgs([1:"nominative"]).semantics { args -> args[0]["who"] = args[1]} //todo rename SubjPred
+  static def subject = cons("Subject").consumes(1).identifyArgs([1:"nominative"]).semantics { args -> args[0]["who"] = args[1]}
   static def object = cons("Obj").consumes(1).identifyArgs([1:"accusative"])
 
   def RussianLexicon() {

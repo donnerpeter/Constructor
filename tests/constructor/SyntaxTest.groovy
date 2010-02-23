@@ -12,7 +12,7 @@ class SyntaxTest extends GroovyTestCase {
     _ '''Власти московской управы "Крылатское" намерены в течение месяца решить вопрос о сносе
 незаконных строений в поселке "Речник"''', """
 NounObj #1=Власти #2=управы
-SubjPred #3=намерены #1
+Subject #3=намерены #1
 AdjNoun московской #2
 Appos
   Quoted
@@ -49,7 +49,7 @@ DirectSpeech
   Quoted
     "
     Color{1}
-      SubjPred #2=планируем Мы
+      Subject #2=планируем Мы
       XComp #2 #3=снести
       Quantifier все #4=постройки
       AdjNoun незаконные #4
@@ -67,7 +67,7 @@ When
 Where
   Prepos в поселке
   #1
-SubjPred #1 #5=глава
+Subject #1 #5=глава
 NounObj #5 #6=управы
 Named
   NameSurname Виталий Никитин
@@ -84,18 +84,18 @@ Appos
 
   public void testRechnik3() {
     _ 'Он сообщил, что с утра уже демонтированы два строения, к сносу готовится третий дом', """
-SubjPred #1=сообщил Он
+Subject #1=сообщил Он
 Comp #1 , что #2=демонтированы
 When
   Prepos с утра
   #2
 Already уже #2
-SubjPred
+Subject
   #2
   Quantity два строения
 ,
 Oblique #3=готовится к сносу
-SubjPred #3 #4=дом
+Subject #3 #4=дом
 Order третий #4
 """
   }
@@ -113,7 +113,7 @@ DirectSpeech
         XWhen Когда #2=дают
         ,
         #3=сносим
-      SubjPred #2 приставы
+      Subject #2 приставы
       Goal #2 нам
       'дать добро' #2 #4=добро
       Quoted
@@ -121,23 +121,23 @@ DirectSpeech
         Color{1}
           #4
         "
-      SubjPred #3 мы
+      Subject #3 мы
       Demonstrative эти #5=дома
       Obj #3 #5
       .
-      SubjPred #6=снесли Мы
+      Subject #6=снесли Мы
       NegObj не #6 ни одного #7=дома
       Relative #8=котором #7 ,
       Where
         Prepos в #8
         #9=проживали
       Subjunctive бы #9
-      SubjPred #9 #10=жители
+      Subject #9 #10=жители
       AdjNoun местные #10
     "
   ,
   -
-SubjPred #1 чиновник
+Subject #1 чиновник
 .
 """
 
@@ -164,7 +164,7 @@ Appos
     "
   #3
 Oblique #1 к сносу
-SubjPred #1 #2
+Subject #1 #2
 Relative #4=которых #2 ,
 Subset #5=37 из #4
 Copula

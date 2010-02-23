@@ -6,7 +6,7 @@ import constructor.*
  * @author peter
  */
 class RussianLexicon extends Lexicon {
-  static def subject = cons("Subject").consumes(1).identifyArgs([1:"nominative"]).semantics { args -> args[0]["who"] = args[1]}
+  static def subject = cons("Subject").consumes(1).identifyArgs([1:"nominative"]).semantics { args -> args[0]["agent"] = args[1]}
   static def object = cons("Obj").consumes(1).identifyArgs([1:"accusative"])
 
   def RussianLexicon() {
@@ -28,11 +28,11 @@ class RussianLexicon extends Lexicon {
     preposition("с", "genitive") {it.expect(["_", "clause"], cons("When"))}
     preposition("по", "dative") { it.famous() }.famous()
 
-    noun("Власти", "nominative").nounObj("of").aka("pl").frame("authorities")
+    noun("Власти", "nominative").nounObj("governed").aka("pl").frame("authorities")
     noun("управы", "genitive").aka("nameable").frame("council")
     noun("месяца", "genitive").frame("month")
     noun("вопрос", "accusative")
-    noun("сносе", "prepositional").nounObj("of").aka("locatable").frame("demolition")
+    noun("сносе", "prepositional").nounObj("undergoer").aka("locatable").frame("demolition")
     noun("сносу", "dative")
     noun("строений", "genitive").aka("locatable").semantics { def f = new Frame("building"); f["quantity"] = "plural"; f }
     noun("поселке", "prepositional").aka("nameable").frame("housing_development")
@@ -75,7 +75,7 @@ class RussianLexicon extends Lexicon {
     store(new TransitiveVerb('любит', '3sg'))
     
     verb('намерены', "pl").
-            expect(["_", "infinitive"], cons("XComp").consumes(1).semantics { it[0]["action"] = it[1]; it[1]["agent"] = it[0].ref("who"); it[0] }).
+            expect(["_", "infinitive"], cons("XComp").consumes(1).semantics { it[0]["goal"] = it[1]; it[1]["agent"] = it[0].ref("agent"); it[0] }).
             frame("intention")
 
     verb("планируем", "1pl").expect(["_", "infinitive"], cons("XComp").consumes(1))
@@ -97,7 +97,7 @@ class RussianLexicon extends Lexicon {
     verb("проживали", "pl").aka("locatable")
     verb("есть", "pl").expect(["Prepos":2, "_":1, "nominative":0], cons("Copula"))
 
-    infinitive("решить").expect(["_", "вопрос", "о", "prepositional"], cons("Решить вопрос").consumes(0, 1, 2, 3).semantics { it[0]["theme"] = it[3]; it[0] }).frame("deal_with")
+    infinitive("решить").expect(["_", "вопрос", "о", "prepositional"], cons("Решить вопрос").consumes(0, 1, 2, 3).semantics { it[0]["problem"] = it[3]; it[0] }).frame("resolve_problem")
     infinitive("снести").expect(["accusative": 1, "_": 0], object)
 
     word('Крылатское').famous()

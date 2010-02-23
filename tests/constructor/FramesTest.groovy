@@ -12,21 +12,21 @@ class FramesTest extends GroovyTestCase {
     _ '''Власти московской управы "Крылатское" намерены в течение месяца решить вопрос о сносе
 незаконных строений в поселке "Речник"''', """
 intention
-|who:
+|agent:
   #1=authorities
-  |of:
+  |governed:
     council
     |part_of: Москва
     |name: Крылатское
-|action:
-  deal_with
+|goal:
+  resolve_problem
   |agent: #1
   |time:
     deadline
     |unit: month
-  |theme:
+  |problem:
     demolition
-    |of:
+    |undergoer:
       building
       |quantity: plural
       |legal: -

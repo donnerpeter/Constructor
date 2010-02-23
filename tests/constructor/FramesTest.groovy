@@ -19,7 +19,7 @@ intention
     |part_of: Москва
     |name: Крылатское
 |action:
-  decide_on
+  deal_with
   |agent: #1
   |time:
     deadline

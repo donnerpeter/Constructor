@@ -76,7 +76,7 @@ class RussianLexicon extends Lexicon {
     
     verb('намерены', "pl").
             expect(["_", "infinitive"], cons("XComp").consumes(1).semantics { it[0]["action"] = it[1]; it[1]["agent"] = it[0].ref("who"); it[0] }).
-            semantics { new Frame("intention") }
+            frame("intention")
 
     verb("планируем", "1pl").expect(["_", "infinitive"], cons("XComp").consumes(1))
     verb("планируется", "3sg").aka("locatable").expect(["_", "к", "dative"], cons("Oblique").consumes(1, 2))
@@ -97,7 +97,7 @@ class RussianLexicon extends Lexicon {
     verb("проживали", "pl").aka("locatable")
     verb("есть", "pl").expect(["Prepos":2, "_":1, "nominative":0], cons("Copula"))
 
-    infinitive("решить").expect(["_", "вопрос", "о", "prepositional"], cons("Решить вопрос").consumes(0, 1, 2, 3).semantics { it[0]["theme"] = it[3]; it[0] }).semantics { new Frame("decide_on") }
+    infinitive("решить").expect(["_", "вопрос", "о", "prepositional"], cons("Решить вопрос").consumes(0, 1, 2, 3).semantics { it[0]["theme"] = it[3]; it[0] }).frame("deal_with")
     infinitive("снести").expect(["accusative": 1, "_": 0], object)
 
     word('Крылатское').famous()

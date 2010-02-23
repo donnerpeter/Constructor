@@ -28,20 +28,20 @@ class RussianLexicon extends Lexicon {
     preposition("с", "genitive") {it.expect(["_", "clause"], cons("When"))}
     preposition("по", "dative") { it.famous() }.famous()
 
-    noun("Власти", "nominative").aka("pl").expect(["_", "genitive"], cons("NounObj").semantics { it[0]["of"] = it[1]; it[0] }).semantics { new Frame("authorities") }
-    noun("управы", "genitive").aka("nameable").semantics { new Frame("council") }
-    noun("месяца", "genitive").semantics { new Frame("month") }
+    noun("Власти", "nominative").nounObj("of").aka("pl").frame("authorities")
+    noun("управы", "genitive").aka("nameable").frame("council")
+    noun("месяца", "genitive").frame("month")
     noun("вопрос", "accusative")
-    noun("сносе", "prepositional").aka("locatable").expect(["_", "genitive"], cons("NounObj").consumes(1).semantics { it[0]["of"] = it[1]; it[0]}).semantics { new Frame("demolition")}
+    noun("сносе", "prepositional").nounObj("of").aka("locatable").frame("demolition")
     noun("сносу", "dative")
     noun("строений", "genitive").aka("locatable").semantics { def f = new Frame("building"); f["quantity"] = "plural"; f }
-    noun("поселке", "prepositional").aka("nameable").semantics { new Frame("housing_development") }
+    noun("поселке", "prepositional").aka("nameable").frame("housing_development")
     noun("постройки", "accusative")
     noun("постройки", "genitive")
     noun("месяц", "accusative")
     noun("журналистам", "dative").aka("animate") //todo hack
     noun("вторник", "accusative").aka("time")
-    noun("глава", "nominative").aka("masc").expect(["_", "genitive"], cons("NounObj").consumes(1))
+    noun("глава", "nominative").nounObj("of").aka("masc")
     noun("утра", "genitive")
     noun("строения", "genitive")
     noun("дом", "nominative").aka("3sg")
@@ -64,8 +64,8 @@ class RussianLexicon extends Lexicon {
     noun("Он", "nominative").aka("masc")
     noun("нам", "dative")
 
-    word("московской").expect(["_", "genitive"], cons("AdjNoun").identifyArgs([1:"genitive"]).semantics { it[1]["part_of"] = "Москва"; it[1]})
-    word("незаконных").expect(["_", "genitive"], cons("AdjNoun").identifyArgs([1:"genitive"]).semantics { it[1]["legal"] = "-" })
+    adj("московской", "genitive") { it["part_of"] = "Москва" }
+    adj("незаконных", "genitive") { it["legal"] = "-" }
     adj("незаконные", "accusative")
     adj("местные", "nominative")
     adj("судебные", "nominative")
@@ -148,12 +148,12 @@ class RussianLexicon extends Lexicon {
     return word(s).expect(["_", _case], binding(cons("Prepos").consumes(1).semantics {it[1]}))
   }
 
-  private Descriptor adj(String name, String _case) {
-    return word(name).expect(["_", _case], cons("AdjNoun").identifyArgs([1:_case]))
+  private Descriptor adj(String name, String _case, Closure semantics = {}) {
+    return word(name).expect(["_", _case], cons("AdjNoun").identifyArgs([1:_case]).semantics { semantics(it[1]); it[1] })
   }
 
-  def noun(String name, String _case) {
-    return store(new Noun(name, _case))
+  Noun noun(String name, String _case) {
+    return (Noun) store(new Noun(name, _case))
   }
 
   Descriptor word(String name) {

@@ -27,4 +27,8 @@ class Noun extends Descriptor {
 
     return super.activate(c, ctx)
   }
+
+  def nounObj(String slot) {
+    expect(["_", "genitive"], new Descriptor("NounObj").consumes(1).semantics { it[0][slot] = it[1]; it[0] } )
+  }
 }

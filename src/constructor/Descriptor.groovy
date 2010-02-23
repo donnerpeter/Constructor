@@ -151,5 +151,10 @@ class Descriptor {
     this
   }
 
+  Descriptor frame(String id) {
+    _semantics = { new Frame(id) }
+    this
+  }
+
 
 }

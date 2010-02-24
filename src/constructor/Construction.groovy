@@ -19,6 +19,8 @@ class Construction {
     tracked = descr.isTracked()
   }
 
+  List<Construction> children(Cloud cloud) { args }
+
   def String toString() {
     if (args.isEmpty()) return name
     return "(" + ([name] + args).join(' ') + ")";

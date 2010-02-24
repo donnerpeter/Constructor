@@ -32,7 +32,18 @@ class Frame {
     return name
   }
 
-  def prettyPrint(FrameNameGenerator gen, String indent) {
+  private def stringify(v, FramePrinter gen, String indent) {
+    if (v instanceof List) {
+      def topLevel = v.findAll { !(it instanceof Frame) || it in gen.coloredRoots }
+      return topLevel.collect { stringify(it, gen, indent)}.join("\n")
+    }
+    if (!(v instanceof Frame)) {
+      return v.toString()
+    }
+    return v.prettyPrint(gen, indent)
+  }
+
+  def prettyPrint(FramePrinter gen, String indent) {
     if (gen.isUsage(this)) {
       return gen.prefix(this)
     }
@@ -44,17 +55,35 @@ class Frame {
       if (!v) return
 
       result += "\n$indent|$n:"
-      if (!(v instanceof Frame)) {
-        result += " " + v
-      }
-      else if (!v.attributes || gen.isUsage(v)) {
-        result += " " + v.prettyPrint(gen, indent)
-      }
-      else {
-        result += "\n" + indent + TAB + v.prettyPrint(gen, indent + TAB)
+      def arg = stringify(v, gen, indent + TAB)
+      if (arg.trim().contains("\n")) {
+        result += "\n" + indent + TAB + arg
+      } else {
+        result += " " + arg
       }
     }
 
     return result
+  }
+
+  def allChildren() {
+    def result = [] as Set
+    attributes.keySet().each { n ->
+      def v = this[n]
+      if (!v) return
+
+      if (v instanceof Frame) {
+        result << v
+        result += v.allChildren()
+      } else if (v instanceof List) {
+        v.each {
+          if (it instanceof Frame) {
+            result << it
+            result += it.allChildren()
+          }
+        }
+      }
+    }
+    result
   }
 }

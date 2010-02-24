@@ -126,11 +126,11 @@ class Cloud {
 
       toExclude += it.descr.incompatible(it, new ParsingContext(it, this))
     }
-    return all-toExclude-weak
+    return (all-toExclude-weak).sort(comparator)
   }
 
   def prettyPrint(int color, String indent, VarNameGenerator varNameGenerator) {
-    def roots = reduce().sort(comparator).findAll {
+    def roots = reduce().findAll {
       colors[it]==color && !(it instanceof Colored) && usages[it].findAll { colors[it]==color }.isEmpty()
     }
 
@@ -260,7 +260,7 @@ class Cloud {
     def c = colorRanges[range]
     if (!c) {
       int newColor = ++maxColor
-      colorRanges[range] = c = new Colored(newColor, this)
+      colorRanges[range] = c = new Colored(newColor)
       initConstruction(c, range)
       ranges.each {ec, r ->
         if (r.fromInt >= range.fromInt && r.toInt <= range.toInt && !colors[ec]) {
@@ -272,21 +272,22 @@ class Cloud {
   }
 
   private def semantics(Construction c, Map sem) {
-    if (sem[c]) {
+    if (sem.containsKey(c)) {
       return sem[c]
     }
 
-    def args = c.args.collect { semantics(it, sem) }
-    def result = c.descr.buildSemantics(args)
+    def args = c.children(this)
+    def result = c.descr.buildSemantics(new Object() {
+      def size() { args.size() }
+      def getAt(int i) { semantics(args[i], sem) }
+    })
     sem[c] = result
     return result
   }
 
-  def semantics(int color) {
-    def set = new FrameSet()
+  String semantics() {
     Map frames = [:]
-    reduce().findAll { colors[it] == color && !(it instanceof Colored) }.sort(comparator).each { semantics(it, frames) }
-    frames.values().each { if (it instanceof Frame) set.addFrame(it) }
-    return set
+    reduce().each { semantics(it, frames) }
+    return new FramePrinter(frames.values().findAll {it instanceof Frame}).prettyPrint("")
   }
 }

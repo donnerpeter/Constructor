@@ -9,6 +9,10 @@ class RussianLexicon extends Lexicon {
   static def subject = cons("Subject").consumes(1).identifyArgs([1:"nominative"]).semantics { args -> args[0]["agent"] = args[1]}
   static def object = cons("Obj").consumes(1).identifyArgs([1:"accusative"])
 
+  static Descriptor obj(String slot) {
+    cons("Obj").consumes(1).identifyArgs([1:"accusative"]).semantics {it[0][slot] = it[1]; it[0]}
+  }
+
   def RussianLexicon() {
     specials()
     preposition("в течение", "genitive") { it.expect(["_", "clause"], cons("When").semantics {
@@ -20,11 +24,16 @@ class RussianLexicon extends Lexicon {
    // preposition("о", "prepositional") {it.expect(["noun": 1, "_": 0], cons("About"))}
     preposition("в", "prepositional") { it.
                     expect([["noun", "locatable"]: 1, "_": 0], cons("Where").consumes(1).semantics {it[1]["location"] = it[0]; it[0]}).
-                    expect([["clause", "locatable"]: 1, "_": 0], cons("Where").consumes(1)).
+                    expect([["clause", "locatable"]: 1, "_": 0], cons("Where").consumes(1).semantics {it[1]["location"] = it[0]; it[0]}).
                     expect(["_", ["clause", "locatable"]], cons("Where").consumes(1))
                     }
-    preposition("во", ["accusative", "time"]) { it.expect(["clause": 1, "_": 0], cons("When"))}
-    preposition("за", "accusative") {it.expect(["clause": 1, "_": 0], cons("When"))}
+    preposition("во", ["accusative", "time"]) { it.expect(["clause": 1, "_": 0], cons("When").semantics { it[1]["time"] = it[0]; it[1] } )}
+    preposition("за", "accusative") {it.expect(["clause": 1, "_": 0], cons("When").semantics{
+      def f = new Frame("deadline")
+      it[1]["time"] = f
+      f["unit"] = it[0];
+      it[1]
+    })}
     preposition("с", "genitive") {it.expect(["_", "clause"], cons("When"))}
     preposition("по", "dative") { it.famous() }.famous()
 
@@ -36,12 +45,12 @@ class RussianLexicon extends Lexicon {
     noun("сносу", "dative")
     noun("строений", "genitive").aka("locatable").semantics { def f = new Frame("building"); f["quantity"] = "plural"; f }
     noun("поселке", "prepositional").aka("nameable").frame("housing_development")
-    noun("постройки", "accusative")
+    noun("постройки", "accusative").semantics { def f = new Frame("building"); f["quantity"] = "plural"; f }
     noun("постройки", "genitive")
-    noun("месяц", "accusative")
-    noun("журналистам", "dative").aka("animate") //todo hack
-    noun("вторник", "accusative").aka("time")
-    noun("глава", "nominative").nounObj("of").aka("masc")
+    noun("месяц", "accusative").frame("month")
+    noun("журналистам", "dative").aka("animate").semantics { def f = new Frame("journalist"); f["quantity"] = "plural"; f } //todo hack
+    noun("вторник", "accusative").aka("time").frame("Tuesday")
+    noun("глава", "nominative").nounObj("governed").aka("masc").frame("head")
     noun("утра", "genitive")
     noun("строения", "genitive")
     noun("дом", "nominative").aka("3sg")
@@ -59,14 +68,14 @@ class RussianLexicon extends Lexicon {
     noun("дочь", "nominative").aka("3sg")
     noun("дочь", "accusative").aka("3sg")
 
-    noun("Мы", "nominative").aka("1pl")
+    noun("Мы", "nominative").aka("1pl").frame("we")
     noun("мы", "nominative").aka("1pl")
     noun("Он", "nominative").aka("masc")
     noun("нам", "dative")
 
     adj("московской", "genitive") { it["part_of"] = "Москва" }
     adj("незаконных", "genitive") { it["legal"] = "-" }
-    adj("незаконные", "accusative")
+    adj("незаконные", "accusative") { it["legal"] = "-" }
     adj("местные", "nominative")
     adj("судебные", "nominative")
     adj("родная", "nominative").aka("nom")
@@ -78,12 +87,14 @@ class RussianLexicon extends Lexicon {
             expect(["_", "infinitive"], cons("XComp").consumes(1).semantics { it[0]["goal"] = it[1]; it[1]["agent"] = it[0].ref("agent"); it[0] }).
             frame("intention")
 
-    verb("планируем", "1pl").expect(["_", "infinitive"], cons("XComp").consumes(1))
+    verb("планируем", "1pl").
+            expect(["_", "infinitive"], cons("XComp").consumes(1).semantics { it[0]["goal"] = it[1]; it[1]["agent"] = it[0].ref("agent"); it[0] }).
+            frame("intention")
     verb("планируется", "3sg").aka("locatable").expect(["_", "к", "dative"], cons("Oblique").consumes(1, 2))
 
-    verb("сообщил", "masc").aka("locatable").
-            expect(["Quoted": 1, ",": 2, "-": 3, "_": 0], cons("DirectSpeech").consumes(1, 2, 3)).
-            expect(["_", ["dative", "animate"]], cons("Goal").consumes(1)).
+    verb("сообщил", "masc").aka("locatable").frame("tell").
+            expect(["Quoted": 1, ",": 2, "-": 3, "_": 0], cons("DirectSpeech").consumes(1, 2, 3).semantics { it[0]["message"] = it[1]; it[0] } ).
+            expect(["_", ["dative", "animate"]], cons("Goal").consumes(1).semantics { it[0]["addressee"] = it[1]; it[0] }).
             expect(["_", ",", "что", "clause"], cons("Comp").consumes(1, 2, 3).demotes(1, 2))
     verb("сказал", "masc").expect(["Quoted": 1, ",": 2, "-": 3, "_": 0], cons("DirectSpeech").consumes(1, 2, 3))
     verb("демонтированы", "pl")
@@ -98,18 +109,21 @@ class RussianLexicon extends Lexicon {
     verb("есть", "pl").expect(["Prepos":2, "_":1, "nominative":0], cons("Copula"))
 
     infinitive("решить").expect(["_", "вопрос", "о", "prepositional"], cons("Решить вопрос").consumes(0, 1, 2, 3).semantics { it[0]["problem"] = it[3]; it[0] }).frame("resolve_problem")
-    infinitive("снести").expect(["accusative": 1, "_": 0], object)
+    infinitive("снести").expect(["accusative": 1, "_": 0], obj("undergoer")).frame("demolition")
 
-    word('Крылатское').famous()
-    word("Речник").famous()
+    word('Крылатское').famous().frame("Крылатское") //todo special handing for self-naming words
+    word("Речник").famous().frame("Речник")
     word("одного").famous()
     word("его").famous()
     word("не").famous()
     word("ни").famous()
     word("о").famous()
-    word("все").expect(["_", "accusative"], cons("Quantifier"))
-    word("Виталий").famous().expect(["_", "Surname"], cons("NameSurname").expect(["nominative": 1, "_": 0], cons("Named")))
-    word("Никитин").famous().aka("Surname")
+    word("все").expect(["_", "accusative"], cons("Quantifier").semantics { it[1]["scope"] = "all"; it[1]})
+    word("Виталий").famous().frame("Виталий").expect(["_", "Surname"],
+            cons("NameSurname").expect(["nominative": 1, "_": 0],
+                    cons("Named").semantics { it[1]["name"] = it[0]; it[1] }
+            ).semantics { def f = new Frame("HumanName"); f["first"] = it[0]; f["last"] = it[1]; f })
+    word("Никитин").frame("Никитин").famous().aka("Surname")
     word("что").famous()
     word("уже").expect(["_", "clause"], cons("Already").consumes(0))
     word("два").expect(["_", "genitive"], cons("Quantity").famous().consumes(0, 1).aka("nominative", "pl"))

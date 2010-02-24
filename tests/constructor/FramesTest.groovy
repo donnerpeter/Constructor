@@ -9,8 +9,13 @@ import constructor.russian.RussianLexicon
 class FramesTest extends GroovyTestCase {
 
   void testRechnik1() {
-    _ '''Власти московской управы "Крылатское" намерены в течение месяца решить вопрос о сносе
-незаконных строений в поселке "Речник"''', """
+    _ '''
+Власти московской управы "Крылатское" намерены в течение месяца решить вопрос о сносе
+незаконных строений в поселке "Речник".
+
+"Мы планируем все незаконные постройки снести за месяц", - сообщил журналистам во вторник
+в поселке глава управы "Крылатское" Виталий Никитин.
+''', """
 intention
 |agent:
   #1=authorities
@@ -33,11 +38,40 @@ intention
       |location:
         housing_development
         |name: Речник
+tell
+|message:
+  intention
+  |agent: #2=we
+  |goal:
+    demolition
+    |agent: #2
+    |undergoer:
+      building
+      |quantity: plural
+      |scope: all
+      |legal: -
+    |time:
+      deadline
+      |unit: month
+|addressee:
+  journalist
+  |quantity: plural
+|time: Tuesday
+|location: housing_development
+|agent:
+  head
+  |governed:
+    council
+    |name: Крылатское
+  |name:
+    HumanName
+    |first: Виталий
+    |last: Никитин
 """
   }
 
   def _(input, output) {
-    assertEquals output.trim(), new Parser(new RussianLexicon()).parse(input).semantics(0).prettyPrint()
+    assertEquals output.trim(), new Parser(new RussianLexicon()).parse(input).semantics()
   }
 
 }

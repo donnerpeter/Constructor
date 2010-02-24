@@ -5,11 +5,27 @@ package constructor
  */
 class Colored extends Construction {
   int color
-  Cloud cloud
 
-  def Colored(int color, Cloud cloud) {
-    super(new Descriptor("Color" + color).semantics { cloud.semantics(color).frames.iterator().next() }, []);
+  def Colored(int color) {
+    super(new Descriptor("Color" + color).semantics {
+      def result = new LinkedHashSet()
+      def allChildren = [] as Set
+      for (i in 0..it.size() - 1) {
+        def arg = it[i]
+        if (arg) {
+          result << arg
+        }
+        if (arg instanceof Frame) {
+          allChildren += arg.allChildren()
+        }
+      }
+      return (result-allChildren) as List
+    }, []);
     this.color = color;
+  }
+
+  List<Construction> children(Cloud cloud) {
+    cloud.reduce().findAll { cloud.colors[it] == color && it != this } as List
   }
 
   def String prettyPrint(VarNameGenerator varName, String indent, Cloud cloud) {

@@ -136,11 +136,9 @@ class Descriptor {
 
   String toString() { "Descriptor:" + name }
 
-  def buildSemantics(List args) {
+  def buildSemantics(args) {
     if (!_semantics) {
-      def frame = new Frame(name)
-      args.eachWithIndex { a, i -> frame["$i"] = a}
-      return frame
+      return null
     }
 
     return _semantics.call(args)

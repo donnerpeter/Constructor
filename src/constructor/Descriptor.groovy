@@ -16,6 +16,7 @@ class Descriptor {
   private Set<Pair<Integer, String>> suppressions = [] as Set
   private Map<Integer, Object> argPings = [:]
   private Closure _semantics
+  List _patterns = []
 
   def Descriptor(String name) {
     this.name = name
@@ -151,6 +152,28 @@ class Descriptor {
 
   Descriptor frame(String id) {
     _semantics = { new Frame(id) }
+    this
+  }
+
+  Descriptor form(pattern) {
+    _patterns << pattern
+    this
+  }
+
+  Descriptor evokes(Descriptor parent, int argNumber) {
+    parent._patterns.each {
+      def copy = it.clone()
+      if (copy instanceof List) {
+        copy[argNumber] = "_"
+        expect(copy, parent)
+      } else {
+        assert copy instanceof Map
+        def key = copy.find { k, v -> v == argNumber }.key
+        copy.remove key
+        copy["_"] = argNumber
+        expect(copy, parent)
+      }
+    }
     this
   }
 

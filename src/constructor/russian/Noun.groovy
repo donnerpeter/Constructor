@@ -13,7 +13,7 @@ class Noun extends Descriptor {
   def Noun(name, _case) {
     super(name)
     this._case = _case
-    aka("noun", _case)
+    aka("noun", "NP", _case)
     famous()
   }
 

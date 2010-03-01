@@ -11,6 +11,7 @@ class Descriptor {
   private def tracked = false
   private Set<String> pings = [] as Set
   private Map<List, Descriptor> expectations = [:]
+  protected Set<List> optional = [] as Set //too make private when Groovy fixes the bug
   Set<Integer> consumedArgs = [] as Set
   Set<Integer> demotedArgs = [] as Set
   private Set<Pair<Integer, String>> suppressions = [] as Set
@@ -37,12 +38,15 @@ class Descriptor {
     this
   }
 
-  Descriptor expect(List pattern, action) {
+  Descriptor expect(List pattern, action, boolean optional = false) {
     expectations[pattern] = action
+    if (optional) {
+      this.optional << pattern
+    }
     return this
   }
 
-  Descriptor expect(Map<?, Integer> pattern, Descriptor action) {
+  Descriptor expect(Map<?, Integer> pattern, Descriptor action, boolean optional = false) {
     def list = pattern.keySet() as List
     expectations[list] = new Descriptor(action.name) {
 
@@ -54,6 +58,9 @@ class Descriptor {
         action.build(permuted)
       }
 
+    }
+    if (optional) {
+      this.optional << pattern
     }
     return this
   }
@@ -83,12 +90,13 @@ class Descriptor {
         def argLists = ctx.cloud.match(c, pattern)
         if (argLists) {
           argLists.each {args ->
-            def result = builder.build(args)
-            ctx.addConstruction result
+            ctx.addConstruction builder.build(args)
           }
         } else {
           if (pattern.indexOf("_") == 0 || ctx.cloud.activeBefore(ctx.cloud.ranges[c].fromInt).size() > 0) {
-            happy = false
+            if (!optional.contains(pattern)) {
+              happy = false
+            }
           }
         }
       }
@@ -160,18 +168,18 @@ class Descriptor {
     this
   }
 
-  Descriptor evokes(Descriptor parent, int argNumber) {
+  Descriptor evokes(Descriptor parent, int argNumber, boolean optional = false) {
     parent._patterns.each {
       def copy = it.clone()
       if (copy instanceof List) {
         copy[argNumber] = "_"
-        expect(copy, parent)
+        expect(copy, parent, optional)
       } else {
         assert copy instanceof Map
         def key = copy.find { k, v -> v == argNumber }.key
         copy.remove key
         copy["_"] = argNumber
-        expect(copy, parent)
+        expect(copy, parent, optional)
       }
     }
     this

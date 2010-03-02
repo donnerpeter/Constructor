@@ -8,10 +8,13 @@ class ParsingContext {
   Cloud cloud
   List<Construction> newConstructions = []
   private Set<Construction> usedArgs = [] as Set
+  private Set<Construction> relaxed = [] as Set
 
   def ParsingContext(Construction relativeTo, Cloud cloud) {
-    this.relativeTo = relativeTo;
-    this.cloud = cloud;
+    this.relativeTo = relativeTo
+    this.cloud = cloud
+
+    strongUsages(relativeTo, []).each { markArgsUsed(it) }
   }
 
   Construction findAfter(Construction anchor, hint) {
@@ -19,14 +22,6 @@ class ParsingContext {
     return usedArgs.contains(c) ? null : c
   }
 
-  List<Construction> findAll(Construction anchor, hint) {
-    def result = []
-    def c = findBefore(anchor, hint)
-    if (c) result << c
-    c = findAfter(anchor, hint)
-    if (c) result << c
-    return result
-  }
 
   Construction findBefore(Construction anchor, hint) {
     def cc = cloud.findBefore(hint, cloud.ranges[anchor].fromInt)
@@ -34,23 +29,28 @@ class ParsingContext {
   }
 
   def addConstruction(Construction c) {
-    c.args.each {
-      if (it != relativeTo) {
-        usedArgs += cloud.competitors[it]
-      }
-    }
+    relaxed -= c
+    markArgsUsed(c)
     cloud.weak.remove c
     if (cloud.ranges.containsKey(c)) return
 
     newConstructions << c
   }
 
+  private List markArgsUsed(Construction c) {
+    return c.args.each {
+      if (it != relativeTo) {
+        usedArgs += cloud.competitors[it]
+      }
+    }
+  }
+
   Collection<Construction> usages(Construction c, hint) {
-    return cloud.usages[c].findAll { it.isAccepted(hint, cloud) }
+    return cloud.usages[c].findAll { it.isAccepted(hint, cloud) } + newConstructions.findAll { c in it.args && it.isAccepted(hint, cloud) }
   }
 
   Collection<Construction> strongUsages(Construction c, hint) {
-    return usages(c, hint).findAll { !cloud.weak.contains(it) }
+    return (usages(c, hint) - relaxed).findAll { !cloud.isWeak(it) }
   }
 
   Construction coloredBetween(Construction from, Construction to) {
@@ -62,8 +62,30 @@ class ParsingContext {
     return cloud.allAt(after ? range.toInt : range.fromInt, after).find { it.isAccepted(hint, cloud) }
   }
 
+  Collection<List<Construction>> match(List pattern) {
+    return cloud.match(relativeTo, pattern).findAll { it.intersect(usedArgs).isEmpty() }
+  }
+
   def markFinished(Construction construction) {
     cloud.finished << construction
+  }
+
+  def relaxUsages(hint) {
+    strongUsages(relativeTo, hint).each { usg ->
+      Set<Construction> candidates = [] as Set
+      boolean isReparseable = false
+      usg.args.each {
+        def comp = cloud.competitors[it]
+        candidates += comp
+        isReparseable |= comp.size() > 1
+      }
+
+      if (isReparseable) {
+        relaxed << usg
+        usedArgs -= candidates
+        cloud.weak -= candidates
+      }
+    }
   }
 }
 

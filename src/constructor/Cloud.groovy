@@ -59,8 +59,8 @@ class Cloud {
     return alternatives
   }
 
-  private boolean shouldActivate(Construction it) {
-    return !weak.contains(it) && it.descr.shouldActivate()
+  private boolean shouldActivate(Construction c) {
+    return !isWeak(c) && c.descr.shouldActivate()
   }
 
   def updateActive(LinkedList<Construction> queue, boolean skipFirst) {
@@ -87,11 +87,16 @@ class Cloud {
         def comp = competitors[it]
         (comp - usedArguments).each {
           demote it
-          weak << it
+          weaken(it)
         }
       }
     }
     toDemote.each { demote it }
+  }
+
+  private weaken(Construction c) {
+    weak << c
+    usages[c].each { weaken(it) }
   }
 
   private IntRange compositeRange(newC) {
@@ -120,13 +125,17 @@ class Cloud {
     def toExclude = [] as Set
     def all = usages.keySet()
     all.each { it ->
-      if (it.name == "Space") {
+      if (it.name == "Space" || isWeak(it)) {
         toExclude << it
+      } else {
+        toExclude += it.descr.incompatible(it, new ParsingContext(it, this))
       }
-
-      toExclude += it.descr.incompatible(it, new ParsingContext(it, this))
     }
-    return (all-toExclude-weak).sort(comparator)
+    return (all-toExclude).sort(comparator)
+  }
+
+  boolean isWeak(Construction c) {
+    return c in weak
   }
 
   def prettyPrint(int color, String indent, VarNameGenerator varNameGenerator) {
@@ -145,13 +154,10 @@ class Cloud {
   }
 
   private List<Construction> plausibleAlternatives(Construction c) {
-    def all = competitors[c] as List
-    if (all.size() <= 1) {
-      return all
-    }
-
-    def used = all.findAll { !(usages[it] - weak).isEmpty() } as List
-    return used ?: all
+    List<Construction> all = competitors[c] as List
+    def used = all.findAll { !isWeak(it) } as List
+    assert used.size() > 0
+    return used
   }
 
   Construction findAfter(hint, int pos) {

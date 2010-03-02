@@ -96,7 +96,7 @@ class RussianLexicon extends Lexicon {
     adj("родная", "nominative").aka("nom")
     adj("родную", "accusative").aka("acc")
 
-    store(new TransitiveVerb('любит', '3sg'))
+    verb('любит', '3sg').evokes(obj("theme"), 0)
 
     def goalXComp = cons("XComp").consumes(1).form(["_", "infinitive"]).semantics { it[0]["goal"] = it[1]; it[1]["agent"] = it[0].ref("agent"); it[0] }
     verb('намерены', "pl").evokes(goalXComp, 0).frame("intention")
@@ -114,9 +114,9 @@ class RussianLexicon extends Lexicon {
     verb("демонтированы", "pl")
     verb("готовится", "3sg").expect(["к": 1, "dative": 2, "_": 0], cons("Oblique").consumes(1, 2))
     verb('дают', "3pl").
-            expect(["_", "добро"], cons("дать добро").consumes(1).suppresses(0, object.name)).
+            expect(["_", "добро"], cons("дать добро").consumes(1).suppresses(0, object.name), true). //todo дать добро should replace дать
             expect(["dative": 1, "_": 0], cons("Goal").consumes(1)).
-            evokes(obj("given"), 0)
+            evokes(obj("given"), 0, true)
     verb("сносим", "1pl").evokes(obj("undergoer"), 0)
     verb("снесли", "1pl").expect(["не", "_", "ни", "одного", "genitive"], cons("NegObj").consumes(0, 2, 3, 4))
     verb("проживали", "pl").aka("locatable")

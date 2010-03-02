@@ -10,7 +10,7 @@ class Descriptor {
   private def famous = false
   private def tracked = false
   private Set<String> pings = [] as Set
-  private Map<List, Descriptor> expectations = [:]
+  protected Map<List, Descriptor> expectations = [:]
   protected Set<List> optional = [] as Set //too make private when Groovy fixes the bug
   Set<Integer> consumedArgs = [] as Set
   Set<Integer> demotedArgs = [] as Set
@@ -60,7 +60,7 @@ class Descriptor {
 
     }
     if (optional) {
-      this.optional << pattern
+      this.optional << list
     }
     return this
   }
@@ -83,11 +83,58 @@ class Descriptor {
     pings.contains(message)
   }
 
+  private boolean isSatisfied(Construction c, ParsingContext ctx) {
+    return obligatoryPatterns().every { !ctx.strongUsages(c, expectations[it].name).isEmpty() }
+  }
+
+  private List<List> obligatoryPatterns() {
+    return (expectations.keySet() as List) - optional
+  }
+
+  private boolean reparse(Construction c, ParsingContext ctx) {
+    for (descr in expectations.values()) {
+      ctx.relaxUsages(descr.name)
+    }
+
+    while (true) {
+      Map<Set<Construction>, List<Pair<List, List<Construction>>>> cons2Patterns = [:]
+      expectations.each { pattern, descr ->
+        if (!ctx.strongUsages(c, descr.name)) {
+          ctx.match(pattern).each { args ->
+            args.each { cons2Patterns.get(ctx.cloud.competitors[it], []) << new Pair(pattern, args) }
+          }
+        }
+      }
+      def single = cons2Patterns.find { k, v -> v.size() == 1 }
+      if (single) {
+        def pair = single.value[0]
+        ctx.addConstruction(expectations[pair.fst].build(pair.snd))
+      } else {
+        break
+      }
+    }
+
+    return processExpectationsEagerly(c, ctx)
+  }
+
   boolean activate(Construction c, ParsingContext ctx) {
+    if (ctx.cloud.finished.contains(c) && !isSatisfied(c, ctx)) {
+      ctx.cloud.finished.remove c
+      return reparse(c, ctx)
+    }
+
+    boolean happy = processExpectationsEagerly(c, ctx)
+    if (happy && famous && ctx.usages(c, []).findAll { it.consumed(c) }.isEmpty()) {
+      return false
+    }
+    return happy
+  }
+
+  private boolean processExpectationsEagerly(Construction c, ParsingContext ctx) {
     def happy = true
     expectations.each {pattern, Descriptor builder ->
-      if (!ctx.usages(c, builder.name)) {
-        def argLists = ctx.cloud.match(c, pattern)
+      if (!ctx.strongUsages(c, builder.name)) {
+        def argLists = ctx.match(pattern)
         if (argLists) {
           argLists.each {args ->
             ctx.addConstruction builder.build(args)
@@ -95,14 +142,14 @@ class Descriptor {
         } else {
           if (pattern.indexOf("_") == 0 || ctx.cloud.activeBefore(ctx.cloud.ranges[c].fromInt).size() > 0) {
             if (!optional.contains(pattern)) {
+              if (c.tracked) {
+                c
+              }
               happy = false
             }
           }
         }
       }
-    }
-    if (happy && famous && ctx.usages(c, []).findAll { it.consumed(c) }.isEmpty()) {
-      return false
     }
     return happy
   }

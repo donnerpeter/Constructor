@@ -110,20 +110,21 @@ DirectSpeech
     "
     Color{2}
       When
-        XWhen Когда #2=дают
+        XWhen
+          Когда
+          #2='дать добро' дают #3=добро
         ,
-        #3=сносим
+        #4=сносим
       Subject #2 приставы
       Goal #2 нам
-      'дать добро' #2 #4=добро
       Quoted
         "
         Color{1}
-          #4
+          #3
         "
-      Subject #3 мы
+      Subject #4 мы
       Demonstrative эти #5=дома
-      Obj #3 #5
+      Obj #4 #5
       .
       Subject #6=снесли Мы
       NegObj не #6 ни одного #7=дома

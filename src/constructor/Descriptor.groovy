@@ -14,7 +14,7 @@ class Descriptor {
   protected Set<List> optional = [] as Set //too make private when Groovy fixes the bug
   Set<Integer> consumedArgs = [] as Set
   Set<Integer> demotedArgs = [] as Set
-  private Set<Pair<Integer, String>> suppressions = [] as Set
+  private int _replaces = -1
   private Map<Integer, Object> argPings = [:]
   private Closure _semantics
   List _patterns = []
@@ -123,6 +123,20 @@ class Descriptor {
       return reparse(c, ctx)
     }
 
+    if (_replaces >= 0) {
+      def victim = c.children(ctx.cloud)[0]
+      ctx.strongUsages(victim, []).each { usg ->
+        if (usg != c) {
+          def newArgs = usg.args.collect { it == victim ? c : it }
+          ctx.addConstruction usg.descr.build(newArgs)
+          ctx.weaken(usg)
+        }
+
+      }
+    }
+
+    demotedArgs.each { ctx.demote(c.args[it]) }
+
     boolean happy = processExpectationsEagerly(c, ctx)
     if (happy && famous && ctx.usages(c, []).findAll { it.consumed(c) }.isEmpty()) {
       return false
@@ -161,19 +175,10 @@ class Descriptor {
 
   boolean isTracked() { tracked }
 
-  Descriptor suppresses(int argNumber, String relation) {
-    suppressions << new Pair(argNumber, relation)
+  Descriptor replaces(int argNumber) {
+    _replaces = argNumber
+    demotes(argNumber)
     return this
-  }
-
-  List<Construction> incompatible(Construction my, ParsingContext ctx) {
-    def result = []
-    suppressions.each {
-      def name = it.snd
-      def orphan = my.args[it.fst]
-      result += ctx.usages(orphan, name)
-    }
-    return result
   }
 
   Descriptor identifyArgs(List pings) {

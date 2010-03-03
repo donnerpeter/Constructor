@@ -114,7 +114,7 @@ class RussianLexicon extends Lexicon {
     verb("демонтированы", "pl")
     verb("готовится", "3sg").expect(["к": 1, "dative": 2, "_": 0], cons("Oblique").consumes(1, 2))
     verb('дают', "3pl").
-            expect(["_", "добро"], cons("дать добро").consumes(1).suppresses(0, object.name), true). //todo дать добро should replace дать
+            expect(["_", "добро"], verb(cons("дать добро"), "3pl").consumes(1).replaces(0), true).
             expect(["dative": 1, "_": 0], cons("Goal").consumes(1)).
             evokes(obj("given"), 0, true)
     verb("сносим", "1pl").evokes(obj("undergoer"), 0)
@@ -122,7 +122,7 @@ class RussianLexicon extends Lexicon {
     verb("проживали", "pl").aka("locatable")
     verb("есть", "pl").expect(["Prepos": 2, "_": 1, "nominative": 0], cons("Copula"))
 
-    infinitive("решить").aka("timed").expect(["_", "вопрос", "о", "prepositional"], cons("Решить вопрос").consumes(0, 1, 2, 3).semantics { it[0]["problem"] = it[3]; it[0] }).frame("resolve_problem")
+    infinitive("решить").aka("timed").expect(["_", "вопрос", "о", "prepositional"], cons("Решить вопрос").replaces(0).consumes(0, 1, 2, 3).semantics { it[0]["problem"] = it[3]; it[0] }).frame("resolve_problem")
     infinitive("снести").aka("timed").evokes(obj("undergoer"), 0).frame("demolition")
 
     word('Крылатское').famous().frame("Крылатское") //todo special handing for self-naming words

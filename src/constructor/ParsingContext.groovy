@@ -7,6 +7,7 @@ class ParsingContext {
   Construction relativeTo
   Cloud cloud
   List<Construction> newConstructions = []
+  Set<Construction> _demoted = []
   private Set<Construction> usedArgs = [] as Set
   private Set<Construction> relaxed = [] as Set
 
@@ -86,6 +87,15 @@ class ParsingContext {
         cloud.weak -= candidates
       }
     }
+  }
+
+  def weaken(Construction c) {
+    cloud.weak << c
+    demote(c)
+  }
+
+  def demote(Construction c) {
+    _demoted << c
   }
 }
 

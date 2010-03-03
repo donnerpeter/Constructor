@@ -64,11 +64,14 @@ class Cloud {
   }
 
   def updateActive(LinkedList<Construction> queue, boolean skipFirst) {
-    def toDemote = []
     (active.keySet() as List).reverse().each { Construction ac ->
       if (skipFirst) {
         skipFirst = false
         return
+      }
+
+      if (!active.containsKey(ac)) {
+        return //todo iterate over actual active set
       }
 
       def usedArguments = [] as Set
@@ -77,9 +80,10 @@ class Cloud {
       ctx.newConstructions.each {newC ->
         initConstruction(newC, compositeRange(newC))
         queue << newC
-        newC.descr.demotedArgs.each { i -> toDemote << newC.args[i] } //todo demote right here
+        newC.descr.demotedArgs.each { i -> demote newC.args[i] }
         usedArguments += newC.args
       }
+      ctx._demoted.each { demote it }
 
       active[ac] = happy
 
@@ -91,7 +95,6 @@ class Cloud {
         }
       }
     }
-    toDemote.each { demote it }
   }
 
   private weaken(Construction c) {
@@ -127,8 +130,6 @@ class Cloud {
     all.each { it ->
       if (it.name == "Space" || isWeak(it)) {
         toExclude << it
-      } else {
-        toExclude += it.descr.incompatible(it, new ParsingContext(it, this))
       }
     }
     return (all-toExclude).sort(comparator)
@@ -156,7 +157,7 @@ class Cloud {
   private List<Construction> plausibleAlternatives(Construction c) {
     List<Construction> all = competitors[c] as List
     def used = all.findAll { !isWeak(it) } as List
-    assert used.size() > 0
+    assert used.size() > 0 : c
     return used
   }
 

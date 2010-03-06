@@ -11,14 +11,14 @@ class SyntaxTest extends GroovyTestCase {
   void testRechnik1() {
     _ '''Власти московской управы "Крылатское" намерены в течение месяца решить вопрос о сносе
 незаконных строений в поселке "Речник"''', """
-NounObj #1=Власти #2=управы
+NounObj #1=власти #2=управы
 Subject #3=намерены #1
 AdjNoun московской #2
 Appos
   Quoted
     "
     Color{1}
-      Крылатское
+      крылатское
     "
   #2
 XComp #3 #4=решить
@@ -35,7 +35,7 @@ Appos
   Quoted
     "
     Color{2}
-      Речник
+      речник
     "
   #7
 """
@@ -49,7 +49,7 @@ DirectSpeech
   Quoted
     "
     Color{1}
-      Subject #2=планируем Мы
+      Subject #2=планируем мы
       XComp #2 #3=снести
       Quantifier все #4=постройки
       AdjNoun незаконные #4
@@ -70,13 +70,13 @@ Where
 Subject #1 #5=глава
 NounObj #5 #6=управы
 Named
-  NameSurname Виталий Никитин
+  NameSurname виталий никитин
   #5
 Appos
   Quoted
     "
     Color{2}
-      Крылатское
+      крылатское
     "
   #6  
 """
@@ -84,7 +84,7 @@ Appos
 
   public void testRechnik3() {
     _ 'Он сообщил, что с утра уже демонтированы два строения, к сносу готовится третий дом', """
-Subject #1=сообщил Он
+Subject #1=сообщил он
 Comp #1 , что #2=демонтированы
 When
   Prepos с утра
@@ -111,7 +111,7 @@ DirectSpeech
     Color{2}
       When
         XWhen
-          Когда
+          когда
           #2='дать добро' дают #3=добро
         ,
         #4=сносим
@@ -126,7 +126,7 @@ DirectSpeech
       Demonstrative эти #5=дома
       Obj #4 #5
       .
-      Subject #6=снесли Мы
+      Subject #6=снесли мы
       NegObj не #6 ни одного #7=дома
       Relative #8=котором #7 ,
       Where
@@ -146,35 +146,35 @@ Subject #1 чиновник
 
   public void testRechnik5() throws Exception {
     _ 'По его словам, всего в поселке "Речник" планируется к сносу 42 постройки, из которых по 37 уже есть судебные решения.', """
-
-Source
-  'По словам' По его словам ,
-  #1=планируется
+Comma
+  #1='По словам' по его словам
+  ,
+Source #1 #2=планируется
 'Всего+Утверждение о количестве'
   всего
-  #1
-  #2=Quantity 42 постройки
+  #2
+  #3=Quantity 42 постройки
 Where
-  Prepos в #3=поселке
-  #1
+  Prepos в #4=поселке
+  #2
 Appos
   Quoted
     "
     Color{1}
-      Речник
+      речник
     "
-  #3
-Oblique #1 к сносу
-Subject #1 #2
-Relative #4=которых #2 ,
-Subset #5=37 из #4
+  #4
+Oblique #2 к сносу
+Subject #2 #3
+Relative #5=которых #3 ,
+Subset #6=37 из #5
 Copula
-  #6=решения
-  #7=есть
-  Prepos #8=по #5
-About #6 #8 #5
-Already уже #7
-AdjNoun судебные #6
+  #7=решения
+  #8=есть
+  Prepos #9=по #6
+About #7 #9 #6
+Already уже #8
+AdjNoun судебные #7
 .
 """
   }

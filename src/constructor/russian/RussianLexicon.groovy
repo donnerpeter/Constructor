@@ -50,9 +50,12 @@ class RussianLexicon extends Lexicon {
     preposition("во", ["accusative", "time"]) { it.evokes(timeMomentSpecifier, 0)}
     preposition("за", "accusative") {it.evokes(timePeriodSpecifier, 0)}
     preposition("с", "genitive") {it.expect(["_", "clause"], cons("When"))}
-    preposition("по", "dative") { it.famous() }.famous()
 
-    noun("Власти", "nominative").nounObj("governed").aka("pl").frame("authorities")
+    word("по").famous().
+            expect(["_", "его", "словам"], cons("По словам").consumes(0, 1, 2).expect(["_", ","], cons("Comma").consumes(1)).expect(["_", "clause"], cons("Source")), true).
+            evokes(prepos("dative").famous(), 0, true)
+
+    noun("власти", "nominative").nounObj("governed").aka("pl").frame("authorities")
     noun("управы", "genitive").aka("nameable").frame("council")
     noun("месяца", "genitive").frame("month")
     noun("вопрос", "accusative")
@@ -83,9 +86,8 @@ class RussianLexicon extends Lexicon {
     noun("дочь", "nominative").aka("3sg")
     noun("дочь", "accusative").aka("3sg")
 
-    noun("Мы", "nominative").aka("1pl").frame("we")  //todo handle case
-    noun("мы", "nominative").aka("1pl")
-    noun("Он", "nominative").aka("masc")
+    noun("мы", "nominative").aka("1pl").frame("we")
+    noun("он", "nominative").aka("masc")
     noun("нам", "dative")
 
     adj("московской", "genitive") { it["part_of"] = "Москва" }
@@ -125,32 +127,31 @@ class RussianLexicon extends Lexicon {
     infinitive("решить").aka("timed").expect(["_", "вопрос", "о", "prepositional"], cons("Решить вопрос").replaces(0).consumes(0, 1, 2, 3).semantics { it[0]["problem"] = it[3]; it[0] }).frame("resolve_problem")
     infinitive("снести").aka("timed").evokes(obj("undergoer"), 0).frame("demolition")
 
-    word('Крылатское').famous().frame("Крылатское") //todo special handing for self-naming words
-    word("Речник").famous().frame("Речник")
+    word('крылатское').famous().frame("Крылатское") //todo special handing for self-naming words
+    word("речник").famous().frame("Речник")
     word("одного").famous()
     word("его").famous()
     word("не").famous()
     word("ни").famous()
     word("о").famous()
     word("все").expect(["_", "accusative"], cons("Quantifier").semantics { it[1]["scope"] = "all"; it[1]})
-    word("Виталий").famous().frame("Виталий").expect(["_", "Surname"],
+    word("виталий").famous().frame("Виталий").expect(["_", "Surname"],
             cons("NameSurname").expect(["nominative": 1, "_": 0],
                     cons("Named").semantics { it[1]["name"] = it[0]; it[1] }
             ).semantics { def f = new Frame("HumanName"); f["first"] = it[0]; f["last"] = it[1]; f })
-    word("Никитин").frame("Никитин").famous().aka("Surname")
+    word("никитин").frame("Никитин").famous().aka("Surname")
     word("что").famous()
     word("уже").expect(["_", "clause"], cons("Already").consumes(0))
     word("два").expect(["_", "genitive"], cons("Quantity").famous().consumes(0, 1).aka("nominative", "pl"))
     word("к").famous()
     word("третий").expect(["_", "nominative"], cons("Order").consumes(0))
-    word("Когда").expect(["_", "clause"], cons("XWhen").consumes(0).expect(["_", ",", "clause"], cons("When").consumes(1)))
+    word("когда").expect(["_", "clause"], cons("XWhen").consumes(0).expect(["_", ",", "clause"], cons("When").consumes(1)))
     word("эти").expect(["_", "accusative"], cons("Demonstrative"))
 
     word("котором").aka("prepositional").evokes(relative("sg"), 0)
     word("которых").aka("genitive").evokes(relative("pl"), 0)
 
     word("бы").expect(["_", "clause"], cons("Subjunctive"))
-    word("По").expect(["_", "его", "словам", ","], cons("По словам").consumes(0, 1, 2, 3).expect(["_", "clause"], cons("Source")))
     word("42").expect(["_", ["genitive", "sg"]], cons("Quantity").famous().consumes(0, 1).aka("nominative", "3sg", "pl", "NP"))
     word("37").expect(["_", ["genitive", "pl"]], cons("Quantity")).aka("number", "dative") //todo let numbers have any case, gender, number
     word("всего").expect(["_", "clause", "Quantity"], cons("Всего+Утверждение о количестве"))
@@ -177,7 +178,17 @@ class RussianLexicon extends Lexicon {
   }
 
   private Descriptor preposition(String s, _case, Closure binding) {
-    return word(s).expect(["_", _case], binding(cons("Prepos").consumes(1).semantics {it[1]}))
+    return preposition(word(s), _case, binding)
+  }
+
+  private Descriptor preposition(Descriptor base, _case, Closure binding) {
+    return base.evokes(binding(prepos(_case)), 0)
+  }
+
+  private Descriptor prepos(_case) {
+    return cons("Prepos").consumes(1).
+            form([[], _case]).
+            semantics {it[1]}
   }
 
   private Descriptor adj(String name, String _case, Closure semantics = {}) {

@@ -1,22 +1,27 @@
 package constructor
 
+import java.beans.NameGenerator
+import org.codehaus.groovy.runtime.MetaClassHelper
+
 /**
  * @author peter
  */
 class Parser {
   Lexicon lexicon
-
+  //final static Descriptor capitalized = new Descriptor("Capitalized")
+  final static Descriptor spaceConstruction = new Descriptor("Space")
 
   def Parser(lexicon) {
     this.lexicon = lexicon;
   }
 
   Cloud parse(String input) {
-    input = input.replace('\n', ' ') + " "
+    input = input.replace('\n', ' ').toLowerCase() + " "
     Cloud cloud = new Cloud()
     int pos = 0
     while (pos < input.size()) {
-      def suitable = lexicon.storage.keySet().sort({s1, s2 -> s2.size() - s1.size()}).findAll {input.substring(pos).startsWith(it) }
+      def current = input.substring(pos)
+      def suitable = lexicon.storage.keySet().sort({s1, s2 -> s2.size() - s1.size()}).findAll {current.startsWith(it) }
       if (suitable) {
         def best = suitable[0]
         def builders = lexicon.storage[best]
@@ -28,17 +33,13 @@ class Parser {
           def word = input[pos..space-1]
           cloud.addConstructions([new Descriptor(word).build([])], pos..pos+word.size())
         }
-        cloud.addConstructions([new Descriptor("Space").build([])], space..space+1)
+        cloud.addConstructions([spaceConstruction.build([])], space..space+1)
         pos = space+1
       }
     }
 
     return cloud
 
-  }
-
-  private Construction makeSpace() {
-    return new Descriptor("Space").build([])
   }
 
 }

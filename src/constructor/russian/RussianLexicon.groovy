@@ -55,7 +55,9 @@ class RussianLexicon extends Lexicon {
             expect(["_", "его", "словам"], cons("По словам").consumes(0, 1, 2).expect(["_", ","], cons("Comma").consumes(1)).expect(["_", "clause"], cons("Source")), true).
             evokes(prepos("dative").famous(), 0, true)
 
-    noun("власти", "nominative").nounObj("governed").aka("pl").frame("authorities")
+    nounStem('власт', "class17") { it.nounObj("governed").aka("pl").frame("authorities") }
+    ending('и')
+
     noun("управы", "genitive").aka("nameable").frame("council")
     noun("месяца", "genitive").frame("month")
     noun("вопрос", "accusative")
@@ -136,9 +138,9 @@ class RussianLexicon extends Lexicon {
     word("о").famous()
     word("все").expect(["_", "accusative"], cons("Quantifier").semantics { it[1]["scope"] = "all"; it[1]})
     word("виталий").famous().frame("Виталий").expect(["_", "Surname"],
-            cons("NameSurname").expect(["nominative": 1, "_": 0],
-                    cons("Named").semantics { it[1]["name"] = it[0]; it[1] }
-            ).semantics { def f = new Frame("HumanName"); f["first"] = it[0]; f["last"] = it[1]; f })
+                                                     cons("NameSurname").expect(["nominative": 1, "_": 0],
+                                                                                cons("Named").semantics { it[1]["name"] = it[0]; it[1] }
+                                                     ).semantics { def f = new Frame("HumanName"); f["first"] = it[0]; f["last"] = it[1]; f })
     word("никитин").frame("Никитин").famous().aka("Surname")
     word("что").famous()
     word("уже").expect(["_", "clause"], cons("Already").consumes(0))
@@ -157,6 +159,14 @@ class RussianLexicon extends Lexicon {
     word("всего").expect(["_", "clause", "Quantity"], cons("Всего+Утверждение о количестве"))
     word("из").expect(["_": 1, "genitive": 2, "number": 0], cons("Subset"))
 
+  }
+
+  private Descriptor ending(String s) {
+    return word(s).famous()
+  }
+
+  private Descriptor nounStem(String s, String cls, Closure parent) {
+    return word(s).expect(["_", "и"], parent(new Noun("NominativeNoun", "nominative").consumes(1)))
   }
 
   private Descriptor relative(String agr) {

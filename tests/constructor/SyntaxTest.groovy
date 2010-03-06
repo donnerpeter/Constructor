@@ -11,7 +11,9 @@ class SyntaxTest extends GroovyTestCase {
   void testRechnik1() {
     _ '''Власти московской управы "Крылатское" намерены в течение месяца решить вопрос о сносе
 незаконных строений в поселке "Речник"''', """
-NounObj #1=власти #2=управы
+NounObj
+  #1=NominativeNoun власт и
+  #2=управы
 Subject #3=намерены #1
 AdjNoun московской #2
 Appos

@@ -52,9 +52,12 @@ class RussianLexicon extends Lexicon {
     preposition("за", "accusative") {it.evokes(timePeriodSpecifier, 0)}
     preposition("с", "genitive") {it.expect(["_", "clause"], cons("When"))}
 
-    word("по").famous().
-            expect(["_", "его", "словам"], cons("По словам").consumes(0, 1, 2).demotes(0).expect(["_", ","], cons("Comma").consumes(1)).expect(["_", "clause"], cons("Source")), true).
-            evokes(prepos("dative").famous(), 0, true)
+    word("по").famous().variants(
+            new CompositeQuery().expect(["_", "его", "словам"],
+                                        cons("По словам").consumes(0, 1, 2).
+                                        expect(["_", ","], cons("Comma").consumes(1)).
+                                        expect(["_", "clause"], cons("Source"))),
+            new CompositeQuery().evokes(prepos("dative").famous(), 0))
 
     nounStem('власт', 17).nounObj("governed").aka("pl").frame("authorities")
     nounStem('управ', 50).aka("nameable").frame("council")

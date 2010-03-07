@@ -29,7 +29,7 @@ class SimpleQuery implements Query {
   }
 
   boolean matchAll(Construction c, ParsingContext ctx, Function2<SimpleQuery, List<Construction>, Void> action) {
-    if (!ctx.strongUsages(c, descr.name)) {
+    if (!isSatisfied(c, ctx)) {
       def argLists = ctx.match(pattern)
       if (argLists) {
         argLists.each { matched ->

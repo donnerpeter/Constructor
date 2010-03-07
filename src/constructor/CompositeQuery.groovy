@@ -21,9 +21,19 @@ class CompositeQuery implements Query {
   }
 
   def boolean matchAll(Construction c, ParsingContext ctx, Function2<SimpleQuery, List<Construction>, Void> action) {
+    def stopped = false
     def happy = true
     children.each {
-      if (!it.matchAll(c, ctx, action) && !(it in optional)) {
+      if (stopped) {
+        return
+      }
+
+      def childHappy = it.matchAll(c, ctx, action)
+      if (childHappy && !and) {
+        stopped = true
+      }
+
+      if (!childHappy && !(it in optional)) {
         happy = false
       }
     }
@@ -37,19 +47,11 @@ class CompositeQuery implements Query {
   }
 
   CompositeQuery expect(List pattern, Descriptor action, boolean optional = false) {
-    children << new SimpleQuery(pattern, action)
-    if (optional) {
-      this.optional << pattern
-    }
-    return this
+    addChild(new SimpleQuery(pattern, action))
   }
 
   CompositeQuery expect(Map<?, Integer> pattern, Descriptor action, boolean optional = false) {
-    children << new SimpleQuery(pattern, action)
-    if (optional) {
-      this.optional << pattern
-    }
-    return this
+    addChild new SimpleQuery(pattern, action)
   }
 
   CompositeQuery evokes(Descriptor parent, int argNumber, boolean optional = false) {
@@ -73,8 +75,11 @@ class CompositeQuery implements Query {
     children.isEmpty()
   }
 
-  CompositeQuery childBlock(CompositeQuery queryBlock) {
-    children << queryBlock
+  CompositeQuery addChild(Query query, boolean optional = false) {
+    children << query
+    if (optional) {
+      this.optional << query
+    }
     this
   }
 }

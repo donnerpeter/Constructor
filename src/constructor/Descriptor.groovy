@@ -162,8 +162,10 @@ class Descriptor {
     this
   }
 
-  Descriptor qb(CompositeQuery q) {
-    queries.childBlock(q)
+  Descriptor variants(Query... vars) {
+    def composite = new CompositeQuery(false)
+    vars.each { composite.addChild(it) }
+    queries.addChild(composite)
     this
   }
 

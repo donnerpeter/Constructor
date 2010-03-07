@@ -90,8 +90,9 @@ class Descriptor {
     return happy
   }
 
+  @Typed
   private boolean reparse(Construction c, ParsingContext ctx) {
-    queries.flatten().each { SimpleQuery q -> ctx.relaxUsages(q.descr.name) }
+    queries.listSimpleQueries().each { SimpleQuery q -> ctx.relaxUsages(q.descr.name) }
 
     while (true) {
       Map<Set<Construction>, List<Pair<SimpleQuery, List<Construction>>>> cons2Patterns = [:]

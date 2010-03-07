@@ -30,8 +30,10 @@ class CompositeQuery implements Query {
     return happy
   }
 
-  public List<SimpleQuery> flatten ( ) {
-    children.flatten { it.flatten() } as List
+  public List<SimpleQuery> listSimpleQueries() {
+    def result = []
+    children.each { result += it.listSimpleQueries() }
+    result
   }
 
   CompositeQuery expect(List pattern, Descriptor action, boolean optional = false) {

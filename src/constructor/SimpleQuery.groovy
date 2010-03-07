@@ -46,8 +46,11 @@ class SimpleQuery implements Query {
     return true
   }
 
-  public List<SimpleQuery> flatten ( ) {
-    [this]
+  public List<SimpleQuery> listSimpleQueries() { [this] }
+
+  def String toString() {
+    return "$pattern -> $descr.name"
   }
+
 
 }

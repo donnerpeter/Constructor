@@ -53,7 +53,7 @@ class RussianLexicon extends Lexicon {
     preposition("с", "genitive") {it.expect(["_", "clause"], cons("When"))}
 
     word("по").famous().
-            expect(["_", "его", "словам"], cons("По словам").consumes(0, 1, 2).expect(["_", ","], cons("Comma").consumes(1)).expect(["_", "clause"], cons("Source")), true).
+            expect(["_", "его", "словам"], cons("По словам").consumes(0, 1, 2).demotes(0).expect(["_", ","], cons("Comma").consumes(1)).expect(["_", "clause"], cons("Source")), true).
             evokes(prepos("dative").famous(), 0, true)
 
     nounStem('власт', 17).nounObj("governed").aka("pl").frame("authorities")
@@ -112,7 +112,7 @@ class RussianLexicon extends Lexicon {
     verb("планируется", "3sg").aka("locatable").expect(["_", "к", "dative"], cons("Oblique").consumes(1, 2))
 
     def directSpeech = cons("DirectSpeech").consumes(1, 2, 3).form(["Quoted": 1, ",": 2, "-": 3, "_": 0]).semantics { it[0]["message"] = it[1]; it[0] }
-    verb("сообщил", "masc").aka("locatable", "timed").frame("tell").qb(new QueryBlock()). //todo query block easy creation
+    verb("сообщил", "masc").aka("locatable", "timed").frame("tell").
             evokes(directSpeech, 0).
             expect(["_", ["dative", "animate"]], cons("Goal").consumes(1).semantics { it[0]["addressee"] = it[1]; it[0] }).
             expect(["_", ",", "что", "clause"], cons("Comp").consumes(1, 2, 3).demotes(1, 2))

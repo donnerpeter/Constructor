@@ -8,7 +8,7 @@ class Descriptor {
   private def famous = false
   private def tracked = false
   private Set<String> pings = [] as Set
-  protected QueryBlock queries = new QueryBlock(true) //todo make private when Groovy fixes the bug
+  protected CompositeQuery queries = new CompositeQuery(true) //todo make private when Groovy fixes the bug
   Set<Integer> consumedArgs = [] as Set
   Set<Integer> demotedArgs = [] as Set
   private int _replaces = -1
@@ -66,7 +66,7 @@ class Descriptor {
   boolean activate(Construction c, ParsingContext ctx) {
     if (ctx.cloud.finished.contains(c) && !queries.isSatisfied(c, ctx)) {
       ctx.cloud.finished.remove c
-      return queries.reparse(c, ctx)
+      return reparse(c, ctx)
     }
 
     if (_replaces >= 0) {
@@ -83,12 +83,38 @@ class Descriptor {
 
     demotedArgs.each { ctx.demote(c.args[it]) }
 
-    boolean happy = queries.processExpectationsEagerly(c, ctx)
+    boolean happy = processExpectationsEagerly(c, ctx)
     if (happy && famous && ctx.usages(c, []).findAll { it.consumed(c) }.isEmpty()) {
       return false
     }
     return happy
   }
+
+  private boolean reparse(Construction c, ParsingContext ctx) {
+    queries.flatten().each { SimpleQuery q -> ctx.relaxUsages(q.descr.name) }
+
+    while (true) {
+      Map<Set<Construction>, List<Pair<SimpleQuery, List<Construction>>>> cons2Patterns = [:]
+      queries.matchAll(c, ctx, { query, args ->
+        args.each { cons2Patterns.get(ctx.cloud.competitors[it], []) << new Pair(query, args) }
+      } as Function2)
+
+      def single = cons2Patterns.find { k, v -> v.size() == 1 }
+      if (single) {
+        Pair<SimpleQuery, List<Construction>> pair = single.value[0]
+        ctx.addConstruction(pair.first.descr.build(pair.second))
+      } else {
+        break
+      }
+    }
+
+    return processExpectationsEagerly(c, ctx)
+  }
+
+  private boolean processExpectationsEagerly(Construction c, ParsingContext ctx) {
+    return queries.matchAll(c, ctx, { SimpleQuery query, args -> ctx.addConstruction query.descr.build(args) } as Function2)
+  }
+
 
   boolean shouldActivate() {
     return famous || !queries.isEmpty()
@@ -136,7 +162,7 @@ class Descriptor {
     this
   }
 
-  Descriptor qb(QueryBlock q) {
+  Descriptor qb(CompositeQuery q) {
     queries.childBlock(q)
     this
   }

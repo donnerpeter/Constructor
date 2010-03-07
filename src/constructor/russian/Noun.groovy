@@ -10,7 +10,7 @@ import constructor.ParsingContext
 class Noun extends Descriptor {
   def _case
 
-  def Noun(name, _case) {
+  def Noun(String name, _case) {
     super(name)
     this._case = _case
     aka("noun", "NP", _case)
@@ -28,7 +28,7 @@ class Noun extends Descriptor {
     return super.activate(c, ctx)
   }
 
-  def nounObj(String slot) {
+  Noun nounObj(String slot) {
     expect(["_", "genitive"], new Descriptor("NounObj").consumes(1).semantics { it[0][slot] = it[1]; it[0] } )
   }
 }

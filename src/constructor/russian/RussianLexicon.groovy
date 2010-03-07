@@ -1,5 +1,6 @@
 package constructor.russian
 
+import org.codehaus.groovy.runtime.MetaClassHelper
 import constructor.*
 
 /**
@@ -55,10 +56,12 @@ class RussianLexicon extends Lexicon {
             expect(["_", "его", "словам"], cons("По словам").consumes(0, 1, 2).expect(["_", ","], cons("Comma").consumes(1)).expect(["_", "clause"], cons("Source")), true).
             evokes(prepos("dative").famous(), 0, true)
 
-    nounStem('власт', "class17") { it.nounObj("governed").aka("pl").frame("authorities") }
-    ending('и')
+    nounStem('власт', 17).nounObj("governed").aka("pl").frame("authorities")
+    nounStem('управ', 50).aka("nameable").frame("council")
 
-    noun("управы", "genitive").aka("nameable").frame("council")
+    ending('и')
+    ending('ы')
+
     noun("месяца", "genitive").frame("month")
     noun("вопрос", "accusative")
     noun("сносе", "prepositional").nounObj("undergoer").aka("locatable").frame("demolition")
@@ -165,8 +168,26 @@ class RussianLexicon extends Lexicon {
     return word(s).famous()
   }
 
-  private Descriptor nounStem(String s, String cls, Closure parent) {
-    return word(s).expect(["_", "и"], parent(new Noun("NominativeNoun", "nominative").consumes(1)))
+  private def _addNoun(List<Noun> result, String _case, boolean plural) {
+    def noun = new Noun("${MetaClassHelper.capitalize(_case)}Noun", _case).consumes(0, 1).demotes(0, 1).aka(plural ? "pl" : "sg")
+    result << noun
+    return noun
+  }
+
+  private Noun nounStem(String s, int cls) {
+    def stem = word(s)
+    List<Noun> result = []
+    if (cls == 17) {
+      stem.expect(["_", "и"], _addNoun(result, "nominative", true))
+    }
+    if (cls == 50) {
+      stem.expect(["_", "ы"], _addNoun(result, "genitive", false))
+    }
+    if (cls == 106) {
+      stem.expect(["_", "йки"], _addNoun(result, "accusative", true), true)
+      stem.expect(["_", "йки"], _addNoun(result, "genitive", false), true)
+    }
+    return result[0]
   }
 
   private Descriptor relative(String agr) {

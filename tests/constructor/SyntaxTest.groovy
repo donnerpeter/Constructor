@@ -13,7 +13,7 @@ class SyntaxTest extends GroovyTestCase {
 незаконных строений в поселке "Речник"''', """
 NounObj
   #1=NominativeNoun власт и
-  #2=управы
+  #2=GenitiveNoun управ ы
 Subject #3=намерены #1
 AdjNoun московской #2
 Appos
@@ -70,7 +70,9 @@ Where
   Prepos в поселке
   #1
 Subject #1 #5=глава
-NounObj #5 #6=управы
+NounObj
+  #5
+  #6=GenitiveNoun управ ы
 Named
   NameSurname виталий никитин
   #5

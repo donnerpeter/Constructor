@@ -59,8 +59,8 @@ class RussianLexicon extends Lexicon {
                                         expect(["_", "clause"], cons("Source"))),
             evokes(prepos("dative").famous(), 0))
 
-    nounStem('власт', 17).nounObj("governed").aka("pl").frame("authorities")
-    nounStem('управ', 50).aka("nameable").frame("council")
+    nounStem('власт', 17) { it.nounObj("governed").aka("pl").frame("authorities") }
+    nounStem('управ', 50) { it.aka("nameable").frame("council") }
 
     ending('и')
     ending('ы')
@@ -185,7 +185,7 @@ class RussianLexicon extends Lexicon {
     return noun
   }
 
-  private Noun nounStem(String s, int cls) {
+  private void nounStem(String s, int cls, Closure c) {
     def stem = word(s)
     List<Noun> result = []
     if (cls == 17) {
@@ -198,7 +198,7 @@ class RussianLexicon extends Lexicon {
       stem.expect(["_", "йки"], _addNoun(result, "accusative", true), true)
       stem.expect(["_", "йки"], _addNoun(result, "genitive", false), true)
     }
-    return result[0]
+    c(*result)
   }
 
   private Descriptor relative(String agr) {

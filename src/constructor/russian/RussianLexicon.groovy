@@ -53,11 +53,11 @@ class RussianLexicon extends Lexicon {
     preposition("с", "genitive") {it.expect(["_", "clause"], cons("When"))}
 
     word("по").famous().variants(
-            new CompositeQuery().expect(["_", "его", "словам"],
+            expect(["_", "его", "словам"],
                                         cons("По словам").consumes(0, 1, 2).
                                         expect(["_", ","], cons("Comma").consumes(1)).
                                         expect(["_", "clause"], cons("Source"))),
-            new CompositeQuery().evokes(prepos("dative").famous(), 0))
+            evokes(prepos("dative").famous(), 0))
 
     nounStem('власт', 17).nounObj("governed").aka("pl").frame("authorities")
     nounStem('управ', 50).aka("nameable").frame("council")
@@ -165,6 +165,14 @@ class RussianLexicon extends Lexicon {
     word("всего").expect(["_", "clause", "Quantity"], cons("Всего+Утверждение о количестве"))
     word("из").expect(["_": 1, "genitive": 2, "number": 0], cons("Subset"))
 
+  }
+
+  private static CompositeQuery expect(pattern, descr) {
+    return new CompositeQuery().expect(pattern, descr)
+  }
+
+  private static CompositeQuery evokes(pattern, arg) {
+    return new CompositeQuery().evokes(pattern, arg)
   }
 
   private Descriptor ending(String s) {

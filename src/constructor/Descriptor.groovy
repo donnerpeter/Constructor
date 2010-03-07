@@ -8,7 +8,7 @@ class Descriptor {
   private def famous = false
   private def tracked = false
   private Set<String> pings = [] as Set
-  protected QueryBlock queries = new QueryBlock(true) //too make private when Groovy fixes the bug
+  protected QueryBlock queries = new QueryBlock(true) //todo make private when Groovy fixes the bug
   Set<Integer> consumedArgs = [] as Set
   Set<Integer> demotedArgs = [] as Set
   private int _replaces = -1
@@ -133,6 +133,11 @@ class Descriptor {
 
   Descriptor frame(String id) {
     _semantics = { new Frame(id) }
+    this
+  }
+
+  Descriptor qb(QueryBlock q) {
+    queries.childBlock(q)
     this
   }
 

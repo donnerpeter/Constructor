@@ -8,9 +8,10 @@ import constructor.util.Pair
 class QueryBlock {
   private boolean and
   private Map<List, Descriptor> expectations = [:]
+  private List<QueryBlock> children = []
   private Set<List> optional = [] as Set
 
-  def QueryBlock(boolean and) {
+  def QueryBlock(boolean and=true) {
     this.and = and;
   }
 
@@ -69,6 +70,11 @@ class QueryBlock {
         }
       }
     }
+    children.each {
+      if (!it.processExpectationsEagerly(c, ctx)) {
+        happy = false
+      }
+    }
     return happy
   }
 
@@ -114,6 +120,11 @@ class QueryBlock {
 
 
   def isEmpty() {
-    expectations.isEmpty()
+    expectations.isEmpty() && children.isEmpty()
+  }
+
+  QueryBlock childBlock(QueryBlock queryBlock) {
+    children << queryBlock
+    this
   }
 }

@@ -112,7 +112,7 @@ class RussianLexicon extends Lexicon {
     verb("планируется", "3sg").aka("locatable").expect(["_", "к", "dative"], cons("Oblique").consumes(1, 2))
 
     def directSpeech = cons("DirectSpeech").consumes(1, 2, 3).form(["Quoted": 1, ",": 2, "-": 3, "_": 0]).semantics { it[0]["message"] = it[1]; it[0] }
-    verb("сообщил", "masc").aka("locatable", "timed").frame("tell").
+    verb("сообщил", "masc").aka("locatable", "timed").frame("tell").qb(new QueryBlock()). //todo query block easy creation
             evokes(directSpeech, 0).
             expect(["_", ["dative", "animate"]], cons("Goal").consumes(1).semantics { it[0]["addressee"] = it[1]; it[0] }).
             expect(["_", ",", "что", "clause"], cons("Comp").consumes(1, 2, 3).demotes(1, 2))

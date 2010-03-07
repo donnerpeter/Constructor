@@ -90,7 +90,6 @@ class Descriptor {
     return happy
   }
 
-  @Typed
   private boolean reparse(Construction c, ParsingContext ctx) {
     queries.listSimpleQueries().each { SimpleQuery q -> ctx.relaxUsages(q.descr.name) }
 

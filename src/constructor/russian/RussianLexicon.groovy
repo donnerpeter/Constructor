@@ -59,8 +59,8 @@ class RussianLexicon extends Lexicon {
                                         expect(["_", "clause"], cons("Source"))),
             evokes(prepos("dative").famous(), 0))
 
-    nounStem('власт', 17) { it.nounObj("governed").aka("pl").frame("authorities") }
-    nounStem('управ', 50) { it.aka("nameable").frame("council") }
+    nounStem('власт', 17, false) { it.nounObj("governed") }.frame("authorities")
+    nounStem('управ', 50) { it.aka("nameable") }.frame("council")
 
     ending('и')
     ending('ы')
@@ -71,6 +71,10 @@ class RussianLexicon extends Lexicon {
     noun("сносу", "dative")
     noun("строений", "genitive").aka("locatable").semantics { def f = new Frame("building"); f["quantity"] = "plural"; f }
     noun("поселке", "prepositional").aka("nameable").frame("housing_development")
+
+    ending('йки')
+//    nounStem('постро', 106) { it }.frame("building")
+
     noun("постройки", "accusative").aka("pl").semantics { def f = new Frame("building"); f["quantity"] = "plural"; f }
     noun("постройки", "genitive").aka("sg")
     noun("месяц", "accusative").frame("month")
@@ -179,26 +183,33 @@ class RussianLexicon extends Lexicon {
     return word(s).famous()
   }
 
-  private def _addNoun(List<Noun> result, String _case, boolean plural) {
-    def noun = new Noun("${MetaClassHelper.capitalize(_case)}Noun", _case).consumes(0, 1).demotes(0, 1).aka(plural ? "pl" : "sg")
+  private def _addNoun(List<Noun> result, String _case, boolean plural, boolean count) {
+    def noun = new Noun("${MetaClassHelper.capitalize(_case)}Noun", _case).consumes(0, 1).demotes(0, 1).aka(plural ? "pl" : "sg").semantics {
+      def main = it[0]
+      if (plural && count) {
+        main["quantity"] = "plural"
+      }
+      main
+    }
     result << noun
     return noun
   }
 
-  private void nounStem(String s, int cls, Closure c) {
+  private Descriptor nounStem(String s, int cls, boolean count = true, Closure c) {
     def stem = word(s)
     List<Noun> result = []
     if (cls == 17) {
-      stem.expect(["_", "и"], _addNoun(result, "nominative", true))
+      stem.expect(["_", "и"], _addNoun(result, "nominative", true, count))
     }
     if (cls == 50) {
-      stem.expect(["_", "ы"], _addNoun(result, "genitive", false))
+      stem.expect(["_", "ы"], _addNoun(result, "genitive", false, count))
     }
     if (cls == 106) {
-      stem.expect(["_", "йки"], _addNoun(result, "accusative", true), true)
-      stem.expect(["_", "йки"], _addNoun(result, "genitive", false), true)
+      stem.variants(new SimpleQuery(["_", "йки"], _addNoun(result, "accusative", true, count)), 
+                    new SimpleQuery(["_", "йки"], _addNoun(result, "genitive", false, count)))
     }
-    c(*result)
+    result.each { c(it) }
+    return stem
   }
 
   private Descriptor relative(String agr) {

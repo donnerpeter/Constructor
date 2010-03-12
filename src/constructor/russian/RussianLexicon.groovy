@@ -57,7 +57,7 @@ class RussianLexicon extends Lexicon {
                                         cons("По словам").consumes(0, 1, 2).
                                         expect(["_", ","], cons("Comma").consumes(1)).
                                         expect(["_", "clause"], cons("Source"))),
-            evokes(prepos("dative").famous(), 0))
+            evokes(prepos("dative").famous().expect(["_", "xxx"], cons("Hack")), 0)) //todo smarter variants handling
 
     nounStem('власт', 17, false) { it.nounObj("governed") }.frame("authorities")
     nounStem('управ', 50) { it.aka("nameable") }.frame("council")
@@ -91,7 +91,7 @@ class RussianLexicon extends Lexicon {
     noun("чиновник", "nominative").aka("masc")
     noun("добро", "accusative")
     noun("словам", "dative")
-    noun("решения", "nominative").expect(["по": 1, "dative": 2, "_": 0], cons("About").consumes(1, 2))
+    noun("решения", "nominative").expect(["по": 1, "dative": 2, "_": 0], cons("About").consumes(1, 2).transparent())
 
     noun("мать", "nominative").aka("3sg")
     noun("мать", "accusative").aka("3sg")
@@ -134,7 +134,7 @@ class RussianLexicon extends Lexicon {
     verb("сносим", "1pl").evokes(obj("undergoer"), 0)
     verb("снесли", "1pl").expect(["не", "_", "ни", "одного", "genitive"], cons("NegObj").consumes(0, 2, 3, 4))
     verb("проживали", "pl").aka("locatable")
-    verb("есть", "pl").expect(["Prepos": 2, "_": 1, "nominative": 0], cons("Copula"))
+    word("есть").aka("clause").expect(["Prepos": 2, "_": 1, "nominative": 0], cons("Copula"))
 
     infinitive("решить").aka("timed").expect(["_", "вопрос", "о", "prepositional"], cons("Решить вопрос").replaces(0).consumes(0, 1, 2, 3).semantics { it[0]["problem"] = it[3]; it[0] }).frame("resolve_problem")
     infinitive("снести").aka("timed").evokes(obj("undergoer"), 0).frame("demolition")
@@ -166,7 +166,7 @@ class RussianLexicon extends Lexicon {
     word("бы").expect(["_", "clause"], cons("Subjunctive"))
     word("42").expect(["_", ["genitive", "sg"]], cons("Quantity").famous().consumes(0, 1).aka("nominative", "3sg", "pl", "NP"))
     word("37").expect(["_", ["genitive", "pl"]], cons("Quantity")).aka("number", "dative") //todo let numbers have any case, gender, number
-    word("всего").expect(["_", "clause", "Quantity"], cons("Всего+Утверждение о количестве"))
+    word("всего").expect(["_", "clause", "Quantity"], cons("Всего+Утверждение о количестве").transparent())
     word("из").expect(["_": 1, "genitive": 2, "number": 0], cons("Subset"))
 
   }
@@ -269,12 +269,18 @@ class RussianLexicon extends Lexicon {
     store(new Descriptor('"') {
 
       boolean activate(Construction c, ParsingContext ctx) {
-        if (ctx.usages(c, "Quoted")) {
+        if (ctx.strongUsages(c, "Quoted")) {
           return true
         }
 
-        def pair = ctx.findAfter(c, '"')
-        if (pair && !ctx.near(pair, false, "Space") && !ctx.usages(pair, "Quoted")) { // todo true handling of nested quotes
+        def result = ctx.match(['_', [], '"'])
+        if (!result) {
+          return false
+        }
+
+        def pair = result[2]
+        // true handling of nested quotes expected here at some distant moment
+        if (!ctx.near(pair, false, "Space") && !ctx.strongUsages(pair, "Quoted")) {
           def newArgs = [c, ctx.coloredBetween(c, pair), pair]
           def descr = cons("Quoted").evokes(appos, 0).consumes(0, 1, 2).demotes(0, 1, 2).semantics { it[1] }
           ctx.addConstruction(descr.build(newArgs))

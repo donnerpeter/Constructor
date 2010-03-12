@@ -15,6 +15,7 @@ class Descriptor {
   private Map<Integer, Object> argPings = [:]
   private Closure _semantics
   List _patterns = []
+  boolean _transparent = false
 
   def Descriptor(String name) {
     this.name = name
@@ -83,8 +84,12 @@ class Descriptor {
 
     demotedArgs.each { ctx.demote(c.args[it]) }
 
+    if (c.tracked) {
+      c
+    }
+
     boolean happy = processExpectationsEagerly(c, ctx)
-    if (happy && famous && ctx.usages(c, []).findAll { it.consumed(c) }.isEmpty()) {
+    if (happy && famous && ctx.allUsages(c, []).findAll { it.consumed(c) }.isEmpty()) {
       return false
     }
     return happy
@@ -171,6 +176,11 @@ class Descriptor {
 
   Descriptor form(pattern) {
     _patterns << pattern
+    this
+  }
+
+  Descriptor transparent() {
+    _transparent = true
     this
   }
 

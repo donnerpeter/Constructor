@@ -172,12 +172,12 @@ Oblique #2 к сносу
 Subject #2 #3
 Relative #5=которых #3 ,
 Subset #6=37 из #5
+About #7=решения #8=по #6
 Copula
-  #7=решения
-  #8=есть
-  Prepos #9=по #6
-About #7 #9 #6
-Already уже #8
+  #7
+  #9=есть
+  Prepos #8 #6
+Already уже #9
 AdjNoun судебные #7
 .
 """

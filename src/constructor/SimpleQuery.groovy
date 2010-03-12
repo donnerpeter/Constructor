@@ -30,18 +30,14 @@ class SimpleQuery implements Query {
 
   boolean matchAll(Construction c, ParsingContext ctx, Function2<SimpleQuery, List<Construction>, Void> action) {
     if (!isSatisfied(c, ctx)) {
-      def argLists = ctx.match(pattern)
-      if (argLists) {
-        argLists.each { matched ->
-          def args = new Construction[matched.size()] as List
-          matched.eachWithIndex { arg, i -> args[permutation[i]] = arg }
-          action(this, args)
-        }
-      } else {
-        if (pattern.indexOf("_") == 0 || ctx.cloud.activeBefore(ctx.cloud.ranges[c].fromInt).size() > 0) {
-          return false
-        }
+      def matched = ctx.match(pattern)
+      if (matched) {
+        def args = new Construction[matched.size()] as List
+        matched.eachWithIndex { arg, i -> args[permutation[i]] = arg }
+        action(this, args)
+        return true
       }
+      return false
     }
     return true
   }

@@ -51,6 +51,10 @@ class Construction {
   }
 
   int hashCode() {
+    if (args.empty) {
+      return super.hashCode()
+    }
+
     return name.hashCode() + args.hashCode();
   }
 

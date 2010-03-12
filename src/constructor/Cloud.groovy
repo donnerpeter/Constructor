@@ -4,8 +4,10 @@ package constructor
  * @author peter
  */
 class Cloud {
-  def comparator = { c1, c2 ->
-    return ranges[c1].fromInt - ranges[c2].fromInt ?: ranges[c1].toInt - ranges[c2].toInt
+  def comparator = { Construction c1, Construction c2 ->
+    return ranges[c1].fromInt - ranges[c2].fromInt ?:
+        ranges[c1].toInt - ranges[c2].toInt ?:
+        c1.descr.name.compareTo(c2.descr.name)
   } as Comparator
   Map<Construction, Set<Construction>> usages = [:]
   Map<Construction, IntRange> ranges = [:]
@@ -15,109 +17,83 @@ class Cloud {
   Set<Construction> weak = []
   Map<Construction, Set<Construction>> competitors = [:]
   Set expectations = [] as Set
-  LinkedHashMap<Construction, Boolean> active = new LinkedHashMap<Construction, Boolean>()
+  LinkedList<Construction> active = new LinkedList<Construction>()
+  Set<Construction> touched = [] as Set
+  LinkedHashSet<Construction> fresh = [] as LinkedHashSet
+  Set<Construction> processed = [] as LinkedHashSet
   int maxColor = 0
 
-  def addConstructions(List<Construction> alternatives, IntRange range) {
+  void addConstructions(List<Construction> alternatives, IntRange range) {
     def inputSet = alternatives as Set
-    alternatives.each {
-      initConstruction(it, range)
-      competitors[it] = inputSet
+    alternatives.each { c ->
+      ranges[c] = range
+      usages[c] = [] as Set
+      colors[c] = 0
+      c.args.each { usages[it] << c }
+      competitors[c] = inputSet
+      fresh << c
     }
 
-    Collection<Construction> filtered = filterInitially(alternatives).findAll { shouldActivate(it) }
-    if (filtered) {
-      expectations.clear()
-
-      LinkedList<Construction> queue = new LinkedList<Construction>(filtered)
-      while (queue) {
-        def c = queue.removeFirst()
-        if (!shouldActivate(c)) {
-          continue
-        }
-
-        promote c
-        if (c.tracked) {
-          println "added $c; active=${this.active}"
-          c
-        }
-        updateActive(queue, inputSet.contains(c))
-        updateActive(queue, false)
-      }
+    def usedArgs = [] as Set
+    alternatives.each { usedArgs += it.args }
+    usedArgs.each {
+      (competitors[it] - usedArgs).each { weaken it } 
     }
+
+    def capable = alternatives.find { shouldActivate(it) }
+    if (capable) {
+      promote capable
+    }
+
+    processed.clear()
   }
 
-  private Collection<Construction> filterInitially(List<Construction> alternatives) {
-    if (alternatives.size() > 1) {
-      def expected = alternatives.findAll { cons -> expectations.any { msg -> cons.isAccepted(msg, this) } }
-      if (!expected.isEmpty() && expected.size() < alternatives.size()) {
-        weak += (alternatives - expected)
-        return expected
+  private Construction nextUnprocessed() {
+    for (c in active - processed) {
+      Collection<Construction> chosen = competitors[c].findAll { shouldActivate(it) }
+      if (chosen.size() == 1) {
+        return chosen.iterator().next()
       }
+      //todo activate competing alternatives if only they remain
     }
 
-    return alternatives
+    return null
+  }
+
+  void markFinished(Construction construction) {
+    finished << construction
+    processed.remove construction
+  }
+
+  void updateActive() {
+    while (true) {
+      def c = nextUnprocessed()
+      if (!c) break
+
+      processed << c
+      touched.remove c
+
+      c.descr.activate(c, new ParsingContext(c, this))
+    }
+
+    def usedArgs = [] as Set
+    fresh.each { usedArgs += it.args }
+    usedArgs.each {
+      (competitors[it] - usedArgs).each { weaken it } 
+    }
+
+    fresh.clear()
+    expectations.clear()
   }
 
   private boolean shouldActivate(Construction c) {
     return !isWeak(c) && c.descr.shouldActivate()
   }
 
-  def updateActive(LinkedList<Construction> queue, boolean skipFirst) {
-    (active.keySet() as List).reverse().each { Construction ac ->
-      if (skipFirst) {
-        skipFirst = false
-        return
-      }
-
-      if (!active.containsKey(ac)) {
-        return //todo iterate over actual active set
-      }
-
-      def usedArguments = [] as Set
-      def ctx = new ParsingContext(ac, this)
-      def happy = ac.descr.activate(ac, ctx)
-      ctx.newConstructions.each {newC ->
-        initConstruction(newC, compositeRange(newC))
-        queue << newC
-        newC.descr.demotedArgs.each { i -> demote newC.args[i] }
-        usedArguments += newC.args
-      }
-      ctx._demoted.each { demote it }
-
-      active[ac] = happy
-
-      usedArguments.each {
-        def comp = competitors[it]
-        (comp - usedArguments).each {
-          demote it
-          weaken(it)
-        }
-      }
-    }
-  }
-
   private weaken(Construction c) {
     weak << c
     usages[c].each { weaken(it) }
-  }
-
-  private IntRange compositeRange(newC) {
-    int _min = Integer.MAX_VALUE
-    int _max = Integer.MIN_VALUE
-    newC.args.each {arg ->
-      _min = Math.min(_min, ranges[arg].fromInt)
-      _max = Math.max(_max, ranges[arg].toInt)
-    }
-    return _min.._max
-  }
-
-  private def initConstruction(Construction c, IntRange range) {
-    ranges[c] = range
-    usages[c] = [] as Set
-    colors[c] = 0
-    competitors[c] = [c] as Set
-    c.args.each { usages[it] << c }
+    demote c
   }
 
   def prettyPrint() {
@@ -161,42 +137,37 @@ class Cloud {
     return used
   }
 
-  Construction findAfter(hint, int pos) {
+  private Construction findAfter(hint, int pos, Function1<Construction, Boolean> filter) {
     def result = null
-    active.keySet().each {c ->
+    active.each {c ->
       def p = ranges[c].fromInt
       if (p >= pos) {
-        def cand = plausibleAlternatives(c).findAll {it.isAccepted(hint, this)}
+        def cand = plausibleAlternatives(c).findAll { filter(it) && it.isAccepted(hint, this)}
+        if (result && ranges[result].fromInt < p) {
+          return
+        }
+
         if (cand) {
           result = cand[0]
         }
       }
     }
-    if (!result) {
-      expectations << hint
-    }
     return result
   }
 
-  List<Construction> activeBefore(int pos) {
-    def result = []
-    active.keySet().each {
-      if (ranges[it].toInt <= pos) {
-        result += plausibleAlternatives(it)
-      }
-    }
-    return result
-  }
-
-  Construction findBefore(hint, int pos) {
+  private Construction findBefore(hint, int pos, Function1<Construction, Boolean> filter) {
     def result = null
-    activeBefore(pos).each { Construction c ->
-      def p = ranges[c].fromInt
-      if (c.isAccepted(hint, this)) {
-        if (result && ranges[result].fromInt > p) {
+    active.each {c ->
+      def p = ranges[c].toInt
+      if (p <= pos) {
+        def cand = plausibleAlternatives(c).findAll { filter(it) && it.isAccepted(hint, this)}
+        if (result && ranges[result].toInt > p) {
           return
         }
-        result = c
+
+        if (cand) {
+          result = cand[0]
+        }
       }
     }
     return result
@@ -206,61 +177,68 @@ class Cloud {
     usages.keySet().findAll { pos == (after ? ranges[it].fromInt : ranges[it].toInt) }
   }
 
-  List<List<Construction>> match(Construction cur, List pattern) {
+  List<Construction> match(Construction cur, List pattern, boolean serious = true, Function1<Construction, Boolean> filter) {
     def pivot = pattern.indexOf("_")
     List<Construction> result = new Construction[pattern.size()] as List
     result[pivot] = cur
     def c = cur
     for (int i = pivot - 1; i >= 0; i--) {
-      def prev = findBefore(pattern[i], ranges[c].fromInt)
-      if (!prev) return []
+      def prev = findBefore(pattern[i], ranges[c].fromInt, filter)
+      if (!prev) return null
       result[i] = c = prev
     }
     c = cur
     for (i in pivot + 1..<pattern.size()) {
-      def next = findAfter(pattern[i], ranges[c].toInt)
+      def next = findAfter(pattern[i], ranges[c].toInt, filter)
       if (!next) {
+        if (serious) {
+          touched += result[0..<i]
+        }
         expectations << pattern[i]
-        return []
+        return null
       }
       result[i] = c = next
     }
-    return [result]
+    if (serious) {
+      result.each { promote it }
+    }
+    return result
+  }
+
+  private String cons2str(c) {
+    return c.toString()
+//    def r = ranges[c]
+//    "$c:$r.fromInt..$r.toInt"
   }
 
   def promote(Construction c) {
     if (c.tracked) {
-      c
+      println "Promoting ${cons2str(c)}, active=$active"
     }
-    def old = active.remove(c)
-    if (active.size() >= 7) {
-      Construction weak = weakest()
-      if (weak.tracked) {
-        println "Removing $weak, active=$active"
-        weakest()
+    active.remove(c)
+    if (active.size() >= 8) { //todo WM size should be 7
+      Construction victim = weakest()
+      if (victim.tracked) {
+        println "Removing ${cons2str(victim)}, active=$active"
       }
-      active.remove(weak)
+      demote victim
     }
-    active[c] = old
+    active.addFirst c
+    touched << c
   }
 
   Construction weakest() {
-    def oldestFirst = active.keySet().toArray()
-    def colored = oldestFirst.findAll { colors[it] > 0 }
-    if (!colored.isEmpty()) {
-      return colored[0]
+    def untouched = active - touched
+    if (untouched) {
+      return untouched[-1]
     }
 
-    def happy = oldestFirst.findAll { active[it] }
-    if (!happy.isEmpty()) {
-      return happy[0]
-    }
-
-    return active.keySet().iterator().next()
+    return active[-1]
   }
 
   def demote(Construction c) {
-    active.remove(c)
+    active.remove c
+    touched.remove c
   }
 
   Colored coloredRange(IntRange range) {
@@ -268,7 +246,7 @@ class Cloud {
     if (!c) {
       int newColor = ++maxColor
       colorRanges[range] = c = new Colored(newColor)
-      initConstruction(c, range)
+      addConstructions([c], range)
       ranges.each {ec, r ->
         if (r.fromInt >= range.fromInt && r.toInt <= range.toInt && !colors[ec]) {
           colors[ec] = newColor

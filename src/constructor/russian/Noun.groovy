@@ -19,8 +19,8 @@ class Noun extends Descriptor {
 
   boolean activate(Construction c, ParsingContext ctx) {
     if ("nominative" == _case) {
-      def clause = ctx.findBefore(c, "clause")
-      if (clause && ctx.usages(clause, RussianLexicon.subject.name)) {
+      def clause = ctx.findBefore(c, "clause", false)
+      if (clause && ctx.allUsages(clause, RussianLexicon.subject.name)) {
         ctx.markFinished(clause)
       }
     }

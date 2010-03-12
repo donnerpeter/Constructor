@@ -36,6 +36,7 @@ class Parser {
         cloud.addConstructions([spaceConstruction.build([])], space..space+1)
         pos = space+1
       }
+      cloud.updateActive()
     }
 
     return cloud

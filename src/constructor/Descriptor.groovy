@@ -82,8 +82,6 @@ class Descriptor {
       }
     }
 
-    demotedArgs.each { ctx.demote(c.args[it]) }
-
     if (c.tracked) {
       c
     }

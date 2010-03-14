@@ -32,6 +32,10 @@ class Cloud {
       c.args.each { usages[it] << c }
       competitors[c] = inputSet
       fresh << c
+      if (c.tracked) {
+        println "Adding $c"
+      }
+      c.descr.demotedArgs.each { demote(c.args[it]) }
     }
 
     def usedArgs = [] as Set

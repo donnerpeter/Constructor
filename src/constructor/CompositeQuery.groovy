@@ -13,7 +13,9 @@ class CompositeQuery implements Query {
   }
 
   boolean isSatisfied(Construction c, ParsingContext ctx) {
-    return obligatoryPatterns().every { it.isSatisfied(c, ctx) }
+    def patterns = obligatoryPatterns()
+    def cl = { it.isSatisfied(c, ctx) }
+    return and ? patterns.every(cl) : patterns.any(cl)
   }
 
   private List<Query> obligatoryPatterns() {
@@ -21,6 +23,10 @@ class CompositeQuery implements Query {
   }
 
   def boolean matchAll(Construction c, ParsingContext ctx, Function2<SimpleQuery, List<Construction>, Void> action) {
+    if (!and && isSatisfied(c, ctx)) {
+      return true
+    }
+
     def stopped = false
     def happy = true
     children.each {

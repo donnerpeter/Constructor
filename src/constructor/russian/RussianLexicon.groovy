@@ -57,7 +57,7 @@ class RussianLexicon extends Lexicon {
                                         cons("По словам").consumes(0, 1, 2).
                                         expect(["_", ","], cons("Comma").consumes(1)).
                                         expect(["_", "clause"], cons("Source"))),
-            evokes(prepos("dative").famous().expect(["_", "xxx"], cons("Hack")), 0)) //todo smarter variants handling
+            evokes(prepos("dative").famous(), 0))
 
     nounStem('власт', 17, false) { it.nounObj("governed") }.frame("authorities")
     nounStem('управ', 50) { it.aka("nameable") }.frame("council")
@@ -153,7 +153,7 @@ class RussianLexicon extends Lexicon {
                                                      ).semantics { def f = new Frame("HumanName"); f["first"] = it[0]; f["last"] = it[1]; f })
     word("никитин").frame("Никитин").famous().aka("Surname")
     word("что").famous()
-    word("уже").expect(["_", "clause"], cons("Already").consumes(0))
+    word("уже").expect(["_", "clause"], cons("Already").consumes(0).demotes(0))
     word("два").expect(["_", "genitive"], cons("Quantity").famous().consumes(0, 1).aka("nominative", "pl"))
     word("к").famous()
     word("третий").expect(["_", "nominative"], cons("Order").consumes(0))
@@ -167,7 +167,7 @@ class RussianLexicon extends Lexicon {
     word("42").expect(["_", ["genitive", "sg"]], cons("Quantity").famous().consumes(0, 1).aka("nominative", "3sg", "pl", "NP"))
     word("37").expect(["_", ["genitive", "pl"]], cons("Quantity")).aka("number", "dative") //todo let numbers have any case, gender, number
     word("всего").expect(["_", "clause", "Quantity"], cons("Всего+Утверждение о количестве").transparent())
-    word("из").expect(["_": 1, "genitive": 2, "number": 0], cons("Subset"))
+    word("из").expect(["_": 1, "genitive": 2, "number": 0], cons("Subset").demotes(1))
 
   }
 

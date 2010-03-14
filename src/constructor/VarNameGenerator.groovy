@@ -3,14 +3,14 @@ package constructor
 /**
  * @author peter
  */
-class VarNameGenerator {
+class VarNameGenerator<T> {
   private int curVarIndex = 0
-  private Map<Construction, String> varNames = [:]
-  Set<Construction> reduced
+  private Map<T, String> varNames = [:]
+  Set<T> reduced
   Cloud cloud
 
   def VarNameGenerator(Cloud cloud) {
-    reduced = cloud.reduce()
+    reduced = cloud.reduce() as Set
     this.cloud = cloud
   }
 

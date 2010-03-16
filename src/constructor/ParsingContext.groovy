@@ -35,11 +35,11 @@ class ParsingContext {
   }
 
   Collection<Construction> allUsages(Construction c, hint) {
-    return cloud.usages[c].findAll { it.isAccepted(hint, cloud) }
+    return cloud.allUsages(c, hint)
   }
 
   Collection<Construction> strongUsages(Construction c, hint) {
-    return allUsages(c, hint).findAll { !cloud.isWeak(it) }
+    return cloud.strongUsages(c, hint)
   }
 
   Construction coloredBetween(Construction from, Construction to) {

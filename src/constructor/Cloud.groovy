@@ -231,6 +231,14 @@ class Cloud {
     touched << c
   }
 
+  List<Construction> allUsages(Construction c, hint) {
+    return usages[c].findAll { it.isAccepted(hint, this) } as List
+  }
+
+  List<Construction> strongUsages(Construction c, hint) {
+    return allUsages(c, hint).findAll { !isWeak(it) }
+  }
+
   Construction weakest() {
     def untouched = active - touched
     if (untouched) {

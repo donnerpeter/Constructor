@@ -25,15 +25,15 @@ class Parser {
       if (suitable) {
         def best = suitable[0]
         def builders = lexicon.storage[best]
-        cloud.addConstructions(builders.collect { it.build([])}, pos..pos + best.size())
+        cloud.addConstructions(builders.collect { it.build([], cloud)}, pos..pos + best.size())
         pos += best.size()
       } else {
         def space = input.indexOf(' ', pos)
         if (space > pos) {
           def word = input[pos..space-1]
-          cloud.addConstructions([new Descriptor(word).build([])], pos..pos+word.size())
+          cloud.addConstructions([new Descriptor(word).build([], cloud)], pos..pos+word.size())
         }
-        cloud.addConstructions([spaceConstruction.build([])], space..space+1)
+        cloud.addConstructions([spaceConstruction.build([], cloud)], space..space+1)
         pos = space+1
       }
       cloud.updateActive()

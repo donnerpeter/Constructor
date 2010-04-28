@@ -46,8 +46,8 @@ class Descriptor {
     return this
   }
 
-  Construction build(List<Construction> args) {
-    return new Construction(this, args)
+  Construction build(List<Construction> args, Cloud cloud) {
+    return new Construction(this, args.collect { PhraseConstruction.project(it, cloud) })
   }
 
   Descriptor consumes(int... argIndices) {
@@ -60,8 +60,12 @@ class Descriptor {
     return this
   }
 
-  def ping(message, ParsingContext ctx) {
+  boolean ping(message, ParsingContext ctx) {
     pings.contains(message)
+  }
+
+  PhraseDescriptor makePhrase(Construction c, ParsingContext ctx) {
+    null
   }
 
   boolean activate(Construction c, ParsingContext ctx) {
@@ -75,7 +79,7 @@ class Descriptor {
       ctx.strongUsages(victim, []).each { usg ->
         if (usg != c) {
           def newArgs = usg.args.collect { it == victim ? c : it }
-          ctx.addConstruction usg.descr.build(newArgs)
+          ctx.addConstruction usg.descr.build(newArgs, ctx.cloud)
           ctx.weaken(usg)
         }
 
@@ -97,7 +101,7 @@ class Descriptor {
     queries.listSimpleQueries().each { SimpleQuery q -> ctx.relaxUsages(q.descr.name) }
 
     while (true) {
-      Map<Set<Construction>, List<Pair<SimpleQuery, List<Construction>>>> cons2Patterns = [:]
+      Map<List<Construction>, List<Pair<SimpleQuery, List<Construction>>>> cons2Patterns = [:]
       queries.matchAll(c, ctx, { query, args ->
         args.each { cons2Patterns.get(ctx.cloud.competitors[it], []) << new Pair(query, args) }
       } as Function2)
@@ -105,7 +109,7 @@ class Descriptor {
       def single = cons2Patterns.find { k, v -> v.size() == 1 }
       if (single) {
         Pair<SimpleQuery, List<Construction>> pair = single.value[0]
-        ctx.addConstruction(pair.first.descr.build(pair.second))
+        ctx.addConstruction(pair.first.descr.build(pair.second, ctx.cloud))
       } else {
         break
       }
@@ -115,7 +119,7 @@ class Descriptor {
   }
 
   private boolean processExpectationsEagerly(Construction c, ParsingContext ctx) {
-    return queries.matchAll(c, ctx, { SimpleQuery query, args -> ctx.addConstruction query.descr.build(args) } as Function2)
+    return queries.matchAll(c, ctx, { SimpleQuery query, args -> ctx.addConstruction query.descr.build(args, ctx.cloud) } as Function2)
   }
 
 

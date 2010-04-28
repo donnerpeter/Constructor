@@ -60,46 +60,46 @@ class RussianLexicon extends Lexicon {
             evokes(prepos("dative").famous(), 0))
 
     nounStem('власт', 17, false) { it.nounObj("governed") }.frame("authorities")
-    nounStem('управ', 50) { it.aka("nameable") }.frame("council")
+    nounStem('управ', 50) { it.agr = ((it.agr as List) + "nameable") as String[] }.frame("council")
 
     ending('и')
     ending('ы')
 
     noun("месяца", "genitive").frame("month")
     noun("вопрос", "accusative")
-    noun("сносе", "prepositional").nounObj("undergoer").aka("locatable").frame("demolition")
+    noun("сносе", "prepositional", "locatable").nounObj("undergoer").frame("demolition")
     noun("сносу", "dative")
-    noun("строений", "genitive").aka("locatable").semantics { def f = new Frame("building"); f["quantity"] = "plural"; f }
-    noun("поселке", "prepositional").aka("nameable").frame("housing_development")
+    noun("строений", "genitive", "locatable").semantics { def f = new Frame("building"); f["quantity"] = "plural"; f }
+    noun("поселке", "prepositional", "nameable").frame("housing_development")
 
     ending('йки')
 //    nounStem('постро', 106) { it }.frame("building")
 
-    noun("постройки", "accusative").aka("pl").semantics { def f = new Frame("building"); f["quantity"] = "plural"; f }
-    noun("постройки", "genitive").aka("sg")
+    noun("постройки", "accusative", "pl").semantics { def f = new Frame("building"); f["quantity"] = "plural"; f }
+    noun("постройки", "genitive", "sg")
     noun("месяц", "accusative").frame("month")
-    noun("журналистам", "dative").aka("animate").semantics { def f = new Frame("journalist"); f["quantity"] = "plural"; f } //todo hack
-    noun("вторник", "accusative").aka("time").frame("Tuesday")
-    noun("глава", "nominative").nounObj("governed").aka("masc").frame("head")
+    noun("журналистам", "dative", "animate").semantics { def f = new Frame("journalist"); f["quantity"] = "plural"; f } //todo hack
+    noun("вторник", "accusative", "time").frame("Tuesday")
+    noun("глава", "nominative", "masc").nounObj("governed").frame("head")
     noun("утра", "genitive")
     noun("строения", "genitive")
-    noun("дом", "nominative").aka("3sg")
-    noun("дома", "accusative").aka("pl")
-    noun("дома", "genitive").aka("sg")
-    noun("приставы", "nominative").aka("3pl")
-    noun("жители", "nominative").aka("pl")
-    noun("чиновник", "nominative").aka("masc")
+    noun("дом", "nominative", "3sg")
+    noun("дома", "accusative", "pl")
+    noun("дома", "genitive", "sg")
+    noun("приставы", "nominative", "3pl")
+    noun("жители", "nominative", "pl")
+    noun("чиновник", "nominative", "masc")
     noun("добро", "accusative")
     noun("словам", "dative")
     noun("решения", "nominative").expect(["по": 1, "dative": 2, "_": 0], cons("About").consumes(1, 2).transparent())
 
-    noun("мать", "nominative").aka("3sg")
-    noun("мать", "accusative").aka("3sg")
-    noun("дочь", "nominative").aka("3sg")
-    noun("дочь", "accusative").aka("3sg")
+    noun("мать", "nominative", "3sg")
+    noun("мать", "accusative", "3sg")
+    noun("дочь", "nominative", "3sg")
+    noun("дочь", "accusative", "3sg")
 
-    noun("мы", "nominative").aka("1pl").frame("we")
-    noun("он", "nominative").aka("masc")
+    noun("мы", "nominative", "1pl").frame("we")
+    noun("он", "nominative", "masc")
     noun("нам", "dative")
 
     adj("московской", "genitive") { it["part_of"] = "Москва" }
@@ -184,7 +184,7 @@ class RussianLexicon extends Lexicon {
   }
 
   private def _addNoun(List<Noun> result, String _case, boolean plural, boolean count) {
-    def noun = new Noun("${MetaClassHelper.capitalize(_case)}Noun", _case).consumes(0, 1).demotes(0, 1).aka(plural ? "pl" : "sg").semantics {
+    def noun = new Noun("${MetaClassHelper.capitalize(_case)}Noun", _case, plural ? "pl" : "sg").consumes(0, 1).demotes(0, 1).semantics {
       def main = it[0]
       if (plural && count) {
         main["quantity"] = "plural"
@@ -248,8 +248,8 @@ class RussianLexicon extends Lexicon {
     return word(name).expect(["_", _case], cons("AdjNoun").identifyArgs([1:_case]).semantics { semantics(it[1]); it[1] })
   }
 
-  Noun noun(String name, String _case) {
-    return (Noun) store(new Noun(name, _case))
+  Noun noun(String name, String _case, String... agr) {
+    return (Noun) store(new Noun(name, _case, agr))
   }
 
   Descriptor word(String name) {
@@ -283,7 +283,7 @@ class RussianLexicon extends Lexicon {
         if (!ctx.near(pair, false, "Space") && !ctx.strongUsages(pair, "Quoted")) {
           def newArgs = [c, ctx.coloredBetween(c, pair), pair]
           def descr = cons("Quoted").evokes(appos, 0).consumes(0, 1, 2).demotes(0, 1, 2).semantics { it[1] }
-          ctx.addConstruction(descr.build(newArgs))
+          ctx.addConstruction(descr.build(newArgs, ctx.cloud))
           return true
         }
         return false

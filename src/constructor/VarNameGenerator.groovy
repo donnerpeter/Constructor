@@ -22,10 +22,12 @@ class VarNameGenerator<T> {
     if (isUsage(c)) {
       return varNames[c]
     }
-    def useCount = cloud.usages[c].findAll { reduced.contains(it) }.size()
-    if (!(c instanceof Colored) && cloud.usages[c].findAll { cloud.colors[c] != cloud.colors[it] }) {
+    def usages = cloud.usages[c].findAll { reduced.contains(it) && PhraseConstruction.HEAD != it.descr }
+    def useCount = usages.size()
+    if (!(c instanceof Colored) && usages.findAll { cloud.colors[c] != cloud.colors[it] }) {
       useCount++
     }
+    
     if (useCount < 2) {
       return ""
     }

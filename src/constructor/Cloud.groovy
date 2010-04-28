@@ -5,8 +5,8 @@ package constructor
  */
 class Cloud {
   def comparator = { Construction c1, Construction c2 ->
-    return ranges[c1].fromInt - ranges[c2].fromInt ?:
-        ranges[c1].toInt - ranges[c2].toInt ?:
+    return startOffset(c1) - startOffset(c2) ?:
+        endOffset(c1) - endOffset(c2) ?:
         c1.descr.name.compareTo(c2.descr.name)
   } as Comparator
   Map<Construction, Set<Construction>> usages = [:]
@@ -15,7 +15,7 @@ class Cloud {
   Map<IntRange, Colored> colorRanges = [:]
   Set<Construction> finished = []
   Set<Construction> weak = []
-  Map<Construction, Set<Construction>> competitors = [:]
+  Map<Construction, List<Construction>> competitors = [:]
   Set expectations = [] as Set
   LinkedList<Construction> active = new LinkedList<Construction>()
   Set<Construction> touched = [] as Set
@@ -24,27 +24,34 @@ class Cloud {
   int maxColor = 0
 
   void addConstructions(List<Construction> alternatives, IntRange range) {
-    def inputSet = alternatives as Set
-    alternatives.each { c ->
-      ranges[c] = range
-      usages[c] = [] as Set
-      colors[c] = 0
-      c.args.each { usages[it] << c }
-      competitors[c] = inputSet
-      fresh << c
-      if (c.tracked) {
-        println "Adding $c"
+    alternatives.each { initConstruction(it, range, alternatives) }
+
+    List<Construction> backgrounded = []
+    List<Construction> phrases = []
+    alternatives.each {
+      def phrase = it.descr.makePhrase(it, new ParsingContext(it, this))
+      if (phrase) {
+        backgrounded << it
+
+        def pc = phrase.build([], this)
+        pc.possibleHeads << it as String
+        phrases << pc
+        initConstruction pc, range, phrases
+
+        def head = PhraseConstruction.HEAD.build([pc, it], this)
+        initConstruction head, range, [head]
       }
-      c.descr.demotedArgs.each { demote(c.args[it]) }
     }
 
-    def usedArgs = [] as Set
-    alternatives.each { usedArgs += it.args }
-    usedArgs.each {
-      (competitors[it] - usedArgs).each { weaken it } 
+
+    weakenCompetitors(alternatives)
+
+    def capable = (alternatives - backgrounded).find { shouldActivate(it) }
+    if (capable) {
+      promote capable
     }
 
-    def capable = alternatives.find { shouldActivate(it) }
+    capable = phrases.find { shouldActivate(it) }
     if (capable) {
       promote capable
     }
@@ -52,16 +59,50 @@ class Cloud {
     processed.clear()
   }
 
-  private Construction nextUnprocessed() {
-    for (c in active - processed) {
-      Collection<Construction> chosen = competitors[c].findAll { shouldActivate(it) }
+  private void initConstruction(Construction c, IntRange range, List<Construction> alternatives) {
+    ranges[c] = range
+    usages[c] = [] as Set
+    colors[c] = 0
+    c.args.each { usages[it] << c }
+    competitors[c] = alternatives
+    fresh << c
+    if (c.tracked) {
+      println "Adding $c"
+    }
+    c.descr.demotedArgs.each { demote(c.args[it]) }
+  }
+
+  private void weakenCompetitors(Collection<Construction> alternatives) {
+    def usedArgs = [] as Set
+    alternatives.each { allConnected it, usedArgs }
+    usedArgs.each {
+      (competitors[it] - usedArgs).each { weaken it }
+    }
+  }
+
+  private void allConnected(Construction c, Set<Construction> visited) {
+    if (!visited.add(c)) return
+
+    c.children(this).each { allConnected it, visited }
+    strongUsages(c, []).each { allConnected it, visited }
+  }
+
+  private List<Construction> nextUnprocessed() {
+    for (c in active) {
+      Collection<Construction> chosen = (competitors[c] - processed).findAll { shouldActivate(it) }
       if (chosen.size() == 1) {
-        return chosen.iterator().next()
+        return chosen
       }
-      //todo activate competing alternatives if only they remain
     }
 
-    return null
+    for (c in active) {
+      Collection<Construction> chosen = (competitors[c] - processed).findAll { shouldActivate(it) }
+      if (chosen) {
+        return chosen
+      }
+    }
+
+    return []
   }
 
   void markFinished(Construction construction) {
@@ -74,17 +115,13 @@ class Cloud {
       def c = nextUnprocessed()
       if (!c) break
 
-      processed << c
-      touched.remove c
+      processed += c
+      touched -= c
 
-      c.descr.activate(c, new ParsingContext(c, this))
+      c.each { it.descr.activate(it, new ParsingContext(it, this)) }
     }
 
-    def usedArgs = [] as Set
-    fresh.each { usedArgs += it.args }
-    usedArgs.each {
-      (competitors[it] - usedArgs).each { weaken it } 
-    }
+    weakenCompetitors(fresh)
 
     fresh.clear()
     expectations.clear()
@@ -94,9 +131,12 @@ class Cloud {
     return !isWeak(c) && c.descr.shouldActivate()
   }
 
-  private weaken(Construction c) {
+  private void weaken(Construction c) {
+    if (c in weak) return
+
     weak << c
-    usages[c].each { weaken(it) }
+    c.args.each { weaken it }
+    usages[c].each { weaken it }
     demote c
   }
 
@@ -111,6 +151,9 @@ class Cloud {
       if (it.name == "Space" || isWeak(it)) {
         toExclude << it
       }
+      else if (PhraseConstruction.project(it, this) != it || it.descr == PhraseConstruction.HEAD) {
+        toExclude << it
+      }
     }
     return (all-toExclude).sort(comparator)
   }
@@ -121,7 +164,9 @@ class Cloud {
 
   def prettyPrint(int color, String indent, VarNameGenerator varNameGenerator) {
     def roots = reduce().findAll {
-      colors[it]==color && !(it instanceof Colored) && usages[it].findAll { colors[it]==color }.isEmpty()
+      return colors[it]==color &&
+              !(it instanceof Colored) &&
+              strongUsages(it, []).findAll { colors[it]==color && it.descr != PhraseConstruction.HEAD }.isEmpty()
     }
 
     StringBuilder sb = new StringBuilder()
@@ -135,19 +180,18 @@ class Cloud {
   }
 
   private List<Construction> plausibleAlternatives(Construction c) {
-    List<Construction> all = competitors[c] as List
-    def used = all.findAll { !isWeak(it) } as List
-    assert used.size() > 0 : c
+    def used = competitors[c].findAll { !isWeak(it) } as List
+    assert used.size() > 0: c
     return used
   }
 
   private Construction findAfter(hint, int pos, Function1<Construction, Boolean> filter) {
     def result = null
     active.each {c ->
-      def p = ranges[c].fromInt
+      def p = startOffset(c)
       if (p >= pos) {
         def cand = plausibleAlternatives(c).findAll { filter(it) && it.isAccepted(hint, this)}
-        if (result && ranges[result].fromInt < p) {
+        if (result && startOffset(result) < p) {
           return
         }
 
@@ -162,10 +206,10 @@ class Cloud {
   private Construction findBefore(hint, int pos, Function1<Construction, Boolean> filter) {
     def result = null
     active.each {c ->
-      def p = ranges[c].toInt
+      def p = endOffset(c)
       if (p <= pos) {
         def cand = plausibleAlternatives(c).findAll { filter(it) && it.isAccepted(hint, this)}
-        if (result && ranges[result].toInt > p) {
+        if (result && endOffset(result) > p) {
           return
         }
 
@@ -177,8 +221,16 @@ class Cloud {
     return result
   }
 
+  int endOffset(Construction c) {
+    return ranges[c].toInt
+  }
+
+  int startOffset(Construction c) {
+    return ranges[c].fromInt
+  }
+
   Collection<Construction> allAt(int pos, boolean after) {
-    usages.keySet().findAll { pos == (after ? ranges[it].fromInt : ranges[it].toInt) }
+    usages.keySet().findAll { pos == (after ? startOffset(it) : endOffset(it)) }
   }
 
   List<Construction> match(Construction cur, List pattern, boolean serious = true, Function1<Construction, Boolean> filter) {
@@ -187,13 +239,13 @@ class Cloud {
     result[pivot] = cur
     def c = cur
     for (int i = pivot - 1; i >= 0; i--) {
-      def prev = findBefore(pattern[i], ranges[c].fromInt, filter)
+      def prev = findBefore(pattern[i], startOffset(c), filter)
       if (!prev) return null
       result[i] = c = prev
     }
     c = cur
     for (i in pivot + 1..<pattern.size()) {
-      def next = findAfter(pattern[i], ranges[c].toInt, filter)
+      def next = findAfter(pattern[i], endOffset(c), filter)
       if (!next) {
         if (serious) {
           touched += result[0..<i]
@@ -215,7 +267,7 @@ class Cloud {
 //    "$c:$r.fromInt..$r.toInt"
   }
 
-  def promote(Construction c) {
+  void promote(Construction c) {
     if (c.tracked) {
       println "Promoting ${cons2str(c)}, active=$active"
     }
@@ -259,8 +311,8 @@ class Cloud {
       int newColor = ++maxColor
       colorRanges[range] = c = new Colored(newColor)
       addConstructions([c], range)
-      ranges.each {ec, r ->
-        if (r.fromInt >= range.fromInt && r.toInt <= range.toInt && !colors[ec]) {
+      ranges.keySet().each {ec ->
+        if (startOffset(ec) >= range.fromInt && endOffset(ec) <= range.toInt && !colors[ec]) {
           colors[ec] = newColor
         }
       }
@@ -271,6 +323,11 @@ class Cloud {
   private def semantics(Construction c, Map sem) {
     if (sem.containsKey(c)) {
       return sem[c]
+    }
+
+    if (c instanceof PhraseConstruction) {
+      def head = c.head(this)
+      return head ? semantics(head, sem) : null
     }
 
     def args = c.children(this)

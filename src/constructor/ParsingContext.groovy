@@ -4,7 +4,7 @@ package constructor
  * @author peter
  */
 class ParsingContext {
-  Construction relativeTo
+  private Construction relativeTo
   Cloud cloud
 
   def ParsingContext(Construction relativeTo, Cloud cloud) {
@@ -17,12 +17,16 @@ class ParsingContext {
     return result ? result[0] : null
   }
 
-  private IntRange compositeRange(newC) {
+  private IntRange compositeRange(Construction newC) {
+    if (newC.descr == PhraseConstruction.HEAD) {
+      return cloud.ranges[newC.args[1]]
+    }
+
     int _min = Integer.MAX_VALUE
     int _max = Integer.MIN_VALUE
     newC.args.each {arg ->
-      _min = Math.min(_min, cloud.ranges[arg].fromInt)
-      _max = Math.max(_max, cloud.ranges[arg].toInt)
+      _min = Math.min(_min, cloud.startOffset(arg))
+      _max = Math.max(_max, cloud.endOffset(arg))
     }
     return _min.._max
   }
@@ -35,20 +39,19 @@ class ParsingContext {
   }
 
   Collection<Construction> allUsages(Construction c, hint) {
-    return cloud.allUsages(c, hint)
+    return cloud.allUsages(PhraseConstruction.project(c, cloud), hint)
   }
 
   Collection<Construction> strongUsages(Construction c, hint) {
-    return cloud.strongUsages(c, hint)
+    return cloud.strongUsages(PhraseConstruction.project(c, cloud), hint)
   }
 
   Construction coloredBetween(Construction from, Construction to) {
-    cloud.coloredRange(cloud.ranges[from].toInt..cloud.ranges[to].fromInt)
+    cloud.coloredRange(cloud.endOffset(from)..cloud.startOffset(to))
   }
 
   Construction near(Construction c, boolean after, hint) {
-    def range = cloud.ranges[c]
-    return cloud.allAt(after ? range.toInt : range.fromInt, after).find { it.isAccepted(hint, cloud) }
+    return cloud.allAt(after ? cloud.endOffset(c) : cloud.startOffset(c), after).find { it.isAccepted(hint, cloud) }
   }
 
   private Function1<Construction, Boolean> noUsedArgs() {
@@ -76,17 +79,15 @@ class ParsingContext {
 
   def relaxUsages(hint) {
     strongUsages(relativeTo, hint).each { usg ->
-      Set<Construction> candidates = [] as Set
-      boolean isReparseable = false
       usg.args.each {
-        def comp = cloud.competitors[it]
-        candidates += comp
-        isReparseable |= comp.size() > 1
-      }
-
-      if (isReparseable) {
-        cloud.weak -= candidates
-        cloud.weak << usg
+        cloud.competitors[it].each {
+          cloud.weak << usg
+          cloud.weak -= it
+          cloud.promote it
+          if (it instanceof PhraseConstruction) {
+            cloud.weak -= cloud.allUsages(it, PhraseConstruction.HEAD.name)
+          }
+        }
       }
     }
   }

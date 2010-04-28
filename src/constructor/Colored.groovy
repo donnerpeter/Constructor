@@ -32,5 +32,9 @@ class Colored extends Construction {
     return "Color{$color}\n" + cloud.prettyPrint(color, indent + TAB, varName)
   }
 
+  protected boolean oneWord(Cloud cloud) {
+    return false
+  }
+
 
 }

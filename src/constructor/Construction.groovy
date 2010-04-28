@@ -26,8 +26,12 @@ class Construction {
     return "(" + ([name] + args).join(' ') + ")";
   }
 
-  private boolean oneLiner(VarNameGenerator varName) {
-    return args.every { (it.args.size() == 0 || varName.isUsage(it)) && !(it instanceof Colored) }
+  protected boolean oneWord(Cloud cloud) {
+    return args.size() == 0
+  }
+
+  private boolean oneLiner(VarNameGenerator varName, Cloud cloud) {
+    return args.every { varName.isUsage(it) || it.oneWord(cloud) }
   }
 
   String prettyPrint(VarNameGenerator varName, String indent, Cloud cloud) {
@@ -36,11 +40,15 @@ class Construction {
     }
 
     def prefix = varName.prefix(this)
-    String separator = oneLiner(varName) ? " " : "\n$indent$TAB"
-    
+    return prefix + _prettyPrint(varName, indent, cloud)
+  }
+
+  protected String _prettyPrint(VarNameGenerator varName, String indent, Cloud cloud) {
+    String separator = oneLiner(varName, cloud) ? " " : "\n$indent$TAB"
+
     def prettyName = name.contains(' ') ? "'$name'" : name
     def a = [prettyName] + args.collect({ it.prettyPrint(varName, indent + TAB, cloud) })
-    return prefix + a.join(separator)
+    return a.join(separator)
   }
 
   boolean equals(o) {

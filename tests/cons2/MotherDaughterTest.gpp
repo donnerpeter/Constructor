@@ -1,0 +1,21 @@
+package cons2
+
+import junit.framework.TestCase
+
+/**
+ * @author peter
+ */
+class MotherDaughterTest extends TestCase {
+
+  public void testSimple() throws Exception {
+    def chart = new Parser().parse("мать любит дочь")
+    assertEquals """
+mother
+loves
+state_experiencer(^1,^2)
+daughter
+state_theme(^3,^1)
+""".trim(), chart.presentable().trim()
+  }
+
+}

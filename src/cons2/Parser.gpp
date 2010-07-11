@@ -1,0 +1,43 @@
+package cons2
+
+/**
+ * @author peter
+ */
+class Parser {
+
+  Chart parse(String text) {
+    def chart = new Chart()
+    def words = text.split(" ")
+
+    words.each {
+      if (it == "мать") {
+        chart.newFrame().addAspect("sem", "mother")
+      }
+      if (it == "любит") {
+        chart.newFrame().addAspect("sem", "loves").withAction { Frame f ->
+          if (!f.strongUsages("state_experiencer")) {
+            def agent = f.findBefore("mother")
+            if (agent) {
+              f.chart.newFrame().addAspect("sem", "state_experiencer", f, agent)
+            }
+          }
+          if (!f.strongUsages("state_theme")) {
+            def agent = f.findAfter("daughter")
+            if (agent) {
+              f.chart.newFrame().addAspect("sem", "state_theme", f, agent)
+            }
+          }
+        }
+      }
+      if (it == "дочь") {
+        chart.newFrame().addAspect("sem", "daughter")
+      }
+      chart.update()
+    }
+
+
+    return chart
+  }
+
+
+}

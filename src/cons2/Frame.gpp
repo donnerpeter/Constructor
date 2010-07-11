@@ -1,0 +1,85 @@
+package cons2
+
+/**
+ * @author peter
+ */
+class Frame {
+  Chart chart
+  Map<String, Element> aspects = [:]
+
+  def Frame(chart) {
+    this.chart = chart;
+  }
+
+  Element addAspect(String aspect, String name, Frame... args) {
+    aspects[aspect] = new Element(name, args)
+  }
+
+  List<Frame> strongUsages(pattern) {
+    def outer = this
+    return chart.frames.findAll {
+      outer in it.children && it.respondsTo(pattern) }
+  }
+
+  Frame findAfter(pattern) {
+    findBefore(pattern)
+  }
+
+  Frame findBefore(pattern) {
+    for (frame in chart.frames) {
+      if (frame.respondsTo(pattern)) {
+        return frame
+      }
+    }
+    null
+  }
+
+  List<Frame> getChildren() {
+    aspects.values().collect { it.args }.flatten()
+  }
+
+  boolean respondsTo(pattern) {
+    return aspects["sem"].name == pattern
+  }
+
+  @Override
+  String toString() {
+    aspects.collect { a, v -> "$a=$v" }.join(";")
+  }
+
+
+}
+
+class Element {
+  String name
+  Frame[] args
+  Function1<Frame, Void> action = { }
+
+  def Element(String name, Frame... args) {
+    this.name = name
+    this.args = args
+  }
+
+  Element withAction(Function1<Frame, Void> action) {
+    this.action = action
+    this
+  }
+
+  void activate(Frame f) {
+    action.call(f)
+  }
+
+  @Override
+  String toString() {
+    name
+  }
+
+  String presentable(LinkedList<Frame> stack) {
+    if (!args) {
+      return name
+    }
+
+    def strArgs = args.collect { "^" + stack.indexOf(it) }
+    return "$name(${strArgs.join(',')})"
+  }
+}

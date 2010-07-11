@@ -1,0 +1,45 @@
+package cons2
+
+/**
+ * @author peter
+ */
+class Chart {
+  List<Frame> frames = []
+  List<Frame> dirty = []
+
+  String presentable() {
+    LinkedList<Frame> stack = []
+    StringBuilder result = []
+    for (f in frames) {
+      stack.addFirst f
+      result.append(f.aspects["sem"].presentable(stack)).append("\n")
+    }
+    result.toString()
+  }
+
+  Frame newFrame() {
+    def frame = new Frame(this)
+    frames << frame
+    dirty += frames
+    frame
+  }
+
+  private Frame nextUnprocessed() {
+    if (dirty) {
+      return dirty.remove(0)
+    }
+    null
+  }
+
+  void update() {
+    while (true) {
+      def f = nextUnprocessed()
+      if (!f) {
+        return
+      }
+      f.aspects.values().each {
+        it.activate f
+      }
+    }
+  }
+}

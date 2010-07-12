@@ -22,16 +22,11 @@ class Frame {
   }
 
   Frame findAfter(pattern) {
-    findBefore(pattern)
+    return chart.frames.find {  it.respondsTo(pattern) && chart.startOffset(it) >= chart.endOffset(this) }
   }
 
   Frame findBefore(pattern) {
-    for (frame in chart.frames) {
-      if (frame.respondsTo(pattern)) {
-        return frame
-      }
-    }
-    null
+    return chart.frames.find {  it.respondsTo(pattern) && chart.endOffset(it) <= chart.startOffset(this) }
   }
 
   List<Frame> getChildren() {
@@ -39,7 +34,12 @@ class Frame {
   }
 
   boolean respondsTo(pattern) {
-    return aspects["sem"].name == pattern
+    for (a in aspects.values()) {
+      if (a.name == pattern) {
+        return true
+      }
+    }
+    return false
   }
 
   @Override

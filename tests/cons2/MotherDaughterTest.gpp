@@ -7,15 +7,29 @@ import junit.framework.TestCase
  */
 class MotherDaughterTest extends TestCase {
 
-  public void testSimple() throws Exception {
-    def chart = new Parser().parse("мать любит дочь")
-    assertEquals """
+  public void testMLD() throws Exception {
+    doTest "мать любит дочь", """
 mother
 loves
 state_experiencer(^1,^2)
 daughter
 state_theme(^3,^1)
-""".trim(), chart.presentable().trim()
+"""
+  }
+  
+  public void testDLM() throws Exception {
+    doTest "дочь любит мать", """
+daughter
+loves
+state_experiencer(^1,^2)
+mother
+state_theme(^3,^1)
+"""
+  }
+
+  private def doTest(String input, String expected) {
+    def chart = new Parser().parse(input)
+    assertEquals expected.trim(), chart.presentable().trim()
   }
 
 }

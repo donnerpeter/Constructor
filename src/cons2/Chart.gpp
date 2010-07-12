@@ -5,7 +5,8 @@ package cons2
  */
 class Chart {
   List<Frame> frames = []
-  List<Frame> dirty = []
+  private Map<Frame, IntRange> positions = [:]
+  private List<Frame> dirty = []
 
   String presentable() {
     LinkedList<Frame> stack = []
@@ -18,9 +19,24 @@ class Chart {
     result.toString()
   }
 
-  Frame newFrame() {
+  Frame newFrame(Frame arg1, Frame argN) {
+    int start = startOffset(arg1)
+    int end = endOffset(argN)
+    newFrame(start..end)
+  }
+
+  int endOffset(Frame f) {
+    return positions[f].toInt
+  }
+
+  int startOffset(Frame f) {
+    return positions[f].fromInt
+  }
+
+  Frame newFrame(Range<Integer> position) {
     def frame = new Frame(this)
     frames << frame
+    positions[frame] = position
     dirty += frames
     frame
   }

@@ -9,30 +9,36 @@ class Parser {
     def chart = new Chart()
     def words = text.split(" ")
 
-    words.each {
-      if (it == "мать") {
-        chart.newFrame().addAspect("sem", "mother")
+    int pos = 0
+    for (w in words) {
+      if (w == "мать") {
+        def frame = chart.newFrame(pos..pos+1)
+        frame.addAspect("syn", "noun")
+        frame.addAspect("sem", "mother")
       }
-      if (it == "любит") {
-        chart.newFrame().addAspect("sem", "loves").withAction { Frame f ->
+      if (w == "любит") {
+        chart.newFrame(pos..pos+1).addAspect("sem", "loves").withAction { Frame f ->
           if (!f.strongUsages("state_experiencer")) {
-            def agent = f.findBefore("mother")
+            def agent = f.findBefore("noun")
             if (agent) {
-              f.chart.newFrame().addAspect("sem", "state_experiencer", f, agent)
+              f.chart.newFrame(f, agent).addAspect("sem", "state_experiencer", f, agent)
             }
           }
           if (!f.strongUsages("state_theme")) {
-            def agent = f.findAfter("daughter")
+            def agent = f.findAfter("noun")
             if (agent) {
-              f.chart.newFrame().addAspect("sem", "state_theme", f, agent)
+              f.chart.newFrame(f, agent).addAspect("sem", "state_theme", f, agent)
             }
           }
         }
       }
-      if (it == "дочь") {
-        chart.newFrame().addAspect("sem", "daughter")
+      if (w == "дочь") {
+        def frame = chart.newFrame(pos..pos+1)
+        frame.addAspect("syn", "noun")
+        frame.addAspect("sem", "daughter")
       }
       chart.update()
+      pos++
     }
 
 

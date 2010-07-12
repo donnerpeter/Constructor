@@ -12,7 +12,8 @@ class Chart {
     StringBuilder result = []
     for (f in frames) {
       stack.addFirst f
-      result.append(f.aspects["sem"].presentable(stack)).append("\n")
+      result << f.aspects["sem"].presentable(stack)
+      result << "\n"
     }
     result.toString()
   }

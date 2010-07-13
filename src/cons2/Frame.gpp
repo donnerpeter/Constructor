@@ -78,8 +78,10 @@ class Element {
     if (!args) {
       return name
     }
-
-    def strArgs = args.collect { "^" + stack.indexOf(it) }
-    return "$name(${strArgs.join(',')})"
+    Reference result = [name]
+    args.each {
+      result += " ^" + stack.indexOf(it)
+    }
+    return result.get()
   }
 }

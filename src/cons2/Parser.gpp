@@ -37,6 +37,17 @@ class Parser {
         frame.addAspect("syn", "noun")
         frame.addAspect("sem", "daughter")
       }
+      if (w == "красивая") {
+        def frame = chart.newFrame(pos..pos+1)
+        frame.addAspect("sem", "beautiful").withAction { Frame f ->
+          if (!f.strongUsages("property_host")) {
+            def host = f.findAfter("noun")
+            if (host) {
+              f.chart.newFrame(f, host).addAspect("sem", "property_host", f, host)
+            }
+          }
+        }
+      }
       chart.update()
       pos++
     }

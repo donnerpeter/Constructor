@@ -11,9 +11,9 @@ class MotherDaughterTest extends TestCase {
     doTest "мать любит дочь", """
 mother
 loves
-state_experiencer(^1,^2)
+state_experiencer ^1 ^2
 daughter
-state_theme(^3,^1)
+state_theme ^3 ^1
 """
   }
   
@@ -21,9 +21,21 @@ state_theme(^3,^1)
     doTest "дочь любит мать", """
 daughter
 loves
-state_experiencer(^1,^2)
+state_experiencer ^1 ^2
 mother
-state_theme(^3,^1)
+state_theme ^3 ^1
+"""
+  }
+
+  public void testBDLM() throws Exception {
+    doTest "красивая дочь любит мать", """
+beautiful
+daughter
+property_host ^2 ^1
+loves
+state_experiencer ^1 ^3
+mother
+state_theme ^3 ^1
 """
   }
 

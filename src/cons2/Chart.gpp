@@ -13,7 +13,7 @@ class Chart {
     StringBuilder result = []
     for (f in frames) {
       stack.addFirst f
-      result << f.aspects["sem"].presentable(stack)
+      result << f.presentable(stack)
       result << "\n"
     }
     result.toString()
@@ -54,9 +54,7 @@ class Chart {
       if (!f) {
         return
       }
-      f.aspects.values().each {
-        it.activate f
-      }
+      f.activate()
     }
   }
 }

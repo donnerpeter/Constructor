@@ -5,38 +5,73 @@ package cons2
  */
 class Frame {
   Chart chart
-  Map<String, Element> aspects = [:]
+  private Map<String, List<Element>> aspects = [:]
 
   def Frame(chart) {
     this.chart = chart;
   }
 
   Element addAspect(String aspect, String name, Frame... args) {
-    aspects[aspect] = new Element(name, args)
+    def element = new Element(name, args)
+    aspects.get(aspect, []) << element
+    element
   }
 
   List<Frame> strongUsages(pattern) {
     def outer = this
     return chart.frames.findAll {
-      outer in it.children && it.respondsTo(pattern) }
+      outer in it.children && it.respondsTo(false, pattern) }
   }
 
-  Frame findAfter(pattern) {
-    return chart.frames.find {  it.respondsTo(pattern) && chart.startOffset(it) >= chart.endOffset(this) }
+  Frame findAfter(boolean thematic, pattern) {
+    return chart.frames.find {  it.respondsTo(thematic, pattern) && chart.startOffset(it) >= chart.endOffset(this) }
   }
 
-  Frame findBefore(pattern) {
-    return chart.frames.find {  it.respondsTo(pattern) && chart.endOffset(it) <= chart.startOffset(this) }
+  Frame findBefore(boolean thematic, pattern) {
+    return chart.frames.find {  it.respondsTo(thematic, pattern) && chart.endOffset(it) <= chart.startOffset(this) }
+  }
+
+  Frame findAround(boolean thematic, pattern) {
+    return chart.frames.find {  it.respondsTo(thematic, pattern) }
   }
 
   List<Frame> getChildren() {
-    aspects.values().collect { it.args }.flatten()
+    List<Frame> result = []
+    for (competitors in aspects.values()) {
+      for (a in competitors) {
+        result += a.args as List
+      }
+    }
+    result
+  }
+  List<Frame> getThematicChildren() {
+    List<Frame> result = []
+    for (competitors in aspects.values()) {
+      for (a in competitors) {
+        if (a.thematic >= 0) {
+          result << a.args[a.thematic]
+        }
+      }
+    }
+    result
   }
 
-  boolean respondsTo(pattern) {
-    for (a in aspects.values()) {
-      if (a.name == pattern) {
-        return true
+  boolean respondsTo(boolean thematic, pattern) {
+    if (thematic) {
+      if (strongUsages([]).any { ((Frame) this) in it.thematicChildren }) {
+        return false
+      }
+    }
+
+    if (pattern instanceof List) {
+      return pattern.every { respondsTo(thematic, it) }
+    }
+
+    for (competitors in aspects.values()) {
+      for (a in competitors) {
+        if (a.name == pattern) {
+          return true
+        }
       }
     }
     return false
@@ -48,12 +83,24 @@ class Frame {
   }
 
 
+  def activate() {
+    aspects.values().each { comps ->
+      if (comps.size() == 1) {
+        comps[0].activate((Frame) this)
+      }
+    }
+  }
+
+  String presentable(LinkedList<Frame> stack) {
+    aspects["sem"].collect { it.presentable(stack) }.join("|")
+  }
 }
 
 class Element {
   String name
   Frame[] args
   Function1<Frame, Void> action = { }
+  int thematic = -1
 
   def Element(String name, Frame... args) {
     this.name = name
@@ -62,6 +109,11 @@ class Element {
 
   Element withAction(Function1<Frame, Void> action) {
     this.action = action
+    this
+  }
+
+  Element withThematicArgument(int arg) {
+    thematic = arg
     this
   }
 

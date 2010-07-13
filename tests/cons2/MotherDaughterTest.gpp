@@ -71,6 +71,16 @@ state_theme ^3 ^1
 """
   }
 
+  public void testFaLD() throws Exception {
+    doTest "отца любит дочь", """
+father
+loves
+state_theme ^1 ^2
+daughter
+state_experiencer ^3 ^1
+"""
+  }
+
   private def doTest(String input, String expected) {
     def chart = new Parser().parse(input)
     assertEquals expected.trim(), chart.presentable().trim()

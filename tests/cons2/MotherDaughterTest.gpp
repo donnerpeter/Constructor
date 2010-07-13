@@ -51,6 +51,26 @@ property_host ^3 ^2
 """
   }
 
+  public void testDLF() throws Exception {
+    doTest "дочь любит отца", """
+daughter
+loves
+state_experiencer ^1 ^2
+father
+state_theme ^3 ^1
+"""
+  }
+
+  public void testFLD() throws Exception {
+    doTest "отец любит дочь", """
+father
+loves
+state_experiencer ^1 ^2
+daughter
+state_theme ^3 ^1
+"""
+  }
+
   private def doTest(String input, String expected) {
     def chart = new Parser().parse(input)
     assertEquals expected.trim(), chart.presentable().trim()

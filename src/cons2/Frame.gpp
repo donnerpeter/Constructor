@@ -5,7 +5,8 @@ package cons2
  */
 class Frame {
   Chart chart
-  private Map<String, List<Element>> aspects = [:]
+  private Map<String, List<Element>> allAspects = [:]
+  private Map<String, Element> chosenAspects = [:]
 
   def Frame(chart) {
     this.chart = chart;
@@ -13,7 +14,8 @@ class Frame {
 
   Element addAspect(String aspect, String name, Frame... args) {
     def element = new Element(name, args)
-    aspects.get(aspect, []) << element
+    allAspects.get(aspect, []) << element
+    chosenAspects[aspect] = allAspects[aspect].size() > 1 ? null : element
     element
   }
 
@@ -37,7 +39,7 @@ class Frame {
 
   List<Frame> getChildren() {
     List<Frame> result = []
-    for (competitors in aspects.values()) {
+    for (competitors in allAspects.values()) {
       for (a in competitors) {
         result += a.args as List
       }
@@ -46,11 +48,9 @@ class Frame {
   }
   List<Frame> getThematicChildren() {
     List<Frame> result = []
-    for (competitors in aspects.values()) {
-      for (a in competitors) {
-        if (a.thematic >= 0) {
-          result << a.args[a.thematic]
-        }
+    for (a in chosenAspects.values()) {
+      if (a && a.thematic >= 0) {
+        result << a.args[a.thematic]
       }
     }
     result
@@ -67,9 +67,11 @@ class Frame {
       return pattern.every { respondsTo(thematic, it) }
     }
 
-    for (competitors in aspects.values()) {
+    for (name in allAspects.keySet()) {
+      List<Element> competitors = chosenAspects[name] ? [chosenAspects[name]] : allAspects[name]
       for (a in competitors) {
         if (a.name == pattern) {
+          chosenAspects[name] = a
           return true
         }
       }
@@ -79,20 +81,20 @@ class Frame {
 
   @Override
   String toString() {
-    aspects.collect { a, v -> "$a=$v" }.join(";")
+    allAspects.collect { a, v -> "$a=$v" }.join(";")
   }
 
 
   def activate() {
-    aspects.values().each { comps ->
-      if (comps.size() == 1) {
-        comps[0].activate((Frame) this)
+    chosenAspects.values().each {
+      if (it) {
+        it.activate ((Frame) this)
       }
     }
   }
 
   String presentable(LinkedList<Frame> stack) {
-    aspects["sem"].collect { it.presentable(stack) }.join("|")
+    allAspects["sem"].collect { it.presentable(stack) }.join("|")
   }
 }
 

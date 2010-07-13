@@ -81,6 +81,18 @@ state_experiencer ^3 ^1
 """
   }
 
+  public void testBaMaLD() throws Exception {
+    doTest "красивую мать любит дочь", """
+beautiful
+mother
+property_host ^2 ^1
+loves
+state_theme ^1 ^3
+daughter
+state_experiencer ^3 ^1
+"""
+  }
+
   private def doTest(String input, String expected) {
     def chart = new Parser().parse(input)
     assertEquals expected.trim(), chart.presentable().trim()

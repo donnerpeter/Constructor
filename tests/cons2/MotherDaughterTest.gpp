@@ -27,7 +27,7 @@ state_theme ^3 ^1
 """
   }
 
-  public void testBDLM() throws Exception {
+  public void testBnDLM() throws Exception {
     doTest "красивая дочь любит мать", """
 beautiful
 daughter
@@ -36,6 +36,18 @@ loves
 state_experiencer ^1 ^3
 mother
 state_theme ^3 ^1
+"""
+  }
+
+  public void testDLBaM() throws Exception {
+    doTest "дочь любит красивую мать", """
+daughter
+loves
+state_experiencer ^1 ^2
+beautiful
+mother
+state_theme ^4 ^1
+property_host ^3 ^2
 """
   }
 

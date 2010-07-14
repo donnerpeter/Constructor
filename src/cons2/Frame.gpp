@@ -22,19 +22,23 @@ class Frame {
   List<Frame> strongUsages(pattern) {
     def outer = this
     return chart.frames.findAll {
-      outer in it.children && it.respondsTo(false, pattern) }
+      outer in it.children && it.respondsTo(false, false, pattern) }
   }
 
-  Frame findAfter(boolean thematic, pattern) {
-    return chart.frames.find {  it.respondsTo(thematic, pattern) && chart.startOffset(it) >= chart.endOffset(this) }
+  Frame findAfter(boolean thematic, boolean eager = true, pattern) {
+    return findAllActiveAround(thematic, eager, pattern).find { chart.startOffset(it) >= chart.endOffset(this) }
   }
 
-  Frame findBefore(boolean thematic, pattern) {
-    return chart.frames.find {  it.respondsTo(thematic, pattern) && chart.endOffset(it) <= chart.startOffset(this) }
+  Frame findAround(boolean thematic, boolean eager = true, pattern) {
+    return findAllActiveAround(thematic, eager, pattern).find { true }
   }
 
-  Frame findAround(boolean thematic, pattern) {
-    return chart.frames.find {  it.respondsTo(thematic, pattern) }
+  List<Frame> findAllActiveAround(boolean thematic, boolean eager, pattern) {
+    return chart.findActive(thematic, eager, pattern) - this
+  }
+
+  Element getAt(String aspectName) {
+    chosenAspects[aspectName]
   }
 
   List<Frame> getChildren() {
@@ -56,7 +60,7 @@ class Frame {
     result
   }
 
-  boolean respondsTo(boolean thematic, pattern) {
+  boolean respondsTo(boolean thematic, boolean eager, def pattern) {
     if (thematic) {
       if (strongUsages([]).any { ((Frame) this) in it.thematicChildren }) {
         return false
@@ -64,14 +68,16 @@ class Frame {
     }
 
     if (pattern instanceof List) {
-      return pattern.every { respondsTo(thematic, it) }
+      return pattern.every { respondsTo(thematic, eager, it) }
     }
 
     for (name in allAspects.keySet()) {
       List<Element> competitors = chosenAspects[name] ? [chosenAspects[name]] : allAspects[name]
       for (a in competitors) {
         if (a.name == pattern) {
-          chosenAspects[name] = a
+          if (eager) {
+            chosenAspects[name] = a
+          }
           return true
         }
       }
@@ -96,12 +102,24 @@ class Frame {
   String presentable(LinkedList<Frame> stack) {
     allAspects["sem"].collect { it.presentable(stack) }.join("|")
   }
+
+  boolean wrapUp() {
+    def syn = chosenAspects["syn"]
+    return !syn || syn.wrapUp(this)
+  }
+
+  void relax() {
+    allAspects.keySet().each {
+      chosenAspects[it] = null
+    }
+  }
 }
 
 class Element {
   String name
   Frame[] args
   Function1<Frame, Void> action = { }
+  Predicate1<Frame> wrapUp = { true }
   int thematic = -1
 
   def Element(String name, Frame... args) {
@@ -111,6 +129,11 @@ class Element {
 
   Element withAction(Function1<Frame, Void> action) {
     this.action = action
+    this
+  }
+  
+  Element withWrapUp(Predicate1<Frame> action) {
+    this.wrapUp = action
     this
   }
 

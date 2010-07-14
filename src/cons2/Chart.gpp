@@ -7,6 +7,7 @@ class Chart {
   List<Frame> frames = []
   private Map<Frame, IntRange> positions = [:]
   private List<Frame> dirty = []
+  private Set<Frame> finished = []
 
   String presentable() {
     LinkedList<Frame> stack = []
@@ -19,10 +20,21 @@ class Chart {
     result.toString()
   }
 
+  void removeFrame(Frame frame) {
+    frames -= frame
+    positions.remove(frame)
+    dirty -= frame
+    finished -= frame
+  }
+
   Frame newFrame(Frame arg1, Frame argN) {
-    int start = startOffset(arg1)
-    int end = endOffset(argN)
+    int start = Math.min(startOffset(arg1), startOffset(argN))
+    int end = Math.max(endOffset(argN), endOffset(argN))
     newFrame(start..end)
+  }
+
+  List<Frame> findActive(boolean thematic, boolean eager, pattern) {
+    return frames.findAll { it.respondsTo(thematic, eager, pattern) }
   }
 
   int endOffset(Frame f) {
@@ -55,6 +67,21 @@ class Chart {
         return
       }
       f.activate()
+    }
+  }
+
+  void wrapUp() {
+    Set<Frame> processed = []
+    while (true) {
+      def f = frames.find { !(it in processed) && !(it in finished) }
+      if (!f) {
+        return
+      }
+
+      if (f.wrapUp()) {
+        finished << f
+      }
+      processed << f
     }
   }
 }

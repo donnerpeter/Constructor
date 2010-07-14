@@ -92,6 +92,17 @@ daughter
 state_experiencer ^3 ^1
 """
   }
+  
+  public void testMaLBnD() throws Exception {
+    doTest "мать любит красивая дочь", """
+mother
+loves
+beautiful
+daughter
+property_host ^2 ^1
+state_theme ^4 ^5
+state_experiencer ^5 ^3"""
+  }
 
   private def doTest(String input, String expected) {
     def chart = new Parser().parse(input)

@@ -28,13 +28,13 @@ class Parser {
           if (!f.strongUsages("state_experiencer")) {
             def agent = f.findAround(true, ["noun", "nom"])
             if (agent) {
-              f.chart.newFrame(f, agent).addAspect("sem", "state_experiencer", f, agent).withThematicArgument(1)
+              f.chart.newFrame(1, f, agent).addAspect("sem", "state_experiencer")
             }
           }
           if (!f.strongUsages("state_theme")) {
             def agent = f.findAround(true, ["noun", "acc"])
             if (agent) {
-              f.chart.newFrame(f, agent).addAspect("sem", "state_theme", f, agent).withThematicArgument(1)
+              f.chart.newFrame(1, f, agent).addAspect("sem", "state_theme")
             }
           }
         }.withWrapUp { Frame f ->
@@ -54,10 +54,10 @@ class Parser {
 
           if (objs.size() == 1) {
             subjs -= objs
-            f.chart.newFrame(objs[0], f).addAspect("sem", "state_theme", f, objs[0]).withThematicArgument(1)
+            f.chart.newFrame(1, f, objs[0]).addAspect("sem", "state_theme")
           }
           if (subjs.size() == 1) {
-            f.chart.newFrame(subjs[0], f).addAspect("sem", "state_experiencer", f, subjs[0]).withThematicArgument(1)
+            f.chart.newFrame(1, f, subjs[0]).addAspect("sem", "state_experiencer")
           }
 
 
@@ -85,11 +85,11 @@ class Parser {
           if (!f.strongUsages("property_host")) {
             def host = f.findAfter(false, ["noun", "nom"])
             if (!host) {
-              host = f.chart.newFrame(f, f)
+              host = f.chart.newFrame(range)
               host.addAspect("syn", "noun")
               host.addAspect("case", "nom")
             }
-            f.chart.newFrame(f, host).addAspect("sem", "property_host", f, host)
+            f.chart.newFrame(f, host).addAspect("sem", "property_host")
           }
         }
       }
@@ -99,7 +99,7 @@ class Parser {
           if (!f.strongUsages("property_host")) {
             def host = f.findAfter(false, ["noun", "acc"])
             if (host) {
-              f.chart.newFrame(f, host).addAspect("sem", "property_host", f, host)
+              f.chart.newFrame(f, host).addAspect("sem", "property_host")
             }
           }
         }

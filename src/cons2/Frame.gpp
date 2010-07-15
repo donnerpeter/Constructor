@@ -7,13 +7,17 @@ class Frame {
   Chart chart
   private Map<String, List<Dimension>> allAspects = [:]
   private Map<String, Dimension> chosenAspects = [:]
+  Frame[] children
+  private int thematic
 
-  def Frame(chart) {
-    this.chart = chart;
+  def Frame(Chart chart, thematic, Frame... args) {
+    this.chart = chart
+    this.thematic = thematic
+    this.children = args
   }
 
-  Dimension addAspect(String aspect, String name, Frame... args) {
-    def element = new Dimension(name, args)
+  Dimension addAspect(String aspect, String name) {
+    def element = new Dimension(name)
     allAspects.get(aspect, []) << element
     chosenAspects[aspect] = allAspects[aspect].size() > 1 ? null : element
     element
@@ -41,23 +45,8 @@ class Frame {
     chosenAspects[aspectName]
   }
 
-  List<Frame> getChildren() {
-    List<Frame> result = []
-    for (competitors in allAspects.values()) {
-      for (a in competitors) {
-        result += a.args as List
-      }
-    }
-    result
-  }
   List<Frame> getThematicChildren() {
-    List<Frame> result = []
-    for (a in chosenAspects.values()) {
-      if (a && a.thematic >= 0) {
-        result << a.args[a.thematic]
-      }
-    }
-    result
+    thematic >= 0 ? [children[thematic]] : []
   }
 
   boolean respondsTo(boolean thematic, boolean eager, def pattern) {
@@ -90,7 +79,6 @@ class Frame {
     allAspects.collect { a, v -> "$a=$v" }.join(";")
   }
 
-
   def activate() {
     chosenAspects.values().each {
       if (it) {
@@ -100,7 +88,7 @@ class Frame {
   }
 
   String presentable(LinkedList<Frame> stack) {
-    allAspects["sem"].collect { it.presentable(stack) }.join("|")
+    allAspects["sem"].collect { it.name }.join("|") + children.collect { " ^" + stack.indexOf(it) }.join("")
   }
 
   boolean wrapUp() {

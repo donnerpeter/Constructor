@@ -8,14 +8,11 @@ class Dimension { /**
  * @author peter
  */
   String name
-  Frame[] args
   Function1<Frame, Void> action = { }
   Predicate1<Frame> wrapUp = { true }
-  int thematic = -1
 
-  def Dimension(String name, Frame... args) {
+  def Dimension(String name) {
     this.name = name
-    this.args = args
   }
 
   Dimension withAction(Function1<Frame, Void> action) {
@@ -28,11 +25,6 @@ class Dimension { /**
     this
   }
 
-  Dimension withThematicArgument(int arg) {
-    thematic = arg
-    this
-  }
-
   void activate(Frame f) {
     action.call(f)
   }
@@ -42,14 +34,4 @@ class Dimension { /**
     name
   }
 
-  String presentable(LinkedList<Frame> stack) {
-    if (!args) {
-      return name
-    }
-    Reference result = [name]
-    args.each {
-      result += " ^" + stack.indexOf(it)
-    }
-    return result.get()
-  }
 }

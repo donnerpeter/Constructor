@@ -27,10 +27,10 @@ class Chart {
     finished -= frame
   }
 
-  Frame newFrame(Frame arg1, Frame argN) {
-    int start = Math.min(startOffset(arg1), startOffset(argN))
-    int end = Math.max(endOffset(argN), endOffset(argN))
-    newFrame(start..end)
+  Frame newFrame(int theta = -1, Frame... children) {
+    int start = children.foldLeft(Integer.MAX_VALUE) { Frame child, acc -> Math.min(acc, startOffset(child)) }
+    int end = children.foldLeft(Integer.MIN_VALUE) { Frame child, acc -> Math.max(acc, endOffset(child)) }
+    registerFrame(new Frame(this, theta, children), start..end)
   }
 
   List<Frame> findActive(boolean thematic, boolean eager, pattern) {
@@ -46,7 +46,10 @@ class Chart {
   }
 
   Frame newFrame(Range<Integer> position) {
-    def frame = new Frame(this)
+    registerFrame(new Frame(this, -1), position)
+  }
+
+  private Frame registerFrame(Frame frame, Range<Integer> position) {
     frames << frame
     positions[frame] = position
     dirty += frames

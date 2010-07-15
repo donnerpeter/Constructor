@@ -5,15 +5,15 @@ package cons2
  */
 class Frame {
   Chart chart
-  private Map<String, List<Element>> allAspects = [:]
-  private Map<String, Element> chosenAspects = [:]
+  private Map<String, List<Dimension>> allAspects = [:]
+  private Map<String, Dimension> chosenAspects = [:]
 
   def Frame(chart) {
     this.chart = chart;
   }
 
-  Element addAspect(String aspect, String name, Frame... args) {
-    def element = new Element(name, args)
+  Dimension addAspect(String aspect, String name, Frame... args) {
+    def element = new Dimension(name, args)
     allAspects.get(aspect, []) << element
     chosenAspects[aspect] = allAspects[aspect].size() > 1 ? null : element
     element
@@ -37,7 +37,7 @@ class Frame {
     return chart.findActive(thematic, eager, pattern) - this
   }
 
-  Element getAt(String aspectName) {
+  Dimension getAt(String aspectName) {
     chosenAspects[aspectName]
   }
 
@@ -72,7 +72,7 @@ class Frame {
     }
 
     for (name in allAspects.keySet()) {
-      List<Element> competitors = chosenAspects[name] ? [chosenAspects[name]] : allAspects[name]
+      List<Dimension> competitors = chosenAspects[name] ? [chosenAspects[name]] : allAspects[name]
       for (a in competitors) {
         if (a.name == pattern) {
           if (eager) {
@@ -115,50 +115,3 @@ class Frame {
   }
 }
 
-class Element {
-  String name
-  Frame[] args
-  Function1<Frame, Void> action = { }
-  Predicate1<Frame> wrapUp = { true }
-  int thematic = -1
-
-  def Element(String name, Frame... args) {
-    this.name = name
-    this.args = args
-  }
-
-  Element withAction(Function1<Frame, Void> action) {
-    this.action = action
-    this
-  }
-  
-  Element withWrapUp(Predicate1<Frame> action) {
-    this.wrapUp = action
-    this
-  }
-
-  Element withThematicArgument(int arg) {
-    thematic = arg
-    this
-  }
-
-  void activate(Frame f) {
-    action.call(f)
-  }
-
-  @Override
-  String toString() {
-    name
-  }
-
-  String presentable(LinkedList<Frame> stack) {
-    if (!args) {
-      return name
-    }
-    Reference result = [name]
-    args.each {
-      result += " ^" + stack.indexOf(it)
-    }
-    return result.get()
-  }
-}

@@ -1,0 +1,55 @@
+package cons2
+
+/**
+ * @author peter
+ */
+
+class Dimension { /**
+ * @author peter
+ */
+  String name
+  Frame[] args
+  Function1<Frame, Void> action = { }
+  Predicate1<Frame> wrapUp = { true }
+  int thematic = -1
+
+  def Dimension(String name, Frame... args) {
+    this.name = name
+    this.args = args
+  }
+
+  Dimension withAction(Function1<Frame, Void> action) {
+    this.action = action
+    this
+  }
+
+  Dimension withWrapUp(Predicate1<Frame> action) {
+    this.wrapUp = action
+    this
+  }
+
+  Dimension withThematicArgument(int arg) {
+    thematic = arg
+    this
+  }
+
+  void activate(Frame f) {
+    action.call(f)
+  }
+
+  @Override
+  String toString() {
+    name
+  }
+
+  String presentable(LinkedList<Frame> stack) {
+    if (!args) {
+      return name
+    }
+    Reference result = [name]
+    args.each {
+      result += " ^" + stack.indexOf(it)
+    }
+    return result.get()
+  }
+}

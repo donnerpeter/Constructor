@@ -5,8 +5,8 @@ package cons2
  */
 class Frame {
   Chart chart
-  private Map<String, List<Dimension>> allAspects = [:]
-  private Map<String, Dimension> chosenAspects = [:]
+  private Map<String, List<Dimension>> allDims = [:]
+  private Map<String, Dimension> chosenDims = [:]
   Frame[] children
   private int thematic
 
@@ -18,8 +18,8 @@ class Frame {
 
   Dimension addAspect(String aspect, String name) {
     def element = new Dimension(name)
-    allAspects.get(aspect, []) << element
-    chosenAspects[aspect] = allAspects[aspect].size() > 1 ? null : element
+    allDims.get(aspect, []) << element
+    chosenDims[aspect] = allDims[aspect].size() > 1 ? null : element
     element
   }
 
@@ -42,11 +42,15 @@ class Frame {
   }
 
   Dimension getAt(String aspectName) {
-    chosenAspects[aspectName]
+    chosenDims[aspectName]
   }
 
   List<Frame> getThematicChildren() {
     thematic >= 0 ? [children[thematic]] : []
+  }
+
+  void chosenAs(def pattern) {
+    respondsTo(false, true, pattern)
   }
 
   boolean respondsTo(boolean thematic, boolean eager, def pattern) {
@@ -60,12 +64,11 @@ class Frame {
       return pattern.every { respondsTo(thematic, eager, it) }
     }
 
-    for (name in allAspects.keySet()) {
-      List<Dimension> competitors = chosenAspects[name] ? [chosenAspects[name]] : allAspects[name]
-      for (a in competitors) {
+    for (name in allDims.keySet()) {
+      for (a in dimensions(name)) {
         if (a.name == pattern) {
           if (eager) {
-            chosenAspects[name] = a
+            chosenDims[name] = a
           }
           return true
         }
@@ -74,13 +77,17 @@ class Frame {
     return false
   }
 
+  private List<Dimension> dimensions(String name) {
+    return chosenDims[name] ? [chosenDims[name]] : allDims[name]
+  }
+
   @Override
   String toString() {
-    allAspects.collect { a, v -> "$a=$v" }.join(";")
+    allDims.collect { a, v -> "$a=$v" }.join(";")
   }
 
   def activate() {
-    chosenAspects.values().each {
+    chosenDims.values().each {
       if (it) {
         it.activate ((Frame) this)
       }
@@ -88,18 +95,43 @@ class Frame {
   }
 
   String presentable(LinkedList<Frame> stack) {
-    allAspects["sem"].collect { it.name }.join("|") + children.collect { " ^" + stack.indexOf(it) }.join("")
+    dimensions("sem").collect { it.name }.join("|") + children.collect { " ^" + stack.indexOf(it) }.join("")
   }
 
   boolean wrapUp() {
-    def syn = chosenAspects["syn"]
+    def syn = chosenDims["syn"]
     return !syn || syn.wrapUp(this)
   }
 
   void relax() {
-    allAspects.keySet().each {
-      chosenAspects[it] = null
+    allDims.keySet().each {
+      chosenDims[it] = null
     }
+  }
+
+
+  boolean equals(o) {
+    if (this.is(o)) return true;
+    if (children.size() == 0) return false
+
+    if (!(o instanceof Frame)) return false;
+
+    Frame frame = (Frame) o;
+
+    if (thematic != frame.thematic) return false;
+    if (!Arrays.equals(children, frame.children)) return false;
+
+    return true;
+  }
+
+  int hashCode() {
+    if (children.size() == 0) {
+      return super.hashCode()
+    }
+
+    int result = Arrays.hashCode(children);
+    result = 31 * result + thematic;
+    return result;
   }
 }
 

@@ -28,13 +28,13 @@ class Parser {
           if (!f.strongUsages("state_experiencer")) {
             def agent = f.findAround(true, ["noun", "nom"])
             if (agent) {
-              f.chart.newFrame(1, f, agent).addAspect("sem", "state_experiencer")
+              f.chart.construction(1, f, agent).addAspect("sem", "state_experiencer")
             }
           }
           if (!f.strongUsages("state_theme")) {
             def agent = f.findAround(true, ["noun", "acc"])
             if (agent) {
-              f.chart.newFrame(1, f, agent).addAspect("sem", "state_theme")
+              f.chart.construction(1, f, agent).addAspect("sem", "state_theme")
             }
           }
         }.withWrapUp { Frame f ->
@@ -44,8 +44,6 @@ class Parser {
             return true
           }
 
-          (subjs + objs).each { f.chart.removeFrame(it) }
-
           subjs.each { it.children.each {it.relax() } }
           objs.each { it.children.each {it.relax() } }
 
@@ -54,10 +52,14 @@ class Parser {
 
           if (objs.size() == 1) {
             subjs -= objs
-            f.chart.newFrame(1, f, objs[0]).addAspect("sem", "state_theme")
+            def newObj = f.chart.construction(1, f, objs[0])
+            newObj.addAspect("sem", "state_theme")
+            newObj.chosenAs "state_theme"
           }
           if (subjs.size() == 1) {
-            f.chart.newFrame(1, f, subjs[0]).addAspect("sem", "state_experiencer")
+            def newSubj = f.chart.construction(1, f, subjs[0])
+            newSubj.addAspect("sem", "state_experiencer")
+            newSubj.chosenAs("state_experiencer")
           }
 
 
@@ -76,7 +78,7 @@ class Parser {
         frame.addAspect("case", "acc")
         frame.addAspect("sem", "daughter")
         if (oldCase) {
-          frame.respondsTo(false, true, oldCase.name)
+          frame.chosenAs(oldCase.name)
         }
       }
       if (w == "красивая") {
@@ -89,7 +91,7 @@ class Parser {
               host.addAspect("syn", "noun")
               host.addAspect("case", "nom")
             }
-            f.chart.newFrame(f, host).addAspect("sem", "property_host")
+            f.chart.construction(f, host).addAspect("sem", "property_host")
           }
         }
       }
@@ -99,7 +101,7 @@ class Parser {
           if (!f.strongUsages("property_host")) {
             def host = f.findAfter(false, ["noun", "acc"])
             if (host) {
-              f.chart.newFrame(f, host).addAspect("sem", "property_host")
+              f.chart.construction(f, host).addAspect("sem", "property_host")
             }
           }
         }

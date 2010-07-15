@@ -20,14 +20,7 @@ class Chart {
     result.toString()
   }
 
-  void removeFrame(Frame frame) {
-    frames -= frame
-    positions.remove(frame)
-    dirty -= frame
-    finished -= frame
-  }
-
-  Frame newFrame(int theta = -1, Frame... children) {
+  Frame construction(int theta = -1, Frame... children) {
     int start = children.foldLeft(Integer.MAX_VALUE) { Frame child, acc -> Math.min(acc, startOffset(child)) }
     int end = children.foldLeft(Integer.MIN_VALUE) { Frame child, acc -> Math.max(acc, endOffset(child)) }
     registerFrame(new Frame(this, theta, children), start..end)
@@ -50,6 +43,11 @@ class Chart {
   }
 
   private Frame registerFrame(Frame frame, Range<Integer> position) {
+    if (positions.containsKey(frame)) {
+      dirty += frames
+      return frames.find { it == frame }
+    }
+
     frames << frame
     positions[frame] = position
     dirty += frames

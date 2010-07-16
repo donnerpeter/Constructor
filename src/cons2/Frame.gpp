@@ -23,14 +23,10 @@ class Frame {
     element
   }
 
-  List<Frame> strongUsages(pattern) {
+  Collection<Frame> strongUsages(pattern) {
     def outer = this
     return chart.frames.findAll {
       outer in it.children && it.respondsTo(false, false, pattern) }
-  }
-
-  Frame findAfter(boolean thematic, boolean eager = true, pattern) {
-    return findAllActiveAround(thematic, eager, pattern).find { chart.startOffset(it) >= chart.endOffset(this) }
   }
 
   Frame findAround(boolean thematic, boolean eager = true, pattern) {

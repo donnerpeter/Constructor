@@ -15,7 +15,7 @@ class Parser {
       if (w == "мать") {
         def frame = chart.findActive(false, false, "noun").find { !it["sem"] }
         if (!frame) {
-          frame = chart.newFrame(range)
+          frame = chart.newFrame()
         }
         frame.addAspect("syn", "noun")
         frame.addAspect("case", "nom")
@@ -23,7 +23,7 @@ class Parser {
         frame.addAspect("sem", "mother")
       }
       if (w == "любит") {
-        def frame = chart.newFrame(range)
+        def frame = chart.newFrame()
 
         frame.addAspect("syn", "verb").withAction { Frame f ->
           if (!f.strongUsages("state_experiencer")) {
@@ -84,7 +84,7 @@ class Parser {
       if (w == "дочь") {
         def frame = chart.findActive(false, false, "noun").find { !it["sem"] }
         if (!frame) {
-          frame = chart.newFrame(range)
+          frame = chart.newFrame()
         }
         def oldCase = frame["case"]
         frame.addAspect("syn", "noun")
@@ -96,12 +96,12 @@ class Parser {
         }
       }
       if (w == "красивая") {
-        def frame = chart.newFrame(range)
+        def frame = chart.newFrame()
         frame.addAspect("sem", "beautiful").withAction { Frame f ->
           if (!f.strongUsages("property_host")) {
             def host = f.findAround(false, ["noun", "nom"])
             if (!host) {
-              host = f.chart.newFrame(range)
+              host = f.chart.newFrame()
               host.addAspect("syn", "noun")
               host.addAspect("case", "nom")
             }
@@ -110,7 +110,7 @@ class Parser {
         }
       }
       if (w == "красивую") {
-        def frame = chart.newFrame(range)
+        def frame = chart.newFrame()
         frame.addAspect("sem", "beautiful").withAction { Frame f ->
           if (!f.strongUsages("property_host")) {
             def host = f.findAround(false, ["noun", "acc"])
@@ -121,13 +121,13 @@ class Parser {
         }
       }
       if (w == "отец") {
-        def frame = chart.newFrame(pos..pos+1)
+        def frame = chart.newFrame()
         frame.addAspect("syn", "noun")
         frame.addAspect("case", "nom")
         frame.addAspect("sem", "father")
       }
       if (w == "отца") {
-        def frame = chart.newFrame(pos..pos+1)
+        def frame = chart.newFrame()
         frame.addAspect("syn", "noun")
         frame.addAspect("case", "acc")
         frame.addAspect("sem", "father")

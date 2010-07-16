@@ -4,9 +4,8 @@ package cons2
  * @author peter
  */
 class Chart {
-  List<Frame> frames = []
+  LinkedHashSet<Frame> frames = []
   private LinkedList<Frame> active = []
-  private Map<Frame, IntRange> positions = [:]
   private List<Frame> dirty = []
   private Set<Frame> finished = []
 
@@ -22,35 +21,24 @@ class Chart {
   }
 
   Frame construction(int theta = -1, Frame... children) {
-    int start = children.foldLeft(Integer.MAX_VALUE) { Frame child, acc -> Math.min(acc, startOffset(child)) }
-    int end = children.foldLeft(Integer.MIN_VALUE) { Frame child, acc -> Math.max(acc, endOffset(child)) }
-    registerFrame(new Frame(this, theta, children), start..end)
+    registerFrame(new Frame(this, theta, children))
   }
 
   List<Frame> findActive(boolean thematic, boolean eager, pattern) {
     return active.findAll { it.respondsTo(thematic, eager, pattern) }
   }
 
-  int endOffset(Frame f) {
-    return positions[f].toInt
+  Frame newFrame() {
+    registerFrame(new Frame(this, -1))
   }
 
-  int startOffset(Frame f) {
-    return positions[f].fromInt
-  }
-
-  Frame newFrame(Range<Integer> position) {
-    registerFrame(new Frame(this, -1), position)
-  }
-
-  private Frame registerFrame(Frame frame, Range<Integer> position) {
-    if (positions.containsKey(frame)) {
+  private Frame registerFrame(Frame frame) {
+    if (frames.contains(frame)) {
       frame = frames.find { it == frame }
     } else {
       frames << frame
     }
 
-    positions[frame] = position
     activate(frame)
     frame
   }

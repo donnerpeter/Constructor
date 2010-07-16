@@ -77,18 +77,14 @@ class Chart {
     }
   }
 
-  void wrapUp(Frame frame) {
-    if (frame.wrapUp()) {
-      active.remove frame
-      dirty -= frame
-      finished << frame
-    }
+  void wrapUp() {
+    wrapUp(active as Frame[])
   }
 
-  void wrapUp() {
+  void wrapUp(Frame... frames) {
     Set<Frame> processed = []
     while (true) {
-      def f = active.find { !(it in processed) && !(it in finished) }
+      def f = frames.find { !(it in processed) && !(it in finished) }
       if (!f) {
         break
       }

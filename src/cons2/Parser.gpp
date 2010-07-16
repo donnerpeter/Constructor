@@ -9,9 +9,7 @@ class Parser {
     def chart = new Chart()
     def words = text.split(" ")
 
-    int pos = 0
     for (w in words) {
-      Range<Integer> range = pos..pos + 1
       if (w == "мать") {
         def frame = chart.findActive(false, false, "noun").find { !it["sem"] }
         if (!frame) {
@@ -136,7 +134,6 @@ class Parser {
 
 
       chart.update()
-      pos++
     }
 
     chart.wrapUp()

@@ -5,6 +5,7 @@ package cons2
  */
 class Chart {
   List<Frame> frames = []
+  private LinkedList<Frame> active = []
   private Map<Frame, IntRange> positions = [:]
   private List<Frame> dirty = []
   private Set<Frame> finished = []
@@ -27,7 +28,7 @@ class Chart {
   }
 
   List<Frame> findActive(boolean thematic, boolean eager, pattern) {
-    return frames.findAll { it.respondsTo(thematic, eager, pattern) }
+    return active.findAll { it.respondsTo(thematic, eager, pattern) }
   }
 
   int endOffset(Frame f) {
@@ -44,14 +45,19 @@ class Chart {
 
   private Frame registerFrame(Frame frame, Range<Integer> position) {
     if (positions.containsKey(frame)) {
-      dirty += frames
-      return frames.find { it == frame }
+      frame = frames.find { it == frame }
+    } else {
+      frames << frame
     }
 
-    frames << frame
     positions[frame] = position
-    dirty += frames
+    activate(frame)
     frame
+  }
+
+  void activate(Frame frame) {
+    active.addFirst frame
+    dirty += active
   }
 
   private Frame nextUnprocessed() {
@@ -71,12 +77,20 @@ class Chart {
     }
   }
 
+  void wrapUp(Frame frame) {
+    if (frame.wrapUp()) {
+      active.remove frame
+      dirty -= frame
+      finished << frame
+    }
+  }
+
   void wrapUp() {
     Set<Frame> processed = []
     while (true) {
-      def f = frames.find { !(it in processed) && !(it in finished) }
+      def f = active.find { !(it in processed) && !(it in finished) }
       if (!f) {
-        return
+        break
       }
 
       if (f.wrapUp()) {
@@ -84,5 +98,8 @@ class Chart {
       }
       processed << f
     }
+
+    active.removeAll finished
+    dirty.removeAll finished
   }
 }

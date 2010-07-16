@@ -107,6 +107,7 @@ class Frame {
     allDims.keySet().each {
       chosenDims[it] = null
     }
+    chart.activate this
   }
 
 

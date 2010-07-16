@@ -46,8 +46,8 @@ loves
 state_experiencer ^1 ^2
 beautiful
 mother
-state_theme ^4 ^1
-property_host ^3 ^2
+property_host ^2 ^1
+state_theme ^5 ^2
 """
   }
 

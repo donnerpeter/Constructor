@@ -23,60 +23,41 @@ class Parser {
       if (w == "любит") {
         def frame = chart.newFrame()
 
+        def actor = new SimpleQuery(["noun", "nom"], "sem", "state_experiencer", true)
+        def theme = new SimpleQuery(["noun", "acc"], "sem", "state_theme", true)
+
         frame.addAspect("syn", "verb").withAction { Frame f ->
-          if (!f.strongUsages("state_experiencer")) {
-            def agent = f.findAround(true, ["noun", "nom"])
-            if (agent) {
-              f.chart.construction(1, f, agent).addAspect("sem", "state_experiencer")
-            }
-          }
-          if (!f.strongUsages("state_theme")) {
-            def agent = f.findAround(true, ["noun", "acc"])
-            if (agent) {
-              f.chart.construction(1, f, agent).addAspect("sem", "state_theme")
-            }
-          }
+          actor.activate f
+          theme.activate f
         }.withWrapUp { Frame f ->
-          def subjs = f.strongUsages("state_experiencer")
-          def objs = f.strongUsages("state_theme")
-          if (subjs && objs) {
+          if (actor.satisfied(f) && theme.satisfied(f)) {
             return true
           }
 
-          subjs.each { it.children.each {it.relax() } }
-          objs.each { it.children.each {it.relax() } }
+          actor.getArg(f)?.relax()
+          theme.getArg(f)?.relax()
 
-          subjs = f.findAllActiveAround(false, false, ["noun", "nom"])
-          objs = f.findAllActiveAround(false, false, ["noun", "acc"])
+          def subjs = actor.allArgumentCandidates(f)
+          def objs = theme.allArgumentCandidates(f)
 
           if (objs.size() == 1) {
             subjs -= objs
-            def newObj = f.chart.construction(1, f, objs[0])
-            newObj.addAspect("sem", "state_theme")
-            newObj.chosenAs "state_theme"
+            theme.instantiate(f, objs[0])
           }
           if (subjs.size() == 1) {
-            def newSubj = f.chart.construction(1, f, subjs[0])
-            newSubj.addAspect("sem", "state_experiencer")
-            newSubj.chosenAs("state_experiencer")
+            actor.instantiate(f, subjs[0])
           }
 
-
-          return f.strongUsages("state_experiencer") && f.strongUsages("state_theme")
+          return actor.satisfied(f) && theme.satisfied(f)
         }
         frame.addAspect("sem", "loves")
 
-        def actors = chart.findActive(true, true, ["noun", "nom"])
-        if (actors) {
-          chart.construction(1, frame, actors[0]).addAspect("sem", "state_experiencer")
-          chart.wrapUp actors[0]
+        if (actor.activate(frame)) {
+          chart.wrapUp actor.getArg(frame)
         }
-        def themes = chart.findActive(true, true, ["noun", "acc"])
-        if (themes) {
-          chart.construction(1, frame, themes[0]).addAspect("sem", "state_theme")
-          chart.wrapUp themes[0]
+        if (theme.activate(frame)) {
+          chart.wrapUp theme.getArg(frame)
         }
-
 
       }
       if (w == "дочь") {
@@ -95,6 +76,7 @@ class Parser {
       }
       if (w == "красивая") {
         def frame = chart.newFrame()
+
         frame.addAspect("sem", "beautiful").withAction { Frame f ->
           if (!f.strongUsages("property_host")) {
             def host = f.findAround(false, ["noun", "nom"])

@@ -1,0 +1,53 @@
+package cons2
+
+/**
+ * @author peter
+ */
+class SimpleQuery {
+  def pattern
+  String dimension
+  String name
+  boolean thematic
+
+  def SimpleQuery(pattern, dimension, name, thematic) {
+    this.pattern = pattern;
+    this.dimension = dimension;
+    this.name = name;
+    this.thematic = thematic;
+  }
+
+  boolean satisfied(Frame f) {
+    !f.strongUsages(name).empty
+  }
+
+  List<Frame> allArgumentCandidates(Frame f) {
+    f.findAllActiveAround(false, false, pattern)
+  }
+
+  Frame getArg(Frame f) {
+    def usages = f.strongUsages(name)
+    if (usages.size() == 1) {
+      return usages.iterator().next().children[1]
+    }
+    null
+  }
+
+  boolean activate(Frame f) {
+    if (!satisfied(f)) {
+      def arg = f.findAround(thematic, true, pattern)
+      if (arg) {
+        instantiate(f, arg)
+        return true
+      }
+    }
+    return false
+  }
+
+  Frame instantiate(Frame self, Frame arg) {
+    def construction = self.chart.construction(thematic ? 1 : -1, self, arg)
+    construction.addAspect(dimension, name)
+    construction.chosenAs name
+    construction
+  }
+
+}

@@ -4,20 +4,29 @@ package cons2
  * @author peter
  */
 class Chart {
-  LinkedHashSet<Frame> frames = []
+  private LinkedHashSet<Frame> frames = []
   private LinkedList<Frame> active = []
   private List<Frame> dirty = []
   private Set<Frame> finished = []
+  private Set<Frame> weak = []
 
   String presentable() {
     LinkedList<Frame> stack = []
     StringBuilder result = []
-    for (f in frames) {
+    for (f in frames()) {
       stack.addFirst f
       result << f.presentable(stack)
       result << "\n"
     }
     result.toString()
+  }
+
+  List<Frame> frames(boolean includeWeak = false) {
+    (frames - weak) as List<Frame>
+  }
+
+  List<Frame> usages(Frame f, boolean includeWeak = false, def pattern) {
+    frames(includeWeak).findAll { f in it.children && it.ping(false, pattern) }
   }
 
   Frame construction(int theta = -1, Frame... children) {
@@ -33,19 +42,20 @@ class Chart {
   }
 
   private Frame registerFrame(Frame frame) {
-    if (frames.contains(frame)) {
-      frame = frames.find { it == frame }
-    } else {
-      frames << frame
-    }
-
+    frames << frame
     activate(frame)
     frame
   }
 
   void activate(Frame frame) {
+    strengthen(frame)
     active.addFirst frame
     dirty += active
+  }
+
+  private void strengthen(Frame frame) {
+    weak.remove frame
+    frame.children.each { strengthen it }
   }
 
   private Frame nextUnprocessed() {
@@ -85,5 +95,12 @@ class Chart {
 
     active.removeAll finished
     dirty.removeAll finished
+  }
+
+  void weaken(Frame f) {
+    weak << f
+    active.remove f
+    dirty.remove f
+    f.strongUsages([]).each { weaken it }
   }
 }

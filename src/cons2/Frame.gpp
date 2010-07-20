@@ -23,10 +23,12 @@ class Frame {
     element
   }
 
-  Collection<Frame> strongUsages(pattern) {
-    def outer = this
-    return chart.frames.findAll {
-      outer in it.children && it.ping(false, pattern) }
+  List<Frame> strongUsages(pattern) {
+    chart.usages(this, false, pattern)
+  }
+
+  List<Frame> allUsages(pattern) {
+    chart.usages(this, true, pattern)
   }
 
   Frame findAround(boolean thematic, def pattern) {
@@ -104,7 +106,7 @@ class Frame {
 
   boolean wrapUp() {
     def syn = chosenDims["syn"]
-    return !syn || syn.wrapUp(this)
+    return !syn || syn.wrapUp.call(this)
   }
 
   void relax() {
@@ -115,28 +117,5 @@ class Frame {
   }
 
 
-  boolean equals(o) {
-    if (this.is(o)) return true;
-    if (children.size() == 0) return false
-
-    if (!(o instanceof Frame)) return false;
-
-    Frame frame = (Frame) o;
-
-    if (thematic != frame.thematic) return false;
-    if (!Arrays.equals(children, frame.children)) return false;
-
-    return true;
-  }
-
-  int hashCode() {
-    if (children.size() == 0) {
-      return super.hashCode()
-    }
-
-    int result = Arrays.hashCode(children);
-    result = 31 * result + thematic;
-    return result;
-  }
 }
 

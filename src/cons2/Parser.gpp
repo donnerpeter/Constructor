@@ -31,8 +31,8 @@ class Parser {
             return true
           }
 
-          actor.getArg(f)?.relax()
-          theme.getArg(f)?.relax()
+          actor.relax(f)
+          theme.relax(f)
 
           def subjs = actor.allArgumentCandidates(f)
           def objs = theme.allArgumentCandidates(f)

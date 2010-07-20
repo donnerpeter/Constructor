@@ -97,11 +97,11 @@ state_experiencer ^3 ^1
     doTest "мать любит красивая дочь", """
 mother
 loves
-state_theme ^1 ^2
 beautiful
 daughter
 property_host ^2 ^1
-state_experiencer ^5 ^2
+state_theme ^4 ^5
+state_experiencer ^5 ^3
 """
   }
 

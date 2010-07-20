@@ -43,11 +43,22 @@ class SimpleQuery {
     return false
   }
 
-  Frame instantiate(Frame self, Frame arg) {
+  void instantiate(Frame self, Frame arg) {
+    def usages = self.strongUsages(name)
+    if (usages) {
+      usages.each { self.chart.activate it }
+      return
+    }
+
     def construction = self.chart.construction(thematic ? 1 : -1, self, arg)
     construction.addAspect(dimension, name)
-    construction.chosenAs name
     construction
   }
 
+  void relax(Frame head) {
+    head.strongUsages(name).each {
+      head.chart.weaken it
+      it.children.each { it.relax() }
+    }
+  }
 }

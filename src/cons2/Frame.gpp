@@ -7,13 +7,15 @@ class Frame {
   Chart chart
   private Map<String, List<Dimension>> allDims = [:]
   private Map<String, Dimension> chosenDims = [:]
+  String name
   Frame[] children
   private int thematic
 
-  def Frame(Chart chart, thematic, Frame... args) {
+  def Frame(Chart chart, String name, int thematic, Frame... args) {
     this.chart = chart
     this.thematic = thematic
     this.children = args
+    this.name = name
   }
 
   Dimension addAspect(String aspect, String name) {
@@ -101,7 +103,7 @@ class Frame {
   }
 
   String presentable(LinkedList<Frame> stack) {
-    dimensions("sem").collect { it.name }.join("|") + children.collect { " ^" + stack.indexOf(it) }.join("")
+    name + children.collect { " ^" + stack.indexOf(it) }.join("")
   }
 
   boolean wrapUp() {

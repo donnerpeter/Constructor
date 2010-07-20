@@ -11,10 +11,7 @@ class Parser {
 
     for (w in words) {
       if (w == "мать") {
-        def frame = chart.findActive(false, false, "noun").find { !it["sem"] }
-        if (!frame) {
-          frame = chart.newFrame()
-        }
+        def frame = chart.newFrame()
         frame.addAspect("syn", "noun")
         frame.addAspect("case", "nom")
         frame.addAspect("case", "acc")
@@ -61,18 +58,11 @@ class Parser {
 
       }
       if (w == "дочь") {
-        def frame = chart.findActive(false, false, "noun").find { !it["sem"] }
-        if (!frame) {
-          frame = chart.newFrame()
-        }
-        def oldCase = frame["case"]
+        def frame = chart.newFrame()
         frame.addAspect("syn", "noun")
         frame.addAspect("case", "nom")
         frame.addAspect("case", "acc")
         frame.addAspect("sem", "daughter")
-        if (oldCase) {
-          frame.chosenAs(oldCase.name)
-        }
       }
       if (w == "красивая") {
         def frame = chart.newFrame()
@@ -81,9 +71,10 @@ class Parser {
           if (!f.strongUsages("property_host")) {
             def host = f.findAround(false, ["noun", "nom"])
             if (!host) {
-              host = f.chart.newFrame()
-              host.addAspect("syn", "noun")
-              host.addAspect("case", "nom")
+              return
+//              host = f.chart.newFrame()
+//              host.addAspect("syn", "noun")
+//              host.addAspect("case", "nom")
             }
             f.chart.construction(f, host).addAspect("sem", "property_host")
           }

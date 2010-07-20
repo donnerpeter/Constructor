@@ -24,8 +24,8 @@ class Chart {
     registerFrame(new Frame(this, theta, children))
   }
 
-  List<Frame> findActive(boolean thematic, boolean eager, pattern) {
-    return active.findAll { it.respondsTo(thematic, eager, pattern) }
+  List<Frame> findActive(boolean thematic, def pattern) {
+    return active.findAll { it.ping(thematic, pattern) }
   }
 
   Frame newFrame() {

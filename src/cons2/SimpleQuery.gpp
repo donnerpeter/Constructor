@@ -21,7 +21,7 @@ class SimpleQuery {
   }
 
   List<Frame> allArgumentCandidates(Frame f) {
-    f.findAllActiveAround(false, false, pattern)
+    f.findAllActiveAround(false, pattern)
   }
 
   Frame getArg(Frame f) {
@@ -34,7 +34,7 @@ class SimpleQuery {
 
   boolean activate(Frame f) {
     if (!satisfied(f)) {
-      def arg = f.findAround(thematic, true, pattern)
+      def arg = f.findAround(thematic, pattern)
       if (arg) {
         instantiate(f, arg)
         return true

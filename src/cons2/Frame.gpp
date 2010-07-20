@@ -26,15 +26,15 @@ class Frame {
   Collection<Frame> strongUsages(pattern) {
     def outer = this
     return chart.frames.findAll {
-      outer in it.children && it.respondsTo(false, false, pattern) }
+      outer in it.children && it.ping(false, pattern) }
   }
 
-  Frame findAround(boolean thematic, boolean eager = true, pattern) {
-    return findAllActiveAround(thematic, eager, pattern).find { true }
+  Frame findAround(boolean thematic, def pattern) {
+    return findAllActiveAround(thematic, pattern).find { true }
   }
 
-  List<Frame> findAllActiveAround(boolean thematic, boolean eager, pattern) {
-    return chart.findActive(thematic, eager, pattern) - this
+  List<Frame> findAllActiveAround(boolean thematic, def pattern) {
+    return chart.findActive(thematic, pattern) - this
   }
 
   Dimension getAt(String aspectName) {
@@ -46,10 +46,21 @@ class Frame {
   }
 
   void chosenAs(def pattern) {
-    respondsTo(false, true, pattern)
+    if (pattern instanceof List) {
+      pattern.each { chosenAs(it) }
+      return
+    }
+
+    for (name in allDims.keySet()) {
+      for (a in dimensions(name)) {
+        if (a.name == pattern) {
+          chosenDims[name] = a
+        }
+      }
+    }
   }
 
-  boolean respondsTo(boolean thematic, boolean eager, def pattern) {
+  boolean ping(boolean thematic, def pattern) {
     if (thematic) {
       if (strongUsages([]).any { ((Frame) this) in it.thematicChildren }) {
         return false
@@ -57,15 +68,12 @@ class Frame {
     }
 
     if (pattern instanceof List) {
-      return pattern.every { respondsTo(thematic, eager, it) }
+      return pattern.every { ping(thematic, it) }
     }
 
     for (name in allDims.keySet()) {
       for (a in dimensions(name)) {
         if (a.name == pattern) {
-          if (eager) {
-            chosenDims[name] = a
-          }
           return true
         }
       }

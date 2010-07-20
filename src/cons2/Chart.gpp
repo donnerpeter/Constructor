@@ -29,16 +29,16 @@ class Chart {
     frames(includeWeak).findAll { f in it.children && it.ping(false, pattern) }
   }
 
-  Frame construction(String name, int theta = -1, Frame... children) {
-    registerFrame(new Frame(this, name, theta, children))
+  Frame construction(String role, String name, int theta = -1, Frame... children) {
+    registerFrame(new Frame(this, "syn", name, theta, children))
   }
 
   List<Frame> findActive(boolean thematic, def pattern) {
     return active.findAll { it.ping(thematic, pattern) }
   }
 
-  Frame newFrame(String name) {
-    registerFrame(new Frame(this, name, -1))
+  Frame newFrame(String role, String name) {
+    registerFrame(new Frame(this, role, name, -1))
   }
 
   private Frame registerFrame(Frame frame) {

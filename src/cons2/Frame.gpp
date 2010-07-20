@@ -7,15 +7,32 @@ class Frame {
   Chart chart
   private List<Dimension> allDimensions = []
   private Dimension chosen = null
+  String role
   String name
   Frame[] children
   private int thematic
+  private Team team
 
-  def Frame(Chart chart, String name, int thematic, Frame... args) {
+  def Frame(Chart chart, String role, String name, int thematic, Frame... args) {
     this.chart = chart
     this.thematic = thematic
     this.children = args
     this.name = name
+    this.role = role
+  }
+
+  Frame joinTeam(Team team) {
+    assert !this.team
+    team.members << this
+    this.team = team
+    this
+  }
+
+  Team getTeam() {
+    if (!team) {
+      team = new Team(this)
+    }
+    team
   }
 
   Dimension addAspect(String name, String... nicknames) {

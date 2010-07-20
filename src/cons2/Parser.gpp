@@ -12,8 +12,8 @@ class Parser {
     for (w in words) {
       if (w == "мать") {
         def frame = chart.newFrame("mother")
-        frame.addAspect("syn", "noun", "nom")
-        frame.addAspect("syn", "noun", "acc")
+        frame.addAspect("noun", "nom")
+        frame.addAspect("noun", "acc")
       }
       if (w == "любит") {
         def frame = chart.newFrame("love")
@@ -21,7 +21,7 @@ class Parser {
         def actor = new SimpleQuery("nom", "sem", "state_experiencer", true)
         def theme = new SimpleQuery("acc", "sem", "state_theme", true)
 
-        frame.addAspect("syn", "verb").withAction { Frame f ->
+        frame.addAspect("verb").withAction { Frame f ->
           actor.activate f
           theme.activate f
         }.withWrapUp { Frame f ->
@@ -56,13 +56,13 @@ class Parser {
       }
       if (w == "дочь") {
         def frame = chart.newFrame("daughter")
-        frame.addAspect("syn", "noun", "nom")
-        frame.addAspect("syn", "noun", "acc")
+        frame.addAspect("noun", "nom")
+        frame.addAspect("noun", "acc")
       }
       if (w == "красивая") {
         def frame = chart.newFrame("beautiful")
 
-        frame.addAspect("sem", "beautiful").withAction { Frame f ->
+        frame.addAspect("beautiful").withAction { Frame f ->
           if (!f.strongUsages("property_host")) {
             def host = f.findAround(false, "nom")
             if (!host) {
@@ -71,18 +71,18 @@ class Parser {
 //              host.addAspect("syn", "noun")
 //              host.addAspect("case", "nom")
             }
-            f.chart.construction("property_host", f, host).addAspect("sem", "property_host")
+            f.chart.construction("property_host", f, host).addAspect("property_host")
             host.chosenAs("nom")
           }
         }
       }
       if (w == "красивую") {
         def frame = chart.newFrame("beautiful")
-        frame.addAspect("sem", "beautiful").withAction { Frame f ->
+        frame.addAspect("beautiful").withAction { Frame f ->
           if (!f.strongUsages("property_host")) {
             def host = f.findAround(false, "acc")
             if (host) {
-              f.chart.construction("property_host", f, host).addAspect("sem", "property_host")
+              f.chart.construction("property_host", f, host).addAspect("property_host")
               host.chosenAs("acc")
             }
           }
@@ -90,11 +90,11 @@ class Parser {
       }
       if (w == "отец") {
         def frame = chart.newFrame("father")
-        frame.addAspect("syn", "noun", "nom")
+        frame.addAspect("noun", "nom")
       }
       if (w == "отца") {
         def frame = chart.newFrame("father")
-        frame.addAspect("syn", "noun", "acc")
+        frame.addAspect("noun", "acc")
       }
 
 

@@ -5,8 +5,8 @@ package cons2
  */
 class Frame {
   Chart chart
-  private Map<String, List<Dimension>> allDims = [:]
-  private Map<String, Dimension> chosenDims = [:]
+  private List<Dimension> allDimensions = []
+  private Dimension chosen = null
   String name
   Frame[] children
   private int thematic
@@ -18,10 +18,12 @@ class Frame {
     this.name = name
   }
 
-  Dimension addAspect(String aspect, String name, String... nicknames) {
-    def element = new Dimension(name, nicknames)
-    allDims.get(aspect, []) << element
-    chosenDims[aspect] = allDims[aspect].size() > 1 ? null : element
+  Dimension addAspect(String name, String... nicknames) {
+    Set nicks = nicknames as Set
+    nicks << name
+    def element = new Dimension(nicks)
+    allDimensions << element
+    chosen = allDimensions.size() > 1 ? null : element
     element
   }
 
@@ -41,20 +43,15 @@ class Frame {
     return chart.findActive(thematic, pattern) - this
   }
 
-  Dimension getAt(String aspectName) {
-    chosenDims[aspectName]
-  }
-
   List<Frame> getThematicChildren() {
     thematic >= 0 ? [children[thematic]] : []
   }
 
   void chosenAs(def pattern) {
-    for (name in allDims.keySet()) {
-      for (a in dimensions(name)) {
-        if (a.ping(pattern)) {
-          chosenDims[name] = a
-        }
+    for (a in dimensions()) {
+      if (a.ping(pattern)) {
+        chosen = a
+        return
       }
     }
   }
@@ -66,30 +63,26 @@ class Frame {
       }
     }
 
-    for (name in allDims.keySet()) {
-      for (a in dimensions(name)) {
-        if (a.ping(pattern)) {
-          return true
-        }
+    for (a in dimensions()) {
+      if (a.ping(pattern)) {
+        return true
       }
     }
     return false
   }
 
-  private List<Dimension> dimensions(String name) {
-    return chosenDims[name] ? [chosenDims[name]] : allDims[name]
+  private List<Dimension> dimensions() {
+    return chosen ? [chosen] : allDimensions
   }
 
   @Override
   String toString() {
-    allDims.collect { a, v -> "$a=$v" }.join(";")
+    allDimensions.collect { a, v -> "$a=$v" }.join(";")
   }
 
   def activate() {
-    chosenDims.values().each {
-      if (it) {
-        it.activate ((Frame) this)
-      }
+    if (chosen) {
+      chosen.activate this
     }
   }
 
@@ -98,14 +91,12 @@ class Frame {
   }
 
   boolean wrapUp() {
-    def syn = chosenDims["syn"]
+    def syn = chosen
     return !syn || syn.wrapUp.call(this)
   }
 
   void relax() {
-    allDims.keySet().each {
-      chosenDims[it] = null
-    }
+    chosen = null
     chart.activate this
   }
 

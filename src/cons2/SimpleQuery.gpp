@@ -12,8 +12,6 @@ class SimpleQuery {
   def SimpleQuery(pattern, dimension, name, thematic) {
     this.pattern = pattern;
     this.dimension = dimension;
-
-
     this.name = name;
     this.thematic = thematic;
   }
@@ -53,7 +51,7 @@ class SimpleQuery {
     }
 
     def construction = self.chart.construction(name, thematic ? 1 : -1, self, arg)
-    construction.addAspect(dimension, name)
+    construction.addAspect(name)
     construction
   }
 

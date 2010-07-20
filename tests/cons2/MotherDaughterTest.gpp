@@ -105,6 +105,16 @@ state_experiencer ^5 ^3
 """
   }
 
+  public void testDaLFn() throws Exception {
+    doTest "дочь любит отец", """
+daughter
+love
+father
+state_theme ^2 ^3
+state_experiencer ^3 ^2
+"""
+  }
+
   private def doTest(String input, String expected) {
     def chart = new Parser().parse(input)
     assertEquals expected.trim(), chart.presentable().trim()

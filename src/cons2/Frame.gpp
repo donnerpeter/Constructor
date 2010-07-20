@@ -21,10 +21,10 @@ class Frame {
     this.role = role
   }
 
-  Frame joinTeam(Team team) {
-    assert !this.team
+  Frame joinTeam(Frame f) {
+    assert !team
+    team = f.team
     team.members << this
-    this.team = team
     this
   }
 
@@ -35,10 +35,8 @@ class Frame {
     team
   }
 
-  Dimension addAspect(String name, String... nicknames) {
-    Set nicks = nicknames as Set
-    nicks << name
-    def element = new Dimension(nicks)
+  Dimension addAspect(String... nicknames) {
+    def element = new Dimension(nicknames)
     allDimensions << element
     chosen = allDimensions.size() > 1 ? null : element
     element
@@ -80,6 +78,10 @@ class Frame {
       }
     }
 
+    if (!dimensions()) {
+      return new Dimension([name]).ping(pattern)
+    }
+
     for (a in dimensions()) {
       if (a.ping(pattern)) {
         return true
@@ -94,7 +96,7 @@ class Frame {
 
   @Override
   String toString() {
-    allDimensions.collect { a, v -> "$a=$v" }.join(";")
+    name
   }
 
   def activate() {

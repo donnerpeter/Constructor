@@ -14,9 +14,12 @@ class Chart {
     LinkedList<Frame> stack = []
     StringBuilder result = []
     for (f in frames()) {
-      stack.addFirst f
-      result << f.presentable(stack)
-      result << "\n"
+      if ("sem" == f.role) {
+        stack.addFirst f
+        result << f.presentable(stack)
+        result << "\n"
+      }
+
     }
     result.toString()
   }
@@ -30,7 +33,7 @@ class Chart {
   }
 
   Frame construction(String role, String name, int theta = -1, Frame... children) {
-    registerFrame(new Frame(this, "syn", name, theta, children))
+    registerFrame(new Frame(this, role, name, theta, children))
   }
 
   List<Frame> findActive(boolean thematic, def pattern) {
@@ -51,11 +54,6 @@ class Chart {
     strengthen(frame)
     active.addFirst frame
     dirty += active
-  }
-
-  private void strengthen(Frame frame) {
-    weak.remove frame
-    frame.children.each { strengthen it }
   }
 
   private Frame nextUnprocessed() {
@@ -89,6 +87,7 @@ class Chart {
 
       if (f.wrapUp()) {
         finished << f
+        update()
       }
       processed << f
     }
@@ -98,9 +97,27 @@ class Chart {
   }
 
   void weaken(Frame f) {
+    if (!(f in weak)) {
+      f.team.members.each { doWeaken it }
+    }
+  }
+
+  private void doWeaken(Frame f) {
     weak << f
     active.remove f
     dirty.remove f
     f.strongUsages([]).each { weaken it }
   }
+
+  private void strengthen(Frame frame) {
+    if (frame in weak) {
+      frame.team.members.each { doStrengthen frame }
+    }
+  }
+
+  private void doStrengthen(Frame frame) {
+    weak.remove frame
+    frame.children.each { strengthen it }
+  }
+
 }

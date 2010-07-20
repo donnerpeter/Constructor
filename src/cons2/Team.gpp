@@ -10,7 +10,7 @@ class Team {
     this.members = [member]
   }
 
-  def getAt(String role) {
+  Frame getAt(String role) {
     members.find { it.role == role }
   }
 }

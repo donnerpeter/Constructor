@@ -11,90 +11,106 @@ class Parser {
 
     for (w in words) {
       if (w == "мать") {
-        def frame = chart.newFrame("syn", "mother")
+        def frame = chart.newFrame("syn", "мать")
         frame.addAspect("noun", "nom")
         frame.addAspect("noun", "acc")
+
+        chart.newFrame("sem", "mother").joinTeam(frame)
       }
       if (w == "любит") {
-        def frame = chart.newFrame("syn", "love")
+        def frame = chart.newFrame("syn", "любит")
+        chart.newFrame("sem", "love").joinTeam(frame)
 
-        def actor = new SimpleQuery("nom", "sem", "state_experiencer", true)
-        def theme = new SimpleQuery("acc", "sem", "state_theme", true)
+        def subject = new SimpleQuery("nom", "syn", "subject", true, {
+          it.withAction { f ->
+            if (!f.team["sem"]) {
+              def state = f.children[0].team["sem"]
+              def experiencer = f.children[1].team["sem"]
+              if (state && experiencer) {
+                f.chart.construction("sem", "state_experiencer", [state, experiencer] as Frame[]).joinTeam(f)
+              }
+            }
+
+          }
+        })
+        def object = new SimpleQuery("acc", "syn", "object", true, {
+          it.withAction { f ->
+            if (!f.team["sem"]) {
+              def state = f.children[0].team["sem"]
+              def theme = f.children[1].team["sem"]
+              if (state && theme) {
+                f.chart.construction("sem", "state_theme", [state, theme] as Frame[]).joinTeam(f)
+              }
+            }
+
+          }
+        })
 
         frame.addAspect("verb").withAction { Frame f ->
-          actor.activate f
-          theme.activate f
+          subject.activate f
+          object.activate f
         }.withWrapUp { Frame f ->
-          if (actor.satisfied(f) && theme.satisfied(f)) {
+          if (subject.satisfied(f) && object.satisfied(f)) {
             return true
           }
 
-          actor.relax(f)
-          theme.relax(f)
+          subject.weaken(f)
+          object.weaken(f)
 
-          def subjs = actor.allArgumentCandidates(f)
-          def objs = theme.allArgumentCandidates(f)
+          def subjs = subject.allArgumentCandidates(f)
+          def objs = object.allArgumentCandidates(f)
 
           if (objs.size() == 1) {
             subjs -= objs
-            theme.instantiate(f, objs[0])
+            object.instantiate(f, objs[0])
           }
           if (subjs.size() == 1) {
-            actor.instantiate(f, subjs[0])
+            subject.instantiate(f, subjs[0])
           }
 
-          return actor.satisfied(f) && theme.satisfied(f)
+          return subject.satisfied(f) && object.satisfied(f)
         }
 
-        if (actor.activate(frame)) {
-          chart.wrapUp actor.getArg(frame)
+        if (subject.activate(frame)) {
+          chart.wrapUp subject.getArg(frame)
         }
-        if (theme.activate(frame)) {
-          chart.wrapUp theme.getArg(frame)
+        if (object.activate(frame)) {
+          chart.wrapUp object.getArg(frame)
         }
 
       }
       if (w == "дочь") {
-        def frame = chart.newFrame("syn", "daughter")
+        def frame = chart.newFrame("syn", "дочь")
         frame.addAspect("noun", "nom")
         frame.addAspect("noun", "acc")
+
+        chart.newFrame("sem", "daughter").joinTeam(frame)
       }
       if (w == "красивая") {
-        def frame = chart.newFrame("syn", "beautiful")
+        def frame = chart.newFrame("syn", "красивая")
+        chart.newFrame("sem", "beautiful").joinTeam(frame)
 
-        frame.addAspect("beautiful").withAction { Frame f ->
-          if (!f.strongUsages("property_host")) {
-            def host = f.findAround(false, "nom")
-            if (!host) {
-              return
-//              host = f.chart.newFrame()
-//              host.addAspect("syn", "noun")
-//              host.addAspect("case", "nom")
-            }
-            f.chart.construction("sem", "property_host", f, host).addAspect("property_host")
-            host.chosenAs("nom")
-          }
-        }
+        def adj = new SimpleQuery("nom", "syn", "adjective_noun", false, propertyHost())
+        frame.addAspect().withAction { Frame f -> adj.activate(f) }
       }
       if (w == "красивую") {
-        def frame = chart.newFrame("syn", "beautiful")
-        frame.addAspect("beautiful").withAction { Frame f ->
-          if (!f.strongUsages("property_host")) {
-            def host = f.findAround(false, "acc")
-            if (host) {
-              f.chart.construction("sem", "property_host", f, host).addAspect("property_host")
-              host.chosenAs("acc")
-            }
-          }
-        }
+        def frame = chart.newFrame("syn", "красивую")
+        chart.newFrame("sem", "beautiful").joinTeam(frame)
+
+        def adj = new SimpleQuery("acc", "syn", "adjective_noun", false, propertyHost())
+        frame.addAspect().withAction { Frame f -> adj.activate(f) }
       }
       if (w == "отец") {
         def frame = chart.newFrame("syn", "father")
         frame.addAspect("noun", "nom")
+
+        chart.newFrame("sem", "father").joinTeam(frame)
       }
       if (w == "отца") {
         def frame = chart.newFrame("syn", "father")
         frame.addAspect("noun", "acc")
+
+        chart.newFrame("sem", "father").joinTeam(frame)
       }
 
 
@@ -106,6 +122,20 @@ class Parser {
 
 
     return chart
+  }
+
+  private Function1<Dimension, Void> propertyHost() {
+    return {
+      it.withAction { f ->
+        if (!f.team["sem"]) {
+          def property = f.children[0].team["sem"]
+          def host = f.children[1].team["sem"]
+          if (property && host) {
+            f.chart.construction("sem", "property_host", property, host).joinTeam(f)
+          }
+        }
+      }
+    }
   }
 
 

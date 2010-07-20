@@ -8,12 +8,14 @@ class SimpleQuery {
   String role
   String name
   boolean thematic
+  Function1<Dimension, Void> action
 
-  def SimpleQuery(pattern, role, name, thematic) {
+  def SimpleQuery(pattern, role, name, boolean thematic, Function1<Dimension, Void> action) {
     this.pattern = pattern;
     this.role = role;
     this.name = name;
     this.thematic = thematic;
+    this.action = action
   }
 
   boolean satisfied(Frame f) {
@@ -44,6 +46,8 @@ class SimpleQuery {
   }
 
   void instantiate(Frame self, Frame arg) {
+    arg.chosenAs pattern
+
     def usages = self.strongUsages(name)
     if (usages) {
       usages.each { self.chart.activate it }
@@ -51,11 +55,11 @@ class SimpleQuery {
     }
 
     def construction = self.chart.construction(role, name, thematic ? 1 : -1, self, arg)
-    construction.addAspect(name)
+    action.call(construction.addAspect(name))
     construction
   }
 
-  void relax(Frame head) {
+  void weaken(Frame head) {
     head.strongUsages(name).each {
       head.chart.weaken it
       it.children.each { it.relax() }

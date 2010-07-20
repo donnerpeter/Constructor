@@ -9,8 +9,8 @@ class Dimension {
   Predicate1<Frame> wrapUp = { true }
   Set<String> nicknames
 
-  def Dimension(Set<String> nicknames) {
-    this.nicknames = nicknames
+  def Dimension(String... nicknames) {
+    this.nicknames = nicknames as Set
   }
 
   Dimension withAction(Function1<Frame, Void> action) {

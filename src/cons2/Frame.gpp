@@ -18,8 +18,8 @@ class Frame {
     this.name = name
   }
 
-  Dimension addAspect(String aspect, String name) {
-    def element = new Dimension(name)
+  Dimension addAspect(String aspect, String name, String... nicknames) {
+    def element = new Dimension(name, nicknames)
     allDims.get(aspect, []) << element
     chosenDims[aspect] = allDims[aspect].size() > 1 ? null : element
     element
@@ -50,14 +50,9 @@ class Frame {
   }
 
   void chosenAs(def pattern) {
-    if (pattern instanceof List) {
-      pattern.each { chosenAs(it) }
-      return
-    }
-
     for (name in allDims.keySet()) {
       for (a in dimensions(name)) {
-        if (a.name == pattern) {
+        if (a.ping(pattern)) {
           chosenDims[name] = a
         }
       }
@@ -71,13 +66,9 @@ class Frame {
       }
     }
 
-    if (pattern instanceof List) {
-      return pattern.every { ping(thematic, it) }
-    }
-
     for (name in allDims.keySet()) {
       for (a in dimensions(name)) {
-        if (a.name == pattern) {
+        if (a.ping(pattern)) {
           return true
         }
       }

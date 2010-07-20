@@ -12,10 +12,8 @@ class Parser {
     for (w in words) {
       if (w == "мать") {
         def frame = chart.newFrame("mother")
-        frame.addAspect("syn", "noun")
-        frame.addAspect("case", "nom")
-        frame.addAspect("case", "acc")
-        frame.addAspect("sem", "mother")
+        frame.addAspect("syn", "noun", "nom")
+        frame.addAspect("syn", "noun", "acc")
       }
       if (w == "любит") {
         def frame = chart.newFrame("love")
@@ -47,7 +45,6 @@ class Parser {
 
           return actor.satisfied(f) && theme.satisfied(f)
         }
-        frame.addAspect("sem", "loves")
 
         if (actor.activate(frame)) {
           chart.wrapUp actor.getArg(frame)
@@ -59,10 +56,8 @@ class Parser {
       }
       if (w == "дочь") {
         def frame = chart.newFrame("daughter")
-        frame.addAspect("syn", "noun")
-        frame.addAspect("case", "nom")
-        frame.addAspect("case", "acc")
-        frame.addAspect("sem", "daughter")
+        frame.addAspect("syn", "noun", "nom")
+        frame.addAspect("syn", "noun", "acc")
       }
       if (w == "красивая") {
         def frame = chart.newFrame("beautiful")
@@ -95,15 +90,11 @@ class Parser {
       }
       if (w == "отец") {
         def frame = chart.newFrame("father")
-        frame.addAspect("syn", "noun")
-        frame.addAspect("case", "nom")
-        frame.addAspect("sem", "father")
+        frame.addAspect("syn", "noun", "nom")
       }
       if (w == "отца") {
         def frame = chart.newFrame("father")
-        frame.addAspect("syn", "noun")
-        frame.addAspect("case", "acc")
-        frame.addAspect("sem", "father")
+        frame.addAspect("syn", "noun", "acc")
       }
 
 

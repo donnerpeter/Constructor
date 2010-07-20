@@ -4,15 +4,16 @@ package cons2
  * @author peter
  */
 
-class Dimension { /**
- * @author peter
- */
+class Dimension {
   String name
   Function1<Frame, Void> action = { }
   Predicate1<Frame> wrapUp = { true }
+  Set<String> nicknames
 
-  def Dimension(String name) {
+  def Dimension(String name, String... nicknames) {
     this.name = name
+    this.nicknames = nicknames as Set
+    this.nicknames << name
   }
 
   Dimension withAction(Function1<Frame, Void> action) {
@@ -32,6 +33,14 @@ class Dimension { /**
   @Override
   String toString() {
     name
+  }
+
+  boolean ping(message) {
+    if (message instanceof List) {
+      return message.every { ping it }
+    }
+
+    message in nicknames
   }
 
 }

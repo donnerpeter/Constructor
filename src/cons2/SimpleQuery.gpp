@@ -12,6 +12,8 @@ class SimpleQuery {
   def SimpleQuery(pattern, dimension, name, thematic) {
     this.pattern = pattern;
     this.dimension = dimension;
+
+
     this.name = name;
     this.thematic = thematic;
   }

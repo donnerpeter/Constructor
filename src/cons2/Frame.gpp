@@ -33,10 +33,6 @@ class Frame {
     team
   }
 
-  Frame addAlternative(String... nicknames) {
-    addAlternative([nicknames] as Construct)
-  }
-
   Frame addAlternative(Construct construct) {
     alternatives << construct
     chosen = alternatives.size() > 1 ? null : construct

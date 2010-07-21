@@ -11,20 +11,17 @@ class Parser {
 
     for (w in words) {
       if (w == "мать") {
-        def frame = chart.newFrame("syn").addAlternative("noun", "nom").addAlternative("noun", "acc")
+        def frame = chart.newFrame("syn", ["noun", "nom"], ["noun", "acc"])
 
-        chart.newFrame("sem").addAlternative("mother").joinTeam(frame)
+        chart.newFrame("sem", ["mother"]).joinTeam(frame)
       }
       if (w == "любит") {
-        def frame = chart.newFrame("syn")
-        chart.newFrame("sem").joinTeam(frame).addAlternative("love")
-
-        def subject = new SimpleQuery("nom", "syn", true, ['super':'subject', activate:{ f ->
+        def subject = new SimpleQuery("nom", "syn", true, ['super':'subject', activate:{ Frame f ->
           if (!f.team["sem"]) {
             def state = f.children[0].team["sem"]
             def experiencer = f.children[1].team["sem"]
             if (state && experiencer) {
-              f.chart.construction("sem", state, experiencer).joinTeam(f).addAlternative("state_experiencer")
+              f.chart.construction("sem", [state, experiencer], ["state_experiencer"] as Construct).joinTeam(f)
             }
           }
         }] as Construct)
@@ -33,12 +30,12 @@ class Parser {
             def state = f.children[0].team["sem"]
             def theme = f.children[1].team["sem"]
             if (state && theme) {
-              f.chart.construction("sem", state, theme).joinTeam(f).addAlternative("state_theme")
+              f.chart.construction("sem", [state, theme], ["state_theme"] as Construct).joinTeam(f)
             }
           }
         }] as Construct)
 
-        frame.addAlternative(['super':"verb", activate: { Frame f ->
+        def syn = ['super': "verb", activate: { Frame f ->
           subject.activate f
           object.activate f
         }, wrapUp: { Frame f ->
@@ -61,7 +58,9 @@ class Parser {
           }
 
           return subject.satisfied(f) && object.satisfied(f)
-        }] as Construct)
+        }] as Construct
+        def frame = chart.newFrame("syn", syn)
+        chart.newFrame("sem", ["love"]).joinTeam(frame)
 
         if (subject.activate(frame)) {
           chart.wrapUp subject.getArg(frame)
@@ -72,35 +71,27 @@ class Parser {
 
       }
       if (w == "дочь") {
-        def frame = chart.newFrame("syn").addAlternative("noun", "nom").addAlternative("noun", "acc")
+        def frame = chart.newFrame("syn", ["noun", "nom"], ["noun", "acc"])
 
-        chart.newFrame("sem").addAlternative("daughter").joinTeam(frame)
+        chart.newFrame("sem", ["daughter"]).joinTeam(frame)
       }
       if (w == "красивая") {
-        def frame = chart.newFrame("syn")
-        chart.newFrame("sem").joinTeam(frame).addAlternative("beautiful")
-
         def adj = new SimpleQuery("nom", "syn", false, adjectiveNoun())
-        frame.addAlternative([activate: { Frame f -> adj.activate(f) }] as Construct)
+        def frame = chart.newFrame("syn", [activate: { Frame f -> adj.activate(f) }] as Construct)
+        chart.newFrame("sem", ["beautiful"]).joinTeam(frame)
       }
       if (w == "красивую") {
-        def frame = chart.newFrame("syn")
-        chart.newFrame("sem").joinTeam(frame).addAlternative("beautiful")
-
         def adj = new SimpleQuery("acc", "syn", false, adjectiveNoun())
-        frame.addAlternative([activate: { Frame f -> adj.activate(f) } ] as Construct)
+        def frame = chart.newFrame("syn", [activate: { Frame f -> adj.activate(f) }] as Construct)
+        chart.newFrame("sem", ['beautiful']).joinTeam(frame)
       }
       if (w == "отец") {
-        def frame = chart.newFrame("syn")
-        frame.addAlternative("noun", "nom")
-
-        chart.newFrame("sem").joinTeam(frame).addAlternative("father")
+        def frame = chart.newFrame("syn", ["noun", "nom"])
+        chart.newFrame("sem", ["father"]).joinTeam(frame)
       }
       if (w == "отца") {
-        def frame = chart.newFrame("syn")
-        frame.addAlternative("noun", "acc")
-
-        chart.newFrame("sem").joinTeam(frame).addAlternative("father")
+        def frame = chart.newFrame("syn", ["noun", "acc"])
+        chart.newFrame("sem", ["father"]).joinTeam(frame)
       }
 
 
@@ -120,7 +111,7 @@ class Parser {
           def property = f.children[0].team["sem"]
           def host = f.children[1].team["sem"]
           if (property && host) {
-            f.chart.construction("sem", property, host).joinTeam(f).addAlternative("property_host")
+            f.chart.construction("sem", [property, host], ["property_host"]as Construct).joinTeam(f)
           }
         }
       }

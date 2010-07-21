@@ -10,7 +10,7 @@ class Dimension {
   Set<String> nicknames
 
   def Dimension(String... nicknames) {
-    this.nicknames = nicknames as Set
+    this.nicknames = nicknames as LinkedHashSet
   }
 
   Dimension withAction(Function1<Frame, Void> action) {
@@ -29,7 +29,7 @@ class Dimension {
 
   @Override
   String toString() {
-    nicknames
+    nicknames.join(";")
   }
 
   boolean ping(message) {

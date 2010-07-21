@@ -11,15 +11,15 @@ class Parser {
 
     for (w in words) {
       if (w == "мать") {
-        def frame = chart.newFrame("syn", "мать")
+        def frame = chart.newFrame("syn")
         frame.addAspect("noun", "nom")
         frame.addAspect("noun", "acc")
 
-        chart.newFrame("sem", "mother").joinTeam(frame)
+        chart.newFrame("sem").joinTeam(frame).addAspect("mother")
       }
       if (w == "любит") {
-        def frame = chart.newFrame("syn", "любит")
-        chart.newFrame("sem", "love").joinTeam(frame)
+        def frame = chart.newFrame("syn")
+        chart.newFrame("sem").joinTeam(frame).addAspect("love")
 
         def subject = new SimpleQuery("nom", "syn", "subject", true, {
           it.withAction { f ->
@@ -27,7 +27,7 @@ class Parser {
               def state = f.children[0].team["sem"]
               def experiencer = f.children[1].team["sem"]
               if (state && experiencer) {
-                f.chart.construction("sem", "state_experiencer", [state, experiencer] as Frame[]).joinTeam(f)
+                f.chart.construction("sem", state, experiencer).joinTeam(f).addAspect("state_experiencer")
               }
             }
 
@@ -39,7 +39,7 @@ class Parser {
               def state = f.children[0].team["sem"]
               def theme = f.children[1].team["sem"]
               if (state && theme) {
-                f.chart.construction("sem", "state_theme", [state, theme] as Frame[]).joinTeam(f)
+                f.chart.construction("sem", state, theme).joinTeam(f).addAspect("state_theme")
               }
             }
 
@@ -80,37 +80,37 @@ class Parser {
 
       }
       if (w == "дочь") {
-        def frame = chart.newFrame("syn", "дочь")
+        def frame = chart.newFrame("syn")
         frame.addAspect("noun", "nom")
         frame.addAspect("noun", "acc")
 
-        chart.newFrame("sem", "daughter").joinTeam(frame)
+        chart.newFrame("sem").joinTeam(frame).addAspect("daughter")
       }
       if (w == "красивая") {
-        def frame = chart.newFrame("syn", "красивая")
-        chart.newFrame("sem", "beautiful").joinTeam(frame)
+        def frame = chart.newFrame("syn")
+        chart.newFrame("sem").joinTeam(frame).addAspect("beautiful")
 
         def adj = new SimpleQuery("nom", "syn", "adjective_noun", false, propertyHost())
         frame.addAspect().withAction { Frame f -> adj.activate(f) }
       }
       if (w == "красивую") {
-        def frame = chart.newFrame("syn", "красивую")
-        chart.newFrame("sem", "beautiful").joinTeam(frame)
+        def frame = chart.newFrame("syn")
+        chart.newFrame("sem").joinTeam(frame).addAspect("beautiful")
 
         def adj = new SimpleQuery("acc", "syn", "adjective_noun", false, propertyHost())
         frame.addAspect().withAction { Frame f -> adj.activate(f) }
       }
       if (w == "отец") {
-        def frame = chart.newFrame("syn", "father")
+        def frame = chart.newFrame("syn")
         frame.addAspect("noun", "nom")
 
-        chart.newFrame("sem", "father").joinTeam(frame)
+        chart.newFrame("sem").joinTeam(frame).addAspect("father")
       }
       if (w == "отца") {
-        def frame = chart.newFrame("syn", "father")
+        def frame = chart.newFrame("syn")
         frame.addAspect("noun", "acc")
 
-        chart.newFrame("sem", "father").joinTeam(frame)
+        chart.newFrame("sem").joinTeam(frame).addAspect("father")
       }
 
 
@@ -131,7 +131,7 @@ class Parser {
           def property = f.children[0].team["sem"]
           def host = f.children[1].team["sem"]
           if (property && host) {
-            f.chart.construction("sem", "property_host", property, host).joinTeam(f)
+            f.chart.construction("sem", property, host).joinTeam(f).addAspect("property_host")
           }
         }
       }

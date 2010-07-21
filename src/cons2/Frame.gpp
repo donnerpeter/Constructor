@@ -8,16 +8,14 @@ class Frame {
   private List<Dimension> allDimensions = []
   private Dimension chosen = null
   String role
-  String name
   Frame[] children
   private int thematic
   private Team team
 
-  def Frame(Chart chart, String role, String name, int thematic, Frame... args) {
+  def Frame(Chart chart, String role, int thematic, Frame... args) {
     this.chart = chart
     this.thematic = thematic
     this.children = args
-    this.name = name
     this.role = role
   }
 
@@ -63,8 +61,11 @@ class Frame {
   }
 
   private Dimension findDimension(pattern) {
-    List<Dimension> dimensions = chosen ? [chosen] : allDimensions
-    return dimensions.find { it.ping(pattern) }
+    return strongDimensions().find { it.ping(pattern) }
+  }
+
+  private List<Dimension> strongDimensions() {
+    return chosen ? [chosen] : allDimensions
   }
 
   boolean ping(boolean thematic, def pattern) {
@@ -77,7 +78,7 @@ class Frame {
 
   @Override
   String toString() {
-    name
+    strongDimensions().collect { it.toString() }.join("|")
   }
 
   def activate() {
@@ -87,7 +88,7 @@ class Frame {
   }
 
   String presentable(LinkedList<Frame> stack) {
-    name + children.collect { " ^" + stack.indexOf(it) }.join("")
+    toString() + children.collect { " ^" + stack.indexOf(it) }.join("")
   }
 
   boolean wrapUp() {

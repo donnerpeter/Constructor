@@ -46,10 +46,6 @@ class Frame {
     chart.usages(this, false, pattern)
   }
 
-  List<Frame> allUsages(pattern) {
-    chart.usages(this, true, pattern)
-  }
-
   Frame findAround(boolean thematic, def pattern) {
     return findAllActiveAround(thematic, pattern).find { true }
   }
@@ -67,7 +63,8 @@ class Frame {
   }
 
   private Dimension findDimension(pattern) {
-    return dimensions().find { it.ping(pattern) }
+    List<Dimension> dimensions = chosen ? [chosen] : allDimensions
+    return dimensions.find { it.ping(pattern) }
   }
 
   boolean ping(boolean thematic, def pattern) {
@@ -76,10 +73,6 @@ class Frame {
     }
 
     return findDimension(pattern) != null
-  }
-
-  private List<Dimension> dimensions() {
-    return chosen ? [chosen] : allDimensions
   }
 
   @Override
@@ -98,8 +91,7 @@ class Frame {
   }
 
   boolean wrapUp() {
-    def syn = chosen
-    return !syn || syn.wrapUp.call(this)
+    return !chosen || chosen.wrapUp.call(this)
   }
 
   void relax() {

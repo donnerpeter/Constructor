@@ -8,9 +8,9 @@ class SimpleQuery {
   String role
   String name
   boolean thematic
-  Function1<Dimension, Void> action
+  Function1<Construct, Void> action
 
-  def SimpleQuery(pattern, role, name, boolean thematic, Function1<Dimension, Void> action) {
+  def SimpleQuery(pattern, role, name, boolean thematic, Function1<Construct, Void> action) {
     this.pattern = pattern;
     this.role = role;
     this.name = name;
@@ -55,7 +55,7 @@ class SimpleQuery {
     }
 
     def construction = self.chart.construction(role, thematic ? 1 : -1, self, arg)
-    action.call(construction.addAspect(name))
+    action.call(construction.addAlternative(name))
     construction
   }
 

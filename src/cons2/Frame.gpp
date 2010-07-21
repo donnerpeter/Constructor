@@ -5,8 +5,8 @@ package cons2
  */
 class Frame {
   Chart chart
-  private List<Dimension> allDimensions = []
-  private Dimension chosen = null
+  private List<Construct> alternatives = []
+  private Construct chosen = null
   String role
   Frame[] children
   private int thematic
@@ -33,10 +33,10 @@ class Frame {
     team
   }
 
-  Dimension addAspect(String... nicknames) {
-    def element = new Dimension(nicknames)
-    allDimensions << element
-    chosen = allDimensions.size() > 1 ? null : element
+  Construct addAlternative(String... nicknames) {
+    def element = new Construct(nicknames)
+    alternatives << element
+    chosen = alternatives.size() > 1 ? null : element
     element
   }
 
@@ -60,12 +60,12 @@ class Frame {
     chosen = findDimension(pattern)
   }
 
-  private Dimension findDimension(pattern) {
-    return strongDimensions().find { it.ping(pattern) }
+  private Construct findDimension(pattern) {
+    return strongAlternatives().find { it.ping(pattern) }
   }
 
-  private List<Dimension> strongDimensions() {
-    return chosen ? [chosen] : allDimensions
+  private List<Construct> strongAlternatives() {
+    return chosen ? [chosen] : alternatives
   }
 
   boolean ping(boolean thematic, def pattern) {
@@ -78,7 +78,7 @@ class Frame {
 
   @Override
   String toString() {
-    strongDimensions().collect { it.toString() }.join("|")
+    strongAlternatives().collect { it.toString() }.join("|")
   }
 
   def activate() {

@@ -4,21 +4,21 @@ package cons2
  * @author peter
  */
 
-class Dimension {
+class Construct {
   Function1<Frame, Void> action = { }
   Predicate1<Frame> wrapUp = { true }
   Set<String> nicknames
 
-  def Dimension(String... nicknames) {
+  def Construct(String... nicknames) {
     this.nicknames = nicknames as LinkedHashSet
   }
 
-  Dimension withAction(Function1<Frame, Void> action) {
+  Construct withAction(Function1<Frame, Void> action) {
     this.action = action
     this
   }
 
-  Dimension withWrapUp(Predicate1<Frame> action) {
+  Construct withWrapUp(Predicate1<Frame> action) {
     this.wrapUp = action
     this
   }

@@ -32,8 +32,9 @@ class Chart {
     frames(includeWeak).findAll { f in it.children && it.ping(false, pattern) }
   }
 
-  Frame construction(String role, int theta = -1, List<Frame> children, Construct... alternatives) {
-    def frame = new Frame(this, role, theta, children)
+  Frame construction(Team team = new Team(), String role, int theta = -1, List<Frame> children, Construct... alternatives) {
+    def frame = new Frame(this, team, role, theta, children)
+    team.members << frame
     alternatives.each { frame.addAlternative(it) }
     registerFrame(frame)
   }
@@ -42,13 +43,14 @@ class Chart {
     return active.findAll { it.ping(thematic, pattern) }
   }
 
-  Frame newFrame(String role, Construct... alternatives) {
-    def existing = frames().find { it.adopt(alternatives) }
+  Frame newFrame(Team team = new Team(), String role, Construct... alternatives) {
+    def existing = frames().find { it.adopt(team, role, alternatives) }
     if (existing) {
       return existing
     }
 
-    def frame = new Frame(this, role, -1)
+    def frame = new Frame(this, team, role, -1)
+    team.members << frame
     alternatives.each { frame.addAlternative(it) }
     registerFrame(frame)
   }

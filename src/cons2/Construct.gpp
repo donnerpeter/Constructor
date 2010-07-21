@@ -19,7 +19,7 @@ class Construct {
 
   void activate(Frame f) { }
 
-  boolean adopt(Frame f, Construct[] alternatives) {
+  boolean adopt(Frame f, Team team, String role, Construct[] alternatives) {
     false
   }
 

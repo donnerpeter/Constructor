@@ -10,27 +10,14 @@ class Frame {
   String role
   Frame[] children
   private int thematic
-  private Team team
+  final Team team
 
-  def Frame(Chart chart, String role, int thematic, Frame... args) {
+  def Frame(Chart chart, Team team, String role, int thematic, Frame... args) {
     this.chart = chart
+    this.team = team
     this.thematic = thematic
     this.children = args
     this.role = role
-  }
-
-  Frame joinTeam(Frame f) {
-    assert !team
-    team = f.team
-    team.members << this
-    this
-  }
-
-  Team getTeam() {
-    if (!team) {
-      team = new Team(this)
-    }
-    team
   }
 
   void removeAlternative(Construct construct) {
@@ -61,7 +48,9 @@ class Frame {
   }
 
   void chosenAs(def pattern) {
-    chosen = findDimension(pattern)
+    if (alternatives.size() != 1) {
+      chosen = findDimension(pattern)
+    }
   }
 
   private Construct findDimension(pattern) {
@@ -105,8 +94,8 @@ class Frame {
   }
 
 
-  boolean adopt(Construct[] constructs) {
-    chosen && chosen.adopt(this, constructs)
+  boolean adopt(Team team, String role, Construct[] constructs) {
+    chosen && chosen.adopt(this, team, role, constructs)
   }
 }
 

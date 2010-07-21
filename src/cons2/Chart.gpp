@@ -43,10 +43,15 @@ class Chart {
     return active.findAll { it.ping(thematic, pattern) }
   }
 
-  Frame newFrame(Team team = new Team(), String role, Construct... alternatives) {
-    def existing = frames().find { it.adopt(team, role, alternatives) }
-    if (existing) {
-      return existing
+  Frame newFrame(Team team = null, String role, Construct... alternatives) {
+    if (!team) {
+      def existing = active.find { it.role == role && it.adopt(true, alternatives) }
+      if (existing) {
+        return existing
+      }
+      team = new Team()
+    } else if (team[role] && team[role].adopt(false, alternatives)) {
+      return team[role]
     }
 
     def frame = new Frame(this, team, role, -1)

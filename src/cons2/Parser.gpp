@@ -126,8 +126,8 @@ class Parser {
         def choosingPattern = ["noun", caze]
         Construct mockSyn = [
                 'super': choosingPattern as String[],
-                adopt: { Frame f, Team team, String role, Construct[] a ->
-                  if (a.any { it.ping("noun") }) {
+                adopt: { Frame f, boolean newTeam, Construct[] a ->
+                  if (newTeam && a.any { it.ping("noun") }) {
                     f.removeAlternative((Construct) this)
                     a.each { f.addAlternative it }
                     f.chosenAs choosingPattern
@@ -137,8 +137,8 @@ class Parser {
                 }]
         Construct mockSem = [
                 'super': "<contextual>",
-                adopt: { Frame f, Team team, String role, Construct[] a ->
-                  if ("sem" == role && team == f.team) {
+                adopt: { Frame f, boolean newTeam, Construct[] a ->
+                  if (!newTeam) {
                     f.removeAlternative((Construct) this)
                     a.each { f.addAlternative it }
                     return true

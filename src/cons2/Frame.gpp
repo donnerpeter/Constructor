@@ -94,8 +94,12 @@ class Frame {
   }
 
 
-  boolean adopt(Team team, String role, Construct[] constructs) {
-    chosen && chosen.adopt(this, team, role, constructs)
+  boolean adopt(boolean newTeam, Construct[] constructs) {
+    if (team && team != this.team) {
+      return false
+    }
+
+    chosen && chosen.adopt(this, newTeam, constructs)
   }
 }
 

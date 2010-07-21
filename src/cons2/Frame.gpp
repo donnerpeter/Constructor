@@ -33,9 +33,14 @@ class Frame {
     team
   }
 
+  void removeAlternative(Construct construct) {
+    alternatives -= construct
+    chosen = alternatives.size() != 1 ? null : construct
+  }
+
   Frame addAlternative(Construct construct) {
     alternatives << construct
-    chosen = alternatives.size() > 1 ? null : construct
+    chosen = alternatives.size() != 1 ? null : construct
     this
   }
 
@@ -100,5 +105,8 @@ class Frame {
   }
 
 
+  boolean adopt(Construct[] constructs) {
+    chosen && chosen.adopt(this, constructs)
+  }
 }
 

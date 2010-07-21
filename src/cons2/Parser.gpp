@@ -76,12 +76,12 @@ class Parser {
         chart.newFrame("sem", ["daughter"]).joinTeam(frame)
       }
       if (w == "красивая") {
-        def adj = new SimpleQuery("nom", "syn", false, adjectiveNoun())
+        def adj = adjectiveNoun("nom")
         def frame = chart.newFrame("syn", [activate: { Frame f -> adj.activate(f) }] as Construct)
         chart.newFrame("sem", ["beautiful"]).joinTeam(frame)
       }
       if (w == "красивую") {
-        def adj = new SimpleQuery("acc", "syn", false, adjectiveNoun())
+        def adj = adjectiveNoun("acc")
         def frame = chart.newFrame("syn", [activate: { Frame f -> adj.activate(f) }] as Construct)
         chart.newFrame("sem", ['beautiful']).joinTeam(frame)
       }
@@ -105,18 +105,35 @@ class Parser {
     return chart
   }
 
-  private Construct adjectiveNoun() {
-    return ['super':'adjective_noun', activate:{ f ->
-        if (!f.team["sem"]) {
-          def property = f.children[0].team["sem"]
-          def host = f.children[1].team["sem"]
-          if (property && host) {
-            f.chart.construction("sem", [property, host], ["property_host"]as Construct).joinTeam(f)
-          }
+  private SimpleQuery adjectiveNoun(String caze) {
+    Construct syn = ['super': 'adjective_noun', activate: { f ->
+      if (!f.team["sem"]) {
+        def property = f.children[0].team["sem"]
+        def host = f.children[1].team["sem"]
+        if (property && host) {
+          f.chart.construction("sem", [property, host], ["property_host"] as Construct).joinTeam(f)
         }
       }
-    ]
-  }
+    }]
+    return new SimpleQuery(caze, "syn", false, syn) {
+      @Override
+      protected Frame findArgument(Frame head) {
+        def arg = super.findArgument(head)
+        def choosingPattern = ["noun", caze]
+        return arg ?: head.chart.newFrame("syn", [
+                'super':choosingPattern as String[],
+                adopt: { Frame f, Construct[] a ->
+                  if (a.any { it.ping("noun") }) {
+                    f.removeAlternative((Construct) this)
+                    a.each { f.addAlternative it }
+                    f.chosenAs choosingPattern
+                    return true
+                  }
+                  return false
+                }] as Construct);
+      }
 
+    }
+  }
 
 }

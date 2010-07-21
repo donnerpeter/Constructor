@@ -19,6 +19,10 @@ class Construct {
 
   void activate(Frame f) { }
 
+  boolean adopt(Frame f, Construct[] alternatives) {
+    false
+  }
+
   @Override
   String toString() {
     nicknames.join(";")

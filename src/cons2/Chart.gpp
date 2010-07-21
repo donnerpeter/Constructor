@@ -43,6 +43,11 @@ class Chart {
   }
 
   Frame newFrame(String role, Construct... alternatives) {
+    def existing = frames().find { it.adopt(alternatives) }
+    if (existing) {
+      return existing
+    }
+
     def frame = new Frame(this, role, -1)
     alternatives.each { frame.addAlternative(it) }
     registerFrame(frame)

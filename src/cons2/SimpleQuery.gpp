@@ -34,13 +34,17 @@ class SimpleQuery {
 
   boolean activate(Frame f) {
     if (!satisfied(f)) {
-      def arg = f.findAround(thematic, pattern)
+      def arg = findArgument(f)
       if (arg) {
         instantiate(f, arg)
         return true
       }
     }
     return false
+  }
+
+  protected Frame findArgument(Frame head) {
+    return head.findAround(thematic, pattern)
   }
 
   void instantiate(Frame self, Frame arg) {

@@ -63,31 +63,19 @@ class Frame {
   }
 
   void chosenAs(def pattern) {
-    for (a in dimensions()) {
-      if (a.ping(pattern)) {
-        chosen = a
-        return
-      }
-    }
+    chosen = findDimension(pattern)
+  }
+
+  private Dimension findDimension(pattern) {
+    return dimensions().find { it.ping(pattern) }
   }
 
   boolean ping(boolean thematic, def pattern) {
-    if (thematic) {
-      if (strongUsages([]).any { ((Frame) this) in it.thematicChildren }) {
-        return false
-      }
+    if (thematic && strongUsages([]).any { ((Frame) this) in it.thematicChildren }) {
+      return false
     }
 
-    if (!dimensions()) {
-      return new Dimension([name]).ping(pattern)
-    }
-
-    for (a in dimensions()) {
-      if (a.ping(pattern)) {
-        return true
-      }
-    }
-    return false
+    return findDimension(pattern) != null
   }
 
   private List<Dimension> dimensions() {

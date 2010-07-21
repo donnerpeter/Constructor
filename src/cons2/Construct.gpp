@@ -5,27 +5,19 @@ package cons2
  */
 
 class Construct {
-  Function1<Frame, Void> action = { }
-  Predicate1<Frame> wrapUp = { true }
-  Set<String> nicknames
+  final Set<String> nicknames
 
-  def Construct(String... nicknames) {
+  def Construct(String name) {
+    this.nicknames = [name] as LinkedHashSet;
+  }
+
+  def Construct(String[] nicknames) {
     this.nicknames = nicknames as LinkedHashSet
   }
 
-  Construct withAction(Function1<Frame, Void> action) {
-    this.action = action
-    this
-  }
+  boolean wrapUp(Frame f) { true }
 
-  Construct withWrapUp(Predicate1<Frame> action) {
-    this.wrapUp = action
-    this
-  }
-
-  void activate(Frame f) {
-    action.call(f)
-  }
+  void activate(Frame f) { }
 
   @Override
   String toString() {
@@ -33,7 +25,7 @@ class Construct {
   }
 
   boolean ping(message) {
-    if (message instanceof List) {
+    if (message instanceof Collection) {
       return message.every { ping it }
     }
 

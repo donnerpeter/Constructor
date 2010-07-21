@@ -33,11 +33,14 @@ class Frame {
     team
   }
 
-  Construct addAlternative(String... nicknames) {
-    def element = new Construct(nicknames)
-    alternatives << element
-    chosen = alternatives.size() > 1 ? null : element
-    element
+  Frame addAlternative(String... nicknames) {
+    addAlternative([nicknames] as Construct)
+  }
+
+  Frame addAlternative(Construct construct) {
+    alternatives << construct
+    chosen = alternatives.size() > 1 ? null : construct
+    this
   }
 
   List<Frame> strongUsages(pattern) {
@@ -92,7 +95,7 @@ class Frame {
   }
 
   boolean wrapUp() {
-    return !chosen || chosen.wrapUp.call(this)
+    return !chosen || chosen.wrapUp(this)
   }
 
   void relax() {

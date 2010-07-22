@@ -4,97 +4,18 @@ package cons2
  * @author peter
  */
 class Parser {
+  Language language
+
+  def Parser(language) {
+    this.language = language;
+  }
 
   Chart parse(String text) {
     def chart = new Chart()
     def words = text.split(" ")
 
     for (w in words) {
-      if (w == "мать") {
-        def frame = chart.newFrame("syn", ["noun", "nom"], ["noun", "acc"])
-
-        chart.newFrame(frame.team, "sem", ["mother"])
-      }
-      if (w == "любит") {
-        def subject = new SimpleQuery("nom", "syn", true, ['super':'subject', activate:{ Frame f ->
-          if (!f.team["sem"]) {
-            def state = f.children[0].team["sem"]
-            def experiencer = f.children[1].team["sem"]
-            if (state && experiencer) {
-              f.chart.construction(f.team, "sem", [state, experiencer], ["state_experiencer"] as Construct)
-            }
-          }
-        }] as Construct)
-        def object = new SimpleQuery("acc", "syn", true, ['super':'object', activate:{ Frame f ->
-          if (!f.team["sem"]) {
-            def state = f.children[0].team["sem"]
-            def theme = f.children[1].team["sem"]
-            if (state && theme) {
-              f.chart.construction(f.team, "sem", [state, theme], ["state_theme"] as Construct)
-            }
-          }
-        }] as Construct)
-
-        def syn = ['super': "verb", activate: { Frame f ->
-          subject.activate f
-          object.activate f
-        }, wrapUp: { Frame f ->
-          if (subject.satisfied(f) && object.satisfied(f)) {
-            return true
-          }
-
-          subject.weaken(f)
-          object.weaken(f)
-
-          def subjs = subject.allArgumentCandidates(f)
-          def objs = object.allArgumentCandidates(f)
-
-          if (objs.size() == 1) {
-            subjs -= objs
-            object.instantiate(f, objs[0])
-          }
-          if (subjs.size() == 1) {
-            subject.instantiate(f, subjs[0])
-          }
-
-          return subject.satisfied(f) && object.satisfied(f)
-        }] as Construct
-        def frame = chart.newFrame("syn", syn)
-        chart.newFrame(frame.team, "sem", ["love"])
-
-        if (subject.activate(frame)) {
-          chart.wrapUp subject.getArg(frame)
-        }
-        if (object.activate(frame)) {
-          chart.wrapUp object.getArg(frame)
-        }
-
-      }
-      if (w == "дочь") {
-        def frame = chart.newFrame("syn", ["noun", "nom"], ["noun", "acc"])
-
-        chart.newFrame(frame.team, "sem", ["daughter"])
-      }
-      if (w == "красивая") {
-        def adj = adjectiveNoun("nom")
-        def frame = chart.newFrame("syn", [activate: { Frame f -> adj.activate(f) }] as Construct)
-        chart.newFrame(frame.team, "sem", ["beautiful"])
-      }
-      if (w == "красивую") {
-        def adj = adjectiveNoun("acc")
-        def frame = chart.newFrame("syn", [activate: { Frame f -> adj.activate(f) }] as Construct)
-        chart.newFrame(frame.team, "sem", ['beautiful'])
-      }
-      if (w == "отец") {
-        def frame = chart.newFrame("syn", ["noun", "nom"])
-        chart.newFrame(frame.team, "sem", ["father"])
-      }
-      if (w == "отца") {
-        def frame = chart.newFrame("syn", ["noun", "acc"])
-        chart.newFrame(frame.team, "sem", ["father"])
-      }
-
-
+      language.analyzeWord(chart, w)
 
       chart.update()
     }
@@ -103,53 +24,6 @@ class Parser {
 
 
     return chart
-  }
-
-  private SimpleQuery adjectiveNoun(String caze) {
-    Construct syn = ['super': 'adjective_noun', activate: { f ->
-      if (!f.team["sem"]) {
-        def property = f.children[0].team["sem"]
-        def host = f.children[1].team["sem"]
-        if (property && host) {
-          f.chart.construction(f.team, "sem", [property, host], ["property_host"] as Construct)
-        }
-      }
-    }]
-    return new SimpleQuery(caze, "syn", false, syn) {
-      @Override
-      protected Frame findArgument(Frame head) {
-        def arg = super.findArgument(head)
-        if (arg) {
-          return arg
-        }
-
-        def choosingPattern = ["noun", caze]
-        Construct mockSyn = [
-                'super': choosingPattern as String[],
-                adopt: { Frame f, boolean newTeam, Construct[] a ->
-                  if (newTeam && a.any { it.ping("noun") }) {
-                    f.removeAlternative((Construct) this)
-                    a.each { f.addAlternative it }
-                    f.chosenAs choosingPattern
-                    return true
-                  }
-                  return false
-                }]
-        Construct mockSem = [
-                'super': "<contextual>",
-                adopt: { Frame f, boolean newTeam, Construct[] a ->
-                  if (!newTeam) {
-                    f.removeAlternative((Construct) this)
-                    a.each { f.addAlternative it }
-                    return true
-                  }
-                  return false
-                }]
-        def sem = head.chart.newFrame("sem", mockSem)
-        return head.chart.newFrame(sem.team, "syn", mockSyn)
-      }
-
-    }
   }
 
 }

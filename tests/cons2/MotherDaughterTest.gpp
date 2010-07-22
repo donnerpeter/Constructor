@@ -116,7 +116,7 @@ state_experiencer ^3 ^2
   }
 
   private def doTest(String input, String expected) {
-    def chart = new Parser().parse(input)
+    def chart = new Parser(new Russian()).parse(input)
     assertEquals expected.trim() + "\n", chart.presentable().trim() + "\n"
   }
 

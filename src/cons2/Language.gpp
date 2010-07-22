@@ -1,0 +1,10 @@
+package cons2
+
+/**
+ * @author peter
+ */
+interface Language {
+
+  void analyzeWord(Chart chart, String word)
+
+}

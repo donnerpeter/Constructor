@@ -6,27 +6,17 @@ package cons2
 class Russian implements Language {
   void analyzeWord(Chart chart, String w) {
     if (w == "мать") {
-      def frame = chart.newFrame("syn", ["syn", "noun", "nom"], ["syn", "noun", "acc"])
-
-      chart.newFrame(frame.team, "sem", ["sem", "mother"])
+      chart.newFrame("syn", ["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "mother"])
     }
     if (w == "любит") {
       def subject = new SimpleQuery("nom", "syn", true, ['super': ["syn", 'subject'], activate: { Frame f ->
-        if (!f.team["sem"]) {
-          def state = f.children[0].team["sem"]
-          def experiencer = f.children[1].team["sem"]
-          if (state && experiencer) {
-            f.chart.construction(f.team, "sem", [state, experiencer], ["sem", "state_experiencer"] as Construct)
-          }
+        if (!f["sem"]) {
+          f.addAlternative(["sem", "state_experiencer"])
         }
       }] as Construct)
       def object = new SimpleQuery("acc", "syn", true, ['super': ["syn", 'object'], activate: { Frame f ->
         if (!f.team["sem"]) {
-          def state = f.children[0].team["sem"]
-          def theme = f.children[1].team["sem"]
-          if (state && theme) {
-            f.chart.construction(f.team, "sem", [state, theme], ["sem", "state_theme"] as Construct)
-          }
+          f.addAlternative(["sem", "state_theme"])
         }
       }] as Construct)
 
@@ -54,8 +44,7 @@ class Russian implements Language {
 
         return subject.satisfied(f) && object.satisfied(f)
       }] as Construct
-      def frame = chart.newFrame("syn", syn)
-      chart.newFrame(frame.team, "sem", ["sem", "love"])
+      def frame = chart.newFrame("syn", syn, ["sem", "love"])
 
       if (subject.activate(frame)) {
         chart.wrapUp subject.getArg(frame)
@@ -66,38 +55,28 @@ class Russian implements Language {
 
     }
     if (w == "дочь") {
-      def frame = chart.newFrame("syn", ["syn", "noun", "nom"], ["syn", "noun", "acc"])
-
-      chart.newFrame(frame.team, "sem", ["sem", "daughter"])
+      chart.newFrame("syn", ["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "daughter"])
     }
     if (w == "красивая") {
       def adj = adjectiveNoun("nom")
-      def frame = chart.newFrame("syn", ['super': ['syn', 'красивая'], activate: { Frame f -> adj.activate(f) }])
-      chart.newFrame(frame.team, "sem", ["sem", "beautiful"])
+      chart.newFrame("syn", ['super': ['syn', 'красивая'], activate: { Frame f -> adj.activate(f) }], ["sem", "beautiful"])
     }
     if (w == "красивую") {
       def adj = adjectiveNoun("acc")
-      def frame = chart.newFrame("syn", ['super': ['syn', "красивая"], activate: { Frame f -> adj.activate(f) }])
-      chart.newFrame(frame.team, "sem", ["sem", 'beautiful'])
+      chart.newFrame("syn", ['super': ['syn', "красивая"], activate: { Frame f -> adj.activate(f) }], ["sem", 'beautiful'])
     }
     if (w == "отец") {
-      def frame = chart.newFrame("syn", ["syn", "noun", "nom"])
-      chart.newFrame(frame.team, "sem", ["sem", "father"])
+      chart.newFrame("syn", ["syn", "noun", "nom"], ["sem", "father"])
     }
     if (w == "отца") {
-      def frame = chart.newFrame("syn", ["syn", "noun", "acc"])
-      chart.newFrame(frame.team, "sem", ["sem", "father"])
+      chart.newFrame("syn", ["syn", "noun", "acc"], ["sem", "father"])
     }
   }
 
   private SimpleQuery adjectiveNoun(String caze) {
     Construct syn = ['super': ['syn', 'adjective_noun'], activate: { f ->
-      if (!f.team["sem"]) {
-        def property = f.children[0].team["sem"]
-        def host = f.children[1].team["sem"]
-        if (property && host) {
-          f.chart.construction(f.team, "sem", [property, host], ["sem", "property_host"] as Construct)
-        }
+      if (!f["sem"]) {
+        f.addAlternative(["sem", "property_host"])
       }
     }]
     return new SimpleQuery(caze, "syn", false, syn) {
@@ -120,18 +99,7 @@ class Russian implements Language {
                   }
                   return false
                 }]
-        Construct mockSem = [
-                'super': ["sem", "<contextual>"],
-                adopt: { Frame f, boolean newTeam, Construct[] a ->
-                  if (!newTeam) {
-                    f.removeAlternative((Construct) this)
-                    a.each { f.addAlternative it }
-                    return true
-                  }
-                  return false
-                }]
-        def sem = head.chart.newFrame("sem", mockSem)
-        return head.chart.newFrame(sem.team, "syn", mockSyn)
+        return head.chart.newFrame("syn", mockSyn)
       }
 
     }

@@ -14,12 +14,9 @@ class Chart {
     LinkedList<Frame> stack = []
     StringBuilder result = []
     for (f in frames()) {
-      if ("sem" == f.role) {
-        stack.addFirst f
-        result << f.presentable(stack)
-        result << "\n"
-      }
-
+      stack.addFirst f
+      result << f.presentable(stack)
+      result << "\n"
     }
     result.toString()
   }

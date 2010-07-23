@@ -64,6 +64,10 @@ class Frame {
     return null
   }
 
+  Construct getAt(String role) {
+    return chosen[role] 
+  }
+
   private Collection<String> getRoles() { alternatives.keySet() }
 
   private List<Construct> strongAlternatives(String role) {

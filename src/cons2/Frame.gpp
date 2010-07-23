@@ -5,8 +5,8 @@ package cons2
  */
 class Frame {
   Chart chart
-  private List<Construct> alternatives = []
-  private Construct chosen = null
+  private final Map<String, List<Construct>> alternatives = [:]
+  private final Map<String, Construct> chosen = [:]
   String role
   Frame[] children
   private int thematic
@@ -21,13 +21,15 @@ class Frame {
   }
 
   void removeAlternative(Construct construct) {
-    alternatives -= construct
-    chosen = alternatives.size() != 1 ? null : construct
+    def role = construct.role
+    alternatives[role].remove construct
+    chosen[role] = alternatives[role].size() != 1 ? null : construct
   }
 
   Frame addAlternative(Construct construct) {
-    alternatives << construct
-    chosen = alternatives.size() != 1 ? null : construct
+    def role = construct.role
+    alternatives.get(role, []) << construct
+    chosen[role] = alternatives[this.role].size() != 1 ? null : construct
     this
   }
 
@@ -48,17 +50,24 @@ class Frame {
   }
 
   void chosenAs(def pattern) {
-    if (alternatives.size() != 1) {
-      chosen = findDimension(pattern)
+    def found = findDimension(pattern)
+    if (found) {
+      chosen[found.role] = found
     }
   }
 
   private Construct findDimension(pattern) {
-    return strongAlternatives().find { it.ping(pattern) }
+    for (role in roles) {
+      def found = strongAlternatives(role).find { it.ping(pattern) }
+      if (found) return found
+    }
+    return null
   }
 
-  private List<Construct> strongAlternatives() {
-    return chosen ? [chosen] : alternatives
+  private Collection<String> getRoles() { alternatives.keySet() }
+
+  private List<Construct> strongAlternatives(String role) {
+    return chosen[role] ? [chosen[role]] : alternatives[role]
   }
 
   boolean ping(boolean thematic, def pattern) {
@@ -71,12 +80,14 @@ class Frame {
 
   @Override
   String toString() {
-    strongAlternatives().collect { it.toString() }.join("|")
+    strongAlternatives("sem").collect { it.toString() }.join("|")
   }
 
   def activate() {
-    if (chosen) {
-      chosen.activate this
+    for (role in roles) {
+      if (chosen[role]) {
+        chosen[role].activate this
+      }
     }
   }
 
@@ -85,11 +96,16 @@ class Frame {
   }
 
   boolean wrapUp() {
-    return !chosen || chosen.wrapUp(this)
+    for (role in roles) {
+      if (chosen[role] && !chosen[role].wrapUp(this)) {
+        return false
+      }
+    }
+    return true
   }
 
   void relax() {
-    chosen = null
+    chosen.clear()
     chart.activate this
   }
 
@@ -99,7 +115,7 @@ class Frame {
       return false
     }
 
-    chosen && chosen.adopt(this, newTeam, constructs)
+    return roles.any { role -> chosen[role] && chosen[role].adopt(this, newTeam, constructs) }
   }
 }
 

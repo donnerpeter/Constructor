@@ -5,14 +5,17 @@ package cons2
  */
 
 class Construct {
+  final String role
   final Set<String> nicknames
 
-  def Construct(String name) {
+  def Construct(String role, String name) {
+    this.role = role
     this.nicknames = [name] as LinkedHashSet;
   }
 
-  def Construct(String[] nicknames) {
-    this.nicknames = nicknames as LinkedHashSet
+  def Construct(String role, String name1, name2) {
+    this.role = role
+    this.nicknames = [name1, name2] as LinkedHashSet
   }
 
   boolean wrapUp(Frame f) { true }

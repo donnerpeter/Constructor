@@ -10,11 +10,9 @@ class Frame {
   String role
   Frame[] children
   private int thematic
-  final Team team
 
-  def Frame(Chart chart, Team team, String role, int thematic, Frame... args) {
+  def Frame(Chart chart, String role, int thematic, Frame... args) {
     this.chart = chart
-    this.team = team
     this.thematic = thematic
     this.children = args
     this.role = role
@@ -115,10 +113,6 @@ class Frame {
 
 
   boolean adopt(boolean newTeam, Construct[] constructs) {
-    if (team && team != this.team) {
-      return false
-    }
-
     return roles.any { role -> chosen[role] && chosen[role].adopt(this, newTeam, constructs) }
   }
 }

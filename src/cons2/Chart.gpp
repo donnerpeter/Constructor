@@ -29,9 +29,8 @@ class Chart {
     frames(includeWeak).findAll { f in it.children && it.ping(false, pattern) }
   }
 
-  Frame construction(Team team = new Team(), String role, int theta = -1, List<Frame> children, Construct... alternatives) {
-    def frame = new Frame(this, team, role, theta, children)
-    team.members << frame
+  Frame construction(String role, int theta = -1, List<Frame> children, Construct... alternatives) {
+    def frame = new Frame(this, role, theta, children)
     alternatives.each { frame.addAlternative(it) }
     registerFrame(frame)
   }
@@ -40,19 +39,13 @@ class Chart {
     return active.findAll { it.ping(thematic, pattern) }
   }
 
-  Frame newFrame(Team team = null, String role, Construct... alternatives) {
-    if (!team) {
-      def existing = active.find { it.role == role && it.adopt(true, alternatives) }
-      if (existing) {
-        return existing
-      }
-      team = new Team()
-    } else if (team[role] && team[role].adopt(false, alternatives)) {
-      return team[role]
+  Frame newFrame(String role, Construct... alternatives) {
+    def existing = active.find { it.role == role && it.adopt(true, alternatives) }
+    if (existing) {
+      return existing
     }
 
-    def frame = new Frame(this, team, role, -1)
-    team.members << frame
+    def frame = new Frame(this, role, -1)
     alternatives.each { frame.addAlternative(it) }
     registerFrame(frame)
   }
@@ -111,7 +104,7 @@ class Chart {
 
   void weaken(Frame f) {
     if (!(f in weak)) {
-      f.team.members.each { doWeaken it }
+      doWeaken f
     }
   }
 
@@ -124,7 +117,7 @@ class Chart {
 
   private void strengthen(Frame frame) {
     if (frame in weak) {
-      frame.team.members.each { doStrengthen frame }
+      doStrengthen frame
     }
   }
 

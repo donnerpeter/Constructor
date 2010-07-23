@@ -15,7 +15,7 @@ class Russian implements Language {
         }
       }] as Construct)
       def object = new SimpleQuery("acc", "syn", true, ['super': ["syn", 'object'], activate: { Frame f ->
-        if (!f.team["sem"]) {
+        if (!f["sem"]) {
           f.addAlternative(["sem", "state_theme"])
         }
       }] as Construct)

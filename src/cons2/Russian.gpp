@@ -6,15 +6,15 @@ package cons2
 class Russian implements Language {
   void analyzeWord(Chart chart, String w) {
     if (w == "мать") {
-      chart.newFrame("syn", ["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "mother"])
+      chart.newFrame(["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "mother"])
     }
     if (w == "любит") {
-      def subject = new SimpleQuery("nom", "syn", true, ['super': ["syn", 'subject'], activate: { Frame f ->
+      def subject = new SimpleQuery("nom", true, ['super': ["syn", 'subject'], activate: { Frame f ->
         if (!f["sem"]) {
           f.addAlternative(["sem", "state_experiencer"])
         }
       }] as Construct)
-      def object = new SimpleQuery("acc", "syn", true, ['super': ["syn", 'object'], activate: { Frame f ->
+      def object = new SimpleQuery("acc", true, ['super': ["syn", 'object'], activate: { Frame f ->
         if (!f["sem"]) {
           f.addAlternative(["sem", "state_theme"])
         }
@@ -44,7 +44,7 @@ class Russian implements Language {
 
         return subject.satisfied(f) && object.satisfied(f)
       }] as Construct
-      def frame = chart.newFrame("syn", syn, ["sem", "love"])
+      def frame = chart.newFrame(syn, ["sem", "love"])
 
       if (subject.activate(frame)) {
         chart.wrapUp subject.getArg(frame)
@@ -55,21 +55,21 @@ class Russian implements Language {
 
     }
     if (w == "дочь") {
-      chart.newFrame("syn", ["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "daughter"])
+      chart.newFrame(["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "daughter"])
     }
     if (w == "красивая") {
       def adj = adjectiveNoun("nom")
-      chart.newFrame("syn", ['super': ['syn', 'красивая'], activate: { Frame f -> adj.activate(f) }], ["sem", "beautiful"])
+      chart.newFrame(['super': ['syn', 'красивая'], activate: { Frame f -> adj.activate(f) }], ["sem", "beautiful"])
     }
     if (w == "красивую") {
       def adj = adjectiveNoun("acc")
-      chart.newFrame("syn", ['super': ['syn', "красивая"], activate: { Frame f -> adj.activate(f) }], ["sem", 'beautiful'])
+      chart.newFrame(['super': ['syn', "красивая"], activate: { Frame f -> adj.activate(f) }], ["sem", 'beautiful'])
     }
     if (w == "отец") {
-      chart.newFrame("syn", ["syn", "noun", "nom"], ["sem", "father"])
+      chart.newFrame(["syn", "noun", "nom"], ["sem", "father"])
     }
     if (w == "отца") {
-      chart.newFrame("syn", ["syn", "noun", "acc"], ["sem", "father"])
+      chart.newFrame(["syn", "noun", "acc"], ["sem", "father"])
     }
   }
 
@@ -79,7 +79,7 @@ class Russian implements Language {
         f.addAlternative(["sem", "property_host"])
       }
     }]
-    return new SimpleQuery(caze, "syn", false, syn) {
+    return new SimpleQuery(caze, false, syn) {
       @Override
       protected Frame findArgument(Frame head) {
         def arg = super.findArgument(head)
@@ -99,7 +99,7 @@ class Russian implements Language {
                   }
                   return false
                 }]
-        return head.chart.newFrame("syn", mockSyn)
+        return head.chart.newFrame(mockSyn)
       }
 
     }

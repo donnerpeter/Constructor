@@ -5,13 +5,11 @@ package cons2
  */
 class SimpleQuery {
   def pattern
-  String role
   boolean thematic
   Construct cxt
 
-  def SimpleQuery(pattern, role, boolean thematic, Construct cxt) {
+  def SimpleQuery(def pattern, boolean thematic, Construct cxt) {
     this.pattern = pattern;
-    this.role = role;
     this.thematic = thematic;
     this.cxt = cxt
   }
@@ -56,7 +54,7 @@ class SimpleQuery {
       return
     }
 
-    self.chart.construction(role, thematic ? 1 : -1, [self, arg], cxt)
+    self.chart.construction(thematic ? 1 : -1, [self, arg], cxt)
   }
 
   void weaken(Frame head) {

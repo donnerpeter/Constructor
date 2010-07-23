@@ -7,15 +7,13 @@ class Frame {
   Chart chart
   private final Map<String, List<Construct>> alternatives = [:]
   private final Map<String, Construct> chosen = [:]
-  String role
   Frame[] children
   private int thematic
 
-  def Frame(Chart chart, String role, int thematic, Frame... args) {
+  def Frame(Chart chart, int thematic, Frame... args) {
     this.chart = chart
     this.thematic = thematic
     this.children = args
-    this.role = role
   }
 
   void removeAlternative(Construct construct) {
@@ -27,7 +25,7 @@ class Frame {
   Frame addAlternative(Construct construct) {
     def role = construct.role
     alternatives.get(role, []) << construct
-    chosen[role] = alternatives[this.role].size() != 1 ? null : construct
+    chosen[role] = alternatives[role].size() != 1 ? null : construct
     this
   }
 

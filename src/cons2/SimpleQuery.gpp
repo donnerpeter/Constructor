@@ -6,16 +6,16 @@ package cons2
 class SimpleQuery {
   def pattern
   boolean thematic
-  Construct cxt
+  Construct[] cxts
 
-  def SimpleQuery(def pattern, boolean thematic, Construct cxt) {
+  def SimpleQuery(def pattern, boolean thematic, Construct... cxts) {
     this.pattern = pattern;
     this.thematic = thematic;
-    this.cxt = cxt
+    this.cxts = cxts
   }
 
   boolean satisfied(Frame f) {
-    !f.strongUsages(cxt.nicknames).empty
+    !f.strongUsages(cxts[0].nicknames).empty
   }
 
   List<Frame> allArgumentCandidates(Frame f) {
@@ -23,7 +23,7 @@ class SimpleQuery {
   }
 
   Frame getArg(Frame f) {
-    def usages = f.strongUsages(cxt.nicknames)
+    def usages = f.strongUsages(cxts[0].nicknames)
     if (usages.size() == 1) {
       return usages.iterator().next().children[1]
     }
@@ -48,17 +48,17 @@ class SimpleQuery {
   void instantiate(Frame self, Frame arg) {
     arg.chosenAs pattern
 
-    def usages = self.strongUsages(cxt.nicknames)
+    def usages = self.strongUsages(cxts[0].nicknames)
     if (usages) {
       usages.each { self.chart.activate it }
       return
     }
 
-    self.chart.construction(thematic ? 1 : -1, [self, arg], cxt)
+    self.chart.construction(thematic ? 1 : -1, [self, arg], cxts)
   }
 
   void weaken(Frame head) {
-    head.strongUsages(cxt.nicknames).each {
+    head.strongUsages(cxts[0].nicknames).each {
       head.chart.weaken it
       it.children.each { it.relax() }
     }

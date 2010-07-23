@@ -9,16 +9,8 @@ class Russian implements Language {
       chart.newFrame(["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "mother"])
     }
     if (w == "любит") {
-      def subject = new SimpleQuery("nom", true, ['super': ["syn", 'subject'], activate: { Frame f ->
-        if (!f["sem"]) {
-          f.addAlternative(["sem", "state_experiencer"])
-        }
-      }] as Construct)
-      def object = new SimpleQuery("acc", true, ['super': ["syn", 'object'], activate: { Frame f ->
-        if (!f["sem"]) {
-          f.addAlternative(["sem", "state_theme"])
-        }
-      }] as Construct)
+      def subject = new SimpleQuery("nom", true, ["syn", 'subject'], ["sem", "state_experiencer"])
+      def object = new SimpleQuery("acc", true, ["syn", 'object'], ["sem", "state_theme"])
 
       def syn = ['super': ["syn", "verb"], activate: { Frame f ->
         subject.activate f
@@ -79,7 +71,7 @@ class Russian implements Language {
         f.addAlternative(["sem", "property_host"])
       }
     }]
-    return new SimpleQuery(caze, false, syn) {
+    return new SimpleQuery(caze, false, [syn] as Construct[]) {
       @Override
       protected Frame findArgument(Frame head) {
         def arg = super.findArgument(head)

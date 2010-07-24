@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/constructor.iml" filepath="$PROJECT_DIR$/constructor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../efg/efg.iml" filepath="$PROJECT_DIR$/../efg/efg.iml" />
     </modules>
   </component>
 </project>

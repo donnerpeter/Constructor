@@ -9,109 +9,116 @@ class MotherDaughterTest extends TestCase {
 
   public void testMLD() throws Exception {
     doTest "мать любит дочь", """
-mother
-love
-state_experiencer ^1 ^2
-daughter
-state_theme ^3 ^1
+frame: sem=mother
+frame: sem=love
+frame ^1 ^2: sem=state_experiencer
+frame: sem=daughter
+frame ^3 ^1: sem=state_theme
 """
   }
   
   public void testDLM() throws Exception {
     doTest "дочь любит мать", """
-daughter
-love
-state_experiencer ^1 ^2
-mother
-state_theme ^3 ^1
+frame: sem=daughter
+frame: sem=love
+frame ^1 ^2: sem=state_experiencer
+frame: sem=mother
+frame ^3 ^1: sem=state_theme
 """
   }
 
   public void testBnDLM() throws Exception {
     doTest "красивая дочь любит мать", """
-beautiful
-daughter
-property_host ^2 ^1
-love
-state_experiencer ^1 ^3
-mother
-state_theme ^3 ^1
+frame: sem=beautiful
+frame
+frame ^2 ^1: sem=property_host
+^2: sem=daughter
+frame: sem=love
+frame ^1 ^2: sem=state_experiencer
+frame: sem=mother
+frame ^3 ^1: sem=state_theme
 """
   }
 
   public void testDLBaM() throws Exception {
     doTest "дочь любит красивую мать", """
-daughter
-love
-state_experiencer ^1 ^2
-beautiful
-mother
-property_host ^2 ^1
-state_theme ^5 ^2
+frame: sem=daughter
+frame: sem=love
+frame ^1 ^2: sem=state_experiencer
+frame: sem=beautiful
+frame
+frame ^2 ^1
+frame ^5 ^2: sem=state_theme
+^2: sem=property_host
+^4: sem=mother
 """
   }
 
   public void testDLF() throws Exception {
     doTest "дочь любит отца", """
-daughter
-love
-state_experiencer ^1 ^2
-father
-state_theme ^3 ^1
+frame: sem=daughter
+frame: sem=love
+frame ^1 ^2: sem=state_experiencer
+frame: sem=father
+frame ^3 ^1: sem=state_theme
 """
   }
 
   public void testFLD() throws Exception {
     doTest "отец любит дочь", """
-father
-love
-state_experiencer ^1 ^2
-daughter
-state_theme ^3 ^1
+frame: sem=father
+frame: sem=love
+frame ^1 ^2: sem=state_experiencer
+frame: sem=daughter
+frame ^3 ^1: sem=state_theme
 """
   }
 
   public void testFaLD() throws Exception {
     doTest "отца любит дочь", """
-father
-love
-state_theme ^1 ^2
-daughter
-state_experiencer ^3 ^1
+frame: sem=father
+frame: sem=love
+frame ^1 ^2: sem=state_theme
+frame: sem=daughter
+frame ^3 ^1: sem=state_experiencer
 """
   }
 
   public void testBaMaLD() throws Exception {
     doTest "красивую мать любит дочь", """
-beautiful
-mother
-property_host ^2 ^1
-love
-state_theme ^1 ^3
-daughter
-state_experiencer ^3 ^1
+frame: sem=beautiful
+frame
+frame ^2 ^1: sem=property_host
+^2: sem=mother
+frame: sem=love
+frame ^1 ^2: sem=state_theme
+frame: sem=daughter
+frame ^3 ^1: sem=state_experiencer
 """
   }
   
   public void testMaLBnD() throws Exception {
     doTest "мать любит красивая дочь", """
-mother
-love
-beautiful
-daughter
-property_host ^2 ^1
-state_theme ^4 ^5
-state_experiencer ^5 ^3
+frame: sem=mother
+frame: sem=love
+frame ^1 ^2: sem=state_experiencer
+frame: sem=beautiful
+frame
+frame ^2 ^1: sem=property_host
+^2: sem=daughter
+frame ^6 ^7: sem=state_theme
+frame ^7 ^2: sem=state_experiencer
 """
   }
 
   public void testDaLFn() throws Exception {
     doTest "дочь любит отец", """
-daughter
-love
-father
-state_theme ^2 ^3
-state_experiencer ^3 ^2
+frame: sem=daughter
+frame: sem=love
+frame ^1 ^2: sem=state_experiencer
+frame: sem=father
+frame ^3 ^4: sem=state_theme
+frame ^4 ^2: sem=state_experiencer
 """
   }
 

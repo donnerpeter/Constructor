@@ -1,0 +1,86 @@
+package cons2
+
+/**
+ * @author peter
+ */
+class Log {
+  final List<Event> events = []
+
+  public void event(Event event) {
+    events << event
+  }
+
+  private List<List<Event>> groupEvents() {
+    def result = []
+
+    Frame current = null
+    List<Event> group = null
+    for (e in events) {
+      if (e.frame != current) {
+        if (group) {
+          result << group
+        }
+        current = e.frame
+        group = []
+      }
+      group << e
+    }
+    if (group) {
+      result << group
+    }
+    result
+  }
+
+  String presentable() {
+    String out = ""
+    LinkedList<Frame> stack = []
+    def groups = groupEvents()
+    for (List<Event> group in groups) {
+      group = group.findAll { !it.role || it.role == "sem" }
+
+      if (!group) {
+        continue
+      }
+
+      def frame = group[0].frame
+      String line
+      if (stack.indexOf(frame) > 0) {
+        line = "^" + (stack.indexOf(frame) + 1)
+      } else {
+        assert !group[0].role
+        line = "frame" + frame.children.collect { " ^" + (stack.indexOf(it) + 1) }.join("")
+        group.remove(0)
+      }
+      stack.addFirst frame
+
+      if (group) {
+        line += ": " + group.collect { it.role + "=" + it.newValue }.join(", ")
+      }
+      out += line + "\n"
+    }
+    out
+  }
+
+  static class Event {
+    final Frame frame
+    final String role
+    final Construct newValue
+
+    def Event(Frame frame) {
+      this(frame, null, null)
+    }
+
+    def Event(Frame frame, String role, Construct newValue) {
+      this.frame = frame;
+      this.role = role;
+      this.newValue = newValue;
+    }
+
+    @Override
+    String toString() {
+      "$frame: $role=$newValue"
+    }
+
+
+  }
+}

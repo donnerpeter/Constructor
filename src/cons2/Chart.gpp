@@ -4,21 +4,15 @@ package cons2
  * @author peter
  */
 class Chart {
-  private LinkedHashSet<Frame> frames = []
-  private LinkedList<Frame> active = []
-  private List<Frame> dirty = []
-  private Set<Frame> finished = []
-  private Set<Frame> weak = []
+  final Log log = new Log()
+  private final LinkedHashSet<Frame> frames = []
+  private final LinkedList<Frame> active = []
+  private final List<Frame> dirty = []
+  private final Set<Frame> finished = []
+  private final Set<Frame> weak = []
 
   String presentable() {
-    LinkedList<Frame> stack = []
-    StringBuilder result = []
-    for (f in frames()) {
-      stack.addFirst f
-      result << f.presentable(stack)
-      result << "\n"
-    }
-    result.toString()
+    log.presentable()
   }
 
   List<Frame> frames(boolean includeWeak = false) {
@@ -59,7 +53,7 @@ class Chart {
   void activate(Frame frame) {
     strengthen(frame)
     active.addFirst frame
-    dirty += active
+    dirty.addAll active
   }
 
   private Frame nextUnprocessed() {

@@ -15,6 +15,20 @@ frame ^1 ^2: sem=state_experiencer
 frame: sem=daughter
 frame ^3 ^1: sem=state_theme
 """
+
+    doEnglishTest "the mother loves the daughter", """
+frame
+frame
+frame ^2 ^1: sem=det_noun
+^2: sem=mother
+frame: sem=love
+frame ^1 ^2: sem=state_experiencer
+frame
+frame
+frame ^2 ^1: sem=det_noun
+frame ^5 ^2: sem=state_theme
+^3: sem=daughter
+"""
   }
   
   public void testDLM() throws Exception {
@@ -124,6 +138,11 @@ frame ^4 ^2: sem=state_experiencer
 
   private def doTest(String input, String expected) {
     def chart = new Parser(new Russian()).parse(input)
+    assertEquals expected.trim() + "\n", chart.presentable().trim() + "\n"
+  }
+
+  private def doEnglishTest(String input, String expected) {
+    def chart = new Parser(new English()).parse(input)
     assertEquals expected.trim() + "\n", chart.presentable().trim() + "\n"
   }
 

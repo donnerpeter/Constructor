@@ -1,0 +1,60 @@
+package cons2
+
+/**
+ * @author peter
+ */
+class English implements Language {
+  void analyzeWord(Chart chart, String w) {
+    if (w == "the") {
+      Construct sem = ["sem", "det_noun"]
+      SimpleQuery query = new SimpleQuery("noun", false, [sem] as Construct[]) {
+        @Override protected Frame findArgument(Frame head) {
+          def arg = super.findArgument(head)
+          if (arg) {
+            return arg
+          }
+          Construct mockSyn = [
+                  'super': ["syn", "noun"],
+                  adopt: { Frame f, boolean newTeam, Construct[] a ->
+                    if (newTeam && a.any { it.ping("noun") }) {
+                      f.removeAlternative((Construct) this)
+                      a.each { f.addAlternative it }
+                      f.chosenAs "noun"
+                      return true
+                    }
+                    return false
+                  }]
+          return head.chart.newFrame(mockSyn)
+        }
+
+      }
+
+      chart.newFrame(['super':["syn", "the"], activate:{ Frame f -> query.activate(f) }])
+    }
+    if (w == "mother") {
+      chart.newFrame(["syn", "noun"], ["sem", "mother"])
+    }
+    if (w == "loves") {
+      def subject = new SimpleQuery("noun", true, ["syn", 'subject'], ["sem", "state_experiencer"])
+      def object = new SimpleQuery("noun", true, ["syn", 'object'], ["sem", "state_theme"])
+
+      def syn = ['super': ["syn", "verb"], activate: { Frame f ->
+        subject.activate f
+        object.activate f
+      }] as Construct
+      def frame = chart.newFrame(syn, ["sem", "love"])
+
+      if (subject.activate(frame)) {
+        chart.wrapUp subject.getArg(frame)
+      }
+      if (object.activate(frame)) {
+        chart.wrapUp object.getArg(frame)
+      }
+
+    }
+    if (w == "daughter") {
+      chart.newFrame(["syn", "noun"], ["sem", "daughter"])
+    }
+  }
+
+}

@@ -18,6 +18,11 @@ class Construct {
     this.nicknames = [name1, name2] as LinkedHashSet
   }
 
+  def Construct(String role, LinkedHashSet<String> nicknames) {
+    this.role = role;
+    this.nicknames = nicknames;
+  }
+
   boolean wrapUp(Frame f) { true }
 
   void activate(Frame f) { }

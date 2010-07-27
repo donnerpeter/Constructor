@@ -1,0 +1,40 @@
+package cons2
+
+/**
+ * @author peter
+ */
+class HeadConstructingQuery extends SimpleQuery {
+  final LinkedHashSet<String> mockHeadNicks
+  final def realHeadPattern
+
+  def HeadConstructingQuery(pattern, boolean thematic, Construct link, LinkedHashSet<String> mockHeadNicks, def realHeadPattern) {
+    super(pattern, thematic, link);
+    this.mockHeadNicks = mockHeadNicks
+    this.realHeadPattern = realHeadPattern
+  }
+
+  @Override
+  protected Frame findArgument(Frame head) {
+    def arg = super.findArgument(head)
+    if (arg) {
+      return arg
+    }
+    Construct mockSyn = [
+            'super': ["syn", mockHeadNicks],
+            adopt: { Frame f, boolean newTeam, Construct[] a ->
+              return doAdopt(f, (Construct)this, a) }]
+    return head.chart.newFrame(mockSyn)
+  }
+
+  private def doAdopt(Frame f, Construct self, Construct[] a) {
+    if (a.any { it.ping(realHeadPattern) }) {
+      f.removeAlternative(self)
+      a.each { f.addAlternative it }
+      f.chosenAs self.nicknames
+      return true
+    }
+    return false
+  }
+
+
+}

@@ -6,30 +6,9 @@ package cons2
 class English implements Language {
   void analyzeWord(Chart chart, String w) {
     if (w == "the") {
-      Construct sem = ["sem", "det_noun"]
-      SimpleQuery query = new SimpleQuery("noun", false, sem) {
-        @Override protected Frame findArgument(Frame head) {
-          def arg = super.findArgument(head)
-          if (arg) {
-            return arg
-          }
-          Construct mockSyn = [
-                  'super': ["syn", "noun"],
-                  adopt: { Frame f, boolean newTeam, Construct[] a ->
-                    if (newTeam && a.any { it.ping("noun") }) {
-                      f.removeAlternative((Construct) this)
-                      a.each { f.addAlternative it }
-                      f.chosenAs "noun"
-                      return true
-                    }
-                    return false
-                  }]
-          return head.chart.newFrame(mockSyn)
-        }
+      SimpleQuery query = new HeadConstructingQuery("noun", false, ["sem", "det_noun"], ["noun"], "noun")
 
-      }
-
-      chart.newFrame(['super':["syn", "the"], activate:{ Frame f -> query.activate(f) }])
+      chart.newFrame(['super': ["syn", "the"], activate: { Frame f -> query.activate(f) }])
     }
     if (w == "mother") {
       chart.newFrame(["syn", "noun"], ["sem", "mother"])

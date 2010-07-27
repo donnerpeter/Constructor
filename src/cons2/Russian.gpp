@@ -71,30 +71,7 @@ class Russian implements Language {
         f.addAlternative(["sem", "property_host"])
       }
     }]
-    return new SimpleQuery(caze, false, syn) {
-      @Override
-      protected Frame findArgument(Frame head) {
-        def arg = super.findArgument(head)
-        if (arg) {
-          return arg
-        }
-
-        def choosingPattern = ["noun", caze]
-        Construct mockSyn = [
-                'super': ["syn", "noun", caze],
-                adopt: { Frame f, boolean newTeam, Construct[] a ->
-                  if (newTeam && a.any { it.ping("noun") }) {
-                    f.removeAlternative((Construct) this)
-                    a.each { f.addAlternative it }
-                    f.chosenAs choosingPattern
-                    return true
-                  }
-                  return false
-                }]
-        return head.chart.newFrame(mockSyn)
-      }
-
-    }
+    return new HeadConstructingQuery(caze, false, syn, ["noun", caze], "noun")
   }
 
 }

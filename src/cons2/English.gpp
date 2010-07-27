@@ -7,7 +7,7 @@ class English implements Language {
   void analyzeWord(Chart chart, String w) {
     if (w == "the") {
       Construct sem = ["sem", "det_noun"]
-      SimpleQuery query = new SimpleQuery("noun", false, [sem] as Construct[]) {
+      SimpleQuery query = new SimpleQuery("noun", false, sem) {
         @Override protected Frame findArgument(Frame head) {
           def arg = super.findArgument(head)
           if (arg) {
@@ -38,10 +38,10 @@ class English implements Language {
       def subject = new SimpleQuery("noun", true, ["syn", 'subject'], ["sem", "state_experiencer"])
       def object = new SimpleQuery("noun", true, ["syn", 'object'], ["sem", "state_theme"])
 
-      def syn = ['super': ["syn", "verb"], activate: { Frame f ->
+      Construct syn = ['super': ["syn", "verb"], activate: { Frame f ->
         subject.activate f
         object.activate f
-      }] as Construct
+      }]
       def frame = chart.newFrame(syn, ["sem", "love"])
 
       if (subject.activate(frame)) {

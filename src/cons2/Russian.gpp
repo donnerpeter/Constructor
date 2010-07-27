@@ -38,13 +38,8 @@ class Russian implements Language {
       }]
       def frame = chart.newFrame(syn, ["sem", "love"])
 
-      if (subject.activate(frame)) {
-        chart.wrapUp subject.getArg(frame)
-      }
-      if (object.activate(frame)) {
-        chart.wrapUp object.getArg(frame)
-      }
-
+      subject.activate(frame, true)
+      object.activate(frame, true)
     }
     if (w == "дочь") {
       chart.newFrame(["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "daughter"])

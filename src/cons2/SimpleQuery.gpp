@@ -30,11 +30,14 @@ class SimpleQuery {
     null
   }
 
-  boolean activate(Frame f) {
+  boolean activate(Frame f, boolean wrapUpArg = false) {
     if (!satisfied(f)) {
       def arg = findArgument(f)
       if (arg) {
         instantiate(f, arg)
+        if (wrapUpArg) {
+          f.chart.wrapUp arg
+        }
         return true
       }
     }

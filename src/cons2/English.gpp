@@ -14,21 +14,11 @@ class English implements Language {
       chart.newFrame(["syn", "noun"], ["sem", "mother"])
     }
     if (w == "loves") {
-      def subject = new SimpleQuery("noun", true, ["syn", 'subject'], ["sem", "state_experiencer"])
       def object = new SimpleQuery("noun", true, ["syn", 'object'], ["sem", "state_theme"])
-
-      Construct syn = ['super': ["syn", "verb"], activate: { Frame f ->
-        subject.activate f
-        object.activate f
-      }]
+      Construct syn = ['super': ["syn", "verb"], activate: { Frame f -> object.activate f }]
       def frame = chart.newFrame(syn, ["sem", "love"])
 
-      if (subject.activate(frame)) {
-        chart.wrapUp subject.getArg(frame)
-      }
-      if (object.activate(frame)) {
-        chart.wrapUp object.getArg(frame)
-      }
+      new SimpleQuery("noun", true, ["syn", 'subject'], ["sem", "state_experiencer"]).activate(frame, true)
 
     }
     if (w == "daughter") {

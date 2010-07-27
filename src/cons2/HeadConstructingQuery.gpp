@@ -21,8 +21,7 @@ class HeadConstructingQuery extends SimpleQuery {
     }
     Construct mockSyn = [
             'super': ["syn", mockHeadNicks],
-            adopt: { Frame f, boolean newTeam, Construct[] a ->
-              return doAdopt(f, (Construct)this, a) }]
+            adopt: { Frame f, Construct[] a -> return doAdopt(f, (Construct)this, a) }]
     return head.chart.newFrame(mockSyn)
   }
 

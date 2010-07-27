@@ -34,7 +34,7 @@ class Chart {
   }
 
   Frame newFrame(Construct... alternatives) {
-    def existing = active.find { it.adopt(true, alternatives) }
+    def existing = active.find { it.adopt(alternatives) }
     if (existing) {
       return existing
     }

@@ -116,8 +116,8 @@ class Frame {
   }
 
 
-  boolean adopt(boolean newTeam, Construct[] constructs) {
-    return roles.any { role -> chosen[role] && chosen[role].adopt(this, newTeam, constructs) }
+  boolean adopt(Construct[] constructs) {
+    return roles.any { role -> chosen[role] && chosen[role].adopt(this, constructs) }
   }
 }
 

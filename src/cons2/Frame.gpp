@@ -14,13 +14,27 @@ class Frame {
     this.chart = chart
     this.thematic = thematic
     this.children = args
-    chart.log.event([this])
+    chart.event([this])
   }
 
   void removeAlternative(Construct construct) {
     def role = construct.role
     alternatives[role].remove construct
     setChosen(role,  alternatives[role].size() != 1 ? null : construct)
+  }
+
+  Frame enrich(Construct... constructs) {
+    def adopter = chart.findAdopter(constructs)
+    if (adopter) {
+      roles.each {
+        alternatives[it].each { adopter.addAlternative(it) }
+      }
+      chart.weaken this
+      adopter
+    } else {
+      constructs.each { addAlternative(it) }
+      this
+    }
   }
 
   Frame addAlternative(Construct construct) {
@@ -55,7 +69,7 @@ class Frame {
 
   def setChosen(String role, Construct cxt) {
     chosen[role] = cxt
-    chart.log.event([this, role, cxt])
+    chart.event([this, role, cxt])
   }
 
   private Construct findDimension(pattern) {

@@ -5,59 +5,65 @@ package cons2
  */
 class Russian implements Language {
   void analyzeWord(Chart chart, String w) {
-    if (w == "мать") {
-      chart.newFrame(["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "mother"])
-    }
-    if (w == "любит") {
-      def subject = new SimpleQuery("nom", true, ["syn", 'subject'], ["sem", "state_experiencer"])
-      def object = new SimpleQuery("acc", true, ["syn", 'object'], ["sem", "state_theme"])
+    chart.newFrame(['super':['phon', w], activate: { Frame frame ->
+      if (frame['sem']) return
 
-      Construct syn = ['super': ["syn", "verb"], activate: { Frame f ->
-        subject.activate f
-        object.activate f
-      }, wrapUp: { Frame f ->
-        if (subject.satisfied(f) && object.satisfied(f)) {
-          return true
-        }
+      switch (w) {
+        case "мать":
+          frame.enrich(["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "mother"])
+          break
+        case "любит":
+          def subject = new SimpleQuery("nom", true, ["syn", 'subject'], ["sem", "state_experiencer"])
+          def object = new SimpleQuery("acc", true, ["syn", 'object'], ["sem", "state_theme"])
 
-        subject.weaken(f)
-        object.weaken(f)
+          Construct syn = ['super': ["syn", "verb"], activate: { Frame f ->
+            subject.activate f
+            object.activate f
+          }, wrapUp: { Frame f ->
+            if (subject.satisfied(f) && object.satisfied(f)) {
+              return true
+            }
 
-        def subjs = subject.allArgumentCandidates(f)
-        def objs = object.allArgumentCandidates(f)
+            subject.weaken(f)
+            object.weaken(f)
 
-        if (objs.size() == 1) {
-          subjs -= objs
-          object.instantiate(f, objs[0])
-        }
-        if (subjs.size() == 1) {
-          subject.instantiate(f, subjs[0])
-        }
+            def subjs = subject.allArgumentCandidates(f)
+            def objs = object.allArgumentCandidates(f)
 
-        return subject.satisfied(f) && object.satisfied(f)
-      }]
-      def frame = chart.newFrame(syn, ["sem", "love"])
+            if (objs.size() == 1) {
+              subjs -= objs
+              object.instantiate(f, objs[0])
+            }
+            if (subjs.size() == 1) {
+              subject.instantiate(f, subjs[0])
+            }
 
-      subject.activate(frame, true)
-      object.activate(frame, true)
-    }
-    if (w == "дочь") {
-      chart.newFrame(["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "daughter"])
-    }
-    if (w == "красивая") {
-      def adj = adjectiveNoun("nom")
-      chart.newFrame(['super': ['syn', 'красивая'], activate: { Frame f -> adj.activate(f) }], ["sem", "beautiful"])
-    }
-    if (w == "красивую") {
-      def adj = adjectiveNoun("acc")
-      chart.newFrame(['super': ['syn', "красивая"], activate: { Frame f -> adj.activate(f) }], ["sem", 'beautiful'])
-    }
-    if (w == "отец") {
-      chart.newFrame(["syn", "noun", "nom"], ["sem", "father"])
-    }
-    if (w == "отца") {
-      chart.newFrame(["syn", "noun", "acc"], ["sem", "father"])
-    }
+            return subject.satisfied(f) && object.satisfied(f)
+          }]
+          frame.enrich(syn, ["sem", "love"])
+
+          subject.activate(frame, true)
+          object.activate(frame, true)
+          break
+        case "дочь":
+          frame.enrich(["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "daughter"])
+          break
+        case "красивая":
+          def adj = adjectiveNoun("nom")
+          frame.enrich(['super': ['syn', 'красивая'], activate: { Frame f -> adj.activate(f) }], ["sem", "beautiful"])
+          break
+        case "красивую":
+          def adj = adjectiveNoun("acc")
+          frame.enrich(['super': ['syn', 'красивую'], activate: { Frame f -> adj.activate(f) }], ["sem", "beautiful"])
+          break
+        case "отец":
+          frame.enrich(["syn", "noun", "nom"], ["sem", "father"])
+          break
+        case "отца":
+          frame.enrich(["syn", "noun", "acc"], ["sem", "father"])
+          break
+      }
+    }])
   }
 
   private SimpleQuery adjectiveNoun(String caze) {

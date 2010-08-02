@@ -18,16 +18,12 @@ frame ^3 ^1: sem=state_theme
 
     doEnglishTest "the mother loves the daughter", """
 frame
-frame
-frame ^2 ^1: sem=det_noun
-^2: sem=mother
+^1: sem=mother
 frame: sem=love
 frame ^1 ^2: sem=state_experiencer
 frame
-frame
-frame ^2 ^1: sem=det_noun
-frame ^5 ^2: sem=state_theme
-^3: sem=daughter
+frame ^3 ^1: sem=state_theme
+^2: sem=daughter
 """
   }
   

@@ -31,6 +31,10 @@ class Log {
     result
   }
 
+  private boolean interesting(Frame f, List<List<Event>> groups) {
+    groups.any { group -> group.any { event -> event.frame == f && event.role == 'sem' } }
+  }
+
   String presentable() {
     String out = ""
     LinkedList<Frame> stack = []
@@ -43,12 +47,16 @@ class Log {
       }
 
       def frame = group[0].frame
+      if (!interesting(frame, groups)) {
+        continue
+      }
+
       String line
-      if (stack.indexOf(frame) > 0) {
-        line = "^" + (stack.indexOf(frame) + 1)
+      if (stack.indexOf(frame) >= 0) {
+        line = frameReference(stack, frame)
       } else {
         assert !group[0].role
-        line = "frame" + frame.children.collect { " ^" + (stack.indexOf(it) + 1) }.join("")
+        line = "frame" + frame.children.collect { " " + frameReference(stack, it) }.join("")
         group.remove(0)
       }
       stack.addFirst frame
@@ -59,6 +67,15 @@ class Log {
       out += line + "\n"
     }
     out
+  }
+
+  private String frameReference(LinkedList<Frame> stack, Frame frame) {
+    def idx = stack.indexOf(frame)
+    if (idx < 0) {
+      return "^_"
+    }
+
+    return "^" + (idx + 1)
   }
 
   static class Event {

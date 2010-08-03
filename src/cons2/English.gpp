@@ -31,8 +31,8 @@ class English implements Language {
   }
 
   static class SynVerb extends Construct {
-    SimpleQuery subject = new SimpleQuery("noun", true, ["syn", 'subject'], ["sem", "state_experiencer"])
-    SimpleQuery object = new SimpleQuery("noun", true, ["syn", 'object'], ["sem", "state_theme"])
+    SimpleQuery subject = ["noun", true, ["syn", 'subject'], ["sem", "state_experiencer"]]
+    SimpleQuery object = ["noun", true, ["syn", 'object'], ["sem", "state_theme"]]
 
     def SynVerb() {
       super("syn", "verb")

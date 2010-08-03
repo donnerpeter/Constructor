@@ -10,12 +10,21 @@ class Log {
     events << event
   }
 
+  private Set<Frame> interestingFrames() {
+    events.filter { it.role == 'sem' }.collect { it.frame } as Set
+  }
+
+  private List<Event> interestingEvents() {
+    def frames = interestingFrames()
+    events.findAll { it.frame in frames }
+  }
+
   private List<List<Event>> groupEvents() {
     def result = []
 
     Frame current = null
     List<Event> group = null
-    for (e in events) {
+    for (e in interestingEvents()) {
       if (e.frame != current) {
         if (group) {
           result << group
@@ -31,10 +40,6 @@ class Log {
     result
   }
 
-  private boolean interesting(Frame f, List<List<Event>> groups) {
-    groups.any { group -> group.any { event -> event.frame == f && event.role == 'sem' } }
-  }
-
   String presentable() {
     String out = ""
     LinkedList<Frame> stack = []
@@ -47,10 +52,6 @@ class Log {
       }
 
       def frame = group[0].frame
-      if (!interesting(frame, groups)) {
-        continue
-      }
-
       String line
       if (stack.indexOf(frame) >= 0) {
         line = frameReference(stack, frame)

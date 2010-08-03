@@ -17,8 +17,7 @@ frame ^3 ^1: sem=state_theme
 """
 
     doEnglishTest "the mother loves the daughter", """
-frame
-^1: sem=mother
+frame: sem=mother
 frame: sem=love
 frame ^1 ^2: sem=state_experiencer
 frame

@@ -1,5 +1,7 @@
 package cons2
 
+import cons2.Log.Event
+
 /**
  * @author peter
  */
@@ -26,6 +28,10 @@ class Construct {
   boolean wrapUp(Frame f) { true }
 
   void activate(Frame f) { }
+
+  void onContextChange(Frame self, Event e) {
+    
+  }
 
   boolean adopt(Frame f, Construct[] alternatives) {
     false

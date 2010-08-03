@@ -1,5 +1,7 @@
 package cons2
 
+import cons2.Log.Event
+
 /**
  * @author peter
  */
@@ -140,6 +142,10 @@ class Frame {
 
   boolean adopt(Construct[] constructs) {
     return roles.any { role -> chosen[role] && chosen[role].adopt(this, constructs) }
+  }
+
+  void onContextChange(Event event) {
+    chosen[event.role]?.onContextChange this, event
   }
 }
 

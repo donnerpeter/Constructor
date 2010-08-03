@@ -13,37 +13,11 @@ class Russian implements Language {
           frame.enrich(["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "mother"])
           break
         case "любит":
-          def subject = new SimpleQuery("nom", true, ["syn", 'subject'], ["sem", "state_experiencer"])
-          def object = new SimpleQuery("acc", true, ["syn", 'object'], ["sem", "state_theme"])
-
-          Construct syn = ['super': ["syn", "verb"], activate: { Frame f ->
-            subject.activate f
-            object.activate f
-          }, wrapUp: { Frame f ->
-            if (subject.satisfied(f) && object.satisfied(f)) {
-              return true
-            }
-
-            subject.weaken(f)
-            object.weaken(f)
-
-            def subjs = subject.allArgumentCandidates(f)
-            def objs = object.allArgumentCandidates(f)
-
-            if (objs.size() == 1) {
-              subjs -= objs
-              object.instantiate(f, objs[0])
-            }
-            if (subjs.size() == 1) {
-              subject.instantiate(f, subjs[0])
-            }
-
-            return subject.satisfied(f) && object.satisfied(f)
-          }]
+          SynVerb syn = new SynVerb()          
           frame.enrich(syn, ["sem", "love"])
 
-          subject.activate(frame, true)
-          object.activate(frame, true)
+          syn.subject.activate(frame, true)
+          syn.object.activate(frame, true)
           break
         case "дочь":
           frame.enrich(["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "daughter"])
@@ -73,6 +47,46 @@ class Russian implements Language {
       }
     }]
     return new HeadConstructingQuery(caze, false, syn, ["noun", caze], "noun")
+  }
+
+  static class SynVerb extends Construct {
+    SimpleQuery subject = new SimpleQuery("nom", true, ["syn", 'subject'], ["sem", "state_experiencer"])
+    SimpleQuery object = new SimpleQuery("acc", true, ["syn", 'object'], ["sem", "state_theme"])
+
+    def SynVerb() {
+      super("syn", "verb")
+    }
+
+    @Override
+    void activate(Frame f) {
+      subject.activate f
+      object.activate f
+    }
+
+    @Override
+    boolean wrapUp(Frame f) {
+      if (subject.satisfied(f) && object.satisfied(f)) {
+        return true
+      }
+
+      subject.weaken(f)
+      object.weaken(f)
+
+      def subjs = subject.allArgumentCandidates(f)
+      def objs = object.allArgumentCandidates(f)
+
+      if (objs.size() == 1) {
+        subjs -= objs
+        object.instantiate(f, objs[0])
+      }
+      if (subjs.size() == 1) {
+        subject.instantiate(f, subjs[0])
+      }
+
+      return subject.satisfied(f) && object.satisfied(f)
+    }
+
+
   }
 
 }

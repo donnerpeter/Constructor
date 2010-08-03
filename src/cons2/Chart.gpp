@@ -26,9 +26,7 @@ class Chart {
   }
 
   Frame construction(int theta = -1, List<Frame> children, Construct... alternatives) {
-    def frame = new Frame(this, theta, children)
-    alternatives.each { frame.addAlternative(it) }
-    registerFrame(frame)
+    registerFrame(new Frame(this, theta, children).addConstructs(alternatives))
   }
 
   List<Frame> findActive(boolean thematic, def pattern) {
@@ -40,9 +38,7 @@ class Chart {
   }
 
   Frame newFrame(Construct... alternatives) {
-    def frame = new Frame(this, -1)
-    alternatives.each { frame.addAlternative(it) }
-    registerFrame(frame)
+    registerFrame(new Frame(this, -1).addConstructs(alternatives))
   }
 
   private Frame registerFrame(Frame frame) {

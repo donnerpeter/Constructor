@@ -43,7 +43,7 @@ class Russian implements Language {
   private SimpleQuery adjectiveNoun(String caze) {
     Construct syn = ['super': ['syn', 'adjective_noun'], activate: { f ->
       if (!f["sem"]) {
-        f.addAlternative(["sem", "property_host"])
+        f.enrich(["sem", "property_host"])
       }
     }]
     return new HeadConstructingQuery(caze, false, syn, ["noun", caze], "noun")

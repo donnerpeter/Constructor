@@ -27,20 +27,26 @@ class Frame {
     def adopter = chart.findAdopter(constructs)
     if (adopter) {
       roles.each {
-        alternatives[it].each { adopter.addAlternative(it) }
+        adopter.addConstructs(alternatives[it] as Construct[])
       }
       chart.weaken this
       adopter
     } else {
-      constructs.each { addAlternative(it) }
+      addConstructs(constructs)
       this
     }
   }
 
-  Frame addAlternative(Construct construct) {
-    def role = construct.role
-    alternatives.get(role, []) << construct
-    setChosen(role,  alternatives[role].size() != 1 ? null : construct)
+  Frame addConstructs(Construct... constructs) {
+    Set<String> affectedRoles = []
+    constructs.each { construct ->
+      def role = construct.role
+      affectedRoles << role
+      alternatives.get(role, []) << construct
+    }
+    affectedRoles.each { role ->
+      setChosen(role,  alternatives[role].size() != 1 ? null : alternatives[role][0])
+    }
     this
   }
 
@@ -68,6 +74,8 @@ class Frame {
   }
 
   def setChosen(String role, Construct cxt) {
+    if (chosen[role] == cxt) return
+
     chosen[role] = cxt
     chart.event([this, role, cxt])
   }

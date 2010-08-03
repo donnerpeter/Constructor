@@ -25,10 +25,10 @@ class HeadConstructingQuery extends SimpleQuery {
     return head.chart.newFrame(mockSyn)
   }
 
-  private def doAdopt(Frame f, Construct self, Construct[] a) {
+  private boolean doAdopt(Frame f, Construct self, Construct[] a) {
     if (a.any { it.ping(realHeadPattern) }) {
       f.removeAlternative(self)
-      a.each { f.addAlternative it }
+      f.addConstructs(a)
       f.chosenAs self.nicknames
       return true
     }

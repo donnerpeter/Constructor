@@ -19,12 +19,10 @@ class Russian implements Language {
           frame.enrich(["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "daughter"])
           break
         case "красивая":
-          def adj = adjectiveNoun("nom")
-          frame.enrich(['super': ['syn', 'красивая'], contextChanged: { Frame f -> adj.activate(f) }], ["sem", "beautiful"])
+          frame.enrich(new SynAdjective("nom"), ["sem", "beautiful"])
           break
         case "красивую":
-          def adj = adjectiveNoun("acc")
-          frame.enrich(['super': ['syn', 'красивую'], contextChanged: { Frame f -> adj.activate(f) }], ["sem", "beautiful"])
+          frame.enrich(new SynAdjective("acc"), ["sem", "beautiful"])
           break
         case "отец":
           frame.enrich(["syn", "noun", "nom"], ["sem", "father"])
@@ -36,13 +34,29 @@ class Russian implements Language {
     }])
   }
 
-  private SimpleQuery adjectiveNoun(String caze) {
-    Construct syn = ['super': ['syn', 'adjective_noun'], contextChanged: { f ->
-      if (!f["sem"]) {
-        f.enrich(["sem", "property_host"])
-      }
-    }]
-    return new HeadConstructingQuery(caze, false, syn, ["noun", caze], "noun")
+  static class SynAdjective extends Construct {
+    SimpleQuery adj
+
+    SynAdjective(String caze) {
+      super("syn", "adj")
+      Construct syn = ['super': ['syn', 'adjective_noun'], contextChanged: { f ->
+        if (!f["sem"]) {
+          f.enrich(["sem", "property_host"])
+        }
+      }]
+      adj = new HeadConstructingQuery(caze, false, syn, ["noun", caze], "noun")
+    }
+
+    @Override
+    void contextChanged(Frame host) {
+      adj.activate(host)
+    }
+
+    @Override
+    void appeared(Frame host) {
+      contextChanged host
+    }
+
   }
 
   static class SynVerb extends Construct {

@@ -27,7 +27,7 @@ class Construct {
 
   boolean wrapUp(Frame f) { true }
 
-  void activate(Frame f) { }
+  void contextChanged(Frame f) { }
 
   void onContextChange(Frame self, Event e) {
     

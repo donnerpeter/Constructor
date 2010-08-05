@@ -5,7 +5,7 @@ package cons2
  */
 class Russian implements Language {
   void analyzeWord(Chart chart, String w) {
-    chart.newFrame(['super':['phon', w], activate: { Frame frame ->
+    chart.newFrame(['super':['phon', w], contextChanged: { Frame frame ->
       if (frame['sem']) return
 
       switch (w) {
@@ -24,11 +24,11 @@ class Russian implements Language {
           break
         case "красивая":
           def adj = adjectiveNoun("nom")
-          frame.enrich(['super': ['syn', 'красивая'], activate: { Frame f -> adj.activate(f) }], ["sem", "beautiful"])
+          frame.enrich(['super': ['syn', 'красивая'], contextChanged: { Frame f -> adj.activate(f) }], ["sem", "beautiful"])
           break
         case "красивую":
           def adj = adjectiveNoun("acc")
-          frame.enrich(['super': ['syn', 'красивую'], activate: { Frame f -> adj.activate(f) }], ["sem", "beautiful"])
+          frame.enrich(['super': ['syn', 'красивую'], contextChanged: { Frame f -> adj.activate(f) }], ["sem", "beautiful"])
           break
         case "отец":
           frame.enrich(["syn", "noun", "nom"], ["sem", "father"])
@@ -41,7 +41,7 @@ class Russian implements Language {
   }
 
   private SimpleQuery adjectiveNoun(String caze) {
-    Construct syn = ['super': ['syn', 'adjective_noun'], activate: { f ->
+    Construct syn = ['super': ['syn', 'adjective_noun'], contextChanged: { f ->
       if (!f["sem"]) {
         f.enrich(["sem", "property_host"])
       }
@@ -58,7 +58,7 @@ class Russian implements Language {
     }
 
     @Override
-    void activate(Frame f) {
+    void contextChanged(Frame f) {
       subject.activate f
       object.activate f
     }

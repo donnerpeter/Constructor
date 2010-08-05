@@ -68,7 +68,7 @@ class Chart {
       if (!f) {
         return
       }
-      f.activate()
+      f.contextChanged()
     }
   }
 

@@ -5,14 +5,14 @@ package cons2
  */
 class English implements Language {
   void analyzeWord(Chart chart, String w) {
-    chart.newFrame(['super':['phon', w], activate: { Frame frame ->
+    chart.newFrame(['super':['phon', w], contextChanged: { Frame frame ->
       if (frame['syn']) return
 
       switch (w) {
         case "the":
           SimpleQuery query = new HeadConstructingQuery("noun", false, ["syn", "det_noun"], ["noun"], "noun")
 
-          frame.enrich(['super': ["syn", "the"], activate: { Frame f -> query.activate(f) }])
+          frame.enrich(['super': ["syn", "the"], contextChanged: { Frame f -> query.activate(f) }])
           break
         case "mother":
           frame.enrich(["syn", "noun"], ["sem", "mother"])
@@ -39,7 +39,7 @@ class English implements Language {
     }
 
     @Override
-    void activate(Frame f) {
+    void contextChanged(Frame f) {
       object.activate f
     }
 

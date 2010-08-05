@@ -113,10 +113,10 @@ class Frame {
     strongAlternatives("sem").collect { it.toString() }.join("|")
   }
 
-  def activate() {
+  def contextChanged() {
     for (role in roles) {
       if (chosen[role]) {
-        chosen[role].activate this
+        chosen[role].contextChanged this
       }
     }
   }

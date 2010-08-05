@@ -1,0 +1,26 @@
+package cons2
+
+/**
+ * @author peter
+ */
+class AnticipatingConstruct extends Construct {
+  final LinkedHashSet<String> mockHeadNicks
+  final def realHeadPattern
+
+  AnticipatingConstruct(Set<String> mockHeadNicks, def realHeadPattern) {
+    super("syn", mockHeadNicks)
+    this.mockHeadNicks = mockHeadNicks
+    this.realHeadPattern = realHeadPattern
+  }
+
+  @Override
+  void contextChanged(Frame host) {
+    def goal = host.findAround(false, realHeadPattern)
+    if (!goal) return
+
+    host.removeAlternative(this)
+    host.adoptContent(goal)
+    host.chosenAs nicknames
+  }
+
+}

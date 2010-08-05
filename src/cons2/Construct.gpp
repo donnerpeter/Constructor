@@ -18,7 +18,7 @@ class Construct {
     this.nicknames = [name1, name2] as LinkedHashSet
   }
 
-  def Construct(String role, LinkedHashSet<String> nicknames) {
+  def Construct(String role, Set<String> nicknames) {
     this.role = role;
     this.nicknames = nicknames;
   }

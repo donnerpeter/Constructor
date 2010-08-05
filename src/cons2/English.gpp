@@ -10,18 +10,13 @@ class English implements Language {
 
       switch (w) {
         case "the":
-          SimpleQuery query = new HeadConstructingQuery("noun", false, ["syn", "det_noun"], ["noun"], "noun")
-
-          frame.enrich(['super': ["syn", "the"], contextChanged: { Frame f -> query.activate(f) }])
+          frame.enrich(syn_article)
           break
         case "mother":
           frame.enrich(["syn", "noun"], ["sem", "mother"])
           break
         case "loves":
-          SynVerb syn = []
-          frame.enrich(syn, ["sem", "love"])
-
-          syn.subject.activate(frame, true)
+          frame.enrich(new SynVerb(), ["sem", "love"])
           break
         case "daughter":
           frame.enrich(["syn", "noun"], ["sem", "daughter"])
@@ -30,12 +25,24 @@ class English implements Language {
 
   }
 
+  Construct syn_article = ['super':['syn', 'article'],
+          appeared: { host ->
+            def article = host.chart.newFrame(new AnticipatingConstruct(["noun"], "noun"))
+            host.chart.construction(-1, [article, host], ["syn", "det_noun"])
+          }
+  ]
+
   static class SynVerb extends Construct {
     SimpleQuery subject = ["noun", true, ["syn", 'subject'], ["sem", "state_experiencer"]]
     SimpleQuery object = ["noun", true, ["syn", 'object'], ["sem", "state_theme"]]
 
     def SynVerb() {
       super("syn", "verb")
+    }
+
+    @Override
+    void appeared(Frame host) {
+      subject.activate host, true
     }
 
     @Override

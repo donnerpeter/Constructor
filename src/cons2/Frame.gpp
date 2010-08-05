@@ -8,6 +8,7 @@ class Frame {
   private final Map<String, List<Construct>> alternatives = [:]
   private final Map<String, Construct> chosen = [:]
   private final Set<Construct> initialized = []
+  boolean adopted = false
   Frame[] children
   private int thematic
 
@@ -116,7 +117,7 @@ class Frame {
 
   @Override
   String toString() {
-    strongAlternatives("sem").collect { it.toString() }.join("|")
+    "[" + roles.findAll { chosen[it] }.collect { it + ":" + chosen[it] }.join(";") + "]"
   }
 
   def contextChanged() {
@@ -126,10 +127,6 @@ class Frame {
         main.contextChanged this
       }
     }
-  }
-
-  String presentable(LinkedList<Frame> stack) {
-    toString() + children.collect { " ^" + stack.indexOf(it) }.join("")
   }
 
   boolean wrapUp() {
@@ -151,5 +148,16 @@ class Frame {
     return roles.any { role -> chosen[role] && chosen[role].adopt(this, constructs) }
   }
 
+  void adoptContent(Frame source) {
+    source.alternatives.each { role, constructs ->
+      def wasEmpty = !alternatives[role]
+      alternatives.get(role, []).addAll(constructs)
+      if (wasEmpty) {
+        setChosen role, source.chosen[role]
+      }
+    }
+    source.adopted = true
+    chart.weaken source
+  }
 }
 

@@ -49,6 +49,7 @@ class Chart {
 
   void activate(Frame frame) {
     strengthen(frame)
+    active.remove frame
     active.addFirst frame
     dirty.addAll active
   }

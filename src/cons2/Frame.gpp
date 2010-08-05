@@ -47,10 +47,12 @@ class Frame {
     }
     affectedRoles.each { role ->
       setChosen(role,  alternatives[role].size() != 1 ? null : alternatives[role][0])
-      strongAlternatives(role).each {
+    }
+    constructs.each {
+      if (!chosen[it.role] || chosen[it.role] == it) {
         it.appeared this
-        initialized << it
       }
+      initialized << it
     }
     this
   }
@@ -64,7 +66,8 @@ class Frame {
   }
 
   List<Frame> findAllActiveAround(boolean thematic, def pattern) {
-    return chart.findActive(thematic, pattern) - this
+    def active = chart.findActive(thematic, pattern)
+    return active - this
   }
 
   List<Frame> getThematicChildren() {

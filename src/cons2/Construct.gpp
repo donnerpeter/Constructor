@@ -25,10 +25,9 @@ class Construct {
 
   boolean wrapUp(Frame f) { true }
 
-  void contextChanged(Frame f) { }
+  void contextChanged(Frame host) { }
 
-  void appeared(Frame host) {
-  }
+  void appeared(Frame host) { }
 
 
   boolean adopt(Frame f, Construct[] alternatives) {

@@ -13,11 +13,7 @@ class Russian implements Language {
           frame.enrich(["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "mother"])
           break
         case "любит":
-          SynVerb syn = new SynVerb()          
-          frame.enrich(syn, ["sem", "love"])
-
-          syn.subject.activate(frame, true)
-          syn.object.activate(frame, true)
+          frame.enrich(new SynVerb(), ["sem", "love"])
           break
         case "дочь":
           frame.enrich(["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "daughter"])
@@ -61,6 +57,12 @@ class Russian implements Language {
     void contextChanged(Frame f) {
       subject.activate f
       object.activate f
+    }
+
+    @Override
+    void appeared(Frame host) {
+      subject.activate host, true
+      object.activate host, true
     }
 
     @Override

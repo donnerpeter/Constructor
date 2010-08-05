@@ -122,8 +122,5 @@ class Chart {
   void event(Event event) {
     dirty.addAll active
     log.event event
-    active.each {
-      it.onContextChange event    
-    }
   }
 }

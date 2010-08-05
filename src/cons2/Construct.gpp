@@ -1,8 +1,6 @@
 package cons2
 
-import cons2.Log.Event
-
-/**
+ /**
  * @author peter
  */
 
@@ -29,9 +27,9 @@ class Construct {
 
   void contextChanged(Frame f) { }
 
-  void onContextChange(Frame self, Event e) {
-    
+  void appeared(Frame host) {
   }
+
 
   boolean adopt(Frame f, Construct[] alternatives) {
     false

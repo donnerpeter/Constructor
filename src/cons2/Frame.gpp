@@ -1,14 +1,13 @@
 package cons2
 
-import cons2.Log.Event
-
-/**
+ /**
  * @author peter
  */
 class Frame {
   Chart chart
   private final Map<String, List<Construct>> alternatives = [:]
   private final Map<String, Construct> chosen = [:]
+  private final Set<Construct> initialized = []
   Frame[] children
   private int thematic
 
@@ -48,6 +47,10 @@ class Frame {
     }
     affectedRoles.each { role ->
       setChosen(role,  alternatives[role].size() != 1 ? null : alternatives[role][0])
+      strongAlternatives(role).each {
+        it.appeared this
+        initialized << it
+      }
     }
     this
   }
@@ -115,8 +118,9 @@ class Frame {
 
   def contextChanged() {
     for (role in roles) {
-      if (chosen[role]) {
-        chosen[role].contextChanged this
+      def main = chosen[role]
+      if (main && main in initialized) {
+        main.contextChanged this
       }
     }
   }
@@ -144,8 +148,5 @@ class Frame {
     return roles.any { role -> chosen[role] && chosen[role].adopt(this, constructs) }
   }
 
-  void onContextChange(Event event) {
-    chosen[event.role]?.onContextChange this, event
-  }
 }
 

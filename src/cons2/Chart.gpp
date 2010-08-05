@@ -33,10 +33,6 @@ class Chart {
     return active.findAll { it.ping(thematic, pattern) }
   }
 
-  Frame findAdopter(Construct... alternatives) {
-    active.find { it.adopt(alternatives) }
-  }
-
   Frame newFrame(Construct... alternatives) {
     registerFrame(new Frame(this, -1).addConstructs(alternatives))
   }

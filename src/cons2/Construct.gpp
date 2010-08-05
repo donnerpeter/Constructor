@@ -29,11 +29,6 @@ class Construct {
 
   void appeared(Frame host) { }
 
-
-  boolean adopt(Frame f, Construct[] alternatives) {
-    false
-  }
-
   @Override
   String toString() {
     nicknames.join(";")

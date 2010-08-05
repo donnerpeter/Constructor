@@ -26,17 +26,7 @@ class Frame {
   }
 
   Frame enrich(Construct... constructs) {
-    def adopter = chart.findAdopter(constructs)
-    if (adopter) {
-      roles.each {
-        adopter.addConstructs(alternatives[it] as Construct[])
-      }
-      chart.weaken this
-      adopter
-    } else {
-      addConstructs(constructs)
-      this
-    }
+    addConstructs(constructs)
   }
 
   Frame addConstructs(Construct... constructs) {
@@ -141,11 +131,6 @@ class Frame {
   void relax() {
     chosen.clear()
     chart.activate this
-  }
-
-
-  boolean adopt(Construct[] constructs) {
-    return roles.any { role -> chosen[role] && chosen[role].adopt(this, constructs) }
   }
 
   void adoptContent(Frame source) {

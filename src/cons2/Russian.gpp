@@ -36,15 +36,12 @@ class Russian implements Language {
 
   static class SynAdjective extends Construct {
     SimpleQuery adj
+    String caze
 
     SynAdjective(String caze) {
       super("syn", "adj")
-      Construct syn = ['super': ['syn', 'adjective_noun'], contextChanged: { f ->
-        if (!f["sem"]) {
-          f.enrich(["sem", "property_host"])
-        }
-      }]
-      adj = new HeadConstructingQuery(caze, false, syn, ["noun", caze], "noun")
+      adj = new SimpleQuery(caze, false, ['syn', 'adjective_noun'], ['sem', 'property_host'])
+      this.caze = caze
     }
 
     @Override
@@ -54,7 +51,9 @@ class Russian implements Language {
 
     @Override
     void appeared(Frame host) {
-      contextChanged host
+      if (!adj.activate(host)) {
+        host.chart.newFrame(new AnticipatingConstruct(["noun", caze], "noun"))
+      }
     }
 
   }

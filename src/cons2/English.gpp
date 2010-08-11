@@ -1,36 +1,42 @@
 package cons2
 
-/**
+ /**
  * @author peter
  */
 class English implements Language {
-  void analyzeWord(Chart chart, String w) {
-    chart.newFrame(['super':['phon', w], contextChanged: { Frame frame ->
-      if (frame['syn']) return
-
-      switch (w) {
-        case "the":
-          frame.enrich(syn_article)
-          break
-        case "mother":
-          frame.enrich(["syn", "noun"], ["sem", "mother"])
-          break
-        case "loves":
-          frame.enrich(new SynVerb(), ["sem", "love"])
-          break
-        case "daughter":
-          frame.enrich(["syn", "noun"], ["sem", "daughter"])
-      }
-    }])
-
-  }
-
   Construct syn_article = ['super':['syn', 'article'],
           appeared: { host ->
             def article = host.chart.newFrame(new AnticipatingConstruct(["noun"], "noun"))
             host.chart.construction(-1, [article, host], ["syn", "det_noun"])
           }
   ]
+
+  Inflection infl = new Inflection({new Stem(it)}).
+          wholeWord("mother", ["syn", "noun"], ["sem", "mother"]).
+          wholeWord("daughter", ["syn", "noun"], ["sem", "daughter"]).
+          wholeWord("the", syn_article).
+          suffix("s", new SynVerb())
+
+  static class Stem extends Construct {
+    String stem
+
+    def Stem(String stem) {
+      super('stem', stem)
+      this.stem = stem
+    }
+
+    @Override
+    void appeared(Frame host) {
+      if (stem == "love") {
+        host.enrich(["sem", "love"])
+      }
+    }
+
+  }
+
+  void analyzeWord(Chart chart, String w) {
+    chart.newFrame(infl.instantiate(w))
+  }
 
   static class SynVerb extends Construct {
     SimpleQuery subject = ["noun", true, ["syn", 'subject'], ["sem", "state_experiencer"]]

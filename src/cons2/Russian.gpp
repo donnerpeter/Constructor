@@ -5,10 +5,22 @@ package cons2
  */
 class Russian implements Language {
   void analyzeWord(Chart chart, String w) {
-    chart.newFrame(['super':['phon', w], contextChanged: { Frame frame ->
+    chart.newFrame(new Word(w))
+  }
+
+  static class Word extends Construct {
+    String word
+
+    def Word(String word) {
+      super('phon', word)
+      this.word = word
+    }
+
+    @Override
+    void contextChanged(Frame frame) {
       if (frame['sem']) return
 
-      switch (w) {
+      switch (word) {
         case "мать":
           frame.enrich(["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "mother"])
           break
@@ -31,7 +43,8 @@ class Russian implements Language {
           frame.enrich(["syn", "noun", "acc"], ["sem", "father"])
           break
       }
-    }])
+
+    }
   }
 
   static class SynAdjective extends Construct {

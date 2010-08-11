@@ -19,7 +19,7 @@ class Russian implements Language {
     @Override
     void appeared(Frame host) {
       if (stem == "люб") {
-        host.enrich(new SynVerb(), ["sem", "love"])
+        host.enrich(["sem", "love"])
       }
     }
 
@@ -36,7 +36,7 @@ class Russian implements Language {
     @Override
     void appeared(Frame frame) {
       if (word.endsWith("ит")) {
-        frame.enrich(new Stem(word.substring(0, word.length() - 2)))
+        frame.enrich(new Stem(word.substring(0, word.length() - 2)), new SynVerb())
         return
       }
 

@@ -107,7 +107,7 @@ class Frame {
 
   @Override
   String toString() {
-    "[" + roles.findAll { chosen[it] }.collect { it + ":" + chosen[it] }.join(";") + "]"
+    "[" + roles.findAll { chosen[it] }.collect { it + ":" + chosen[it] }.join(", ") + "]"
   }
 
   def contextChanged() {

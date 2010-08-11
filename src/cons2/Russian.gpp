@@ -17,9 +17,7 @@ class Russian implements Language {
     }
 
     @Override
-    void contextChanged(Frame frame) {
-      if (frame['sem']) return
-
+    void appeared(Frame frame) {
       switch (word) {
         case "мать":
           frame.enrich(["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "mother"])

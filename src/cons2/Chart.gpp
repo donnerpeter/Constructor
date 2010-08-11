@@ -52,7 +52,7 @@ class Chart {
 
   private Frame nextUnprocessed() {
     if (dirty) {
-      def first = dirty.iterator().next()
+      def first = active.find { it in dirty }
       dirty.remove(first)
       return first
     }

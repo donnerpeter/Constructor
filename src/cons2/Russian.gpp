@@ -4,8 +4,18 @@ package cons2
  * @author peter
  */
 class Russian implements Language {
+  Inflection infl = new Inflection({new Stem(it)}).
+          wholeWord("мать", ["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "mother"]).
+          wholeWord("дочь", ["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "daughter"]).
+          wholeWord("отец", ["syn", "noun", "nom"], ["sem", "father"]).
+          wholeWord("отца", ["syn", "noun", "acc"], ["sem", "father"]).
+          suffix("ит", new SynVerb()).
+          suffix("ая", new SynAdjective("nom")).
+          suffix("ую", new SynAdjective("acc"))
+
+
   void analyzeWord(Chart chart, String w) {
-    chart.newFrame(new Word(w))
+    chart.newFrame(infl.instantiate(w))
   }
 
   static class Stem extends Construct {
@@ -26,47 +36,6 @@ class Russian implements Language {
       }
     }
 
-  }
-
-  static class Word extends Construct {
-    String word
-
-    def Word(String word) {
-      super('phon', word)
-      this.word = word
-    }
-
-    @Override
-    void appeared(Frame frame) {
-      if (word.endsWith("ит")) {
-        frame.enrich(new Stem(word.substring(0, word.length() - 2)), new SynVerb())
-        return
-      }
-      if (word.endsWith("ая")) {
-        frame.enrich(new Stem(word.substring(0, word.length() - 2)), new SynAdjective("nom"))
-        return
-      }
-      if (word.endsWith("ую")) {
-        frame.enrich(new Stem(word.substring(0, word.length() - 2)), new SynAdjective("acc"))
-        return
-      }
-
-      switch (word) {
-        case "мать":
-          frame.enrich(["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "mother"])
-          break
-        case "дочь":
-          frame.enrich(["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "daughter"])
-          break
-        case "отец":
-          frame.enrich(["syn", "noun", "nom"], ["sem", "father"])
-          break
-        case "отца":
-          frame.enrich(["syn", "noun", "acc"], ["sem", "father"])
-          break
-      }
-
-    }
   }
 
   static class SynAdjective extends Construct {

@@ -1,0 +1,39 @@
+package cons2
+
+class Inflection {
+  private Map<String, Construct[]> wholeWords = [:]
+  private Map<String, Construct> suffixing = [:]
+  private Function1<String, Construct> stemCreator
+
+  Inflection(Function1<String, Construct> stemCreator) {
+    this.stemCreator = stemCreator
+  }
+
+  Inflection suffix(String suffix, Construct synCxt) {
+    suffixing[suffix] = synCxt
+    this
+  }
+
+  Inflection wholeWord(String word, Construct... cxts) {
+    wholeWords[word] = cxts
+    this
+  }
+
+  Construct instantiate(String word) {
+    ['super':['phon', word], appeared:{ Frame host ->
+      def wh = wholeWords[word]
+      if (wh) {
+        host.enrich(wh)
+        return
+      }
+
+      for (suf in suffixing.keySet()) {
+        if (word.endsWith(suf)) {
+          host.enrich(stemCreator(word[0..<word.length()-suf.length()]), suffixing[suf])
+          return
+        }
+      }
+    }]
+  }
+
+}

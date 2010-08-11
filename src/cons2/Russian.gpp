@@ -21,6 +21,9 @@ class Russian implements Language {
       if (stem == "люб") {
         host.enrich(["sem", "love"])
       }
+      if (stem == "красив") {
+        host.enrich(["sem", "beautiful"])
+      }
     }
 
   }
@@ -39,6 +42,14 @@ class Russian implements Language {
         frame.enrich(new Stem(word.substring(0, word.length() - 2)), new SynVerb())
         return
       }
+      if (word.endsWith("ая")) {
+        frame.enrich(new Stem(word.substring(0, word.length() - 2)), new SynAdjective("nom"))
+        return
+      }
+      if (word.endsWith("ую")) {
+        frame.enrich(new Stem(word.substring(0, word.length() - 2)), new SynAdjective("acc"))
+        return
+      }
 
       switch (word) {
         case "мать":
@@ -46,12 +57,6 @@ class Russian implements Language {
           break
         case "дочь":
           frame.enrich(["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "daughter"])
-          break
-        case "красивая":
-          frame.enrich(new SynAdjective("nom"), ["sem", "beautiful"])
-          break
-        case "красивую":
-          frame.enrich(new SynAdjective("acc"), ["sem", "beautiful"])
           break
         case "отец":
           frame.enrich(["syn", "noun", "nom"], ["sem", "father"])

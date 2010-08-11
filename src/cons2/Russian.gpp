@@ -8,6 +8,23 @@ class Russian implements Language {
     chart.newFrame(new Word(w))
   }
 
+  static class Stem extends Construct {
+    String stem
+
+    def Stem(String stem) {
+      super('stem', stem)
+      this.stem = stem
+    }
+
+    @Override
+    void appeared(Frame host) {
+      if (stem == "люб") {
+        host.enrich(new SynVerb(), ["sem", "love"])
+      }
+    }
+
+  }
+
   static class Word extends Construct {
     String word
 
@@ -18,12 +35,14 @@ class Russian implements Language {
 
     @Override
     void appeared(Frame frame) {
+      if (word.endsWith("ит")) {
+        frame.enrich(new Stem(word.substring(0, word.length() - 2)))
+        return
+      }
+
       switch (word) {
         case "мать":
           frame.enrich(["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "mother"])
-          break
-        case "любит":
-          frame.enrich(new SynVerb(), ["sem", "love"])
           break
         case "дочь":
           frame.enrich(["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "daughter"])

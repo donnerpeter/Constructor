@@ -12,15 +12,19 @@ class Chart {
   private final LinkedHashSet<Frame> dirty = []
   private final Set<Frame> finished = []
   private final Set<Frame> weak = []
+  private final Language language
+
+  Chart(Language language) {
+    this.language = language
+  }
 
   String presentable() {
     log.presentable()
   }
 
-  void aspectAppeared(Frame host, Construct aspect) {}
-
-  void contextChanged(Frame host, Construct aspect) {}
-
+  void aspectAppeared(Frame host, Construct aspect) {
+    language.aspectAppeared host, aspect
+  }
 
   List<Frame> frames(boolean includeWeak = false) {
     (frames - weak) as List<Frame>
@@ -71,7 +75,7 @@ class Chart {
         return
       }
       f.initializedAspects.each { Construct c ->
-        contextChanged f, c
+        language.contextChanged f, c
       }
     }
   }

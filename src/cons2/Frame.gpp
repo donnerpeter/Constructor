@@ -121,15 +121,6 @@ class Frame {
     return result
   }
 
-  def contextChanged() {
-    for (role in roles) {
-      def main = chosen[role]
-      if (main && main in initialized) {
-        chart.contextChanged this, main
-      }
-    }
-  }
-
   boolean wrapUp() {
     for (role in roles) {
       if (chosen[role] && !chosen[role].wrapUp(this)) {

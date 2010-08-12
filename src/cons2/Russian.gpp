@@ -18,7 +18,7 @@ class Russian implements Language {
     chart.newFrame(['phon', w])
   }
 
-  void aspectAppeared(Frame host, Construct aspect) {
+  void aspectAppeared(Frame host, Aspect aspect) {
     if (aspect.role == 'phon') {
       infl.analyze host, aspect
       return
@@ -51,7 +51,7 @@ class Russian implements Language {
 
   }
 
-  void contextChanged(Frame host, Construct aspect) {
+  void contextChanged(Frame host, Aspect aspect) {
     if (aspect.ping('adj')) {
       def caze = aspect.ping('adj_nom') ? 'nom' : 'acc'
       new SimpleQuery(caze, false, ['syn', 'adjective_noun'], ['sem', 'property_host']).activate(host)
@@ -65,7 +65,7 @@ class Russian implements Language {
     }
   }
 
-  boolean wrapUp(Frame host, Construct aspect) {
+  boolean wrapUp(Frame host, Aspect aspect) {
     if (aspect.ping('verb')) {
       if (subject.satisfied(host) && object.satisfied(host)) {
         return true

@@ -6,9 +6,9 @@ package cons2
 class SimpleQuery {
   def pattern
   boolean thematic
-  Construct[] cxts
+  Aspect[] cxts
 
-  def SimpleQuery(def pattern, boolean thematic, Construct... cxts) {
+  def SimpleQuery(def pattern, boolean thematic, Aspect... cxts) {
     this.pattern = pattern;
     this.thematic = thematic;
     this.cxts = cxts

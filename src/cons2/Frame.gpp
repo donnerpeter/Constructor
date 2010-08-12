@@ -5,9 +5,9 @@ package cons2
  */
 class Frame {
   Chart chart
-  private final Map<String, List<Construct>> alternatives = [:]
-  private final Map<String, Construct> chosen = [:]
-  private final Set<Construct> initialized = []
+  private final Map<String, List<Aspect>> alternatives = [:]
+  private final Map<String, Aspect> chosen = [:]
+  private final Set<Aspect> initialized = []
   boolean adopted = false
   Frame[] children
   private int thematic
@@ -19,17 +19,17 @@ class Frame {
     chart.event([this])
   }
 
-  void removeAlternative(Construct construct) {
+  void removeAlternative(Aspect construct) {
     def role = construct.role
     alternatives[role].remove construct
     setChosen(role,  alternatives[role].size() != 1 ? null : construct)
   }
 
-  Frame enrich(Construct... constructs) {
+  Frame enrich(Aspect... constructs) {
     addConstructs(constructs)
   }
 
-  Frame addConstructs(Construct... constructs) {
+  Frame addConstructs(Aspect... constructs) {
     Set<String> affectedRoles = []
     constructs.each { construct ->
       def role = construct.role
@@ -72,14 +72,14 @@ class Frame {
     }
   }
 
-  def setChosen(String role, Construct cxt) {
+  def setChosen(String role, Aspect cxt) {
     if (chosen[role] == cxt) return
 
     chosen[role] = cxt
     chart.event([this, role, cxt])
   }
 
-  private Construct findDimension(pattern) {
+  private Aspect findDimension(pattern) {
     for (role in roles) {
       def found = strongAlternatives(role).find { it.ping(pattern) }
       if (found) return found
@@ -87,13 +87,13 @@ class Frame {
     return null
   }
 
-  Construct getAt(String role) {
+  Aspect getAt(String role) {
     return chosen[role] 
   }
 
   private Collection<String> getRoles() { alternatives.keySet() }
 
-  private List<Construct> strongAlternatives(String role) {
+  private List<Aspect> strongAlternatives(String role) {
     return chosen[role] ? [chosen[role]] : alternatives[role]
   }
 
@@ -110,11 +110,11 @@ class Frame {
     "[" + chosenAspects.collect { it.role + ":" + it }.join(", ") + "]"
   }
 
-  List<Construct> getChosenAspects() {
+  List<Aspect> getChosenAspects() {
     roles.findAll { chosen[it] }.collect { chosen[it] }
   }
 
-  List<Construct> getInitializedAspects() {
+  List<Aspect> getInitializedAspects() {
     chosenAspects.findAll { it in initialized }
   }
 

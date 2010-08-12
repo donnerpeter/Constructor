@@ -1,20 +1,20 @@
 package cons2
 
 class Inflection {
-  private Map<String, Construct[]> wholeWords = [:]
-  private Map<String, Construct> suffixing = [:]
+  private Map<String, Aspect[]> wholeWords = [:]
+  private Map<String, Aspect> suffixing = [:]
 
-  Inflection suffix(String suffix, Construct synCxt) {
+  Inflection suffix(String suffix, Aspect synCxt) {
     suffixing[suffix] = synCxt
     this
   }
 
-  Inflection wholeWord(String word, Construct... cxts) {
+  Inflection wholeWord(String word, Aspect... cxts) {
     wholeWords[word] = cxts
     this
   }
 
-  void analyze(Frame host, Construct phonAspect) {
+  void analyze(Frame host, Aspect phonAspect) {
     def word = phonAspect.nicknames.iterator().next()
 
     def wh = wholeWords[word]

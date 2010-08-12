@@ -82,13 +82,13 @@ class Log {
   static class Event {
     final Frame frame
     final String role
-    final Construct newValue
+    final Aspect newValue
 
     def Event(Frame frame) {
       this(frame, null, null)
     }
 
-    def Event(Frame frame, String role, Construct newValue) {
+    def Event(Frame frame, String role, Aspect newValue) {
       this.frame = frame;
       this.role = role;
       this.newValue = newValue;

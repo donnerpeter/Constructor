@@ -22,7 +22,7 @@ class Chart {
     log.presentable()
   }
 
-  void aspectAppeared(Frame host, Construct aspect) {
+  void aspectAppeared(Frame host, Aspect aspect) {
     language.aspectAppeared host, aspect
   }
 
@@ -34,7 +34,7 @@ class Chart {
     frames(includeWeak).findAll { f in it.children && it.ping(false, pattern) }
   }
 
-  Frame construction(int theta = -1, List<Frame> children, Construct... alternatives) {
+  Frame construction(int theta = -1, List<Frame> children, Aspect... alternatives) {
     registerFrame(new Frame(this, theta, children).addConstructs(alternatives))
   }
 
@@ -42,7 +42,7 @@ class Chart {
     return active.findAll { it.ping(thematic, pattern) }
   }
 
-  Frame newFrame(Construct... alternatives) {
+  Frame newFrame(Aspect... alternatives) {
     registerFrame(new Frame(this, -1).addConstructs(alternatives))
   }
 
@@ -74,7 +74,7 @@ class Chart {
       if (!f) {
         return
       }
-      f.initializedAspects.each { Construct c ->
+      f.initializedAspects.each { Aspect c ->
         language.contextChanged f, c
 
         if (c instanceof AnticipatingConstruct) {

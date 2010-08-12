@@ -4,21 +4,21 @@ package cons2
  * @author peter
  */
 
-class Construct {
+class Aspect {
   final String role
   final Set<String> nicknames
 
-  def Construct(String role, String name) {
+  def Aspect(String role, String name) {
     this.role = role
     this.nicknames = [name] as LinkedHashSet;
   }
 
-  def Construct(String role, String name1, name2) {
+  def Aspect(String role, String name1, name2) {
     this.role = role
     this.nicknames = [name1, name2] as LinkedHashSet
   }
 
-  def Construct(String role, Set<String> nicknames) {
+  def Aspect(String role, Set<String> nicknames) {
     this.role = role;
     this.nicknames = nicknames;
   }

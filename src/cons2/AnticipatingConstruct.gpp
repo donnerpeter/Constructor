@@ -3,7 +3,7 @@ package cons2
 /**
  * @author peter
  */
-class AnticipatingConstruct extends Construct {
+class AnticipatingConstruct extends Aspect {
   final LinkedHashSet<String> mockHeadNicks
   final def realHeadPattern
 

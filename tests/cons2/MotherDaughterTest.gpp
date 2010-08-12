@@ -114,8 +114,9 @@ frame: sem=beautiful
 frame
 frame ^2 ^1: sem=property_host
 ^2: sem=daughter
-frame ^6 ^7: sem=state_theme
-frame ^7 ^2: sem=state_experiencer
+^5: weaken
+frame ^7 ^8: sem=state_theme
+frame ^8 ^3: sem=state_experiencer
 """
   }
 
@@ -125,8 +126,9 @@ frame: sem=daughter
 frame: sem=love
 frame ^1 ^2: sem=state_experiencer
 frame: sem=father
-frame ^3 ^4: sem=state_theme
-frame ^4 ^2: sem=state_experiencer
+^2: weaken
+frame ^4 ^5: sem=state_theme
+frame ^5 ^3: sem=state_experiencer
 """
   }
 

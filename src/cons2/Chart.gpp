@@ -1,6 +1,7 @@
 package cons2
 
 import cons2.Log.Event
+import cons2.Log.FrameEvent
 
 /**
  * @author peter
@@ -118,6 +119,7 @@ class Chart {
     weak << f
     active.remove f
     dirty.remove f
+    log.event new FrameEvent(f, true)
     f.strongUsages([]).each { weaken it }
   }
 

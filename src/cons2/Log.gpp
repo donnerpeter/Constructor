@@ -1,6 +1,6 @@
 package cons2
 
-/**
+ /**
  * @author peter
  */
 class Log {
@@ -63,7 +63,7 @@ class Log {
       stack.addFirst frame
 
       if (group) {
-        line += ": " + group.collect { ((AspectEvent)it).role + "=" + ((AspectEvent)it).newValue }.join(", ")
+        line += ": " + group.collect { it.presentable() }.join(", ")
       }
       out += line + "\n"
     }
@@ -85,6 +85,8 @@ class Log {
     Event(Frame frame) {
       this.frame = frame
     }
+
+    abstract String presentable()
   }
 
   static class AspectEvent extends Event {
@@ -102,6 +104,11 @@ class Log {
       "$frame: $role=$newValue"
     }
 
+    @Override
+    String presentable() {
+      "$role=$newValue"
+    }
+
   }
 
   static class FrameEvent extends Event {
@@ -115,6 +122,11 @@ class Log {
     @Override
     String toString() {
       (weakened ? "-" : "+") + frame
+    }
+
+    @Override
+    String presentable() {
+      "weaken"
     }
 
   }

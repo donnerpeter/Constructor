@@ -15,10 +15,15 @@ class Russian implements Language {
 
 
   void analyzeWord(Chart chart, String w) {
-    chart.newFrame(infl.instantiate(w))
+    chart.newFrame(['phon', w])
   }
 
   void aspectAppeared(Frame host, Construct aspect) {
+    if (aspect.role == 'phon') {
+      infl.analyze host, aspect
+      return
+    }
+
     aspect.appeared host
     
     if (aspect.role == 'stem') {
@@ -30,6 +35,7 @@ class Russian implements Language {
         host.enrich(["sem", "beautiful"])
       }
     }
+
   }
 
   void contextChanged(Frame host, Construct aspect) {

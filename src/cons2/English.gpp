@@ -4,28 +4,11 @@ package cons2
  * @author peter
  */
 class English implements Language {
-  Inflection infl = new Inflection({new Stem(it)}).
+  Inflection infl = new Inflection({return (Construct)['stem', it]}).
           wholeWord("mother", ["syn", "noun"], ["sem", "mother"]).
           wholeWord("daughter", ["syn", "noun"], ["sem", "daughter"]).
           wholeWord("the", ['syn', 'article']).
           suffix("s", ['syn', 'verb'])
-
-  static class Stem extends Construct {
-    String stem
-
-    def Stem(String stem) {
-      super('stem', stem)
-      this.stem = stem
-    }
-
-    @Override
-    void appeared(Frame host) {
-      if (stem == "love") {
-        host.enrich(["sem", "love"])
-      }
-    }
-
-  }
 
   boolean wrapUp(Frame host, Construct aspect) {
     true

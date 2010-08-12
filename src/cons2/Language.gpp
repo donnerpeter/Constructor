@@ -9,6 +9,8 @@ interface Language {
 
   void contextChanged(Frame host, Construct aspect)
 
+  boolean wrapUp(Frame host, Construct aspect)
+
   void analyzeWord(Chart chart, String word)
 
 }

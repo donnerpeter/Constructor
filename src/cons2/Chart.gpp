@@ -87,12 +87,12 @@ class Chart {
   void wrapUp(Frame... frames) {
     Set<Frame> processed = []
     while (true) {
-      def f = frames.find { !(it in processed) && !(it in finished) }
+      Frame f = frames.find { !(it in processed) && !(it in finished) }
       if (!f) {
         break
       }
 
-      if (f.wrapUp()) {
+      if (f.chosenAspects.every { language.wrapUp(f, it) }) {
         finished << f
         update()
       }

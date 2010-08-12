@@ -107,27 +107,15 @@ class Frame {
 
   @Override
   String toString() {
-    "[" + roles.findAll { chosen[it] }.collect { it + ":" + chosen[it] }.join(", ") + "]"
+    "[" + chosenAspects.collect { it.role + ":" + it }.join(", ") + "]"
+  }
+
+  List<Construct> getChosenAspects() {
+    roles.findAll { chosen[it] }.collect { chosen[it] }
   }
 
   List<Construct> getInitializedAspects() {
-    def result = []
-    for (role in roles) {
-      def main = chosen[role]
-      if (main && main in initialized) {
-        result << main
-      }
-    }
-    return result
-  }
-
-  boolean wrapUp() {
-    for (role in roles) {
-      if (chosen[role] && !chosen[role].wrapUp(this)) {
-        return false
-      }
-    }
-    return true
+    chosenAspects.findAll { it in initialized }
   }
 
   void relax() {

@@ -34,6 +34,10 @@ class English implements Language {
 
   }
 
+  boolean wrapUp(Frame host, Construct aspect) {
+    aspect.wrapUp(host)
+  }
+
   void aspectAppeared(Frame host, Construct aspect) {
     aspect.appeared host
   }

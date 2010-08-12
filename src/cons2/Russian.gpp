@@ -38,6 +38,10 @@ class Russian implements Language {
     aspect.contextChanged host
   }
 
+  boolean wrapUp(Frame host, Construct aspect) {
+    aspect.wrapUp(host)
+  }
+
   static class Stem extends Construct {
     String stem
 

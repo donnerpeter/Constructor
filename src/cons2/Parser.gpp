@@ -11,7 +11,18 @@ class Parser {
   }
 
   Chart parse(String text) {
-    def chart = new Chart()
+    def chart = new Chart() {
+      @Override
+      void aspectAppeared(Frame host, Construct aspect) {
+        language.aspectAppeared(host, aspect)
+      }
+
+      @Override
+      void contextChanged(Frame host, Construct aspect) {
+        language.contextChanged(host, aspect)
+      }
+
+    }
     def words = text.split(" ")
 
     for (w in words) {

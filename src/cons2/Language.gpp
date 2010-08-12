@@ -5,6 +5,10 @@ package cons2
  */
 interface Language {
 
+  void aspectAppeared(Frame host, Construct aspect)
+
+  void contextChanged(Frame host, Construct aspect)
+
   void analyzeWord(Chart chart, String word)
 
 }

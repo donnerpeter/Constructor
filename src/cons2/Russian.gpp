@@ -1,6 +1,6 @@
 package cons2
 
-/**
+ /**
  * @author peter
  */
 class Russian implements Language {
@@ -16,6 +16,26 @@ class Russian implements Language {
 
   void analyzeWord(Chart chart, String w) {
     chart.newFrame(infl.instantiate(w))
+  }
+
+  void aspectAppeared(Frame host, Construct aspect) {
+    aspect.appeared host
+    
+/*
+    if (aspect.role == 'stem') {
+      def stem = aspect.nicknames.iterator().next()
+      if (stem == "люб") {
+        host.enrich(["sem", "love"])
+      }
+      if (stem == "красив") {
+        host.enrich(["sem", "beautiful"])
+      }
+    }
+*/
+  }
+
+  void contextChanged(Frame host, Construct aspect) {
+    aspect.contextChanged host
   }
 
   static class Stem extends Construct {

@@ -41,7 +41,7 @@ class Frame {
     }
     constructs.each {
       if (!chosen[it.role] || chosen[it.role] == it) {
-        it.appeared this
+        chart.aspectAppeared this, it
       }
       initialized << it
     }
@@ -110,11 +110,22 @@ class Frame {
     "[" + roles.findAll { chosen[it] }.collect { it + ":" + chosen[it] }.join(", ") + "]"
   }
 
+  List<Construct> getInitializedAspects() {
+    def result = []
+    for (role in roles) {
+      def main = chosen[role]
+      if (main && main in initialized) {
+        result << main
+      }
+    }
+    return result
+  }
+
   def contextChanged() {
     for (role in roles) {
       def main = chosen[role]
       if (main && main in initialized) {
-        main.contextChanged this
+        chart.contextChanged this, main
       }
     }
   }

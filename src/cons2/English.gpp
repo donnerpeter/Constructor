@@ -4,7 +4,7 @@ package cons2
  * @author peter
  */
 class English implements Language {
-  Inflection infl = new Inflection({return (Construct)['stem', it]}).
+  Inflection infl = new Inflection().
           wholeWord("mother", ["syn", "noun"], ["sem", "mother"]).
           wholeWord("daughter", ["syn", "noun"], ["sem", "daughter"]).
           wholeWord("the", ['syn', 'article']).

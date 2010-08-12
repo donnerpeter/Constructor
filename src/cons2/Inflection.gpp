@@ -3,11 +3,6 @@ package cons2
 class Inflection {
   private Map<String, Construct[]> wholeWords = [:]
   private Map<String, Construct> suffixing = [:]
-  private Function1<String, Construct> stemCreator
-
-  Inflection(Function1<String, Construct> stemCreator) {
-    this.stemCreator = stemCreator
-  }
 
   Inflection suffix(String suffix, Construct synCxt) {
     suffixing[suffix] = synCxt
@@ -30,7 +25,7 @@ class Inflection {
 
     for (suf in suffixing.keySet()) {
       if (word.endsWith(suf)) {
-        host.enrich(stemCreator(word[0..<word.length()-suf.length()]), suffixing[suf])
+        host.enrich(['stem', word[0..<word.length()-suf.length()]], suffixing[suf])
         return
       }
     }
@@ -46,7 +41,7 @@ class Inflection {
 
       for (suf in suffixing.keySet()) {
         if (word.endsWith(suf)) {
-          host.enrich(stemCreator(word[0..<word.length()-suf.length()]), suffixing[suf])
+          host.enrich(['stem', word[0..<word.length()-suf.length()]], suffixing[suf])
           return
         }
       }

@@ -4,7 +4,7 @@ package cons2
  * @author peter
  */
 class Russian implements Language {
-  Inflection infl = new Inflection({new Stem(it)}).
+  Inflection infl = new Inflection().
           wholeWord("мать", ["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "mother"]).
           wholeWord("дочь", ["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "daughter"]).
           wholeWord("отец", ["syn", "noun", "nom"], ["sem", "father"]).
@@ -21,7 +21,6 @@ class Russian implements Language {
   void aspectAppeared(Frame host, Construct aspect) {
     aspect.appeared host
     
-/*
     if (aspect.role == 'stem') {
       def stem = aspect.nicknames.iterator().next()
       if (stem == "люб") {
@@ -31,7 +30,6 @@ class Russian implements Language {
         host.enrich(["sem", "beautiful"])
       }
     }
-*/
   }
 
   void contextChanged(Frame host, Construct aspect) {
@@ -40,26 +38,6 @@ class Russian implements Language {
 
   boolean wrapUp(Frame host, Construct aspect) {
     aspect.wrapUp(host)
-  }
-
-  static class Stem extends Construct {
-    String stem
-
-    def Stem(String stem) {
-      super('stem', stem)
-      this.stem = stem
-    }
-
-    @Override
-    void appeared(Frame host) {
-      if (stem == "люб") {
-        host.enrich(["sem", "love"])
-      }
-      if (stem == "красив") {
-        host.enrich(["sem", "beautiful"])
-      }
-    }
-
   }
 
   static class SynAdjective extends Construct {

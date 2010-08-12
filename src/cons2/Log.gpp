@@ -11,7 +11,7 @@ class Log {
   }
 
   private Set<Frame> interestingFrames() {
-    events.filter { it.role == 'sem' && !it.frame.adopted }.collect { it.frame } as Set
+    events.filter { it instanceof AspectEvent && ((AspectEvent)it).role == 'sem' && !it.frame.adopted }.collect { it.frame } as Set
   }
 
   private List<Event> interestingEvents() {
@@ -45,7 +45,7 @@ class Log {
     LinkedList<Frame> stack = []
     def groups = groupEvents()
     for (List<Event> group in groups) {
-      group = group.findAll { !it.role || it.role == "sem" }
+      group = group.findAll { it instanceof FrameEvent || ((AspectEvent)it).role == "sem" }
 
       if (!group) {
         continue
@@ -56,14 +56,14 @@ class Log {
       if (stack.indexOf(frame) >= 0) {
         line = frameReference(stack, frame)
       } else {
-        assert !group[0].role
+        assert group[0] instanceof FrameEvent
         line = "frame" + frame.children.collect { " " + frameReference(stack, it) }.join("")
         group.remove(0)
       }
       stack.addFirst frame
 
       if (group) {
-        line += ": " + group.collect { it.role + "=" + it.newValue }.join(", ")
+        line += ": " + group.collect { ((AspectEvent)it).role + "=" + ((AspectEvent)it).newValue }.join(", ")
       }
       out += line + "\n"
     }
@@ -79,17 +79,20 @@ class Log {
     return "^" + (idx + 1)
   }
 
-  static class Event {
+  static abstract class Event {
     final Frame frame
+
+    Event(Frame frame) {
+      this.frame = frame
+    }
+  }
+
+  static class AspectEvent extends Event {
     final String role
     final Aspect newValue
 
-    def Event(Frame frame) {
-      this(frame, null, null)
-    }
-
-    def Event(Frame frame, String role, Aspect newValue) {
-      this.frame = frame;
+    def AspectEvent(Frame frame, String role, Aspect newValue) {
+      super(frame)
       this.role = role;
       this.newValue = newValue;
     }
@@ -99,6 +102,20 @@ class Log {
       "$frame: $role=$newValue"
     }
 
+  }
+
+  static class FrameEvent extends Event {
+    final boolean weakened
+
+    FrameEvent(Frame frame, boolean weakened) {
+      super(frame)
+      this.weakened = weakened
+    }
+
+    @Override
+    String toString() {
+      (weakened ? "-" : "+") + frame
+    }
 
   }
 }

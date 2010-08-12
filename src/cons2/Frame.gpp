@@ -1,6 +1,9 @@
 package cons2
 
- /**
+import cons2.Log.AspectEvent
+import cons2.Log.FrameEvent
+
+/**
  * @author peter
  */
 class Frame {
@@ -16,7 +19,7 @@ class Frame {
     this.chart = chart
     this.thematic = thematic
     this.children = args
-    chart.event([this])
+    chart.event(new FrameEvent(this, false))
   }
 
   void removeAlternative(Aspect construct) {
@@ -76,7 +79,7 @@ class Frame {
     if (chosen[role] == cxt) return
 
     chosen[role] = cxt
-    chart.event([this, role, cxt])
+    chart.event(new AspectEvent(this, role, cxt))
   }
 
   private Aspect findDimension(pattern) {

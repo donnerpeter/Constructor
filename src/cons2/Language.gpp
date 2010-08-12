@@ -11,6 +11,4 @@ interface Language {
 
   boolean wrapUp(Frame host, Aspect aspect)
 
-  void analyzeWord(Chart chart, String word)
-
 }

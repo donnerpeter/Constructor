@@ -47,8 +47,4 @@ class English implements Language {
     }
   }
 
-  void analyzeWord(Chart chart, String w) {
-    chart.newFrame(['phon', w])
-  }
-
 }

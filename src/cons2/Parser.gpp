@@ -15,8 +15,7 @@ class Parser {
     def words = text.split(" ")
 
     for (w in words) {
-      language.analyzeWord(chart, w)
-
+      chart.newFrame(['phon', w])
       chart.update()
     }
 

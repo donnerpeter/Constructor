@@ -13,11 +13,6 @@ class Russian implements Language {
           suffix("ая", ['syn', 'adj', 'adj_nom']).
           suffix("ую", ['syn', 'adj', 'adj_acc'])
 
-
-  void analyzeWord(Chart chart, String w) {
-    chart.newFrame(['phon', w])
-  }
-
   void aspectAppeared(Frame host, Aspect aspect) {
     if (aspect.role == 'phon') {
       infl.analyze host, aspect

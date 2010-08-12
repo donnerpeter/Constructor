@@ -23,12 +23,6 @@ class Construct {
     this.nicknames = nicknames;
   }
 
-  boolean wrapUp(Frame f) { true }
-
-  void contextChanged(Frame host) { }
-
-  void appeared(Frame host) { }
-
   @Override
   String toString() {
     nicknames.join(";")

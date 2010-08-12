@@ -13,7 +13,6 @@ class AnticipatingConstruct extends Construct {
     this.realHeadPattern = realHeadPattern
   }
 
-  @Override
   void contextChanged(Frame host) {
     def goal = host.findAround(false, realHeadPattern)
     if (!goal) return

@@ -78,7 +78,7 @@ class Chart {
         language.contextChanged f, c
 
         if (c instanceof AnticipatingConstruct) {
-          c.contextChanged f
+          ((AnticipatingConstruct)c).contextChanged f
         }
 
       }

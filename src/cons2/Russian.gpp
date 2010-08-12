@@ -9,7 +9,7 @@ class Russian implements Language {
           wholeWord("дочь", ["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "daughter"]).
           wholeWord("отец", ["syn", "noun", "nom"], ["sem", "father"]).
           wholeWord("отца", ["syn", "noun", "acc"], ["sem", "father"]).
-          suffix("ит", new SynVerb()).
+          suffix("ит", ['syn', 'verb']).
           suffix("ая", ['syn', 'adj', 'adj_nom']).
           suffix("ую", ['syn', 'adj', 'adj_acc'])
 
@@ -33,8 +33,12 @@ class Russian implements Language {
       return
     }
 
-    aspect.appeared host
-    
+    if (aspect.ping('verb')) {
+      subject.activate host, true
+      object.activate host, true
+      return
+    }
+
     if (aspect.role == 'stem') {
       def stem = aspect.nicknames.iterator().next()
       if (stem == "люб") {
@@ -54,59 +58,40 @@ class Russian implements Language {
       return
     }
 
-
-    aspect.contextChanged host
+    if (aspect.ping('verb')) {
+      subject.activate host
+      object.activate host
+      return
+    }
   }
 
   boolean wrapUp(Frame host, Construct aspect) {
-    aspect.wrapUp(host)
+    if (aspect.ping('verb')) {
+      if (subject.satisfied(host) && object.satisfied(host)) {
+        return true
+      }
+
+      subject.weaken(host)
+      object.weaken(host)
+
+      def subjs = subject.allArgumentCandidates(host)
+      def objs = object.allArgumentCandidates(host)
+
+      if (objs.size() == 1) {
+        subjs -= objs
+        object.instantiate(host, objs[0])
+      }
+      if (subjs.size() == 1) {
+        subject.instantiate(host, subjs[0])
+      }
+
+      return subject.satisfied(host) && object.satisfied(host)
+
+    }
+    true
   }
 
   SimpleQuery subject = ["nom", true, ["syn", 'subject'], ["sem", "state_experiencer"]]
   SimpleQuery object = ["acc", true, ["syn", 'object'], ["sem", "state_theme"]]
-
-  class SynVerb extends Construct {
-
-    def SynVerb() {
-      super("syn", "verb")
-    }
-
-    @Override
-    void contextChanged(Frame f) {
-      subject.activate f
-      object.activate f
-    }
-
-    @Override
-    void appeared(Frame host) {
-      subject.activate host, true
-      object.activate host, true
-    }
-
-    @Override
-    boolean wrapUp(Frame f) {
-      if (subject.satisfied(f) && object.satisfied(f)) {
-        return true
-      }
-
-      subject.weaken(f)
-      object.weaken(f)
-
-      def subjs = subject.allArgumentCandidates(f)
-      def objs = object.allArgumentCandidates(f)
-
-      if (objs.size() == 1) {
-        subjs -= objs
-        object.instantiate(f, objs[0])
-      }
-      if (subjs.size() == 1) {
-        subject.instantiate(f, subjs[0])
-      }
-
-      return subject.satisfied(f) && object.satisfied(f)
-    }
-
-
-  }
 
 }

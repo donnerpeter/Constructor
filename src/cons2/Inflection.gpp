@@ -19,6 +19,23 @@ class Inflection {
     this
   }
 
+  void analyze(Frame host, Construct phonAspect) {
+    def word = phonAspect.nicknames.iterator().next()
+
+    def wh = wholeWords[word]
+    if (wh) {
+      host.enrich(wh)
+      return
+    }
+
+    for (suf in suffixing.keySet()) {
+      if (word.endsWith(suf)) {
+        host.enrich(stemCreator(word[0..<word.length()-suf.length()]), suffixing[suf])
+        return
+      }
+    }
+  }
+
   Construct instantiate(String word) {
     ['super':['phon', word], appeared:{ Frame host ->
       def wh = wholeWords[word]

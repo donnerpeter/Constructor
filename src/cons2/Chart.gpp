@@ -76,6 +76,11 @@ class Chart {
       }
       f.initializedAspects.each { Construct c ->
         language.contextChanged f, c
+
+        if (c instanceof AnticipatingConstruct) {
+          c.contextChanged f
+        }
+
       }
     }
   }

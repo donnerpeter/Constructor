@@ -4,18 +4,11 @@ package cons2
  * @author peter
  */
 class English implements Language {
-  Construct syn_article = ['super':['syn', 'article'],
-          appeared: { host ->
-            def article = host.chart.newFrame(new AnticipatingConstruct(["noun"], "noun"))
-            host.chart.construction(-1, [article, host], ["syn", "det_noun"])
-          }
-  ]
-
   Inflection infl = new Inflection({new Stem(it)}).
           wholeWord("mother", ["syn", "noun"], ["sem", "mother"]).
           wholeWord("daughter", ["syn", "noun"], ["sem", "daughter"]).
-          wholeWord("the", syn_article).
-          suffix("s", new SynVerb())
+          wholeWord("the", ['syn', 'article']).
+          suffix("s", ['syn', 'verb'])
 
   static class Stem extends Construct {
     String stem
@@ -35,39 +28,44 @@ class English implements Language {
   }
 
   boolean wrapUp(Frame host, Construct aspect) {
-    aspect.wrapUp(host)
+    true
   }
 
+  SimpleQuery subject = ["noun", true, ["syn", 'subject'], ["sem", "state_experiencer"]]
+  SimpleQuery object = ["noun", true, ["syn", 'object'], ["sem", "state_theme"]]
+
   void aspectAppeared(Frame host, Construct aspect) {
-    aspect.appeared host
+    if (aspect.ping('article')) {
+      def article = host.chart.newFrame(new AnticipatingConstruct(["noun"], "noun"))
+      host.chart.construction(-1, [article, host], ["syn", "det_noun"])
+      return
+    }
+
+    if (aspect.ping('verb')) {
+      subject.activate(host, true)
+      return
+    }
+
+    if (aspect.role == 'stem') {
+      if (aspect.ping('love')) {
+        host.enrich(["sem", "love"])
+        return
+      }
+    }
+
+    if (aspect.role == 'phon') {
+      infl.analyze host, aspect
+    }
   }
 
   void contextChanged(Frame host, Construct aspect) {
-    aspect.contextChanged host
+    if (aspect.ping('verb')) {
+      object.activate(host, false)
+    }
   }
 
   void analyzeWord(Chart chart, String w) {
     chart.newFrame(infl.instantiate(w))
-  }
-
-  static class SynVerb extends Construct {
-    SimpleQuery subject = ["noun", true, ["syn", 'subject'], ["sem", "state_experiencer"]]
-    SimpleQuery object = ["noun", true, ["syn", 'object'], ["sem", "state_theme"]]
-
-    def SynVerb() {
-      super("syn", "verb")
-    }
-
-    @Override
-    void appeared(Frame host) {
-      subject.activate host, true
-    }
-
-    @Override
-    void contextChanged(Frame f) {
-      object.activate f
-    }
-
   }
 
 }

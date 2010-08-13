@@ -36,4 +36,25 @@ class Aspect {
     message in nicknames
   }
 
+  boolean equals(o) {
+    if (o.is(null)) return false;
+    if (this.is(o)) return true;
+
+    if (getClass() != o.class) return false;
+
+    Aspect aspect = (Aspect) o;
+
+    if (nicknames != aspect.nicknames) return false;
+    if (role != aspect.role) return false;
+
+    return true;
+  }
+
+  int hashCode() {
+    int result;
+
+    result = role.hashCode();
+    result = 31 * result + nicknames.hashCode();
+    return result;
+  }
 }

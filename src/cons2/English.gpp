@@ -39,6 +39,20 @@ class English implements Language {
     if (aspect.role == 'phon') {
       infl.analyze host, aspect
     }
+
+    if (aspect.role == 'sem') {
+      if (aspect.ping('mother')) {
+        host.chart.newFrame(['phon', 'the'])
+        host.enrich(['phon', 'mother'])
+      }
+      if (aspect.ping('daughter')) {
+        host.chart.newFrame(['phon', 'the'])
+        host.enrich(['phon', 'daughter'])
+      }
+      if (aspect.ping('love')) {
+        host.enrich(['phon', 'loves'])
+      }
+    }
   }
 
   void contextChanged(Frame host, Aspect aspect) {

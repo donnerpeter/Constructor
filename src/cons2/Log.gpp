@@ -10,21 +10,21 @@ class Log {
     events << event
   }
 
-  private Set<Frame> interestingFrames() {
-    events.filter { it instanceof AspectEvent && ((AspectEvent)it).role == 'sem' && !it.frame.adopted }.collect { it.frame } as Set
+  private Set<Frame> interestingFrames(Set<String> roles) {
+    events.filter { it instanceof AspectEvent && ((AspectEvent)it).role in roles && !it.frame.adopted }.collect { it.frame } as Set
   }
 
-  private List<Event> interestingEvents() {
-    def frames = interestingFrames()
-    events.findAll { it.frame in frames }
+  List<Event> interestingEvents(Set<String> roles) {
+    def frames = interestingFrames(roles)
+    events.findAll { it.frame in frames && (it instanceof FrameEvent || ((AspectEvent)it).role in roles) }
   }
 
-  private List<List<Event>> groupEvents() {
+  private List<List<Event>> groupEvents(Set<String> roles) {
     def result = []
 
     Frame current = null
     List<Event> group = null
-    for (e in interestingEvents()) {
+    for (e in interestingEvents(roles)) {
       if (e.frame != current) {
         if (group) {
           result << group
@@ -40,13 +40,16 @@ class Log {
     result
   }
 
-  String presentable() {
+  String phonString() {
+    List<AspectEvent> events = interestingEvents(['phon']).findAll { it instanceof AspectEvent && ((AspectEvent) it).newValue }
+    return events.collect { it.newValue.toString() }.join(" ")
+  }
+
+  String presentable(Set<String> roles) {
     String out = ""
     LinkedList<Frame> stack = []
-    def groups = groupEvents()
+    def groups = groupEvents(roles)
     for (List<Event> group in groups) {
-      group = group.findAll { it instanceof FrameEvent || ((AspectEvent)it).role == "sem" }
-
       if (!group) {
         continue
       }

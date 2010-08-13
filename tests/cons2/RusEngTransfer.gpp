@@ -1,0 +1,30 @@
+package cons2
+
+import cons2.Log.FrameEvent
+import cons2.Log.AspectEvent
+
+/**
+ * @author peter
+ */
+class RusEngTransfer {
+  Chart transfer(Chart rus) {
+    def eng = new Chart(new English())
+    Map<Frame, Frame> frameMappings = [:]
+    rus.log.interestingEvents(['sem']).each {evt ->
+      if (evt instanceof FrameEvent && !((FrameEvent) evt).weakened) {
+        def srcFrame = ((FrameEvent) evt).frame
+        def dstFrame = srcFrame.children ? eng.construction(srcFrame.thematic, srcFrame.children.collect { frameMappings[it] } as List) : eng.newFrame()
+        frameMappings[srcFrame] = dstFrame
+      }
+      else if (evt instanceof AspectEvent) {
+        def aspect = ((AspectEvent) evt).newValue
+        if (aspect) {
+          frameMappings[evt.frame].enrich(aspect)
+        }
+      }
+      eng.update()
+    }
+    return eng
+  }
+
+}

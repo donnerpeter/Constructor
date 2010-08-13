@@ -20,7 +20,7 @@ class Chart {
   }
 
   String presentable() {
-    log.presentable()
+    log.presentable(['sem'])
   }
 
   void aspectAppeared(Frame host, Aspect aspect) {

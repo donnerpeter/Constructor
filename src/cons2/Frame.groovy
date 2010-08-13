@@ -13,7 +13,7 @@ class Frame {
   private final Set<Aspect> initialized = []
   boolean adopted = false
   Frame[] children
-  private int thematic
+  int thematic
 
   def Frame(Chart chart, int thematic, Frame... args) {
     this.chart = chart
@@ -32,17 +32,24 @@ class Frame {
     addConstructs(constructs)
   }
 
-  Frame addConstructs(Aspect... constructs) {
+  Frame addConstructs(Aspect... aspects) {
     Set<String> affectedRoles = []
-    constructs.each { construct ->
-      def role = construct.role
+    List<Aspect> added = []
+    aspects.each { aspect ->
+      def role = aspect.role
+      def existing = alternatives.get(role, [])
+      if (aspect in existing && chosen[role] == aspect) {
+        return
+      }
+
       affectedRoles << role
-      alternatives.get(role, []) << construct
+      existing << aspect
+      added << aspect
     }
     affectedRoles.each { role ->
       setChosen(role,  alternatives[role].size() != 1 ? null : alternatives[role][0])
     }
-    constructs.each {
+    added.each {
       if (!chosen[it.role] || chosen[it.role] == it) {
         chart.aspectAppeared this, it
       }
@@ -75,7 +82,7 @@ class Frame {
     }
   }
 
-  def setChosen(String role, Aspect cxt) {
+  private def setChosen(String role, Aspect cxt) {
     if (chosen[role] == cxt) return
 
     chosen[role] = cxt

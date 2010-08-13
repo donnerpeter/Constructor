@@ -25,6 +25,10 @@ frame ^3 ^1: sem=state_theme
 ^2: sem=daughter
 """
   }
+
+  public void testMLDTrans() throws Exception {
+    doTranslationTest "мать любит дочь", "the mother loves the daughter"
+  }
   
   public void testDLM() throws Exception {
     doTest "дочь любит мать", """
@@ -135,6 +139,12 @@ frame ^5 ^3: sem=state_experiencer
   private def doTest(String input, String expected) {
     def chart = new Parser(new Russian()).parse(input)
     assertEquals expected.trim() + "\n", chart.presentable().trim() + "\n"
+  }
+
+  private def doTranslationTest(String rus, String eng) {
+    def chart = new Parser(new Russian()).parse(rus)
+    def dst = new RusEngTransfer().transfer(chart)
+    assertEquals eng, dst.log.phonString()
   }
 
   private def doEnglishTest(String input, String expected) {

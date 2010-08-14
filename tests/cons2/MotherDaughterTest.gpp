@@ -29,7 +29,11 @@ frame ^3 ^1: sem=state_theme
   public void testMLDTrans() throws Exception {
     doTranslationTest "мать любит дочь", "the mother loves the daughter"
   }
-  
+
+  public void testDLMTrans() throws Exception {
+    doTranslationTest "дочь любит мать", "the daughter loves the mother"
+  }
+
   public void testDLM() throws Exception {
     doTest "дочь любит мать", """
 frame: sem=daughter

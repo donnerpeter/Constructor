@@ -11,7 +11,7 @@ class Frame {
   private final Map<String, List<Aspect>> alternatives = [:]
   private final Map<String, Aspect> chosen = [:]
   private final Set<Aspect> initialized = []
-  boolean adopted = false
+  Frame adopter
   Frame[] children
   int thematic
 
@@ -141,7 +141,7 @@ class Frame {
         setChosen role, source.chosen[role]
       }
     }
-    source.adopted = true
+    source.adopter = this
     chart.weaken source
   }
 }

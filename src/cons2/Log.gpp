@@ -11,7 +11,7 @@ class Log {
   }
 
   private Set<Frame> interestingFrames(Set<String> roles) {
-    events.filter { it instanceof AspectEvent && ((AspectEvent)it).role in roles && !it.frame.adopted }.collect { it.frame } as Set
+    events.filter { it instanceof AspectEvent && ((AspectEvent)it).role in roles && !it.frame.adopter }.collect { it.frame } as Set
   }
 
   List<Event> interestingEvents(Set<String> roles) {

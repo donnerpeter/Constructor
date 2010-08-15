@@ -33,7 +33,6 @@ frame ^3 ^1: sem=state_theme
   public void testDLMTrans() throws Exception {
     doTranslationTest "дочь любит мать", "the daughter loves the mother"
   }
-
   public void testDLM() throws Exception {
     doTest "дочь любит мать", """
 frame: sem=daughter
@@ -55,6 +54,10 @@ frame ^1 ^2: sem=state_experiencer
 frame: sem=mother
 frame ^3 ^1: sem=state_theme
 """
+  }
+
+  public void testBnDLMTrans() throws Exception {
+    doTranslationTest "красивая дочь любит мать", "the beautiful daughter loves the mother"
   }
 
   public void testDLBaM() throws Exception {
@@ -148,7 +151,12 @@ frame ^5 ^3: sem=state_experiencer
   private def doTranslationTest(String rus, String eng) {
     def chart = new Parser(new Russian()).parse(rus)
     def dst = new RusEngTransfer().transfer(chart)
-    assertEquals eng, dst.log.phonString()
+    def actual = dst.log.phonString()
+    if (eng != actual) {
+      println "Original analysis:\n" + chart.presentable()
+      println "-------------\nTransferred:\n" + dst.log.presentable(['phon', 'syn', 'sem', 'stem'])
+      assertEquals eng, actual
+    }
   }
 
   private def doEnglishTest(String input, String expected) {

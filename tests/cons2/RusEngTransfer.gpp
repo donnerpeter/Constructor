@@ -8,23 +8,50 @@ import cons2.Log.AspectEvent
  */
 class RusEngTransfer {
   Chart transfer(Chart rus) {
-    def eng = new Chart(new English())
+    def desired = new Chart(new English())
     Map<Frame, Frame> frameMappings = [:]
     rus.log.interestingEvents(['sem']).each {evt ->
+      def srcFrame = evt.frame
       if (evt instanceof FrameEvent && !((FrameEvent) evt).weakened) {
-        def srcFrame = ((FrameEvent) evt).frame
-        def dstFrame = srcFrame.children ? eng.construction(srcFrame.thematic, srcFrame.children.collect { frameMappings[it] } as List) : eng.newFrame()
+        def dstFrame = srcFrame.children ? desired.construction(srcFrame.thematic, srcFrame.children.collect { frameMappings[it] } as List) : desired.newFrame()
         frameMappings[srcFrame] = dstFrame
       }
       else if (evt instanceof AspectEvent) {
         def aspect = ((AspectEvent) evt).newValue
         if (aspect) {
-          frameMappings[evt.frame].enrich(aspect)
+          frameMappings[srcFrame].enrich(aspect)
         }
       }
-      eng.update()
+      desired.update()
     }
+
+    def eng = new Chart(new English())
+
+    desired.frames().findAll { it.ping(false, 'love') }.each { generateSentence(it, eng) }
+
     return eng
+  }
+
+  private void generateSentence(Frame verb, Chart dst) {
+    generateNP(dst, verb.strongUsages('state_experiencer')[0].children[1])
+    dst.newFrame(['phon', 'loves'])
+    generateNP(dst, verb.strongUsages('state_theme')[0].children[1])
+  }
+
+  private void generateNP(Chart dst, Frame noun) {
+    dst.newFrame(['phon', 'the'])
+    noun.strongUsages('property_host').each { rel ->
+      def adj = rel.children[0]
+      if (adj.ping(false, 'beautiful')) {
+        dst.newFrame(['phon', 'beautiful'])
+      }
+    }
+    if (noun.ping(false, 'mother')) {
+      dst.newFrame(['phon', 'mother'])
+    } else if (noun.ping(false, 'daughter')) {
+      dst.newFrame(['phon', 'daughter'])
+    }
+    dst.update()
   }
 
 }

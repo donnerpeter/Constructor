@@ -1,30 +1,12 @@
 package cons2
 
-import cons2.Log.FrameEvent
-import cons2.Log.AspectEvent
-
-/**
+ /**
  * @author peter
  */
-class RusEngTransfer {
-  Chart transfer(Chart rus) {
-    def desired = new Chart(new English())
-    Map<Frame, Frame> frameMappings = [:]
-    rus.log.interestingEvents(['sem']).each {evt ->
-      def srcFrame = evt.frame
-      if (evt instanceof FrameEvent && !((FrameEvent) evt).weakened) {
-        def dstFrame = srcFrame.children ? desired.construction(srcFrame.thematic, srcFrame.children.collect { frameMappings[it] } as List) : desired.newFrame()
-        frameMappings[srcFrame] = dstFrame
-      }
-      else if (evt instanceof AspectEvent) {
-        def aspect = ((AspectEvent) evt).newValue
-        if (aspect) {
-          frameMappings[srcFrame].enrich(aspect)
-        }
-      }
-      desired.update()
-    }
+class RusEngTransfer extends Transfer {
 
+  @Override
+  Chart generate(Chart desired) {
     def eng = new Chart(new English())
 
     desired.frames().findAll { it.ping(false, 'love') }.each { generateSentence(it, eng) }

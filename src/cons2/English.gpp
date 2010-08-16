@@ -6,6 +6,7 @@ package cons2
 class English implements Language {
   Inflection infl = new Inflection().
           wholeWord("mother", ["syn", "noun"], ["sem", "mother"]).
+          wholeWord("beautiful", ["syn", "adj"], ["sem", "beautiful"]).
           wholeWord("daughter", ["syn", "noun"], ["sem", "daughter"]).
           wholeWord("the", ['syn', 'article']).
           suffix("s", ['syn', 'verb'])
@@ -16,6 +17,7 @@ class English implements Language {
 
   SimpleQuery subject = ["noun", true, ["syn", 'subject'], ["sem", "state_experiencer"]]
   SimpleQuery object = ["noun", true, ["syn", 'object'], ["sem", "state_theme"]]
+  SimpleQuery property_host = ["noun", false, [new Aspect("sem", 'property_host')] as Aspect[]]
 
   void aspectAppeared(Frame host, Aspect aspect) {
     if (aspect.ping('article')) {
@@ -26,6 +28,11 @@ class English implements Language {
 
     if (aspect.ping('verb')) {
       subject.activate(host, true)
+      return
+    }
+
+    if (aspect.ping('adj')) {
+      property_host.activate host
       return
     }
 

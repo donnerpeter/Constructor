@@ -149,13 +149,18 @@ frame ^5 ^3: sem=state_experiencer
   }
 
   private def doTranslationTest(String rus, String eng) {
-    def chart = new Parser(new Russian()).parse(rus)
-    def dst = new RusEngTransfer().transfer(chart)
+    translate(new Russian(), new RusEngTransfer(), rus, eng)
+    translate(new English(), new EngRusTransfer(), eng, rus)
+  }
+
+  private def translate(Language language, Transfer transfer, String src, String expected) {
+    def chart = new Parser(language).parse(src)
+    def dst = transfer.transfer(chart)
     def actual = dst.log.phonString()
-    if (eng != actual) {
+    if (expected != actual) {
       println "Original analysis:\n" + chart.presentable()
       println "-------------\nTransferred:\n" + dst.log.presentable(['phon', 'syn', 'sem', 'stem'])
-      assertEquals eng, actual
+      assertEquals expected, actual
     }
   }
 

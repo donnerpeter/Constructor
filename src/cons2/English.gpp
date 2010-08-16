@@ -5,6 +5,7 @@ package cons2
  */
 class English implements Language {
   Inflection infl = new Inflection().
+          wholeWord("father", ["syn", "noun"], ["sem", "father"]).
           wholeWord("mother", ["syn", "noun"], ["sem", "mother"]).
           wholeWord("beautiful", ["syn", "adj"], ["sem", "beautiful"]).
           wholeWord("daughter", ["syn", "noun"], ["sem", "daughter"]).

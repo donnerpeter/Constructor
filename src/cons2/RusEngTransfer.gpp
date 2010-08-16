@@ -32,6 +32,8 @@ class RusEngTransfer extends Transfer {
       dst.newFrame(['phon', 'mother'])
     } else if (noun.ping(false, 'daughter')) {
       dst.newFrame(['phon', 'daughter'])
+    } else if (noun.ping(false, 'father')) {
+      dst.newFrame(['phon', 'father'])
     }
     dst.update()
   }

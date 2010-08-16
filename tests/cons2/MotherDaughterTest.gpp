@@ -76,6 +76,14 @@ frame ^5 ^2: sem=state_theme
     doTranslationTest "дочь любит красивую мать", "the daughter loves the beautiful mother"
   }
 
+  public void testDLFTrans() throws Exception {
+    doTranslationTest "дочь любит отца", "the daughter loves the father"
+  }
+
+  public void testFLDTrans() throws Exception {
+    doTranslationTest "отец любит дочь", "the father loves the daughter"
+  }
+
   public void testDLF() throws Exception {
     doTest "дочь любит отца", """
 frame: sem=daughter

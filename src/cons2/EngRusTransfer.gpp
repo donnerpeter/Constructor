@@ -31,6 +31,8 @@ class EngRusTransfer extends Transfer {
       dst.newFrame(['phon', 'мать'])
     } else if (noun.ping(false, 'daughter')) {
       dst.newFrame(['phon', 'дочь'])
+    } else if (noun.ping(false, 'father')) {
+      dst.newFrame(['phon', caze == 'nom' ? 'отец' : 'отца'])
     }
     dst.update()
   }

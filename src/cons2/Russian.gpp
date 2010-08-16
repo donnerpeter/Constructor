@@ -89,4 +89,32 @@ class Russian implements Language {
   SimpleQuery subject = ["nom", true, ["syn", 'subject'], ["sem", "state_experiencer"]]
   SimpleQuery object = ["acc", true, ["syn", 'object'], ["sem", "state_theme"]]
 
+  void generate(Chart sem, Chart to) {
+    sem.frames().findAll { it.ping(false, 'love') }.each { generateSentence(it, to) }
+  }
+
+  private void generateSentence(Frame verb, Chart dst) {
+    generateNP(dst, verb.strongUsages('state_experiencer')[0].children[1], 'nom')
+    dst.newFrame(['phon', 'любит'])
+    generateNP(dst, verb.strongUsages('state_theme')[0].children[1], 'acc')
+  }
+
+  private void generateNP(Chart dst, Frame noun, String caze) {
+    noun.strongUsages('property_host').each { rel ->
+      def adj = rel.children[0]
+      if (adj.ping(false, 'beautiful')) {
+        dst.newFrame(['phon', caze == 'nom' ? 'красивая' : 'красивую'])
+      }
+    }
+    if (noun.ping(false, 'mother')) {
+      dst.newFrame(['phon', 'мать'])
+    } else if (noun.ping(false, 'daughter')) {
+      dst.newFrame(['phon', 'дочь'])
+    } else if (noun.ping(false, 'father')) {
+      dst.newFrame(['phon', caze == 'nom' ? 'отец' : 'отца'])
+    }
+    dst.update()
+  }
+
+
 }

@@ -56,4 +56,32 @@ class English implements Language {
     }
   }
 
+  void generate(Chart sem, Chart to) {
+    sem.frames().findAll { it.ping(false, 'love') }.each { generateSentence(it, to) }
+  }
+
+  private void generateSentence(Frame verb, Chart dst) {
+    generateNP(dst, verb.strongUsages('state_experiencer')[0].children[1])
+    dst.newFrame(['phon', 'loves'])
+    generateNP(dst, verb.strongUsages('state_theme')[0].children[1])
+  }
+
+  private void generateNP(Chart dst, Frame noun) {
+    dst.newFrame(['phon', 'the'])
+    noun.strongUsages('property_host').each { rel ->
+      def adj = rel.children[0]
+      if (adj.ping(false, 'beautiful')) {
+        dst.newFrame(['phon', 'beautiful'])
+      }
+    }
+    if (noun.ping(false, 'mother')) {
+      dst.newFrame(['phon', 'mother'])
+    } else if (noun.ping(false, 'daughter')) {
+      dst.newFrame(['phon', 'daughter'])
+    } else if (noun.ping(false, 'father')) {
+      dst.newFrame(['phon', 'father'])
+    }
+    dst.update()
+  }
+
 }

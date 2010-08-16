@@ -11,4 +11,6 @@ interface Language {
 
   boolean wrapUp(Frame host, Aspect aspect)
 
+  void generate(Chart sem, Chart to)
+
 }

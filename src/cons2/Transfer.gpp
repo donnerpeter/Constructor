@@ -6,7 +6,7 @@ import cons2.Log.FrameEvent
 /**
  * @author peter
  */
-abstract class Transfer {
+class Transfer {
 
   Chart transfer(Chart rus) {
     def desired = new Chart(new English())
@@ -26,9 +26,7 @@ abstract class Transfer {
       desired.update()
     }
 
-    return generate(desired)
+    return desired
   }
-
-  abstract Chart generate(Chart desired)
 
 }

@@ -15,16 +15,16 @@ class EngRusTransfer extends Transfer {
   }
 
   private void generateSentence(Frame verb, Chart dst) {
-    generateNP(dst, verb.strongUsages('state_experiencer')[0].children[1])
+    generateNP(dst, verb.strongUsages('state_experiencer')[0].children[1], 'nom')
     dst.newFrame(['phon', 'любит'])
-    generateNP(dst, verb.strongUsages('state_theme')[0].children[1])
+    generateNP(dst, verb.strongUsages('state_theme')[0].children[1], 'acc')
   }
 
-  private void generateNP(Chart dst, Frame noun) {
+  private void generateNP(Chart dst, Frame noun, String caze) {
     noun.strongUsages('property_host').each { rel ->
       def adj = rel.children[0]
       if (adj.ping(false, 'beautiful')) {
-        dst.newFrame(['phon', 'красивая'])
+        dst.newFrame(['phon', caze == 'nom' ? 'красивая' : 'красивую'])
       }
     }
     if (noun.ping(false, 'mother')) {

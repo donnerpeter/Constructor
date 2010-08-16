@@ -59,7 +59,6 @@ frame ^3 ^1: sem=state_theme
   public void testBnDLMTrans() throws Exception {
     doTranslationTest "красивая дочь любит мать", "the beautiful daughter loves the mother"
   }
-
   public void testDLBaM() throws Exception {
     doTest "дочь любит красивую мать", """
 frame: sem=daughter
@@ -71,6 +70,10 @@ frame ^2 ^1: sem=property_host
 frame ^5 ^2: sem=state_theme
 ^3: sem=mother
 """
+  }
+
+  public void testDLBaMTrans() throws Exception {
+    doTranslationTest "дочь любит красивую мать", "the daughter loves the beautiful mother"
   }
 
   public void testDLF() throws Exception {

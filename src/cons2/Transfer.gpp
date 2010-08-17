@@ -14,8 +14,12 @@ class Transfer {
     rus.log.interestingEvents(['sem']).each {evt ->
       def srcFrame = evt.frame
       if (evt instanceof FrameEvent && !((FrameEvent) evt).weakened) {
-        def dstFrame = srcFrame.children ? desired.construction(srcFrame.thematic, srcFrame.children.collect { frameMappings[it] } as List) : desired.newFrame()
-        frameMappings[srcFrame] = dstFrame
+        def finalFrame = srcFrame.resolve()
+        if (!frameMappings[finalFrame]) {
+          def dstFrame = srcFrame.children ? desired.construction(srcFrame.thematic, srcFrame.children.collect { frameMappings[it] } as List) : desired.newFrame()
+          frameMappings[finalFrame] = dstFrame
+        }
+
       }
       else if (evt instanceof AspectEvent) {
         def aspect = ((AspectEvent) evt).newValue

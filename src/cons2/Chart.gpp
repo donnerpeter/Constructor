@@ -2,6 +2,7 @@ package cons2
 
 import cons2.Log.Event
 import cons2.Log.FrameEvent
+import cons2.Log.MergeEvent
 
 /**
  * @author peter
@@ -36,7 +37,7 @@ class Chart {
   }
 
   Frame construction(int theta = -1, List<Frame> children, Aspect... alternatives) {
-    registerFrame(new Frame(this, theta, children).addConstructs(alternatives))
+     registerFrame(new Frame(this, theta, children).addConstructs(alternatives))
   }
 
   List<Frame> findActive(boolean thematic, def pattern) {
@@ -107,6 +108,14 @@ class Chart {
 
     active.removeAll finished
     dirty.removeAll finished
+  }
+
+  void merge(Frame loser, Frame into) {
+    loser.adopter = into
+    frames.remove loser
+    active.remove loser
+    dirty.remove loser
+    log.event new MergeEvent(into, loser)
   }
 
   void weaken(Frame f) {

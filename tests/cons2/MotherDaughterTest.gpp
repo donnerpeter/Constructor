@@ -17,12 +17,13 @@ frame ^3 ^1: sem=state_theme
 """
 
     doEnglishTest "the mother loves the daughter", """
-frame: sem=mother
+frame
+frame: sem=mother, ==^1
 frame: sem=love
 frame ^1 ^2: sem=state_experiencer
 frame
 frame ^3 ^1: sem=state_theme
-^2: sem=daughter
+frame: sem=daughter, ==^2
 """
   }
 
@@ -48,7 +49,7 @@ frame ^3 ^1: sem=state_theme
 frame: sem=beautiful
 frame
 frame ^2 ^1: sem=property_host
-^2: sem=daughter
+frame: sem=daughter, ==^2
 frame: sem=love
 frame ^1 ^2: sem=state_experiencer
 frame: sem=mother
@@ -68,7 +69,7 @@ frame: sem=beautiful
 frame
 frame ^2 ^1: sem=property_host
 frame ^5 ^2: sem=state_theme
-^3: sem=mother
+frame: sem=mother, ==^3
 """
   }
 
@@ -119,7 +120,7 @@ frame ^3 ^1: sem=state_experiencer
 frame: sem=beautiful
 frame
 frame ^2 ^1: sem=property_host
-^2: sem=mother
+frame: sem=mother, ==^2
 frame: sem=love
 frame ^1 ^2: sem=state_theme
 frame: sem=daughter
@@ -135,7 +136,7 @@ frame ^1 ^2: sem=state_experiencer
 frame: sem=beautiful
 frame
 frame ^2 ^1: sem=property_host
-^2: sem=daughter
+frame: sem=daughter, ==^2
 ^5: weaken
 frame ^7 ^8: sem=state_theme
 frame ^8 ^3: sem=state_experiencer

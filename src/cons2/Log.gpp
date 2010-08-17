@@ -11,12 +11,12 @@ class Log {
   }
 
   private Set<Frame> interestingFrames(Set<String> roles) {
-    events.filter { it instanceof AspectEvent && ((AspectEvent)it).role in roles && !it.frame.adopter }.collect { it.frame } as Set
+    events.filter { it instanceof AspectEvent && ((AspectEvent)it).role in roles }.collect { it.frame.resolve() } as Set
   }
 
   List<Event> interestingEvents(Set<String> roles) {
     def frames = interestingFrames(roles)
-    events.findAll { it.frame in frames && (it instanceof FrameEvent || ((AspectEvent)it).role in roles) }
+    events.findAll { it.frame.resolve() in frames && (!(it instanceof AspectEvent) || ((AspectEvent)it).role in roles) }
   }
 
   private List<List<Event>> groupEvents(Set<String> roles) {
@@ -60,20 +60,19 @@ class Log {
         line = frameReference(stack, frame)
       } else {
         assert group[0] instanceof FrameEvent
-        line = "frame" + frame.children.collect { " " + frameReference(stack, it) }.join("")
+        line = "frame" + frame.args.collect { " " + frameReference(stack, it) }.join("")
         group.remove(0)
       }
-      stack.addFirst frame
-
       if (group) {
-        line += ": " + group.collect { it.presentable() }.join(", ")
+        line += ": " + group.collect { it.presentable(stack) }.join(", ")
       }
+      stack.addFirst frame
       out += line + "\n"
     }
     out
   }
 
-  private String frameReference(LinkedList<Frame> stack, Frame frame) {
+  private static String frameReference(LinkedList<Frame> stack, Frame frame) {
     def idx = stack.indexOf(frame)
     if (idx < 0) {
       return "^_"
@@ -89,7 +88,7 @@ class Log {
       this.frame = frame
     }
 
-    abstract String presentable()
+    abstract String presentable(LinkedList<Frame> stack)
   }
 
   static class AspectEvent extends Event {
@@ -108,7 +107,7 @@ class Log {
     }
 
     @Override
-    String presentable() {
+    String presentable(LinkedList<Frame> stack) {
       "$role=$newValue"
     }
 
@@ -128,9 +127,25 @@ class Log {
     }
 
     @Override
-    String presentable() {
+    String presentable(LinkedList<Frame> stack) {
       "weaken"
     }
+
+  }
+
+  static class MergeEvent extends Event {
+    final Frame loser
+
+    MergeEvent(Frame frame, Frame loser) {
+      super(frame)
+      this.loser = loser
+    }
+
+    @Override
+    String presentable(LinkedList<Frame> stack) {
+      "==" + Log.frameReference(stack, loser)
+    }
+
 
   }
 }

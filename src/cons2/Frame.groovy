@@ -12,14 +12,28 @@ class Frame {
   private final Map<String, Aspect> chosen = [:]
   private final Set<Aspect> initialized = []
   Frame adopter
-  Frame[] children
+  Frame[] args
   int thematic
 
   def Frame(Chart chart, int thematic, Frame... args) {
     this.chart = chart
     this.thematic = thematic
-    this.children = args
+    this.args = args
+    for (arg in args) {
+      assert arg
+    }
     chart.event(new FrameEvent(this, false))
+  }
+
+  List<Frame> getChildren() {
+    args.collect { it.resolve() }
+  }
+
+  Frame resolve() {
+    if (adopter) {
+      return adopter.resolve()
+    }
+    return this
   }
 
   void removeAlternative(Aspect construct) {
@@ -133,16 +147,5 @@ class Frame {
     chart.activate this
   }
 
-  void adoptContent(Frame source) {
-    source.alternatives.each { role, constructs ->
-      def wasEmpty = !alternatives[role]
-      alternatives.get(role, []).addAll(constructs)
-      if (wasEmpty) {
-        setChosen role, source.chosen[role]
-      }
-    }
-    source.adopter = this
-    chart.weaken source
-  }
 }
 

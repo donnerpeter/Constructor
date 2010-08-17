@@ -18,8 +18,8 @@ class AnticipatingConstruct extends Aspect {
     if (!goal) return
 
     host.removeAlternative(this)
-    host.adoptContent(goal)
-    host.chosenAs nicknames
+    host.chart.merge(host, goal)
+    goal.chosenAs nicknames
   }
 
 }

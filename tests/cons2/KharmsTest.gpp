@@ -1,0 +1,52 @@
+package cons2
+
+import junit.framework.TestCase
+
+/**
+ * @author peter
+ */
+class KharmsTest extends TestCase {
+
+  public void test7or8() throws Exception {
+    doTest "Удивительный случай случился со мной", """
+frame: sem=AMAZING
+frame
+frame ^2 ^1: sem=property_host
+frame: sem=THING, ==^2
+frame: sem=HAPPEN
+frame ^1 ^2: sem=state_experiencer
+frame
+frame ^3 ^1: sem=THEME
+frame: sem=I, ==^2
+"""
+  }
+
+  private def doTest(String input, String expected) {
+    def chart = new Parser(new Russian()).parse(input)
+    assertEquals expected.trim() + "\n", chart.presentable().trim() + "\n"
+  }
+
+  private def doTranslationTest(String rus, String eng) {
+    translate(new Russian(), new English(), rus, eng)
+    translate(new English(), new Russian(), eng, rus)
+  }
+
+  private def translate(Language srcLanguage, Language dstLanguage, String src, String expected) {
+    def chart = new Parser(srcLanguage).parse(src)
+    def desired = new Transfer().transfer(chart)
+    def dst = new Chart(dstLanguage)
+    dstLanguage.generate(desired, dst)
+    def actual = dst.log.phonString()
+    if (expected != actual) {
+      println "Original analysis:\n" + chart.presentable()
+      println "-------------\nTransferred:\n" + dst.log.presentable(['phon', 'syn', 'sem', 'stem'])
+      assertEquals expected, actual
+    }
+  }
+
+  private def doEnglishTest(String input, String expected) {
+    def chart = new Parser(new English()).parse(input)
+    assertEquals expected.trim() + "\n", chart.presentable().trim() + "\n"
+  }
+
+}

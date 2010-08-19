@@ -9,9 +9,14 @@ class Russian implements Language {
           wholeWord("дочь", ["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "daughter"]).
           wholeWord("отец", ["syn", "noun", "nom"], ["sem", "father"]).
           wholeWord("отца", ["syn", "noun", "acc"], ["sem", "father"]).
+          wholeWord("случай", ["syn", "noun", "nom"], ["sem", "THING"]).
+          wholeWord("случился", ["syn", "verb"], ['sem', 'HAPPEN'], ['time', 'PAST']).
+          wholeWord("со", ["syn", "prep"]).
+          wholeWord("мной", ["syn", "noun", 'instr'], ['sem', 'I']).
           suffix("ит", ['syn', 'verb']).
           suffix("ая", ['syn', 'adj', 'adj_nom']).
-          suffix("ую", ['syn', 'adj', 'adj_acc'])
+          suffix("ую", ['syn', 'adj', 'adj_acc']).
+          suffix("ый", ['syn', 'adj', 'adj_nom'])
 
   void aspectAppeared(Frame host, Aspect aspect) {
     if (aspect.role == 'phon') {
@@ -34,6 +39,12 @@ class Russian implements Language {
       return
     }
 
+    if (aspect.ping('prep')) {
+      def caze = 'instr'
+      def arg = host.chart.newFrame(new AnticipatingConstruct(["noun", caze], "noun"))
+      host.chart.construction(0, [host, arg], ['syn', 'prep_noun'])
+    }
+
     if (aspect.role == 'stem') {
       def stem = aspect.nicknames.iterator().next()
       if (stem == "люб") {
@@ -41,6 +52,9 @@ class Russian implements Language {
       }
       if (stem == "красив") {
         host.enrich(["sem", "beautiful"])
+      }
+      if (stem == "Удивительн") {
+        host.enrich(["sem", "AMAZING"])
       }
     }
 
@@ -56,12 +70,28 @@ class Russian implements Language {
     if (aspect.ping('verb')) {
       subject.activate host
       object.activate host
+
+      def stv = host.strongUsages('с+тв')[0]
+      if (stv && !stv['sem']) {
+        stv.enrich(['sem', 'THEME'])
+      }
+
       return
+    }
+
+    if (aspect.ping('prep_noun')) {
+      def noun = host.children[1]
+      if (!noun.strongUsages(['с+тв'])) {
+        def verb = noun.findAround(false, 'verb')
+        if (verb) {
+          verb.chart.construction(-1, [verb, noun], ['syn', 'с+тв'])
+        }
+      }
     }
   }
 
   boolean wrapUp(Frame host, Aspect aspect) {
-    if (aspect.ping('verb')) {
+    if (aspect.ping('love')) {
       if (subject.satisfied(host) && object.satisfied(host)) {
         return true
       }

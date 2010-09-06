@@ -12,11 +12,13 @@ class Parser {
 
   Chart parse(String text) {
     def chart = new Chart(language)
-    def words = text.split(" ")
+    def tokenizer = new StringTokenizer(text, " :", true)
+    for (String w in tokenizer) {
+      if (w != ' ') {
+        chart.newFrame(['phon', w])
+        chart.update()
+      }
 
-    for (w in words) {
-      chart.newFrame(['phon', w])
-      chart.update()
     }
 
     chart.wrapUp()

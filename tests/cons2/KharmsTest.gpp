@@ -8,7 +8,8 @@ import junit.framework.TestCase
 class KharmsTest extends TestCase {
 
   public void test7or8() throws Exception {
-    doTest "Удивительный случай случился со мной", """
+    doTest "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8",
+            """
 frame: sem=AMAZING
 frame
 frame ^2 ^1: sem=property_host
@@ -18,6 +19,22 @@ frame ^1 ^2: sem=state_experiencer
 frame
 frame ^3 ^1: sem=THEME
 frame: sem=I, ==^2
+frame: sem=I
+frame: sem=SUDDENLY
+frame: sem=FORGET
+frame ^2 ^1: sem=MODE
+frame ^2 ^4: sem=state_experiencer
+frame: sem=WHAT
+frame: sem=GO
+frame ^1 ^2: sem=AGENT
+frame: sem=EARLIER
+frame ^3 ^1: sem=SCALAR_END
+^4: sem=null, sem=COME_SCALARLY
+frame: sem=number7
+frame: sem=OR
+frame ^1 ^2: sem=CONJ_LEFT
+frame: sem=number8
+frame ^3 ^1: sem=CONJ_RIGHT
 """
   }
 

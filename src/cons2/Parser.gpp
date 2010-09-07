@@ -11,12 +11,16 @@ class Parser {
   }
 
   Chart parse(String text) {
-    def chart = new Chart(language)
-    def tokenizer = new StringTokenizer(text, " :", true)
+    Chart chart = new Chart(language)
+    def tokenizer = new StringTokenizer(text, " :,", true)
     for (String w in tokenizer) {
       if (w != ' ') {
-        chart.newFrame(['phon', w])
-        chart.update()
+        try {
+          Integer.parseInt(w)
+          chart.newFrame(['sem', "number" + w])
+        } catch (NumberFormatException e) {
+          chart.newFrame(['phon', w])
+        }
       }
 
     }

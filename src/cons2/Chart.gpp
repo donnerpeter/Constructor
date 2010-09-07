@@ -37,7 +37,7 @@ class Chart {
   }
 
   Frame construction(int theta = -1, List<Frame> children, Aspect... alternatives) {
-     registerFrame(new Frame(this, theta, children).addConstructs(alternatives))
+     registerFrame(new Frame(this, theta, children)).addConstructs(alternatives)
   }
 
   List<Frame> findActive(boolean thematic, def pattern) {
@@ -45,7 +45,7 @@ class Chart {
   }
 
   Frame newFrame(Aspect... alternatives) {
-    registerFrame(new Frame(this, -1).addConstructs(alternatives))
+    registerFrame(new Frame(this, -1)).addConstructs(alternatives)
   }
 
   private Frame registerFrame(Frame frame) {
@@ -144,7 +144,11 @@ class Chart {
   }
 
   void event(Event event) {
-    dirty.addAll active
+    allDirty()
     log.event event
+  }
+
+  void allDirty() {
+    dirty.addAll active
   }
 }

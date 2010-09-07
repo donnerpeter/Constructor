@@ -13,6 +13,13 @@ class Russian implements Language {
           wholeWord("случился", ["syn", "verb"], ['sem', 'HAPPEN'], ['time', 'PAST']).
           wholeWord("со", ["syn", "prep"]).
           wholeWord("мной", ["syn", "noun", 'instr'], ['sem', 'I']).
+          wholeWord("забыл", ["syn", "verb"], ['sem', 'FORGET'], ['time', 'PAST']).
+          wholeWord("вдруг", ["syn", "adverb"], ['sem', 'SUDDENLY']).
+          wholeWord("я", ["syn", "noun", 'nom'], ['sem', 'I']).
+          wholeWord("что", ["syn", "noun", 'nom'], ['sem', 'WHAT']).
+          wholeWord("идет", ["syn", "verb", "идти"], ['sem', 'GO']).
+          wholeWord("раньше", ["syn", "adverb", 'scalar'], ['sem', 'EARLIER']).
+          wholeWord("или", ["syn", "conj"], ['sem', 'OR']).
           suffix("ит", ['syn', 'verb']).
           suffix("ая", ['syn', 'adj', 'adj_nom']).
           suffix("ую", ['syn', 'adj', 'adj_acc']).
@@ -21,6 +28,13 @@ class Russian implements Language {
   void aspectAppeared(Frame host, Aspect aspect) {
     if (aspect.role == 'phon') {
       infl.analyze host, aspect
+
+      if (aspect.ping(':')) {
+        def verb = host.findAround(false, 'verb')
+        if (verb) {
+          verb.chart.wrapUp verb
+        }
+      }
       return
     }
 
@@ -28,9 +42,20 @@ class Russian implements Language {
       def caze = aspect.ping('adj_nom') ? 'nom' : 'acc'
       def adj = new SimpleQuery(caze, false, ['syn', 'adjective_noun'], ['sem', 'property_host'])
       if (!adj.activate(host)) {
-        host.chart.newFrame(new AnticipatingConstruct(["noun", caze], "noun"))
+        def noun = host.chart.newFrame(new AnticipatingConstruct(["noun", caze], "noun"))
+        host.chart.construction(-1, [host, noun], ['syn', 'adjective_noun'], ['sem', 'property_host'])
       }
       return
+    }
+
+    if (aspect.ping('prep_noun')) {
+      def noun = host.children[1]
+      if (!noun.strongUsages(['с+тв'])) {
+        def verb = noun.findAround(false, 'verb')
+        if (verb) {
+          verb.chart.construction(-1, [verb, noun], ['syn', 'с+тв'])
+        }
+      }
     }
 
     if (aspect.ping('verb')) {
@@ -42,7 +67,7 @@ class Russian implements Language {
     if (aspect.ping('prep')) {
       def caze = 'instr'
       def arg = host.chart.newFrame(new AnticipatingConstruct(["noun", caze], "noun"))
-      host.chart.construction(0, [host, arg], ['syn', 'prep_noun'])
+      host.chart.construction(1, [host, arg], ['syn', 'prep_noun'])
     }
 
     if (aspect.role == 'stem') {
@@ -58,15 +83,21 @@ class Russian implements Language {
       }
     }
 
+    if (aspect.ping('subject') && !host['sem']) {
+      Frame verb = host.children[0]
+      host.enrich(['sem', verb.ping(false, 'идти') ? 'AGENT' : 'state_experiencer'])
+    }
+
+    if (aspect.ping('conj')) {
+      def left = host.findAround(true, [])
+      if (left) {
+        host.chart.construction(1, [host, left], ['sem', 'CONJ_LEFT'])
+      }
+    }
+
   }
 
   void contextChanged(Frame host, Aspect aspect) {
-    if (aspect.ping('adj')) {
-      def caze = aspect.ping('adj_nom') ? 'nom' : 'acc'
-      new SimpleQuery(caze, false, ['syn', 'adjective_noun'], ['sem', 'property_host']).activate(host)
-      return
-    }
-
     if (aspect.ping('verb')) {
       subject.activate host
       object.activate host
@@ -76,17 +107,27 @@ class Russian implements Language {
         stv.enrich(['sem', 'THEME'])
       }
 
+      if (aspect.ping('идти')) {
+        def scalar = host.findAround(true, ['adverb', 'scalar'])
+        if (scalar) {
+          host.chart.construction(1, [host, scalar], ['syn', 'adv_mod'], ['sem', 'SCALAR_END'])
+          host.enrich(['sem', 'COME_SCALARLY'])
+          host.chosenAs 'COME_SCALARLY'
+        }
+      }
+
       return
     }
 
-    if (aspect.ping('prep_noun')) {
-      def noun = host.children[1]
-      if (!noun.strongUsages(['с+тв'])) {
-        def verb = noun.findAround(false, 'verb')
-        if (verb) {
-          verb.chart.construction(-1, [verb, noun], ['syn', 'с+тв'])
-        }
+    if (aspect.ping('conj') && !host.strongUsages('CONJ_RIGHT')) {
+      def right = host.findAround(true, [])
+      if (right) {
+        host.chart.construction(1, [host, right], ['sem', 'CONJ_RIGHT'])
       }
+    }
+
+    if (aspect.ping('adverb')) {
+      adverb.activate(host, false)
     }
   }
 
@@ -116,8 +157,9 @@ class Russian implements Language {
     true
   }
 
-  SimpleQuery subject = ["nom", true, ["syn", 'subject'], ["sem", "state_experiencer"]]
+  SimpleQuery subject = ["nom", true, ["syn", 'subject']]
   SimpleQuery object = ["acc", true, ["syn", 'object'], ["sem", "state_theme"]]
+  SimpleQuery adverb = ["verb", false, ["syn", 'adv_mod'], ["sem", "MODE"]]
 
   void generate(Chart sem, Chart to) {
     sem.frames().findAll { it.ping(false, 'love') }.each { generateSentence(it, to) }

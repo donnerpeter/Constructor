@@ -63,12 +63,17 @@ class Frame {
     affectedRoles.each { role ->
       setChosen(role,  alternatives[role].size() != 1 ? null : alternatives[role][0])
     }
+
+    chart.allDirty()
+    chart.update()
+
     added.each {
       if (!chosen[it.role] || chosen[it.role] == it) {
         chart.aspectAppeared this, it
       }
       initialized << it
     }
+
     this
   }
 

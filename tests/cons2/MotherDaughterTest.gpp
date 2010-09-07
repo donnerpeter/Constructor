@@ -67,8 +67,8 @@ frame: sem=love
 frame ^1 ^2: sem=state_experiencer
 frame: sem=beautiful
 frame
-frame ^2 ^1: sem=property_host
-frame ^5 ^2: sem=state_theme
+frame ^4 ^1: sem=state_theme
+frame ^3 ^2: sem=property_host
 frame: sem=mother, ==^3
 """
   }

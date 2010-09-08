@@ -33,15 +33,15 @@ class Chart {
   }
 
   List<Frame> usages(Frame f, boolean includeWeak = false, def pattern) {
-    frames(includeWeak).findAll { f in it.children && it.ping(false, pattern) }
+    frames(includeWeak).findAll { f in it.children && it.ping(pattern) }
   }
 
   Frame construction(int theta = -1, List<Frame> children, Aspect... alternatives) {
      registerFrame(new Frame(this, theta, children)).addConstructs(alternatives)
   }
 
-  List<Frame> findActive(boolean thematic, def pattern) {
-    return active.findAll { it.ping(thematic, pattern) }
+  List<Frame> findActive(def pattern) {
+    return active.findAll { it.ping(pattern) }
   }
 
   Frame newFrame(Aspect... alternatives) {

@@ -5,12 +5,10 @@ package cons2
  */
 class SimpleQuery {
   def pattern
-  boolean thematic
   Aspect[] cxts
 
-  def SimpleQuery(def pattern, boolean thematic, Aspect... cxts) {
+  def SimpleQuery(def pattern, Aspect... cxts) {
     this.pattern = pattern;
-    this.thematic = thematic;
     this.cxts = cxts
   }
 
@@ -19,7 +17,7 @@ class SimpleQuery {
   }
 
   List<Frame> allArgumentCandidates(Frame f) {
-    f.findAllActiveAround(false, pattern)
+    f.findAllActiveAround(pattern)
   }
 
   Frame getArg(Frame f) {
@@ -45,7 +43,7 @@ class SimpleQuery {
   }
 
   protected Frame findArgument(Frame head) {
-    return head.findAround(thematic, pattern)
+    return head.findAround(pattern)
   }
 
   void instantiate(Frame self, Frame arg) {
@@ -57,7 +55,7 @@ class SimpleQuery {
       return
     }
 
-    self.chart.construction(thematic ? 1 : -1, [self, arg], cxts)
+    self.chart.construction(-1, [self, arg], cxts)
   }
 
   void weaken(Frame head) {

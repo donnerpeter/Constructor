@@ -14,7 +14,7 @@ class AnticipatingConstruct extends Aspect {
   }
 
   void contextChanged(Frame host) {
-    def goal = host.findAround(false, realHeadPattern)
+    def goal = host.findAround(realHeadPattern)
     if (!goal) return
 
     host.removeAlternative(this)

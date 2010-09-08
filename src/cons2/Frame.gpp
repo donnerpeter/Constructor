@@ -81,12 +81,12 @@ class Frame {
     chart.usages(this, false, pattern)
   }
 
-  Frame findAround(boolean thematic, def pattern) {
-    return findAllActiveAround(thematic, pattern).find { true }
+  Frame findAround(def pattern) {
+    return findAllActiveAround(pattern).find { true }
   }
 
-  List<Frame> findAllActiveAround(boolean thematic, def pattern) {
-    def active = chart.findActive(thematic, pattern)
+  List<Frame> findAllActiveAround(def pattern) {
+    def active = chart.findActive(pattern)
     return active - this
   }
 
@@ -126,11 +126,7 @@ class Frame {
     return chosen[role] ? [chosen[role]] : alternatives[role]
   }
 
-  boolean ping(boolean thematic, def pattern) {
-    if (thematic && strongUsages([]).any { ((Frame) this) in it.thematicChildren }) {
-      return false
-    }
-
+  boolean ping(def pattern) {
     return findDimension(pattern) != null
   }
 

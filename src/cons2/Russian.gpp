@@ -49,7 +49,7 @@ class Russian implements Language {
     }
 
     if (aspect.ping('prep_noun')) {
-      def noun = host.children[1]
+      Frame noun = host.children[1]
       if (!noun.strongUsages(['с+тв'])) {
         def verb = noun.findAround(false, 'verb')
         if (verb) {
@@ -187,7 +187,7 @@ class Russian implements Language {
 
   private void generateNP(Chart dst, Frame noun, String caze) {
     noun.strongUsages('property_host').each { rel ->
-      def adj = rel.children[0]
+      Frame adj = rel.children[0]
       if (adj.ping(false, 'beautiful')) {
         dst.newFrame(['phon', caze == 'nom' ? 'красивая' : 'красивую'])
       }

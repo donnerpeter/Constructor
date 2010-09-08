@@ -69,7 +69,7 @@ class English implements Language {
   private void generateNP(Chart dst, Frame noun) {
     dst.newFrame(['phon', 'the'])
     noun.strongUsages('property_host').each { rel ->
-      def adj = rel.children[0]
+      Frame adj = rel.children[0]
       if (adj.ping(false, 'beautiful')) {
         dst.newFrame(['phon', 'beautiful'])
       }

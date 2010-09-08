@@ -13,7 +13,7 @@ class Russian implements Language {
           wholeWord("случился", ["syn", "verb"], ['sem', 'HAPPEN'], ['time', 'PAST']).
           wholeWord("со", ["syn", "prep"]).
           wholeWord("мной", ["syn", "noun", 'instr'], ['sem', 'I']).
-          wholeWord("забыл", ["syn", "verb"], ['sem', 'FORGET'], ['time', 'PAST']).
+          wholeWord("забыл", ["syn", "verb"], ['sem', 'FORGET'], ['time', 'PAST'], ['subcat', '2whq']).
           wholeWord("вдруг", ["syn", "adverb"], ['sem', 'SUDDENLY']).
           wholeWord("я", ["syn", "noun", 'nom'], ['sem', 'I']).
           wholeWord("что", ["syn", "noun", 'nom'], ['sem', 'WHAT']).
@@ -73,7 +73,7 @@ class Russian implements Language {
     if (aspect.role == 'stem') {
       def stem = aspect.nicknames.iterator().next()
       if (stem == "люб") {
-        host.enrich(["sem", "love"])
+        host.enrich(['subcat', '2acc'], ["sem", "love"])
       }
       if (stem == "красив") {
         host.enrich(["sem", "beautiful"])
@@ -100,7 +100,13 @@ class Russian implements Language {
   void contextChanged(Frame host, Aspect aspect) {
     if (aspect.ping('verb')) {
       subject.activate host
-      object.activate host
+
+      if (host.ping(false, '2acc')) {
+        object.activate host
+      }
+      if (host.ping(false, '2whq')) {
+        whComp.activate host
+      }
 
       def stv = host.strongUsages('с+тв')[0]
       if (stv && !stv['sem']) {
@@ -159,6 +165,7 @@ class Russian implements Language {
 
   SimpleQuery subject = ["nom", true, ["syn", 'subject']]
   SimpleQuery object = ["acc", true, ["syn", 'object'], ["sem", "state_theme"]]
+  SimpleQuery whComp = ["verb", true, ["syn", 'comp'], ["sem", "THEME"]]
   SimpleQuery adverb = ["verb", false, ["syn", 'adv_mod'], ["sem", "MODE"]]
 
   void generate(Chart sem, Chart to) {

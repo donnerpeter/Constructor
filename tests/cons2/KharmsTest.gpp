@@ -26,10 +26,11 @@ frame ^2 ^1: sem=MODE
 frame ^2 ^4: sem=state_experiencer
 frame: sem=WHAT
 frame: sem=GO
-frame ^1 ^2: sem=AGENT
+frame ^5 ^1: sem=THEME
+frame ^2 ^3: sem=AGENT
 frame: sem=EARLIER
-frame ^3 ^1: sem=SCALAR_END
-^4: sem=null, sem=COME_SCALARLY
+frame ^4 ^1: sem=SCALAR_END
+^5: sem=null, sem=COME_SCALARLY
 frame: sem=number7
 frame: sem=OR
 frame ^1 ^2: sem=CONJ_LEFT

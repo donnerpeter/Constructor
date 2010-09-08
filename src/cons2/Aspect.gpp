@@ -8,14 +8,9 @@ class Aspect {
   final String role
   final Set<String> nicknames
 
-  def Aspect(String role, String name) {
+  def Aspect(String role, String... names) {
     this.role = role
-    this.nicknames = [name] as LinkedHashSet;
-  }
-
-  def Aspect(String role, String name1, name2) {
-    this.role = role
-    this.nicknames = [name1, name2] as LinkedHashSet
+    this.nicknames = names as LinkedHashSet
   }
 
   def Aspect(String role, Set<String> nicknames) {

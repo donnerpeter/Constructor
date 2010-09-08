@@ -17,25 +17,25 @@ frame: sem=THING, ==^2
 frame: sem=HAPPEN
 frame ^1 ^2: sem=state_experiencer
 frame
-frame ^3 ^1: sem=THEME
+frame ^3 ^1: sem=theme
 frame: sem=I, ==^2
 frame: sem=I
 frame: sem=SUDDENLY
 frame: sem=FORGET
-frame ^2 ^1: sem=MODE
+frame ^2 ^1: sem=mode
 frame ^2 ^4: sem=state_experiencer
 frame: sem=WHAT
 frame: sem=GO
-frame ^5 ^1: sem=THEME
-frame ^2 ^3: sem=AGENT
+frame ^5 ^1: sem=theme
+frame ^2 ^3: sem=agent, wh_focus=true
 frame: sem=EARLIER
-frame ^4 ^1: sem=SCALAR_END
+frame ^4 ^1: sem=scalar_end
 ^5: sem=null, sem=COME_SCALARLY
 frame: sem=number7
 frame: sem=OR
-frame ^1 ^2: sem=CONJ_LEFT
+frame ^1 ^2: sem=conj_left
 frame: sem=number8
-frame ^3 ^1: sem=CONJ_RIGHT
+frame ^3 ^1: sem=conj_right
 """
   }
 

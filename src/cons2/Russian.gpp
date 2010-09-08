@@ -16,7 +16,7 @@ class Russian implements Language {
           wholeWord("забыл", ["syn", "verb"], ['sem', 'FORGET'], ['time', 'PAST'], ['subcat', '2whq']).
           wholeWord("вдруг", ["syn", "adverb"], ['sem', 'SUDDENLY']).
           wholeWord("я", ["syn", "noun", 'nom'], ['sem', 'I']).
-          wholeWord("что", ["syn", "noun", 'nom'], ['sem', 'WHAT']).
+          wholeWord("что", ["syn", "noun", 'nom', 'wh'], ['sem', 'WHAT']).
           wholeWord("идет", ["syn", "verb", "идти"], ['sem', 'GO']).
           wholeWord("раньше", ["syn", "adverb", 'scalar'], ['sem', 'EARLIER']).
           wholeWord("или", ["syn", "conj"], ['sem', 'OR']).
@@ -85,13 +85,20 @@ class Russian implements Language {
 
     if (aspect.ping('subject') && !host['sem']) {
       Frame verb = host.children[0]
-      host.enrich(['sem', verb.ping(false, 'идти') ? 'AGENT' : 'state_experiencer'])
+      host.enrich(['sem', verb.ping(false, 'идти') ? 'agent' : 'state_experiencer'])
+    }
+
+    if (aspect.ping('verb_arg') && !host['wh_focus']) {
+      Frame arg = host.children[1]
+      if (arg.ping(false, 'wh')) {
+        host.enrich(['wh_focus', 'true'])
+      }
     }
 
     if (aspect.ping('conj')) {
       def left = host.findAround(true, [])
       if (left) {
-        host.chart.construction(1, [host, left], ['sem', 'CONJ_LEFT'])
+        host.chart.construction(1, [host, left], ['sem', 'conj_left'])
       }
     }
 
@@ -110,13 +117,13 @@ class Russian implements Language {
 
       def stv = host.strongUsages('с+тв')[0]
       if (stv && !stv['sem']) {
-        stv.enrich(['sem', 'THEME'])
+        stv.enrich(['sem', 'theme'])
       }
 
       if (aspect.ping('идти')) {
         def scalar = host.findAround(true, ['adverb', 'scalar'])
         if (scalar) {
-          host.chart.construction(1, [host, scalar], ['syn', 'adv_mod'], ['sem', 'SCALAR_END'])
+          host.chart.construction(1, [host, scalar], ['syn', 'adv_mod'], ['sem', 'scalar_end'])
           host.enrich(['sem', 'COME_SCALARLY'])
           host.chosenAs 'COME_SCALARLY'
         }
@@ -125,10 +132,10 @@ class Russian implements Language {
       return
     }
 
-    if (aspect.ping('conj') && !host.strongUsages('CONJ_RIGHT')) {
+    if (aspect.ping('conj') && !host.strongUsages('conj_right')) {
       def right = host.findAround(true, [])
       if (right) {
-        host.chart.construction(1, [host, right], ['sem', 'CONJ_RIGHT'])
+        host.chart.construction(1, [host, right], ['sem', 'conj_right'])
       }
     }
 
@@ -163,10 +170,10 @@ class Russian implements Language {
     true
   }
 
-  SimpleQuery subject = ["nom", true, ["syn", 'subject']]
-  SimpleQuery object = ["acc", true, ["syn", 'object'], ["sem", "state_theme"]]
-  SimpleQuery whComp = ["verb", true, ["syn", 'comp'], ["sem", "THEME"]]
-  SimpleQuery adverb = ["verb", false, ["syn", 'adv_mod'], ["sem", "MODE"]]
+  SimpleQuery subject = ["nom", true, ["syn", 'subject', 'verb_arg']]
+  SimpleQuery object = ["acc", true, ["syn", 'object', 'verb_arg'], ["sem", "state_theme"]]
+  SimpleQuery whComp = ["verb", true, ["syn", 'comp', 'verb_arg'], ["sem", "theme"]]
+  SimpleQuery adverb = ["verb", false, ["syn", 'adv_mod'], ["sem", "mode"]]
 
   void generate(Chart sem, Chart to) {
     sem.frames().findAll { it.ping(false, 'love') }.each { generateSentence(it, to) }

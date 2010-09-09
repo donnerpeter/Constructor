@@ -36,8 +36,8 @@ class Chart {
     frames(includeWeak).findAll { f in it.children && it.ping(pattern) }
   }
 
-  Frame construction(int theta = -1, List<Frame> children, Aspect... alternatives) {
-     registerFrame(new Frame(this, theta, children)).addConstructs(alternatives)
+  Frame construction(List<Frame> children, Aspect... alternatives) {
+     registerFrame(new Frame(this, children)).addConstructs(alternatives)
   }
 
   List<Frame> findActive(def pattern) {
@@ -45,7 +45,7 @@ class Chart {
   }
 
   Frame newFrame(Aspect... alternatives) {
-    registerFrame(new Frame(this, -1)).addConstructs(alternatives)
+    registerFrame(new Frame(this)).addConstructs(alternatives)
   }
 
   private Frame registerFrame(Frame frame) {

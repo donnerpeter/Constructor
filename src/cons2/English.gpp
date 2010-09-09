@@ -23,7 +23,7 @@ class English implements Language {
   void aspectAppeared(Frame host, Aspect aspect) {
     if (aspect.ping('article')) {
       def article = host.chart.newFrame(new AnticipatingConstruct(["noun"], "noun"))
-      host.chart.construction(-1, [article, host], ["syn", "det_noun"])
+      host.chart.construction([article, host], ["syn", "det_noun"])
       return
     }
 

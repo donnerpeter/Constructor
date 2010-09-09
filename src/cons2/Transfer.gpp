@@ -16,7 +16,7 @@ class Transfer {
       if (evt instanceof FrameEvent && !((FrameEvent) evt).weakened) {
         def finalFrame = srcFrame.resolve()
         if (!frameMappings[finalFrame]) {
-          def dstFrame = srcFrame.children ? desired.construction(srcFrame.thematic, srcFrame.children.collect { frameMappings[it] } as List) : desired.newFrame()
+          def dstFrame = srcFrame.children ? desired.construction(srcFrame.children.collect { frameMappings[it] } as List) : desired.newFrame()
           frameMappings[finalFrame] = dstFrame
         }
 

@@ -43,7 +43,7 @@ class Russian implements Language {
       def adj = new SimpleQuery(caze, ['syn', 'adjective_noun'], ['sem', 'property_host'])
       if (!adj.activate(host)) {
         def noun = host.chart.newFrame(new AnticipatingConstruct(["noun", caze], "noun"))
-        host.chart.construction(-1, [host, noun], ['syn', 'adjective_noun'], ['sem', 'property_host'])
+        host.chart.construction([host, noun], ['syn', 'adjective_noun'], ['sem', 'property_host'])
       }
       return
     }
@@ -53,7 +53,7 @@ class Russian implements Language {
       if (!noun.strongUsages(['с+тв'])) {
         def verb = noun.findAround('verb')
         if (verb) {
-          verb.chart.construction(-1, [verb, noun], ['syn', 'с+тв'])
+          verb.chart.construction([verb, noun], ['syn', 'с+тв'])
         }
       }
     }
@@ -67,7 +67,7 @@ class Russian implements Language {
     if (aspect.ping('prep')) {
       def caze = 'instr'
       def arg = host.chart.newFrame(new AnticipatingConstruct(["noun", caze], "noun"))
-      host.chart.construction(1, [host, arg], ['syn', 'prep_noun'])
+      host.chart.construction([host, arg], ['syn', 'prep_noun'])
     }
 
     if (aspect.role == 'stem') {
@@ -98,7 +98,7 @@ class Russian implements Language {
     if (aspect.ping('conj')) {
       def left = host.findAround([])
       if (left) {
-        host.chart.construction(1, [host, left], ['sem', 'conj_left'])
+        host.chart.construction([host, left], ['sem', 'conj_left'])
       }
     }
 
@@ -123,7 +123,7 @@ class Russian implements Language {
       if (aspect.ping('идти') && !host.strongUsages('adv_mod')) {
         def scalar = host.findAround(['adverb', 'scalar'])
         if (scalar) {
-          host.chart.construction(1, [host, scalar], ['syn', 'adv_mod'], ['sem', 'scalar_end'])
+          host.chart.construction([host, scalar], ['syn', 'adv_mod'], ['sem', 'scalar_end'])
           host.enrich(['sem', 'COME_SCALARLY'])
           host.chosenAs 'COME_SCALARLY'
         }
@@ -135,7 +135,7 @@ class Russian implements Language {
     if (aspect.ping('conj') && !host.strongUsages('conj_right')) {
       def right = host.findAround([])
       if (right) {
-        host.chart.construction(1, [host, right], ['sem', 'conj_right'])
+        host.chart.construction([host, right], ['sem', 'conj_right'])
       }
     }
 

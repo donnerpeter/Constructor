@@ -111,7 +111,7 @@ class Russian implements Language {
         stv.enrich(['sem', 'theme'])
       }
 
-      if (aspect.ping('идти') && !host.strongUsages(syn:'adv_mod')) {
+      if (aspect.ping('идти') && !host.opponent(syn:'adv_mod')) {
         host.findAround(syn:['adverb', 'scalar']) { scalar ->
           host.chart.construction([scalar, host], ['syn', 'adv_mod'], ['sem', 'scalar_end'])
           host.enrich(['sem', 'COME_SCALARLY'])
@@ -122,10 +122,8 @@ class Russian implements Language {
       return
     }
 
-    if (aspect.ping('conj') && !host.strongUsages(sem:'conj_right')) {
-      host.findAround([:]) { right ->
-        host.chart.construction([host, right], ['sem', 'conj_right'])
-      }
+    if (aspect.ping('conj')) {
+      new SimpleQuery([:], ['sem', 'conj_right']).activate(host)
     }
 
     if (aspect.ping('adverb') && !host.opponent(syn:'adv_mod')) {

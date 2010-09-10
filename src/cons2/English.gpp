@@ -61,13 +61,13 @@ class English implements Language {
   }
 
   private void generateSentence(Frame verb, Chart dst) {
-    generateNP(dst, verb.strongUsages('experiencer')[0].children[1], true)
+    generateNP(dst, verb.opponent('experiencer'), true)
     dst.newFrame(['phon', verb.ping('love') ? 'loves' : 'happened'])
-    def themeLink = verb.strongUsages('theme')[0]
+    def theme = verb.opponent('theme')
     if (verb.ping('love')) {
-      generateNP(dst, themeLink.children[1], false)
+      generateNP(dst, theme, false)
     } else {
-      generatePP(dst, 'to', themeLink.children[1])
+      generatePP(dst, 'to', theme)
     }
     if (verb.ping('PAST')) {
       dst.newFrame(['phon', 'today'])
@@ -90,9 +90,7 @@ class English implements Language {
     } else {
       dst.newFrame(['phon', 'the'])
     }
-    noun.strongUsages('property_host').each { rel ->
-      generateAdj(dst, rel.children[0])
-    }
+    noun.allOpponents('property_host').each { generateAdj(dst, it) }
     if (noun.ping('mother')) {
       dst.newFrame(['phon', 'mother'])
     } else if (noun.ping('daughter')) {

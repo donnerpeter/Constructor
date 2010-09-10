@@ -180,15 +180,14 @@ class Russian implements Language {
   }
 
   private void generateSentence(Frame verb, Chart dst) {
-    generateNP(dst, verb.strongUsages('experiencer')[0].children[1], 'nom')
+    generateNP(dst, verb.opponent('experiencer'), 'nom')
     dst.newFrame(['phon', 'любит'])
-    generateNP(dst, verb.strongUsages('theme')[0].children[1], 'acc')
+    generateNP(dst, verb.opponent('theme'), 'acc')
   }
 
   private void generateNP(Chart dst, Frame noun, String caze) {
-    noun.strongUsages('property_host').each { rel ->
-      Frame adj = rel.children[0]
-      if (adj.ping('beautiful')) {
+    noun.allOpponents('property_host').each {
+      if (it.ping('beautiful')) {
         dst.newFrame(['phon', caze == 'nom' ? 'красивая' : 'красивую'])
       }
     }

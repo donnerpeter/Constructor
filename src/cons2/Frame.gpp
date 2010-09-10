@@ -79,6 +79,17 @@ class Frame {
     chart.usages(this, false, pattern)
   }
 
+  Frame opponent(pattern) {
+    allOpponents(pattern)[0]
+  }
+
+  List<Frame> allOpponents(pattern) {
+    return strongUsages(pattern).collect {
+      List<Frame> children = it.children
+      return children[0] == (Frame)this ? children[1] : children[0]
+    }
+  }
+
   Frame findAround(def pattern) {
     return findAllActiveAround(pattern).find { true }
   }

@@ -40,7 +40,7 @@ class Frame {
     setChosen(role,  alternatives[role].size() != 1 ? null : construct)
   }
 
-  Frame enrich(Aspect... aspects) {
+  void enrich(Aspect... aspects) {
     Set<String> affectedRoles = []
     List<Aspect> added = []
     aspects.each { aspect ->

@@ -37,7 +37,9 @@ class Chart {
   }
 
   Frame construction(List<Frame> children, Aspect... alternatives) {
-     registerFrame(new Frame(this, children)).enrich(alternatives)
+    def frame = registerFrame(new Frame(this, children))
+    frame.enrich(alternatives)
+    return frame
   }
 
   List<Frame> findActive(Map<String, Object> pattern) {
@@ -45,7 +47,9 @@ class Chart {
   }
 
   Frame newFrame(Aspect... alternatives) {
-    registerFrame(new Frame(this)).enrich(alternatives)
+    def frame = registerFrame(new Frame(this))
+    frame.enrich(alternatives)
+    return frame
   }
 
   private Frame registerFrame(Frame frame) {

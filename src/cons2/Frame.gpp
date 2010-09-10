@@ -90,11 +90,12 @@ class Frame {
     }
   }
 
-  void findAround(Map<String, Object> pattern, Function1<Frame, Void> action) {
+  boolean findAround(Map<String, Object> pattern, Function1<Frame, Void> action) {
     Frame frame = findAllActiveAround(pattern)[0]
     if (frame) {
       action(frame)
     }
+    return frame != null
   }
 
   List<Frame> findAllActiveAround(Map<String, Object> pattern) {

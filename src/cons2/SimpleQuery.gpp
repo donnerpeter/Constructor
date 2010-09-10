@@ -34,12 +34,11 @@ class SimpleQuery {
 
   boolean activate(Frame f, boolean wrapUpArg = false) {
     if (!satisfied(f)) {
-      f.findAround(pattern) { arg ->
+      return f.findAround(pattern) { arg ->
         instantiate(f, arg)
         if (wrapUpArg) {
           f.chart.wrapUp arg
         }
-        return true
       }
     }
     return false

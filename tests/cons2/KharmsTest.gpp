@@ -29,7 +29,7 @@ frame: sem=GO
 frame ^5 ^1: sem=theme
 frame ^2 ^3: sem=agent, wh_focus=true
 frame: sem=EARLIER
-frame ^4 ^1: sem=scalar_end
+frame ^1 ^4: sem=scalar_end
 ^5: sem=null, sem=COME_SCALARLY
 frame: sem=number7
 frame: sem=OR

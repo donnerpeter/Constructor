@@ -71,39 +71,45 @@ class Frame {
     this
   }
 
-  List<Frame> strongUsages(pattern) {
+  List<Frame> strongUsages() {
+    strongUsages([:])
+  }
+
+  List<Frame> strongUsages(Map<String, Object> pattern) {
     chart.usages(this, false, pattern)
   }
 
-  Frame opponent(pattern) {
+  Frame opponent(Map<String, Object> pattern) {
     allOpponents(pattern)[0]
   }
 
-  List<Frame> allOpponents(pattern) {
+  List<Frame> allOpponents(Map<String, Object> pattern) {
     return strongUsages(pattern).collect {
       List<Frame> children = it.children
       return children[0] == (Frame)this ? children[1] : children[0]
     }
   }
 
-  boolean findAround(def pattern, Function1<Frame, Void> action) {
+  void findAround(Map<String, Object> pattern, Function1<Frame, Void> action) {
     Frame frame = findAllActiveAround(pattern)[0]
     if (frame) {
       action(frame)
     }
-    return frame
   }
 
-  List<Frame> findAllActiveAround(def pattern) {
+  List<Frame> findAllActiveAround(Map<String, Object> pattern) {
     def active = chart.findActive(pattern)
     return active - this
   }
 
-  void chosenAs(def pattern) {
-    def found = findDimension(pattern)
-    if (found) {
-      setChosen(found.role, found)
+  void chosenAs(Map<String, Object> pattern) {
+    pattern.each { role, p ->
+      def found = strongAlternatives(role).find { it.ping(p) }
+      if (found) {
+        setChosen(role, found)
+      }
     }
+
   }
 
   private def setChosen(String role, Aspect cxt) {
@@ -128,11 +134,11 @@ class Frame {
   private Collection<String> getRoles() { alternatives.keySet() }
 
   private List<Aspect> strongAlternatives(String role) {
-    return chosen[role] ? [chosen[role]] : alternatives[role]
+    return chosen[role] ? [chosen[role]] : alternatives.get(role, [])
   }
 
-  boolean ping(def pattern) {
-    return findDimension(pattern) != null
+  boolean ping(Map<String, Object> pattern) {
+    pattern.every { role, p -> strongAlternatives(role).find { it.ping(p) } != null }
   }
 
   @Override

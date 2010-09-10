@@ -30,16 +30,16 @@ class Russian implements Language {
       infl.analyze host, aspect
 
       if (aspect.ping(':')) {
-        host.findAround('verb') { verb -> verb.chart.wrapUp verb }
+        host.findAround(syn:'verb') { verb -> verb.chart.wrapUp verb }
       }
       return
     }
 
     if (aspect.ping('adj')) {
       def caze = aspect.ping('adj_nom') ? 'nom' : 'acc'
-      def adj = new SimpleQuery(caze, ['syn', 'adjective_noun'], ['sem', 'property_host'])
+      def adj = new SimpleQuery(syn:caze, ['syn', 'adjective_noun'], ['sem', 'property_host'])
       if (!adj.activate(host)) {
-        def noun = host.chart.newFrame(new AnticipatingConstruct(["noun", caze], "noun"))
+        def noun = host.chart.newFrame(new AnticipatingConstruct(["noun", caze], [syn:"noun"]))
         host.chart.construction([host, noun], ['syn', 'adjective_noun'], ['sem', 'property_host'])
       }
       return
@@ -47,8 +47,8 @@ class Russian implements Language {
 
     if (aspect.ping('prep_noun')) {
       Frame noun = host.children[1]
-      if (!noun.strongUsages(['с+тв'])) {
-        noun.findAround('verb') { verb -> verb.chart.construction([verb, noun], ['syn', 'с+тв']) }
+      if (!noun.strongUsages(syn:'с+тв')) {
+        noun.findAround(syn:'verb') { verb -> verb.chart.construction([verb, noun], ['syn', 'с+тв']) }
       }
     }
 
@@ -60,7 +60,7 @@ class Russian implements Language {
 
     if (aspect.ping('prep')) {
       def caze = 'instr'
-      def arg = host.chart.newFrame(new AnticipatingConstruct(["noun", caze], "noun"))
+      def arg = host.chart.newFrame(new AnticipatingConstruct(["noun", caze], [syn:"noun"]))
       host.chart.construction([host, arg], ['syn', 'prep_noun'])
     }
 
@@ -79,18 +79,18 @@ class Russian implements Language {
 
     if (aspect.ping('subject') && !host['sem']) {
       Frame verb = host.children[0]
-      host.enrich(['sem', verb.ping('идти') ? 'agent' : 'experiencer'])
+      host.enrich(['sem', verb.ping(syn:'идти') ? 'agent' : 'experiencer'])
     }
 
     if (aspect.ping('verb_arg') && !host['wh_focus']) {
       Frame arg = host.children[1]
-      if (arg.ping('wh')) {
+      if (arg.ping(syn:'wh')) {
         host.enrich(['wh_focus', 'true'])
       }
     }
 
     if (aspect.ping('conj')) {
-      host.findAround([]) { left -> host.chart.construction([host, left], ['sem', 'conj_left']) }
+      host.findAround([:]) { left -> host.chart.construction([host, left], ['sem', 'conj_left']) }
     }
 
   }
@@ -99,36 +99,38 @@ class Russian implements Language {
     if (aspect.ping('verb')) {
       subject.activate host
 
-      if (host.ping('2acc')) {
+      if (host.ping(subcat:'2acc')) {
         object.activate host
       }
-      if (host.ping('2whq')) {
+      if (host.ping(subcat:'2whq')) {
         whComp.activate host
       }
 
-      def stv = host.strongUsages('с+тв')[0]
+      def stv = host.strongUsages(syn:'с+тв')[0]
       if (stv && !stv['sem']) {
         stv.enrich(['sem', 'theme'])
       }
 
-      if (aspect.ping('идти') && !host.strongUsages('adv_mod')) {
-        host.findAround(['adverb', 'scalar']) { scalar ->
-          host.chart.construction([host, scalar], ['syn', 'adv_mod'], ['sem', 'scalar_end'])
-          host.enrich(['sem', 'COME_SCALARLY'])
-          host.chosenAs 'COME_SCALARLY'
+      if (aspect.ping('идти')) {
+        if (aspect.ping('идти') && !host.strongUsages(syn:'adv_mod')) {
+          host.findAround(syn:['adverb', 'scalar']) { scalar ->
+            host.chart.construction([host, scalar], ['syn', 'adv_mod'], ['sem', 'scalar_end'])
+            host.enrich(['sem', 'COME_SCALARLY'])
+            host.chosenAs sem:'COME_SCALARLY'
+          }
         }
       }
 
       return
     }
 
-    if (aspect.ping('conj') && !host.strongUsages('conj_right')) {
-      host.findAround([]) { right ->
+    if (aspect.ping('conj') && !host.strongUsages(sem:'conj_right')) {
+      host.findAround([:]) { right ->
         host.chart.construction([host, right], ['sem', 'conj_right'])
       }
     }
 
-    if (aspect.ping('adverb')) {
+    if (aspect.ping('adverb') && !host.opponent(syn:'adv_mod')) {
       adverb.activate(host, false)
     }
   }
@@ -159,32 +161,32 @@ class Russian implements Language {
     true
   }
 
-  SimpleQuery subject = ["nom", ["syn", 'subject', 'verb_arg']]
-  SimpleQuery object = ["acc", ["syn", 'object', 'verb_arg'], ["sem", "theme"]]
-  SimpleQuery whComp = ["verb", ["syn", 'comp', 'verb_arg'], ["sem", "theme"]]
-  SimpleQuery adverb = ["verb", ["syn", 'adv_mod'], ["sem", "mode"]]
+  SimpleQuery subject = [[syn:"nom"], ["syn", 'subject', 'verb_arg']]
+  SimpleQuery object = [[syn:"acc"], ["syn", 'object', 'verb_arg'], ["sem", "theme"]]
+  SimpleQuery whComp = [[syn:"verb"], ["syn", 'comp', 'verb_arg'], ["sem", "theme"]]
+  SimpleQuery adverb = [[syn:"verb"], ["syn", 'adv_mod'], ["sem", "mode"]]
 
   void generate(Chart sem, Chart to) {
-    sem.frames().findAll { it.ping('love') }.each { generateSentence(it, to) }
+    sem.frames().findAll { it.ping(sem:'love') }.each { generateSentence(it, to) }
   }
 
   private void generateSentence(Frame verb, Chart dst) {
-    generateNP(dst, verb.opponent('experiencer'), 'nom')
+    generateNP(dst, verb.opponent(sem:'experiencer'), 'nom')
     dst.newFrame(['phon', 'любит'])
-    generateNP(dst, verb.opponent('theme'), 'acc')
+    generateNP(dst, verb.opponent(sem:'theme'), 'acc')
   }
 
   private void generateNP(Chart dst, Frame noun, String caze) {
-    noun.allOpponents('property_host').each {
-      if (it.ping('beautiful')) {
+    noun.allOpponents(sem:'property_host').each {
+      if (it.ping(sem:'beautiful')) {
         dst.newFrame(['phon', caze == 'nom' ? 'красивая' : 'красивую'])
       }
     }
-    if (noun.ping('mother')) {
+    if (noun.ping(sem:'mother')) {
       dst.newFrame(['phon', 'мать'])
-    } else if (noun.ping('daughter')) {
+    } else if (noun.ping(sem:'daughter')) {
       dst.newFrame(['phon', 'дочь'])
-    } else if (noun.ping('father')) {
+    } else if (noun.ping(sem:'father')) {
       dst.newFrame(['phon', caze == 'nom' ? 'отец' : 'отца'])
     }
     dst.update()

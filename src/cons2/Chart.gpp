@@ -32,7 +32,7 @@ class Chart {
     (frames - weak) as List<Frame>
   }
 
-  List<Frame> usages(Frame f, boolean includeWeak = false, def pattern) {
+  List<Frame> usages(Frame f, boolean includeWeak = false, Map<String, Object> pattern) {
     frames(includeWeak).findAll { f in it.children && it.ping(pattern) }
   }
 
@@ -40,7 +40,7 @@ class Chart {
      registerFrame(new Frame(this, children)).enrich(alternatives)
   }
 
-  List<Frame> findActive(def pattern) {
+  List<Frame> findActive(Map<String, Object> pattern) {
     return active.findAll { it.ping(pattern) }
   }
 
@@ -129,7 +129,7 @@ class Chart {
     active.remove f
     dirty.remove f
     log.event new FrameEvent(f, true)
-    f.strongUsages([]).each { weaken it }
+    f.strongUsages().each { weaken it }
   }
 
   private void strengthen(Frame frame) {

@@ -4,16 +4,20 @@ package cons2
  * @author peter
  */
 class SimpleQuery {
-  def pattern
+  Map<String, Object> pattern
   Aspect[] cxts
 
-  def SimpleQuery(def pattern, Aspect... cxts) {
+  def SimpleQuery(Map<String, Object> pattern, Aspect... cxts) {
     this.pattern = pattern;
     this.cxts = cxts
   }
 
   boolean satisfied(Frame f) {
-    !f.strongUsages(cxts[0].nicknames).empty
+    !usagesOf(f).empty
+  }
+
+  private List<Frame> usagesOf(Frame f) {
+    return f.strongUsages((cxts[0].role): cxts[0].nicknames)
   }
 
   List<Frame> allArgumentCandidates(Frame f) {
@@ -21,7 +25,7 @@ class SimpleQuery {
   }
 
   Frame getArg(Frame f) {
-    def usages = f.strongUsages(cxts[0].nicknames)
+    def usages = usagesOf(f)
     if (usages.size() == 1) {
       return usages.iterator().next().children[1]
     }
@@ -46,7 +50,7 @@ class SimpleQuery {
   void instantiate(Frame self, Frame arg) {
     arg.chosenAs pattern
 
-    def usages = self.strongUsages(cxts[0].nicknames)
+    def usages = usagesOf(self)
     if (usages) {
       usages.each { self.chart.activate it }
       return
@@ -56,7 +60,7 @@ class SimpleQuery {
   }
 
   void weaken(Frame head) {
-    head.strongUsages(cxts[0].nicknames).each {
+    usagesOf(head).each {
       head.chart.weaken it
       it.children.each { it.relax() }
     }

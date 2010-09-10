@@ -16,13 +16,13 @@ class English implements Language {
     true
   }
 
-  SimpleQuery subject = ["noun", ["syn", 'subject'], ["sem", "experiencer"]]
-  SimpleQuery object = ["noun", ["syn", 'object'], ["sem", "theme"]]
-  SimpleQuery property_host = ["noun", [new Aspect("sem", 'property_host')] as Aspect[]]
+  SimpleQuery subject = [[syn:"noun"], ["syn", 'subject'], ["sem", "experiencer"]]
+  SimpleQuery object = [[syn:"noun"], ["syn", 'object'], ["sem", "theme"]]
+  SimpleQuery property_host = [[syn:"noun"], [new Aspect("sem", 'property_host')] as Aspect[]]
 
   void aspectAppeared(Frame host, Aspect aspect) {
     if (aspect.ping('article')) {
-      def article = host.chart.newFrame(new AnticipatingConstruct(["noun"], "noun"))
+      def article = host.chart.newFrame(new AnticipatingConstruct(["noun"], [syn:"noun"]))
       host.chart.construction([article, host], ["syn", "det_noun"])
       return
     }
@@ -57,19 +57,19 @@ class English implements Language {
   }
 
   void generate(Chart sem, Chart to) {
-    sem.frames().findAll { it.ping('love') || it.ping('HAPPEN') }.each { generateSentence(it, to) }
+    sem.frames().findAll { it.ping(sem:'love') || it.ping(sem:'HAPPEN') }.each { generateSentence(it, to) }
   }
 
   private void generateSentence(Frame verb, Chart dst) {
-    generateNP(dst, verb.opponent('experiencer'), true)
-    dst.newFrame(['phon', verb.ping('love') ? 'loves' : 'happened'])
-    def theme = verb.opponent('theme')
-    if (verb.ping('love')) {
+    generateNP(dst, verb.opponent(sem:'experiencer'), true)
+    dst.newFrame(['phon', verb.ping(sem:'love') ? 'loves' : 'happened'])
+    def theme = verb.opponent(sem:'theme')
+    if (verb.ping(sem:'love')) {
       generateNP(dst, theme, false)
     } else {
       generatePP(dst, 'to', theme)
     }
-    if (verb.ping('PAST')) {
+    if (verb.ping(time:'PAST')) {
       dst.newFrame(['phon', 'today'])
     }
   }
@@ -80,34 +80,34 @@ class English implements Language {
   }
 
   private void generateNP(Chart dst, Frame noun, boolean nom) {
-    if (noun.ping('I')) {
+    if (noun.ping(sem:'I')) {
       dst.newFrame(['phon', nom ? 'I' : 'me'])
       return;
     }
 
-    if (noun.ping('new')) {
+    if (noun.ping(discourse:'new')) {
       dst.newFrame(['phon', 'An'])
     } else {
       dst.newFrame(['phon', 'the'])
     }
-    noun.allOpponents('property_host').each { generateAdj(dst, it) }
-    if (noun.ping('mother')) {
+    noun.allOpponents(sem:'property_host').each { generateAdj(dst, it) }
+    if (noun.ping(sem:'mother')) {
       dst.newFrame(['phon', 'mother'])
-    } else if (noun.ping('daughter')) {
+    } else if (noun.ping(sem:'daughter')) {
       dst.newFrame(['phon', 'daughter'])
-    } else if (noun.ping('father')) {
+    } else if (noun.ping(sem:'father')) {
       dst.newFrame(['phon', 'father'])
-    } else if (noun.ping('THING')) {
+    } else if (noun.ping(sem:'THING')) {
       dst.newFrame(['phon', 'thing'])
     }
     dst.update()
   }
 
   private def generateAdj(Chart dst, Frame adj) {
-    if (adj.ping('beautiful')) {
+    if (adj.ping(sem:'beautiful')) {
       dst.newFrame(['phon', 'beautiful'])
     }
-    else if (adj.ping('AMAZING')) {
+    else if (adj.ping(sem:'AMAZING')) {
       dst.newFrame(['phon', 'amazing'])
     }
   }

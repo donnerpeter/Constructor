@@ -37,7 +37,7 @@ class Chart {
   }
 
   Frame construction(List<Frame> children, Aspect... alternatives) {
-     registerFrame(new Frame(this, children)).addConstructs(alternatives)
+     registerFrame(new Frame(this, children)).enrich(alternatives)
   }
 
   List<Frame> findActive(def pattern) {
@@ -45,7 +45,7 @@ class Chart {
   }
 
   Frame newFrame(Aspect... alternatives) {
-    registerFrame(new Frame(this)).addConstructs(alternatives)
+    registerFrame(new Frame(this)).enrich(alternatives)
   }
 
   private Frame registerFrame(Frame frame) {

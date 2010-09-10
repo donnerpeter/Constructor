@@ -30,9 +30,7 @@ class Russian implements Language {
       infl.analyze host, aspect
 
       if (aspect.ping(':')) {
-        host.findAround('verb') { verb ->
-          verb.chart.wrapUp verb
-        }
+        host.findAround('verb') { verb -> verb.chart.wrapUp verb }
       }
       return
     }

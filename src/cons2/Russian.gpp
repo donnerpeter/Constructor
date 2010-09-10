@@ -111,13 +111,11 @@ class Russian implements Language {
         stv.enrich(['sem', 'theme'])
       }
 
-      if (aspect.ping('идти')) {
-        if (aspect.ping('идти') && !host.strongUsages(syn:'adv_mod')) {
-          host.findAround(syn:['adverb', 'scalar']) { scalar ->
-            host.chart.construction([host, scalar], ['syn', 'adv_mod'], ['sem', 'scalar_end'])
-            host.enrich(['sem', 'COME_SCALARLY'])
-            host.chosenAs sem:'COME_SCALARLY'
-          }
+      if (aspect.ping('идти') && !host.strongUsages(syn:'adv_mod')) {
+        host.findAround(syn:['adverb', 'scalar']) { scalar ->
+          host.chart.construction([host, scalar], ['syn', 'adv_mod'], ['sem', 'scalar_end'])
+          host.enrich(['sem', 'COME_SCALARLY'])
+          host.chosenAs sem:'COME_SCALARLY'
         }
       }
 

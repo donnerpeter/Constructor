@@ -30,8 +30,7 @@ class Russian implements Language {
       infl.analyze host, aspect
 
       if (aspect.ping(':')) {
-        def verb = host.findAround('verb')
-        if (verb) {
+        host.findAround('verb') { verb ->
           verb.chart.wrapUp verb
         }
       }
@@ -51,10 +50,7 @@ class Russian implements Language {
     if (aspect.ping('prep_noun')) {
       Frame noun = host.children[1]
       if (!noun.strongUsages(['с+тв'])) {
-        def verb = noun.findAround('verb')
-        if (verb) {
-          verb.chart.construction([verb, noun], ['syn', 'с+тв'])
-        }
+        noun.findAround('verb') { verb -> verb.chart.construction([verb, noun], ['syn', 'с+тв']) }
       }
     }
 
@@ -96,10 +92,7 @@ class Russian implements Language {
     }
 
     if (aspect.ping('conj')) {
-      def left = host.findAround([])
-      if (left) {
-        host.chart.construction([host, left], ['sem', 'conj_left'])
-      }
+      host.findAround([]) { left -> host.chart.construction([host, left], ['sem', 'conj_left']) }
     }
 
   }
@@ -121,8 +114,7 @@ class Russian implements Language {
       }
 
       if (aspect.ping('идти') && !host.strongUsages('adv_mod')) {
-        def scalar = host.findAround(['adverb', 'scalar'])
-        if (scalar) {
+        host.findAround(['adverb', 'scalar']) { scalar ->
           host.chart.construction([host, scalar], ['syn', 'adv_mod'], ['sem', 'scalar_end'])
           host.enrich(['sem', 'COME_SCALARLY'])
           host.chosenAs 'COME_SCALARLY'
@@ -133,8 +125,7 @@ class Russian implements Language {
     }
 
     if (aspect.ping('conj') && !host.strongUsages('conj_right')) {
-      def right = host.findAround([])
-      if (right) {
+      host.findAround([]) { right ->
         host.chart.construction([host, right], ['sem', 'conj_right'])
       }
     }

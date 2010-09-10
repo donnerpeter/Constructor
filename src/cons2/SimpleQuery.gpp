@@ -30,8 +30,7 @@ class SimpleQuery {
 
   boolean activate(Frame f, boolean wrapUpArg = false) {
     if (!satisfied(f)) {
-      def arg = findArgument(f)
-      if (arg) {
+      f.findAround(pattern) { arg ->
         instantiate(f, arg)
         if (wrapUpArg) {
           f.chart.wrapUp arg
@@ -42,9 +41,7 @@ class SimpleQuery {
     return false
   }
 
-  protected Frame findArgument(Frame head) {
-    return head.findAround(pattern)
-  }
+
 
   void instantiate(Frame self, Frame arg) {
     arg.chosenAs pattern

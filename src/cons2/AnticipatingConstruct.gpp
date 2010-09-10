@@ -14,12 +14,11 @@ class AnticipatingConstruct extends Aspect {
   }
 
   void contextChanged(Frame host) {
-    def goal = host.findAround(realHeadPattern)
-    if (!goal) return
-
-    host.removeAlternative(this)
-    host.chart.merge(host, goal)
-    goal.chosenAs nicknames
+    host.findAround(realHeadPattern) { goal ->
+      host.removeAlternative(this)
+      host.chart.merge(host, goal)
+      goal.chosenAs nicknames
+    }
   }
 
 }

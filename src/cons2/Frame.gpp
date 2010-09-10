@@ -90,8 +90,12 @@ class Frame {
     }
   }
 
-  Frame findAround(def pattern) {
-    return findAllActiveAround(pattern).find { true }
+  boolean findAround(def pattern, Function1<Frame, Void> action) {
+    Frame frame = findAllActiveAround(pattern)[0]
+    if (frame) {
+      action(frame)
+    }
+    return frame
   }
 
   List<Frame> findAllActiveAround(def pattern) {

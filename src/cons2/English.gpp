@@ -16,8 +16,8 @@ class English implements Language {
     true
   }
 
-  SimpleQuery subject = ["noun", ["syn", 'subject'], ["sem", "state_experiencer"]]
-  SimpleQuery object = ["noun", ["syn", 'object'], ["sem", "state_theme"]]
+  SimpleQuery subject = ["noun", ["syn", 'subject'], ["sem", "experiencer"]]
+  SimpleQuery object = ["noun", ["syn", 'object'], ["sem", "theme"]]
   SimpleQuery property_host = ["noun", [new Aspect("sem", 'property_host')] as Aspect[]]
 
   void aspectAppeared(Frame host, Aspect aspect) {
@@ -57,22 +57,41 @@ class English implements Language {
   }
 
   void generate(Chart sem, Chart to) {
-    sem.frames().findAll { it.ping('love') }.each { generateSentence(it, to) }
+    sem.frames().findAll { it.ping('love') || it.ping('HAPPEN') }.each { generateSentence(it, to) }
   }
 
   private void generateSentence(Frame verb, Chart dst) {
-    generateNP(dst, verb.strongUsages('state_experiencer')[0].children[1])
-    dst.newFrame(['phon', 'loves'])
-    generateNP(dst, verb.strongUsages('state_theme')[0].children[1])
+    generateNP(dst, verb.strongUsages('experiencer')[0].children[1], true)
+    dst.newFrame(['phon', verb.ping('love') ? 'loves' : 'happened'])
+    def themeLink = verb.strongUsages('theme')[0]
+    if (verb.ping('love')) {
+      generateNP(dst, themeLink.children[1], false)
+    } else {
+      generatePP(dst, 'to', themeLink.children[1])
+    }
+    if (verb.ping('PAST')) {
+      dst.newFrame(['phon', 'today'])
+    }
   }
 
-  private void generateNP(Chart dst, Frame noun) {
-    dst.newFrame(['phon', 'the'])
+  private void generatePP(Chart dst, String prep, Frame noun) {
+    dst.newFrame(['phon', prep])
+    generateNP dst, noun, false
+  }
+
+  private void generateNP(Chart dst, Frame noun, boolean nom) {
+    if (noun.ping('I')) {
+      dst.newFrame(['phon', nom ? 'I' : 'me'])
+      return;
+    }
+
+    if (noun.ping('new')) {
+      dst.newFrame(['phon', 'An'])
+    } else {
+      dst.newFrame(['phon', 'the'])
+    }
     noun.strongUsages('property_host').each { rel ->
-      Frame adj = rel.children[0]
-      if (adj.ping('beautiful')) {
-        dst.newFrame(['phon', 'beautiful'])
-      }
+      generateAdj(dst, rel.children[0])
     }
     if (noun.ping('mother')) {
       dst.newFrame(['phon', 'mother'])
@@ -80,8 +99,19 @@ class English implements Language {
       dst.newFrame(['phon', 'daughter'])
     } else if (noun.ping('father')) {
       dst.newFrame(['phon', 'father'])
+    } else if (noun.ping('THING')) {
+      dst.newFrame(['phon', 'thing'])
     }
     dst.update()
+  }
+
+  private def generateAdj(Chart dst, Frame adj) {
+    if (adj.ping('beautiful')) {
+      dst.newFrame(['phon', 'beautiful'])
+    }
+    else if (adj.ping('AMAZING')) {
+      dst.newFrame(['phon', 'amazing'])
+    }
   }
 
 }

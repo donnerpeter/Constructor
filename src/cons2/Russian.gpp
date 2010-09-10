@@ -9,7 +9,7 @@ class Russian implements Language {
           wholeWord("дочь", ["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "daughter"]).
           wholeWord("отец", ["syn", "noun", "nom"], ["sem", "father"]).
           wholeWord("отца", ["syn", "noun", "acc"], ["sem", "father"]).
-          wholeWord("случай", ["syn", "noun", "nom"], ["sem", "THING"]).
+          wholeWord("случай", ["syn", "noun", "nom"], ["sem", "THING"], ['discourse', 'new']).
           wholeWord("случился", ["syn", "verb"], ['sem', 'HAPPEN'], ['time', 'PAST']).
           wholeWord("со", ["syn", "prep"]).
           wholeWord("мной", ["syn", "noun", 'instr'], ['sem', 'I']).
@@ -85,7 +85,7 @@ class Russian implements Language {
 
     if (aspect.ping('subject') && !host['sem']) {
       Frame verb = host.children[0]
-      host.enrich(['sem', verb.ping('идти') ? 'agent' : 'state_experiencer'])
+      host.enrich(['sem', verb.ping('идти') ? 'agent' : 'experiencer'])
     }
 
     if (aspect.ping('verb_arg') && !host['wh_focus']) {
@@ -171,7 +171,7 @@ class Russian implements Language {
   }
 
   SimpleQuery subject = ["nom", ["syn", 'subject', 'verb_arg']]
-  SimpleQuery object = ["acc", ["syn", 'object', 'verb_arg'], ["sem", "state_theme"]]
+  SimpleQuery object = ["acc", ["syn", 'object', 'verb_arg'], ["sem", "theme"]]
   SimpleQuery whComp = ["verb", ["syn", 'comp', 'verb_arg'], ["sem", "theme"]]
   SimpleQuery adverb = ["verb", ["syn", 'adv_mod'], ["sem", "mode"]]
 
@@ -180,9 +180,9 @@ class Russian implements Language {
   }
 
   private void generateSentence(Frame verb, Chart dst) {
-    generateNP(dst, verb.strongUsages('state_experiencer')[0].children[1], 'nom')
+    generateNP(dst, verb.strongUsages('experiencer')[0].children[1], 'nom')
     dst.newFrame(['phon', 'любит'])
-    generateNP(dst, verb.strongUsages('state_theme')[0].children[1], 'acc')
+    generateNP(dst, verb.strongUsages('theme')[0].children[1], 'acc')
   }
 
   private void generateNP(Chart dst, Frame noun, String caze) {

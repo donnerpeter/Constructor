@@ -11,18 +11,18 @@ class MotherDaughterTest extends TestCase {
     doTest "мать любит дочь", """
 frame: sem=mother
 frame: sem=love
-frame ^1 ^2: sem=state_experiencer
+frame ^1 ^2: sem=experiencer
 frame: sem=daughter
-frame ^3 ^1: sem=state_theme
+frame ^3 ^1: sem=theme
 """
 
     doEnglishTest "the mother loves the daughter", """
 frame
 frame: sem=mother, ==^1
 frame: sem=love
-frame ^1 ^2: sem=state_experiencer
+frame ^1 ^2: sem=experiencer
 frame
-frame ^3 ^1: sem=state_theme
+frame ^3 ^1: sem=theme
 frame: sem=daughter, ==^2
 """
   }
@@ -38,9 +38,9 @@ frame: sem=daughter, ==^2
     doTest "дочь любит мать", """
 frame: sem=daughter
 frame: sem=love
-frame ^1 ^2: sem=state_experiencer
+frame ^1 ^2: sem=experiencer
 frame: sem=mother
-frame ^3 ^1: sem=state_theme
+frame ^3 ^1: sem=theme
 """
   }
 
@@ -51,9 +51,9 @@ frame
 frame ^2 ^1: sem=property_host
 frame: sem=daughter, ==^2
 frame: sem=love
-frame ^1 ^2: sem=state_experiencer
+frame ^1 ^2: sem=experiencer
 frame: sem=mother
-frame ^3 ^1: sem=state_theme
+frame ^3 ^1: sem=theme
 """
   }
 
@@ -64,10 +64,10 @@ frame ^3 ^1: sem=state_theme
     doTest "дочь любит красивую мать", """
 frame: sem=daughter
 frame: sem=love
-frame ^1 ^2: sem=state_experiencer
+frame ^1 ^2: sem=experiencer
 frame: sem=beautiful
 frame
-frame ^4 ^1: sem=state_theme
+frame ^4 ^1: sem=theme
 frame ^3 ^2: sem=property_host
 frame: sem=mother, ==^3
 """
@@ -89,9 +89,9 @@ frame: sem=mother, ==^3
     doTest "дочь любит отца", """
 frame: sem=daughter
 frame: sem=love
-frame ^1 ^2: sem=state_experiencer
+frame ^1 ^2: sem=experiencer
 frame: sem=father
-frame ^3 ^1: sem=state_theme
+frame ^3 ^1: sem=theme
 """
   }
 
@@ -99,9 +99,9 @@ frame ^3 ^1: sem=state_theme
     doTest "отец любит дочь", """
 frame: sem=father
 frame: sem=love
-frame ^1 ^2: sem=state_experiencer
+frame ^1 ^2: sem=experiencer
 frame: sem=daughter
-frame ^3 ^1: sem=state_theme
+frame ^3 ^1: sem=theme
 """
   }
 
@@ -109,9 +109,9 @@ frame ^3 ^1: sem=state_theme
     doTest "отца любит дочь", """
 frame: sem=father
 frame: sem=love
-frame ^1 ^2: sem=state_theme
+frame ^1 ^2: sem=theme
 frame: sem=daughter
-frame ^3 ^1: sem=state_experiencer
+frame ^3 ^1: sem=experiencer
 """
   }
 
@@ -122,9 +122,9 @@ frame
 frame ^2 ^1: sem=property_host
 frame: sem=mother, ==^2
 frame: sem=love
-frame ^1 ^2: sem=state_theme
+frame ^1 ^2: sem=theme
 frame: sem=daughter
-frame ^3 ^1: sem=state_experiencer
+frame ^3 ^1: sem=experiencer
 """
   }
   
@@ -132,14 +132,14 @@ frame ^3 ^1: sem=state_experiencer
     doTest "мать любит красивая дочь", """
 frame: sem=mother
 frame: sem=love
-frame ^1 ^2: sem=state_experiencer
+frame ^1 ^2: sem=experiencer
 frame: sem=beautiful
 frame
 frame ^2 ^1: sem=property_host
 frame: sem=daughter, ==^2
 ^5: weaken
-frame ^7 ^8: sem=state_theme
-frame ^8 ^3: sem=state_experiencer
+frame ^7 ^8: sem=theme
+frame ^8 ^3: sem=experiencer
 """
   }
 
@@ -147,11 +147,11 @@ frame ^8 ^3: sem=state_experiencer
     doTest "дочь любит отец", """
 frame: sem=daughter
 frame: sem=love
-frame ^1 ^2: sem=state_experiencer
+frame ^1 ^2: sem=experiencer
 frame: sem=father
 ^2: weaken
-frame ^4 ^5: sem=state_theme
-frame ^5 ^3: sem=state_experiencer
+frame ^4 ^5: sem=theme
+frame ^5 ^3: sem=experiencer
 """
   }
 

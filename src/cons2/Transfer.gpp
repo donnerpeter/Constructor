@@ -11,7 +11,7 @@ class Transfer {
   Chart transfer(Chart rus) {
     def desired = new Chart(new English())
     Map<Frame, Frame> frameMappings = [:]
-    rus.log.interestingEvents(['sem']).each {evt ->
+    rus.log.interestingEvents(['sem', 'time', 'discourse']).each {evt ->
       def srcFrame = evt.frame
       if (evt instanceof FrameEvent && !((FrameEvent) evt).weakened) {
         def finalFrame = srcFrame.resolve()

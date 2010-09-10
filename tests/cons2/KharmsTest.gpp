@@ -15,7 +15,7 @@ frame
 frame ^2 ^1: sem=property_host
 frame: sem=THING, ==^2
 frame: sem=HAPPEN
-frame ^1 ^2: sem=state_experiencer
+frame ^1 ^2: sem=experiencer
 frame
 frame ^3 ^1: sem=theme
 frame: sem=I, ==^2
@@ -23,7 +23,7 @@ frame: sem=I
 frame: sem=SUDDENLY
 frame: sem=FORGET
 frame ^2 ^1: sem=mode
-frame ^2 ^4: sem=state_experiencer
+frame ^2 ^4: sem=experiencer
 frame: sem=WHAT
 frame: sem=GO
 frame ^5 ^1: sem=theme
@@ -37,6 +37,10 @@ frame ^1 ^2: sem=conj_left
 frame: sem=number8
 frame ^3 ^1: sem=conj_right
 """
+  }
+
+  public void testKharmsTranslation() throws Exception {
+    translate(new Russian(), new English(), "Удивительный случай случился со мной", "An amazing thing happened to me today")
   }
 
   private def doTest(String input, String expected) {
@@ -56,8 +60,8 @@ frame ^3 ^1: sem=conj_right
     dstLanguage.generate(desired, dst)
     def actual = dst.log.phonString()
     if (expected != actual) {
-      println "Original analysis:\n" + chart.presentable()
-      println "-------------\nTransferred:\n" + dst.log.presentable(['phon', 'syn', 'sem', 'stem'])
+      System.err.println "Original analysis:\n" + chart.presentable()
+      System.err.println "-------------\nTransferred:\n" + dst.log.presentable(['phon', 'syn', 'sem', 'stem'])
       assertEquals expected, actual
     }
   }

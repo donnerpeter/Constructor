@@ -170,7 +170,7 @@ frame ^5 ^3: sem=experiencer
     def desired = new Transfer().transfer(chart)
     def dst = new Chart(dstLanguage)
     dstLanguage.generate(desired, dst)
-    def actual = dst.log.phonString()
+    def actual = dst.phonString()
     if (expected != actual) {
       println "Original analysis:\n" + chart.presentable()
       println "-------------\nTransferred:\n" + dst.log.presentable(['phon', 'syn', 'sem', 'stem'])

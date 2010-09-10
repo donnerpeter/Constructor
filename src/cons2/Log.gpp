@@ -40,11 +40,6 @@ class Log {
     result
   }
 
-  String phonString() {
-    List<AspectEvent> events = interestingEvents(['phon']).findAll { it instanceof AspectEvent && ((AspectEvent) it).newValue }
-    return events.collect { it.newValue.toString() }.join(" ")
-  }
-
   String presentable(Set<String> roles) {
     String out = ""
     LinkedList<Frame> stack = []

@@ -151,4 +151,8 @@ class Chart {
   void allDirty() {
     dirty.addAll active
   }
+
+  String phonString() {
+    frames.findAll { !it.adopter && it['phon'] }.collect { it['phon'].toString() }.join(" ")
+  }
 }

@@ -38,7 +38,9 @@ class Chart {
 
   Frame construction(List<Frame> children, Aspect... alternatives) {
     def frame = registerFrame(new Frame(this, children))
-    frame.enrich(alternatives)
+    if (alternatives) {
+      frame.enrich(alternatives)
+    }
     return frame
   }
 

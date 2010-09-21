@@ -113,7 +113,7 @@ class Russian implements Language {
 
       if (aspect.ping('идти') && !host.opponent(syn:'adv_mod')) {
         host.findAround(syn:['adverb', 'scalar']) { scalar ->
-          host.chart.construction([scalar, host], ['syn', 'adv_mod'], ['sem', 'scalar_end'])
+          update.construction([scalar, host], ['syn', 'adv_mod'], ['sem', 'scalar_end'])
           update.enrich(host, ['sem', 'COME_SCALARLY'])
           update.confirmChoice(host, sem:'COME_SCALARLY')
         }

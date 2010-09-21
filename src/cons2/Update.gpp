@@ -15,5 +15,16 @@ class Update {
     this
   }
 
+  Frame newFrame(Aspect... aspects) {
+    def frame = chart.newFrame()
+    enrich frame, aspects
+    frame
+  }
+
+  Frame construction(List<Frame> children, Aspect... aspects) {
+    def frame = chart.construction(children)
+    enrich frame, aspects
+    frame
+  }
 
 }

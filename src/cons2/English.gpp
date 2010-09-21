@@ -22,8 +22,8 @@ class English implements Language {
 
   void aspectAppeared(Frame host, Aspect aspect, Update update) {
     if (aspect.ping('article')) {
-      def article = update.newFrame(new AnticipatingConstruct(["noun"], [syn:"noun"]))
-      update.construction([article, host], ["syn", "det_noun"])
+      def article = update.newFrame([], new AnticipatingConstruct(["noun"], [syn:"noun"]))
+      update.newFrame([article, host], ["syn", "det_noun"])
       return
     }
 

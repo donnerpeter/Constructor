@@ -14,14 +14,8 @@ class Update {
     host.enrich aspects
   }
 
-  Frame newFrame(Aspect... aspects) {
-    def frame = chart.newFrame([], new Aspect[0])
-    enrich frame, aspects
-    frame
-  }
-
-  Frame construction(List<Frame> children, Aspect... aspects) {
-    def frame = chart.newFrame(children, new Aspect[0])
+  Frame newFrame(List<Frame> children, Aspect... aspects) {
+    def frame = chart.newFrame(children)
     enrich frame, aspects
     frame
   }

@@ -38,7 +38,7 @@ class Russian implements Language {
     if (aspect.ping('adj')) {
       def caze = aspect.ping('adj_nom') ? 'nom' : 'acc'
       def adj = new SimpleQuery(syn:caze, ['syn', 'adjective_noun'], ['sem', 'property_host'])
-      if (!adj.activate(host)) {
+      if (!adj.activate(host, update)) {
         def noun = update.newFrame(new AnticipatingConstruct(["noun", caze], [syn:"noun"]))
         update.construction([host, noun], ['syn', 'adjective_noun'], ['sem', 'property_host'])
       }
@@ -53,8 +53,8 @@ class Russian implements Language {
     }
 
     if (aspect.ping('verb')) {
-      subject.activate host, true
-      object.activate host, true
+      subject.activate host, true, update
+      object.activate host, true, update
       return
     }
 
@@ -97,13 +97,13 @@ class Russian implements Language {
 
   void contextChanged(Frame host, Aspect aspect, Update update) {
     if (aspect.ping('verb')) {
-      subject.activate host
+      subject.activate host, update
 
       if (host.ping(subcat:'2acc')) {
-        object.activate host
+        object.activate host, update
       }
       if (host.ping(subcat:'2whq')) {
-        whComp.activate host
+        whComp.activate host, update
       }
 
       def stv = host.strongUsages(syn:'с+тв')[0]
@@ -123,11 +123,11 @@ class Russian implements Language {
     }
 
     if (aspect.ping('conj')) {
-      new SimpleQuery([:], ['sem', 'conj_right']).activate(host)
+      new SimpleQuery([:], ['sem', 'conj_right']).activate(host, update)
     }
 
     if (aspect.ping('adverb') && !host.opponent(syn:'adv_mod')) {
-      adverb.activate(host, false)
+      adverb.activate(host, false, update)
     }
   }
 
@@ -145,10 +145,10 @@ class Russian implements Language {
 
       if (objs.size() == 1) {
         subjs -= objs
-        object.instantiate(host, objs[0])
+        object.instantiate(host, objs[0], update)
       }
       if (subjs.size() == 1) {
-        subject.instantiate(host, subjs[0])
+        subject.instantiate(host, subjs[0], update)
       }
 
       return subject.satisfied(host) && object.satisfied(host)

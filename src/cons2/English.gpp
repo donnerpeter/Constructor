@@ -28,12 +28,12 @@ class English implements Language {
     }
 
     if (aspect.ping('verb')) {
-      subject.activate(host, true)
+      subject.activate(host, true, update)
       return
     }
 
     if (aspect.ping('adj')) {
-      property_host.activate host
+      property_host.activate host, update
       return
     }
 
@@ -52,7 +52,7 @@ class English implements Language {
 
   void contextChanged(Frame host, Aspect aspect, Update update) {
     if (aspect.ping('verb')) {
-      object.activate(host, false)
+      object.activate(host, false, update)
     }
   }
 

@@ -5,11 +5,11 @@ package cons2
  */
 class SimpleQuery {
   Map<String, Object> pattern
-  Aspect[] cxts
+  Aspect[] aspects
 
-  def SimpleQuery(Map<String, Object> pattern, Aspect... cxts) {
+  def SimpleQuery(Map<String, Object> pattern, Aspect... aspects) {
     this.pattern = pattern;
-    this.cxts = cxts
+    this.aspects = aspects
   }
 
   boolean satisfied(Frame f) {
@@ -17,7 +17,7 @@ class SimpleQuery {
   }
 
   private List<Frame> usagesOf(Frame f) {
-    return f.strongUsages((cxts[0].role): cxts[0].nicknames)
+    return f.strongUsages((aspects[0].role): aspects[0].nicknames)
   }
 
   List<Frame> allArgumentCandidates(Frame f) {
@@ -32,12 +32,12 @@ class SimpleQuery {
     null
   }
 
-  boolean activate(Frame f, boolean wrapUpArg = false) {
+  boolean activate(Frame f, boolean wrapUpArg = false, Update update) {
     if (!satisfied(f)) {
       return f.findAround(pattern) { arg ->
-        instantiate(f, arg)
+        instantiate(f, arg, update)
         if (wrapUpArg) {
-          f.chart.wrapUp arg
+          update.wrapUp arg
         }
       }
     }
@@ -46,8 +46,8 @@ class SimpleQuery {
 
 
 
-  void instantiate(Frame self, Frame arg) {
-    arg.chosenAs pattern
+  void instantiate(Frame self, Frame arg, Update update) {
+    update.confirmChoice(pattern, arg)
 
     def usages = usagesOf(self)
     if (usages) {
@@ -55,7 +55,7 @@ class SimpleQuery {
       return
     }
 
-    self.chart.construction([self, arg], cxts)
+    update.construction([self, arg], aspects)
   }
 
   void weaken(Frame head) {

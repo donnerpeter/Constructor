@@ -17,9 +17,9 @@ class Parser {
       if (w != ' ') {
         try {
           Integer.parseInt(w)
-          chart.newFrame(['sem', "number" + w])
+          chart.newFrame([], ['sem', "number" + w])
         } catch (NumberFormatException e) {
-          chart.newFrame(['phon', w])
+          chart.newFrame([], ['phon', w])
         }
       }
 

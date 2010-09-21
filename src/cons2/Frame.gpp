@@ -18,7 +18,7 @@ class Frame {
     this.chart = chart
     this.args = args
     for (arg in args) {
-      assert arg
+      assert arg != null
     }
     chart.event(new FrameEvent(this, false))
   }

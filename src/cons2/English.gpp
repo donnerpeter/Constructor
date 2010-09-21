@@ -62,7 +62,7 @@ class English implements Language {
 
   private void generateSentence(Frame verb, Chart dst) {
     generateNP(dst, verb.opponent(sem:'experiencer'), true)
-    dst.newFrame(['phon', verb.ping(sem:'love') ? 'loves' : 'happened'])
+    dst.newFrame([], ['phon', verb.ping(sem:'love') ? 'loves' : 'happened'])
     def theme = verb.opponent(sem:'theme')
     if (verb.ping(sem:'love')) {
       generateNP(dst, theme, false)
@@ -70,45 +70,41 @@ class English implements Language {
       generatePP(dst, 'to', theme)
     }
     if (verb.ping(time:'PAST')) {
-      dst.newFrame(['phon', 'today'])
+      dst.newFrame([], ['phon', 'today'])
     }
   }
 
   private void generatePP(Chart dst, String prep, Frame noun) {
-    dst.newFrame(['phon', prep])
+    dst.newFrame([], ['phon', prep])
     generateNP dst, noun, false
   }
 
   private void generateNP(Chart dst, Frame noun, boolean nom) {
     if (noun.ping(sem:'I')) {
-      dst.newFrame(['phon', nom ? 'I' : 'me'])
+      dst.newFrame([], ['phon', nom ? 'I' : 'me'])
       return;
     }
 
-    if (noun.ping(discourse:'new')) {
-      dst.newFrame(['phon', 'An'])
-    } else {
-      dst.newFrame(['phon', 'the'])
-    }
+    dst.newFrame([], ['phon', (noun.ping(discourse:'new') ? 'An' : 'the')])
     noun.allOpponents(sem:'property_host').each { generateAdj(dst, it) }
     if (noun.ping(sem:'mother')) {
-      dst.newFrame(['phon', 'mother'])
+      dst.newFrame([], ['phon', 'mother'])
     } else if (noun.ping(sem:'daughter')) {
-      dst.newFrame(['phon', 'daughter'])
+      dst.newFrame([], ['phon', 'daughter'])
     } else if (noun.ping(sem:'father')) {
-      dst.newFrame(['phon', 'father'])
+      dst.newFrame([], ['phon', 'father'])
     } else if (noun.ping(sem:'THING')) {
-      dst.newFrame(['phon', 'thing'])
+      dst.newFrame([], ['phon', 'thing'])
     }
     dst.update()
   }
 
   private def generateAdj(Chart dst, Frame adj) {
     if (adj.ping(sem:'beautiful')) {
-      dst.newFrame(['phon', 'beautiful'])
+      dst.newFrame([], ['phon', 'beautiful'])
     }
     else if (adj.ping(sem:'AMAZING')) {
-      dst.newFrame(['phon', 'amazing'])
+      dst.newFrame([], ['phon', 'amazing'])
     }
   }
 

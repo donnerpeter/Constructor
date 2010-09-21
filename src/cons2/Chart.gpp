@@ -36,21 +36,15 @@ class Chart {
     frames(includeWeak).findAll { f in it.children && it.ping(pattern) }
   }
 
-  Frame construction(List<Frame> children, Aspect... alternatives) {
-    def frame = registerFrame(new Frame(this, children))
-    if (alternatives) {
-      frame.enrich(alternatives)
-    }
-    return frame
-  }
-
   List<Frame> findActive(Map<String, Object> pattern) {
     return active.findAll { it.ping(pattern) }
   }
 
-  Frame newFrame(Aspect... alternatives) {
-    def frame = registerFrame(new Frame(this))
-    frame.enrich(alternatives)
+  Frame newFrame(List<Frame> children, Aspect... alternatives) {
+    def frame = registerFrame(new Frame(this, children as Frame[]))
+    if (alternatives) {
+      frame.enrich(alternatives)
+    }
     return frame
   }
 

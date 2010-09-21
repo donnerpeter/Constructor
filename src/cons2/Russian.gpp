@@ -1,6 +1,6 @@
 package cons2
 
- /**
+/**
  * @author peter
  */
 class Russian implements Language {
@@ -25,7 +25,7 @@ class Russian implements Language {
           suffix("ую", ['syn', 'adj', 'adj_acc']).
           suffix("ый", ['syn', 'adj', 'adj_nom'])
 
-  void aspectAppeared(Frame host, Aspect aspect) {
+  void aspectAppeared(Frame host, Aspect aspect, Update update) {
     if (aspect.role == 'phon') {
       infl.analyze host, aspect
 
@@ -67,25 +67,25 @@ class Russian implements Language {
     if (aspect.role == 'stem') {
       def stem = aspect.nicknames.iterator().next()
       if (stem == "люб") {
-        host.enrich(['subcat', '2acc'], ["sem", "love"])
+        update.enrich(host, ['subcat', '2acc'], ["sem", "love"])
       }
       if (stem == "красив") {
-        host.enrich(["sem", "beautiful"])
+        update.enrich(host, ["sem", "beautiful"])
       }
       if (stem == "Удивительн") {
-        host.enrich(["sem", "AMAZING"])
+        update.enrich(host, ["sem", "AMAZING"])
       }
     }
 
     if (aspect.ping('subject') && !host['sem']) {
       Frame verb = host.children[0]
-      host.enrich(['sem', verb.ping(syn:'идти') ? 'agent' : 'experiencer'])
+      update.enrich(host, ['sem', verb.ping(syn:'идти') ? 'agent' : 'experiencer'])
     }
 
     if (aspect.ping('verb_arg') && !host['wh_focus']) {
       Frame arg = host.children[1]
       if (arg.ping(syn:'wh')) {
-        host.enrich(['wh_focus', 'true'])
+        update.enrich(host, ['wh_focus', 'true'])
       }
     }
 
@@ -95,7 +95,7 @@ class Russian implements Language {
 
   }
 
-  void contextChanged(Frame host, Aspect aspect) {
+  void contextChanged(Frame host, Aspect aspect, Update update) {
     if (aspect.ping('verb')) {
       subject.activate host
 
@@ -108,13 +108,13 @@ class Russian implements Language {
 
       def stv = host.strongUsages(syn:'с+тв')[0]
       if (stv && !stv['sem']) {
-        stv.enrich(['sem', 'theme'])
+        update.enrich(stv, ['sem', 'theme'])
       }
 
       if (aspect.ping('идти') && !host.opponent(syn:'adv_mod')) {
         host.findAround(syn:['adverb', 'scalar']) { scalar ->
           host.chart.construction([scalar, host], ['syn', 'adv_mod'], ['sem', 'scalar_end'])
-          host.enrich(['sem', 'COME_SCALARLY'])
+          update.enrich(host, ['sem', 'COME_SCALARLY'])
           host.chosenAs sem:'COME_SCALARLY'
         }
       }
@@ -131,7 +131,7 @@ class Russian implements Language {
     }
   }
 
-  boolean wrapUp(Frame host, Aspect aspect) {
+  boolean wrapUp(Frame host, Aspect aspect, Update update) {
     if (aspect.ping('love')) {
       if (subject.satisfied(host) && object.satisfied(host)) {
         return true

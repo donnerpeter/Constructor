@@ -25,7 +25,7 @@ class Chart {
   }
 
   void aspectAppeared(Frame host, Aspect aspect) {
-    language.aspectAppeared host, aspect
+    language.aspectAppeared host, aspect, new Update(this)
   }
 
   List<Frame> frames(boolean includeWeak = false) {
@@ -81,7 +81,7 @@ class Chart {
         return
       }
       f.initializedAspects.each { Aspect c ->
-        language.contextChanged f, c
+        language.contextChanged f, c, new Update(this)
 
         if (c instanceof AnticipatingConstruct) {
           ((AnticipatingConstruct)c).contextChanged f
@@ -103,7 +103,7 @@ class Chart {
         break
       }
 
-      if (f.chosenAspects.every { language.wrapUp(f, it) }) {
+      if (f.chosenAspects.every { language.wrapUp(f, it, new Update(this)) }) {
         finished << f
         update()
       }

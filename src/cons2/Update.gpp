@@ -1,0 +1,19 @@
+package cons2
+
+/**
+ * @author peter
+ */
+class Update {
+  Chart chart
+
+  Update(Chart chart) {
+    this.chart = chart
+  }
+
+  Update enrich(Frame host, Aspect... aspects) {
+    host.enrich aspects
+    this
+  }
+
+
+}

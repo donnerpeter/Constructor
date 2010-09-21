@@ -12,7 +12,7 @@ class English implements Language {
           wholeWord("the", ['syn', 'article']).
           suffix("s", ['syn', 'verb'])
 
-  boolean wrapUp(Frame host, Aspect aspect) {
+  boolean wrapUp(Frame host, Aspect aspect, Update update) {
     true
   }
 
@@ -20,7 +20,7 @@ class English implements Language {
   SimpleQuery object = [[syn:"noun"], ["syn", 'object'], ["sem", "theme"]]
   SimpleQuery property_host = [[syn:"noun"], [new Aspect("sem", 'property_host')] as Aspect[]]
 
-  void aspectAppeared(Frame host, Aspect aspect) {
+  void aspectAppeared(Frame host, Aspect aspect, Update update) {
     if (aspect.ping('article')) {
       def article = host.chart.newFrame(new AnticipatingConstruct(["noun"], [syn:"noun"]))
       host.chart.construction([article, host], ["syn", "det_noun"])
@@ -39,7 +39,7 @@ class English implements Language {
 
     if (aspect.role == 'stem') {
       if (aspect.ping('love')) {
-        host.enrich(["sem", "love"])
+        update.enrich(host, ["sem", "love"])
         return
       }
     }
@@ -50,7 +50,7 @@ class English implements Language {
 
   }
 
-  void contextChanged(Frame host, Aspect aspect) {
+  void contextChanged(Frame host, Aspect aspect, Update update) {
     if (aspect.ping('verb')) {
       object.activate(host, false)
     }

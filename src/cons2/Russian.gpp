@@ -39,8 +39,8 @@ class Russian implements Language {
       def caze = aspect.ping('adj_nom') ? 'nom' : 'acc'
       def adj = new SimpleQuery(syn:caze, ['syn', 'adjective_noun'], ['sem', 'property_host'])
       if (!adj.activate(host)) {
-        def noun = host.chart.newFrame(new AnticipatingConstruct(["noun", caze], [syn:"noun"]))
-        host.chart.construction([host, noun], ['syn', 'adjective_noun'], ['sem', 'property_host'])
+        def noun = update.newFrame(new AnticipatingConstruct(["noun", caze], [syn:"noun"]))
+        update.construction([host, noun], ['syn', 'adjective_noun'], ['sem', 'property_host'])
       }
       return
     }
@@ -48,7 +48,7 @@ class Russian implements Language {
     if (aspect.ping('prep_noun')) {
       Frame noun = host.children[1]
       if (!noun.strongUsages(syn:'с+тв')) {
-        noun.findAround(syn:'verb') { verb -> verb.chart.construction([verb, noun], ['syn', 'с+тв']) }
+        noun.findAround(syn:'verb') { verb -> update.construction([verb, noun], ['syn', 'с+тв']) }
       }
     }
 
@@ -60,8 +60,8 @@ class Russian implements Language {
 
     if (aspect.ping('prep')) {
       def caze = 'instr'
-      def arg = host.chart.newFrame(new AnticipatingConstruct(["noun", caze], [syn:"noun"]))
-      host.chart.construction([host, arg], ['syn', 'prep_noun'])
+      def arg = update.newFrame(new AnticipatingConstruct(["noun", caze], [syn:"noun"]))
+      update.construction([host, arg], ['syn', 'prep_noun'])
     }
 
     if (aspect.role == 'stem') {
@@ -90,7 +90,7 @@ class Russian implements Language {
     }
 
     if (aspect.ping('conj')) {
-      host.findAround([:]) { left -> host.chart.construction([host, left], ['sem', 'conj_left']) }
+      host.findAround([:]) { left -> update.construction([host, left], ['sem', 'conj_left']) }
     }
 
   }

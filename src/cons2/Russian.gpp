@@ -137,8 +137,8 @@ class Russian implements Language {
         return true
       }
 
-      subject.weaken(host)
-      object.weaken(host)
+      subject.weaken(host, update)
+      object.weaken(host, update)
 
       def subjs = subject.allArgumentCandidates(host)
       def objs = object.allArgumentCandidates(host)

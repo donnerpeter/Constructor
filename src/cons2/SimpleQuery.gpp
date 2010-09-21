@@ -58,9 +58,9 @@ class SimpleQuery {
     update.newFrame([self, arg], aspects)
   }
 
-  void weaken(Frame head) {
+  void weaken(Frame head, Update update) {
     usagesOf(head).each {
-      head.chart.weaken it
+      update.weaken it
       it.children.each { it.relax() }
     }
   }

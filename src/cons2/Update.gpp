@@ -28,4 +28,8 @@ class Update {
     frame.chosenAs pattern
   }
 
+  void weaken(Frame frame) {
+    chart.weaken frame
+  }
+
 }

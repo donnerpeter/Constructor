@@ -45,7 +45,7 @@ class English implements Language {
     }
 
     if (aspect.role == 'phon') {
-      infl.analyze host, aspect
+      infl.analyze host, aspect, update
     }
 
   }

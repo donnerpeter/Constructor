@@ -14,18 +14,18 @@ class Inflection {
     this
   }
 
-  void analyze(Frame host, Aspect phonAspect) {
+  void analyze(Frame host, Aspect phonAspect, Update update) {
     def word = phonAspect.nicknames.iterator().next()
 
     def wh = wholeWords[word]
     if (wh) {
-      host.enrich(wh)
+      update.enrich(host, wh)
       return
     }
 
     for (suf in suffixing.keySet()) {
       if (word.endsWith(suf)) {
-        host.enrich(['stem', word[0..<word.length()-suf.length()]], suffixing[suf])
+        update.enrich(host, ['stem', word[0..<word.length()-suf.length()]], suffixing[suf])
         return
       }
     }

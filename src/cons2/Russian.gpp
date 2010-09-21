@@ -27,7 +27,7 @@ class Russian implements Language {
 
   void aspectAppeared(Frame host, Aspect aspect, Update update) {
     if (aspect.role == 'phon') {
-      infl.analyze host, aspect
+      infl.analyze host, aspect, update
 
       if (aspect.ping(':')) {
         host.findAround(syn:'verb') { verb -> update.wrapUp verb }

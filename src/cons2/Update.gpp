@@ -10,9 +10,8 @@ class Update {
     this.chart = chart
   }
 
-  Update enrich(Frame host, Aspect... aspects) {
+  void enrich(Frame host, Aspect... aspects) {
     host.enrich aspects
-    this
   }
 
   Frame newFrame(Aspect... aspects) {
@@ -25,6 +24,10 @@ class Update {
     def frame = chart.construction(children)
     enrich frame, aspects
     frame
+  }
+
+  void wrapUp(Frame frame) {
+    chart.wrapUp frame
   }
 
 }

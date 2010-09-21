@@ -30,4 +30,8 @@ class Update {
     chart.wrapUp frame
   }
 
+  void confirmChoice(Map<String, Object> pattern, Frame frame) {
+    frame.chosenAs pattern
+  }
+
 }

@@ -5,12 +5,18 @@ package cons2
  */
 class Update {
   Chart chart
+  private Map<Frame, List<Aspect>> newAspects = [:]
+  private Map<Frame, Map<String, Object>> confirmations = [:]
+  private Set<Frame> wrapUps = []
+  private Set<Frame> weakened = []
+
 
   Update(Chart chart) {
     this.chart = chart
   }
 
   void enrich(Frame host, Aspect... aspects) {
+    newAspects.get(host, []).addAll(aspects)
     host.enrich aspects
   }
 
@@ -21,14 +27,17 @@ class Update {
   }
 
   void wrapUp(Frame frame) {
+    wrapUps << frame
     chart.wrapUp frame
   }
 
   void confirmChoice(Map<String, Object> pattern, Frame frame) {
     frame.chosenAs pattern
+    confirmations.get(frame, [:]).putAll pattern
   }
 
   void weaken(Frame frame) {
+    weakened << frame
     chart.weaken frame
   }
 

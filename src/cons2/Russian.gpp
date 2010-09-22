@@ -131,18 +131,21 @@ class Russian implements Language {
     }
   }
 
-  boolean wrapUp(Frame host, Aspect aspect, Update update) {
+  boolean wrapUp(Frame host, Aspect aspect) {
     if (aspect.ping('love')) {
       if (subject.satisfied(host) && object.satisfied(host)) {
         return true
       }
 
+      def update = new Update(host.chart)
       subject.weaken(host, update)
       object.weaken(host, update)
+      update.apply()
 
       def subjs = subject.allArgumentCandidates(host)
       def objs = object.allArgumentCandidates(host)
 
+      update = new Update(host.chart)
       if (objs.size() == 1) {
         subjs -= objs
         object.instantiate(host, objs[0], update)
@@ -150,6 +153,7 @@ class Russian implements Language {
       if (subjs.size() == 1) {
         subject.instantiate(host, subjs[0], update)
       }
+      update.apply()
 
       return subject.satisfied(host) && object.satisfied(host)
 

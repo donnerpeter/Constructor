@@ -17,7 +17,6 @@ class Update {
 
   void enrich(Frame host, Aspect... aspects) {
     newAspects.get(host, []).addAll(aspects)
-    host.enrich aspects
   }
 
   Frame newFrame(List<Frame> children, Aspect... aspects) {
@@ -28,7 +27,6 @@ class Update {
 
   void wrapUp(Frame frame) {
     wrapUps << frame
-    chart.wrapUp frame
   }
 
   void confirmChoice(Map<String, Object> pattern, Frame frame) {
@@ -38,7 +36,13 @@ class Update {
 
   void weaken(Frame frame) {
     weakened << frame
-    chart.weaken frame
+  }
+
+  void apply() {
+    newAspects.each { frame, aspects -> frame.enrich(aspects as Aspect[]) }
+    confirmations.each { frame, pattern -> frame.chosenAs(pattern) }
+    weakened.each { chart.weaken it }
+    wrapUps.each { chart.wrapUp it }
   }
 
 }

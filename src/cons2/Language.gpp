@@ -9,7 +9,7 @@ interface Language {
 
   void contextChanged(Frame host, Aspect aspect, Update update)
 
-  boolean wrapUp(Frame host, Aspect aspect, Update update)
+  boolean wrapUp(Frame host, Aspect aspect)
 
   void generate(Chart sem, Chart to)
 

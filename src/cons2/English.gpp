@@ -12,7 +12,7 @@ class English implements Language {
           wholeWord("the", ['syn', 'article']).
           suffix("s", ['syn', 'verb'])
 
-  boolean wrapUp(Frame host, Aspect aspect, Update update) {
+  boolean wrapUp(Frame host, Aspect aspect) {
     true
   }
 

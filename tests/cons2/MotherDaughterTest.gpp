@@ -67,9 +67,10 @@ frame: sem=love
 frame ^1 ^2: sem=experiencer
 frame: sem=beautiful
 frame
-frame ^4 ^1: sem=theme
-frame ^3 ^2: sem=property_host
-frame: sem=mother, ==^3
+frame ^2 ^1
+frame ^5 ^2: sem=theme
+^2: sem=property_host
+frame: sem=mother, ==^4
 """
   }
 
@@ -138,8 +139,10 @@ frame
 frame ^2 ^1: sem=property_host
 frame: sem=daughter, ==^2
 ^5: weaken
-frame ^7 ^8: sem=theme
-frame ^8 ^3: sem=experiencer
+frame ^7 ^8
+frame ^8 ^3
+^2: sem=theme
+^2: sem=experiencer
 """
   }
 
@@ -150,8 +153,10 @@ frame: sem=love
 frame ^1 ^2: sem=experiencer
 frame: sem=father
 ^2: weaken
-frame ^4 ^5: sem=theme
-frame ^5 ^3: sem=experiencer
+frame ^4 ^5
+frame ^5 ^3
+^2: sem=theme
+^2: sem=experiencer
 """
   }
 

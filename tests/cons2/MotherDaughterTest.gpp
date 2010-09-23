@@ -164,7 +164,12 @@ frame ^5 ^3
 
   private def doTest(String input, String expected) {
     def chart = new Parser(new Russian()).parse(input)
-    assertEquals expected.trim() + "\n", chart.presentable().trim() + "\n"
+    assertEquals expected.trim() + "\n", chart.presentableLog().trim() + "\n"
+  }
+
+  private def doResultTest(String input, String expected) {
+    def chart = new Parser(new Russian()).parse(input)
+    assertEquals expected.trim() + "\n", chart.presentableLog().trim() + "\n"
   }
 
   private def doTranslationTest(String rus, String eng) {
@@ -179,7 +184,7 @@ frame ^5 ^3
     dstLanguage.generate(desired, dst)
     def actual = dst.phonString()
     if (expected != actual) {
-      println "Original analysis:\n" + chart.presentable()
+      println "Original analysis:\n" + chart.presentableLog()
       println "-------------\nTransferred:\n" + dst.log.presentable(['phon', 'syn', 'sem', 'stem'])
       assertEquals expected, actual
     }
@@ -187,7 +192,7 @@ frame ^5 ^3
 
   private def doEnglishTest(String input, String expected) {
     def chart = new Parser(new English()).parse(input)
-    assertEquals expected.trim() + "\n", chart.presentable().trim() + "\n"
+    assertEquals expected.trim() + "\n", chart.presentableLog().trim() + "\n"
   }
 
 }

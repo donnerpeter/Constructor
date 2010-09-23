@@ -20,7 +20,7 @@ class Chart {
     this.language = language
   }
 
-  String presentable() {
+  String presentableLog() {
     log.presentable(['sem', 'wh_focus'])
   }
 

@@ -155,6 +155,8 @@ class Russian implements Language {
       }
       update.apply()
 
+      host.chosenAs syn:'verb', sem:'love'
+
       return subject.satisfied(host) && object.satisfied(host)
 
     }

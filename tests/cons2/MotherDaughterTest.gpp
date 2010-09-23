@@ -8,24 +8,28 @@ import junit.framework.TestCase
 class MotherDaughterTest extends TestCase {
 
   public void testMLD() throws Exception {
-    doTest "мать любит дочь", """
-frame: sem=mother
-frame: sem=love
-frame ^1 ^2: sem=experiencer
-frame: sem=daughter
-frame ^3 ^1: sem=theme
+    doResultTest "мать любит дочь", """
+V_mother_1[label="sem=mother"];
+V_love_1[label="sem=love"];
+V_experiencer_1[label="sem=experiencer"];
+V_daughter_1[label="sem=daughter"];
+V_theme_1[label="sem=theme"];
+
+V_experiencer_1 -> V_love_1; V_experiencer_1 -> V_mother_1;
+V_theme_1 -> V_love_1; V_theme_1 -> V_daughter_1;
 """
   }
 
   public void testMLDEnglish() throws Exception {
     doEnglishTest "the mother loves the daughter", """
-frame
-frame: sem=mother, ==^1
-frame: sem=love
-frame ^1 ^2: sem=experiencer
-frame
-frame ^3 ^1: sem=theme
-frame: sem=daughter, ==^2
+V_mother_1[label="sem=mother"];
+V_love_1[label="sem=love"];
+V_experiencer_1[label="sem=experiencer"];
+V_theme_1[label="sem=theme"];
+V_daughter_1[label="sem=daughter"];
+
+V_experiencer_1 -> V_love_1; V_experiencer_1 -> V_mother_1;
+V_theme_1 -> V_love_1; V_theme_1 -> V_daughter_1;
 """
   }
 
@@ -37,25 +41,31 @@ frame: sem=daughter, ==^2
     doTranslationTest "дочь любит мать", "the daughter loves the mother"
   }
   public void testDLM() throws Exception {
-    doTest "дочь любит мать", """
-frame: sem=daughter
-frame: sem=love
-frame ^1 ^2: sem=experiencer
-frame: sem=mother
-frame ^3 ^1: sem=theme
+    doResultTest "дочь любит мать", """
+V_daughter_1[label="sem=daughter"];
+V_love_1[label="sem=love"];
+V_experiencer_1[label="sem=experiencer"];
+V_mother_1[label="sem=mother"];
+V_theme_1[label="sem=theme"];
+
+V_experiencer_1 -> V_love_1; V_experiencer_1 -> V_daughter_1;
+V_theme_1 -> V_love_1; V_theme_1 -> V_mother_1;
 """
   }
 
   public void testBnDLM() throws Exception {
-    doTest "красивая дочь любит мать", """
-frame: sem=beautiful
-frame
-frame ^2 ^1: sem=property_host
-frame: sem=daughter, ==^2
-frame: sem=love
-frame ^1 ^2: sem=experiencer
-frame: sem=mother
-frame ^3 ^1: sem=theme
+    doResultTest "красивая дочь любит мать", """
+V_beautiful_1[label="sem=beautiful"];
+V_property_host_1[label="sem=property_host"];
+V_daughter_1[label="sem=daughter"];
+V_love_1[label="sem=love"];
+V_experiencer_1[label="sem=experiencer"];
+V_mother_1[label="sem=mother"];
+V_theme_1[label="sem=theme"];
+
+V_property_host_1 -> V_beautiful_1; V_property_host_1 -> V_daughter_1;
+V_experiencer_1 -> V_love_1; V_experiencer_1 -> V_daughter_1;
+V_theme_1 -> V_love_1; V_theme_1 -> V_mother_1;
 """
   }
 
@@ -63,16 +73,18 @@ frame ^3 ^1: sem=theme
     doTranslationTest "красивая дочь любит мать", "the beautiful daughter loves the mother"
   }
   public void testDLBaM() throws Exception {
-    doTest "дочь любит красивую мать", """
-frame: sem=daughter
-frame: sem=love
-frame ^1 ^2: sem=experiencer
-frame: sem=beautiful
-frame
-frame ^2 ^1
-frame ^5 ^2: sem=theme
-^2: sem=property_host
-frame: sem=mother, ==^4
+    doResultTest "дочь любит красивую мать", """
+V_daughter_1[label="sem=daughter"];
+V_love_1[label="sem=love"];
+V_experiencer_1[label="sem=experiencer"];
+V_beautiful_1[label="sem=beautiful"];
+V_property_host_1[label="sem=property_host"];
+V_theme_1[label="sem=theme"];
+V_mother_1[label="sem=mother"];
+
+V_experiencer_1 -> V_love_1; V_experiencer_1 -> V_daughter_1;
+V_property_host_1 -> V_beautiful_1; V_property_host_1 -> V_mother_1;
+V_theme_1 -> V_love_1; V_theme_1 -> V_mother_1;
 """
   }
 
@@ -89,49 +101,61 @@ frame: sem=mother, ==^4
   }
 
   public void testDLF() throws Exception {
-    doTest "дочь любит отца", """
-frame: sem=daughter
-frame: sem=love
-frame ^1 ^2: sem=experiencer
-frame: sem=father
-frame ^3 ^1: sem=theme
+    doResultTest "дочь любит отца", """
+V_daughter_1[label="sem=daughter"];
+V_love_1[label="sem=love"];
+V_experiencer_1[label="sem=experiencer"];
+V_father_1[label="sem=father"];
+V_theme_1[label="sem=theme"];
+
+V_experiencer_1 -> V_love_1; V_experiencer_1 -> V_daughter_1;
+V_theme_1 -> V_love_1; V_theme_1 -> V_father_1;
 """
   }
 
   public void testFLD() throws Exception {
-    doTest "отец любит дочь", """
-frame: sem=father
-frame: sem=love
-frame ^1 ^2: sem=experiencer
-frame: sem=daughter
-frame ^3 ^1: sem=theme
+    doResultTest "отец любит дочь", """
+V_father_1[label="sem=father"];
+V_love_1[label="sem=love"];
+V_experiencer_1[label="sem=experiencer"];
+V_daughter_1[label="sem=daughter"];
+V_theme_1[label="sem=theme"];
+
+V_experiencer_1 -> V_love_1; V_experiencer_1 -> V_father_1;
+V_theme_1 -> V_love_1; V_theme_1 -> V_daughter_1;
 """
   }
 
   public void testFaLD() throws Exception {
-    doTest "отца любит дочь", """
-frame: sem=father
-frame: sem=love
-frame ^1 ^2: sem=theme
-frame: sem=daughter
-frame ^3 ^1: sem=experiencer
+    doResultTest "отца любит дочь", """
+V_father_1[label="sem=father"];
+V_love_1[label="sem=love"];
+V_theme_1[label="sem=theme"];
+V_daughter_1[label="sem=daughter"];
+V_experiencer_1[label="sem=experiencer"];
+
+V_theme_1 -> V_love_1; V_theme_1 -> V_father_1;
+V_experiencer_1 -> V_love_1; V_experiencer_1 -> V_daughter_1;
 """
   }
 
   public void testBaMaLD() throws Exception {
-    doTest "красивую мать любит дочь", """
-frame: sem=beautiful
-frame
-frame ^2 ^1: sem=property_host
-frame: sem=mother, ==^2
-frame: sem=love
-frame ^1 ^2: sem=theme
-frame: sem=daughter
-frame ^3 ^1: sem=experiencer
+    doResultTest "красивую мать любит дочь", """
+V_beautiful_1[label="sem=beautiful"];
+V_property_host_1[label="sem=property_host"];
+V_mother_1[label="sem=mother"];
+V_love_1[label="sem=love"];
+V_theme_1[label="sem=theme"];
+V_daughter_1[label="sem=daughter"];
+V_experiencer_1[label="sem=experiencer"];
+
+V_property_host_1 -> V_beautiful_1; V_property_host_1 -> V_mother_1;
+V_theme_1 -> V_love_1; V_theme_1 -> V_mother_1;
+V_experiencer_1 -> V_love_1; V_experiencer_1 -> V_daughter_1;
 """
   }
   
-  public void testMaLBnD() throws Exception {
+  public void testMaLBnDLog() throws Exception {
     doTest "мать любит красивая дочь", """
 frame: sem=mother
 frame: sem=love
@@ -140,25 +164,41 @@ frame: sem=beautiful
 frame
 frame ^2 ^1: sem=property_host
 frame: sem=daughter, ==^2
-^5: weaken
-frame ^7 ^8
-frame ^8 ^3
+^6: sem=null
+^8: sem=null
+^7: weaken
+frame ^3 ^2
+frame ^4 ^5
 ^2: sem=theme
 ^2: sem=experiencer
+^7: sem=love
+"""
+  }
+
+  public void testMaLBnDResult() throws Exception {
+    doResultTest "мать любит красивая дочь", """
+V_love_1[label="sem=love"];
+V_beautiful_1[label="sem=beautiful"];
+V_property_host_1[label="sem=property_host"];
+V_daughter_1[label="sem=daughter"];
+V_theme_1[label="sem=theme"];
+V_experiencer_1[label="sem=experiencer"];
+
+V_property_host_1 -> V_beautiful_1; V_property_host_1 -> V_daughter_1;
+V_theme_1 -> V_love_1; V_theme_1 -> null;
+V_experiencer_1 -> V_love_1; V_experiencer_1 -> V_daughter_1;
 """
   }
 
   public void testDaLFn() throws Exception {
-    doTest "дочь любит отец", """
-frame: sem=daughter
-frame: sem=love
-frame ^1 ^2: sem=experiencer
-frame: sem=father
-^2: weaken
-frame ^4 ^5
-frame ^5 ^3
-^2: sem=theme
-^2: sem=experiencer
+    doResultTest "дочь любит отец", """
+V_love_1[label="sem=love"];
+V_father_1[label="sem=father"];
+V_theme_1[label="sem=theme"];
+V_experiencer_1[label="sem=experiencer"];
+
+V_theme_1 -> V_love_1; V_theme_1 -> null;
+V_experiencer_1 -> V_love_1; V_experiencer_1 -> V_father_1;
 """
   }
 
@@ -169,7 +209,7 @@ frame ^5 ^3
 
   private def doResultTest(String input, String expected) {
     def chart = new Parser(new Russian()).parse(input)
-    assertEquals expected.trim() + "\n", chart.presentableLog().trim() + "\n"
+    assertEquals Chart.resultPrefix + expected.trim() + "\n" + Chart.resultSuffix + "\n", chart.presentableResult().trim() + "\n"
   }
 
   private def doTranslationTest(String rus, String eng) {
@@ -192,7 +232,7 @@ frame ^5 ^3
 
   private def doEnglishTest(String input, String expected) {
     def chart = new Parser(new English()).parse(input)
-    assertEquals expected.trim() + "\n", chart.presentableLog().trim() + "\n"
+    assertEquals Chart.resultPrefix + expected.trim() + "\n" + Chart.resultSuffix + "\n", chart.presentableResult().trim() + "\n"
   }
 
 }

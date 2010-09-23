@@ -8,6 +8,10 @@ import cons2.Log.MergeEvent
  * @author peter
  */
 class Chart {
+  private static Set<String> interestingAspects = ['sem', 'wh_focus']
+  static String resultPrefix = "digraph Parse {\n"
+  static String resultSuffix = "}"
+
   final Log log = new Log()
   private final LinkedHashSet<Frame> frames = []
   private final LinkedList<Frame> active = []
@@ -21,7 +25,30 @@ class Chart {
   }
 
   String presentableLog() {
-    log.presentable(['sem', 'wh_focus'])
+    log.presentable(interestingAspects)
+  }
+
+  String presentableResult() {
+    StringBuilder result = new StringBuilder()
+    Map<String, Integer> counters = [:]
+    Map<Frame, String> ids = [:]
+    def toDraw = frames.findAll { Frame f -> !(f in weak) && interestingAspects.any { f[it] } }
+    toDraw.each { Frame f ->
+      String meaningful = f['sem'] ?: ""
+      int num = counters.get(meaningful, 0) + 1
+      counters[meaningful] = num
+      String id = "V_${meaningful}_$num"
+      ids[f] = id
+      def label = interestingAspects.collect { if (!f[it]) return null else "$it=${f[it]}" }.findAll { it != null }.collect { it.toString() }.join("\n")
+      result.append "$id[label=\"$label\"];\n"
+    }
+
+    result.append "\n"
+    toDraw.findAll { it.children }.each { Frame f ->
+      result.append f.children.collect { "${ids[f]} -> ${ids[it]}" }.join("; ") + ";\n"
+    }
+
+    return resultPrefix + result + resultSuffix
   }
 
   void aspectAppeared(Frame host, Aspect aspect) {

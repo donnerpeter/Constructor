@@ -15,7 +15,9 @@ frame ^1 ^2: sem=experiencer
 frame: sem=daughter
 frame ^3 ^1: sem=theme
 """
+  }
 
+  public void testMLDEnglish() throws Exception {
     doEnglishTest "the mother loves the daughter", """
 frame
 frame: sem=mother, ==^1

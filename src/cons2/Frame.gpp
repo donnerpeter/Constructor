@@ -148,13 +148,9 @@ class Frame {
   }
 
   void relax() {
-    chosen.each { role, value ->
-      if (value) {
-        chart.event new AspectEvent(this, role, null)
-      }
+    if (chosen['syn']) {
+      setChosen('syn', null)
     }
-
-    chosen.clear()
     chart.activate this
   }
 

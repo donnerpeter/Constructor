@@ -213,7 +213,7 @@ V_experiencer_1 -> V_love_1; V_experiencer_1 -> V_father_1;
 
   private def doResultTest(String input, String expected) {
     def chart = new Parser(new Russian()).parse(input)
-    assertEquals Chart.resultPrefix + expected.trim() + "\n" + Chart.resultSuffix + "\n", chart.presentableResult().trim() + "\n"
+    assertEquals Chart.resultPrefix + expected.trim() + "\n" + Chart.resultSuffix + "\n", chart.presentableGraph().trim() + "\n"
   }
 
   private def doTranslationTest(String rus, String eng) {
@@ -236,7 +236,7 @@ V_experiencer_1 -> V_love_1; V_experiencer_1 -> V_father_1;
 
   private def doEnglishTest(String input, String expected) {
     def chart = new Parser(new English()).parse(input)
-    assertEquals Chart.resultPrefix + expected.trim() + "\n" + Chart.resultSuffix + "\n", chart.presentableResult().trim() + "\n"
+    assertEquals Chart.resultPrefix + expected.trim() + "\n" + Chart.resultSuffix + "\n", chart.presentableGraph().trim() + "\n"
   }
 
 }

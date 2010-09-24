@@ -28,11 +28,11 @@ class Chart {
     log.presentable(interestingAspects)
   }
 
-  String presentableResult() {
+  String presentableGraph() {
     StringBuilder result = new StringBuilder()
     Map<String, Integer> counters = [:]
     Map<Frame, String> ids = [:]
-    def toDraw = frames.findAll { Frame f -> !(f in weak) && interestingAspects.any { f[it] } }
+    def toDraw = interestingFrames()
     toDraw.each { Frame f ->
       String meaningful = f['sem'] ?: ""
       int num = counters.get(meaningful, 0) + 1
@@ -49,6 +49,29 @@ class Chart {
     }
 
     return resultPrefix + result + resultSuffix
+  }
+
+  String presentableResult() {
+    StringBuilder result = new StringBuilder()
+    LinkedList<Frame> stack = []
+    def frames = interestingFrames()
+    frames.sort{ f1, f2 ->
+      if (f1 in f2.children) return -1
+      if (f2 in f1.children) return 1
+      return 0
+    }.each { Frame f ->
+      stack.addFirst f
+      String children = f.children.collect { " ^" + stack.indexOf(it) }.join("")
+
+      def aspects = interestingAspects.collect { if (!f[it]) return null else "$it=${f[it]}" }.findAll { it != null }.collect { it.toString() }.join(", ")
+      result.append "frame$children: $aspects\n"
+    }
+
+    return result
+  }
+
+  private Collection<Frame> interestingFrames() {
+    return frames.findAll { Frame f -> !(f in weak) && interestingAspects.any { f[it] } }
   }
 
   List<Frame> frames(boolean includeWeak = false) {

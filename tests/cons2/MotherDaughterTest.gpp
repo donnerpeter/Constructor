@@ -158,15 +158,19 @@ V_experiencer_1 -> V_love_1; V_experiencer_1 -> V_daughter_1;
   public void testMaLBnDLog() throws Exception {
     doTest "мать любит красивая дочь", """
 frame: sem=mother
-frame: sem=love
-frame ^1 ^2: sem=experiencer
-frame: sem=beautiful
 frame
-frame ^2 ^1: sem=property_host
-frame: sem=daughter, ==^2
-^6: sem=null
+frame ^1 ^2
+^2: sem=love
+^2: sem=experiencer
+frame
+frame
+frame ^2 ^1
+^3: sem=beautiful
+^2: sem=property_host
+frame: sem=daughter, ==^4
 ^8: sem=null
-^7: weaken
+^12: sem=null
+^9: weaken
 frame ^3 ^2
 frame ^4 ^5
 ^2: sem=theme

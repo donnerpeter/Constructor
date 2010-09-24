@@ -90,7 +90,7 @@ class Russian implements Language {
     }
 
     if (aspect.ping('conj')) {
-      host.findAround([:]) { left -> update.newFrame([host, left], ['sem', 'conj_left']) }
+      host.findAround([syn:'number']) { left -> update.newFrame([host, left], ['sem', 'conj_left']); update.wrapUp left }
     }
 
   }
@@ -123,7 +123,7 @@ class Russian implements Language {
     }
 
     if (aspect.ping('conj')) {
-      new SimpleQuery([:], ['sem', 'conj_right']).activate(host, update)
+      new SimpleQuery([syn:'number'], ['sem', 'conj_right']).activate(host, update)
     }
 
     if (aspect.ping('adverb') && !host.opponent(syn:'adv_mod')) {
@@ -191,7 +191,6 @@ class Russian implements Language {
     } else if (noun.ping(sem:'father')) {
       dst.newFrame([], ['phon', caze == 'nom' ? 'отец' : 'отца'])
     }
-    dst.update()
   }
 
 

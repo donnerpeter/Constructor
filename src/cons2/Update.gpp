@@ -5,18 +5,20 @@ package cons2
  */
 class Update {
   Chart chart
-  private Map<Frame, List<Aspect>> newAspects = [:]
+  private Map<Frame, Set<Aspect>> newAspects = [:]
+  private Map<Frame, Set<Aspect>> justAppeared = [:]
   private Map<Frame, Map<String, Object>> confirmations = [:]
   private Set<Frame> wrapUps = []
   private Set<Frame> weakened = []
 
 
-  Update(Chart chart) {
+  Update(Chart chart, Map<Frame, Set<Aspect>> justAppeared = [:]) {
     this.chart = chart
+    this.justAppeared = justAppeared
   }
 
   void enrich(Frame host, Aspect... aspects) {
-    newAspects.get(host, []).addAll(aspects)
+    newAspects.get(host, [] as LinkedHashSet).addAll(aspects)
   }
 
   Frame newFrame(List<Frame> children, Aspect... aspects) {
@@ -39,10 +41,31 @@ class Update {
   }
 
   void apply() {
-    newAspects.each { frame, aspects -> frame.enrich(aspects as Aspect[]) }
-    confirmations.each { frame, pattern -> frame.chosenAs(pattern) }
     weakened.each { chart.weaken it }
     wrapUps.each { chart.wrapUp it }
+    confirmations.each { frame, pattern -> frame.chosenAs(pattern) }
+
+    if (!newAspects && !justAppeared) {
+      return
+    }
+
+    def next = new Update(chart, newAspects)
+
+    justAppeared.each { frame, added ->
+      added.each {
+        if (!frame[it.role] || frame[it.role] == it) {
+          chart.language.aspectAppeared frame, it, next
+        }
+      }
+    }
+
+    newAspects.each { frame, aspects -> frame.enrich(aspects as Aspect[]) }
+
+    chart.contextChanged next
+
+    justAppeared.each { frame, added -> frame.initializeAspects added }
+
+    next.apply()
   }
 
 }

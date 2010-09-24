@@ -27,7 +27,6 @@ class Transfer {
           frameMappings[srcFrame].enrich(aspect)
         }
       }
-      desired.update()
     }
 
     return desired

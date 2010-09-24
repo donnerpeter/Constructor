@@ -15,18 +15,20 @@ class Parser {
     def tokenizer = new StringTokenizer(text, " :,", true)
     for (String w in tokenizer) {
       if (w != ' ') {
+        Frame frame = chart.newFrame([])
+        Update update = new Update(chart)
         try {
           Integer.parseInt(w)
-          chart.newFrame([], ['sem', "number" + w])
+          update.enrich frame, ['syn', 'number'], ['sem', "number" + w]
         } catch (NumberFormatException e) {
-          chart.newFrame([], ['phon', w])
+          update.enrich frame, ['phon', w]
         }
+        update.apply()
       }
 
     }
 
     chart.wrapUp()
-
 
     return chart
   }

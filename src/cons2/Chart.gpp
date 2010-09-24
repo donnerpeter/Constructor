@@ -18,7 +18,7 @@ class Chart {
   private final LinkedHashSet<Frame> dirty = []
   private final Set<Frame> finished = []
   private final Set<Frame> weak = []
-  private final Language language
+  final Language language
 
   Chart(Language language) {
     this.language = language
@@ -39,7 +39,7 @@ class Chart {
       counters[meaningful] = num
       String id = "V_${meaningful}_$num"
       ids[f] = id
-      def label = interestingAspects.collect { if (!f[it]) return null else "$it=${f[it]}" }.findAll { it != null }.collect { it.toString() }.join("\n")
+      def label = interestingAspects.collect { if (!f[it]) return null else "$it=${f[it]}" }.findAll { it != null }.collect { it.toString() }.join("\\n")
       result.append "$id[label=\"$label\"];\n"
     }
 
@@ -49,12 +49,6 @@ class Chart {
     }
 
     return resultPrefix + result + resultSuffix
-  }
-
-  void aspectAppeared(Frame host, Aspect aspect) {
-    def update = new Update(this)
-    language.aspectAppeared host, aspect, update
-    update.apply()
   }
 
   List<Frame> frames(boolean includeWeak = false) {
@@ -99,16 +93,10 @@ class Chart {
     null
   }
 
-  void update() {
-    while (true) {
-      def f = nextUnprocessed()
-      if (!f) {
-        return
-      }
+  void contextChanged(Update update) {
+    active.clone().each { Frame f ->
       f.initializedAspects.each { Aspect c ->
-        def update = new Update(this)
         language.contextChanged f, c, update
-        update.apply()
 
         if (c instanceof AnticipatingConstruct) {
           ((AnticipatingConstruct)c).contextChanged f
@@ -132,7 +120,6 @@ class Chart {
 
       if (f.chosenAspects.every { language.wrapUp(f, it) }) {
         finished << f
-        update()
       }
       processed << f
     }

@@ -10,10 +10,12 @@ class KharmsTest extends TestCase {
   public void test7or8() throws Exception {
     doTest "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8",
             """
-frame: sem=AMAZING
 frame
-frame ^2 ^1: sem=property_host
-frame: sem=THING, ==^2
+frame
+frame ^2 ^1
+^3: sem=AMAZING
+^2: sem=property_host
+frame: sem=THING, ==^4
 frame: sem=HAPPEN
 frame ^1 ^2: sem=experiencer
 frame
@@ -22,15 +24,19 @@ frame: sem=I, ==^2
 frame: sem=I
 frame: sem=SUDDENLY
 frame: sem=FORGET
-frame ^2 ^1: sem=mode
-frame ^2 ^4: sem=experiencer
+frame ^2 ^1
+frame ^2 ^4
+^2: sem=mode
+^2: sem=experiencer
 frame: sem=WHAT
 frame: sem=GO
-frame ^5 ^1: sem=theme
-frame ^2 ^3: sem=agent, wh_focus=true
+frame ^7 ^1
+frame ^2 ^3
+^2: sem=theme
+^2: sem=agent, wh_focus=true
 frame: sem=EARLIER
-frame ^1 ^4: sem=scalar_end
-^5: sem=null, sem=COME_SCALARLY
+frame ^1 ^6: sem=scalar_end
+^7: sem=COME_SCALARLY
 frame: sem=number7
 frame: sem=OR
 frame ^1 ^2: sem=conj_left
@@ -66,9 +72,5 @@ frame ^3 ^1: sem=conj_right
     }
   }
 
-  private def doEnglishTest(String input, String expected) {
-    def chart = new Parser(new English()).parse(input)
-    assertEquals expected.trim() + "\n", chart.presentableLog().trim() + "\n"
-  }
 
 }

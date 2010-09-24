@@ -41,8 +41,7 @@ class Frame {
   }
 
   void enrich(Aspect... aspects) {
-    Set<String> affectedRoles = []
-    List<Aspect> added = []
+    Map<String, List<Aspect>> byRole = [:]
     aspects.each { aspect ->
       def role = aspect.role
       def existing = alternatives.get(role, [])
@@ -50,25 +49,18 @@ class Frame {
         return
       }
 
-      affectedRoles << role
       existing << aspect
-      added << aspect
+      def values = byRole.get(role, [])
+      values << aspect
+      //byRole.put(role, values)
     }
-    affectedRoles.each { role ->
-      setChosen(role,  alternatives[role].size() != 1 ? null : alternatives[role][0])
+    byRole.each { role, values ->
+      setChosen(role,  values.size() != 1 ? null : values[0])
     }
+  }
 
-    chart.allDirty()
-    chart.update()
-
-    added.each {
-      if (!chosen[it.role] || chosen[it.role] == it) {
-        chart.aspectAppeared this, it
-      }
-      initialized << it
-    }
-
-    this
+  void initializeAspects(Set<Aspect> added) {
+    initialized.addAll(added)
   }
 
   List<Frame> strongUsages() {

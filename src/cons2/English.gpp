@@ -96,7 +96,6 @@ class English implements Language {
     } else if (noun.ping(sem:'THING')) {
       dst.newFrame([], ['phon', 'thing'])
     }
-    dst.update()
   }
 
   private def generateAdj(Chart dst, Frame adj) {

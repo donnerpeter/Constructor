@@ -47,8 +47,8 @@ class Russian implements Language {
 
     if (aspect.ping('prep_noun')) {
       Frame noun = host.children[1]
-      if (!noun.strongUsages(syn:'с+тв')) {
-        noun.findAround(syn:'verb') { verb -> update.newFrame([verb, noun], ['syn', 'с+тв']) }
+      if (!noun.strongUsages(syn:'theta')) {
+        noun.findAround(syn:'verb') { verb -> update.newFrame([noun, verb], ['syn', 'theta'], ['theta', 'с+тв']) }
       }
     }
 
@@ -106,7 +106,7 @@ class Russian implements Language {
         whComp.activate host, update
       }
 
-      def stv = host.strongUsages(syn:'с+тв')[0]
+      def stv = host.strongUsages(theta:'с+тв')[0]
       if (stv && !stv['sem']) {
         update.enrich(stv, ['sem', 'theme'])
       }

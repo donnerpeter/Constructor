@@ -170,7 +170,7 @@ class Chart {
     active.remove f
     dirty.remove f
     log.event new FrameEvent(f, true)
-    f.strongUsages().each { weaken it }
+    f.strongUsages([:]).each { weaken it }
   }
 
   private void strengthen(Frame frame) {

@@ -21,9 +21,9 @@ frame ^3 ^1: sem=theme
     doEnglishTest "the mother loves the daughter", """
 frame: sem=mother
 frame: sem=love
-frame ^1 ^2: sem=experiencer
+frame ^2 ^1: sem=experiencer
 frame: sem=daughter
-frame ^3 ^1: sem=theme
+frame ^1 ^3: sem=theme
 """
   }
 

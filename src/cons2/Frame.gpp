@@ -63,10 +63,6 @@ class Frame {
     initialized.addAll(added)
   }
 
-  List<Frame> strongUsages() {
-    strongUsages([:])
-  }
-
   List<Frame> strongUsages(Map<String, Object> pattern) {
     chart.usages(this, false, pattern)
   }

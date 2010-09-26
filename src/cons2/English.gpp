@@ -16,7 +16,6 @@ class English implements Language {
     true
   }
 
-  SimpleQuery subject = [[syn:"noun"], ["syn", 'subject'], ["sem", "experiencer"]]
   SimpleQuery object = [[syn:"noun"], ["syn", 'object'], ["sem", "theme"]]
   SimpleQuery property_host = [[syn:"noun"], [new Aspect("sem", 'property_host')] as Aspect[]]
 
@@ -27,10 +26,7 @@ class English implements Language {
       return
     }
 
-    if (aspect.ping('verb')) {
-      subject.activate(host, true, update)
-      return
-    }
+    findTheta(aspect, host, update)
 
     if (aspect.ping('adj')) {
       property_host.activate host, update
@@ -51,8 +47,24 @@ class English implements Language {
   }
 
   void contextChanged(Frame host, Aspect aspect, Update update) {
-    if (aspect.ping('verb')) {
-      object.activate(host, false, update)
+    findTheta(aspect, host, update)
+
+    def obj = host.strongUsages(syn: 'theta')[0]
+    if (obj && !obj['sem']) {
+      update.enrich obj, ['sem', 'theme']
+      update.wrapUp obj
+    }
+  }
+
+  private def findTheta(Aspect aspect, Frame host, Update update) {
+    if (aspect.ping('noun') && !host.opponent(syn: 'theta')) {
+      host.findAround(syn: 'verb') { verb ->
+        def hasSubj = verb.strongUsages(sem: 'experiencer')
+        update.newFrame([host, verb], ['syn', 'theta'], ['sem', hasSubj ? 'theme' : 'experiencer'])
+        if (!hasSubj) {
+          update.wrapUp host
+        }
+      }
     }
   }
 

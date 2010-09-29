@@ -12,9 +12,10 @@ class Update {
   private Set<Frame> weakened = []
 
 
-  Update(Chart chart, Map<Frame, Set<Aspect>> justAppeared = [:]) {
+  Update(Chart chart, Map<Frame, Set<Aspect>> justAppeared = [:], Set<Frame> wrapUps = []) {
     this.chart = chart
     this.justAppeared = justAppeared
+    this.wrapUps.addAll wrapUps
   }
 
   void enrich(Frame host, Aspect... aspects) {
@@ -42,14 +43,14 @@ class Update {
 
   void apply() {
     weakened.each { chart.weaken it }
-    wrapUps.each { chart.wrapUp it }
     confirmations.each { frame, pattern -> frame.chosenAs(pattern) }
 
     if (!newAspects && !justAppeared) {
+      wrapUps.each { chart.wrapUp it }
       return
     }
 
-    def next = new Update(chart, newAspects)
+    def next = new Update(chart, newAspects, wrapUps)
 
     justAppeared.each { frame, added ->
       added.each {

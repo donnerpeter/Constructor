@@ -5,18 +5,18 @@ package cons2
  */
 class Russian implements Language {
   Inflection infl = new Inflection().
-          wholeWord("мать", ["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "mother"]).
-          wholeWord("дочь", ["syn", "noun", "nom"], ["syn", "noun", "acc"], ["sem", "daughter"]).
-          wholeWord("отец", ["syn", "noun", "nom"], ["sem", "father"]).
-          wholeWord("отца", ["syn", "noun", "acc"], ["sem", "father"]).
-          wholeWord("случай", ["syn", "noun", "nom"], ["sem", "THING"], ['discourse', 'new']).
+          wholeWord("мать", ["syn", "noun"], ['case', 'nom'], ["case", "acc"], ["sem", "mother"]).
+          wholeWord("дочь", ["syn", "noun"], ['case', 'nom'], ["case", "acc"], ["sem", "daughter"]).
+          wholeWord("отец", ["syn", "noun"], ['case', "nom"], ["sem", "father"]).
+          wholeWord("отца", ["syn", "noun"], ['case', "acc"], ["sem", "father"]).
+          wholeWord("случай", ["syn", "noun"], ['case', 'nom'], ["sem", "THING"], ['discourse', 'new']).
           wholeWord("случился", ["syn", "verb"], ['sem', 'HAPPEN'], ['time', 'PAST']).
           wholeWord("со", ["syn", "prep"]).
-          wholeWord("мной", ["syn", "noun", 'instr'], ['sem', 'I']).
+          wholeWord("мной", ["syn", "noun"], ['case', 'instr'],  ['sem', 'I']).
           wholeWord("забыл", ["syn", "verb"], ['sem', 'FORGET'], ['time', 'PAST'], ['subcat', '2whq']).
           wholeWord("вдруг", ["syn", "adverb"], ['sem', 'SUDDENLY']).
-          wholeWord("я", ["syn", "noun", 'nom'], ['sem', 'I']).
-          wholeWord("что", ["syn", "noun", 'nom', 'wh'], ['sem', 'WHAT']).
+          wholeWord("я", ["syn", "noun"], ['case', 'nom'], ['sem', 'I']).
+          wholeWord("что", ["syn", "noun", 'wh'], ['case', 'nom'], ['sem', 'WHAT']).
           wholeWord("идет", ["syn", "verb", "идти"], ['sem', 'GO']).
           wholeWord("раньше", ["syn", "adverb", 'scalar'], ['sem', 'EARLIER']).
           wholeWord("или", ["syn", "conj"], ['sem', 'OR']).
@@ -35,11 +35,13 @@ class Russian implements Language {
       return
     }
 
+    findTheta(aspect, host, update)
+
     if (aspect.ping('adj')) {
       def caze = aspect.ping('adj_nom') ? 'nom' : 'acc'
-      def adj = new SimpleQuery(syn:caze, ['syn', 'adjective_noun'], ['sem', 'property_host'])
+      def adj = new SimpleQuery(case:caze, ['syn', 'adjective_noun'], ['sem', 'property_host'])
       if (!adj.activate(host, update)) {
-        def noun = update.newFrame([], new AnticipatingConstruct(["noun", caze], [syn:"noun"]))
+        def noun = update.newFrame([], new AnticipatingConstruct([syn:'noun', case:caze], [syn:"noun"]))
         update.newFrame([host, noun], ['syn', 'adjective_noun'], ['sem', 'property_host'])
       }
       return
@@ -53,14 +55,12 @@ class Russian implements Language {
     }
 
     if (aspect.ping('verb')) {
-      subject.activate host, true, update
-      object.activate host, true, update
-      return
+      host.findAround(syn:'noun') { update.wrapUp it }
     }
 
     if (aspect.ping('prep')) {
       def caze = 'instr'
-      def arg = update.newFrame([], new AnticipatingConstruct(["noun", caze], [syn:"noun"]))
+      def arg = update.newFrame([], new AnticipatingConstruct([syn:"noun", case:caze], [syn:"noun"]))
       update.newFrame([host, arg], ['syn', 'prep_noun'])
     }
 
@@ -77,13 +77,8 @@ class Russian implements Language {
       }
     }
 
-    if (aspect.ping('subject') && !host['sem']) {
-      Frame verb = host.children[0]
-      update.enrich(host, ['sem', verb.ping(syn:'идти') ? 'agent' : 'experiencer'])
-    }
-
-    if (aspect.ping('verb_arg') && !host['wh_focus']) {
-      Frame arg = host.children[1]
+    if (aspect.role == 'theta' && !host['wh_focus']) {
+      Frame arg = host.children[0]
       if (arg.ping(syn:'wh')) {
         update.enrich(host, ['wh_focus', 'true'])
       }
@@ -93,17 +88,64 @@ class Russian implements Language {
       host.findAround([syn:'number']) { left -> update.newFrame([host, left], ['sem', 'conj_left']); update.wrapUp left }
     }
 
+    markThetaCases(aspect, host, update)
+
+
+  }
+
+  private def markThetaCases(Aspect aspect, Frame host, Update update) {
+    if (aspect.role == 'case') {
+      def theta = host.strongUsages(syn: 'theta')[0]
+      if (theta && !theta.strongAlternatives('theta')) {
+        update.enrich theta, ['theta', aspect.value]
+      }
+    }
+  }
+
+  private def findTheta(Aspect aspect, Frame host, Update update) {
+    if (aspect.ping('noun') && !host.opponent(syn: 'theta')) {
+      host.findAround(syn: 'verb') { verb ->
+        update.newFrame([host, verb], ['syn', 'theta'])
+      }
+    }
   }
 
   void contextChanged(Frame host, Aspect aspect, Update update) {
-    if (aspect.ping('verb')) {
-      subject.activate host, update
+    findTheta(aspect, host, update)
 
-      if (host.ping(subcat:'2acc')) {
-        object.activate host, update
+    markThetaCases(aspect, host, update)
+
+    if (aspect.ping('verb') && !(aspect instanceof AnticipatingConstruct)) {
+      def subj = host.ping(syn:'идти') ? 'agent' : 'experiencer'
+      if (host.strongUsages(syn: 'theta').findAll { it['theta']?.value=='nom' && !it['sem'] }) {
+        host.strongUsages(syn: 'theta', theta: 'nom').findAll { it['sem'] }.each { it.relax() }
       }
-      if (host.ping(subcat:'2whq')) {
-        whComp.activate host, update
+
+      Reference hasSubj = [!host.strongUsages(sem:subj).findAll { it['sem']}.isEmpty()]
+
+      if (!hasSubj.get()) {
+        host.strongUsages(syn: 'theta').findAll { it['theta']?.value=='nom' && !it['sem'] }.each { theta ->
+          update.enrich theta, ['sem', subj]
+          hasSubj.set true
+        }
+      }
+
+      host.strongUsages(syn: 'theta').findAll { !it['sem'] }.each { theta ->
+        if (theta.ping(theta: 'nom') && !hasSubj.get()) {
+          update.enrich theta, ['sem', subj]
+          hasSubj.set true
+        }
+        else if (host.ping(subcat: '2acc') && theta.ping(theta: 'acc') && !host.strongUsages(sem:'theme')) {
+          update.enrich theta, ['sem', 'theme']
+        }
+      }
+
+      if (host.ping(subcat:'2whq') && !host.strongUsages(theta:'comp')) {
+        host.findAround(phon: ',') {
+          def comp = update.newFrame([], new AnticipatingConstruct([syn: 'verb'], [syn: 'verb']))
+          update.newFrame([comp, host], ['syn', 'theta'], ['theta', 'comp'], ['sem', 'theme'])
+          update.wrapUp host
+        }
       }
 
       def stv = host.strongUsages(theta:'с+тв')[0]
@@ -122,8 +164,12 @@ class Russian implements Language {
       return
     }
 
-    if (aspect.ping('conj')) {
-      new SimpleQuery([syn:'number'], ['sem', 'conj_right']).activate(host, update)
+    if (aspect.ping('conj') && !host.opponent(sem:'conj_right')) {
+      host.findAround(syn:'number') { num ->
+        if (num != host.opponent(sem: 'conj_left')) {       // todo distinguish left from right conjunct by wrap ups
+          update.newFrame([host, num], ['sem', 'conj_right'])
+        }
+      }
     }
 
     if (aspect.ping('adverb') && !host.opponent(syn:'adv_mod')) {
@@ -132,6 +178,7 @@ class Russian implements Language {
   }
 
   boolean wrapUp(Frame host, Aspect aspect) {
+/*
     if (aspect.ping('love')) {
       if (subject.satisfied(host) && object.satisfied(host)) {
         return true
@@ -160,11 +207,10 @@ class Russian implements Language {
       return subject.satisfied(host) && object.satisfied(host)
 
     }
+*/
     true
   }
 
-  SimpleQuery subject = [[syn:"nom"], ["syn", 'subject', 'verb_arg']]
-  SimpleQuery object = [[syn:"acc"], ["syn", 'object', 'verb_arg'], ["sem", "theme"]]
   SimpleQuery whComp = [[syn:"verb"], ["syn", 'comp', 'verb_arg'], ["sem", "theme"]]
   SimpleQuery adverb = [[syn:"verb"], ["syn", 'adv_mod'], ["sem", "mode"]]
 

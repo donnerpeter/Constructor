@@ -8,7 +8,8 @@ import cons2.Log.MergeEvent
  * @author peter
  */
 class Chart {
-  private static Set<String> interestingAspects = ['sem', 'wh_focus']
+  private static Set<String> interestingAspects = [//'syn', 'case', 'theta',
+          'sem', 'wh_focus']
   static String resultPrefix = "digraph Parse {\n"
   static String resultSuffix = "}"
 
@@ -54,12 +55,20 @@ class Chart {
   String presentableResult() {
     StringBuilder result = new StringBuilder()
     LinkedList<Frame> stack = []
-    def frames = interestingFrames()
-    frames.sort{ f1, f2 ->
-      if (f1 in f2.children) return -1
-      if (f2 in f1.children) return 1
-      return 0
-    }.each { Frame f ->
+    List<Frame> frames = interestingFrames() as List
+    def i = frames.size()-1
+    while (i >= 0) {
+      def j = i
+      for (c in frames[i].children) {
+        j = Math.max(j, frames.indexOf(c))
+      }
+      if (j > i) {
+        frames.add(j, frames.remove(i))
+      }
+      i = j - 1
+    }
+
+    frames.each { Frame f ->
       stack.addFirst f
       String children = f.children.collect { " ^" + stack.indexOf(it) }.join("")
 

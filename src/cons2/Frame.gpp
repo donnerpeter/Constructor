@@ -122,7 +122,7 @@ class Frame {
 
   private Collection<String> getRoles() { alternatives.keySet() }
 
-  private List<Aspect> strongAlternatives(String role) {
+  List<Aspect> strongAlternatives(String role) {
     return chosen[role] ? [chosen[role]] : alternatives.get(role, [])
   }
 
@@ -136,7 +136,7 @@ class Frame {
   }
 
   List<Aspect> getChosenAspects() {
-    roles.findAll { chosen[it] }.collect { chosen[it] }
+    roles.collect { strongAlternatives(it) }.flatten()
   }
 
   List<Aspect> getInitializedAspects() {
@@ -144,8 +144,9 @@ class Frame {
   }
 
   void relax() {
-    if (chosen['syn']) {
-      setChosen('syn', null)
+    if (alternatives['theta']?.size() > 1) {
+      setChosen('theta', null)
+      setChosen('sem', null)
     }
     chart.activate this
   }

@@ -4,11 +4,11 @@ package cons2
  * @author peter
  */
 class AnticipatingConstruct extends Aspect {
-  final LinkedHashSet<String> mockHeadNicks
+  final Map<String, String> mockHeadNicks
   final Map<String, Object> realHeadPattern
 
-  AnticipatingConstruct(Set<String> mockHeadNicks, Map<String, Object> realHeadPattern) {
-    super("syn", mockHeadNicks)
+  AnticipatingConstruct(Map<String, String> mockHeadNicks, Map<String, Object> realHeadPattern) {
+    super("syn", mockHeadNicks['syn'])
     this.mockHeadNicks = mockHeadNicks
     this.realHeadPattern = realHeadPattern
   }
@@ -17,7 +17,7 @@ class AnticipatingConstruct extends Aspect {
     host.findAround(realHeadPattern) { goal ->
       host.removeAlternative(this)
       host.chart.merge(host, goal)
-      goal.chosenAs syn:nicknames
+      goal.chosenAs mockHeadNicks
     }
   }
 

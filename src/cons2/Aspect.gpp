@@ -31,6 +31,10 @@ class Aspect {
     message in nicknames
   }
 
+  String getValue() {
+    nicknames.iterator().next()
+  }
+
   boolean equals(o) {
     if (o.is(null)) return false;
     if (this.is(o)) return true;

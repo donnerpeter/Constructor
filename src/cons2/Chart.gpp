@@ -16,10 +16,10 @@ class Chart {
   final Log log = new Log()
   private final LinkedHashSet<Frame> frames = []
   private final LinkedList<Frame> active = []
-  private final LinkedHashSet<Frame> dirty = []
   private final Set<Frame> finished = []
   private final Set<Frame> weak = []
   final Language language
+  final Map<Frame, Map<String, Function2<Frame, Update, Void>>> listeners = [:]
 
   Chart(Language language) {
     this.language = language
@@ -113,16 +113,6 @@ class Chart {
     strengthen(frame)
     active.remove frame
     active.addFirst frame
-    dirty.addAll active
-  }
-
-  private Frame nextUnprocessed() {
-    if (dirty) {
-      def first = active.find { it in dirty }
-      dirty.remove(first)
-      return first
-    }
-    null
   }
 
   void contextChanged(Update update) {
@@ -157,14 +147,14 @@ class Chart {
     }
 
     active.removeAll finished
-    dirty.removeAll finished
+    listeners.keySet().removeAll(finished)
   }
 
   void merge(Frame loser, Frame into) {
     loser.adopter = into
     frames.remove loser
     active.remove loser
-    dirty.remove loser
+    listeners.remove loser
     log.event new MergeEvent(into, loser)
   }
 
@@ -177,7 +167,6 @@ class Chart {
   private void doWeaken(Frame f) {
     weak << f
     active.remove f
-    dirty.remove f
     log.event new FrameEvent(f, true)
     f.strongUsages([:]).each { weaken it }
   }
@@ -194,12 +183,7 @@ class Chart {
   }
 
   void event(Event event) {
-    allDirty()
     log.event event
-  }
-
-  void allDirty() {
-    dirty.addAll active
   }
 
   String phonString() {

@@ -19,7 +19,7 @@ class Chart {
   private final Set<Frame> finished = []
   private final Set<Frame> weak = []
   final Language language
-  final Map<Frame, Map<String, Function2<Frame, Update, Void>>> listeners = [:]
+  final Map<Frame, Map<String, Function2<Frame, Update, Boolean>>> listeners = [:]
 
   Chart(Language language) {
     this.language = language

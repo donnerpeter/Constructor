@@ -86,6 +86,13 @@ class Russian implements Language {
 
     if (aspect.ping('conj')) {
       host.findAround([syn:'number']) { left -> update.newFrame([host, left], ['sem', 'conj_left']); update.wrapUp left }
+      update.listen('syn') { right, u2 ->
+        if (right.ping(syn:'number')) {
+          u2.newFrame([host, right], ['sem', 'conj_right'])
+          return true
+        }
+        return false
+      }
     }
 
     markThetaCases(aspect, host, update)
@@ -162,14 +169,6 @@ class Russian implements Language {
       }
 
       return
-    }
-
-    if (aspect.ping('conj') && !host.opponent(sem:'conj_right')) {
-      host.findAround(syn:'number') { num ->
-        if (num != host.opponent(sem: 'conj_left')) {       // todo distinguish left from right conjunct by wrap ups
-          update.newFrame([host, num], ['sem', 'conj_right'])
-        }
-      }
     }
 
     if (aspect.ping('adverb') && !host.opponent(syn:'adv_mod')) {

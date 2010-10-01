@@ -11,7 +11,7 @@ class Update {
   private Set<Frame> wrapUps = []
   private Set<Frame> weakened = []
   private Frame beingProcessed
-  private Map<Frame, Map<String, Function2<Frame, Update, Void>>> newListeners = [:]
+  private Map<Frame, Map<String, Function2<Frame, Update, Boolean>>> newListeners = [:]
 
   Update(Chart chart, Map<Frame, Set<Aspect>> justAppeared = [:], Set<Frame> wrapUps = []) {
     this.chart = chart
@@ -42,8 +42,8 @@ class Update {
     weakened << frame
   }
 
-  void listen(String role, Function2<Frame, Update, Void> listener) {
-    assert beingProcessed
+  void listen(String role, Function2<Frame, Update, Boolean> listener) {
+    assert beingProcessed != null
     def map = newListeners.get(beingProcessed, [:])
     assert !map[role]
     map[role] = listener
@@ -63,9 +63,9 @@ class Update {
     justAppeared.each { frame, added ->
       added.each {
         if (!frame[it.role] || frame[it.role] == it) {
-          beingProcessed = frame
+          next.beingProcessed = frame
           chart.language.aspectAppeared frame, it, next
-          beingProcessed = null
+          next.beingProcessed = null
         }                          
       }
     }
@@ -80,10 +80,14 @@ class Update {
     chart.contextChanged next
 
     chart.listeners.values().each { map ->
-      map.each { role, action ->
+      def copy = new LinkedHashMap<String, groovy.lang.Function2<Frame, Update, Boolean>>(map)
+      copy.each { role, action ->
         if (role in touched.keySet()) {
           touched[role].each { def host ->
-            action.call(host, next)
+            def satisfied = action.call(host, next)
+            if (satisfied) {
+              map.remove role
+            }
           }
         }
       }

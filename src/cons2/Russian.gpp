@@ -103,8 +103,18 @@ class Russian implements Language {
   private def markThetaCases(Aspect aspect, Frame host, Update update) {
     if (aspect.role == 'case') {
       def theta = host.strongUsages(syn: 'theta')[0]
-      if (theta && !theta.strongAlternatives('theta')) {
-        update.enrich theta, ['theta', aspect.value]
+      if (theta) {
+        if (!theta.strongAlternatives('theta')) {
+          update.enrich theta, ['theta', aspect.value]
+        }
+      } else {
+        update.listen('syn') { th, upd2 ->
+          if (th.ping(syn:'theta') && host in th.children && !th.strongAlternatives('theta')) {
+            upd2.enrich th, ['theta', aspect.value]
+            return true
+          }
+          return false
+        }
       }
     }
   }
@@ -127,8 +137,6 @@ class Russian implements Language {
   }
 
   void contextChanged(Frame host, Aspect aspect, Update update) {
-    markThetaCases(aspect, host, update)
-
     if (aspect.ping('verb') && !(aspect instanceof AnticipatingConstruct)) {
       def subj = host.ping(syn:'идти') ? 'agent' : 'experiencer'
       if (host.strongUsages(syn: 'theta').findAll { it['theta']?.value=='nom' && !it['sem'] }) {

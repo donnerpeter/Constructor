@@ -12,6 +12,7 @@ class Update {
   private Set<Frame> weakened = []
   private Frame beingProcessed
   private Map<Frame, Map<String, Function2<Frame, Update, Boolean>>> newListeners = [:]
+  private boolean dead
 
   Update(Chart chart, Map<Frame, Set<Aspect>> justAppeared = [:], Set<Frame> wrapUps = []) {
     this.chart = chart
@@ -20,29 +21,35 @@ class Update {
   }
 
   void enrich(Frame host, Aspect... aspects) {
+    assert !dead
     newAspects.get(host, [] as LinkedHashSet).addAll(aspects)
   }
 
   Frame newFrame(List<Frame> children, Aspect... aspects) {
+    assert !dead
     def frame = chart.newFrame(children)
     enrich frame, aspects
     frame
   }
 
   void wrapUp(Frame frame) {
+    assert !dead
     wrapUps << frame
   }
 
   void confirmChoice(Map<String, Object> pattern, Frame frame) {
+    assert !dead
     frame.chosenAs pattern
     confirmations.get(frame, [:]).putAll pattern
   }
 
   void weaken(Frame frame) {
+    assert !dead
     weakened << frame
   }
 
   void listen(String role, Function2<Frame, Update, Boolean> listener) {
+    assert !dead
     assert beingProcessed != null
     def map = newListeners.get(beingProcessed, [:])
     assert !map[role]
@@ -97,6 +104,8 @@ class Update {
     chart.listeners.putAll newListeners
 
     justAppeared.each { frame, added -> frame.initializeAspects added }
+
+    dead = true
 
     next.apply()
   }

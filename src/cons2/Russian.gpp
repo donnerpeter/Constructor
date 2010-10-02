@@ -111,15 +111,22 @@ class Russian implements Language {
 
   private def findTheta(Aspect aspect, Frame host, Update update) {
     if (aspect.ping('noun') && !host.opponent(syn: 'theta')) {
-      host.findAround(syn: 'verb') { verb ->
+      def found = host.findAround(syn: 'verb') { verb ->
         update.newFrame([host, verb], ['syn', 'theta'])
+      }
+      if (!found) {
+        update.listen('syn') { verb, upd2 ->
+          if (verb.ping(syn: 'verb')) {
+            upd2.newFrame([host, verb], ['syn', 'theta'])
+            return true
+          }
+          return false
+        }
       }
     }
   }
 
   void contextChanged(Frame host, Aspect aspect, Update update) {
-    findTheta(aspect, host, update)
-
     markThetaCases(aspect, host, update)
 
     if (aspect.ping('verb') && !(aspect instanceof AnticipatingConstruct)) {

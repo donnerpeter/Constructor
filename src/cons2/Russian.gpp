@@ -97,6 +97,15 @@ class Russian implements Language {
 
     markThetaCases(aspect, host, update)
 
+    if (aspect.ping('adverb') && !host.opponent(syn:'adv_mod')) {
+      update.listen('syn') { verb, upd2 ->
+        if (verb.ping(syn: 'verb')) {
+          upd2.newFrame([host, verb], ["syn", 'adv_mod'], ["sem", "mode"])
+          return true
+        }
+        return false
+      }
+    }
 
   }
 
@@ -185,17 +194,11 @@ class Russian implements Language {
 
       return
     }
-
-    if (aspect.ping('adverb') && !host.opponent(syn:'adv_mod')) {
-      adverb.activate(host, false, update)
-    }
   }
 
   boolean wrapUp(Frame host, Aspect aspect) {
     true
   }
-
-  SimpleQuery adverb = [[syn:"verb"], ["syn", 'adv_mod'], ["sem", "mode"]]
 
   void generate(Chart sem, Chart to) {
     sem.frames().findAll { it.ping(sem:'love') }.each { generateSentence(it, to) }

@@ -39,7 +39,6 @@ class Update {
 
   void confirmChoice(Map<String, Object> pattern, Frame frame) {
     assert !dead
-    frame.chosenAs pattern
     confirmations.get(frame, [:]).putAll pattern
   }
 

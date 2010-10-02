@@ -54,6 +54,7 @@ class Update {
     confirmations.each { frame, pattern -> frame.chosenAs(pattern) }
 
     if (!newAspects && !justAppeared) {
+      chart.listeners.putAll newListeners
       wrapUps.each { chart.wrapUp it }
       return
     }

@@ -148,10 +148,6 @@ class Russian implements Language {
     }
   }
 
-  void contextChanged(Frame host, Aspect aspect, Update update) {
-
-  }
-
   void verbChanged(Frame host, Aspect aspect, Update update) {
     if (aspect.ping('verb') && !(aspect instanceof AnticipatingConstruct)) {
       def subj = host.ping(syn:'идти') ? 'agent' : 'experiencer'
@@ -201,10 +197,6 @@ class Russian implements Language {
 
       return
     }
-  }
-
-  boolean wrapUp(Frame host, Aspect aspect) {
-    true
   }
 
   void generate(Chart sem, Chart to) {

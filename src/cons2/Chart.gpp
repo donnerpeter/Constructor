@@ -115,11 +115,9 @@ class Chart {
     active.addFirst frame
   }
 
-  void contextChanged(Update update) {
+  void bindAnticipators(Update update) {
     active.clone().each { Frame f ->
       f.initializedAspects.each { Aspect c ->
-        language.contextChanged f, c, update
-
         if (c instanceof AnticipatingConstruct) {
           ((AnticipatingConstruct)c).contextChanged f
         }
@@ -140,9 +138,7 @@ class Chart {
         break
       }
 
-      if (f.chosenAspects.every { language.wrapUp(f, it) }) {
-        finished << f
-      }
+      finished << f
       processed << f
     }
 

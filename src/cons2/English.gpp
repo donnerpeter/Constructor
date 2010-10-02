@@ -12,10 +12,6 @@ class English implements Language {
           wholeWord("the", ['syn', 'article']).
           suffix("s", ['syn', 'verb'])
 
-  boolean wrapUp(Frame host, Aspect aspect) {
-    true
-  }
-
   SimpleQuery property_host = [[syn:"noun"], [new Aspect("sem", 'property_host')] as Aspect[]]
 
   void aspectAppeared(Frame host, Aspect aspect, Update update) {
@@ -45,8 +41,6 @@ class English implements Language {
 
   }
 
-  void contextChanged(Frame host, Aspect aspect, Update update) {
-  }
 
   private def findTheta(Aspect aspect, Frame host, Update update) {
     if (aspect.ping('noun') && !host.opponent(syn: 'theta')) {

@@ -56,6 +56,9 @@ class Russian implements Language {
 
     if (aspect.ping('verb')) {
       host.findAround(syn:'noun') { update.wrapUp it }
+      update.listen('syn') { syn, upd2 -> verbChanged host, aspect, upd2 }
+      update.listen('theta') { syn, upd2 -> verbChanged host, aspect, upd2 }
+      update.listen('phon') { syn, upd2 -> verbChanged host, aspect, upd2 }
     }
 
     if (aspect.ping('prep')) {
@@ -146,6 +149,10 @@ class Russian implements Language {
   }
 
   void contextChanged(Frame host, Aspect aspect, Update update) {
+
+  }
+
+  void verbChanged(Frame host, Aspect aspect, Update update) {
     if (aspect.ping('verb') && !(aspect instanceof AnticipatingConstruct)) {
       def subj = host.ping(syn:'идти') ? 'agent' : 'experiencer'
       if (host.strongUsages(syn: 'theta').findAll { it['theta']?.value=='nom' && !it['sem'] }) {

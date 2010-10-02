@@ -177,40 +177,9 @@ class Russian implements Language {
   }
 
   boolean wrapUp(Frame host, Aspect aspect) {
-/*
-    if (aspect.ping('love')) {
-      if (subject.satisfied(host) && object.satisfied(host)) {
-        return true
-      }
-
-      def update = new Update(host.chart)
-      subject.weaken(host, update)
-      object.weaken(host, update)
-      update.apply()
-
-      def subjs = subject.allArgumentCandidates(host)
-      def objs = object.allArgumentCandidates(host)
-
-      update = new Update(host.chart)
-      if (objs.size() == 1) {
-        subjs -= objs
-        object.instantiate(host, objs[0], update)
-      }
-      if (subjs.size() == 1) {
-        subject.instantiate(host, subjs[0], update)
-      }
-      update.apply()
-
-      host.chosenAs syn:'verb'
-
-      return subject.satisfied(host) && object.satisfied(host)
-
-    }
-*/
     true
   }
 
-  SimpleQuery whComp = [[syn:"verb"], ["syn", 'comp', 'verb_arg'], ["sem", "theme"]]
   SimpleQuery adverb = [[syn:"verb"], ["syn", 'adv_mod'], ["sem", "mode"]]
 
   void generate(Chart sem, Chart to) {

@@ -56,7 +56,19 @@ class Russian implements Language {
 
     if (aspect.ping('verb')) {
       host.findAround(syn:'noun') { update.wrapUp it }
-      update.listen('syn') { syn, upd2 -> verbChanged host, aspect, upd2 }
+
+      if (aspect.ping('идти')) {
+        update.listen('syn') { scalar, upd2 ->
+          if (scalar.ping(syn:['adverb', 'scalar']) && !host.opponent(syn:'adv_mod')) {
+            upd2.newFrame([scalar, host], ['syn', 'adv_mod'], ['sem', 'scalar_end'])
+            upd2.enrich(host, ['sem', 'COME_SCALARLY'])
+            return true
+          }
+          return false
+        }
+      }
+
+      verbChanged host, aspect, update
       update.listen('theta') { theta, upd2 -> verbChanged host, aspect, upd2 }
 
       if (host.ping(subcat:'2whq')) {
@@ -65,7 +77,9 @@ class Russian implements Language {
             def comp = upd2.newFrame([], new AnticipatingConstruct([syn: 'verb'], [syn: 'verb']))
             upd2.newFrame([comp, host], ['syn', 'theta'], ['theta', 'comp'], ['sem', 'theme'])
             upd2.wrapUp host
+            return true
           }
+          return false
         }
       }
     }
@@ -182,18 +196,11 @@ class Russian implements Language {
           update.enrich theta, ['sem', 'theme']
         }
       }
-    }
 
-    def stv = host.strongUsages(theta:'с+тв')[0]
-    if (stv && !stv['sem']) {
-      update.enrich(stv, ['sem', 'theme'])
-    }
 
-    if (aspect.ping('идти') && !host.opponent(syn:'adv_mod')) {
-      host.findAround(syn:['adverb', 'scalar']) { scalar ->
-        update.newFrame([scalar, host], ['syn', 'adv_mod'], ['sem', 'scalar_end'])
-        update.enrich(host, ['sem', 'COME_SCALARLY'])
-        update.confirmChoice(host, sem:'COME_SCALARLY')
+      def stv = host.strongUsages(theta:'с+тв')[0]
+      if (stv && !stv['sem']) {
+        update.enrich(stv, ['sem', 'theme'])
       }
     }
   }

@@ -149,7 +149,7 @@ class Russian implements Language {
   }
 
   void verbChanged(Frame host, Aspect aspect, Update update) {
-    if (aspect.ping('verb') && !(aspect instanceof AnticipatingConstruct)) {
+    if (!(aspect instanceof AnticipatingConstruct)) {
       def subj = host.ping(syn:'идти') ? 'agent' : 'experiencer'
       if (host.strongUsages(syn: 'theta').findAll { it['theta']?.value=='nom' && !it['sem'] }) {
         host.strongUsages(syn: 'theta', theta: 'nom').findAll { it['sem'] }.each { it.relax() }
@@ -173,29 +173,27 @@ class Russian implements Language {
           update.enrich theta, ['sem', 'theme']
         }
       }
+    }
 
-      if (host.ping(subcat:'2whq') && !host.strongUsages(theta:'comp')) {
-        host.findAround(phon: ',') {
-          def comp = update.newFrame([], new AnticipatingConstruct([syn: 'verb'], [syn: 'verb']))
-          update.newFrame([comp, host], ['syn', 'theta'], ['theta', 'comp'], ['sem', 'theme'])
-          update.wrapUp host
-        }
+    if (host.ping(subcat:'2whq') && !host.strongUsages(theta:'comp')) {
+      host.findAround(phon: ',') {
+        def comp = update.newFrame([], new AnticipatingConstruct([syn: 'verb'], [syn: 'verb']))
+        update.newFrame([comp, host], ['syn', 'theta'], ['theta', 'comp'], ['sem', 'theme'])
+        update.wrapUp host
       }
+    }
 
-      def stv = host.strongUsages(theta:'с+тв')[0]
-      if (stv && !stv['sem']) {
-        update.enrich(stv, ['sem', 'theme'])
+    def stv = host.strongUsages(theta:'с+тв')[0]
+    if (stv && !stv['sem']) {
+      update.enrich(stv, ['sem', 'theme'])
+    }
+
+    if (aspect.ping('идти') && !host.opponent(syn:'adv_mod')) {
+      host.findAround(syn:['adverb', 'scalar']) { scalar ->
+        update.newFrame([scalar, host], ['syn', 'adv_mod'], ['sem', 'scalar_end'])
+        update.enrich(host, ['sem', 'COME_SCALARLY'])
+        update.confirmChoice(host, sem:'COME_SCALARLY')
       }
-
-      if (aspect.ping('идти') && !host.opponent(syn:'adv_mod')) {
-        host.findAround(syn:['adverb', 'scalar']) { scalar ->
-          update.newFrame([scalar, host], ['syn', 'adv_mod'], ['sem', 'scalar_end'])
-          update.enrich(host, ['sem', 'COME_SCALARLY'])
-          update.confirmChoice(host, sem:'COME_SCALARLY')
-        }
-      }
-
-      return
     }
   }
 

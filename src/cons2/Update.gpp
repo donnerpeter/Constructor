@@ -92,7 +92,9 @@ class Update {
           touched[role].each { def host ->
             List<Function2<Frame, Update, Boolean>> copy = [] + actions
             copy.each { action ->
+              next.beingProcessed = host
               def satisfied = action.call(host, next)
+              next.beingProcessed = null
               if (satisfied) {
                 actions.remove action
               }

@@ -183,6 +183,14 @@ class Chart {
   }
 
   String phonString() {
-    frames.findAll { !it.adopter && it['phon'] }.collect { it['phon'].toString() }.join(" ")
+    def result = new StringBuilder()
+    for (frame in frames.findAll { !it.adopter && it['phon'] }) {
+      def phon = frame['phon'].toString()
+      if (result.length() > 0 && phon != ',') {
+        result << " "
+      }
+      result << phon
+    }
+    result.toString()
   }
 }

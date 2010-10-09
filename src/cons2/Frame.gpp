@@ -72,7 +72,7 @@ class Frame {
   }
 
   List<Frame> allOpponents(Map<String, Object> pattern) {
-    return strongUsages(pattern).collect {
+    return strongUsages(pattern).findAll { it.children[1] == (Frame) this }.collect {
       List<Frame> children = it.children
       return children[0] == (Frame)this ? children[1] : children[0]
     }

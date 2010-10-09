@@ -31,14 +31,17 @@ frame: sem=EARLIER
 frame ^1 ^4: sem=scalar_end
 frame: sem=number7
 frame: sem=OR
-frame ^1 ^2: sem=conj_left
+frame ^1 ^8: sem=alternatives
+frame ^3 ^2: sem=conj_left
 frame: sem=number8
-frame ^3 ^1: sem=conj_right
+frame ^1 ^4: sem=conj_right
 """
   }
 
   public void testKharmsTranslation() throws Exception {
-    translate(new Russian(), new English(), "Удивительный случай случился со мной", "An amazing thing happened to me today")
+    translate(new Russian(), new English(),
+            "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8",
+            "An amazing thing happened to me today, I suddenly forgot what comes first - 7 or 8")
   }
 
   private def doTest(String input, String expected) {
@@ -59,7 +62,7 @@ frame ^3 ^1: sem=conj_right
     def actual = dst.phonString()
     if (expected != actual) {
       System.err.println "Original analysis:\n" + chart.presentableLog()
-      System.err.println "-------------\nTransferred:\n" + dst.log.presentable(['phon', 'syn', 'sem', 'stem'])
+      System.err.println "-------------\nTransferred:\n" + desired.log.presentable(['phon', 'syn', 'sem', 'stem'])
       assertEquals expected, actual
     }
   }

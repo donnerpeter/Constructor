@@ -43,7 +43,7 @@ class English implements Language {
 
 
   private def findTheta(Aspect aspect, Frame host, Update update) {
-    if (aspect.ping('noun') && !host.opponent(syn: 'theta')) {
+    if (aspect.ping('noun') && !host.strongUsages(syn: 'theta')) {
       def found = host.findAround(syn: 'verb') { verb ->
         update.newFrame([host, verb], ['syn', 'theta'], ['sem', 'theme'])
       }
@@ -61,21 +61,82 @@ class English implements Language {
   }
 
   void generate(Chart sem, Chart to) {
-    sem.frames().findAll { it.ping(sem:'love') || it.ping(sem:'HAPPEN') }.each { generateSentence(it, to) }
+    sem.frames().findAll { it.ping(sem:'love') || it.ping(sem:'HAPPEN') }.each { generateSentence(it, to, [:]) }
   }
 
-  private void generateSentence(Frame verb, Chart dst) {
-    generateNP(dst, verb.opponent(sem:'experiencer'), true)
-    dst.newFrame([], ['phon', verb.ping(sem:'love') ? 'loves' : 'happened'])
+  private void addWord(Chart dst, String word) {
+    dst.newFrame([], ['phon', word])
+  }
+
+  private void generateSentence(Frame verb, Chart dst, Map state) {
+
+    def subjRel = verb.strongUsages(sem: 'experiencer')[0] ?: verb.strongUsages(sem: 'agent')[0]
+    def subject = subjRel.children[0]
+    generateNP(dst, subject, true)
+
+    def modifier = verb.opponent(sem: 'mode')
+    if (modifier) {
+      addWord dst, 'suddenly'
+    }
+
+    generateVerbCluster(dst, verb)
     def theme = verb.opponent(sem:'theme')
-    if (verb.ping(sem:'love')) {
-      generateNP(dst, theme, false)
-    } else {
-      generatePP(dst, 'to', theme)
+    if (theme) {
+      if (verb.ping(sem:'love')) {
+        generateNP(dst, theme, false)
+      } else if (verb.ping(sem: 'FORGET')) {
+        generateSentence theme, dst, state
+      } else {
+        generatePP(dst, 'to', theme)
+      }
     }
-    if (verb.ping(time:'PAST')) {
+    if (verb.ping(time:'PAST') && !state.moodExpressed) {
       dst.newFrame([], ['phon', 'today'])
+      state['moodExpressed']  = true
     }
+
+    def subjElaboration = subject.opponent(sem:'elaboration')
+    if (subjElaboration) {
+      dst.newFrame([], ['phon', ','])
+      generateSentence subjElaboration, dst, state
+    }
+
+    if (subjRel.ping(wh_focus: 'true')) {
+      def conj = subject.opponent(sem: 'alternatives')
+      if (conj) {
+        addWord dst, '-'
+        generateNP dst, conj.opponent(sem:'conj_left'), true
+        addWord dst, 'or'
+        generateNP dst, conj.opponent(sem:'conj_right'), true
+      }
+    }
+
+  }
+
+  private def generateVerbCluster(Chart dst, Frame verb) {
+    if (verb.ping(sem: 'COME_SCALARLY')) {
+      addWord dst, 'comes'
+      def end = verb.opponent(sem: 'scalar_end')['sem'].value
+      if (end == 'EARLIER') {
+        addWord dst, 'first'
+      } else {
+        addWord dst, end
+      }
+      return
+    }
+
+    addWord dst, generateVerb(dst, verb)
+  }
+
+  private String generateVerb(Chart dst, Frame verb) {
+    def sem = verb['sem'].value
+    switch (sem) {
+      case 'love': return 'loves'
+      case 'HAPPEN': return 'happened'
+      case 'FORGET': return 'forgot'
+      case 'COME_SCALARLY': return 'comes'
+    }
+    return sem
   }
 
   private void generatePP(Chart dst, String prep, Frame noun) {
@@ -87,6 +148,17 @@ class English implements Language {
     if (noun.ping(sem:'I')) {
       dst.newFrame([], ['phon', nom ? 'I' : 'me'])
       return;
+    }
+
+    if (noun.ping(sem: 'WHAT')) {
+      addWord dst, 'what'
+      return
+    }
+
+    def sem = noun['sem'].value
+    if (sem.startsWith('number')) {
+      addWord dst, sem.substring('number'.size())
+      return
     }
 
     dst.newFrame([], ['phon', (noun.ping(discourse:'new') ? 'An' : 'the')])

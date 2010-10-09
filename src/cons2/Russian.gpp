@@ -129,14 +129,27 @@ class Russian implements Language {
       Frame arg = host.children[0]
       if (arg.ping(syn:'wh')) {
         update.enrich(host, ['wh_focus', 'true'])
+        update.listen('phon') { mdash, upd2 ->
+          if (mdash.ping(phon: '-')) {
+            upd2.listen('syn') { conj, upd3 ->
+              if (conj.ping(syn: 'conj')) {
+                upd3.newFrame([conj, arg], ['sem', 'alternatives'])
+                return true
+              }
+              return false
+            }
+            return true
+          }
+          return false
+        }
       }
     }
 
     if (aspect.ping('conj')) {
-      host.findAround([syn:'number']) { left -> update.newFrame([host, left], ['sem', 'conj_left']); update.wrapUp left }
+      host.findAround([syn:'number']) { left -> update.newFrame([left, host], ['sem', 'conj_left']); update.wrapUp left }
       update.listen('syn') { right, u2 ->
         if (right.ping(syn:'number')) {
-          u2.newFrame([host, right], ['sem', 'conj_right'])
+          u2.newFrame([right, host], ['sem', 'conj_right'])
           return true
         }
         return false

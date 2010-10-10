@@ -22,6 +22,7 @@ class Update {
 
   void enrich(Frame host, Aspect... aspects) {
     assert !dead
+    assert host
     newAspects.get(host, [] as LinkedHashSet).addAll(aspects)
   }
 

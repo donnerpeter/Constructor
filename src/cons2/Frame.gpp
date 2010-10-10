@@ -93,7 +93,7 @@ class Frame {
 
   void chosenAs(Map<String, Object> pattern) {
     pattern.each { role, p ->
-      def found = strongAlternatives(role).find { it.ping(p) }
+      def found = strongAlternatives(role).find { pingAspect(it, p) }
       if (found) {
         setChosen(role, found)
       }
@@ -110,7 +110,7 @@ class Frame {
 
   private Aspect findDimension(pattern) {
     for (role in roles) {
-      def found = strongAlternatives(role).find { it.ping(pattern) }
+      def found = strongAlternatives(role).find { pingAspect(it, pattern) }
       if (found) return found
     }
     return null
@@ -127,7 +127,11 @@ class Frame {
   }
 
   boolean ping(Map<String, Object> pattern) {
-    pattern.every { role, p -> strongAlternatives(role).find { it.ping(p) } != null }
+    pattern.every { role, p -> strongAlternatives(role).find { pingAspect(it, p) } != null }
+  }
+
+  private boolean pingAspect(Aspect aspect, p) {
+    p == null || aspect.ping(p)
   }
 
   @Override

@@ -61,7 +61,7 @@ class English implements Language {
   }
 
   void generate(Chart sem, Chart to) {
-    sem.frames().findAll { it.ping(sem:'love') || it.ping(sem:'HAPPEN') }.each { generateSentence(it, to, [:]) }
+    sem.frames().findAll { it.ping(sem:'love') || it.ping(sem:'HAPPEN') || it.ping(sem:"START_GO_TO") }.each { generateSentence(it, to, [:]) }
   }
 
   private void addWord(Chart dst, String word) {
@@ -69,10 +69,11 @@ class English implements Language {
   }
 
   private void generateSentence(Frame verb, Chart dst, Map state) {
-
     def subjRel = verb.strongUsages(sem: 'experiencer')[0] ?: verb.strongUsages(sem: 'agent')[0]
     def subject = subjRel.children[0]
-    generateNP(dst, subject, true)
+    if (subject != state.generatedSubject) {
+      generateNP(dst, subject, true)
+    }
 
     def modifier = verb.opponent(sem: 'mode')
     if (modifier) {
@@ -80,19 +81,41 @@ class English implements Language {
     }
 
     generateVerbCluster(dst, verb)
+
+    def addressee = verb.opponent(sem: 'addressee')
+    if (addressee) {
+      generateNP dst, addressee, false
+    }
+
     def theme = verb.opponent(sem:'theme')
     if (theme) {
       if (verb.ping(sem:'love')) {
         generateNP(dst, theme, false)
       } else if (verb.ping(sem: 'FORGET')) {
         generateSentence theme, dst, state
-      } else {
+      } else if (verb.ping(sem: 'ASK')) {
+        if (theme.ping(sem: 'THINK')) {
+          addWord dst, 'about'
+          generatePossessive theme.opponent(sem: 'experiencer'), dst
+          addWord dst, 'opinion'
+          addWord dst, 'on'
+          generateNP dst, theme.opponent(sem:'topic'), false
+        }
+      }
+      else {
         generatePP(dst, 'to', theme)
       }
     }
-    if (verb.ping(time:'PAST') && !state.moodExpressed) {
+
+    if (verb.ping(sem:'HAPPEN', time:'PAST')) {
       dst.newFrame([], ['phon', 'today'])
-      state['moodExpressed']  = true
+    }
+
+    def vpConj = verb.opponent(sem: 'conj_left', false)
+    if (vpConj) {
+      addWord dst, 'and'
+      state.generatedSubject = subject
+      generateSentence vpConj.opponent(sem:'conj_right'), dst, state
     }
 
     def subjElaboration = subject.opponent(sem:'elaboration')
@@ -135,6 +158,8 @@ class English implements Language {
       case 'HAPPEN': return 'happened'
       case 'FORGET': return 'forgot'
       case 'COME_SCALARLY': return 'comes'
+      case 'START_GO_TO': return 'went'
+      case 'ASK': return 'asked'
     }
     return sem
   }
@@ -149,6 +174,10 @@ class English implements Language {
       dst.newFrame([], ['phon', nom ? 'I' : 'me'])
       return;
     }
+    if (noun.ping(sem:'THEY')) {
+      addWord dst, nom ? 'they' : 'them'
+      return;
+    }
 
     if (noun.ping(sem: 'WHAT')) {
       addWord dst, 'what'
@@ -161,17 +190,47 @@ class English implements Language {
       return
     }
 
-    dst.newFrame([], ['phon', (noun.ping(discourse:'new') ? 'An' : 'the')])
+    generateDeterminer(noun, dst)
+
     noun.allOpponents(sem:'property_host').each { generateAdj(dst, it) }
-    if (noun.ping(sem:'mother')) {
-      dst.newFrame([], ['phon', 'mother'])
-    } else if (noun.ping(sem:'daughter')) {
-      dst.newFrame([], ['phon', 'daughter'])
-    } else if (noun.ping(sem:'father')) {
-      dst.newFrame([], ['phon', 'father'])
-    } else if (noun.ping(sem:'THING')) {
-      dst.newFrame([], ['phon', 'thing'])
+
+    addWord dst, generateNoun(noun)
+  }
+
+  private def generateDeterminer(Frame noun, Chart dst) {
+    def whose = noun.opponent(sem: 'with_respect_to')
+    if (whose) {
+      generatePossessive(whose, dst)
+      return
     }
+
+    def det = noun.opponent(sem: 'determiner')
+    if (det) {
+      def sDet = det['sem'].value
+      addWord dst, sDet == "THIS" ? "this" : sDet
+      return
+    }
+
+
+    addWord dst, noun.ping(discourse: 'new') ? 'An' : 'the'
+  }
+
+  private def generatePossessive(Frame whose, Chart dst) {
+    if (whose.ping(sem: 'I')) addWord(dst, 'my')
+    if (whose.ping(sem: 'THEY')) addWord(dst, 'their')
+  }
+
+  private String generateNoun(Frame noun) {
+    def sem = noun['sem'].value
+    switch (sem) {
+      case "mother": return "mother"
+      case "daughter": return "daughter"
+      case "father": return "father"
+      case "THING": return "thing"
+      case "NEIGHBOURS": return "neighbors"
+      case "MATTER": return "matter"
+    }
+    return sem
   }
 
   private def generateAdj(Chart dst, Frame adj) {

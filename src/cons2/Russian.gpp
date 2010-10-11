@@ -13,7 +13,7 @@ class Russian implements Language {
           wholeWord("их", ["syn", "noun"], ['case', "acc"], ["sem", "THEY"]). //todo pronouns
           wholeWord("они", ["syn", "noun"], ['case', "nom"], ["sem", "THEY"]).
           wholeWord("случай", ["syn", "noun"], ['case', 'nom'], ["sem", "THING"], ['discourse', 'new']).
-          wholeWord("соседям", ["syn", "noun"], ['case', 'dat'], ["sem", "NEIGHBOUR"], ['discourse', 'new']).
+          wholeWord("соседям", ["syn", "noun"], ['case', 'dat'], ["sem", "NEIGHBOURS"], ['discourse', 'new']).
 
           wholeWord("случился", ["syn", "verb"], ['baseForm', 'случиться'], ['sem', 'HAPPEN'], ['time', 'PAST']).
           wholeWord("отправился", ["syn", "verb"], ['baseForm', 'отправиться'], ['sem', 'START_GO_TO'], ['time', 'PAST']).
@@ -176,6 +176,11 @@ class Russian implements Language {
         }
         return false
       }
+    }
+
+    if (aspect.role == 'sem' && aspect.ping("NEIGHBOURS")) {
+      def me = update.newFrame([], ['sem', 'I'])
+      update.newFrame([me, host], ['sem', 'with_respect_to'])
     }
 
   }

@@ -48,13 +48,9 @@ class English implements Language {
         update.newFrame([host, verb], ['syn', 'theta'], ['sem', 'theme'])
       }
       if (!found) {
-        update.listen('syn') { verb, upd2 ->
-          if (verb.ping(syn: 'verb')) {
-            upd2.newFrame([host, verb], ['syn', 'theta'], ['sem', 'experiencer'])
-            upd2.wrapUp host
-            return true
-          }
-          return false
+        update.listen('syn':'verb') { verb, upd2 ->
+          upd2.newFrame([host, verb], ['syn', 'theta'], ['sem', 'experiencer'])
+          upd2.wrapUp host
         }
       }
     }

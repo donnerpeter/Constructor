@@ -75,16 +75,11 @@ class Russian implements Language {
     if (aspect.ping('short_adj')) {
       def noun = update.newFrame([], new AnticipatingConstruct([syn:'noun', case:'nom'], [syn:"noun", case:'nom']))
       def rel = update.newFrame([host, noun], ['sem', 'degree'])
-      update.listen('baseForm') { copula, upd2 ->
-        if (copula.ping(syn:'copula')) {
-          def time = copula['time']
-          if (time) {
-            upd2.enrich rel, time
-            return true
-          }
+      update.listen(syn:'copula') { copula, upd2 ->
+        def time = copula['time']
+        if (time) {
+          upd2.enrich rel, time
         }
-
-        return false
       }
     }
     if (aspect.ping('genitive')) {
@@ -106,31 +101,19 @@ class Russian implements Language {
       host.findAllActiveAround(syn:'noun').each { update.wrapUp it }
 
       if (host.ping(baseForm:'идти')) {
-        update.listen('syn') { scalar, upd2 ->
-          if (scalar.ping(syn:['adverb', 'scalar']) && !host.opponent(syn:'adv_mod')) {
-            upd2.newFrame([scalar, host], ['syn', 'adv_mod'], ['sem', 'scalar_end'])
-            upd2.enrich(host, ['sem', 'COME_SCALARLY'])
-            return true
-          }
-          return false
+        update.listen('syn':['adverb', 'scalar']) { scalar, upd2 ->
+          upd2.newFrame([scalar, host], ['syn', 'adv_mod'], ['sem', 'scalar_end'])
+          upd2.enrich(host, ['sem', 'COME_SCALARLY'])
         }
       }
 
       if (host.ping(baseForm:'случиться')) {
         update.listen('sem') { self, upd1 ->
           if (host.opponent(sem: 'experiencer')?.ping(sem:'THING')) {
-            upd1.listen('phon') { colon, upd2 ->
-              if (colon.ping(phon: ':')) {
-                upd2.listen('syn') { verb, upd3 ->
-                  if (verb.ping(syn: 'verb')) {
-                    upd3.newFrame([verb, host.opponent(sem: 'experiencer')], ['sem', 'elaboration'])
-                    return true
-                  }
-                  return false
-                }
-                return true
+            upd1.listen('phon':':') { colon, upd2 ->
+              upd2.listen('syn':'verb') { verb, upd3 ->
+                upd3.newFrame([verb, host.opponent(sem: 'experiencer')], ['sem', 'elaboration'])
               }
-              return false
             }
             return true
           }
@@ -142,14 +125,10 @@ class Russian implements Language {
       update.listen('theta') { theta, upd2 -> verbChanged host, aspect, upd2 }
 
       if (host.ping(subcat:'2whq')) {
-        update.listen('phon') { comma, upd2 ->
-          if (comma.ping(phon:',') && !host.strongUsages(theta:'comp')) {
-            def comp = upd2.newFrame([], new AnticipatingConstruct([syn: 'verb'], [syn: 'verb']))
-            upd2.newFrame([comp, host], ['syn', 'theta'], ['theta', 'comp'], ['sem', 'theme'])
-            upd2.wrapUp host
-            return true
-          }
-          return false
+        update.listen('phon':',') { comma, upd2 ->
+          def comp = upd2.newFrame([], new AnticipatingConstruct([syn: 'verb'], [syn: 'verb']))
+          upd2.newFrame([comp, host], ['syn', 'theta'], ['theta', 'comp'], ['sem', 'theme'])
+          upd2.wrapUp host
         }
       }
     }
@@ -177,18 +156,10 @@ class Russian implements Language {
       Frame arg = host.children[0]
       if (arg.ping(syn:'wh')) {
         update.enrich(host, ['wh_focus', 'true'])
-        update.listen('phon') { mdash, upd2 ->
-          if (mdash.ping(phon: '-')) {
-            upd2.listen('syn') { conj, upd3 ->
-              if (conj.ping(syn: 'conj')) {
-                upd3.newFrame([conj, arg], ['sem', 'alternatives'])
-                return true
-              }
-              return false
-            }
-            return true
+        update.listen('phon':'-') { mdash, upd2 ->
+          upd2.listen('syn':'conj') { conj, upd3 ->
+            upd3.newFrame([conj, arg], ['sem', 'alternatives'])
           }
-          return false
         }
       }
     }
@@ -200,13 +171,7 @@ class Russian implements Language {
     markThetaCases(aspect, host, update)
 
     if (aspect.ping('adverb') && !host.opponent(syn:'adv_mod')) {
-      update.listen('syn') { verb, upd2 ->
-        if (verb.ping(syn: 'verb')) {
-          upd2.newFrame([host, verb], ["syn", 'adv_mod'], ["sem", "mode"])
-          return true
-        }
-        return false
-      }
+      update.listen('syn':'verb') { verb, upd2 -> upd2.newFrame([host, verb], ["syn", 'adv_mod'], ["sem", "mode"]) }
     }
 
     if (aspect.role == 'sem' && aspect.ping("NEIGHBOURS")) {
@@ -278,13 +243,7 @@ class Russian implements Language {
         update.newFrame([host, verb], ['syn', 'theta'])
       }
       if (!found) {
-        update.listen('syn') { verb, upd2 ->
-          if (verb.ping(syn: 'verb')) {
-            upd2.newFrame([host, verb], ['syn', 'theta'])
-            return true
-          }
-          return false
-        }
+        update.listen('syn':'verb') { verb, upd2 -> upd2.newFrame([host, verb], ['syn', 'theta']) }
       }
     }
   }

@@ -48,6 +48,15 @@ class Update {
     weakened << frame
   }
 
+  void listen(Map<String, Object> pattern, Function2<Frame, Update, Void> listener) {
+    listen(pattern.keySet().iterator().next()) { f, u ->
+      if (f.ping(pattern)) {
+        listener(f, u)
+        return true
+      }
+      return false
+    }
+  }
   void listen(String role, Function2<Frame, Update, Boolean> listener) {
     assert !dead
     assert beingProcessed != null

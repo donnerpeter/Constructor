@@ -138,7 +138,8 @@ class Russian implements Language {
 
     if (aspect.ping('prep')) {
       def caze = 'instr'
-      def arg = update.newFrame([], new AnticipatingConstruct([syn:"noun", case:caze], [syn:"noun"]))
+      def arg = update.newFrame([], ['syn', "noun"], ['case', caze])
+      update.anticipate(arg, syn:'noun')
       update.newFrame([host, arg], ['syn', 'prep_noun'])
     }
 

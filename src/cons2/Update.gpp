@@ -89,6 +89,8 @@ class Update {
 
     def next = new Update(chart, newAspects, wrapUps)
 
+    merges.each { loser, into -> chart.merge loser, into }
+
     justAppeared.each { frame, added ->
       added.each {
         if (!frame[it.role] || frame[it.role] == it) {
@@ -105,8 +107,6 @@ class Update {
 
       frame.enrich(aspects as Aspect[])
     }
-
-    merges.each { loser, into -> chart.merge loser, into }
 
     chart.bindAnticipators next
 

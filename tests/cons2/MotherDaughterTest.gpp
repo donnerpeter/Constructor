@@ -138,10 +138,10 @@ frame ^2 ^1
 ^3: sem=beautiful
 ^2: sem=property_host
 frame ^4 ^7
-frame: sem=daughter, ==^5
-^8: sem=null
-^3: sem=experiencer
+^7: sem=null
+^2: sem=experiencer
 ^2: sem=theme
+frame: sem=daughter, ==^8
 """
   }
 

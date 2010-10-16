@@ -66,8 +66,9 @@ class Russian implements Language {
       Aspect sem = ['sem', aspect.ping('det') ? 'determiner' : 'property_host']
       def adj = new SimpleQuery(case:caze, ['syn', 'adjective_noun'], sem)
       if (!adj.activate(host, update)) {
-        def noun = update.newFrame([], new AnticipatingConstruct([syn:'noun', case:caze], [syn:"noun"]))
+        def noun = update.newFrame([], ['syn', 'noun'], ['case', caze])
         update.newFrame([host, noun], ['syn', 'adjective_noun'], sem)
+        update.anticipate(noun, syn:'noun')
       }
       return
     }

@@ -4,7 +4,7 @@ import cons2.Log.Event
 import cons2.Log.FrameEvent
 import cons2.Log.MergeEvent
 
-/**
+ /**
  * @author peter
  */
 class Chart {
@@ -149,6 +149,10 @@ class Chart {
   void merge(Frame loser, Frame into) {
     def loserUsages = loser.strongUsages([:])
     def winnerUsages = into.strongUsages([:])
+
+    loser.chosenAspects.each {
+      into.chosenAs((it.role):it.nicknames)
+    }
 
     loser.adopter = into
 

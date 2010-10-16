@@ -30,7 +30,7 @@ class Russian implements Language {
 
           wholeWord("мной", ["syn", "noun"], ['case', 'instr'],  ['sem', 'I']).
 
-          wholeWord("забыл", ["syn", "verb"], ['sem', 'FORGET'], ['time', 'PAST'], ['subcat', '2whq']).
+          wholeWord("забыл", ["syn", "verb"], ['sem', 'FORGET'], ['time', 'PAST'], ['subcat', '2whq'], ['baseForm', 'забыть']).
 
           wholeWord("вдруг", ["syn", "adverb"], ['sem', 'SUDDENLY']).
           wholeWord("я", ["syn", "noun"], ['case', 'nom'], ['sem', 'I']).
@@ -129,7 +129,8 @@ class Russian implements Language {
 
       if (host.ping(subcat:'2whq')) {
         update.listen('phon':',') { comma, upd2 ->
-          def comp = upd2.newFrame([], new AnticipatingConstruct([syn: 'verb'], [syn: 'verb']))
+          def comp = upd2.newFrame([], ['syn', 'verb'])
+          upd2.anticipate(comp, syn:'verb')
           upd2.newFrame([comp, host], ['syn', 'theta'], ['theta', 'comp'], ['sem', 'theme'])
           upd2.wrapUp host
         }
@@ -146,7 +147,7 @@ class Russian implements Language {
     if (aspect.role == 'stem') {
       def stem = aspect.nicknames.iterator().next()
       if (stem == "люб") {
-        update.enrich(host, ['subcat', '2acc'], ["sem", "love"])
+        update.enrich(host, ['subcat', '2acc'], ["sem", "love"], ['baseForm', 'любить'])
       }
       if (stem == "красив") {
         update.enrich(host, ["sem", "beautiful"])
@@ -253,7 +254,7 @@ class Russian implements Language {
   }
 
   void verbChanged(Frame host, Aspect aspect, Update update) {
-    if (!(aspect instanceof AnticipatingConstruct)) {
+    if (host['baseForm']) {
       def subjTheta = subjRole(host)
       if (host.strongUsages(syn: 'theta').findAll { it['theta']?.value=='nom' && !it['sem'] }) {
         host.strongUsages(syn: 'theta', theta: 'nom').findAll { it['sem'] }.each { it.relax() }

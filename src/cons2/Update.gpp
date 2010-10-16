@@ -108,8 +108,6 @@ class Update {
       frame.enrich(aspects as Aspect[])
     }
 
-    chart.bindAnticipators next
-
     chart.listeners.values().each { map ->
       map.each { role, actions ->
         if (role in touched.keySet()) {

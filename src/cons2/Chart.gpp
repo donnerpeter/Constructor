@@ -115,17 +115,6 @@ class Chart {
     active.addFirst frame
   }
 
-  void bindAnticipators(Update update) {
-    active.clone().each { Frame f ->
-      f.initializedAspects.each { Aspect c ->
-        if (c instanceof AnticipatingConstruct) {
-          ((AnticipatingConstruct)c).contextChanged f
-        }
-
-      }
-    }
-  }
-
   void wrapUp() {
     wrapUp(active as Frame[])
   }

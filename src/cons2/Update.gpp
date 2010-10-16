@@ -8,6 +8,7 @@ class Update {
   private Map<Frame, Set<Aspect>> newAspects = [:]
   private Map<Frame, Set<Aspect>> justAppeared = [:]
   private Map<Frame, Map<String, Object>> confirmations = [:]
+  private Map<Frame, Frame> merges = [:]
   private Set<Frame> wrapUps = []
   private Set<Frame> weakened = []
   private Frame beingProcessed
@@ -57,11 +58,22 @@ class Update {
       return false
     }
   }
+
   void listen(String role, Function2<Frame, Update, Boolean> listener) {
     assert !dead
     assert beingProcessed != null
     def map = newListeners.get(beingProcessed, [:])
     map.get(role, []) << listener
+  }
+
+  void anticipate(Map<String, Object> pattern, Frame mock) {
+    listen (pattern.keySet().iterator().next()) { real, upd2 ->
+      if (real != mock && real.ping(pattern)) {
+        upd2.merge(mock, real)
+        return true
+      }
+      return false
+    }
   }
 
   void apply() {
@@ -70,7 +82,7 @@ class Update {
 
     chart.listeners.putAll newListeners
 
-    if (!newAspects && !justAppeared) {
+    if (!newAspects && !justAppeared && !merges) {
       wrapUps.each { chart.wrapUp it }
       return
     }
@@ -93,6 +105,8 @@ class Update {
 
       frame.enrich(aspects as Aspect[])
     }
+
+    merges.each { loser, into -> chart.merge loser, into }
 
     chart.bindAnticipators next
 
@@ -121,4 +135,7 @@ class Update {
     next.apply()
   }
 
+  def merge(Frame loser, Frame into) {
+    merges[loser] = into
+  }
 }

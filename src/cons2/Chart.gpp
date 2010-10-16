@@ -147,11 +147,22 @@ class Chart {
   }
 
   void merge(Frame loser, Frame into) {
+    def loserUsages = loser.strongUsages([:])
+    def winnerUsages = into.strongUsages([:])
+
     loser.adopter = into
+
     frames.remove loser
     active.remove loser
     listeners.remove loser
     log.event new MergeEvent(into, loser)
+
+    loserUsages.each { u ->
+      def mirror = winnerUsages.find { it.children == u.children }
+      if (mirror) {
+        merge(u, mirror)
+      }
+    }
   }
 
   void weaken(Frame f) {

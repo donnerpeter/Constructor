@@ -74,7 +74,9 @@ class Russian implements Language {
     }
 
     if (aspect.ping('short_adj')) {
-      def noun = update.newFrame([], new AnticipatingConstruct([syn:'noun', case:'nom'], [syn:"noun", case:'nom']))
+      def noun = update.newFrame([], ['syn', 'noun'], ['case', 'nom'])
+      update.anticipate(noun, syn:"noun", case:'nom')
+
       def rel = update.newFrame([host, noun], ['sem', 'degree'])
       update.listen(syn:'copula') { copula, upd2 ->
         def time = copula['time']

@@ -42,7 +42,7 @@ class Russian implements Language {
           wholeWord("что", syn:"noun", wh_word:'true', case:'acc', sem:'WHAT').
           wholeWord("Каково", syn:"short_adj", wh_word:'true', sem:'HOW').
           wholeWord("идет", syn:"verb", baseForm:'идти', sem:'GO').
-          wholeWord("раньше", ["syn", "adverb", 'scalar'], ['sem', 'EARLIER']).
+          wholeWord("раньше", syn:"adverb", adv_kind:'scalar', sem:'EARLIER').
           wholeWord("или", syn:"conj", sem:'OR').
           wholeWord("и", syn:"conj", sem:'AND_THEN').
           wholeWord("этому", syn:"adj", adj_kind:'det', case:'dat', sem:'THIS').
@@ -105,7 +105,7 @@ class Russian implements Language {
       host.findAllActiveAround(syn:'noun').each { update.wrapUp it }
 
       if (host.ping(baseForm:'идти')) {
-        update.listen('syn':['adverb', 'scalar']) { scalar, upd2 ->
+        update.listen('syn':'adverb', adv_kind:'scalar') { scalar, upd2 ->
           upd2.newFrame([scalar, host], syn:'adv_mod', sem:'scalar_end')
           upd2.enrich(host, sem:'COME_SCALARLY')
         }

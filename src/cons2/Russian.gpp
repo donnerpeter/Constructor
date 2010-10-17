@@ -21,8 +21,8 @@ class Russian implements Language {
 
           wholeWord("случился", syn:"verb", baseForm:'случиться', sem:'HAPPEN', time:'PAST').
           wholeWord("отправился", syn:"verb", baseForm:'отправиться', sem:'START_GO_TO', time:'PAST').
-          wholeWord("спросил", ["syn", "verb"], ['baseForm', 'спросить'], ['subcat', '2acc'], ['subcat', '2whq'], ['sem', 'ASK'], ['time', 'PAST']).
-          wholeWord("думают", syn:"verb", baseForm:'думать', subcat:'2acc', sem:'THINK', time:'PRESENT').
+          wholeWord("спросил", ["syn", "verb"], ['baseForm', 'спросить'], ['subcat_acc', 'true'], ['subcat_whq', 'true'], ['sem', 'ASK'], ['time', 'PAST']).
+          wholeWord("думают", syn:"verb", baseForm:'думать', subcat_acc:'true', sem:'THINK', time:'PRESENT').
           wholeWord("было", syn:"copula", baseForm:'быть', sem:'BE', time:'PAST').
 
           wholeWord("мое", syn:"genitive", sem:"I").
@@ -33,7 +33,7 @@ class Russian implements Language {
 
           wholeWord("мной", syn:"noun", case:'instr',  sem:'I').
 
-          wholeWord("забыл", syn:"verb", sem:'FORGET', time:'PAST', subcat:'2whq', baseForm:'забыть').
+          wholeWord("забыл", syn:"verb", sem:'FORGET', time:'PAST', subcat_whq:'true', baseForm:'забыть').
 
           wholeWord("вдруг", syn:"adverb", sem:'SUDDENLY').
           wholeWord("я", syn:"noun", case:'nom', sem:'I').
@@ -127,7 +127,7 @@ class Russian implements Language {
       verbChanged host, aspect, update
       update.listen('theta') { theta, upd2 -> verbChanged host, aspect, upd2 }
 
-      if (host.ping(subcat:'2whq')) {
+      if (host.ping(subcat_whq:'true')) {
         update.listen('phon':',') { comma, upd2 ->
           def comp = upd2.newFrame([], syn:'verb')
           upd2.anticipate(comp, syn:'verb')
@@ -147,7 +147,7 @@ class Russian implements Language {
     if (aspect.role == 'stem') {
       def stem = aspect.nicknames.iterator().next()
       if (stem == "люб") {
-        update.enrich(host, subcat:'2acc', sem:"love", baseForm:'любить')
+        update.enrich(host, subcat_acc:'true', sem:"love", baseForm:'любить')
       }
       if (stem == "красив") {
         update.enrich(host, sem:"beautiful")
@@ -271,7 +271,7 @@ class Russian implements Language {
         }
       }
 
-      if (host.ping(subcat: '2acc')) {
+      if (host.ping(subcat_acc: 'true')) {
         def objTheta = host.ping(baseForm:'спросить') ? 'addressee' : 'theme'
         if (!host.opponent(sem:objTheta)) {
           def acc = toAssign.find { it.ping(theta: 'acc') }

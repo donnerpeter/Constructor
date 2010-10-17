@@ -12,8 +12,6 @@ class English implements Language {
           wholeWord("the", ['syn', 'article']).
           suffix("s", ['syn', 'verb'])
 
-  SimpleQuery property_host = [[syn:"noun"], [new Aspect("sem", 'property_host')] as Aspect[]]
-
   void aspectAppeared(Frame host, Aspect aspect, Update update) {
     if (aspect.ping('article')) {
       def mock = update.newFrame([], ['syn', "noun"])
@@ -25,7 +23,7 @@ class English implements Language {
     findTheta(aspect, host, update)
 
     if (aspect.ping('adj')) {
-      property_host.activate host, update
+      update.listen(syn:'noun') { noun, upd2 -> upd2.newFrame([host, noun], ['sem', 'property_host']) }
       return
     }
 

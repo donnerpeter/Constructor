@@ -40,7 +40,7 @@ class Update {
   Frame newFrame(Map<String, String> avm, List<Frame> children) {
     assert !dead
     def frame = chart.newFrame(children)
-    enrich frame, decodeAvm(avm)
+    enrich avm, frame
     frame
   }
 

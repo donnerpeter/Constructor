@@ -19,9 +19,9 @@ class Parser {
         Update update = new Update(chart)
         try {
           Integer.parseInt(w)
-          update.enrich frame, ['phon', w], ['syn', 'number'], ['sem', "number" + w]
+          update.enrich frame, phon:w, syn:'number', sem:"number" + w
         } catch (NumberFormatException e) {
-          update.enrich frame, ['phon', w]
+          update.enrich frame, phon:w
         }
         update.apply()
       }

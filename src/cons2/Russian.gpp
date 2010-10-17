@@ -106,7 +106,7 @@ class Russian implements Language {
       if (host.ping(baseForm:'идти')) {
         update.listen('syn':['adverb', 'scalar']) { scalar, upd2 ->
           upd2.newFrame([scalar, host], syn:'adv_mod', sem:'scalar_end')
-          upd2.enrich(host, ['sem', 'COME_SCALARLY'])
+          upd2.enrich(host, sem:'COME_SCALARLY')
         }
       }
 
@@ -147,20 +147,20 @@ class Russian implements Language {
     if (aspect.role == 'stem') {
       def stem = aspect.nicknames.iterator().next()
       if (stem == "люб") {
-        update.enrich(host, ['subcat', '2acc'], ["sem", "love"], ['baseForm', 'любить'])
+        update.enrich(host, subcat:'2acc', sem:"love", baseForm:'любить')
       }
       if (stem == "красив") {
-        update.enrich(host, ["sem", "beautiful"])
+        update.enrich(host, sem:"beautiful")
       }
       if (stem == "Удивительн") {
-        update.enrich(host, ["sem", "AMAZING"])
+        update.enrich(host, sem:"AMAZING")
       }
     }
 
     if (aspect.role == 'theta' && !host['wh_focus'] && host.strongAlternatives(aspect.role)[0] == aspect) {
       Frame arg = host.children[0]
       if (arg.ping(syn:'wh')) {
-        update.enrich(host, ['wh_focus', 'true'])
+        update.enrich(host, wh_focus:'true')
         update.listen('phon':'-') { mdash, upd2 ->
           upd2.listen('syn':'conj') { conj, upd3 ->
             upd3.newFrame([conj, arg], sem:'alternatives')
@@ -228,12 +228,12 @@ class Russian implements Language {
       def theta = host.strongUsages(syn: 'theta')[0]
       if (theta) {
         if (!theta.strongAlternatives('theta')) {
-          update.enrich theta, ['theta', aspect.value]
+          update.enrich theta, theta:aspect.value
         }
       } else {
         update.listen('syn') { th, upd2 ->
           if (th.ping(syn:'theta') && host in th.children && !th.strongAlternatives('theta')) {
-            upd2.enrich th, ['theta', aspect.value]
+            upd2.enrich th, theta:aspect.value
             return true
           }
           return false
@@ -266,7 +266,7 @@ class Russian implements Language {
         def nom = toAssign.find { it['theta']?.value == 'nom' }
         if (!nom) nom = toAssign.find { it.ping(theta: 'nom') }
         if (nom) {
-          update.enrich nom, ['sem', subjTheta]
+          update.enrich nom, sem:subjTheta
           toAssign.remove nom
         }
       }
@@ -276,7 +276,7 @@ class Russian implements Language {
         if (!host.opponent(sem:objTheta)) {
           def acc = toAssign.find { it.ping(theta: 'acc') }
           if (acc) {
-            update.enrich acc, ['sem', objTheta]
+            update.enrich acc, sem:objTheta
             toAssign.remove(acc)
           }
         }
@@ -284,13 +284,13 @@ class Russian implements Language {
 
       def stv = toAssign.find { it.ping(theta: 'с+тв') }
       if (stv) {
-        update.enrich(stv, ['sem', 'theme'])
+        update.enrich(stv, sem:'theme')
         toAssign.remove stv
       }
 
       def podat = toAssign.find { it.ping(theta: 'по+дат') }
       if (podat) {
-        update.enrich(podat, ['sem', 'topic'])
+        update.enrich(podat, sem:'topic')
         toAssign.remove podat
       }
     }

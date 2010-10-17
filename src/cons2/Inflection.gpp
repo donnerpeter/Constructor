@@ -2,9 +2,9 @@ package cons2
 
 class Inflection {
   private Map<String, List<Aspect[]>> wholeWords = [:]
-  private Map<String, Aspect> suffixing = [:]
+  private Map<String, Aspect[]> suffixing = [:]
 
-  Inflection suffix(String suffix, Aspect synCxt) {
+  Inflection suffix(String suffix, Aspect... synCxt) {
     suffixing[suffix] = synCxt
     this
   }
@@ -31,7 +31,8 @@ class Inflection {
 
     for (suf in suffixing.keySet()) {
       if (word.endsWith(suf)) {
-        update.enrich(host, ['stem', word[0..<word.length()-suf.length()]], suffixing[suf])
+        def aspects = [new Aspect('stem', word[0..<word.length()-suf.length()])] + (suffixing[suf] as List)
+        update.enrich(host, aspects as Aspect[])
         return
       }
     }

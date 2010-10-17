@@ -47,10 +47,10 @@ class Russian implements Language {
           wholeWord("этому", ["syn", "adj", 'det'], ['case', 'dat'], ['sem', 'THIS']).
           wholeWord("же", syn:"emph_particle").
 
-          suffix("ит", ['syn', 'verb']).
-          suffix("ая", ['syn', 'adj'], ['case', 'nom']).
-          suffix("ую", ['syn', 'adj'], ['case', 'acc']).
-          suffix("ый", ['syn', 'adj'], ['case', 'nom'])
+          suffix("ит", syn:'verb').
+          suffix("ая", syn:'adj', case:'nom').
+          suffix("ую", syn:'adj', case:'acc').
+          suffix("ый", syn:'adj', case:'nom')
 
   void aspectAppeared(Frame host, Aspect aspect, Update update) {
     if (aspect.role == 'phon') {

@@ -10,7 +10,7 @@ class English implements Language {
           wholeWord("beautiful", syn:"adj", sem:"beautiful").
           wholeWord("daughter", syn:"noun", sem:"daughter").
           wholeWord("the", syn:'article').
-          suffix("s", ['syn', 'verb'])
+          suffix("s", syn:'verb')
 
   void aspectAppeared(Frame host, Aspect aspect, Update update) {
     if (aspect.ping('article')) {

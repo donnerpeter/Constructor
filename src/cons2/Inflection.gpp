@@ -2,18 +2,16 @@ package cons2
 
 class Inflection {
   private Map<String, List<Aspect[]>> wholeWords = [:]
-  private Map<String, Aspect[]> suffixing = [:]
+  private Map<String, Map<String, String>> suffixing = [:]
 
-  Inflection suffix(String suffix, Aspect... synCxt) {
-    suffixing[suffix] = synCxt
+  Inflection suffix(Map<String, String> avm, String suffix) {
+    suffixing[suffix] = avm
     this
   }
 
   Inflection wholeWord(Map<String, String> avm, String word) {
     wholeWord(word, Update.decodeAvm(avm))
   }
-
-
 
   Inflection wholeWord(String word, Aspect... cxts) {
     wholeWords.get(word, []) << cxts
@@ -31,8 +29,8 @@ class Inflection {
 
     for (suf in suffixing.keySet()) {
       if (word.endsWith(suf)) {
-        def aspects = [new Aspect('stem', word[0..<word.length()-suf.length()])] + (suffixing[suf] as List)
-        update.enrich(host, aspects as Aspect[])
+        def aspects = [stem:word[0..<word.length()-suf.length()]] + suffixing[suf]
+        update.enrich(aspects, host)
         return
       }
     }

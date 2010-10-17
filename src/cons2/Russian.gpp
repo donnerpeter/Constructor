@@ -21,7 +21,7 @@ class Russian implements Language {
 
           wholeWord("случился", syn:"verb", baseForm:'случиться', sem:'HAPPEN', time:'PAST').
           wholeWord("отправился", syn:"verb", baseForm:'отправиться', sem:'START_GO_TO', time:'PAST').
-          wholeWord("спросил", ["syn", "verb"], ['baseForm', 'спросить'], ['subcat_acc', 'true'], ['subcat_whq', 'true'], ['sem', 'ASK'], ['time', 'PAST']).
+          wholeWord("спросил", syn:"verb", baseForm:'спросить', subcat_acc:'true', subcat_whq:'true', sem:'ASK', time:'PAST').
           wholeWord("думают", syn:"verb", baseForm:'думать', subcat_acc:'true', sem:'THINK', time:'PRESENT').
           wholeWord("было", syn:"copula", baseForm:'быть', sem:'BE', time:'PAST').
 

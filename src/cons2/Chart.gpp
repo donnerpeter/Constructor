@@ -95,12 +95,8 @@ class Chart {
     return active.findAll { it.ping(pattern) }
   }
 
-  Frame newFrame(List<Frame> children, Aspect... alternatives) {
-    def frame = registerFrame(new Frame(this, children as Frame[]))
-    if (alternatives) {
-      frame.enrich(alternatives)
-    }
-    return frame
+  Frame newFrame(List<Frame> children) {
+    return registerFrame(new Frame(this, children as Frame[]))
   }
 
   private Frame registerFrame(Frame frame) {

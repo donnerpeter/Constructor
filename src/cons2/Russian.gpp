@@ -309,24 +309,28 @@ class Russian implements Language {
     sem.frames().findAll { it.ping(sem:'love') }.each { generateSentence(it, to) }
   }
 
+  private void addWord(Chart dst, String word) {
+    dst.newFrame([]).enrich(['phon', word])
+  }
+
   private void generateSentence(Frame verb, Chart dst) {
-    generateNP(dst, verb.opponent(sem:'experiencer'), 'nom')
-    dst.newFrame([], ['phon', 'любит'])
-    generateNP(dst, verb.opponent(sem:'theme'), 'acc')
+    generateNP(dst, verb.opponent(sem: 'experiencer'), 'nom')
+    addWord dst, 'любит'
+    generateNP(dst, verb.opponent(sem: 'theme'), 'acc')
   }
 
   private void generateNP(Chart dst, Frame noun, String caze) {
     noun.allOpponents(sem:'property_host').each {
       if (it.ping(sem:'beautiful')) {
-        dst.newFrame([], ['phon', caze == 'nom' ? 'красивая' : 'красивую'])
+        addWord dst, caze == 'nom' ? 'красивая' : 'красивую'
       }
     }
     if (noun.ping(sem:'mother')) {
-      dst.newFrame([], ['phon', 'мать'])
+      addWord dst, 'мать'
     } else if (noun.ping(sem:'daughter')) {
-      dst.newFrame([], ['phon', 'дочь'])
+      addWord dst, 'дочь'
     } else if (noun.ping(sem:'father')) {
-      dst.newFrame([], ['phon', caze == 'nom' ? 'отец' : 'отца'])
+      addWord dst, caze == 'nom' ? 'отец' : 'отца'
     }
   }
 

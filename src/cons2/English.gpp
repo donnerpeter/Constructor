@@ -62,7 +62,7 @@ class English implements Language {
   }
 
   private void addWord(Chart dst, String word) {
-    dst.newFrame([], ['phon', word])
+    dst.newFrame([]).enrich(['phon', word])
   }
 
   private void generateSentence(Frame verb, Chart dst, Map state) {
@@ -105,7 +105,7 @@ class English implements Language {
     }
 
     if (verb.ping(sem:'HAPPEN', time:'PAST')) {
-      dst.newFrame([], ['phon', 'today'])
+      addWord dst, 'today'
     }
 
     def vpConj = verb.opponent(sem: 'conj_left', false)
@@ -117,7 +117,7 @@ class English implements Language {
 
     def subjElaboration = subject.opponent(sem:'elaboration')
     if (subjElaboration) {
-      dst.newFrame([], ['phon', ','])
+      addWord dst, ','
       generateSentence subjElaboration, dst, state
     }
 
@@ -162,13 +162,13 @@ class English implements Language {
   }
 
   private void generatePP(Chart dst, String prep, Frame noun) {
-    dst.newFrame([], ['phon', prep])
+    addWord dst, prep
     generateNP dst, noun, false
   }
 
   private void generateNP(Chart dst, Frame noun, boolean nom) {
     if (noun.ping(sem:'I')) {
-      dst.newFrame([], ['phon', nom ? 'I' : 'me'])
+      addWord dst, nom ? 'I' : 'me'
       return;
     }
     if (noun.ping(sem:'THEY')) {
@@ -232,10 +232,10 @@ class English implements Language {
 
   private def generateAdj(Chart dst, Frame adj) {
     if (adj.ping(sem:'beautiful')) {
-      dst.newFrame([], ['phon', 'beautiful'])
+      addWord dst, 'beautiful'
     }
     else if (adj.ping(sem:'AMAZING')) {
-      dst.newFrame([], ['phon', 'amazing'])
+      addWord dst, 'amazing'
     }
   }
 

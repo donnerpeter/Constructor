@@ -5,12 +5,15 @@ package cons2
  */
 class Russian implements Language {
   Inflection infl = new Inflection().
-          wholeWord("мать", ["syn", "noun"], ['case', 'nom'], ["case", "acc"], ["sem", "mother"]).
-          wholeWord("дочь", ["syn", "noun"], ['case', 'nom'], ["case", "acc"], ["sem", "daughter"]).
+          wholeWord("мать", syn:"noun", case:'nom', sem:"mother").
+          wholeWord("мать", syn:"noun", case:'acc', sem:"mother").
+          wholeWord("дочь", syn:"noun", case:'nom', sem:"daughter").
+          wholeWord("дочь", syn:"noun", case:'acc', sem:"daughter").
           wholeWord("отец", syn:"noun", case:'nom', sem:"father").
           wholeWord("отца", syn:"noun", case:'acc', sem:"father").
           wholeWord("поводу", syn:"noun", case:'dat', sem:"MATTER").
-          wholeWord("их", ["syn", "noun"], ["syn", "genitive"], ['case', "acc"], ["sem", "THEY"]). //todo pronouns
+          wholeWord("их", syn:"noun", case:"acc", sem:"THEY").
+          wholeWord("их", syn:"genitive", sem:"THEY").
           wholeWord("они", syn:"noun", case:'nom', sem:"THEY").
           wholeWord("случай", syn:"noun", case:'nom', sem:"THING", discourse:'new').
           wholeWord("соседям", syn:"noun", case:'dat', sem:"NEIGHBOURS", discourse:'new').

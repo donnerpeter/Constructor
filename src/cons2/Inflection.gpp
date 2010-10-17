@@ -1,7 +1,7 @@
 package cons2
 
 class Inflection {
-  private Map<String, Aspect[]> wholeWords = [:]
+  private Map<String, List<Aspect[]>> wholeWords = [:]
   private Map<String, Aspect> suffixing = [:]
 
   Inflection suffix(String suffix, Aspect synCxt) {
@@ -10,8 +10,7 @@ class Inflection {
   }
 
   Inflection wholeWord(Map<String, String> avm, String word) {
-    wholeWords[word] = decodeAvm(avm)
-    this
+    wholeWord(word, decodeAvm(avm))
   }
 
   static Aspect[] decodeAvm(Map<String, String> avm) {
@@ -21,16 +20,16 @@ class Inflection {
   }
 
   Inflection wholeWord(String word, Aspect... cxts) {
-    wholeWords[word] = cxts
+    wholeWords.get(word, []) << cxts
     this
   }
 
   void analyze(Frame host, Aspect phonAspect, Update update) {
-    def word = phonAspect.nicknames.iterator().next()
+    def word = phonAspect.value
 
     def wh = wholeWords[word]
     if (wh) {
-      update.enrich(host, wh)
+      wh.each { update.enrich(host, it) }
       return
     }
 

@@ -9,6 +9,13 @@ class Inflection {
     this
   }
 
+  Inflection wholeWord(Map<String, String> avm, String word) {
+    def aspects = []
+    avm.each { role, value -> aspects << new Aspect(role, value) }
+    wholeWords[word] = aspects as Aspect[]
+    this
+  }
+
   Inflection wholeWord(String word, Aspect... cxts) {
     wholeWords[word] = cxts
     this

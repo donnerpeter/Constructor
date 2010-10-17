@@ -38,13 +38,13 @@ class Russian implements Language {
           wholeWord("вдруг", syn:"adverb", sem:'SUDDENLY').
           wholeWord("я", syn:"noun", case:'nom', sem:'I').
           wholeWord("Я", syn:"noun", case:'nom', sem:'I'). //todo capitalization
-          wholeWord("что", ["syn", "noun", 'wh'], ['case', 'nom'], ['case', 'acc'], ['sem', 'WHAT']).
-          wholeWord("Каково", ["syn", "short_adj", 'wh'], ['sem', 'HOW']).
+          wholeWord("что", ["syn", "noun"], ['wh_word', 'true'], ['case', 'nom'], ['case', 'acc'], ['sem', 'WHAT']).
+          wholeWord("Каково", ["syn", "short_adj"], ['wh_word', 'true'], ['sem', 'HOW']).
           wholeWord("идет", syn:"verb", baseForm:'идти', sem:'GO').
           wholeWord("раньше", ["syn", "adverb", 'scalar'], ['sem', 'EARLIER']).
           wholeWord("или", syn:"conj", sem:'OR').
           wholeWord("и", syn:"conj", sem:'AND_THEN').
-          wholeWord("этому", ["syn", "adj", 'det'], ['case', 'dat'], ['sem', 'THIS']).
+          wholeWord("этому", ["syn", "adj"], ['adj_kind', 'det'], ['case', 'dat'], ['sem', 'THIS']).
           wholeWord("же", syn:"emph_particle").
 
           suffix("ит", syn:'verb').
@@ -66,7 +66,7 @@ class Russian implements Language {
 
     if (aspect.ping('adj')) {
       def caze = host['case'].value
-      def sem = aspect.ping('det') ? 'determiner' : 'property_host'
+      def sem = host.ping(adj_kind:'det') ? 'determiner' : 'property_host'
       def noun = update.newFrame([], syn:'noun', case:caze)
       update.newFrame([host, noun], syn:'adjective_noun', sem:sem)
       update.anticipate(noun, syn: 'noun')
@@ -159,7 +159,7 @@ class Russian implements Language {
 
     if (aspect.role == 'theta' && !host['wh_focus'] && host.strongAlternatives(aspect.role)[0] == aspect) {
       Frame arg = host.children[0]
-      if (arg.ping(syn:'wh')) {
+      if (arg.ping(wh_word:'true')) {
         update.enrich(host, wh_focus:'true')
         update.listen('phon':'-') { mdash, upd2 ->
           upd2.listen('syn':'conj') { conj, upd3 ->

@@ -7,42 +7,42 @@ class Russian implements Language {
   Inflection infl = new Inflection().
           wholeWord("мать", ["syn", "noun"], ['case', 'nom'], ["case", "acc"], ["sem", "mother"]).
           wholeWord("дочь", ["syn", "noun"], ['case', 'nom'], ["case", "acc"], ["sem", "daughter"]).
-          wholeWord("отец", ["syn", "noun"], ['case', "nom"], ["sem", "father"]).
-          wholeWord("отца", ["syn", "noun"], ['case', "acc"], ["sem", "father"]).
-          wholeWord("поводу", ["syn", "noun"], ['case', "dat"], ["sem", "MATTER"]).
+          wholeWord("отец", syn:"noun", case:'nom', sem:"father").
+          wholeWord("отца", syn:"noun", case:'acc', sem:"father").
+          wholeWord("поводу", syn:"noun", case:'dat', sem:"MATTER").
           wholeWord("их", ["syn", "noun"], ["syn", "genitive"], ['case', "acc"], ["sem", "THEY"]). //todo pronouns
-          wholeWord("они", ["syn", "noun"], ['case', "nom"], ["sem", "THEY"]).
-          wholeWord("случай", ["syn", "noun"], ['case', 'nom'], ["sem", "THING"], ['discourse', 'new']).
-          wholeWord("соседям", ["syn", "noun"], ['case', 'dat'], ["sem", "NEIGHBOURS"], ['discourse', 'new']).
-          wholeWord("удивление", ["syn", "noun"], ['case', 'nom'], ["sem", "SURPRISE"], ['discourse', 'new']).
+          wholeWord("они", syn:"noun", case:'nom', sem:"THEY").
+          wholeWord("случай", syn:"noun", case:'nom', sem:"THING", discourse:'new').
+          wholeWord("соседям", syn:"noun", case:'dat', sem:"NEIGHBOURS", discourse:'new').
+          wholeWord("удивление", syn:"noun", case:'nom', sem:"SURPRISE", discourse:'new').
 
-          wholeWord("случился", ["syn", "verb"], ['baseForm', 'случиться'], ['sem', 'HAPPEN'], ['time', 'PAST']).
-          wholeWord("отправился", ["syn", "verb"], ['baseForm', 'отправиться'], ['sem', 'START_GO_TO'], ['time', 'PAST']).
+          wholeWord("случился", syn:"verb", baseForm:'случиться', sem:'HAPPEN', time:'PAST').
+          wholeWord("отправился", syn:"verb", baseForm:'отправиться', sem:'START_GO_TO', time:'PAST').
           wholeWord("спросил", ["syn", "verb"], ['baseForm', 'спросить'], ['subcat', '2acc'], ['subcat', '2whq'], ['sem', 'ASK'], ['time', 'PAST']).
-          wholeWord("думают", ["syn", "verb"], ['baseForm', 'думать'], ['subcat', '2acc'], ['sem', 'THINK'], ['time', 'PRESENT']).
-          wholeWord("было", ["syn", "copula"], ['baseForm', 'быть'], ['sem', 'BE'], ['time', 'PAST']).
+          wholeWord("думают", syn:"verb", baseForm:'думать', subcat:'2acc', sem:'THINK', time:'PRESENT').
+          wholeWord("было", syn:"copula", baseForm:'быть', sem:'BE', time:'PAST').
 
-          wholeWord("мое", ["syn", "genitive"], ["sem", "I"]).
+          wholeWord("мое", syn:"genitive", sem:"I").
 
-          wholeWord("со", ["syn", "prep"], ['baseForm', 'с']).
-          wholeWord("по", ["syn", "prep"], ['baseForm', 'по']).
-          wholeWord("к", ["syn", "prep"], ['baseForm', 'к']).
+          wholeWord("со", syn:"prep", baseForm:'с').
+          wholeWord("по", syn:"prep", baseForm:'по').
+          wholeWord("к", syn:"prep", baseForm:'к').
 
-          wholeWord("мной", ["syn", "noun"], ['case', 'instr'],  ['sem', 'I']).
+          wholeWord("мной", syn:"noun", case:'instr',  sem:'I').
 
-          wholeWord("забыл", ["syn", "verb"], ['sem', 'FORGET'], ['time', 'PAST'], ['subcat', '2whq'], ['baseForm', 'забыть']).
+          wholeWord("забыл", syn:"verb", sem:'FORGET', time:'PAST', subcat:'2whq', baseForm:'забыть').
 
-          wholeWord("вдруг", ["syn", "adverb"], ['sem', 'SUDDENLY']).
-          wholeWord("я", ["syn", "noun"], ['case', 'nom'], ['sem', 'I']).
-          wholeWord("Я", ["syn", "noun"], ['case', 'nom'], ['sem', 'I']). //todo capitalization
+          wholeWord("вдруг", syn:"adverb", sem:'SUDDENLY').
+          wholeWord("я", syn:"noun", case:'nom', sem:'I').
+          wholeWord("Я", syn:"noun", case:'nom', sem:'I'). //todo capitalization
           wholeWord("что", ["syn", "noun", 'wh'], ['case', 'nom'], ['case', 'acc'], ['sem', 'WHAT']).
           wholeWord("Каково", ["syn", "short_adj", 'wh'], ['sem', 'HOW']).
-          wholeWord("идет", ["syn", "verb"], ['baseForm', "идти"], ['sem', 'GO']).
+          wholeWord("идет", syn:"verb", baseForm:'идти', sem:'GO').
           wholeWord("раньше", ["syn", "adverb", 'scalar'], ['sem', 'EARLIER']).
-          wholeWord("или", ["syn", "conj"], ['sem', 'OR']).
-          wholeWord("и", ["syn", "conj"], ['sem', 'AND_THEN']).
+          wholeWord("или", syn:"conj", sem:'OR').
+          wholeWord("и", syn:"conj", sem:'AND_THEN').
           wholeWord("этому", ["syn", "adj", 'adj_dat', 'det'], ['sem', 'THIS']).
-          wholeWord("же", ["syn", "emph_particle"]).
+          wholeWord("же", syn:"emph_particle").
 
           suffix("ит", ['syn', 'verb']).
           suffix("ая", ['syn', 'adj', 'adj_nom']).

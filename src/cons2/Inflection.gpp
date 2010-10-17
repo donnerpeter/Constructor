@@ -10,14 +10,10 @@ class Inflection {
   }
 
   Inflection wholeWord(Map<String, String> avm, String word) {
-    wholeWord(word, decodeAvm(avm))
+    wholeWord(word, Update.decodeAvm(avm))
   }
 
-  static Aspect[] decodeAvm(Map<String, String> avm) {
-    def aspects = []
-    avm.each { role, value -> aspects << new Aspect(role, value) }
-    return aspects as Aspect[]
-  }
+
 
   Inflection wholeWord(String word, Aspect... cxts) {
     wholeWords.get(word, []) << cxts

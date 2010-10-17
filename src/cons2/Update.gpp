@@ -21,6 +21,16 @@ class Update {
     this.wrapUps.addAll wrapUps
   }
 
+  static Aspect[] decodeAvm(Map<String, String> avm) {
+    def aspects = []
+    avm.each { role, value -> aspects << new Aspect(role, value) }
+    return aspects as Aspect[]
+  }
+
+  void enrich(Map<String, String> avm, Frame host) {
+    enrich(host, decodeAvm(avm))
+  }
+
   void enrich(Frame host, Aspect... aspects) {
     assert !dead
     assert host
@@ -30,7 +40,7 @@ class Update {
   Frame newFrame(Map<String, String> avm, List<Frame> children) {
     assert !dead
     def frame = chart.newFrame(children)
-    enrich frame, Inflection.decodeAvm(avm)
+    enrich frame, decodeAvm(avm)
     frame
   }
 

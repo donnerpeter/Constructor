@@ -38,13 +38,14 @@ class Russian implements Language {
           wholeWord("вдруг", syn:"adverb", sem:'SUDDENLY').
           wholeWord("я", syn:"noun", case:'nom', sem:'I').
           wholeWord("Я", syn:"noun", case:'nom', sem:'I'). //todo capitalization
-          wholeWord("что", ["syn", "noun"], ['wh_word', 'true'], ['case', 'nom'], ['case', 'acc'], ['sem', 'WHAT']).
-          wholeWord("Каково", ["syn", "short_adj"], ['wh_word', 'true'], ['sem', 'HOW']).
+          wholeWord("что", syn:"noun", wh_word:'true', case:'nom', sem:'WHAT').
+          wholeWord("что", syn:"noun", wh_word:'true', case:'acc', sem:'WHAT').
+          wholeWord("Каково", syn:"short_adj", wh_word:'true', sem:'HOW').
           wholeWord("идет", syn:"verb", baseForm:'идти', sem:'GO').
           wholeWord("раньше", ["syn", "adverb", 'scalar'], ['sem', 'EARLIER']).
           wholeWord("или", syn:"conj", sem:'OR').
           wholeWord("и", syn:"conj", sem:'AND_THEN').
-          wholeWord("этому", ["syn", "adj"], ['adj_kind', 'det'], ['case', 'dat'], ['sem', 'THIS']).
+          wholeWord("этому", syn:"adj", adj_kind:'det', case:'dat', sem:'THIS').
           wholeWord("же", syn:"emph_particle").
 
           suffix("ит", syn:'verb').

@@ -14,8 +14,8 @@ class English implements Language {
 
   void aspectAppeared(Frame host, Aspect aspect, Update update) {
     if (aspect.ping('article')) {
-      def mock = update.newFrame([], ['syn', "noun"])
-      update.newFrame([mock, host], ["syn", "det_noun"])
+      def mock = update.newFrame([], syn:"noun")
+      update.newFrame([mock, host], syn:"det_noun")
       update.anticipate(mock, syn:'noun')
       return
     }
@@ -23,7 +23,7 @@ class English implements Language {
     findTheta(aspect, host, update)
 
     if (aspect.ping('adj')) {
-      update.listen(syn:'noun') { noun, upd2 -> upd2.newFrame([host, noun], ['sem', 'property_host']) }
+      update.listen(syn:'noun') { noun, upd2 -> upd2.newFrame([host, noun], sem:'property_host') }
       return
     }
 
@@ -44,11 +44,11 @@ class English implements Language {
   private def findTheta(Aspect aspect, Frame host, Update update) {
     if (aspect.ping('noun') && !host.strongUsages(syn: 'theta')) {
       def found = host.findAround(syn: 'verb') { verb ->
-        update.newFrame([host, verb], ['syn', 'theta'], ['sem', 'theme'])
+        update.newFrame([host, verb], syn:'theta', sem:'theme')
       }
       if (!found) {
         update.listen('syn':'verb') { verb, upd2 ->
-          upd2.newFrame([host, verb], ['syn', 'theta'], ['sem', 'experiencer'])
+          upd2.newFrame([host, verb], syn:'theta', sem:'experiencer')
           upd2.wrapUp host
         }
       }

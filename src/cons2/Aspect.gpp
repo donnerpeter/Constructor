@@ -13,11 +13,6 @@ class Aspect {
     this.nicknames = names as LinkedHashSet
   }
 
-  def Aspect(String role, Set<String> nicknames) {
-    this.role = role;
-    this.nicknames = nicknames;
-  }
-
   @Override
   String toString() {
     nicknames.join(";")

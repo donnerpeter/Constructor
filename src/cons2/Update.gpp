@@ -27,10 +27,10 @@ class Update {
     newAspects.get(host, [] as LinkedHashSet).addAll(aspects)
   }
 
-  Frame newFrame(List<Frame> children, Aspect... aspects) {
+  Frame newFrame(Map<String, String> avm, List<Frame> children) {
     assert !dead
     def frame = chart.newFrame(children)
-    enrich frame, aspects
+    enrich frame, Inflection.decodeAvm(avm)
     frame
   }
 

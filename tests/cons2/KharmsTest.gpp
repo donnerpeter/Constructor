@@ -69,7 +69,7 @@ frame ^3 ^2: sem=determiner
   }
 
   public void testSent3() throws Exception {
-    doTest "Каково же было их и мое удивление", """
+    doTest "Каково же было их и мое удивление, когда они вдруг обнаружили", """
 frame: sem=HOW
 frame: sem=BE
 frame: sem=THEY
@@ -81,6 +81,13 @@ frame: sem=SURPRISE
 frame ^8 ^1: sem=degree
 frame ^7 ^2: sem=with_respect_to
 frame ^5 ^3: sem=with_respect_to
+frame: sem=WHEN
+frame: sem=THEY
+frame: sem=SUDDENLY
+frame: sem=DISCOVER
+frame ^4 ^1: sem=time
+frame ^4 ^2: sem=experiencer
+frame ^4 ^3: sem=mode
 """
   }
 

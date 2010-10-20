@@ -24,6 +24,7 @@ class Russian implements Language {
           wholeWord("спросил", syn:"verb", baseForm:'спросить', subcat_acc:'true', subcat_whq:'true', sem:'ASK', time:'PAST').
           wholeWord("думают", syn:"verb", baseForm:'думать', subcat_acc:'true', sem:'THINK', time:'PRESENT').
           wholeWord("было", syn:"copula", baseForm:'быть', sem:'BE', time:'PAST').
+          wholeWord("обнаружили", syn:"verb", baseForm:'обнаружить', sem:'DISCOVER', time:'PAST').
 
           wholeWord("мое", syn:"genitive", sem:"I").
 
@@ -40,6 +41,7 @@ class Russian implements Language {
           wholeWord("Я", syn:"noun", case:'nom', sem:'I'). //todo capitalization
           wholeWord("что", syn:"noun", wh_word:'true', case:'nom', sem:'WHAT').
           wholeWord("что", syn:"noun", wh_word:'true', case:'acc', sem:'WHAT').
+          wholeWord("когда", syn:"adverb", adv_kind:'time', wh_word:'true', sem:'WHEN').
           wholeWord("Каково", syn:"short_adj", wh_word:'true', sem:'HOW').
           wholeWord("идет", syn:"verb", baseForm:'идти', sem:'GO').
           wholeWord("раньше", syn:"adverb", adv_kind:'scalar', sem:'EARLIER').
@@ -84,7 +86,13 @@ class Russian implements Language {
         if (time) {
           upd2.enrich rel, time
         }
+        upd2.listen(phon: ',') { comma, upd3 ->
+          upd3.wrapUp copula
+          copula.findAllActiveAround(syn:'noun').each { upd3.wrapUp it }
+        }
       }
+
+
     }
     if (aspect.ping('genitive')) {
       host.findAround(syn:'noun') { noun ->
@@ -177,7 +185,9 @@ class Russian implements Language {
     markThetaCases(aspect, host, update)
 
     if (aspect.ping('adverb') && !host.opponent(syn:'adv_mod')) {
-      update.listen('syn':'verb') { verb, upd2 -> upd2.newFrame([host, verb], syn:'adv_mod', sem:"mode") }
+      update.listen('syn':'verb') { verb, upd2 ->
+        upd2.newFrame([host, verb], syn:'adv_mod', sem:(host.ping(adv_kind:'time') ? 'time' : "mode"))
+      }
     }
 
     if (aspect.role == 'sem' && aspect.ping("NEIGHBOURS")) {

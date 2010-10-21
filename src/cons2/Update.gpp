@@ -90,7 +90,12 @@ class Update {
     weakened.each { chart.weaken it }
     confirmations.each { frame, pattern -> frame.chosenAs(pattern) }
 
-    chart.listeners.putAll newListeners
+    newListeners.each { frame, map ->
+      def role2Listeners = chart.listeners.get(frame, [:])
+      map.each { role, list ->
+        role2Listeners.get(role, []).addAll(list)
+      }
+    }
 
     if (!newAspects && !justAppeared && !merges) {
       wrapUps.each { chart.wrapUp it }

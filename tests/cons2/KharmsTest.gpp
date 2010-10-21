@@ -69,7 +69,7 @@ frame ^3 ^2: sem=determiner
   }
 
   public void testSent3() throws Exception {
-    doTest "Каково же было их и мое удивление, когда они вдруг обнаружили", """
+    doTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета", """
 frame: sem=HOW
 frame: sem=BE
 frame: sem=THEY
@@ -88,6 +88,18 @@ frame: sem=DISCOVER
 frame ^4 ^1: sem=time
 frame ^4 ^2: sem=experiencer
 frame ^4 ^3: sem=mode
+frame: sem=ALSO
+frame: sem=CAN
+frame ^1 ^6: sem=theme
+frame ^9 ^2: sem=experiencer
+frame ^4 ^3: sem=mode
+frame: sem=RECALL
+frame ^1 ^5: sem=theme
+frame ^13 ^2: sem=experiencer
+frame: sem=ORDER
+frame ^1 ^4: sem=theme
+frame: sem=COUNTING
+frame ^1 ^3: sem=with_respect_to
 """
   }
 

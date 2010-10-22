@@ -41,7 +41,14 @@ class Frame {
   }
 
   void enrich(Aspect... aspects) {
+    richEnrich([aspects])
+  }
+
+  List<Aspect> richEnrich(List<Aspect[]> aspectSets) {
     Map<String, List<Aspect>> byRole = [:]
+    Set<Aspect> aspects = []
+    aspectSets.each { aspects.addAll it as List }
+    def added = []
     aspects.each { aspect ->
       def role = aspect.role
       def existing = alternatives.get(role, [])
@@ -49,17 +56,18 @@ class Frame {
         return
       }
 
-      existing << aspect
-      def values = byRole.get(role, [])
-      values << aspect
-      //byRole.put(role, values)
+      if (existing.add(aspect)) {
+        added << aspect
+        byRole.get(role, []) << aspect
+      }
     }
     byRole.each { role, values ->
       setChosen(role,  values.size() != 1 ? null : values[0])
     }
+    added
   }
 
-  void initializeAspects(Set<Aspect> added) {
+  void initializeAspects(Collection<Aspect> added) {
     initialized.addAll(added)
   }
 

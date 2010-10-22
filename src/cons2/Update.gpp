@@ -5,8 +5,8 @@ package cons2
  */
 class Update {
   Chart chart
-  private Map<Frame, Set<Aspect>> newAspects = [:]
-  private Map<Frame, Set<Aspect>> justAppeared = [:]
+  private Map<Frame, List<Aspect[]>> newAspects = [:]
+  private Map<Frame, Collection<Aspect>> justAppeared = [:]
   private Map<Frame, Map<String, Object>> confirmations = [:]
   private Map<Frame, Frame> merges = [:]
   private Set<Frame> wrapUps = []
@@ -15,7 +15,7 @@ class Update {
   private Map<Frame, Map<String, List<Function2<Frame, Update, Boolean>>>> newListeners = [:]
   private boolean dead
 
-  Update(Chart chart, Map<Frame, Set<Aspect>> justAppeared = [:], Set<Frame> wrapUps = []) {
+  Update(Chart chart, Map<Frame, Collection<Aspect>> justAppeared = [:], Set<Frame> wrapUps = []) {
     this.chart = chart
     this.justAppeared = justAppeared
     this.wrapUps.addAll wrapUps
@@ -39,7 +39,7 @@ class Update {
     assert !dead
     assert host
     assert host.empty || aspects.any { it in host.strongAlternatives(it.role) }
-    newAspects.get(host, [] as LinkedHashSet).addAll(aspects.findAll { !(it in host.strongAlternatives(it.role)) } )
+    newAspects.get(host, []).add(aspects)
   }
 
   Frame newFrame(Map<String, String> avm, List<Frame> children) {
@@ -107,7 +107,8 @@ class Update {
       return
     }
 
-    def next = new Update(chart, newAspects, wrapUps)
+    def reallyNewAspects = [:]
+    def next = new Update(chart, reallyNewAspects, wrapUps)
 
     merges.each { loser, into -> chart.merge loser, into }
 
@@ -123,9 +124,9 @@ class Update {
 
     Map<String, Set<Frame>> touched = [:]
     newAspects.each { frame, aspects ->
-      aspects.each { touched.get(it.role, []) << frame }
-
-      frame.enrich(aspects as Aspect[])
+      def added = frame.richEnrich(aspects)
+      reallyNewAspects[frame] = added
+      added.each { touched.get(it.role, []) << frame }
     }
 
     chart.listeners.values().each { map ->

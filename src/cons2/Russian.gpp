@@ -120,6 +120,7 @@ class Russian implements Language {
 
     if (aspect.ping('verb')) {
       host.findAllActiveAround(syn:'noun').each { update.wrapUp it }
+      host.findAllActiveAround(syn:'noun').each { update.wrapUp it }
 
       if (host.ping(baseForm:'идти')) {
         update.listen('syn':'adverb', adv_kind:'scalar') { scalar, upd2 ->
@@ -234,6 +235,9 @@ class Russian implements Language {
       update.listen('syn': 'verb') { verb, upd2 ->
         upd2.newFrame([host, verb], syn: 'adv_mod', sem: (host.ping(adv_kind: 'time') ? 'time' : "mode"))
       }
+    }
+    if (aspect.ping('neg')) {
+      update.listen('syn': 'verb') { verb, upd2 -> upd2.enrich verb, neg:'true' }
     }
 
     if (aspect.role == 'sem' && aspect.ping("NEIGHBOURS")) {

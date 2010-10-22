@@ -89,7 +89,7 @@ frame ^4 ^1: sem=time
 frame ^4 ^2: sem=experiencer
 frame ^4 ^3: sem=mode
 frame: sem=ALSO
-frame: sem=CAN
+frame: sem=CAN, neg=true
 frame ^1 ^6: sem=theme
 frame ^9 ^2: sem=experiencer
 frame ^4 ^3: sem=mode

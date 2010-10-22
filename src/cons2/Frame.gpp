@@ -3,7 +3,7 @@ package cons2
 import cons2.Log.AspectEvent
 import cons2.Log.FrameEvent
 
-/**
+ /**
  * @author peter
  */
 class Frame {
@@ -11,6 +11,7 @@ class Frame {
   private final Map<String, List<Aspect>> alternatives = [:]
   private final Map<String, Aspect> chosen = [:]
   private final Set<Aspect> initialized = []
+  private final Map<Aspect, Set<Aspect>> alliances = [:]
   Frame adopter
   Frame[] args
 
@@ -34,17 +35,34 @@ class Frame {
     return this
   }
 
-  void removeAlternative(Aspect construct) {
-    def role = construct.role
-    alternatives[role].remove construct
-    setChosen(role,  alternatives[role].size() != 1 ? null : construct)
-  }
-
   void enrich(Aspect... aspects) {
-    richEnrich([aspects])
+    if (empty) {
+      richEnrich([aspects])
+      return
+    }
+
+    def role = roles.find { strongAlternatives(it) }
+    def ally = strongAlternatives(role)[0]
+    def appended = [ally] + (aspects as List)
+    richEnrich([appended as Aspect[]])
   }
 
   List<Aspect> richEnrich(List<Aspect[]> aspectSets) {
+    aspectSets.each { aspects ->
+      if (empty) {
+        def alliance = aspects as Set
+        aspects.each { alliances[it] = alliance }
+      } else {
+        Set<Set<Aspect>> touchedAlliances = aspects.findAll { alliances[it] }.collect { alliances[it] } as Set
+        assert touchedAlliances.size() == 1
+        Set<Aspect> alliance = touchedAlliances.iterator().next()
+        alliance.addAll(aspects as Set)
+        aspects.each { alliances.get(it, alliance) }
+      }
+
+
+    }
+
     Map<String, List<Aspect>> byRole = [:]
     Set<Aspect> aspects = []
     aspectSets.each { aspects.addAll it as List }
@@ -131,7 +149,7 @@ class Frame {
   private Collection<String> getRoles() { alternatives.keySet() }
 
   List<Aspect> strongAlternatives(String role) {
-    return chosen[role] ? [chosen[role]] : alternatives.get(role, [])
+    return chosen[role] ? [chosen[role]] : (alternatives[role] ?: [])
   }
 
   boolean ping(Map<String, Object> pattern) {

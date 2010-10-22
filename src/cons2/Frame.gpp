@@ -11,7 +11,7 @@ class Frame {
   private final Map<String, List<Aspect>> alternatives = [:]
   private final Map<String, Aspect> chosen = [:]
   private final Set<Aspect> initialized = []
-  private final Map<Aspect, Set<Aspect>> alliances = [:]
+  private final Map<Aspect, Set<Party>> alliances = [:]
   Frame adopter
   Frame[] args
 
@@ -53,14 +53,20 @@ class Frame {
 
     aspectSets.each { aspects ->
       if (empty) {
-        def alliance = aspects as Set
-        aspects.each { alliances[it] = alliance }
+        def alliance = new Party(aspects)
+        aspects.each { alliances[it] = [alliance] }
       } else {
-        Set<Set<Aspect>> touchedAlliances = aspects.findAll { alliances[it] }.collect { alliances[it] } as Set
+        Set<Party> touchedAlliances = []
+        aspects.each {
+          Set<Party> p = alliances[it]
+          if (p) {
+            touchedAlliances.addAll(p)
+          }
+        }
         assert touchedAlliances.size() == 1
-        Set<Aspect> alliance = touchedAlliances.iterator().next()
-        alliance.addAll(aspects as Set)
-        aspects.each { alliances.get(it, alliance) }
+        Party alliance = touchedAlliances.iterator().next()
+        alliance.addAll(aspects)
+        aspects.each { alliances.get(it, [] as Set) << alliance }
       }
 
       aspects.each { aspect ->
@@ -179,6 +185,26 @@ class Frame {
       setChosen('sem', null)
     }
     chart.activate this
+  }
+
+  private static class Party {
+    Set<Aspect> members = []
+
+    Party(Aspect[] members) {
+      this.members = members as Set
+    }
+
+    boolean contains(Aspect a) {
+      a in members
+    }
+
+    Iterator<Aspect> iterator() {
+      members.iterator()
+    }
+
+    void addAll(Aspect[] aspects) {
+      members.addAll(aspects as Set)
+    }
   }
 
 }

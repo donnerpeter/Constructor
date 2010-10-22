@@ -134,6 +134,25 @@ class Frame {
 
     chosen[role] = cxt
     chart.event(new AspectEvent(this, role, cxt))
+
+    if (!cxt) {
+      return
+    }
+
+    def parties = alliances[cxt]
+    assert parties != null
+    roles.each { r ->
+      def alts = alternatives[r]
+      if (alts) {
+        def friends = alts.findAll { a -> parties.any { it.contains(a) } }
+        if (friends.size() == 1) {
+          setChosen r, friends.iterator().next()
+        } else if (!friends || chosen[r] && !(chosen[r] in friends)) {
+          setChosen r, null
+        }
+      }
+
+    }
   }
 
   private Aspect findDimension(pattern) {

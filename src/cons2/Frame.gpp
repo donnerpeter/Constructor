@@ -48,39 +48,38 @@ class Frame {
   }
 
   List<Aspect> richEnrich(List<Aspect[]> aspectSets) {
+    def politics = [] as Set
+    Map<String, Set<Aspect>> byRole = [:]
+    def added = []
+
     aspectSets.each { aspects ->
       if (empty) {
         def alliance = aspects as Set
         aspects.each { alliances[it] = alliance }
+        politics << alliance
       } else {
         Set<Set<Aspect>> touchedAlliances = aspects.findAll { alliances[it] }.collect { alliances[it] } as Set
         assert touchedAlliances.size() == 1
         Set<Aspect> alliance = touchedAlliances.iterator().next()
         alliance.addAll(aspects as Set)
         aspects.each { alliances.get(it, alliance) }
+        politics << alliance
       }
 
+      aspects.each { aspect ->
+        def role = aspect.role
+        def existing = alternatives.get(role, [])
+        if (!(aspect in existing)) {
+          existing.add(aspect)
+          added << aspect
+          byRole.get(role, [] as Set) << aspect
+        }
+      }
 
     }
 
-    Map<String, List<Aspect>> byRole = [:]
-    Set<Aspect> aspects = []
-    aspectSets.each { aspects.addAll it as List }
-    def added = []
-    aspects.each { aspect ->
-      def role = aspect.role
-      def existing = alternatives.get(role, [])
-      if (aspect in existing && chosen[role] == aspect) {
-        return
-      }
-
-      if (existing.add(aspect)) {
-        added << aspect
-        byRole.get(role, []) << aspect
-      }
-    }
     byRole.each { role, values ->
-      setChosen(role,  values.size() != 1 ? null : values[0])
+      setChosen(role,  values.size() != 1 ? null : values.iterator().next())
     }
     added
   }

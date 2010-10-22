@@ -136,7 +136,7 @@ class Chart {
     def winnerUsages = into.strongUsages([:])
 
     loser.chosenAspects.each {
-      into.chosenAs((it.role):it.nicknames)
+      into.chosenAs((it.role):it.value)
     }
 
     loser.adopter = into

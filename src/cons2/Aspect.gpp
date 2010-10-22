@@ -6,16 +6,16 @@ package cons2
 
 class Aspect {
   final String role
-  final Set<String> nicknames
+  final String value
 
-  def Aspect(String role, String... names) {
+  def Aspect(String role, String value) {
     this.role = role
-    this.nicknames = names as LinkedHashSet
+    this.value = value
   }
 
   @Override
   String toString() {
-    nicknames.join(";")
+    value
   }
 
   boolean ping(message) {
@@ -23,11 +23,7 @@ class Aspect {
       return message.every { ping it }
     }
 
-    message in nicknames
-  }
-
-  String getValue() {
-    nicknames.iterator().next()
+    message == value
   }
 
   boolean equals(o) {
@@ -38,7 +34,7 @@ class Aspect {
 
     Aspect aspect = (Aspect) o;
 
-    if (nicknames != aspect.nicknames) return false;
+    if (value != aspect.value) return false;
     if (role != aspect.role) return false;
 
     return true;
@@ -48,7 +44,7 @@ class Aspect {
     int result;
 
     result = role.hashCode();
-    result = 31 * result + nicknames.hashCode();
+    result = 31 * result + value.hashCode();
     return result;
   }
 }

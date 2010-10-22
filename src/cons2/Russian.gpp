@@ -201,7 +201,7 @@ class Russian implements Language {
     }
 
     if (aspect.role == 'stem') {
-      def stem = aspect.nicknames.iterator().next()
+      def stem = aspect.value
       if (stem == "люб") {
         update.enrich(host, subcat_acc: 'true', sem: "love", baseForm: 'любить')
       }

@@ -27,6 +27,10 @@ class Update {
     return aspects as Aspect[]
   }
 
+  void enrich(Map<String, String> avm, Frame host, Aspect aspect) {
+    enrich(avm + [(aspect.role):aspect.value], host)
+  }
+
   void enrich(Map<String, String> avm, Frame host) {
     enrich(host, decodeAvm(avm))
   }
@@ -34,7 +38,8 @@ class Update {
   void enrich(Frame host, Aspect... aspects) {
     assert !dead
     assert host
-    newAspects.get(host, [] as LinkedHashSet).addAll(aspects)
+    assert host.empty || aspects.any { it in host.strongAlternatives(it.role) }
+    newAspects.get(host, [] as LinkedHashSet).addAll(aspects.findAll { !(it in host.strongAlternatives(it.role)) } )
   }
 
   Frame newFrame(Map<String, String> avm, List<Frame> children) {

@@ -23,13 +23,16 @@ class Inflection {
 
     def wh = wholeWords[word]
     if (wh) {
-      wh.each { update.enrich(host, it) }
+      wh.each {
+        def list = [phonAspect] + (it as List)
+        update.enrich(host, list as Aspect[])
+      }
       return
     }
 
     for (suf in suffixing.keySet()) {
       if (word.endsWith(suf)) {
-        def aspects = [stem:word[0..<word.length()-suf.length()]] + suffixing[suf]
+        def aspects = [phon:word, stem:word[0..<word.length()-suf.length()]] + suffixing[suf]
         update.enrich(aspects, host)
         return
       }

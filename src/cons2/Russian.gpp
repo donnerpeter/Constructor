@@ -93,7 +93,7 @@ class Russian implements Language {
       update.listen(syn:'copula') { copula, upd2 ->
         def time = copula['time']
         if (time) {
-          upd2.enrich rel, time
+          upd2.enrich rel, time:time.value, sem:'degree'
         }
         upd2.listen(phon: ',') { comma, upd3 ->
           upd3.wrapUp copula
@@ -125,7 +125,7 @@ class Russian implements Language {
       if (host.ping(baseForm:'идти')) {
         update.listen('syn':'adverb', adv_kind:'scalar') { scalar, upd2 ->
           upd2.newFrame([scalar, host], syn:'adv_mod', sem:'scalar_end')
-          upd2.enrich(host, sem:'COME_SCALARLY')
+          upd2.enrich(host, baseForm:'идти', sem:'COME_SCALARLY')
         }
       }
 
@@ -203,20 +203,20 @@ class Russian implements Language {
     if (aspect.role == 'stem') {
       def stem = aspect.value
       if (stem == "люб") {
-        update.enrich(host, subcat_acc: 'true', sem: "love", baseForm: 'любить')
+        update.enrich(host, aspect, subcat_acc: 'true', sem: "love", baseForm: 'любить')
       }
       if (stem == "красив") {
-        update.enrich(host, sem: "beautiful")
+        update.enrich(host, aspect, sem: "beautiful")
       }
       if (stem == "Удивительн") {
-        update.enrich(host, sem: "AMAZING")
+        update.enrich(host, aspect, sem: "AMAZING")
       }
     }
 
     if (aspect.role == 'theta' && !host['wh_focus'] && host.strongAlternatives(aspect.role)[0] == aspect) {
       Frame arg = host.children[0]
       if (arg.ping(wh_word: 'true')) {
-        update.enrich(host, wh_focus: 'true')
+        update.enrich(host, theta:aspect.value, wh_focus: 'true')
         update.listen('phon': '-') { mdash, upd2 ->
           upd2.listen('syn': 'conj') { conj, upd3 ->
             upd3.newFrame([conj, arg], sem: 'alternatives')
@@ -237,7 +237,7 @@ class Russian implements Language {
       }
     }
     if (aspect.ping('neg')) {
-      update.listen('syn': 'verb') { verb, upd2 -> upd2.enrich verb, neg:'true' }
+      update.listen('syn': 'verb') { verb, upd2 -> upd2.enrich verb, neg:'true', syn:'verb' }
     }
 
     if (aspect.role == 'sem' && aspect.ping("NEIGHBOURS")) {
@@ -287,14 +287,10 @@ class Russian implements Language {
   private def markThetaCases(Aspect aspect, Frame host, Update update) {
     if (aspect.role == 'case' && aspect.value != '_none_') {
       def theta = host.strongUsages(syn: 'theta')[0]
-      if (theta) {
-        if (!theta.strongAlternatives('theta')) {
-          update.enrich theta, theta:aspect.value
-        }
-      } else {
+      if (!theta) {
         update.listen('syn') { th, upd2 ->
           if (th.ping(syn:'theta') && host in th.children && !th.strongAlternatives('theta')) {
-            upd2.enrich th, theta:aspect.value
+            upd2.enrich th, syn:'theta', theta:aspect.value
             return true
           }
           return false
@@ -327,7 +323,7 @@ class Russian implements Language {
         def nom = toAssign.find { it['theta']?.value == 'nom' }
         if (!nom) nom = toAssign.find { it.ping(theta: 'nom') }
         if (nom) {
-          update.enrich nom, sem:subjTheta
+          update.enrich nom, theta:'nom', sem:subjTheta
           toAssign.remove nom
         }
       }
@@ -337,7 +333,7 @@ class Russian implements Language {
         if (!host.opponent(sem:objTheta)) {
           def acc = toAssign.find { it.ping(theta: 'acc') }
           if (acc) {
-            update.enrich acc, sem:objTheta
+            update.enrich acc, theta:'acc', sem:objTheta
             toAssign.remove(acc)
           }
         }
@@ -345,13 +341,13 @@ class Russian implements Language {
 
       def stv = toAssign.find { it.ping(theta: 'с+тв') }
       if (stv) {
-        update.enrich(stv, sem:'theme')
+        update.enrich(stv, theta: 'с+тв', sem:'theme')
         toAssign.remove stv
       }
 
       def podat = toAssign.find { it.ping(theta: 'по+дат') }
       if (podat) {
-        update.enrich(podat, sem:'topic')
+        update.enrich(podat, theta: 'по+дат', sem:'topic')
         toAssign.remove podat
       }
     }

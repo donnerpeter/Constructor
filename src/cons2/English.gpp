@@ -29,7 +29,7 @@ class English implements Language {
 
     if (aspect.role == 'stem') {
       if (aspect.ping('love')) {
-        update.enrich(host, sem:"love")
+        update.enrich(host, aspect, sem:"love")
         return
       }
     }

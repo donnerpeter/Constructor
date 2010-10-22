@@ -147,6 +147,10 @@ class Frame {
     chosenAspects.findAll { it in initialized }
   }
 
+  boolean isEmpty() {
+    alternatives.empty
+  }
+
   void relax() {
     if (alternatives['theta']?.size() > 1) {
       setChosen('theta', null)

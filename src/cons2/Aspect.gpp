@@ -15,7 +15,7 @@ class Aspect {
 
   @Override
   String toString() {
-    value
+    "$role:$value"
   }
 
   boolean ping(message) {

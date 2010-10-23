@@ -103,7 +103,7 @@ class Log {
 
     @Override
     String presentable(LinkedList<Frame> stack) {
-      "$role=$newValue"
+      "$role=$newValue.value"
     }
 
   }

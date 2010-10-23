@@ -40,7 +40,7 @@ class Chart {
       counters[meaningful] = num
       String id = "V_${meaningful}_$num"
       ids[f] = id
-      def label = interestingAspects.collect { if (!f[it]) return null else "$it=${f[it]}" }.findAll { it != null }.collect { it.toString() }.join("\\n")
+      def label = interestingAspects.collect { if (!f[it]) return null else "$it=${f[it].value}" }.findAll { it != null }.collect { it.toString() }.join("\\n")
       result.append "$id[label=\"$label\"];\n"
     }
 
@@ -72,7 +72,7 @@ class Chart {
       stack.addFirst f
       String children = f.children.collect { " ^" + stack.indexOf(it) }.join("")
 
-      def aspects = interestingAspects.collect { if (!f[it]) return null else "$it=${f[it]}" }.findAll { it != null }.collect { it.toString() }.join(", ")
+      def aspects = interestingAspects.collect { if (!f[it]) return null else "$it=${f[it].value}" }.findAll { it != null }.collect { it.toString() }.join(", ")
       result.append "frame$children: $aspects\n"
     }
 
@@ -185,7 +185,7 @@ class Chart {
   String phonString() {
     def result = new StringBuilder()
     for (frame in frames.findAll { !it.adopter && it['phon'] }) {
-      def phon = frame['phon'].toString()
+      def phon = frame['phon'].value
       if (result.length() > 0 && phon != ',') {
         result << " "
       }

@@ -98,12 +98,12 @@ class Log {
 
     @Override
     String toString() {
-      "$frame: $role=$newValue"
+      "$frame: $role=${newValue?.value}"
     }
 
     @Override
     String presentable(LinkedList<Frame> stack) {
-      "$role=$newValue.value"
+      "$role=${newValue?.value}"
     }
 
   }

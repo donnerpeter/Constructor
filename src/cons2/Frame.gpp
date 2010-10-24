@@ -51,11 +51,18 @@ class Frame {
     Map<String, Set<Aspect>> byRole = [:]
     def added = []
 
-    aspectSets.each { aspects ->
-      if (empty) {
-        def alliance = new Party(aspects)
-        aspects.each { alliances[it] = [alliance] }
-      } else {
+    Set<Party> candidates = []
+
+    if (empty) {
+      aspectSets.each { aspects ->
+        def alliance = new Party(aspects as Set)
+        aspects.each { alliances.get(it, [] as Set) << alliance }
+        candidates << alliance
+      }
+    } else {
+      Set<Party> olds = []
+      Set<Party> fresh = []
+      aspectSets.each { aspects ->
         Set<Party> touchedAlliances = []
         aspects.each {
           Set<Party> p = alliances[it]
@@ -64,11 +71,19 @@ class Frame {
           }
         }
         assert touchedAlliances.size() == 1
-        Party alliance = touchedAlliances.iterator().next()
-        alliance.addAll(aspects)
-        aspects.each { alliances.get(it, [] as Set) << alliance }
+
+        Party oldParty = touchedAlliances.iterator().next()
+        def newParty = oldParty.grow(aspects as List)
+        olds << oldParty
+        fresh << newParty
+        candidates << newParty
       }
 
+      alliances.values().each { it.removeAll(olds) }
+      fresh.each { party -> party.members.each { alliances.get(it, []) << party } }
+    }
+
+    aspectSets.each { aspects ->
       aspects.each { aspect ->
         def role = aspect.role
         def existing = alternatives.get(role, [])
@@ -81,9 +96,8 @@ class Frame {
 
     }
 
-    byRole.each { role, values ->
-      setChosen(role,  values.size() != 1 ? null : values.iterator().next())
-    }
+    afterElections candidates
+
     added
   }
 
@@ -139,9 +153,16 @@ class Frame {
       return
     }
 
-    def parties = alliances[cxt]
-    assert parties != null
+    afterElections(alliances[cxt])
+  }
+
+  def afterElections(Set<Party> parties) {
     roles.each { r ->
+      if (!parties.every { it.hasMember r }) {
+        setChosen r, null
+        return
+      }
+
       def alts = alternatives[r]
       if (alts) {
         def friends = alts.findAll { a -> parties.any { it.contains(a) } }
@@ -209,8 +230,12 @@ class Frame {
   private static class Party {
     Set<Aspect> members = []
 
-    Party(Aspect[] members) {
+    Party(Collection<Aspect> members) {
       this.members = members as Set
+    }
+
+    boolean hasMember(String role) {
+      members.any { it.role == role }
     }
 
     boolean contains(Aspect a) {
@@ -221,9 +246,17 @@ class Frame {
       members.iterator()
     }
 
-    void addAll(Aspect[] aspects) {
-      members.addAll(aspects as Set)
+    Party grow(Collection<Aspect> aspects) {
+      Set<String> roles = aspects.collect { it.role } as Set
+      new Party(members.findAll { !(it.role in roles) } + aspects)
     }
+
+    @Override
+    String toString() {
+      return "Party:$members"
+    }
+
+
   }
 
 }

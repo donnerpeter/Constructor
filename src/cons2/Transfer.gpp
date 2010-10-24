@@ -22,7 +22,7 @@ class Transfer {
       }
       else if (evt instanceof AspectEvent) {
         def aspect = ((AspectEvent) evt).newValue
-        if (aspect) {
+        if (aspect && srcFrame[aspect.role] == aspect) {
           frameMappings[srcFrame].enrich(aspect)
         }
       }

@@ -49,7 +49,7 @@ class Russian implements Language {
           wholeWord("Я", syn:"noun", case:'nom', sem:'I'). //todo capitalization
           wholeWord("что", syn:"noun", wh_word:'true', case:'nom', sem:'WHAT').
           wholeWord("что", syn:"noun", wh_word:'true', case:'acc', sem:'WHAT').
-          wholeWord("что", syn:"complementizer", wh_word:'_none_', case:'_none_', sem:'_none_'). //todo no sem
+          wholeWord("что", syn:"complementizer").
           wholeWord("когда", syn:"adverb", adv_kind:'time', wh_word:'true', sem:'WHEN').
           wholeWord("Каково", syn:"short_adj", wh_word:'true', sem:'HOW').
           wholeWord("идет", syn:"verb", baseForm:'идти', sem:'GO').
@@ -171,7 +171,7 @@ class Russian implements Language {
       else if (host.ping(subcat_comp: 'true')) {
         update.listen('phon': ',') { comma, upd2 ->
           upd2.listen(syn:'complementizer') { complementizer, upd3 ->
-            upd3.confirmChoice(complementizer, syn:'complementizer', wh_word:'_none_', case:'_none_')
+            upd3.confirmChoice(complementizer, syn:'complementizer')
             def comp = upd3.newFrame([], syn: 'verb')
             upd3.listen('syn') { real, upd4 ->
               if (real != comp && real.ping(syn: 'verb')) {
@@ -213,11 +213,13 @@ class Russian implements Language {
       }
     }
 
-    if (aspect.role == 'theta' && !host['wh_focus'] && host.strongAlternatives(aspect.role)[0] == aspect) {
+    if (aspect.role == 'theta' && host.strongAlternatives(aspect.role)[0] == aspect) {
       Frame arg = host.children[0]
       if (arg.ping(wh_word: 'true')) {
-        update.enrich(host, theta:aspect.value, wh_focus: 'true')
-        update.listen('phon': '-') { mdash, upd2 ->
+        host.strongAlternatives(aspect.role).each {
+          update.enrich(host, it, wh_focus: 'true')
+        }
+        update.listen('phon': '-') { mdash, upd2 ->         //todo merge similar listeners from competitor aspects
           upd2.listen('syn': 'conj') { conj, upd3 ->
             upd3.newFrame([conj, arg], sem: 'alternatives')
           }
@@ -285,7 +287,7 @@ class Russian implements Language {
   }
 
   private def markThetaCases(Aspect aspect, Frame host, Update update) {
-    if (aspect.role == 'case' && aspect.value != '_none_') {
+    if (aspect.role == 'case') {
       def theta = host.strongUsages(syn: 'theta')[0]
       if (!theta) {
         update.listen('syn') { th, upd2 ->

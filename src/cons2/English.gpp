@@ -56,7 +56,7 @@ class English implements Language {
   }
 
   void generate(Chart sem, Chart to) {
-    sem.frames().findAll { it.ping(sem:'love') || it.ping(sem:'HAPPEN') || it.ping(sem:"START_GO_TO") }.each { generateSentence(it, to, [:]) }
+    sem.frames().findAll { it.ping(sem:'love') || it.ping(sem:'HAPPEN') || it.ping(sem:"START_GO_TO") || it.ping(sem:'degree') }.each { generateSentence(it, to, [:]) }
   }
 
   private void addWord(Chart dst, String word) {
@@ -64,45 +64,54 @@ class English implements Language {
   }
 
   private void generateSentence(Frame verb, Chart dst, Map state) {
-    def subjRel = verb.strongUsages(sem: 'experiencer')[0] ?: verb.strongUsages(sem: 'agent')[0]
-    def subject = subjRel.children[0]
-    if (subject != state.generatedSubject) {
-      generateNP(dst, subject, true)
-    }
+    def subject
+    def subjRel = null
+    if (verb.ping(sem: 'degree', wh_focus: 'true')) {
+      addWord dst, "Great"
+      addWord dst, "was"
+      subject = verb.children[1]
+      generateNP dst, subject, true
+    } else {
+      subjRel = verb.strongUsages(sem: 'experiencer')[0] ?: verb.strongUsages(sem: 'agent')[0]
+      subject = subjRel.children[0]
+      if (subject != state.generatedSubject) {
+        generateNP(dst, subject, true)
+      }
 
-    def modifier = verb.opponent(sem: 'mode')
-    if (modifier) {
-      addWord dst, 'suddenly'
-    }
+      def modifier = verb.opponent(sem: 'mode')
+      if (modifier) {
+        addWord dst, 'suddenly'
+      }
 
-    generateVerbCluster(dst, verb)
+      generateVerbCluster(dst, verb)
 
-    def addressee = verb.opponent(sem: 'addressee')
-    if (addressee) {
-      generateNP dst, addressee, false
-    }
+      def addressee = verb.opponent(sem: 'addressee')
+      if (addressee) {
+        generateNP dst, addressee, false
+      }
 
-    def theme = verb.opponent(sem:'theme')
-    if (theme) {
-      if (verb.ping(sem:'love')) {
-        generateNP(dst, theme, false)
-      } else if (verb.ping(sem: 'FORGET')) {
-        generateSentence theme, dst, state
-      } else if (verb.ping(sem: 'ASK')) {
-        if (theme.ping(sem: 'THINK')) {
-          addWord dst, 'about'
-          generatePossessive theme.opponent(sem: 'experiencer'), dst
-          addWord dst, 'opinion'
-          addWord dst, 'on'
-          generateNP dst, theme.opponent(sem:'topic'), false
+      def theme = verb.opponent(sem: 'theme')
+      if (theme) {
+        if (verb.ping(sem: 'love')) {
+          generateNP(dst, theme, false)
+        } else if (verb.ping(sem: 'FORGET')) {
+          generateSentence theme, dst, state
+        } else if (verb.ping(sem: 'ASK')) {
+          if (theme.ping(sem: 'THINK')) {
+            addWord dst, 'about'
+            generatePossessive theme.opponent(sem: 'experiencer'), dst
+            addWord dst, 'opinion'
+            addWord dst, 'on'
+            generateNP dst, theme.opponent(sem: 'topic'), false
+          }
+        }
+        else {
+          generatePP(dst, 'to', theme)
         }
       }
-      else {
-        generatePP(dst, 'to', theme)
-      }
     }
 
-    if (verb.ping(sem:'HAPPEN', time:'PAST')) {
+    if (verb.ping(sem: 'HAPPEN', time: 'PAST')) {
       addWord dst, 'today'
     }
 
@@ -110,22 +119,22 @@ class English implements Language {
     if (vpConj) {
       addWord dst, 'and'
       state.generatedSubject = subject
-      generateSentence vpConj.opponent(sem:'conj_right'), dst, state
+      generateSentence vpConj.opponent(sem: 'conj_right'), dst, state
     }
 
-    def subjElaboration = subject.opponent(sem:'elaboration')
+    def subjElaboration = subject.opponent(sem: 'elaboration')
     if (subjElaboration) {
       addWord dst, ','
       generateSentence subjElaboration, dst, state
     }
 
-    if (subjRel.ping(wh_focus: 'true')) {
+    if (subjRel?.ping(wh_focus: 'true')) {
       def conj = subject.opponent(sem: 'alternatives')
       if (conj) {
         addWord dst, '-'
-        generateNP dst, conj.opponent(sem:'conj_left'), true
+        generateNP dst, conj.opponent(sem: 'conj_left'), true
         addWord dst, 'or'
-        generateNP dst, conj.opponent(sem:'conj_right'), true
+        generateNP dst, conj.opponent(sem: 'conj_right'), true
       }
     }
 
@@ -193,9 +202,13 @@ class English implements Language {
   }
 
   private def generateDeterminer(Frame noun, Chart dst) {
-    def whose = noun.opponent(sem: 'with_respect_to')
-    if (whose) {
-      generatePossessive(whose, dst)
+    def opponents = noun.allOpponents(sem: 'with_respect_to')
+    if (opponents) {
+      generatePossessive(opponents[0], dst)
+      if (opponents.size() == 2) {
+        addWord dst, "and"
+        generatePossessive(opponents[1], dst)
+      }
       return
     }
 
@@ -224,6 +237,7 @@ class English implements Language {
       case "THING": return "thing"
       case "NEIGHBOURS": return "neighbors"
       case "MATTER": return "matter"
+      case "SURPRISE": return "amazement"
     }
     return sem
   }

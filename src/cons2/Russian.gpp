@@ -89,7 +89,7 @@ class Russian implements Language {
       def noun = update.newFrame([], syn:'noun', case:'nom')
       update.anticipate(noun, syn:"noun", case:'nom')
 
-      def rel = update.newFrame([host, noun], sem:'degree')
+      def rel = update.newFrame([host, noun], syn:'degree', sem:'degree')
       update.listen(syn:'copula') { copula, upd2 ->
         def time = copula['time']
         if (time) {
@@ -213,7 +213,7 @@ class Russian implements Language {
       }
     }
 
-    if (aspect.role == 'theta' && host.strongAlternatives(aspect.role)[0] == aspect) {
+    if ((aspect.role == 'theta' || aspect.role == 'syn' && aspect.value == 'degree') && host.strongAlternatives(aspect.role)[0] == aspect) {
       Frame arg = host.children[0]
       if (arg.ping(wh_word: 'true')) {
         host.strongAlternatives(aspect.role).each {

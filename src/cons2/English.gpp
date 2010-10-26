@@ -64,6 +64,13 @@ class English implements Language {
   }
 
   private void generateSentence(Frame verb, Chart dst, Map state) {
+    def timeSpecs = verb.allOpponents(sem: 'time')
+    def whTimeSpec = timeSpecs.find { it.ping(sem:'WHEN') }
+    if (whTimeSpec) {
+      addWord dst, "when"
+      timeSpecs.remove whTimeSpec
+    }
+
     def subject
     def subjRel = null
     if (verb.ping(sem: 'degree', wh_focus: 'true')) {
@@ -73,7 +80,7 @@ class English implements Language {
       generateNP dst, subject, true
     } else {
       subjRel = verb.strongUsages(sem: 'experiencer')[0] ?: verb.strongUsages(sem: 'agent')[0]
-      subject = subjRel.children[0]
+      subject = subjRel ? subjRel.children[0] : null
       if (subject != state.generatedSubject) {
         generateNP(dst, subject, true)
       }
@@ -122,7 +129,7 @@ class English implements Language {
       generateSentence vpConj.opponent(sem: 'conj_right'), dst, state
     }
 
-    def subjElaboration = subject.opponent(sem: 'elaboration')
+    def subjElaboration = subject?.opponent(sem: 'elaboration')
     if (subjElaboration) {
       addWord dst, ','
       generateSentence subjElaboration, dst, state
@@ -136,6 +143,11 @@ class English implements Language {
         addWord dst, 'or'
         generateNP dst, conj.opponent(sem: 'conj_right'), true
       }
+    }
+
+    if (timeSpecs[0]) {
+      addWord dst, ","
+      generateSentence timeSpecs[0], dst, state
     }
 
   }
@@ -164,6 +176,7 @@ class English implements Language {
       case 'COME_SCALARLY': return 'comes'
       case 'START_GO_TO': return 'went'
       case 'ASK': return 'asked'
+      case 'DISCOVER': return 'discovered'
     }
     return sem
   }

@@ -234,8 +234,16 @@ class Russian implements Language {
     markThetaCases(aspect, host, update)
 
     if (aspect.ping('adverb') && !host.opponent(syn: 'adv_mod')) {
+      Reference<Frame> select = [null]
+      if (host.ping(wh_word: 'true')) {
+        host.findAround(syn: 'degree') { rel -> select.set rel } //todo verb
+      }
+
       update.listen('syn': 'verb') { verb, upd2 ->
         upd2.newFrame([host, verb], syn: 'adv_mod', sem: (host.ping(adv_kind: 'time') ? 'time' : "mode"))
+        if (select.get()) {
+          upd2.newFrame([verb, select.get()], sem: 'time')
+        }
       }
     }
     if (aspect.ping('neg')) {

@@ -86,16 +86,17 @@ frame: sem=THEY
 frame: sem=SUDDENLY
 frame: sem=DISCOVER
 frame ^4 ^1: sem=time
-frame ^4 ^2: sem=experiencer
-frame ^4 ^3: sem=mode
+frame ^2 ^8: sem=time
+frame ^5 ^3: sem=experiencer
+frame ^5 ^4: sem=mode
 frame: sem=ALSO
 frame: sem=CAN, neg=true
-frame ^1 ^6: sem=theme
-frame ^9 ^2: sem=experiencer
+frame ^1 ^7: sem=theme
+frame ^10 ^2: sem=experiencer
 frame ^4 ^3: sem=mode
 frame: sem=RECALL
 frame ^1 ^5: sem=theme
-frame ^13 ^2: sem=experiencer
+frame ^14 ^2: sem=experiencer
 frame: sem=ORDER
 frame ^1 ^4: sem=theme
 frame: sem=COUNTING
@@ -118,7 +119,7 @@ frame ^1 ^3: sem=with_respect_to
   public void testTranslation3() throws Exception {
     translate(new Russian(), new English(),
             "Каково же было их и мое удивление, когда они вдруг обнаружили",
-            "Great was their and my amazement")//, when they suddenly discovered")
+            "Great was their and my amazement, when they suddenly discovered")
   }
 
   private def doTest(String input, String expected) {

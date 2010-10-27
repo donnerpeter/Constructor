@@ -86,11 +86,11 @@ class English implements Language {
       }
 
       def modifier = verb.opponent(sem: 'mode')
-      if (modifier) {
+      if (modifier?.ping(sem: 'SUDDENLY')) {
         addWord dst, 'suddenly'
       }
 
-      generateVerbCluster(dst, verb)
+      verb = generateVerbCluster(dst, verb)
 
       def addressee = verb.opponent(sem: 'addressee')
       if (addressee) {
@@ -99,9 +99,13 @@ class English implements Language {
 
       def theme = verb.opponent(sem: 'theme')
       if (theme) {
-        if (verb.ping(sem: 'love')) {
+        if (verb.ping(sem: 'love') || verb.ping(sem: 'RECALL')) {
           generateNP(dst, theme, false)
         } else if (verb.ping(sem: 'FORGET')) {
+          generateSentence theme, dst, state
+        } else if (verb.ping(sem: 'DISCOVER')) {
+          addWord dst, ','
+          addWord dst, 'that'
           generateSentence theme, dst, state
         } else if (verb.ping(sem: 'ASK')) {
           if (theme.ping(sem: 'THINK')) {
@@ -152,7 +156,7 @@ class English implements Language {
 
   }
 
-  private def generateVerbCluster(Chart dst, Frame verb) {
+  private Frame generateVerbCluster(Chart dst, Frame verb) {
     if (verb.ping(sem: 'COME_SCALARLY')) {
       addWord dst, 'comes'
       def end = verb.opponent(sem: 'scalar_end')['sem'].value
@@ -161,10 +165,20 @@ class English implements Language {
       } else {
         addWord dst, end
       }
-      return
+      return verb
+    }
+
+    if (verb.ping(sem: 'CAN')) {
+      addWord dst, (verb.ping(neg:'true') ? "couldn't" : "could")
+      def main = verb.opponent(sem: 'theme')
+      if (main) {
+        return generateVerbCluster(dst, main)
+      }
+      return verb
     }
 
     addWord dst, generateVerb(dst, verb)
+    return verb
   }
 
   private String generateVerb(Chart dst, Frame verb) {
@@ -177,6 +191,7 @@ class English implements Language {
       case 'START_GO_TO': return 'went'
       case 'ASK': return 'asked'
       case 'DISCOVER': return 'discovered'
+      case 'RECALL': return 'recall'
     }
     return sem
   }
@@ -211,11 +226,18 @@ class English implements Language {
 
     noun.allOpponents(sem:'property_host').each { generateAdj(dst, it) }
 
+    if (noun.ping(sem: 'ORDER')) {
+      def opponent = noun.opponent(sem: 'with_respect_to')
+      if (opponent) {
+        addWord dst, generateNoun(opponent)
+      }
+    }
+
     addWord dst, generateNoun(noun)
   }
 
   private def generateDeterminer(Frame noun, Chart dst) {
-    def opponents = noun.allOpponents(sem: 'with_respect_to')
+    List<Frame> opponents = noun.ping(sem: 'SURPRISE') || noun.ping(sem: 'NEIGHBOURS') ? noun.allOpponents(sem: 'with_respect_to') : []
     if (opponents) {
       generatePossessive(opponents[0], dst)
       if (opponents.size() == 2) {
@@ -251,6 +273,8 @@ class English implements Language {
       case "NEIGHBOURS": return "neighbors"
       case "MATTER": return "matter"
       case "SURPRISE": return "amazement"
+      case "ORDER": return "order"
+      case "COUNTING": return "counting"
     }
     return sem
   }

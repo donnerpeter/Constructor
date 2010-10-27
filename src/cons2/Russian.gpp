@@ -18,8 +18,8 @@ class Russian implements Language {
           wholeWord("случай", syn:"noun", case:'nom', sem:"THING", discourse:'new').
           wholeWord("соседям", syn:"noun", case:'dat', sem:"NEIGHBOURS", discourse:'new').
           wholeWord("удивление", syn:"noun", case:'nom', sem:"SURPRISE", discourse:'new').
-          wholeWord("порядок", syn:"noun", case:'nom', sem:"ORDER", discourse:'new').
-          wholeWord("порядок", syn:"noun", case:'acc', sem:"ORDER", discourse:'new').
+          wholeWord("порядок", syn:"noun", case:'nom', sem:"ORDER", discourse:'given').
+          wholeWord("порядок", syn:"noun", case:'acc', sem:"ORDER", discourse:'given').
           wholeWord("счета", syn:"noun", case:'gen', sem:"COUNTING", discourse:'new').
 
           wholeWord("случился", syn:"verb", baseForm:'случиться', sem:'HAPPEN', time:'PAST').

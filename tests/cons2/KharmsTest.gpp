@@ -118,8 +118,8 @@ frame ^1 ^3: sem=with_respect_to
 
   public void testTranslation3() throws Exception {
     translate(new Russian(), new English(),
-            "Каково же было их и мое удивление, когда они вдруг обнаружили",
-            "Great was their and my amazement, when they suddenly discovered")
+            "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета",
+            "Great was their and my amazement, when they suddenly discovered, that they couldn't recall the counting order")
   }
 
   private def doTest(String input, String expected) {

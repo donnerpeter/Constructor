@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="groovy++-0.2.24">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/../groovypp-0.2.24/lib" />
+      <root url="file://$PROJECT_DIR$/../groovypp-0.2.24/lib" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/../groovypp-0.2.24/src/Compiler/src" />
+      <root url="file://$PROJECT_DIR$/../groovypp-0.2.24/src/StdLib/src" />
+    </SOURCES>
+    <jarDirectory url="file://$PROJECT_DIR$/../groovypp-0.2.24/lib" recursive="false" />
+  </library>
+</component>

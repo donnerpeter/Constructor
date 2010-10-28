@@ -167,6 +167,46 @@ frame ^1 ^3: sem=experiencer
 """
   }
 
+  public void testMnRFa() throws Exception {
+    doResultTest "мать помнит отца", """
+frame: sem=mother
+frame: sem=REMEMBER
+frame ^2 ^1: sem=experiencer
+frame: sem=father
+frame ^1 ^3: sem=theme
+"""
+  }
+
+  public void testMaRFn() throws Exception {
+    doResultTest "мать помнит отец", """
+frame: sem=mother
+frame: sem=REMEMBER
+frame ^2 ^1: sem=theme
+frame: sem=father
+frame ^1 ^3: sem=experiencer
+"""
+  }
+
+  public void testMaFFn() throws Exception {
+    doResultTest "мать забыл отец", """
+frame: sem=mother
+frame: sem=FORGET
+frame ^2 ^1: sem=theme
+frame: sem=father
+frame ^1 ^3: sem=experiencer
+"""
+  }
+
+  public void testMnFFa() throws Exception {
+    doResultTest "мать забыла отца", """
+frame: sem=mother
+frame: sem=FORGET
+frame ^2 ^1: sem=experiencer
+frame: sem=father
+frame ^1 ^3: sem=theme
+"""
+  }
+
   private def doLogTest(String input, String expected) {
     def chart = new Parser(new Russian()).parse(input)
     assertEquals expected.trim() + "\n", chart.presentableLog().trim() + "\n"

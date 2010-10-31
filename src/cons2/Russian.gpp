@@ -175,6 +175,12 @@ class Russian implements Language {
       verbChanged host, aspect, update
       update.listen('theta') { theta, upd2 -> verbChanged host, aspect, upd2 }
 
+      if (host.ping(phon:'помнят') || host.ping(phon:'забыли')) { //todo correct agreement handing
+        def subj = update.newFrame([], sem:'THEY')
+        update.newFrame([subj, host], syn:'theta', theta:'nom', sem: subjRole(host))
+      }
+
+
       if (host.ping(control: 'true')) {
         update.listen(syn: 'verb') { comp, upd2 ->
           upd2.newFrame([comp, host], sem: 'theme')
@@ -232,7 +238,7 @@ class Russian implements Language {
     if (aspect.role == 'stem') {
       def stem = aspect.value
       if (stem == "люб") {
-        update.enrich(host, aspect, subcat_acc: 'true', sem: "love", baseForm: 'любить')
+        update.enrich(host, aspect, subcat_acc: 'true', sem: "love", baseForm: 'любить', agr:'3sing')
       }
       if (stem == "красив") {
         update.enrich(host, aspect, sem: "beautiful")
@@ -391,7 +397,10 @@ class Russian implements Language {
         if (nom) {
           update.enrich nom, theta:'nom', sem:subjTheta
           toAssign.remove nom
-        }
+        } else {
+/*
+*/
+          }
       }
 
       if (host.ping(subcat_acc: 'true')) {

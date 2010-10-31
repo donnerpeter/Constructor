@@ -104,6 +104,42 @@ frame ^1 ^3: sem=with_respect_to
 """
   }
 
+  public void testSent4() throws Exception {
+    doTest "1,2,3,4,5 и 6  помнят, а дальше забыли", """
+frame: sem=number1
+frame: sem=number2
+frame: sem=enumeration
+frame ^3 ^1: sem=member
+frame ^3 ^2: sem=member
+frame: sem=number3
+frame ^1 ^4: sem=member
+frame: sem=number4
+frame ^1 ^6: sem=member
+frame: sem=number5
+frame ^1 ^8: sem=member
+frame: sem=AND
+frame ^1 ^10: sem=connective
+frame: sem=number6
+frame ^1 ^12: sem=member
+frame: sem=REMEMBER
+frame ^14 ^1: sem=theme
+frame: sem=THEY
+frame ^1 ^3: sem=experiencer
+frame: sem=BUT
+frame ^5 ^1: sem=conj_left
+frame: sem=NEXT
+frame: sem=FORGET
+frame ^1 ^4: sem=conj_right
+frame: sem=COME_SCALARLY
+frame ^4 ^1: sem=scalar_end
+frame: sem=WHAT
+frame ^1 ^3: sem=agent, wh_focus=true
+frame ^2 ^6: sem=theme
+frame: sem=THEY
+frame ^1 ^8: sem=experiencer
+"""
+  }
+
   public void testTranslation1() throws Exception {
     translate(new Russian(), new English(),
             "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8",

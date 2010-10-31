@@ -22,17 +22,20 @@ class Russian implements Language {
           wholeWord("порядок", syn:"noun", case:'acc', sem:"ORDER", discourse:'given').
           wholeWord("счета", syn:"noun", case:'gen', sem:"COUNTING", discourse:'new').
 
-          wholeWord("случился", syn:"verb", baseForm:'случиться', sem:'HAPPEN', time:'PAST').
-          wholeWord("отправился", syn:"verb", baseForm:'отправиться', sem:'START_GO_TO', time:'PAST').
-          wholeWord("спросил", syn:"verb", baseForm:'спросить', subcat_acc:'true', subcat_whq:'true', sem:'ASK', time:'PAST').
-          wholeWord("помнит", syn:"verb", baseForm:'помнить', subcat_acc:'true', sem:'REMEMBER', time:'PRESENT').
-          wholeWord("забыл", syn:"verb", baseForm:'забыть', subcat_acc:'true', sem:'FORGET', time:'PERFECT').
-          wholeWord("забыла", syn:"verb", baseForm:'забыть', subcat_acc:'true', sem:'FORGET', time:'PERFECT').
-          wholeWord("думают", syn:"verb", baseForm:'думать', subcat_acc:'true', sem:'THINK', time:'PRESENT').
-          wholeWord("могут", syn:"verb", baseForm:'мочь', control:'true', sem:'CAN', time:'PRESENT').
-          wholeWord("вспомнить", syn:"verb", baseForm:'вспомнить', subcat_acc:'true', sem:'RECALL').
-          wholeWord("было", syn:"copula", baseForm:'быть', sem:'BE', time:'PAST').
-          wholeWord("обнаружили", syn:"verb", baseForm:'обнаружить', sem:'DISCOVER', subcat_comp:'true', time:'PAST').
+          wholeWord("случился", syn:"verb", agr:'masc', baseForm:'случиться', sem:'HAPPEN', time:'PAST').
+          wholeWord("отправился", syn:"verb", agr:'masc', baseForm:'отправиться', sem:'START_GO_TO', time:'PAST').
+          wholeWord("спросил", syn:"verb", agr:'masc', baseForm:'спросить', subcat_acc:'true', subcat_whq:'true', sem:'ASK', time:'PAST').
+          wholeWord("помнит", syn:"verb", agr:'masc', baseForm:'помнить', subcat_acc:'true', sem:'REMEMBER', time:'PRESENT').
+          wholeWord("помнят", syn:"verb", agr:'pl', baseForm:'помнить', subcat_acc:'true', sem:'REMEMBER', time:'PRESENT').
+          wholeWord("забыл", syn:"verb", agr:'masc', baseForm:'забыть', subcat_whq:'true', sem:'FORGET', time:'PERFECT').
+          wholeWord("забыл", syn:"verb", agr:'masc', baseForm:'забыть', subcat_acc:'true', sem:'FORGET', time:'PERFECT').
+          wholeWord("забыла", syn:"verb", agr:'fem', baseForm:'забыть', subcat_acc:'true', sem:'FORGET', time:'PERFECT').
+          wholeWord("забыли", syn:"verb", agr:'pl', baseForm:'забыть', subcat_acc:'true', sem:'FORGET', time:'PERFECT').
+          wholeWord("думают", syn:"verb", agr:'pl', baseForm:'думать', subcat_acc:'true', sem:'THINK', time:'PRESENT').
+          wholeWord("могут", syn:"verb", agr:'pl', baseForm:'мочь', control:'true', sem:'CAN', time:'PRESENT').
+          wholeWord("вспомнить", syn:"verb", agr:'inf', baseForm:'вспомнить', subcat_acc:'true', sem:'RECALL').
+          wholeWord("было", syn:"copula", agr:'neutr', baseForm:'быть', sem:'BE', time:'PAST').
+          wholeWord("обнаружили", syn:"verb", agr:'pl', baseForm:'обнаружить', sem:'DISCOVER', subcat_comp:'true', time:'PAST').
 
           wholeWord("мое", syn:"genitive", sem:"I").
 
@@ -44,7 +47,6 @@ class Russian implements Language {
 
           wholeWord("мной", syn:"noun", case:'instr',  sem:'I').
 
-          wholeWord("забыл", syn:"verb", sem:'FORGET', time:'PAST', subcat_whq:'true', baseForm:'забыть').
 
           wholeWord("вдруг", syn:"adverb", sem:'SUDDENLY').
           wholeWord("тоже", syn:"adverb", sem:'ALSO').
@@ -57,8 +59,11 @@ class Russian implements Language {
           wholeWord("Каково", syn:"short_adj", wh_word:'true', sem:'HOW').
           wholeWord("идет", syn:"verb", baseForm:'идти', sem:'GO').
           wholeWord("раньше", syn:"adverb", adv_kind:'scalar', sem:'EARLIER').
+          wholeWord("дальше", syn:"adverb", adv_kind:'scalar', sem:'NEXT').
           wholeWord("или", syn:"conj", sem:'OR').
+          wholeWord("и", syn:"conj", sem:'AND').
           wholeWord("и", syn:"conj", sem:'AND_THEN').
+          wholeWord("а", syn:"conj", sem:'BUT').
           wholeWord("этому", syn:"adj", adj_kind:'det', case:'dat', sem:'THIS').
           wholeWord("же", syn:"emph_particle").
 
@@ -74,10 +79,31 @@ class Russian implements Language {
       if (aspect.ping(':')) {
         host.findAround(syn:'verb') { verb -> update.wrapUp verb }
       }
+      if (aspect.ping(',')) {
+        def hasEnum = host.findAround(sem: 'enumeration') { enm ->
+          def member = enm.opponent(sem: 'member')
+          update.listen(syn: member['syn'].value) { next, upd2 ->
+            upd2.newFrame([next, enm], sem: 'member')
+            upd2.wrapUp member
+          }
+        }
+
+        if (!hasEnum) {
+          host.findAround(syn:'number', phon:null) { fst ->   //todo generic enumerations
+            update.listen(syn:fst['syn'].value) { snd, upd2 ->
+              def enm = upd2.newFrame([], syn:'noun', case:'acc', sem: 'enumeration')
+              upd2.newFrame([fst, enm], sem:'member')
+              upd2.newFrame([snd, enm], sem:'member')
+              upd2.wrapUp fst
+            }
+          }
+        }
+      }
       return
     }
 
     findTheta(aspect, host, update)
+
 
     if (aspect.ping('adj')) {
       def caze = host['case'].value
@@ -243,7 +269,18 @@ class Russian implements Language {
       }
 
       update.listen('syn': 'verb') { verb, upd2 ->
-        upd2.newFrame([host, verb], syn: 'adv_mod', sem: (host.ping(adv_kind: 'time') ? 'time' : "mode"))
+        if (host.ping(adv_kind: 'scalar')) {
+          def comes = upd2.newFrame([], sem: 'COME_SCALARLY')
+          upd2.newFrame([host, comes], sem: 'scalar_end')
+
+          def what = upd2.newFrame([], sem: 'WHAT')
+          upd2.newFrame([what, comes], sem: 'agent', wh_focus:'true')
+          upd2.newFrame([what, verb], sem: 'theme')
+
+          return
+        }
+
+        upd2.newFrame([host, verb], syn: 'adv_mod', sem: (host.ping(adv_kind: 'time') ? 'time' : 'mode'))
         if (select.get()) {
           upd2.newFrame([verb, select.get()], sem: 'time')
         }
@@ -261,8 +298,24 @@ class Russian implements Language {
   }
 
   private def handleConj(Frame host, Update update) {
-    host.findAround([phon: null]) { left ->
+    def hasEnum = host.findAround(sem: 'enumeration') { enm ->
+      update.confirmChoice(host, sem: 'AND')
+      update.newFrame([host, enm], sem: 'connective')
+      def member = enm.opponent(sem: 'member')
+      update.listen(syn: member['syn'].value) { next, upd2 ->
+        upd2.newFrame([next, enm], sem: 'member')
+        upd2.wrapUp member
+      }
+    }
+    if (hasEnum) {
+      return
+    }
+
+    host.findAround([phon: null, syn:null]) { left ->
       def leftLink = update.newFrame([left, host], sem:'conj_left')
+      if (host.ping(phon: 'и')) {
+        update.confirmChoice(host, sem:'AND_THEN')
+      }
       update.wrapUp left
       update.listen('syn') { right, u2 ->
         def actualSyn = right['syn']?.value

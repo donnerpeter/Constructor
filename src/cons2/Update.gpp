@@ -5,7 +5,7 @@ package cons2
  */
 class Update {
   Chart chart
-  private Map<Frame, List<Aspect[]>> newAspects = [:]
+  private Map<Frame, List<List<Aspect>>> newAspects = [:]
   private Map<Frame, Collection<Aspect>> justAppeared = [:]
   private Map<Frame, Map<String, Object>> confirmations = [:]
   private Map<Frame, Frame> merges = [:]
@@ -39,7 +39,7 @@ class Update {
     assert !dead
     assert host
     assert host.empty || aspects.any { it in host.strongAlternatives(it.role) }
-    newAspects.get(host, []).add(aspects)
+    newAspects.get(host, []).add(aspects as List)
   }
 
   Frame newFrame(Map<String, String> avm, List<Frame> children) {

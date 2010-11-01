@@ -37,17 +37,17 @@ class Frame {
 
   void enrich(Aspect... aspects) {
     if (empty) {
-      richEnrich([aspects])
+      richEnrich([aspects as List])
       return
     }
 
     def role = roles.find { strongAlternatives(it) }
     def ally = strongAlternatives(role)[0]
     def appended = [ally] + (aspects as List)
-    richEnrich([appended as Aspect[]])
+    richEnrich([appended])
   }
 
-  List<Aspect> richEnrich(List<Aspect[]> aspectSets) {
+  List<Aspect> richEnrich(List<List<Aspect>> aspectSets) {
     Map<String, Set<Aspect>> byRole = [:]
     def added = []
 
@@ -204,7 +204,7 @@ class Frame {
 
   @Override
   String toString() {
-    "[" + chosenAspects.collect { it.role + ":" + it }.join(", ") + "]"
+    "[" + chosenAspects.collect { it as String }.join(", ") + "]"
   }
 
   List<Aspect> getChosenAspects() {

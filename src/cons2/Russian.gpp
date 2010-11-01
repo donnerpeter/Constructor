@@ -357,7 +357,7 @@ class Russian implements Language {
   }
 
   private def markThetaCases(Aspect aspect, Frame host, Update update) {
-    if (aspect.role == 'case') {
+    if (aspect.role == 'case' && host.ping(syn:'noun')) {
       def theta = host.strongUsages(syn: 'theta')[0]
       if (!theta) {
         update.listen('syn') { th, upd2 ->

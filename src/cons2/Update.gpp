@@ -92,8 +92,34 @@ class Update {
   }
 
   void apply() {
-    weakened.each { chart.weaken it }
-    confirmations.each { frame, pattern -> frame.chosenAs(pattern) }
+    processImmediateChanges()
+
+    if (!newAspects && !justAppeared) {
+      wrapUps.each { chart.wrapUp it }
+      return
+    }
+
+    justAppeared.each { frame, added ->
+      added.each {
+        if (!frame[it.role] || frame[it.role] == it) {
+          beingProcessed = frame
+          chart.language.aspectAppeared frame, it, this
+          beingProcessed = null
+        }                          
+      }
+    }
+
+    dead = true
+
+    processImmediateChanges()
+
+    def reallyNewAspects = [:]
+    Map<String, Set<Frame>> touched = [:]
+    newAspects.each { frame, aspects ->
+      def added = frame.richEnrich(aspects)
+      reallyNewAspects[frame] = added
+      added.each { touched.get(it.role, []) << frame }
+    }
 
     newListeners.each { frame, map ->
       def role2Listeners = chart.listeners.get(frame, [:])
@@ -102,33 +128,7 @@ class Update {
       }
     }
 
-    if (!newAspects && !justAppeared && !merges) {
-      wrapUps.each { chart.wrapUp it }
-      return
-    }
-
-    def reallyNewAspects = [:]
     def next = new Update(chart, reallyNewAspects, wrapUps)
-
-    merges.each { loser, into -> chart.merge loser, into }
-
-    justAppeared.each { frame, added ->
-      added.each {
-        if (!frame[it.role] || frame[it.role] == it) {
-          next.beingProcessed = frame
-          chart.language.aspectAppeared frame, it, next
-          next.beingProcessed = null
-        }                          
-      }
-    }
-
-    Map<String, Set<Frame>> touched = [:]
-    newAspects.each { frame, aspects ->
-      def added = frame.richEnrich(aspects)
-      reallyNewAspects[frame] = added
-      added.each { touched.get(it.role, []) << frame }
-    }
-
     chart.listeners.values().each { map ->
       map.each { role, actions ->
         if (role in touched.keySet()) {
@@ -147,9 +147,17 @@ class Update {
       }
     }
 
-    dead = true
-
     next.apply()
+  }
+
+  private def processImmediateChanges() {
+    merges.each { loser, into -> chart.merge loser , into }
+    weakened.each { chart.weaken it }
+    confirmations.each { frame, pattern -> frame.chosenAs(pattern) }
+
+    merges.clear()
+    weakened.clear()
+    confirmations.clear()
   }
 
   def merge(Frame loser, Frame into) {

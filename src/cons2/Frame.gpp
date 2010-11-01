@@ -10,7 +10,6 @@ class Frame {
   Chart chart
   private final Map<String, List<Aspect>> alternatives = [:]
   private final Map<String, Aspect> chosen = [:]
-  private final Set<Aspect> initialized = []
   private final Map<Aspect, Set<Party>> alliances = [:]
   Frame adopter
   Frame[] args
@@ -99,10 +98,6 @@ class Frame {
     afterElections candidates
 
     added
-  }
-
-  void initializeAspects(Collection<Aspect> added) {
-    initialized.addAll(added)
   }
 
   List<Frame> strongUsages(Map<String, Object> pattern) {
@@ -209,10 +204,6 @@ class Frame {
 
   List<Aspect> getChosenAspects() {
     roles.collect { strongAlternatives(it) }.flatten()
-  }
-
-  List<Aspect> getInitializedAspects() {
-    chosenAspects.findAll { it in initialized }
   }
 
   boolean isEmpty() {

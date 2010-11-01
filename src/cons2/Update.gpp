@@ -147,8 +147,6 @@ class Update {
       }
     }
 
-    justAppeared.each { frame, added -> frame.initializeAspects added }
-
     dead = true
 
     next.apply()

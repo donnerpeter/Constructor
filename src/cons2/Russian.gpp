@@ -175,12 +175,6 @@ class Russian implements Language {
       verbChanged host, aspect, update
       update.listen('theta') { theta, upd2 -> verbChanged host, aspect, upd2 }
 
-      if (host.ping(phon:'помнят') || host.ping(phon:'забыли')) { //todo correct agreement handing
-        def subj = update.newFrame([], sem:'THEY')
-        update.newFrame([subj, host], syn:'theta', theta:'nom', sem: subjRole(host))
-      }
-
-
       if (host.ping(control: 'true')) {
         update.listen(syn: 'verb') { comp, upd2 ->
           upd2.newFrame([comp, host], sem: 'theme')
@@ -391,16 +385,26 @@ class Russian implements Language {
 
       List<Frame> toAssign = host.strongUsages(syn: 'theta').findAll { !it['sem'] }
 
-      if (!host.strongUsages(sem:subjTheta).findAll { it['sem']}) {
+      Frame covertSubj = host.strongUsages(covert:'true')[0]
+      if (covertSubj) {
+        def real = toAssign.find { it.ping(syn: 'theta', theta: 'nom') }
+        if (real) {
+          update.enrich(real, theta:'nom', sem:subjTheta)
+          update.merge(covertSubj, real)
+          update.merge(covertSubj.children[0], real.children[0])
+          toAssign.remove(real)
+        }
+      } else if (!host.strongUsages(sem:subjTheta).findAll { it['sem']}) {
         def nom = toAssign.find { it['theta']?.value == 'nom' }
         if (!nom) nom = toAssign.find { it.ping(theta: 'nom') }
         if (nom) {
           update.enrich nom, theta:'nom', sem:subjTheta
           toAssign.remove nom
         } else {
-/*
-*/
-          }
+          def agr = host['agr']?.value
+          def subj = update.newFrame([], sem: (agr == 'pl' ? 'THEY' : 'HE'))
+          update.newFrame([subj, host], sem: subjTheta, covert:'true')
+        }
       }
 
       if (host.ping(subcat_acc: 'true')) {

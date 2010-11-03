@@ -275,7 +275,7 @@ class Russian implements Language {
 
           def what = upd2.newFrame([], sem: 'WHAT')
           upd2.newFrame([what, comes], sem: 'agent', wh_focus:'true')
-          upd2.newFrame([what, verb], sem: 'theme')
+          upd2.newFrame([comes, verb], sem: 'theme')
 
           return
         }

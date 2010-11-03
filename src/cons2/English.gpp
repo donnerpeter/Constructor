@@ -56,7 +56,12 @@ class English implements Language {
   }
 
   void generate(Chart sem, Chart to) {
-    sem.frames().findAll { it.ping(sem:'love') || it.ping(sem:'HAPPEN') || it.ping(sem:"START_GO_TO") || it.ping(sem:'degree') }.each { generateSentence(it, to, [:]) }
+    sem.frames().findAll { isMainVerb(it) }.each { generateSentence(it, to, [:]) }
+  }
+
+  private boolean isMainVerb(Frame f) {
+    // todo abstract main verb concept
+    f.ping(sem: 'love') || f.ping(sem: 'HAPPEN') || f.ping(sem: "START_GO_TO") || f.ping(sem: 'degree') || f.ping(sem:'REMEMBER')
   }
 
   private void addWord(Chart dst, String word) {
@@ -77,13 +82,15 @@ class English implements Language {
       addWord dst, "Great"
       addWord dst, "was"
       subject = verb.children[1]
-      generateNP dst, subject, true
+      generateNP dst, subject, true, false
+      state.startedSentence = true
     } else {
       subjRel = verb.strongUsages(sem: 'experiencer')[0] ?: verb.strongUsages(sem: 'agent')[0]
       subject = subjRel ? subjRel.children[0] : null
-      if (subject != state.generatedSubject) {
-        generateNP(dst, subject, true)
+      if (subject['sem'] != state.generatedSubject) {
+        generateNP(dst, subject, true, !state.startedSentence)
       }
+      state.startedSentence = true
 
       def modifier = verb.opponent(sem: 'mode')
       if (modifier?.ping(sem: 'SUDDENLY')) {
@@ -94,13 +101,13 @@ class English implements Language {
 
       def addressee = verb.opponent(sem: 'addressee')
       if (addressee) {
-        generateNP dst, addressee, false
+        generateNP dst, addressee, false, false
       }
 
       def theme = verb.opponent(sem: 'theme')
       if (theme) {
-        if (verb.ping(sem: 'love') || verb.ping(sem: 'RECALL')) {
-          generateNP(dst, theme, false)
+        if (hasAccusativeTheme(verb)) {
+          generateNP(dst, theme, false, false)
         } else if (verb.ping(sem: 'FORGET')) {
           generateSentence theme, dst, state
         } else if (verb.ping(sem: 'DISCOVER')) {
@@ -113,7 +120,7 @@ class English implements Language {
             generatePossessive theme.opponent(sem: 'experiencer'), dst
             addWord dst, 'opinion'
             addWord dst, 'on'
-            generateNP dst, theme.opponent(sem: 'topic'), false
+            generateNP dst, theme.opponent(sem: 'topic'), false, false
           }
         }
         else {
@@ -128,8 +135,13 @@ class English implements Language {
 
     def vpConj = verb.opponent(sem: 'conj_left', false)
     if (vpConj) {
-      addWord dst, 'and'
-      state.generatedSubject = subject
+      if (vpConj.ping(sem:'AND') || vpConj.ping(sem:'AND_THEN')) {
+        addWord dst, 'and'
+      } else {
+        addWord dst, ','
+        addWord dst, 'but'
+      }
+      state.generatedSubject = subject['sem']
       generateSentence vpConj.opponent(sem: 'conj_right'), dst, state
     }
 
@@ -143,9 +155,9 @@ class English implements Language {
       def conj = subject.opponent(sem: 'alternatives')
       if (conj) {
         addWord dst, '-'
-        generateNP dst, conj.opponent(sem: 'conj_left'), true
+        generateNP dst, conj.opponent(sem: 'conj_left'), true, false
         addWord dst, 'or'
-        generateNP dst, conj.opponent(sem: 'conj_right'), true
+        generateNP dst, conj.opponent(sem: 'conj_right'), true, false
       }
     }
 
@@ -156,12 +168,18 @@ class English implements Language {
 
   }
 
+  private boolean hasAccusativeTheme(Frame verb) {
+    return verb.ping(sem: 'love') || verb.ping(sem: 'RECALL') || verb.ping(sem:'REMEMBER')
+  }
+
   private Frame generateVerbCluster(Chart dst, Frame verb) {
     if (verb.ping(sem: 'COME_SCALARLY')) {
       addWord dst, 'comes'
       def end = verb.opponent(sem: 'scalar_end')['sem'].value
       if (end == 'EARLIER') {
         addWord dst, 'first'
+      } else if (end == 'NEXT') {
+        addWord dst, 'next'
       } else {
         addWord dst, end
       }
@@ -192,27 +210,45 @@ class English implements Language {
       case 'ASK': return 'asked'
       case 'DISCOVER': return 'discovered'
       case 'RECALL': return 'recall'
+      case 'REMEMBER': return 'remember'
     }
     return sem
   }
 
   private void generatePP(Chart dst, String prep, Frame noun) {
     addWord dst, prep
-    generateNP dst, noun, false
+    generateNP dst, noun, false, false
   }
 
-  private void generateNP(Chart dst, Frame noun, boolean nom) {
+  private void generateNP(Chart dst, Frame noun, boolean nom, boolean first) {
     if (noun.ping(sem:'I')) {
       addWord dst, nom ? 'I' : 'me'
       return;
     }
     if (noun.ping(sem:'THEY')) {
-      addWord dst, nom ? 'they' : 'them'
+      addWord dst, nom ? (first ? 'They' : 'they') : 'them'
       return;
     }
 
     if (noun.ping(sem: 'WHAT')) {
       addWord dst, 'what'
+      return
+    }
+
+    if (noun.ping(sem: 'enumeration')) {
+      def members = noun.allOpponents(sem: 'member')
+      def last = members.size() - 1
+      for (i in 0..last) {
+        generateNP dst, members[i], nom, false
+        if (i == last) {
+          break
+        }
+        if (i == last - 1) {
+          addWord dst, 'and'
+        } else {
+          addWord dst, ','
+        }
+      }
       return
     }
 

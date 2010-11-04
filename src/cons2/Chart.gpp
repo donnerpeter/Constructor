@@ -9,7 +9,7 @@ import cons2.Log.MergeEvent
  */
 class Chart {
   private static Set<String> interestingAspects = [//'syn', 'case', 'theta',
-          'sem', 'wh_focus', 'neg']
+          'sem', 'wh_focus', 'neg', 'sentence_end']
   static String resultPrefix = "digraph Parse {\n"
   static String resultSuffix = "}"
 
@@ -186,7 +186,7 @@ class Chart {
     def result = new StringBuilder()
     for (frame in frames.findAll { !it.adopter && it['phon'] }) {
       def phon = frame['phon'].value
-      if (result.length() > 0 && phon != ',') {
+      if (result.length() > 0 && phon != ',' && phon != '.') {
         result << " "
       }
       result << phon

@@ -7,13 +7,17 @@ class EnglishGenerator {
   Chart dst
   boolean startedSentence
   Aspect generatedSubject
+  boolean pastNarrative
 
   EnglishGenerator(Chart dst) {
     this.dst = dst
   }
 
   void generate(Chart from) {
-    from.frames().findAll { isMainVerb(it) }.each { generateSentence(it) }
+    from.frames().findAll { isMainVerb(it) }.each {
+      startedSentence = false
+      generateSentence(it)
+    }
   }
 
   private boolean isMainVerb(Frame f) {
@@ -99,7 +103,10 @@ class EnglishGenerator {
         addWord 'but'
       }
       generatedSubject = subject['sem']
-      generateSentence vpConj.opponent(sem: 'conj_right')
+      def right = vpConj.opponent(sem: 'conj_right')
+      if (right) {
+        generateSentence right
+      }
     }
 
     def subjElaboration = subject?.opponent(sem: 'elaboration')
@@ -121,6 +128,10 @@ class EnglishGenerator {
     if (timeSpecs[0]) {
       addWord ","
       generateSentence timeSpecs[0]
+    }
+
+    if (verb.ping(sentence_end: 'dot')) {
+      addWord "."
     }
 
   }
@@ -152,6 +163,10 @@ class EnglishGenerator {
       return verb
     }
 
+    if (verb.ping(time: 'PAST')) {
+      pastNarrative = true
+    }
+
     addWord generateVerb(verb)
     return verb
   }
@@ -167,7 +182,7 @@ class EnglishGenerator {
       case 'ASK': return 'asked'
       case 'DISCOVER': return 'discovered'
       case 'RECALL': return 'recall'
-      case 'REMEMBER': return 'remember'
+      case 'REMEMBER': return pastNarrative ? 'remembered' : 'remember'
     }
     return sem
   }

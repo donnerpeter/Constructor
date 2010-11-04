@@ -12,7 +12,7 @@ class Parser {
 
   Chart parse(String text) {
     Chart chart = new Chart(language)
-    def tokenizer = new StringTokenizer(text, " :,", true)
+    def tokenizer = new StringTokenizer(text, " :,.", true)
     for (String w in tokenizer) {
       if (w != ' ') {
         Frame frame = chart.newFrame([])

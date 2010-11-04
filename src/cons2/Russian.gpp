@@ -79,6 +79,10 @@ class Russian implements Language {
       if (aspect.ping(':')) {
         host.findAround(syn:'verb') { verb -> update.wrapUp verb }
       }
+      if (aspect.ping('.')) {
+        host.findAround(syn:'verb') { update.enrich it, syn:'verb', sentence_end:'dot'}
+        host.findAllActiveAround([:]).each { update.wrapUp it }
+      }
       if (aspect.ping(',')) {
         def hasEnum = host.findAround(sem: 'enumeration') { enm ->
           def member = enm.opponent(sem: 'member')

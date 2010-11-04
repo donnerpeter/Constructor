@@ -62,7 +62,6 @@ class Russian implements Language {
           wholeWord("дальше", syn:"adverb", adv_kind:'scalar', sem:'NEXT').
           wholeWord("или", syn:"conj", sem:'OR').
           wholeWord("и", syn:"conj", sem:'AND').
-          wholeWord("и", syn:"conj", sem:'AND_THEN').
           wholeWord("а", syn:"conj", sem:'BUT').
           wholeWord("этому", syn:"adj", adj_kind:'det', case:'dat', sem:'THIS').
           wholeWord("же", syn:"emph_particle").
@@ -317,9 +316,6 @@ class Russian implements Language {
 
     host.findAround([phon: null, syn:null]) { left ->
       def leftLink = update.newFrame([left, host], sem:'conj_left')
-      if (host.ping(phon: 'и')) {
-        update.confirmChoice(host, sem:'AND_THEN')
-      }
       update.wrapUp left
       update.listen('syn') { right, u2 ->
         def actualSyn = right['syn']?.value

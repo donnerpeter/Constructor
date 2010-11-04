@@ -80,8 +80,8 @@ class Russian implements Language {
         host.findAround(syn:'verb') { verb -> update.wrapUp verb }
       }
       if (aspect.ping('.')) {
-        host.findAround(syn:'verb') { update.enrich it, syn:'verb', sentence_end:'dot'}
-        host.findAllActiveAround([:]).each { update.wrapUp it }
+        host.findAround(syn:'verb') { update.enrich it, syn:'verb', sentence_end:'dot'} //todo sentence end should be marked on the main verb
+        host.findAllActiveAround([:]).each { update.wrapUp it } //todo automatic wrapUp of everything unreachable
       }
       if (aspect.ping(',')) {
         def hasEnum = host.findAround(sem: 'enumeration') { enm ->

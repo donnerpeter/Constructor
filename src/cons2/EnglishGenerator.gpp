@@ -5,13 +5,15 @@ package cons2
  */
 class EnglishGenerator {
   Chart dst
+  boolean startedSentence
+  Aspect generatedSubject
 
   EnglishGenerator(Chart dst) {
     this.dst = dst
   }
 
   void generate(Chart from) {
-    from.frames().findAll { isMainVerb(it) }.each { generateSentence(it, [:]) }
+    from.frames().findAll { isMainVerb(it) }.each { generateSentence(it) }
   }
 
   private boolean isMainVerb(Frame f) {
@@ -23,7 +25,7 @@ class EnglishGenerator {
     dst.newFrame([]).enrich(['phon', word])
   }
 
-  private void generateSentence(Frame verb, Map state) {
+  private void generateSentence(Frame verb) {
     def timeSpecs = verb.allOpponents(sem: 'time')
     def whTimeSpec = timeSpecs.find { it.ping(sem:'WHEN') }
     if (whTimeSpec) {
@@ -37,15 +39,15 @@ class EnglishGenerator {
       addWord "Great"
       addWord "was"
       subject = verb.children[1]
-      generateNP subject, true, false
-      state.startedSentence = true
+      generateNP subject, true
+      startedSentence = true
     } else {
       subjRel = verb.strongUsages(sem: 'experiencer')[0] ?: verb.strongUsages(sem: 'agent')[0]
       subject = subjRel ? subjRel.children[0] : null
-      if (subject['sem'] != state.generatedSubject) {
-        generateNP(subject, true, !state.startedSentence)
+      if (subject['sem'] != generatedSubject) {
+        generateNP(subject, true)
       }
-      state.startedSentence = true
+      startedSentence = true
 
       def modifier = verb.opponent(sem: 'mode')
       if (modifier?.ping(sem: 'SUDDENLY')) {
@@ -56,26 +58,26 @@ class EnglishGenerator {
 
       def addressee = verb.opponent(sem: 'addressee')
       if (addressee) {
-        generateNP addressee, false, false
+        generateNP addressee, false
       }
 
       def theme = verb.opponent(sem: 'theme')
       if (theme) {
         if (hasAccusativeTheme(verb)) {
-          generateNP(theme, false, false)
+          generateNP(theme, false)
         } else if (verb.ping(sem: 'FORGET')) {
-          generateSentence theme, state
+          generateSentence theme
         } else if (verb.ping(sem: 'DISCOVER')) {
           addWord ','
           addWord 'that'
-          generateSentence theme, state
+          generateSentence theme
         } else if (verb.ping(sem: 'ASK')) {
           if (theme.ping(sem: 'THINK')) {
             addWord 'about'
             generatePossessive theme.opponent(sem: 'experiencer')
             addWord 'opinion'
             addWord 'on'
-            generateNP theme.opponent(sem: 'topic'), false, false
+            generateNP theme.opponent(sem: 'topic'), false
           }
         }
         else {
@@ -96,29 +98,29 @@ class EnglishGenerator {
         addWord ','
         addWord 'but'
       }
-      state.generatedSubject = subject['sem']
-      generateSentence vpConj.opponent(sem: 'conj_right'), state
+      generatedSubject = subject['sem']
+      generateSentence vpConj.opponent(sem: 'conj_right')
     }
 
     def subjElaboration = subject?.opponent(sem: 'elaboration')
     if (subjElaboration) {
       addWord ','
-      generateSentence subjElaboration, state
+      generateSentence subjElaboration
     }
 
     if (subjRel?.ping(wh_focus: 'true')) {
       def conj = subject.opponent(sem: 'alternatives')
       if (conj) {
         addWord '-'
-        generateNP conj.opponent(sem: 'conj_left'), true, false
+        generateNP conj.opponent(sem: 'conj_left'), true
         addWord 'or'
-        generateNP conj.opponent(sem: 'conj_right'), true, false
+        generateNP conj.opponent(sem: 'conj_right'), true
       }
     }
 
     if (timeSpecs[0]) {
       addWord ","
-      generateSentence timeSpecs[0], state
+      generateSentence timeSpecs[0]
     }
 
   }
@@ -172,16 +174,16 @@ class EnglishGenerator {
 
   private void generatePP(String prep, Frame noun) {
     addWord prep
-    generateNP noun, false, false
+    generateNP noun, false
   }
 
-  private void generateNP(Frame noun, boolean nom, boolean first) {
+  private void generateNP(Frame noun, boolean nom) {
     if (noun.ping(sem:'I')) {
       addWord nom ? 'I' : 'me'
       return;
     }
     if (noun.ping(sem:'THEY')) {
-      addWord nom ? (first ? 'They' : 'they') : 'them'
+      addWord nom ? (!startedSentence ? 'They' : 'they') : 'them'
       return;
     }
 
@@ -194,7 +196,7 @@ class EnglishGenerator {
       def members = noun.allOpponents(sem: 'member')
       def last = members.size() - 1
       for (i in 0..last) {
-        generateNP members[i], nom, false
+        generateNP members[i], nom
         if (i == last) {
           break
         }

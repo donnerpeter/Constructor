@@ -1,0 +1,281 @@
+package cons2
+
+/**
+ * @author peter
+ */
+class EnglishGenerator {
+  Chart dst
+
+  EnglishGenerator(Chart dst) {
+    this.dst = dst
+  }
+
+  void generate(Chart from) {
+    from.frames().findAll { isMainVerb(it) }.each { generateSentence(it, dst, [:]) }
+  }
+
+  private boolean isMainVerb(Frame f) {
+    // todo abstract main verb concept
+    f.ping(sem: 'love') || f.ping(sem: 'HAPPEN') || f.ping(sem: "START_GO_TO") || f.ping(sem: 'degree') || f.ping(sem:'REMEMBER')
+  }
+
+  private void addWord(Chart dst, String word) {
+    dst.newFrame([]).enrich(['phon', word])
+  }
+
+  private void generateSentence(Frame verb, Chart dst, Map state) {
+    def timeSpecs = verb.allOpponents(sem: 'time')
+    def whTimeSpec = timeSpecs.find { it.ping(sem:'WHEN') }
+    if (whTimeSpec) {
+      addWord dst, "when"
+      timeSpecs.remove whTimeSpec
+    }
+
+    def subject
+    def subjRel = null
+    if (verb.ping(sem: 'degree', wh_focus: 'true')) {
+      addWord dst, "Great"
+      addWord dst, "was"
+      subject = verb.children[1]
+      generateNP dst, subject, true, false
+      state.startedSentence = true
+    } else {
+      subjRel = verb.strongUsages(sem: 'experiencer')[0] ?: verb.strongUsages(sem: 'agent')[0]
+      subject = subjRel ? subjRel.children[0] : null
+      if (subject['sem'] != state.generatedSubject) {
+        generateNP(dst, subject, true, !state.startedSentence)
+      }
+      state.startedSentence = true
+
+      def modifier = verb.opponent(sem: 'mode')
+      if (modifier?.ping(sem: 'SUDDENLY')) {
+        addWord dst, 'suddenly'
+      }
+
+      verb = generateVerbCluster(dst, verb)
+
+      def addressee = verb.opponent(sem: 'addressee')
+      if (addressee) {
+        generateNP dst, addressee, false, false
+      }
+
+      def theme = verb.opponent(sem: 'theme')
+      if (theme) {
+        if (hasAccusativeTheme(verb)) {
+          generateNP(dst, theme, false, false)
+        } else if (verb.ping(sem: 'FORGET')) {
+          generateSentence theme, dst, state
+        } else if (verb.ping(sem: 'DISCOVER')) {
+          addWord dst, ','
+          addWord dst, 'that'
+          generateSentence theme, dst, state
+        } else if (verb.ping(sem: 'ASK')) {
+          if (theme.ping(sem: 'THINK')) {
+            addWord dst, 'about'
+            generatePossessive theme.opponent(sem: 'experiencer'), dst
+            addWord dst, 'opinion'
+            addWord dst, 'on'
+            generateNP dst, theme.opponent(sem: 'topic'), false, false
+          }
+        }
+        else {
+          generatePP(dst, 'to', theme)
+        }
+      }
+    }
+
+    if (verb.ping(sem: 'HAPPEN', time: 'PAST')) {
+      addWord dst, 'today'
+    }
+
+    def vpConj = verb.opponent(sem: 'conj_left', false)
+    if (vpConj) {
+      if (vpConj.ping(sem:'AND') || vpConj.ping(sem:'AND_THEN')) {
+        addWord dst, 'and'
+      } else {
+        addWord dst, ','
+        addWord dst, 'but'
+      }
+      state.generatedSubject = subject['sem']
+      generateSentence vpConj.opponent(sem: 'conj_right'), dst, state
+    }
+
+    def subjElaboration = subject?.opponent(sem: 'elaboration')
+    if (subjElaboration) {
+      addWord dst, ','
+      generateSentence subjElaboration, dst, state
+    }
+
+    if (subjRel?.ping(wh_focus: 'true')) {
+      def conj = subject.opponent(sem: 'alternatives')
+      if (conj) {
+        addWord dst, '-'
+        generateNP dst, conj.opponent(sem: 'conj_left'), true, false
+        addWord dst, 'or'
+        generateNP dst, conj.opponent(sem: 'conj_right'), true, false
+      }
+    }
+
+    if (timeSpecs[0]) {
+      addWord dst, ","
+      generateSentence timeSpecs[0], dst, state
+    }
+
+  }
+
+  private boolean hasAccusativeTheme(Frame verb) {
+    return verb.ping(sem: 'love') || verb.ping(sem: 'RECALL') || verb.ping(sem:'REMEMBER')
+  }
+
+  private Frame generateVerbCluster(Chart dst, Frame verb) {
+    if (verb.ping(sem: 'COME_SCALARLY')) {
+      addWord dst, 'comes'
+      def end = verb.opponent(sem: 'scalar_end')['sem'].value
+      if (end == 'EARLIER') {
+        addWord dst, 'first'
+      } else if (end == 'NEXT') {
+        addWord dst, 'next'
+      } else {
+        addWord dst, end
+      }
+      return verb
+    }
+
+    if (verb.ping(sem: 'CAN')) {
+      addWord dst, (verb.ping(neg:'true') ? "couldn't" : "could")
+      def main = verb.opponent(sem: 'theme')
+      if (main) {
+        return generateVerbCluster(dst, main)
+      }
+      return verb
+    }
+
+    addWord dst, generateVerb(dst, verb)
+    return verb
+  }
+
+  private String generateVerb(Chart dst, Frame verb) {
+    def sem = verb['sem'].value
+    switch (sem) {
+      case 'love': return 'loves'
+      case 'HAPPEN': return 'happened'
+      case 'FORGET': return 'forgot'
+      case 'COME_SCALARLY': return 'comes'
+      case 'START_GO_TO': return 'went'
+      case 'ASK': return 'asked'
+      case 'DISCOVER': return 'discovered'
+      case 'RECALL': return 'recall'
+      case 'REMEMBER': return 'remember'
+    }
+    return sem
+  }
+
+  private void generatePP(Chart dst, String prep, Frame noun) {
+    addWord dst, prep
+    generateNP dst, noun, false, false
+  }
+
+  private void generateNP(Chart dst, Frame noun, boolean nom, boolean first) {
+    if (noun.ping(sem:'I')) {
+      addWord dst, nom ? 'I' : 'me'
+      return;
+    }
+    if (noun.ping(sem:'THEY')) {
+      addWord dst, nom ? (first ? 'They' : 'they') : 'them'
+      return;
+    }
+
+    if (noun.ping(sem: 'WHAT')) {
+      addWord dst, 'what'
+      return
+    }
+
+    if (noun.ping(sem: 'enumeration')) {
+      def members = noun.allOpponents(sem: 'member')
+      def last = members.size() - 1
+      for (i in 0..last) {
+        generateNP dst, members[i], nom, false
+        if (i == last) {
+          break
+        }
+        if (i == last - 1) {
+          addWord dst, 'and'
+        } else {
+          addWord dst, ','
+        }
+      }
+      return
+    }
+
+    def sem = noun['sem'].value
+    if (sem.startsWith('number')) {
+      addWord dst, sem.substring('number'.size())
+      return
+    }
+
+    generateDeterminer(noun, dst)
+
+    noun.allOpponents(sem:'property_host').each { generateAdj(dst, it) }
+
+    if (noun.ping(sem: 'ORDER')) {
+      def opponent = noun.opponent(sem: 'with_respect_to')
+      if (opponent) {
+        addWord dst, generateNoun(opponent)
+      }
+    }
+
+    addWord dst, generateNoun(noun)
+  }
+
+  private def generateDeterminer(Frame noun, Chart dst) {
+    List<Frame> opponents = noun.ping(sem: 'SURPRISE') || noun.ping(sem: 'NEIGHBOURS') ? noun.allOpponents(sem: 'with_respect_to') : []
+    if (opponents) {
+      generatePossessive(opponents[0], dst)
+      if (opponents.size() == 2) {
+        addWord dst, "and"
+        generatePossessive(opponents[1], dst)
+      }
+      return
+    }
+
+    def det = noun.opponent(sem: 'determiner')
+    if (det) {
+      def sDet = det['sem'].value
+      addWord dst, sDet == "THIS" ? "this" : sDet
+      return
+    }
+
+
+    addWord dst, noun.ping(discourse: 'new') ? 'An' : 'the'
+  }
+
+  private def generatePossessive(Frame whose, Chart dst) {
+    if (whose.ping(sem: 'I')) addWord(dst, 'my')
+    if (whose.ping(sem: 'THEY')) addWord(dst, 'their')
+  }
+
+  private String generateNoun(Frame noun) {
+    def sem = noun['sem'].value
+    switch (sem) {
+      case "mother": return "mother"
+      case "daughter": return "daughter"
+      case "father": return "father"
+      case "THING": return "thing"
+      case "NEIGHBOURS": return "neighbors"
+      case "MATTER": return "matter"
+      case "SURPRISE": return "amazement"
+      case "ORDER": return "order"
+      case "COUNTING": return "counting"
+    }
+    return sem
+  }
+
+  private def generateAdj(Chart dst, Frame adj) {
+    if (adj.ping(sem:'beautiful')) {
+      addWord dst, 'beautiful'
+    }
+    else if (adj.ping(sem:'AMAZING')) {
+      addWord dst, 'amazing'
+    }
+  }
+}

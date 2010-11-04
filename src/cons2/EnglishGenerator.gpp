@@ -11,7 +11,7 @@ class EnglishGenerator {
   }
 
   void generate(Chart from) {
-    from.frames().findAll { isMainVerb(it) }.each { generateSentence(it, dst, [:]) }
+    from.frames().findAll { isMainVerb(it) }.each { generateSentence(it, [:]) }
   }
 
   private boolean isMainVerb(Frame f) {
@@ -23,7 +23,7 @@ class EnglishGenerator {
     dst.newFrame([]).enrich(['phon', word])
   }
 
-  private void generateSentence(Frame verb, Chart dst, Map state) {
+  private void generateSentence(Frame verb, Map state) {
     def timeSpecs = verb.allOpponents(sem: 'time')
     def whTimeSpec = timeSpecs.find { it.ping(sem:'WHEN') }
     if (whTimeSpec) {
@@ -37,13 +37,13 @@ class EnglishGenerator {
       addWord "Great"
       addWord "was"
       subject = verb.children[1]
-      generateNP dst, subject, true, false
+      generateNP subject, true, false
       state.startedSentence = true
     } else {
       subjRel = verb.strongUsages(sem: 'experiencer')[0] ?: verb.strongUsages(sem: 'agent')[0]
       subject = subjRel ? subjRel.children[0] : null
       if (subject['sem'] != state.generatedSubject) {
-        generateNP(dst, subject, true, !state.startedSentence)
+        generateNP(subject, true, !state.startedSentence)
       }
       state.startedSentence = true
 
@@ -52,34 +52,34 @@ class EnglishGenerator {
         addWord 'suddenly'
       }
 
-      verb = generateVerbCluster(dst, verb)
+      verb = generateVerbCluster(verb)
 
       def addressee = verb.opponent(sem: 'addressee')
       if (addressee) {
-        generateNP dst, addressee, false, false
+        generateNP addressee, false, false
       }
 
       def theme = verb.opponent(sem: 'theme')
       if (theme) {
         if (hasAccusativeTheme(verb)) {
-          generateNP(dst, theme, false, false)
+          generateNP(theme, false, false)
         } else if (verb.ping(sem: 'FORGET')) {
-          generateSentence theme, dst, state
+          generateSentence theme, state
         } else if (verb.ping(sem: 'DISCOVER')) {
           addWord ','
           addWord 'that'
-          generateSentence theme, dst, state
+          generateSentence theme, state
         } else if (verb.ping(sem: 'ASK')) {
           if (theme.ping(sem: 'THINK')) {
             addWord 'about'
-            generatePossessive theme.opponent(sem: 'experiencer'), dst
+            generatePossessive theme.opponent(sem: 'experiencer')
             addWord 'opinion'
             addWord 'on'
-            generateNP dst, theme.opponent(sem: 'topic'), false, false
+            generateNP theme.opponent(sem: 'topic'), false, false
           }
         }
         else {
-          generatePP(dst, 'to', theme)
+          generatePP('to', theme)
         }
       }
     }
@@ -97,28 +97,28 @@ class EnglishGenerator {
         addWord 'but'
       }
       state.generatedSubject = subject['sem']
-      generateSentence vpConj.opponent(sem: 'conj_right'), dst, state
+      generateSentence vpConj.opponent(sem: 'conj_right'), state
     }
 
     def subjElaboration = subject?.opponent(sem: 'elaboration')
     if (subjElaboration) {
       addWord ','
-      generateSentence subjElaboration, dst, state
+      generateSentence subjElaboration, state
     }
 
     if (subjRel?.ping(wh_focus: 'true')) {
       def conj = subject.opponent(sem: 'alternatives')
       if (conj) {
         addWord '-'
-        generateNP dst, conj.opponent(sem: 'conj_left'), true, false
+        generateNP conj.opponent(sem: 'conj_left'), true, false
         addWord 'or'
-        generateNP dst, conj.opponent(sem: 'conj_right'), true, false
+        generateNP conj.opponent(sem: 'conj_right'), true, false
       }
     }
 
     if (timeSpecs[0]) {
       addWord ","
-      generateSentence timeSpecs[0], dst, state
+      generateSentence timeSpecs[0], state
     }
 
   }
@@ -127,7 +127,7 @@ class EnglishGenerator {
     return verb.ping(sem: 'love') || verb.ping(sem: 'RECALL') || verb.ping(sem:'REMEMBER')
   }
 
-  private Frame generateVerbCluster(Chart dst, Frame verb) {
+  private Frame generateVerbCluster(Frame verb) {
     if (verb.ping(sem: 'COME_SCALARLY')) {
       addWord 'comes'
       def end = verb.opponent(sem: 'scalar_end')['sem'].value
@@ -145,16 +145,16 @@ class EnglishGenerator {
       addWord (verb.ping(neg:'true') ? "couldn't" : "could")
       def main = verb.opponent(sem: 'theme')
       if (main) {
-        return generateVerbCluster(dst, main)
+        return generateVerbCluster(main)
       }
       return verb
     }
 
-    addWord generateVerb(dst, verb)
+    addWord generateVerb(verb)
     return verb
   }
 
-  private String generateVerb(Chart dst, Frame verb) {
+  private String generateVerb(Frame verb) {
     def sem = verb['sem'].value
     switch (sem) {
       case 'love': return 'loves'
@@ -170,12 +170,12 @@ class EnglishGenerator {
     return sem
   }
 
-  private void generatePP(Chart dst, String prep, Frame noun) {
+  private void generatePP(String prep, Frame noun) {
     addWord prep
-    generateNP dst, noun, false, false
+    generateNP noun, false, false
   }
 
-  private void generateNP(Chart dst, Frame noun, boolean nom, boolean first) {
+  private void generateNP(Frame noun, boolean nom, boolean first) {
     if (noun.ping(sem:'I')) {
       addWord nom ? 'I' : 'me'
       return;
@@ -194,7 +194,7 @@ class EnglishGenerator {
       def members = noun.allOpponents(sem: 'member')
       def last = members.size() - 1
       for (i in 0..last) {
-        generateNP dst, members[i], nom, false
+        generateNP members[i], nom, false
         if (i == last) {
           break
         }
@@ -213,9 +213,9 @@ class EnglishGenerator {
       return
     }
 
-    generateDeterminer(noun, dst)
+    generateDeterminer(noun)
 
-    noun.allOpponents(sem:'property_host').each { generateAdj(dst, it) }
+    noun.allOpponents(sem:'property_host').each { generateAdj(it) }
 
     if (noun.ping(sem: 'ORDER')) {
       def opponent = noun.opponent(sem: 'with_respect_to')
@@ -227,13 +227,13 @@ class EnglishGenerator {
     addWord generateNoun(noun)
   }
 
-  private def generateDeterminer(Frame noun, Chart dst) {
+  private def generateDeterminer(Frame noun) {
     List<Frame> opponents = noun.ping(sem: 'SURPRISE') || noun.ping(sem: 'NEIGHBOURS') ? noun.allOpponents(sem: 'with_respect_to') : []
     if (opponents) {
-      generatePossessive(opponents[0], dst)
+      generatePossessive(opponents[0])
       if (opponents.size() == 2) {
         addWord "and"
-        generatePossessive(opponents[1], dst)
+        generatePossessive(opponents[1])
       }
       return
     }
@@ -249,7 +249,7 @@ class EnglishGenerator {
     addWord noun.ping(discourse: 'new') ? 'An' : 'the'
   }
 
-  private def generatePossessive(Frame whose, Chart dst) {
+  private def generatePossessive(Frame whose) {
     if (whose.ping(sem: 'I')) addWord('my')
     if (whose.ping(sem: 'THEY')) addWord('their')
   }
@@ -270,7 +270,7 @@ class EnglishGenerator {
     return sem
   }
 
-  private def generateAdj(Chart dst, Frame adj) {
+  private def generateAdj(Frame adj) {
     if (adj.ping(sem:'beautiful')) {
       addWord 'beautiful'
     }

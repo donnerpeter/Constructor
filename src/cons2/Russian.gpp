@@ -191,7 +191,7 @@ class Russian implements Language {
       if (host.ping(subcat_whq: 'true')) {
         update.listen('phon': ',') { comma, upd2 ->
           upd2.listen(syn:'noun', wh_word:'true') { wh, upd3 ->
-            upd3.confirmChoice(wh, syn:'noun', wh_word:'true', sem:'WHAT') //todo alliances
+            upd3.confirmChoice(wh, syn:'noun', wh_word:'true', sem:'WHAT')
           }
 
           def comp = upd2.newFrame([], syn: 'verb')

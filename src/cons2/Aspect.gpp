@@ -18,11 +18,7 @@ class Aspect {
     "$role:$value"
   }
 
-  boolean ping(message) {
-    if (message instanceof Collection) {
-      return message.every { ping it }
-    }
-
+  boolean ping(String message) {
     message == value
   }
 

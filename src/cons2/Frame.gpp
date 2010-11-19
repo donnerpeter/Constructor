@@ -100,22 +100,22 @@ class Frame {
     added
   }
 
-  List<Frame> strongUsages(Map<String, Object> pattern) {
+  List<Frame> strongUsages(Map<String, String> pattern) {
     chart.usages(this, false, pattern)
   }
 
-  Frame opponent(Map<String, Object> pattern, boolean arg = true) {
+  Frame opponent(Map<String, String> pattern, boolean arg = true) {
     allOpponents(pattern, arg)[0]
   }
 
-  List<Frame> allOpponents(Map<String, Object> pattern, boolean arg = true) {
+  List<Frame> allOpponents(Map<String, String> pattern, boolean arg = true) {
     return strongUsages(pattern).findAll { it.children[arg ? 1 : 0] == (Frame) this }.collect {
       List<Frame> children = it.children
       return children[0] == (Frame)this ? children[1] : children[0]
     }
   }
 
-  boolean findAround(Map<String, Object> pattern, Function1<Frame, Void> action) {
+  boolean findAround(Map<String, String> pattern, Function1<Frame, Void> action) {
     Frame frame = findAllActiveAround(pattern)[0]
     if (frame) {
       action(frame)
@@ -123,12 +123,12 @@ class Frame {
     return frame != null
   }
 
-  List<Frame> findAllActiveAround(Map<String, Object> pattern) {
+  List<Frame> findAllActiveAround(Map<String, String> pattern) {
     def active = chart.findActive(pattern)
     return active - this
   }
 
-  void chosenAs(Map<String, Object> pattern) {
+  void chosenAs(Map<String, String> pattern) {
     pattern.each { role, p ->
       def found = strongAlternatives(role).find { pingAspect(it, p) }
       if (found) {
@@ -171,7 +171,7 @@ class Frame {
     }
   }
 
-  private Aspect findDimension(pattern) {
+  private Aspect findDimension(String pattern) {
     for (role in roles) {
       def found = strongAlternatives(role).find { pingAspect(it, pattern) }
       if (found) return found
@@ -189,11 +189,11 @@ class Frame {
     return chosen[role] ? [chosen[role]] : (alternatives[role] ?: [])
   }
 
-  boolean ping(Map<String, Object> pattern) {
+  boolean ping(Map<String, String> pattern) {
     pattern.every { role, p -> strongAlternatives(role).find { pingAspect(it, p) } != null }
   }
 
-  private boolean pingAspect(Aspect aspect, p) {
+  private boolean pingAspect(Aspect aspect, String p) {
     p == null || aspect.ping(p)
   }
 

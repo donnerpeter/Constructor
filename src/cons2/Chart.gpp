@@ -87,11 +87,11 @@ class Chart {
     (frames - weak) as List<Frame>
   }
 
-  List<Frame> usages(Frame f, boolean includeWeak = false, Map<String, Object> pattern) {
+  List<Frame> usages(Frame f, boolean includeWeak = false, Map<String, String> pattern) {
     frames(includeWeak).findAll { f in it.children && it.ping(pattern) }
   }
 
-  List<Frame> findActive(Map<String, Object> pattern) {
+  List<Frame> findActive(Map<String, String> pattern) {
     return active.findAll { it.ping(pattern) }
   }
 

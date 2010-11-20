@@ -115,19 +115,6 @@ class Frame {
     }
   }
 
-  boolean findAround(Map<String, String> pattern, Function1<Frame, Void> action) {
-    Frame frame = findAllActiveAround(pattern)[0]
-    if (frame) {
-      action(frame)
-    }
-    return frame != null
-  }
-
-  List<Frame> findAllActiveAround(Map<String, String> pattern) {
-    def active = chart.findActive(pattern)
-    return active - this
-  }
-
   void chosenAs(Map<String, String> pattern) {
     pattern.each { role, p ->
       def found = strongAlternatives(role).find { pingAspect(it, p) }

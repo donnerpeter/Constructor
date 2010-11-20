@@ -76,14 +76,14 @@ class Russian implements Language {
       infl.analyze host, aspect, update
 
       if (aspect.ping(':')) {
-        host.findAround(syn:'verb') { verb -> update.wrapUp verb }
+        update.findAround(syn:'verb') { verb -> update.wrapUp verb }
       }
       if (aspect.ping('.')) {
-        host.findAround(syn:'verb') { update.enrich it, syn:'verb', sentence_end:'dot'} //todo sentence end should be marked on the main verb
-        host.findAllActiveAround([:]).each { update.wrapUp it } //todo automatic wrapUp of everything unreachable
+        update.findAround(syn:'verb') { update.enrich it, syn:'verb', sentence_end:'dot'} //todo sentence end should be marked on the main verb
+        update.findAllActiveAround([:]).each { update.wrapUp it } //todo automatic wrapUp of everything unreachable
       }
       if (aspect.ping(',')) {
-        def hasEnum = host.findAround(sem: 'enumeration') { enm ->
+        def hasEnum = update.findAround(sem: 'enumeration') { enm ->
           def member = enm.opponent(sem: 'member')
           update.listen(syn: member['syn'].value) { next, upd2 ->
             upd2.newFrame([next, enm], sem: 'member')
@@ -92,7 +92,7 @@ class Russian implements Language {
         }
 
         if (!hasEnum) {
-          host.findAround(syn:'number', phon:null) { fst ->   //todo generic enumerations
+          update.findAround(syn:'number', phon:null) { fst ->   //todo generic enumerations
             update.listen(syn:fst['syn'].value) { snd, upd2 ->
               def enm = upd2.newFrame([], syn:'noun', case:'acc', sem: 'enumeration')
               upd2.newFrame([fst, enm], sem:'member')
@@ -129,14 +129,14 @@ class Russian implements Language {
         }
         upd2.listen(phon: ',') { comma, upd3 ->
           upd3.wrapUp copula
-          copula.findAllActiveAround(syn:'noun').each { upd3.wrapUp it }
+          update.findAllActiveAround(syn:'noun').each { upd3.wrapUp it }
         }
       }
 
 
     }
     if (aspect.ping('genitive') || aspect.role == 'case' && aspect.ping('gen')) {
-      host.findAround(syn:'noun') { noun ->
+      update.findAround(syn:'noun') { noun ->
         update.newFrame([host, noun], sem:'with_respect_to')
       }
     }
@@ -146,13 +146,13 @@ class Russian implements Language {
       Frame noun = host.children[1]
       if (!noun.strongUsages(syn:'theta')) {
         def role = prep['baseForm'].value == 'по' ? 'по+дат' : 'с+тв'
-        noun.findAround(syn:'verb') { verb -> update.newFrame([noun, verb], syn:'theta', theta:role) }
+        update.findAround(syn:'verb') { verb -> update.newFrame([noun, verb], syn:'theta', theta:role) }
       }
     }
 
     if (aspect.ping('verb')) {
-      host.findAllActiveAround(syn:'noun').each { update.wrapUp it }
-      host.findAllActiveAround(syn:'noun').each { update.wrapUp it }
+      update.findAllActiveAround(syn:'noun').each { update.wrapUp it }
+      update.findAllActiveAround(syn:'noun').each { update.wrapUp it }
 
       if (host.ping(baseForm:'идти')) {
         update.listen('syn':'adverb', adv_kind:'scalar') { scalar, upd2 ->
@@ -268,7 +268,7 @@ class Russian implements Language {
     if (aspect.ping('adverb') && !host.opponent(syn: 'adv_mod')) {
       Reference<Frame> select = [null]
       if (host.ping(wh_word: 'true')) {
-        host.findAround(syn: 'degree') { rel -> select.set rel } //todo verb
+        update.findAround(syn: 'degree') { rel -> select.set rel } //todo verb
       }
 
       update.listen('syn': 'verb') { verb, upd2 ->
@@ -301,7 +301,7 @@ class Russian implements Language {
   }
 
   private def handleConj(Frame host, Update update) {
-    def hasEnum = host.findAround(sem: 'enumeration') { enm ->
+    def hasEnum = update.findAround(sem: 'enumeration') { enm ->
       update.confirmChoice(host, sem: 'AND')
       update.newFrame([host, enm], sem: 'connective')
       def member = enm.opponent(sem: 'member')
@@ -314,7 +314,7 @@ class Russian implements Language {
       return
     }
 
-    host.findAround([phon: null, syn:null]) { left ->
+    update.findAround([phon: null, syn:null]) { left ->
       def leftLink = update.newFrame([left, host], sem:'conj_left')
       update.wrapUp left
       update.listen('syn') { right, u2 ->
@@ -367,7 +367,7 @@ class Russian implements Language {
 
   private def findTheta(Aspect aspect, Frame host, Update update) {
     if (aspect.ping('noun') && !host.opponent(syn: 'theta')) {
-      def found = host.findAround(syn: 'verb') { verb ->
+      def found = update.findAround(syn: 'verb') { verb ->
         update.newFrame([host, verb], syn:'theta')
       }
       if (!found) {

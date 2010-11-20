@@ -1,0 +1,19 @@
+package cons2
+
+/**
+ * @author peter
+ */
+class Activation {
+  final Frame last
+
+  Activation(Frame last) {
+    this.last = last
+  }
+
+  List<Frame> findAllActiveAround(Map<String, String> pattern) {
+    if (!last) return []
+
+    return last.chart.findActive(pattern)
+  }
+
+}

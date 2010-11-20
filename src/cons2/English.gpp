@@ -43,7 +43,7 @@ class English implements Language {
 
   private def findTheta(Aspect aspect, Frame host, Update update) {
     if (aspect.ping('noun') && !host.strongUsages(syn: 'theta')) {
-      def found = host.findAround(syn: 'verb') { verb ->
+      def found = update.findAround(syn: 'verb') { verb ->
         update.newFrame([host, verb], syn:'theta', sem:'theme')
       }
       if (!found) {

@@ -14,11 +14,15 @@ class Update {
   private Frame beingProcessed
   private Map<Frame, Map<String, List<Function2<Frame, Update, Boolean>>>> newListeners = [:]
   private boolean dead
+  private final Frame freshman
+  final Activation activation
 
-  Update(Chart chart, List<AspectDefinition> newDefinitions = [], Set<Frame> wrapUps = []) {
+  Update(Chart chart, List<AspectDefinition> newDefinitions = [], Set<Frame> wrapUps = [], Frame freshman) {
     this.chart = chart
     this.newDefinitions = newDefinitions
     this.wrapUps.addAll wrapUps
+    this.freshman = freshman
+    activation = new Activation(chart.findActive([:])[0])
   }
 
   static Aspect[] decodeAvm(Map<String, String> avm) {
@@ -129,7 +133,7 @@ class Update {
       }
     }
 
-    def next = new Update(chart, reallyNewAspects, wrapUps)
+    def next = new Update(chart, reallyNewAspects, wrapUps, freshman)
     chart.listeners.values().each { map ->
       map.each { role, actions ->
         if (role in touched.keySet()) {
@@ -164,4 +168,17 @@ class Update {
   def merge(Frame loser, Frame into) {
     merges[loser] = into
   }
+
+  List<Frame> findAllActiveAround(Map<String, String> pattern) {
+    return activation.findAllActiveAround(pattern) - freshman
+  }
+
+  boolean findAround(Map<String, String> pattern, Function1<Frame, Void> action) {
+    Frame frame = findAllActiveAround(pattern)[0]
+    if (frame) {
+      action(frame)
+    }
+    return frame != null
+  }
+
 }

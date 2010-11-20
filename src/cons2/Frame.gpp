@@ -46,7 +46,7 @@ class Frame {
     richEnrich([appended])
   }
 
-  List<Aspect> richEnrich(List<List<Aspect>> aspectSets) {
+  List<AspectDefinition> richEnrich(List<List<Aspect>> aspectSets) {
     Map<String, Set<Aspect>> byRole = [:]
     def added = []
 
@@ -88,7 +88,7 @@ class Frame {
         def existing = alternatives.get(role, [])
         if (!(aspect in existing)) {
           existing.add(aspect)
-          added << aspect
+          added << new AspectDefinition(aspect, this)
         }
         byRole.get(role, [] as Set) << aspect
       }

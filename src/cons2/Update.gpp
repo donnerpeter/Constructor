@@ -6,7 +6,7 @@ package cons2
 class Update {
   Chart chart
   private Map<Frame, List<List<Aspect>>> newAspects = [:]
-  private Map<Frame, Collection<Aspect>> justAppeared = [:]
+  private List<AspectDefinition> newDefinitions = []
   private Map<Frame, Map<String, String>> confirmations = [:]
   private Map<Frame, Frame> merges = [:]
   private Set<Frame> wrapUps = []
@@ -15,9 +15,9 @@ class Update {
   private Map<Frame, Map<String, List<Function2<Frame, Update, Boolean>>>> newListeners = [:]
   private boolean dead
 
-  Update(Chart chart, Map<Frame, Collection<Aspect>> justAppeared = [:], Set<Frame> wrapUps = []) {
+  Update(Chart chart, List<AspectDefinition> newDefinitions = [], Set<Frame> wrapUps = []) {
     this.chart = chart
-    this.justAppeared = justAppeared
+    this.newDefinitions = newDefinitions
     this.wrapUps.addAll wrapUps
   }
 
@@ -94,31 +94,32 @@ class Update {
   void apply() {
     processImmediateChanges()
 
-    if (!newAspects && !justAppeared) {
+    if (!newAspects && !newDefinitions) {
       wrapUps.each { chart.wrapUp it }
       return
     }
 
-    justAppeared.each { frame, added ->
-      added.each {
-        if (!frame[it.role] || frame[it.role] == it) {
-          beingProcessed = frame
-          chart.language.aspectAppeared frame, it, this
-          beingProcessed = null
-        }                          
+    newDefinitions.each { definition ->
+      def frame = definition.frame
+      def aspect = definition.aspect
+      if (!frame[aspect.role] || frame[aspect.role] == aspect) {
+        beingProcessed = frame
+        chart.language.aspectAppeared frame, aspect, this
+        beingProcessed = null
       }
+
     }
 
     dead = true
 
     processImmediateChanges()
 
-    def reallyNewAspects = [:]
+    def reallyNewAspects = []
     Map<String, Set<Frame>> touched = [:]
     newAspects.each { frame, aspects ->
       def added = frame.richEnrich(aspects)
-      reallyNewAspects[frame] = added
-      added.each { touched.get(it.role, []) << frame }
+      reallyNewAspects.addAll added
+      added.each { touched.get(it.aspect.role, []) << frame }
     }
 
     newListeners.each { frame, map ->

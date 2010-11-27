@@ -207,6 +207,19 @@ frame: sem=THEY
 frame ^1 ^8: sem=experiencer
 """
   }
+  public void testSent5() throws Exception {
+    doTest 'Мы все пошли в коммерческий магазин "Гастроном"', """
+frame: sem=WE, quant=ALL
+frame: sem=GO
+frame ^2 ^1: sem=experiencer
+frame: sem=COMMERCIAL
+frame: sem=SHOP
+frame ^1 ^4: sem=theme
+frame ^3 ^2: sem=property_host
+frame: sem=Гастроном
+frame ^1 ^4: sem=name
+"""
+  }
 
   public void testTranslation1() throws Exception {
     translate(new Russian(), new English(),

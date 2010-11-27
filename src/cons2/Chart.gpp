@@ -9,7 +9,7 @@ import cons2.Log.MergeEvent
  */
 class Chart {
   private static Set<String> interestingAspects = [//'syn', 'case', 'theta',
-          'sem', 'wh_focus', 'neg', 'sentence_end']
+          'sem', 'wh_focus', 'neg', 'sentence_end', 'quant']
   static String resultPrefix = "digraph Parse {\n"
   static String resultSuffix = "}"
 

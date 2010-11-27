@@ -20,6 +20,8 @@ class Russian implements Language {
           wholeWord("удивление", syn:"noun", case:'nom', sem:"SURPRISE", discourse:'new').
           wholeWord("порядок", syn:"noun", case:'nom', sem:"ORDER", discourse:'given').
           wholeWord("порядок", syn:"noun", case:'acc', sem:"ORDER", discourse:'given').
+          wholeWord("магазин", syn:"noun", case:'nom', sem:"SHOP", discourse:'given').
+          wholeWord("магазин", syn:"noun", case:'acc', sem:"SHOP", discourse:'given').
           wholeWord("счета", syn:"noun", case:'gen', sem:"COUNTING", discourse:'new').
 
           wholeWord("случился", syn:"verb", agr:'masc', baseForm:'случиться', sem:'HAPPEN', time:'PAST').
@@ -36,6 +38,7 @@ class Russian implements Language {
           wholeWord("вспомнить", syn:"verb", agr:'inf', baseForm:'вспомнить', subcat_acc:'true', sem:'RECALL').
           wholeWord("было", syn:"copula", agr:'neutr', baseForm:'быть', sem:'BE', time:'PAST').
           wholeWord("обнаружили", syn:"verb", agr:'pl', baseForm:'обнаружить', sem:'DISCOVER', subcat_comp:'true', time:'PAST').
+          wholeWord("пошли", syn:"verb", agr:'pl', baseForm:'пойти', sem:'GO', time:'PAST').
 
           wholeWord("мое", syn:"genitive", sem:"I").
 
@@ -44,6 +47,7 @@ class Russian implements Language {
           wholeWord("со", syn:"prep", baseForm:'с').
           wholeWord("по", syn:"prep", baseForm:'по').
           wholeWord("к", syn:"prep", baseForm:'к').
+          wholeWord("в", syn:"prep", baseForm:'в').
 
           wholeWord("мной", syn:"noun", case:'instr',  sem:'I').
 
@@ -52,6 +56,7 @@ class Russian implements Language {
           wholeWord("тоже", syn:"adverb", sem:'ALSO').
           wholeWord("я", syn:"noun", case:'nom', sem:'I').
           wholeWord("Я", syn:"noun", case:'nom', sem:'I'). //todo capitalization
+          wholeWord("Мы", syn:"noun", case:'nom', sem:'WE'). //todo capitalization
           wholeWord("что", syn:"noun", wh_word:'true', case:'nom', sem:'WHAT').
           wholeWord("что", syn:"noun", wh_word:'true', case:'acc', sem:'WHAT').
           wholeWord("что", syn:"complementizer").
@@ -60,16 +65,22 @@ class Russian implements Language {
           wholeWord("идет", syn:"verb", baseForm:'идти', sem:'GO').
           wholeWord("раньше", syn:"adverb", adv_kind:'scalar', sem:'EARLIER').
           wholeWord("дальше", syn:"adverb", adv_kind:'scalar', sem:'NEXT').
+
+          wholeWord("все", syn:"all").
+
           wholeWord("или", syn:"conj", sem:'OR').
           wholeWord("и", syn:"conj", sem:'AND').
           wholeWord("а", syn:"conj", sem:'BUT').
+
           wholeWord("этому", syn:"adj", adj_kind:'det', case:'dat', sem:'THIS').
+
           wholeWord("же", syn:"emph_particle").
 
           suffix("ит", syn:'verb').
           suffix("ая", syn:'adj', case:'nom').
           suffix("ую", syn:'adj', case:'acc').
-          suffix("ый", syn:'adj', case:'nom')
+          suffix("ый", syn:'adj', case:'nom').
+          suffix("ий", syn:'adj', case:'acc')
 
   void aspectAppeared(Frame host, Aspect aspect, Update update) {
     if (aspect.role == 'phon') {
@@ -99,6 +110,15 @@ class Russian implements Language {
               upd2.newFrame([snd, enm], sem:'member')
               upd2.wrapUp fst
             }
+          }
+        }
+      }
+      if (aspect.ping('"')) {
+        update.findAround(syn:'noun') { noun ->
+          update.listen(phon:null) { name, upd2 ->
+            def phon = name['phon'].value
+            upd2.enrich(name, phon:phon, sem:phon)
+            upd2.newFrame([name, noun], sem:'name')
           }
         }
       }
@@ -243,6 +263,9 @@ class Russian implements Language {
       if (stem == "Удивительн") {
         update.enrich(host, aspect, sem: "AMAZING")
       }
+      if (stem == "коммерческ") {
+        update.enrich(host, aspect, sem: "COMMERCIAL")
+      }
     }
 
     if ((aspect.role == 'theta' || aspect.role == 'syn' && aspect.value == 'degree') && host.strongAlternatives(aspect.role)[0] == aspect) {
@@ -296,6 +319,12 @@ class Russian implements Language {
     if (aspect.role == 'sem' && aspect.ping("NEIGHBOURS")) {
       def me = update.newFrame([], sem: 'I')
       update.newFrame([me, host], sem: 'with_respect_to')
+    }
+
+    if (aspect.role == 'syn' && aspect.ping('all')) {
+      update.findAround(syn:'noun') {
+        update.enrich(it, quant:'ALL', case:'nom')
+      }
     }
 
   }

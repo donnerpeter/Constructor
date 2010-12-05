@@ -208,7 +208,7 @@ frame ^1 ^8: sem=experiencer
 """
   }
   public void testSent5() throws Exception {
-    doTest 'Мы все пошли в коммерческий магазин "Гастроном"', """
+    doTest 'Мы все пошли в коммерческий магазин "Гастроном", что на углу Знаменской и Бассейной улицы', """
 frame: sem=WE, quant=ALL
 frame: sem=GO
 frame ^2 ^1: sem=experiencer
@@ -218,6 +218,19 @@ frame ^1 ^4: sem=theme
 frame ^3 ^2: sem=property_host
 frame: sem=Гастроном
 frame ^1 ^4: sem=name
+frame: sem=CORNER
+frame ^1 ^6: sem=location
+frame: sem=Знаменск
+frame: sem=STREET
+frame ^2 ^1: sem=name
+frame ^2 ^5: sem=with_respect_to
+frame: sem=AND
+frame ^5 ^1: sem=conj_left
+frame: sem=Бассейн
+frame ^1 ^3: sem=conj_right
+frame: sem=STREET
+frame ^3 ^1: sem=name
+frame ^2 ^12: sem=with_respect_to
 """
   }
 

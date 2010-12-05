@@ -170,7 +170,7 @@ class Update {
   }
 
   List<Frame> findAllActiveAround(Map<String, String> pattern) {
-    return activation.findAllActiveAround(pattern) - freshman
+    return activation.findAllActiveAround(pattern) - freshman - beingProcessed
   }
 
   boolean findAround(Map<String, String> pattern, Function1<Frame, Void> action) {

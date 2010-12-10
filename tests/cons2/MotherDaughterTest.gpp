@@ -1,10 +1,13 @@
+/*
 package cons2
 
 import junit.framework.TestCase
 
+*/
 /**
  * @author peter
- */
+ *//*
+
 class MotherDaughterTest extends TestCase {
 
   public void testMLD() throws Exception {
@@ -241,3 +244,4 @@ frame ^1 ^3: sem=theme
   }
 
 }
+*/

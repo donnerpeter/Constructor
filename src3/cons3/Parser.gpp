@@ -1,0 +1,61 @@
+package cons3
+
+/**
+ * @author peter
+ */
+class Parser {
+
+  String parse(String text) {
+    ParsingState state = [new Situation(), null]
+    def tokenizer = new StringTokenizer(text, """ '":,.""", true)
+    for (String w in tokenizer) {
+      if (w != ' ') {
+        state = handleWord(w, state)
+      }
+    }
+    return state.situation.presentable()
+  }
+
+  static class ParsingState {
+    final Frame lastFrame
+    final Situation situation
+
+    ParsingState(Situation situation, Frame lastFrame) {
+      assert situation
+      this.situation = situation
+      this.lastFrame = lastFrame
+    }
+
+    ParsingState clone(Frame frame) {
+      [situation, frame]
+    }
+  }
+
+  ParsingState handleWord(String word, ParsingState state) {
+    def situation = state.situation
+    switch (word) {
+      case "Удивительный":
+        def frame = situation.newFrame()
+        situation.assign(frame, "property", "УДИВИТЕЛЬНЫЙ", true)
+        return state.clone(frame)
+      case "случай":
+        situation.assign(state.lastFrame, "type", "СЛУЧАЙ", true)
+        return state
+      case "случился":
+        def verb = situation.newFrame()
+        situation.assign(verb, "type", "СЛУЧИТЬСЯ", true)
+        situation.assign(situation, "time", "PAST", false)
+        situation.assign(verb, "theme", state.lastFrame, true)
+        return state.clone(verb)
+      case "со":
+        return state
+      case "мной":
+        def noun = situation.newFrame()
+        situation.assign(noun, "type", "Я", false)
+        situation.assign(state.lastFrame, "experiencer", noun, true)
+        return state.clone(noun)
+    }
+    return state
+  }
+
+}

@@ -1,10 +1,13 @@
+/*
 package cons2
 
 import junit.framework.TestCase
 
+*/
 /**
  * @author peter
- */
+ *//*
+
 class KharmsTest extends TestCase {
 
   public void testSent1() throws Exception {
@@ -291,3 +294,4 @@ frame ^2 ^12: sem=with_respect_to
 
 
 }
+*/

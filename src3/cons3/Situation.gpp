@@ -1,0 +1,86 @@
+package cons3
+
+/**
+ * @author peter
+ */
+class Situation extends Frame {
+  private List<Frame> frames = []
+  private List<Assignment> assignments = []
+  private Set<Assignment> constraints = []
+
+  Situation() {
+    super("this")
+  }
+
+  Frame newFrame() {
+    def result = new Frame(String.valueOf((char)(frames.size() + (int)'A'.charAt(0))))
+    frames << result
+    return result
+  }
+
+  void assign(Frame frame, String property, String value, boolean rheme) {
+    def assignment = new StringAssignment(frame, property, value)
+    assignments << assignment
+    if (!rheme) {
+      constraints << assignment
+    }
+  }
+
+  void assign(Frame frame, String property, Frame value, boolean rheme) {
+    def assignment = new FrameAssignment(frame, property, value)
+    assignments << assignment
+    if (!rheme) {
+      constraints << assignment
+    }
+  }
+
+  String presentable() {
+    assignments.collect { def eq ->
+      return "$eq.frame.$eq.property${eq in constraints ? "==" : ":="}$eq.value"
+    }.join("\n")
+  }
+
+}
+
+class Frame {
+  private String id
+
+  Frame(String id) {
+    this.id = id
+  }
+
+  String toString() {
+    return id
+  }
+
+
+}
+
+class Assignment<T> {
+  final Frame frame
+  final String property
+  final T value
+
+  Assignment(Frame frame, String property, T value) {
+    this.frame = frame
+    this.property = property
+    this.value = value
+  }
+
+}
+
+class StringAssignment extends Assignment<String> {
+
+  StringAssignment(Frame frame, String property, String value) {
+    super(frame, property, value)
+  }
+
+}
+
+class FrameAssignment extends Assignment<Frame> {
+
+  FrameAssignment(Frame frame, String property, Frame value) {
+    super(frame, property, value)
+  }
+
+}

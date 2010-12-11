@@ -7,7 +7,7 @@ class Parser {
 
   String parse(String text) {
     def chart = new Chart()
-    ParsingState state = [chart.newSituation(), null]
+    ParsingState state = [chart.newSituation()]
     def tokenizer = new StringTokenizer(text, """ '":,.""", true)
     for (String w in tokenizer) {
       if (w != ' ') {
@@ -20,19 +20,29 @@ class Parser {
   static class ParsingState {
     final Frame lastFrame
     final Situation situation
+    final Frame subject
 
-    ParsingState(Situation situation, Frame lastFrame) {
+    ParsingState(Situation situation) {
+      this(situation, null, null)
+    }
+
+    private ParsingState(Situation situation, Frame lastFrame, Frame subject) {
       assert situation
       this.situation = situation
       this.lastFrame = lastFrame
+      this.subject = subject
     }
 
     ParsingState withFrame(Frame frame) {
-      [situation, frame]
+      [situation, frame, subject]
     }
 
     ParsingState withSituation(Situation situation) {
-      [situation, null]
+      [situation, null, null]
+    }
+
+    ParsingState withSubject(Frame subject) {
+      [situation, lastFrame, subject]
     }
   }
 
@@ -75,6 +85,27 @@ class Parser {
         situation.assign(verb, "type", "ЗАБЫТЬ", true)
         situation.assign(situation, "time", "PAST", false)
         return state.withFrame(verb)
+      case ",":
+        return state.withSituation(situation.chart.newSituation())
+      case "что":
+        def what = situation.newFrame()
+        situation.assign(situation, "questioned", what, true)
+        return state.withFrame(what).withSubject(what)
+      case "идет":
+        def verb = situation.newFrame()
+        situation.assign(verb, "type", "ИДТИ_В_ПОСЛЕДОВАТЕЛЬНОСТИ", false)
+        situation.assign(situation, "time", "PRESENT", false)
+        situation.assign(verb, "theme", state.lastFrame, false)
+        return state.withFrame(verb)
+      case "раньше":
+        situation.assign(state.lastFrame, 'order', 'РАНЬШЕ', false)
+        return state
+      case "-":
+        return state.withFrame(state.subject)
+      case "7":
+      case "8":
+        situation.assign(state.lastFrame, 'variant', word, false)
+        return state
     }
     return state
   }

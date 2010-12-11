@@ -23,6 +23,14 @@ B.manner:=ВДРУГ
 B.experiencer:=A
 B.type:=ЗАБЫТЬ
 this.time==PAST
+--
+this.questioned:=A
+B.type==ИДТИ_В_ПОСЛЕДОВАТЕЛЬНОСТИ
+this.time==PRESENT
+B.theme==A
+B.order==РАНЬШЕ
+A.variant==7
+A.variant==8
 """
     assertEquals expected.trim(), new Parser().parse(input)
   }

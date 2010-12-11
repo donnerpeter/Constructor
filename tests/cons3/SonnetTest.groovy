@@ -17,12 +17,14 @@ this.time==PAST
 B.theme:=A
 C.type==Я
 B.experiencer:=C
+this.elaboration:=#2
 --
 A.type==Я
 B.manner:=ВДРУГ
 B.experiencer:=A
 B.type:=ЗАБЫТЬ
 this.time==PAST
+B.theme:=#3
 --
 this.questioned:=A
 B.type==ИДТИ_В_ПОСЛЕДОВАТЕЛЬНОСТИ

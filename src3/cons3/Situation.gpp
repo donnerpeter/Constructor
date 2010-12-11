@@ -8,7 +8,7 @@ class Chart {
   private final List<Situation> situations = []
 
   Situation newSituation() {
-    def result = new Situation(this)
+    def result = new Situation('#' + (situations.size() + 1), this)
     situations << result
     return result
   }
@@ -24,8 +24,8 @@ class Situation extends Frame {
   private final List<Assignment> assignments = []
   private final Set<Assignment> constraints = []
 
-  Situation(Chart chart) {
-    super("this")
+  Situation(String id, Chart chart) {
+    super(id)
     this.chart = chart
   }
 
@@ -52,7 +52,7 @@ class Situation extends Frame {
 
   String presentable() {
     assignments.collect { def eq ->
-      return "$eq.frame.$eq.property${eq in constraints ? "==" : ":="}$eq.value"
+      return "${eq.frame == (Situation) this ? 'this' : eq.frame}.$eq.property${eq in constraints ? "==" : ":="}$eq.value"
     }.join("\n")
   }
 

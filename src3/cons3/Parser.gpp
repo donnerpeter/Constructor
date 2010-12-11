@@ -70,7 +70,9 @@ class Parser {
         situation.assign(state.lastFrame, "experiencer", noun, true)
         return state.withFrame(noun)
       case ":":
-        return state.withSituation(situation.chart.newSituation())
+        def elaboration = situation.chart.newSituation()
+        situation.assign(situation, 'elaboration', elaboration, true)
+        return state.withSituation(elaboration)
       case "я":
         def noun = situation.newFrame()
         situation.assign(noun, "type", "Я", false)
@@ -86,7 +88,9 @@ class Parser {
         situation.assign(situation, "time", "PAST", false)
         return state.withFrame(verb)
       case ",":
-        return state.withSituation(situation.chart.newSituation())
+        def question = situation.chart.newSituation()
+        situation.assign(state.lastFrame, 'theme', question, true)
+        return state.withSituation(question)
       case "что":
         def what = situation.newFrame()
         situation.assign(situation, "questioned", what, true)

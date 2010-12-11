@@ -6,14 +6,15 @@ package cons3
 class Parser {
 
   String parse(String text) {
-    ParsingState state = [new Situation(), null]
+    def chart = new Chart()
+    ParsingState state = [chart.newSituation(), null]
     def tokenizer = new StringTokenizer(text, """ '":,.""", true)
     for (String w in tokenizer) {
       if (w != ' ') {
         state = handleWord(w, state)
       }
     }
-    return state.situation.presentable()
+    return chart.presentable()
   }
 
   static class ParsingState {
@@ -26,8 +27,12 @@ class Parser {
       this.lastFrame = lastFrame
     }
 
-    ParsingState clone(Frame frame) {
+    ParsingState withFrame(Frame frame) {
       [situation, frame]
+    }
+
+    ParsingState withSituation(Situation situation) {
+      [situation, null]
     }
   }
 
@@ -37,7 +42,7 @@ class Parser {
       case "Удивительный":
         def frame = situation.newFrame()
         situation.assign(frame, "property", "УДИВИТЕЛЬНЫЙ", true)
-        return state.clone(frame)
+        return state.withFrame(frame)
       case "случай":
         situation.assign(state.lastFrame, "type", "СЛУЧАЙ", true)
         return state
@@ -46,14 +51,30 @@ class Parser {
         situation.assign(verb, "type", "СЛУЧИТЬСЯ", true)
         situation.assign(situation, "time", "PAST", false)
         situation.assign(verb, "theme", state.lastFrame, true)
-        return state.clone(verb)
+        return state.withFrame(verb)
       case "со":
         return state
       case "мной":
         def noun = situation.newFrame()
         situation.assign(noun, "type", "Я", false)
         situation.assign(state.lastFrame, "experiencer", noun, true)
-        return state.clone(noun)
+        return state.withFrame(noun)
+      case ":":
+        return state.withSituation(situation.chart.newSituation())
+      case "я":
+        def noun = situation.newFrame()
+        situation.assign(noun, "type", "Я", false)
+        return state.withFrame(noun)
+      case "вдруг":
+        def verb = situation.newFrame()
+        situation.assign(verb, "manner", "ВДРУГ", true)
+        situation.assign(verb, "experiencer", state.lastFrame, true)
+        return state.withFrame(verb)
+      case "забыл":
+        def verb = state.lastFrame
+        situation.assign(verb, "type", "ЗАБЫТЬ", true)
+        situation.assign(situation, "time", "PAST", false)
+        return state.withFrame(verb)
     }
     return state
   }

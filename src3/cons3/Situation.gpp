@@ -3,13 +3,30 @@ package cons3
 /**
  * @author peter
  */
-class Situation extends Frame {
-  private List<Frame> frames = []
-  private List<Assignment> assignments = []
-  private Set<Assignment> constraints = []
 
-  Situation() {
+class Chart {
+  private final List<Situation> situations = []
+
+  Situation newSituation() {
+    def result = new Situation(this)
+    situations << result
+    return result
+  }
+
+  String presentable() {
+    situations.collect { it.presentable() }.join("\n--\n")
+  }
+}
+
+class Situation extends Frame {
+  final Chart chart
+  private final List<Frame> frames = []
+  private final List<Assignment> assignments = []
+  private final Set<Assignment> constraints = []
+
+  Situation(Chart chart) {
     super("this")
+    this.chart = chart
   }
 
   Frame newFrame() {
@@ -19,15 +36,14 @@ class Situation extends Frame {
   }
 
   void assign(Frame frame, String property, String value, boolean rheme) {
-    def assignment = new StringAssignment(frame, property, value)
-    assignments << assignment
-    if (!rheme) {
-      constraints << assignment
-    }
+    _assign(new StringAssignment(frame, property, value), rheme)
   }
 
   void assign(Frame frame, String property, Frame value, boolean rheme) {
-    def assignment = new FrameAssignment(frame, property, value)
+    _assign(new FrameAssignment(frame, property, value), rheme)
+  }
+
+  private def _assign(Assignment assignment, boolean rheme) {
     assignments << assignment
     if (!rheme) {
       constraints << assignment

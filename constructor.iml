@@ -11,7 +11,7 @@
     <content url="file://$MODULE_DIR$/../hs_cons" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="groovy++-0.2.24" level="project" />
+    <orderEntry type="library" name="groovy++-0.4.98" level="project" />
   </component>
 </module>
 

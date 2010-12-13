@@ -36,4 +36,10 @@ A.variant==8
 """
     assertEquals expected.trim(), new Parser().parse(input).presentable()
   }
+
+  public void testTranslate1() throws Exception {
+    String input = "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8"
+    String expected = "An amazing thing happened to me today, I suddenly forgot what comes first - 7 or 8"
+    assertEquals expected, new EnglishGenerator().generate(new Parser().parse(input))
+  }
 }

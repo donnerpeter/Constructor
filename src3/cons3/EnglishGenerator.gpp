@@ -42,12 +42,12 @@ class EnglishGenerator {
 
       def theme = verb.f('theme')
       if (theme instanceof Situation) {
-        new SituationGenerator(theme).sentence()
+        new SituationGenerator((Situation)theme).sentence()
       }
 
       def elaboration = situation.f('elaboration')
       if (elaboration instanceof Situation) {
-        new SituationGenerator(elaboration).sentence()
+        new SituationGenerator((Situation)elaboration).sentence()
       }
 
       def variants = subj.allAssignments('variant')

@@ -5,7 +5,7 @@ package cons3
  */
 class Parser {
 
-  String parse(String text) {
+  Chart parse(String text) {
     def chart = new Chart()
     ParsingState state = [chart.newSituation()]
     def tokenizer = new StringTokenizer(text, """ '":,.""", true)
@@ -14,7 +14,7 @@ class Parser {
         state = handleWord(w, state)
       }
     }
-    return chart.presentable()
+    return chart
   }
 
   static class ParsingState {
@@ -51,14 +51,14 @@ class Parser {
     switch (word) {
       case "Удивительный":
         def frame = situation.newFrame()
-        situation.assign(frame, "property", "УДИВИТЕЛЬНЫЙ", true)
+        situation.assign(frame, "property", "AMAZING", true)
         return state.withFrame(frame)
       case "случай":
-        situation.assign(state.lastFrame, "type", "СЛУЧАЙ", true)
+        situation.assign(state.lastFrame, "type", "THING", true)
         return state
       case "случился":
         def verb = situation.newFrame()
-        situation.assign(verb, "type", "СЛУЧИТЬСЯ", true)
+        situation.assign(verb, "type", "HAPPEN", true)
         situation.assign(situation, "time", "PAST", false)
         situation.assign(verb, "theme", state.lastFrame, true)
         return state.withFrame(verb)
@@ -66,7 +66,7 @@ class Parser {
         return state
       case "мной":
         def noun = situation.newFrame()
-        situation.assign(noun, "type", "Я", false)
+        situation.assign(noun, "type", "ME", false)
         situation.assign(state.lastFrame, "experiencer", noun, true)
         return state.withFrame(noun)
       case ":":
@@ -75,16 +75,16 @@ class Parser {
         return state.withSituation(elaboration)
       case "я":
         def noun = situation.newFrame()
-        situation.assign(noun, "type", "Я", false)
+        situation.assign(noun, "type", "ME", false)
         return state.withFrame(noun)
       case "вдруг":
         def verb = situation.newFrame()
-        situation.assign(verb, "manner", "ВДРУГ", true)
+        situation.assign(verb, "manner", "SUDDENLY", true)
         situation.assign(verb, "experiencer", state.lastFrame, true)
         return state.withFrame(verb)
       case "забыл":
         def verb = state.lastFrame
-        situation.assign(verb, "type", "ЗАБЫТЬ", true)
+        situation.assign(verb, "type", "FORGET", true)
         situation.assign(situation, "time", "PAST", false)
         return state.withFrame(verb)
       case ",":
@@ -97,12 +97,12 @@ class Parser {
         return state.withFrame(what).withSubject(what)
       case "идет":
         def verb = situation.newFrame()
-        situation.assign(verb, "type", "ИДТИ_В_ПОСЛЕДОВАТЕЛЬНОСТИ", false)
+        situation.assign(verb, "type", "COME_SCALARLY", false)
         situation.assign(situation, "time", "PRESENT", false)
         situation.assign(verb, "theme", state.lastFrame, false)
         return state.withFrame(verb)
       case "раньше":
-        situation.assign(state.lastFrame, 'order', 'РАНЬШЕ', false)
+        situation.assign(state.lastFrame, 'order', 'EARLIER', false)
         return state
       case "-":
         return state.withFrame(state.subject)

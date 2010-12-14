@@ -53,8 +53,16 @@ class Parser {
         def frame = situation.newFrame()
         situation.assign(frame, "property", "AMAZING", true)
         return state.withFrame(frame)
+      case "этому":
+        def frame = situation.newFrame()
+        situation.assign(frame, "determiner", "THIS", false)
+        situation.assign(state.lastFrame, "topic", frame, false)
+        return state.withFrame(frame)
       case "случай":
         situation.assign(state.lastFrame, "type", "THING", true)
+        return state
+      case "поводу":
+        situation.assign(state.lastFrame, "type", "MATTER", false)
         return state
       case "случился":
         def verb = situation.newFrame()
@@ -74,9 +82,24 @@ class Parser {
         situation.assign(situation, 'elaboration', elaboration, true)
         return state.withSituation(elaboration)
       case "я":
+      case "Я":
         def noun = situation.newFrame()
         situation.assign(noun, "type", "ME", false)
         return state.withFrame(noun)
+      case "их":
+        def noun = situation.newFrame()
+        situation.assign(noun, "type", "THEY", false)
+        situation.assign(state.lastFrame, "addressee", noun, true)
+        return state
+      case "они":
+        def noun = situation.newFrame()
+        situation.assign(noun, "type", "THEY", false)
+        return state.withFrame(noun)
+      case "соседям":
+        def noun = situation.newFrame()
+        situation.assign(noun, "type", "NEIGHBOURS", false)
+        situation.assign(state.lastFrame, 'goal', noun, true)
+        return state
       case "вдруг":
         def verb = situation.newFrame()
         situation.assign(verb, "manner", "SUDDENLY", true)
@@ -87,9 +110,29 @@ class Parser {
         situation.assign(verb, "type", "FORGET", true)
         situation.assign(situation, "time", "PAST", false)
         return state.withFrame(verb)
+      case "отправился":
+        def verb = situation.newFrame()
+        situation.assign(verb, "type", "GO_OFF", true)
+        situation.assign(situation, "time", "PAST", false)
+        situation.assign(verb, "agent", state.lastFrame, true)
+        return state.withFrame(verb)
+      case "думают":
+        def verb = situation.newFrame()
+        situation.assign(verb, "type", "THINK", false)
+        situation.assign(situation, "time", "PRESENT", false)
+        situation.assign(verb, "experiencer", state.lastFrame, false)
+        situation.assign(verb, "opinion", state.subject, false)
+        return state.withFrame(verb)
+      case "спросил":
+        def verb = situation.newFrame()
+        situation.assign(verb, "type", "ASK", true)
+        situation.assign(verb, "agent", state.lastFrame.f('agent'), true)
+        return state.withFrame(verb)
       case ",":
         def question = situation.chart.newSituation()
-        situation.assign(state.lastFrame, 'theme', question, true)
+        def verb = state.lastFrame
+        def role = verb.type == 'FORGET' ? 'theme' : 'question'
+        situation.assign(verb, role, question, true)
         return state.withSituation(question)
       case "что":
         def what = situation.newFrame()

@@ -55,12 +55,8 @@ class Parser {
   ParsingState handleWord(String word, ParsingState state) {
     def situation = state.situation
     switch (word) {
-      case "Удивительный":
-        return adj(state, "property", "AMAZING", true, 'nom')
-      case "этому":
-        state = adj(state, 'determiner', 'THIS', false, 'dat')
-        situation.assign(state.verb, "topic", state.lastFrame, false)
-        return state
+      case "Удивительный": return adj(state, "property", "AMAZING", true, 'nom')
+      case "этому": return adj(state, 'determiner', 'THIS', false, 'dat')
       case "случай":
         return noun(state, 'nom', "THING", true)
       case "поводу":
@@ -161,13 +157,33 @@ class Parser {
     }
 
     state.situation.assign(state.lastFrame, "type", type, rheme)
+    thetas(state)
     return state
   }
 
   private ParsingState adj(ParsingState state, String attr, String value, boolean rheme, String caze) {
     state = state.withRole(caze)
     state.situation.assign(state.lastFrame, attr, value, rheme)
+    thetas(state)
     return state
+  }
+
+  private void thetas(ParsingState state) {
+    def verb = state.verb
+    def type = verb?.type
+    if (!type) return
+
+
+    if (type == 'THINK') {
+      ensureTheta state, 'dat', 'topic'
+    }
+
+  }
+
+  private void ensureTheta(ParsingState state, String caze, String theta) {
+    if (state[caze] && !state.verb.f(theta)) {
+      state.situation.assign(state.verb, theta, state[caze], false)
+    }
   }
 
 }

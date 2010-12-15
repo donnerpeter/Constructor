@@ -58,10 +58,10 @@ class Parser {
     def situation = state.situation
     switch (word) {
       case "Удивительный":
-        return adj(state, "property", "AMAZING", true)
+        return adj(state, "property", "AMAZING", true, 'nom')
       case "этому":
         def verb = state.lastFrame
-        state = adj(state, 'determiner', 'THIS', false)
+        state = adj(state, 'determiner', 'THIS', false, 'dat')
         situation.assign(verb, "topic", state.lastFrame, false)
         return state
       case "случай":
@@ -163,11 +163,10 @@ class Parser {
     return state
   }
 
-  private ParsingState adj(ParsingState state, String attr, String value, boolean rheme) {
-    def situation = state.situation
-    def frame = situation.newFrame()
-    situation.assign(frame, attr, value, rheme)
-    return state.withFrame(frame)
+  private ParsingState adj(ParsingState state, String attr, String value, boolean rheme, String caze) {
+    state = state.withRole(caze)
+    state.situation.assign(state.lastFrame, attr, value, rheme)
+    return state
   }
 
 }

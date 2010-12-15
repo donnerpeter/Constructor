@@ -18,32 +18,45 @@ class Parser {
   }
 
   static class ParsingState {
-    final Frame lastFrame
     final Situation situation
+    final Frame lastFrame
     final Frame subject
+    private Map<String, Frame> participants = [:]
 
     ParsingState(Situation situation) {
-      this(situation, null, null)
+      this(situation, null, null, [:])
     }
 
-    private ParsingState(Situation situation, Frame lastFrame, Frame subject) {
-      assert situation
-      this.situation = situation
+    private ParsingState(Situation situation, Frame lastFrame, Frame subject, Map<String, Frame> participants) {
       this.lastFrame = lastFrame
+      this.situation = situation
       this.subject = subject
+      this.participants = participants
     }
 
     ParsingState withFrame(Frame frame) {
-      [situation, frame, subject]
+      [situation, frame, subject, participants]
     }
 
     ParsingState withSituation(Situation situation) {
-      [situation, null, null]
+      [situation, null, null, [:]]
     }
 
     ParsingState withSubject(Frame subject) {
-      [situation, lastFrame, subject]
+      [situation, lastFrame, subject, participants]
     }
+
+    ParsingState withRole(String key, Frame frame = null) {
+      if (!frame) {
+        frame = getAt(key) ?: situation.newFrame()
+      }
+      [situation, frame, subject, participants + [key: frame]]
+    }
+
+    Frame getAt(String key) {
+      participants[key]
+    }
+
   }
 
   ParsingState handleWord(String word, ParsingState state) {

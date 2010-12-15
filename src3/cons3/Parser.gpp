@@ -37,9 +37,7 @@ class Parser {
       [situation, frame, participants]
     }
 
-    ParsingState withSituation(Situation situation) {
-      [situation, null, [:]]
-    }
+    ParsingState withSituation(Situation situation) { [situation, null, [:]] }
 
     ParsingState withRole(String key, Frame frame = null) {
       if (!frame) {
@@ -48,9 +46,9 @@ class Parser {
       [situation, frame, participants + [(key): frame]]
     }
 
-    Frame getAt(String key) {
-      participants[key]
-    }
+    Frame getAt(String key) { participants[key] }
+
+    Frame getVerb() { getAt('verb') }
 
   }
 
@@ -60,26 +58,25 @@ class Parser {
       case "Удивительный":
         return adj(state, "property", "AMAZING", true, 'nom')
       case "этому":
-        def verb = state.lastFrame
         state = adj(state, 'determiner', 'THIS', false, 'dat')
-        situation.assign(verb, "topic", state.lastFrame, false)
+        situation.assign(state.verb, "topic", state.lastFrame, false)
         return state
       case "случай":
         return noun(state, 'nom', "THING", true)
       case "поводу":
         return noun(state, 'dat', "MATTER", false)
       case "случился":
-        def verb = situation.newFrame()
+        state = state.withRole('verb')
+        def verb = state.lastFrame
         situation.assign(verb, "type", "HAPPEN", true)
         situation.assign(situation, "time", "PAST", false)
-        situation.assign(verb, "theme", state.lastFrame, true)
-        return state.withFrame(verb)
+        situation.assign(verb, "theme", state['nom'], true)
+        return state
       case "со":
         return state
       case "мной":
-        def verb = state.lastFrame
         state = noun(state, 'instr', 'ME', false)
-        situation.assign(verb, "experiencer", state.lastFrame, true)
+        situation.assign(state.verb, "experiencer", state.lastFrame, true)
         return state
       case ":":
         def elaboration = situation.chart.newSituation()
@@ -89,48 +86,46 @@ class Parser {
       case "Я":
         return noun(state, 'nom', 'ME', false)
       case "их":
-        def verb = state.lastFrame
         state = noun(state, 'acc', 'THEY', false)
-        situation.assign(verb, "addressee", state.lastFrame, true)
+        situation.assign(state.verb, "addressee", state.lastFrame, true)
         return state
       case "они":
         return noun(state, 'nom', 'THEY', false)
       case "соседям":
-        def verb = state.lastFrame
         state = noun(state, 'dat', 'NEIGHBOURS', false)
-        situation.assign(verb, 'goal', state.lastFrame, true)
+        situation.assign(state.verb, 'goal', state.lastFrame, true)
         return state
       case "вдруг":
-        def verb = situation.newFrame()
-        situation.assign(verb, "manner", "SUDDENLY", true)
-        situation.assign(verb, "experiencer", state.lastFrame, true)
-        return state.withFrame(verb)
+        state = state.withRole('verb')
+        situation.assign(state.verb, "manner", "SUDDENLY", true)
+        situation.assign(state.verb, "experiencer", state['nom'], true)
+        return state
       case "забыл":
-        def verb = state.lastFrame
-        situation.assign(verb, "type", "FORGET", true)
+        state = state.withRole('verb')
+        situation.assign(state.verb, "type", "FORGET", true)
         situation.assign(situation, "time", "PAST", false)
-        return state.withFrame(verb)
+        return state
       case "отправился":
-        def verb = situation.newFrame()
-        situation.assign(verb, "type", "GO_OFF", true)
+        state = state.withRole('verb')
+        situation.assign(state.verb, "type", "GO_OFF", true)
         situation.assign(situation, "time", "PAST", false)
-        situation.assign(verb, "agent", state.lastFrame, true)
-        return state.withFrame(verb)
+        situation.assign(state.verb, "agent", state['nom'], true)
+        return state
       case "думают":
-        def verb = situation.newFrame()
-        situation.assign(verb, "type", "THINK", false)
+        state = state.withRole('verb')
+        situation.assign(state.verb, "type", "THINK", false)
         situation.assign(situation, "time", "PRESENT", false)
-        situation.assign(verb, "experiencer", state.lastFrame, false)
-        situation.assign(verb, "opinion", state['acc'], false)
-        return state.withFrame(verb)
+        situation.assign(state.verb, "experiencer", state['nom'], false)
+        situation.assign(state.verb, "opinion", state['acc'], false)
+        return state
       case "спросил":
-        def verb = situation.newFrame()
-        situation.assign(verb, "type", "ASK", true)
-        situation.assign(verb, "agent", state['nom'], true)
-        return state.withFrame(verb)
+        state = state.withRole('verb', situation.newFrame())
+        situation.assign(state.verb, "type", "ASK", true)
+        situation.assign(state.verb, "agent", state['nom'], true)
+        return state
       case ",":
         def question = situation.chart.newSituation()
-        def verb = situation.frames.find { it.type in ['FORGET', 'ASK'] }
+        def verb = state.verb
         def role = verb.type == 'FORGET' ? 'theme' : 'question'
         situation.assign(verb, role, question, true)
         return state.withSituation(question)
@@ -139,13 +134,13 @@ class Parser {
         situation.assign(situation, "questioned", state.lastFrame, true)
         return state.withRole('questioned', state.lastFrame)
       case "идет":
-        def verb = situation.newFrame()
-        situation.assign(verb, "type", "COME_SCALARLY", false)
+        state = state.withRole('verb')
+        situation.assign(state.verb, "type", "COME_SCALARLY", false)
         situation.assign(situation, "time", "PRESENT", false)
-        situation.assign(verb, "theme", state.lastFrame, false)
-        return state.withFrame(verb)
+        situation.assign(state.verb, "theme", state['nom'], false)
+        return state
       case "раньше":
-        situation.assign(state.lastFrame, 'order', 'EARLIER', false)
+        situation.assign(state.verb, 'order', 'EARLIER', false)
         return state
       case "-":
         return state.withFrame(state['nom'])

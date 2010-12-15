@@ -20,37 +20,32 @@ class Parser {
   static class ParsingState {
     final Situation situation
     final Frame lastFrame
-    final Frame subject
     private Map<String, Frame> participants = [:]
 
     ParsingState(Situation situation) {
-      this(situation, null, null, [:])
+      this(situation, null, [:])
     }
 
-    private ParsingState(Situation situation, Frame lastFrame, Frame subject, Map<String, Frame> participants) {
+    private ParsingState(Situation situation, Frame lastFrame, Map<String, Frame> participants) {
       this.lastFrame = lastFrame
       this.situation = situation
-      this.subject = subject
       this.participants = participants
     }
 
     ParsingState withFrame(Frame frame) {
-      [situation, frame, subject, participants]
+      assert frame
+      [situation, frame, participants]
     }
 
     ParsingState withSituation(Situation situation) {
-      [situation, null, null, [:]]
-    }
-
-    ParsingState withSubject(Frame subject) {
-      [situation, lastFrame, subject, participants]
+      [situation, null, [:]]
     }
 
     ParsingState withRole(String key, Frame frame = null) {
       if (!frame) {
         frame = getAt(key) ?: situation.newFrame()
       }
-      [situation, frame, subject, participants + [key: frame]]
+      [situation, frame, participants + [(key): frame]]
     }
 
     Frame getAt(String key) {
@@ -132,7 +127,7 @@ class Parser {
         situation.assign(verb, "type", "THINK", false)
         situation.assign(situation, "time", "PRESENT", false)
         situation.assign(verb, "experiencer", state.lastFrame, false)
-        situation.assign(verb, "opinion", state.subject, false)
+        situation.assign(verb, "opinion", state['nom'], false)
         return state.withFrame(verb)
       case "спросил":
         def verb = situation.newFrame()
@@ -146,9 +141,9 @@ class Parser {
         situation.assign(verb, role, question, true)
         return state.withSituation(question)
       case "что":
-        def what = situation.newFrame()
-        situation.assign(situation, "questioned", what, true)
-        return state.withFrame(what).withSubject(what)
+        state = state.withRole('nom')
+        situation.assign(situation, "questioned", state.lastFrame, true)
+        return state
       case "идет":
         def verb = situation.newFrame()
         situation.assign(verb, "type", "COME_SCALARLY", false)
@@ -159,7 +154,7 @@ class Parser {
         situation.assign(state.lastFrame, 'order', 'EARLIER', false)
         return state
       case "-":
-        return state.withFrame(state.subject)
+        return state.withFrame(state['nom'])
       case "7":
       case "8":
         situation.assign(state.lastFrame, 'variant', word, false)

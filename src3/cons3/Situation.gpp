@@ -94,6 +94,8 @@ class Assignment<T> {
   final T value
 
   Assignment(Frame frame, String property, T value) {
+    assert frame
+    assert property
     this.frame = frame
     this.property = property
     this.value = value

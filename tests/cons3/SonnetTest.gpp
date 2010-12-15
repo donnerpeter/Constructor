@@ -20,9 +20,9 @@ this.elaboration:=#2
 --
 A.type==ME
 B.manner:=SUDDENLY
-B.experiencer:=A
 B.type:=FORGET
 this.time==PAST
+B.experiencer:=A
 B.theme:=#3
 --
 this.questioned:=A

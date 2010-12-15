@@ -57,22 +57,19 @@ class Parser {
     switch (word) {
       case "Удивительный": return adj(state, "property", "AMAZING", true, 'nom')
       case "этому": return adj(state, 'determiner', 'THIS', false, 'dat')
-      case "случай":
-        return noun(state, 'nom', "THING", true)
-      case "поводу":
-        return noun(state, 'dat', "MATTER", false)
+      case "случай": return noun(state, 'nom', "THING", true)
+      case "поводу": return noun(state, 'dat', "MATTER", false)
       case "случился":
         state = state.withRole('verb')
         def verb = state.lastFrame
         situation.assign(verb, "type", "HAPPEN", true)
         situation.assign(situation, "time", "PAST", false)
-        situation.assign(verb, "theme", state['nom'], true)
+        thetas(state)
         return state
       case "со":
         return state
       case "мной":
         state = noun(state, 'instr', 'ME', false)
-        situation.assign(state.verb, "experiencer", state.lastFrame, true)
         return state
       case ":":
         def elaboration = situation.chart.newSituation()
@@ -82,42 +79,37 @@ class Parser {
       case "Я":
         return noun(state, 'nom', 'ME', false)
       case "их":
-        state = noun(state, 'acc', 'THEY', false)
-        situation.assign(state.verb, "addressee", state.lastFrame, true)
-        return state
+        return noun(state, 'acc', 'THEY', false)
       case "они":
         return noun(state, 'nom', 'THEY', false)
       case "соседям":
-        state = noun(state, 'dat', 'NEIGHBOURS', false)
-        situation.assign(state.verb, 'goal', state.lastFrame, true)
-        return state
+        return noun(state, 'dat', 'NEIGHBOURS', false)
       case "вдруг":
         state = state.withRole('verb')
         situation.assign(state.verb, "manner", "SUDDENLY", true)
-        situation.assign(state.verb, "experiencer", state['nom'], true)
         return state
       case "забыл":
         state = state.withRole('verb')
         situation.assign(state.verb, "type", "FORGET", true)
         situation.assign(situation, "time", "PAST", false)
+        thetas(state)
         return state
       case "отправился":
         state = state.withRole('verb')
         situation.assign(state.verb, "type", "GO_OFF", true)
         situation.assign(situation, "time", "PAST", false)
-        situation.assign(state.verb, "agent", state['nom'], true)
+        thetas(state)
         return state
       case "думают":
         state = state.withRole('verb')
         situation.assign(state.verb, "type", "THINK", false)
         situation.assign(situation, "time", "PRESENT", false)
-        situation.assign(state.verb, "experiencer", state['nom'], false)
-        situation.assign(state.verb, "opinion", state['acc'], false)
+        thetas(state)
         return state
       case "спросил":
         state = state.withRole('verb', situation.newFrame())
         situation.assign(state.verb, "type", "ASK", true)
-        situation.assign(state.verb, "agent", state['nom'], true)
+        thetas(state)
         return state
       case ",":
         def question = situation.chart.newSituation()
@@ -133,7 +125,7 @@ class Parser {
         state = state.withRole('verb')
         situation.assign(state.verb, "type", "COME_SCALARLY", false)
         situation.assign(situation, "time", "PRESENT", false)
-        situation.assign(state.verb, "theme", state['nom'], false)
+        thetas(state)
         return state
       case "раньше":
         situation.assign(state.verb, 'order', 'EARLIER', false)
@@ -175,14 +167,34 @@ class Parser {
 
 
     if (type == 'THINK') {
-      ensureTheta state, 'dat', 'topic'
+      ensureTheta state, 'nom', 'experiencer', false
+      ensureTheta state, 'acc', 'opinion', false
+      ensureTheta state, 'dat', 'topic', false //todo poDat
+    }
+    if (type == 'HAPPEN') {
+      ensureTheta state, 'nom', 'theme', true
+      ensureTheta state, 'instr', 'experiencer', true //todo sInstr
+    }
+    if (type == 'COME_SCALARLY') {
+      ensureTheta state, 'nom', 'theme', false
+    }
+    if (type == 'GO_OFF') {
+      ensureTheta state, 'nom', 'agent', true
+      ensureTheta state, 'dat', 'goal', true //todo kDat
+    }
+    if (type == 'ASK') {
+      ensureTheta state, 'nom', 'agent', true
+      ensureTheta state, 'acc', 'addressee', true
+    }
+    if (type == 'FORGET') {
+      ensureTheta state, 'nom', 'experiencer', true
     }
 
   }
 
-  private void ensureTheta(ParsingState state, String caze, String theta) {
+  private void ensureTheta(ParsingState state, String caze, String theta, boolean rheme) {
     if (state[caze] && !state.verb.f(theta)) {
-      state.situation.assign(state.verb, theta, state[caze], false)
+      state.situation.assign(state.verb, theta, state[caze], rheme)
     }
   }
 

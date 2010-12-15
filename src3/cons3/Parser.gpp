@@ -65,11 +65,9 @@ class Parser {
         situation.assign(verb, "topic", state.lastFrame, false)
         return state
       case "случай":
-        situation.assign(state.lastFrame, "type", "THING", true)
-        return state
+        return noun(state, 'nom', "THING", true)
       case "поводу":
-        situation.assign(state.lastFrame, "type", "MATTER", false)
-        return state
+        return noun(state, 'dat', "MATTER", false)
       case "случился":
         def verb = situation.newFrame()
         situation.assign(verb, "type", "HAPPEN", true)
@@ -79,32 +77,28 @@ class Parser {
       case "со":
         return state
       case "мной":
-        def noun = situation.newFrame()
-        situation.assign(noun, "type", "ME", false)
-        situation.assign(state.lastFrame, "experiencer", noun, true)
-        return state.withFrame(noun)
+        def verb = state.lastFrame
+        state = noun(state, 'instr', 'ME', false)
+        situation.assign(verb, "experiencer", state.lastFrame, true)
+        return state
       case ":":
         def elaboration = situation.chart.newSituation()
         situation.assign(situation, 'elaboration', elaboration, true)
         return state.withSituation(elaboration)
       case "я":
       case "Я":
-        def noun = situation.newFrame()
-        situation.assign(noun, "type", "ME", false)
-        return state.withFrame(noun)
+        return noun(state, 'nom', 'ME', false)
       case "их":
-        def noun = situation.newFrame()
-        situation.assign(noun, "type", "THEY", false)
-        situation.assign(state.lastFrame, "addressee", noun, true)
+        def verb = state.lastFrame
+        state = noun(state, 'acc', 'THEY', false)
+        situation.assign(verb, "addressee", state.lastFrame, true)
         return state
       case "они":
-        def noun = situation.newFrame()
-        situation.assign(noun, "type", "THEY", false)
-        return state.withFrame(noun)
+        return noun(state, 'nom', 'THEY', false)
       case "соседям":
-        def noun = situation.newFrame()
-        situation.assign(noun, "type", "NEIGHBOURS", false)
-        situation.assign(state.lastFrame, 'goal', noun, true)
+        def verb = state.lastFrame
+        state = noun(state, 'dat', 'NEIGHBOURS', false)
+        situation.assign(verb, 'goal', state.lastFrame, true)
         return state
       case "вдруг":
         def verb = situation.newFrame()
@@ -127,23 +121,23 @@ class Parser {
         situation.assign(verb, "type", "THINK", false)
         situation.assign(situation, "time", "PRESENT", false)
         situation.assign(verb, "experiencer", state.lastFrame, false)
-        situation.assign(verb, "opinion", state['nom'], false)
+        situation.assign(verb, "opinion", state['acc'], false)
         return state.withFrame(verb)
       case "спросил":
         def verb = situation.newFrame()
         situation.assign(verb, "type", "ASK", true)
-        situation.assign(verb, "agent", state.lastFrame.f('agent'), true)
+        situation.assign(verb, "agent", state['nom'], true)
         return state.withFrame(verb)
       case ",":
         def question = situation.chart.newSituation()
-        def verb = state.lastFrame
+        def verb = situation.frames.find { it.type in ['FORGET', 'ASK'] }
         def role = verb.type == 'FORGET' ? 'theme' : 'question'
         situation.assign(verb, role, question, true)
         return state.withSituation(question)
       case "что":
         state = state.withRole('nom')
         situation.assign(situation, "questioned", state.lastFrame, true)
-        return state
+        return state.withRole('questioned', state.lastFrame)
       case "идет":
         def verb = situation.newFrame()
         situation.assign(verb, "type", "COME_SCALARLY", false)
@@ -160,6 +154,18 @@ class Parser {
         situation.assign(state.lastFrame, 'variant', word, false)
         return state
     }
+    return state
+  }
+
+  private ParsingState noun(ParsingState state, String caze, String type, boolean rheme) {
+    def existing = state[caze]
+    if (existing && (existing.s('type') || existing == state['questioned'])) {
+      state = state.withRole('acc', existing).withRole(caze, state.situation.newFrame())
+    } else {
+      state = state.withRole(caze)
+    }
+
+    state.situation.assign(state.lastFrame, "type", type, rheme)
     return state
   }
 

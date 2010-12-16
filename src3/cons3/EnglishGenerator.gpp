@@ -13,24 +13,45 @@ class EnglishGenerator {
 
   private class SituationGenerator {
     Situation situation
+    boolean hasSubject
 
     SituationGenerator(Situation situation) {
       this.situation = situation
     }
 
     private def sentence() {
-      def verb = situation.frames.find { it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY'] }
+      List<Frame> allVerbs = situation.frames.findAll { it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY', 'GO_OFF', 'ASK'] }
+      def verb = allVerbs[0]
       assert verb : situation.presentable()
 
-      def subj = verb.type in ['HAPPEN', 'COME_SCALARLY'] ? verb.f('theme') : verb.f('experiencer')
-      np(subj, true)
+      clause(verb)
+
+      if (allVerbs.size() > 1) {
+        output << "and"
+        clause(allVerbs[1])
+      }
+    }
+
+    private void clause(Frame verb) {
+      def subj = verb.type in ['HAPPEN', 'COME_SCALARLY'] ? verb.f('theme') :
+          verb.type in ['GO_OFF', 'ASK'] ? verb.f('agent') : verb.f('experiencer')
+      if (!hasSubject) {
+        np(subj, true)
+        hasSubject = true
+      }
+
 
       if (verb.s('manner') == 'SUDDENLY') {
         output << 'suddenly'
       }
-      output << (verb.type == 'HAPPEN' ? "happened" : verb.type == 'FORGET' ? 'forgot' : 'comes first')
+      output << [HAPPEN: 'happened', FORGET: 'forgot', COME_SCALARLY: 'comes first', GO_OFF: 'went', ASK: 'asked'][verb.type]
 
-      def io = verb.type == 'HAPPEN' ? verb.f('experiencer') : null
+      def dobj = verb.type == 'ASK' ? verb.f('addressee') : null
+      if (dobj) {
+        np(dobj, false)
+      }
+
+      def io = verb.type == 'HAPPEN' ? verb.f('experiencer') : verb.type == 'GO_OFF' ? verb.f('goal') : null
       if (io) {
         output << "to"
         np(io, false)
@@ -38,6 +59,19 @@ class EnglishGenerator {
 
       if (verb.type == 'HAPPEN') {
         output << "today,"
+      }
+
+      def question = verb.f('question')
+      if (question instanceof Situation) {
+        output << 'about'
+        def think = ((Situation) question).frames.find { it.type == 'THINK' }
+        def exp = think.f('experiencer')
+        if (exp?.type == 'THEY') {
+          output << 'their'
+        }
+        output << 'opinion'
+        output << 'on'
+        np(think.f('topic'), false)
       }
 
       def theme = verb.f('theme')
@@ -67,6 +101,10 @@ class EnglishGenerator {
         output << (nom ? 'I' : "me")
         return
       }
+      if (n.s('type') == 'THEY') {
+        output << (nom ? 'they' : "them")
+        return
+      }
 
       if (n == situation.f('questioned')) {
         output << 'what'
@@ -74,18 +112,31 @@ class EnglishGenerator {
       }
 
 
-      output << "An"
+      output << determiner(n)
       if (n.s('property') == 'AMAZING') {
         output << "amazing"
       }
 
-      def type = n.type
-      if (type == 'THING') {
-        output << "thing"
+      output << noun(n.type)
+    }
+
+    private String determiner(Frame n) {
+      def det = n.s('determiner')
+      if (det == 'THIS') {
+        return 'this'
       }
-      else {
-        output << type
-      }
+
+      return n.type == 'NEIGHBOURS' ? 'my' : "An"
+    }
+
+  }
+
+  private String noun(String type) {
+    switch (type) {
+      case 'THING': return 'thing'
+      case 'NEIGHBOURS': return 'neighbors'
+      case 'MATTER': return 'matter'
+      default: return type
     }
 
   }

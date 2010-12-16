@@ -66,8 +66,16 @@ D.type==MATTER
   }
 
   public void testTranslate1() throws Exception {
-    String input = "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8"
-    String expected = "An amazing thing happened to me today, I suddenly forgot what comes first - 7 or 8"
+    doTranslateTest "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8",
+                    "An amazing thing happened to me today, I suddenly forgot what comes first - 7 or 8"
+  }
+
+  public void testTranslate2() throws Exception {
+    doTranslateTest "Я отправился к соседям и спросил их, что они думают по этому поводу",
+                    "I went to my neighbors and asked them about their opinion on this matter"
+  }
+
+  private def doTranslateTest(String input, String expected) {
     assertEquals expected, new EnglishGenerator().generate(new Parser().parse(input))
   }
 }

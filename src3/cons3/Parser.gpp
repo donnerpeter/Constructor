@@ -20,35 +20,39 @@ class Parser {
   static class ParsingState {
     final Situation situation
     final Frame lastFrame
+    final String expectation
     private Map<String, Frame> participants = [:]
 
     ParsingState(Situation situation) {
-      this(situation, null, [:])
+      this(situation, null, null, [:])
     }
 
-    private ParsingState(Situation situation, Frame lastFrame, Map<String, Frame> participants) {
-      this.lastFrame = lastFrame
+    ParsingState(Situation situation, Frame lastFrame, String expectation, Map<String, Frame> participants) {
       this.situation = situation
+      this.lastFrame = lastFrame
+      this.expectation = expectation
       this.participants = participants
     }
 
     ParsingState withFrame(Frame frame) {
       assert frame
-      [situation, frame, participants]
+      [situation, frame, null, participants]
     }
 
-    ParsingState withSituation(Situation situation) { [situation, null, [:]] }
+    ParsingState withSituation(Situation situation) { [situation, null, null, [:]] }
+
+    ParsingState withExpectation(String expectation) { [situation, lastFrame, expectation, participants] }
 
     ParsingState withRole(String key, Frame frame = null) {
       if (!frame) {
         frame = getAt(key) ?: situation.newFrame()
       }
-      [situation, frame, participants + [(key): frame]]
+      [situation, frame, null, participants + [(key): frame]]
     }
 
     Frame getAt(String key) { participants[key] }
 
-    Frame getVerb() { getAt('verb') }
+    Frame getDomain() { getAt('domain') }
 
   }
 
@@ -58,6 +62,7 @@ class Parser {
       case "Удивительный": return adj(state, "property", "AMAZING", true, 'nom')
       case "этому": return adj(state, 'determiner', 'THIS', false, 'dat')
       case "случай": return noun(state, 'nom', "THING", true)
+      case "удивление": return noun(state, 'nom', "AMAZE", true)
       case "поводу": return noun(state, 'dat', "MATTER", false)
       case "случился": return verb(state, "HAPPEN", "PAST", true)
       case "мной": return noun(state, 'instr', 'ME', false)
@@ -67,30 +72,56 @@ class Parser {
         return state.withSituation(elaboration)
       case "я":
       case "Я": return noun(state, 'nom', 'ME', false)
+      case "мое":
+        def me = situation.newFrame()
+        situation.assign(me, 'type', 'ME', false)
+        situation.assign(state['nom'], 'experiencer', state['acc'], true) //todo acc/gen ambiguity
+        situation.assign(state['nom'], 'experiencer', me, true)
+        return state
       case "их": return noun(state, 'acc', 'THEY', false)
       case "они": return noun(state, 'nom', 'THEY', false)
       case "соседям": return noun(state, 'dat', 'NEIGHBOURS', false)
+      case "порядок": return noun(state, 'acc', 'ORDER', false)
+      case "счета": return noun(state, 'gen', 'COUNTING', false)
       case "вдруг":
-        state = state.withRole('verb')
-        situation.assign(state.verb, "manner", "SUDDENLY", true)
+        state = state.withRole('domain')
+        situation.assign(state.domain, "manner", "SUDDENLY", true)
+        return state
+      case "тоже":
+        def also = situation.newFrame()
+        situation.assign(also, 'type', 'ALSO', true)
+        situation.assign(also, 'subject', situation.newFrame(), true)
+        state = state.withRole('domain')
+        situation.assign(also, 'theme', state.domain, true)
+        return state
+      case "не":
+        situation.assign(state.domain, "negated", "true", false)
         return state
       case "забыл": return verb(state, 'FORGET', 'PAST', true)
+      case "могут": return verb(state, 'CAN', 'PRESENT', false)
       case "отправился": return verb(state, 'GO_OFF', 'PAST', true)
+      case "обнаружили": return verb(state, 'DISCOVER', 'PAST', true)
+      case "вспомнить": return infinitive(state, 'REMEMBER', false)
       case "думают": return verb(state, 'THINK', 'PRESENT', false)
       case "спросил": return verb(state, 'ASK', 'PAST', true)
       case ",":
-        def question = situation.chart.newSituation()
-        def verb = state.verb
-        def role = verb.type == 'FORGET' ? 'theme' : 'question'
-        situation.assign(verb, role, question, true)
-        return state.withSituation(question)
+        def next = situation.chart.newSituation()
+        def domain = state.domain ?: state.lastFrame //todo late closure
+        if (domain) {
+          def role = domain.type in ['FORGET', 'AMAZE', 'DISCOVER'] ? 'theme' : 'question'
+          situation.assign(domain, role, next, state.domain != null)
+        }
+        return state.withSituation(next).withExpectation(domain?.type == 'DISCOVER' ? 'fact' : 'question')
       case "что":
+        if (state.expectation == 'fact') {
+          return state.withExpectation(null)
+        }
         state = state.withRole('nom')
         situation.assign(situation, "questioned", state.lastFrame, true)
         return state.withRole('questioned', state.lastFrame)
       case "идет": return verb(state, 'COME_SCALARLY', 'PRESENT', false)
       case "раньше":
-        situation.assign(state.verb, 'order', 'EARLIER', false)
+        situation.assign(state.domain, 'order', 'EARLIER', false)
         return state
       case "-":
         return state.withFrame(state['nom'])
@@ -98,14 +129,23 @@ class Parser {
       case "8":
         situation.assign(state.lastFrame, 'variant', word, false)
         return state
+      case 'Каково':
+        def degree = situation.newFrame()
+        situation.assign(situation, 'exclamation', degree , true)
+        state = state.withRole('nom')
+        situation.assign(state.lastFrame, 'degree', degree, true)
+        return state
+      case 'было':
+        situation.assign(situation, 'time', 'PAST' , false)
+        return state
     }
     return state
   }
 
   private ParsingState verb(ParsingState state, String type, String time, boolean rheme) {
     def situation = state.situation
-    state = state.withRole('verb', !state.verb || state.verb.type ? situation.newFrame() : state.verb)
-    situation.assign(state.verb, "type", type, rheme)
+    state = state.withRole('domain', !state.domain || state.domain.type ? situation.newFrame() : state.domain)
+    situation.assign(state.domain, "type", type, rheme)
     if (!situation.s('time')) {
       situation.assign(situation, "time", time, false)
     }
@@ -113,7 +153,22 @@ class Parser {
     return state
   }
 
+  private ParsingState infinitive(ParsingState state, String type, boolean rheme) {
+    def situation = state.situation
+    def oldDomain = state.domain
+    def control = oldDomain?.type == 'CAN'
+    state = state.withRole('domain', control || !oldDomain || oldDomain.type ? situation.newFrame() : oldDomain)
+    if (control) {
+      situation.assign(oldDomain, 'theme', state.domain, rheme)
+    }
+    situation.assign(state.domain, "type", type, rheme)
+    thetas(state)
+    return state
+  }
+
   private ParsingState noun(ParsingState state, String caze, String type, boolean rheme) {
+    def oldLast = state.lastFrame
+
     def existing = state[caze]
     if (existing && (existing.s('type') || existing == state['questioned'])) {
       state = state.withRole('acc', existing).withRole(caze, state.situation.newFrame())
@@ -122,6 +177,11 @@ class Parser {
     }
 
     state.situation.assign(state.lastFrame, "type", type, rheme)
+
+    if (caze == 'gen' && oldLast?.type == 'ORDER') {
+      state.situation.assign(oldLast, 'criterion', state.lastFrame, rheme)
+    }
+
     thetas(state)
     return state
   }
@@ -134,7 +194,7 @@ class Parser {
   }
 
   private void thetas(ParsingState state) {
-    def verb = state.verb
+    def verb = state.domain
     def type = verb?.type
     if (!type) return
 
@@ -162,12 +222,18 @@ class Parser {
     if (type == 'FORGET') {
       ensureTheta state, 'nom', 'experiencer', true
     }
+    if (type == 'DISCOVER') {
+      ensureTheta state, 'nom', 'experiencer', true
+    }
+    if (type == 'REMEMBER') {
+      ensureTheta state, 'acc', 'theme', false
+    }
 
   }
 
   private void ensureTheta(ParsingState state, String caze, String theta, boolean rheme) {
-    if (state[caze] && !state.verb.f(theta)) {
-      state.situation.assign(state.verb, theta, state[caze], rheme)
+    if (state[caze] && !state.domain.f(theta)) {
+      state.situation.assign(state.domain, theta, state[caze], rheme)
     }
   }
 

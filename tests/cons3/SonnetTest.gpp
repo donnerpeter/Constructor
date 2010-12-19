@@ -90,6 +90,7 @@ A.theme:=C
 C.negated==true
 C.type==CAN
 this.time==PRESENT
+B.type==THEY
 C.theme==D
 D.type==REMEMBER
 E.type==ORDER
@@ -109,7 +110,17 @@ E.criterion==F
                     "I went to my neighbors and asked them about their opinion on this matter"
   }
 
+  public void testTranslate3() throws Exception {
+    doTranslateTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета",
+                    "Great was their and my amazement, when they suddenly discovered, that they couldn't recall the counting order"
+  }
+
   private def doTranslateTest(String input, String expected) {
-    assertEquals expected, new EnglishGenerator().generate(new Parser().parse(input))
+    def chart = new Parser().parse(input)
+    def actual = new EnglishGenerator().generate(chart)
+    if (actual != expected) {
+      println chart.presentable()
+    }
+    assertEquals expected, actual
   }
 }

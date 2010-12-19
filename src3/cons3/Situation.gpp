@@ -22,7 +22,7 @@ class Situation extends Frame {
   final Chart chart
   final List<Frame> frames = []
   final List<Assignment> _assignments = []
-  private final Set<Assignment> constraints = []
+  final Set<Assignment> _constraints = []
 
   Situation(String id, Chart chart) {
     super(id, null)
@@ -46,21 +46,21 @@ class Situation extends Frame {
   private def _assign(Assignment assignment, boolean rheme) {
     _assignments << assignment
     if (!rheme) {
-      constraints << assignment
+      _constraints << assignment
     }
   }
 
   String presentable() {
     _assignments.collect { def eq ->
-      return "${eq.frame == (Situation) this ? 'this' : eq.frame}.$eq.property${eq in constraints ? "==" : ":="}$eq.value"
+      return "${eq.frame == (Situation) this ? 'this' : eq.frame.id}.$eq.property${eq in _constraints ? "==" : ":="}${eq.stringValue()}"
     }.join("\n")
   }
 
 }
 
 class Frame {
-  private String id
-  private Situation situation
+  final String id
+  final Situation situation
 
   Frame(String id, Situation situation) {
     this.id = id
@@ -68,7 +68,7 @@ class Frame {
   }
 
   String toString() {
-    return id
+    return "$id: ${situation._assignments.findAll { it.frame == (Frame) this }}"
   }
 
   Frame f(String attr) {
@@ -88,7 +88,7 @@ class Frame {
   }
 }
 
-class Assignment<T> {
+abstract class Assignment<T> {
   final Frame frame
   final String property
   final T value
@@ -101,6 +101,17 @@ class Assignment<T> {
     this.value = value
   }
 
+  @Override
+  String toString() {
+    return "$frame.id.$property=${stringValue()}"
+  }
+
+  abstract String stringValue();
+
+  boolean isRheme() {
+    this in frame.situation._constraints
+  }
+
 }
 
 class StringAssignment extends Assignment<String> {
@@ -109,12 +120,22 @@ class StringAssignment extends Assignment<String> {
     super(frame, property, value)
   }
 
+  @Override
+  String stringValue() {
+    value
+  }
+
 }
 
 class FrameAssignment extends Assignment<Frame> {
 
   FrameAssignment(Frame frame, String property, Frame value) {
     super(frame, property, value)
+  }
+
+  @Override
+  String stringValue() {
+    value.id
   }
 
 }

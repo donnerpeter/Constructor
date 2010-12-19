@@ -89,16 +89,21 @@ class Parser {
         return state
       case "тоже":
         def also = situation.newFrame()
+        def subj = situation.newFrame()
         situation.assign(also, 'type', 'ALSO', true)
-        situation.assign(also, 'subject', situation.newFrame(), true)
-        state = state.withRole('domain')
+        situation.assign(also, 'subject', subj, true)
+        state = state.withRole('nom', subj).withRole('domain')
         situation.assign(also, 'theme', state.domain, true)
         return state
       case "не":
         situation.assign(state.domain, "negated", "true", false)
         return state
       case "забыл": return verb(state, 'FORGET', 'PAST', true)
-      case "могут": return verb(state, 'CAN', 'PRESENT', false)
+      case "могут":
+        def subj = state['nom']
+        state = verb(state, 'CAN', 'PRESENT', false)
+        situation.assign(subj, 'type', 'THEY', false)
+        return state
       case "отправился": return verb(state, 'GO_OFF', 'PAST', true)
       case "обнаружили": return verb(state, 'DISCOVER', 'PAST', true)
       case "вспомнить": return infinitive(state, 'REMEMBER', false)

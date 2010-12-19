@@ -8,7 +8,14 @@ class EnglishGenerator {
 
   String generate(Chart chart) {
     new SituationGenerator(chart.situations[0]).sentence()
-    return output.join(' ')
+    String result = ""
+    for (w in output) {
+      if (!result.empty && !(w in ['.', ','])) {
+        result += " "
+      }
+      result += w
+    }
+    return result
   }
 
   private class SituationGenerator {
@@ -20,7 +27,18 @@ class EnglishGenerator {
     }
 
     private def sentence() {
-      List<Frame> allVerbs = situation.frames.findAll { it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY', 'GO_OFF', 'ASK'] }
+      def excl = situation.f('exclamation')
+      if (excl) {
+        output << 'Great'
+        output << 'was'
+        def a = situation._assignments.find { it.frame != situation && it.value == excl }
+        if (a) {
+          np(a.frame, true)
+        }
+        return
+      }
+
+      List<Frame> allVerbs = situation.frames.findAll { it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY', 'GO_OFF', 'ASK', 'DISCOVER', 'ALSO'] }
       def verb = allVerbs[0]
       assert verb : situation.presentable()
 
@@ -34,8 +52,11 @@ class EnglishGenerator {
 
     private void clause(Frame verb) {
       def subj = verb.type in ['HAPPEN', 'COME_SCALARLY'] ? verb.f('theme') :
-          verb.type in ['GO_OFF', 'ASK'] ? verb.f('agent') : verb.f('experiencer')
+          verb.type in ['GO_OFF', 'ASK'] ? verb.f('agent') :
+          verb.type in ['ALSO'] ? verb.f('subject') :
+            verb.f('experiencer')
       if (!hasSubject) {
+        assert subj : "$verb; " + situation.presentable()
         np(subj, true)
         hasSubject = true
       }
@@ -44,9 +65,11 @@ class EnglishGenerator {
       if (verb.s('manner') == 'SUDDENLY') {
         output << 'suddenly'
       }
-      output << [HAPPEN: 'happened', FORGET: 'forgot', COME_SCALARLY: 'comes first', GO_OFF: 'went', ASK: 'asked'][verb.type]
+      if (verb.type != 'ALSO') {
+        output << [HAPPEN: 'happened', FORGET: 'forgot', COME_SCALARLY: 'comes first', GO_OFF: 'went', ASK: 'asked', DISCOVER: 'discovered', CAN: "couldn't", REMEMBER:'recall'][verb.type]
+      }
 
-      def dobj = verb.type == 'ASK' ? verb.f('addressee') : null
+      def dobj = verb.type == 'ASK' ? verb.f('addressee') : verb.type == 'REMEMBER' ? verb.f('theme') : null
       if (dobj) {
         np(dobj, false)
       }
@@ -58,7 +81,7 @@ class EnglishGenerator {
       }
 
       if (verb.type == 'HAPPEN') {
-        output << "today,"
+        output << "today"
       }
 
       def question = verb.f('question')
@@ -76,15 +99,23 @@ class EnglishGenerator {
 
       def theme = verb.f('theme')
       if (theme instanceof Situation) {
+        if (!theme.f('questioned')) {
+          output << ","
+          output << "that"
+        }
+
         new SituationGenerator((Situation)theme).sentence()
+      } else if (theme && verb.type in ['CAN', 'ALSO']) {
+        clause(theme)
       }
 
       def elaboration = situation.f('elaboration')
       if (elaboration instanceof Situation) {
+        output << ","
         new SituationGenerator((Situation)elaboration).sentence()
       }
 
-      def variants = subj.allAssignments('variant')
+      def variants = subj?.allAssignments('variant')
       if (variants) {
         output << '-'
         output << variants.collect { (String)it.value }.join(' or ')
@@ -112,21 +143,59 @@ class EnglishGenerator {
       }
 
 
-      output << determiner(n)
+      determiner(n)
       if (n.s('property') == 'AMAZING') {
         output << "amazing"
       }
+      def criterion = n.f('criterion')
+      if (criterion) {
+        output << noun(criterion.type)
+      }
 
       output << noun(n.type)
+
+      if (n.type == 'AMAZE') {
+        def theme = n.f('theme')
+        if (theme instanceof Situation) {
+          output << ','
+          output << 'when'
+          new SituationGenerator((Situation) theme).sentence()
+        }
+      }
     }
 
     private String determiner(Frame n) {
       def det = n.s('determiner')
       if (det == 'THIS') {
-        return 'this'
+        output << 'this'
+        return
       }
 
-      return n.type == 'NEIGHBOURS' ? 'my' : "An"
+      if (n.type == 'AMAZE') {
+        def assignments = n.allAssignments('experiencer')
+        possessive((Frame)assignments[0].value)
+        output << 'and'
+        possessive((Frame)assignments[1].value)
+        return
+      }
+
+      if (n.type == 'NEIGHBOURS') {
+        output << 'my' //todo using the actual inferred model information
+        return
+      }
+
+      if (n.allAssignments('type')[0].rheme) {
+        output << 'the'
+        return
+      }
+
+      output << "An"
+    }
+
+    private void possessive(Frame poss) {
+      if (poss.type == 'ME') output << 'my'
+      else if (poss.type == 'THEY') output << 'their'
+      else output << poss.type
     }
 
   }
@@ -136,6 +205,9 @@ class EnglishGenerator {
       case 'THING': return 'thing'
       case 'NEIGHBOURS': return 'neighbors'
       case 'MATTER': return 'matter'
+      case 'AMAZE': return 'amazement'
+      case 'COUNTING': return 'counting'
+      case 'ORDER': return 'order'
       default: return type
     }
 

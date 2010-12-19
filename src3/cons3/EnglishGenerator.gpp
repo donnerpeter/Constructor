@@ -173,10 +173,16 @@ class EnglishGenerator {
 
       if (n.type == 'AMAZE') {
         def assignments = n.allAssignments('experiencer')
-        possessive((Frame)assignments[0].value)
-        output << 'and'
-        possessive((Frame)assignments[1].value)
-        return
+        if (!assignments.empty) {
+          possessive((Frame)assignments[0].value)
+          if (assignments.size() > 1) {
+            output << 'and'
+            possessive((Frame)assignments[1].value)
+          }
+
+          return
+        }
+
       }
 
       if (n.type == 'NEIGHBOURS') {

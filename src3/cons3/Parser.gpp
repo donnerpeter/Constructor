@@ -75,7 +75,10 @@ class Parser {
       case "мое":
         def me = situation.newFrame()
         situation.assign(me, 'type', 'ME', false)
-        situation.assign(state['nom'], 'experiencer', state['acc'], true) //todo acc/gen ambiguity
+        def prev = state['acc']
+        if (prev) {
+          situation.assign(state['nom'], 'experiencer', prev, true) //todo acc/gen ambiguity
+        }
         situation.assign(state['nom'], 'experiencer', me, true)
         return state
       case "их": return noun(state, 'acc', 'THEY', false)

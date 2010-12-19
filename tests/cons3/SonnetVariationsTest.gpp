@@ -9,9 +9,14 @@ import junit.framework.TestCase
  */
 class SonnetVariationsTest extends TestCase {
 
-  public void testTranslate3() throws Exception {
+  public void test3_Short() throws Exception {
     doTranslateTest "Каково же было их и мое удивление",
                     "Great was their and my amazement"
+  }
+
+  public void test3_My() throws Exception {
+    doTranslateTest "Каково же было мое удивление",
+                    "Great was my amazement"
   }
 
 

@@ -1,0 +1,18 @@
+package cons3
+
+import static SonnetTest.doTranslateTest
+
+import junit.framework.TestCase
+
+ /**
+ * @author peter
+ */
+class SonnetVariationsTest extends TestCase {
+
+  public void testTranslate3() throws Exception {
+    doTranslateTest "Каково же было их и мое удивление",
+                    "Great was their and my amazement"
+  }
+
+
+}

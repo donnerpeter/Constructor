@@ -115,7 +115,7 @@ E.criterion==F
                     "Great was their and my amazement, when they suddenly discovered, that they couldn't recall the counting order"
   }
 
-  private def doTranslateTest(String input, String expected) {
+  static void doTranslateTest(String input, String expected) {
     def chart = new Parser().parse(input)
     def actual = new EnglishGenerator().generate(chart)
     if (actual != expected) {

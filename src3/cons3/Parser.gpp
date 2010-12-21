@@ -20,14 +20,14 @@ class Parser {
   static class ParsingState {
     final Situation situation
     final Frame lastFrame
-    final String expectation
+    final Pair<String, Function1<ParsingState, ParsingState>> expectation
     private Map<String, Frame> participants = [:]
 
     ParsingState(Situation situation) {
       this(situation, null, null, [:])
     }
 
-    ParsingState(Situation situation, Frame lastFrame, String expectation, Map<String, Frame> participants) {
+    private ParsingState(Situation situation, Frame lastFrame, Pair<String, Function1<ParsingState, ParsingState>> expectation, Map<String, Frame> participants) {
       this.situation = situation
       this.lastFrame = lastFrame
       this.expectation = expectation
@@ -41,7 +41,7 @@ class Parser {
 
     ParsingState withSituation(Situation situation) { [situation, null, null, [:]] }
 
-    ParsingState withExpectation(String expectation) { [situation, lastFrame, expectation, participants] }
+    ParsingState withExpectation(String expectation, Function1<ParsingState, ParsingState> r = {}) { [situation, lastFrame, new Pair(expectation, r), participants] }
 
     ParsingState withRole(String key, Frame frame = null) {
       if (!frame) {
@@ -81,7 +81,15 @@ class Parser {
         }
         situation.assign(state['nom'], 'experiencer', me, true)
         return state
-      case "их": return noun(state, 'acc', 'THEY', false)
+      case "и": return state.withExpectation(null)
+      case "их":
+        state = noun(state, 'acc', 'THEY', false)
+        return state.withExpectation('noun', { st ->
+          def they = situation.newFrame()
+          situation.assign(they, 'type', 'THEY', false)
+          situation.assign(state['nom'], 'experiencer', they, true) //todo possessive for differently cased NPs
+          st
+        })
       case "они": return noun(state, 'nom', 'THEY', false)
       case "соседям": return noun(state, 'dat', 'NEIGHBOURS', false)
       case "порядок": return noun(state, 'acc', 'ORDER', false)
@@ -121,7 +129,7 @@ class Parser {
         }
         return state.withSituation(next).withExpectation(domain?.type == 'DISCOVER' ? 'fact' : 'question')
       case "что":
-        if (state.expectation == 'fact') {
+        if (state.expectation?.first == 'fact') {
           return state.withExpectation(null)
         }
         state = state.withRole('nom')
@@ -176,12 +184,17 @@ class Parser {
 
   private ParsingState noun(ParsingState state, String caze, String type, boolean rheme) {
     def oldLast = state.lastFrame
+    def expectation = state.expectation
 
     def existing = state[caze]
     if (existing && (existing.s('type') || existing == state['questioned'])) {
       state = state.withRole('acc', existing).withRole(caze, state.situation.newFrame())
     } else {
       state = state.withRole(caze)
+    }
+
+    if (expectation?.first == 'noun') {
+      state = expectation.second.call(state)
     }
 
     state.situation.assign(state.lastFrame, "type", type, rheme)

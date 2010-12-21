@@ -18,6 +18,10 @@ class SonnetVariationsTest extends TestCase {
     doTranslateTest "Каково же было мое удивление",
                     "Great was my amazement"
   }
+  public void test3_Their() throws Exception {
+    doTranslateTest "Каково же было их удивление",
+                    "Great was their amazement"
+  }
 
 
 }

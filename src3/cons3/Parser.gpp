@@ -77,9 +77,9 @@ class Parser {
         situation.assign(me, 'type', 'ME', false)
         def prev = state['acc']
         if (prev) {
-          situation.assign(state['nom'], 'experiencer', prev, true) //todo acc/gen ambiguity
+          situation.assign(state['nom'], 'arg1', prev, true) //todo acc/gen ambiguity
         }
-        situation.assign(state['nom'], 'experiencer', me, true)
+        situation.assign(state['nom'], 'arg1', me, true)
         return state
       case "и": return state.withExpectation(null)
       case "их":
@@ -87,7 +87,7 @@ class Parser {
         return state.withExpectation('noun', { st ->
           def they = situation.newFrame()
           situation.assign(they, 'type', 'THEY', false)
-          situation.assign(state['nom'], 'experiencer', they, true) //todo possessive for differently cased NPs
+          situation.assign(state['nom'], 'arg1', they, true) //todo possessive for differently cased NPs
           st
         })
       case "они": return noun(state, 'nom', 'THEY', false)
@@ -102,7 +102,7 @@ class Parser {
         def also = situation.newFrame()
         def subj = situation.newFrame()
         situation.assign(also, 'type', 'ALSO', true)
-        situation.assign(also, 'subject', subj, true)
+        situation.assign(also, 'arg1', subj, true)
         state = state.withRole('nom', subj).withRole('domain')
         situation.assign(also, 'theme', state.domain, true)
         return state
@@ -221,16 +221,16 @@ class Parser {
 
 
     if (type == 'THINK') {
-      ensureTheta state, 'nom', 'experiencer', false
+      ensureTheta state, 'nom', 'arg1', false
       ensureTheta state, 'acc', 'opinion', false
       ensureTheta state, 'dat', 'topic', false //todo poDat
     }
     if (type == 'HAPPEN') {
-      ensureTheta state, 'nom', 'theme', true
+      ensureTheta state, 'nom', 'arg1', true
       ensureTheta state, 'instr', 'experiencer', true //todo sInstr
     }
     if (type == 'COME_SCALARLY') {
-      ensureTheta state, 'nom', 'theme', false
+      ensureTheta state, 'nom', 'arg1', false
     }
     if (type == 'GO_OFF') {
       ensureTheta state, 'nom', 'arg1', true
@@ -241,10 +241,10 @@ class Parser {
       ensureTheta state, 'acc', 'addressee', true
     }
     if (type == 'FORGET') {
-      ensureTheta state, 'nom', 'experiencer', true
+      ensureTheta state, 'nom', 'arg1', true
     }
     if (type == 'DISCOVER') {
-      ensureTheta state, 'nom', 'experiencer', true
+      ensureTheta state, 'nom', 'arg1', true
     }
     if (type == 'REMEMBER') {
       ensureTheta state, 'acc', 'theme', false

@@ -51,10 +51,7 @@ class EnglishGenerator {
     }
 
     private void clause(Frame verb) {
-      def subj = verb.type in ['HAPPEN', 'COME_SCALARLY'] ? verb.f('theme') :
-          verb.type in ['GO_OFF', 'ASK'] ? verb.f('arg1') :
-          verb.type in ['ALSO'] ? verb.f('subject') :
-            verb.f('experiencer')
+      def subj = verb.f('arg1')
       if (!hasSubject) {
         assert subj : "$verb; " + situation.presentable()
         np(subj, true)
@@ -88,7 +85,7 @@ class EnglishGenerator {
       if (question instanceof Situation) {
         output << 'about'
         def think = ((Situation) question).frames.find { it.type == 'THINK' }
-        def exp = think.f('experiencer')
+        def exp = think.f('arg1')
         if (exp?.type == 'THEY') {
           output << 'their'
         }
@@ -172,7 +169,7 @@ class EnglishGenerator {
       }
 
       if (n.type == 'AMAZE') {
-        def assignments = n.allAssignments('experiencer')
+        def assignments = n.allAssignments('arg1')
         if (!assignments.empty) {
           possessive((Frame)assignments[0].value)
           if (assignments.size() > 1) {

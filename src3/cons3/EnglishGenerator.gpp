@@ -52,7 +52,7 @@ class EnglishGenerator {
 
     private void clause(Frame verb) {
       def subj = verb.type in ['HAPPEN', 'COME_SCALARLY'] ? verb.f('theme') :
-          verb.type in ['GO_OFF', 'ASK'] ? verb.f('agent') :
+          verb.type in ['GO_OFF', 'ASK'] ? verb.f('arg1') :
           verb.type in ['ALSO'] ? verb.f('subject') :
             verb.f('experiencer')
       if (!hasSubject) {

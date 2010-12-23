@@ -44,11 +44,11 @@ A.variant==8
 A.type==ME
 B.type:=GO_OFF
 this.time==PAST
-B.agent:=A
+B.arg1:=A
 C.type==NEIGHBOURS
 B.goal:=C
 D.type:=ASK
-D.agent:=A
+D.arg1:=A
 E.type==THEY
 D.addressee:=E
 D.question:=#2

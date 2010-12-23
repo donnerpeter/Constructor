@@ -233,11 +233,11 @@ class Parser {
       ensureTheta state, 'nom', 'theme', false
     }
     if (type == 'GO_OFF') {
-      ensureTheta state, 'nom', 'agent', true
+      ensureTheta state, 'nom', 'arg1', true
       ensureTheta state, 'dat', 'goal', true //todo kDat
     }
     if (type == 'ASK') {
-      ensureTheta state, 'nom', 'agent', true
+      ensureTheta state, 'nom', 'arg1', true
       ensureTheta state, 'acc', 'addressee', true
     }
     if (type == 'FORGET') {

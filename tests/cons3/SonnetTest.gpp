@@ -50,7 +50,7 @@ B.goal:=C
 D.type:=ASK
 D.arg1:=A
 E.type==THEY
-D.addressee:=E
+D.arg2:=E
 D.question:=#2
 --
 this.questioned:=A
@@ -94,7 +94,7 @@ B.type==THEY
 C.theme==D
 D.type==REMEMBER
 E.type==ORDER
-D.theme==E
+D.arg2==E
 F.type==COUNTING
 E.criterion==F
 """

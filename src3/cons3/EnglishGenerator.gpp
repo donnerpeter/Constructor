@@ -66,7 +66,7 @@ class EnglishGenerator {
         output << [HAPPEN: 'happened', FORGET: 'forgot', COME_SCALARLY: 'comes first', GO_OFF: 'went', ASK: 'asked', DISCOVER: 'discovered', CAN: "couldn't", REMEMBER:'recall'][verb.type]
       }
 
-      def dobj = verb.type == 'ASK' ? verb.f('addressee') : verb.type == 'REMEMBER' ? verb.f('theme') : null
+      def dobj = verb.f('arg2')
       if (dobj) {
         np(dobj, false)
       }

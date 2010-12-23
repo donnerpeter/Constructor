@@ -238,7 +238,7 @@ class Parser {
     }
     if (type == 'ASK') {
       ensureTheta state, 'nom', 'arg1', true
-      ensureTheta state, 'acc', 'addressee', true
+      ensureTheta state, 'acc', 'arg2', true
     }
     if (type == 'FORGET') {
       ensureTheta state, 'nom', 'arg1', true
@@ -247,7 +247,7 @@ class Parser {
       ensureTheta state, 'nom', 'arg1', true
     }
     if (type == 'REMEMBER') {
-      ensureTheta state, 'acc', 'theme', false
+      ensureTheta state, 'acc', 'arg2', false
     }
 
   }

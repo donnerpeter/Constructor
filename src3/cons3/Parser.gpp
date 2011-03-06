@@ -23,31 +23,38 @@ class Parser {
     final Pair<String, Function1<ParsingState, ParsingState>> expectation
     private Map<String, Frame> participants = [:]
 
-    ParsingState(Situation situation) {
-      this(situation, null, null, [:])
+    ParsingState(Map map) {
+      situation = map.situation
+      lastFrame = map.lastFrame
+      expectation = map.expectation
+      participants = map.participants
     }
 
-    private ParsingState(Situation situation, Frame lastFrame, Pair<String, Function1<ParsingState, ParsingState>> expectation, Map<String, Frame> participants) {
-      this.situation = situation
-      this.lastFrame = lastFrame
-      this.expectation = expectation
-      this.participants = participants
+
+    ParsingState(Situation situation) {
+      this(situation:situation, lastFrame:null, expectation:null, participants:[:])
+    }
+
+    ParsingState clone(Map update) {
+      Map current = [situation:situation, lastFrame:lastFrame, expectation:expectation, participants:participants]
+      current.putAll(update)
+      return new ParsingState(current)
     }
 
     ParsingState withFrame(Frame frame) {
       assert frame
-      [situation, frame, null, participants]
+      clone(lastFrame:frame, expectation:null)
     }
 
-    ParsingState withSituation(Situation situation) { [situation, null, null, [:]] }
+    ParsingState withSituation(Situation situation) { clone(situation:situation, lastFrame:null, expectation:null, participants:[:]) }
 
-    ParsingState withExpectation(String expectation, Function1<ParsingState, ParsingState> r = {}) { [situation, lastFrame, new Pair(expectation, r), participants] }
+    ParsingState withExpectation(String expectation, Function1<ParsingState, ParsingState> r = {}) { clone(expectation:new Pair(expectation, r)) }
 
     ParsingState withRole(String key, Frame frame = null) {
       if (!frame) {
         frame = getAt(key) ?: situation.newFrame()
       }
-      [situation, frame, null, participants + [(key): frame]]
+      clone(lastFrame:frame, expectation:null, participants:(participants + [(key): frame]))
     }
 
     Frame getAt(String key) { participants[key] }

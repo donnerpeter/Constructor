@@ -7,54 +7,51 @@ class Parser {
 
   Chart parse(String text) {
     def chart = new Chart()
-    ParsingState state = [chart.newSituation()]
+    ParsingState state = new ParsingState(chart:chart, situation:chart.newSituation(), participants:[:])
     def tokenizer = new StringTokenizer(text, """ '":,.""", true)
     for (String w in tokenizer) {
       if (w != ' ') {
         state = handleWord(w, state)
       }
     }
-    return chart
+    return state.chart
   }
 
   static class ParsingState {
+    final Chart chart
     final Situation situation
     final Frame lastFrame
     final Pair<String, Function1<ParsingState, ParsingState>> expectation
     private Map<String, Frame> participants = [:]
 
     ParsingState(Map map) {
+      chart = map.chart
       situation = map.situation
       lastFrame = map.lastFrame
       expectation = map.expectation
       participants = map.participants
     }
 
-
-    ParsingState(Situation situation) {
-      this(situation:situation, lastFrame:null, expectation:null, participants:[:])
-    }
-
     ParsingState clone(Map update) {
-      Map current = [situation:situation, lastFrame:lastFrame, expectation:expectation, participants:participants]
+      Map current = [chart:chart, situation:situation, lastFrame:lastFrame, expectation:expectation, participants:participants]
       current.putAll(update)
       return new ParsingState(current)
     }
 
-    ParsingState withFrame(Frame frame) {
+    ParsingState withFrame(Chart chart, Frame frame) {
       assert frame
-      clone(lastFrame:frame, expectation:null)
+      clone(chart:chart, lastFrame:frame, expectation:null)
     }
 
-    ParsingState withSituation(Situation situation) { clone(situation:situation, lastFrame:null, expectation:null, participants:[:]) }
+    ParsingState withSituation(Chart chart, Situation situation) { clone(chart:chart, situation:situation, lastFrame:null, expectation:null, participants:[:]) }
 
     ParsingState withExpectation(String expectation, Function1<ParsingState, ParsingState> r = {}) { clone(expectation:new Pair(expectation, r)) }
 
-    ParsingState withRole(String key, Frame frame = null) {
+    ParsingState withRole(Chart chart, String key, Frame frame = null) {
       if (!frame) {
         frame = getAt(key) ?: situation.newFrame()
       }
-      clone(lastFrame:frame, expectation:null, participants:(participants + [(key): frame]))
+      clone(chart:chart, lastFrame:frame, expectation:null, participants:(participants + [(key): frame]))
     }
 
     Frame getAt(String key) { participants[key] }
@@ -76,7 +73,7 @@ class Parser {
       case ":":
         def elaboration = situation.chart.newSituation()
         situation.assign(situation, 'elaboration', elaboration, true)
-        return state.withSituation(elaboration)
+        return state.withSituation(state.chart, elaboration)
       case "я":
       case "Я": return noun(state, 'nom', 'ME', false)
       case "мое":
@@ -102,7 +99,7 @@ class Parser {
       case "порядок": return noun(state, 'acc', 'ORDER', false)
       case "счета": return noun(state, 'gen', 'COUNTING', false)
       case "вдруг":
-        state = state.withRole('domain')
+        state = state.withRole(state.chart, 'domain')
         situation.assign(state.domain, "manner", "SUDDENLY", true)
         return state
       case "тоже":
@@ -110,7 +107,7 @@ class Parser {
         def subj = situation.newFrame()
         situation.assign(also, 'type', 'ALSO', true)
         situation.assign(also, 'arg1', subj, true)
-        state = state.withRole('nom', subj).withRole('domain')
+        state = state.withRole(state.chart, 'nom', subj).withRole(state.chart, 'domain')
         situation.assign(also, 'theme', state.domain, true)
         return state
       case "не":
@@ -134,20 +131,20 @@ class Parser {
           def role = domain.type in ['FORGET', 'AMAZE', 'DISCOVER'] ? 'theme' : 'question'
           situation.assign(domain, role, next, state.domain != null)
         }
-        return state.withSituation(next).withExpectation(domain?.type == 'DISCOVER' ? 'fact' : 'question')
+        return state.withSituation(state.chart, next).withExpectation(domain?.type == 'DISCOVER' ? 'fact' : 'question')
       case "что":
         if (state.expectation?.first == 'fact') {
           return state.withExpectation(null)
         }
-        state = state.withRole('nom')
+        state = state.withRole(state.chart, 'nom')
         situation.assign(situation, "questioned", state.lastFrame, true)
-        return state.withRole('questioned', state.lastFrame)
+        return state.withRole(state.chart, 'questioned', state.lastFrame)
       case "идет": return verb(state, 'COME_SCALARLY', 'PRESENT', false)
       case "раньше":
         situation.assign(state.domain, 'order', 'EARLIER', false)
         return state
       case "-":
-        return state.withFrame(state['nom'])
+        return state.withFrame(state.chart, state['nom'])
       case "7":
       case "8":
         situation.assign(state.lastFrame, 'variant', word, false)
@@ -155,7 +152,7 @@ class Parser {
       case 'Каково':
         def degree = situation.newFrame()
         situation.assign(situation, 'exclamation', degree , true)
-        state = state.withRole('nom')
+        state = state.withRole(state.chart, 'nom')
         situation.assign(state.lastFrame, 'degree', degree, true)
         return state
       case 'было':
@@ -167,7 +164,7 @@ class Parser {
 
   private ParsingState verb(ParsingState state, String type, String time, boolean rheme) {
     def situation = state.situation
-    state = state.withRole('domain', !state.domain || state.domain.type ? situation.newFrame() : state.domain)
+    state = state.withRole(state.chart, 'domain', !state.domain || state.domain.type ? situation.newFrame() : state.domain)
     situation.assign(state.domain, "type", type, rheme)
     if (!situation.s('time')) {
       situation.assign(situation, "time", time, false)
@@ -180,7 +177,7 @@ class Parser {
     def situation = state.situation
     def oldDomain = state.domain
     def control = oldDomain?.type == 'CAN'
-    state = state.withRole('domain', control || !oldDomain || oldDomain.type ? situation.newFrame() : oldDomain)
+    state = state.withRole(state.chart, 'domain', control || !oldDomain || oldDomain.type ? situation.newFrame() : oldDomain)
     if (control) {
       situation.assign(oldDomain, 'theme', state.domain, rheme)
     }
@@ -195,9 +192,9 @@ class Parser {
 
     def existing = state[caze]
     if (existing && (existing.s('type') || existing == state['questioned'])) {
-      state = state.withRole('acc', existing).withRole(caze, state.situation.newFrame())
+      state = state.withRole(state.chart, 'acc', existing).withRole(state.chart, caze, state.situation.newFrame())
     } else {
-      state = state.withRole(caze)
+      state = state.withRole(state.chart, caze)
     }
 
     if (expectation?.first == 'noun') {
@@ -215,7 +212,7 @@ class Parser {
   }
 
   private ParsingState adj(ParsingState state, String attr, String value, boolean rheme, String caze) {
-    state = state.withRole(caze)
+    state = state.withRole(state.chart, caze)
     state.situation.assign(state.lastFrame, attr, value, rheme)
     thetas(state)
     return state

@@ -20,9 +20,9 @@ class Parser {
   static class ParsingState {
     final Chart chart
     final Situation situation
-    final Frame lastFrame
+    private final Variable lastFrame
     final Pair<String, Function1<ParsingState, ParsingState>> expectation
-    private Map<String, Frame> participants = [:]
+    private Map<String, Variable> participants = [:]
 
     ParsingState(Map map) {
       chart = map.chart
@@ -30,6 +30,10 @@ class Parser {
       lastFrame = map.lastFrame
       expectation = map.expectation
       participants = map.participants
+    }
+
+    Frame getLastFrame() {
+      return lastFrame?.frame(chart)
     }
 
     ParsingState clone(Map update) {
@@ -40,7 +44,7 @@ class Parser {
 
     ParsingState withFrame(Chart chart, Frame frame) {
       assert frame
-      clone(chart:chart, lastFrame:frame, expectation:null)
+      clone(chart:chart, lastFrame:frame.var, expectation:null)
     }
 
     ParsingState withSituation(Chart chart, Situation situation) { clone(chart:chart, situation:situation, lastFrame:null, expectation:null, participants:[:]) }
@@ -51,28 +55,28 @@ class Parser {
       if (!frame) {
         frame = getAt(key)
         if (!frame) {
-          (chart, frame) = chart.newFrame(situation)
+          (chart, frame) = newFrame()
         }
       }
-      clone(chart:chart, lastFrame:frame, expectation:null, participants:(participants + [(key): frame]))
+      clone(chart:chart, lastFrame:frame.var, expectation:null, participants:(participants + [(key): frame.var]))
     }
 
-    Frame getAt(String key) { participants[key] }
+    Frame getAt(String key) { participants[key]?.frame(chart) }
 
     Frame getDomain() { getAt('domain') }
 
     List newFrame() {
-      chart.newFrame(situation)
+      def (ch, var) = chart.newFrame(situation)
+      [ch, var.frame(ch)]
     }
 
     ParsingState withChart(Chart chart) { clone(chart:chart) }
 
-    ParsingState assign(Frame frame, String property, String value, boolean rheme) {
-      withChart(chart.assign(frame, property, value, rheme))
+    ParsingState assign(Frame frame, String property, value, boolean rheme) {
+      withChart(chart.assign(frame.var, property, value instanceof Frame ? value.var : value, rheme))
     }
-
-    ParsingState assign(Frame frame, String property, Frame value, boolean rheme) {
-      withChart(chart.assign(frame, property, value, rheme))
+    ParsingState assign(Situation frame, String property, value, boolean rheme) {
+      withChart(chart.assign(frame, property, value instanceof Frame ? value.var : value, rheme))
     }
 
   }
@@ -95,20 +99,20 @@ class Parser {
       case "Я": return noun(state, 'nom', 'ME', false)
       case "мое":
         def (ch, me) = state.newFrame()
-        ch = ch.assign(me, 'type', 'ME', false)
+        ch = ch.assign(me.var, 'type', 'ME', false)
         def prev = state['acc']
         if (prev) {
-          ch = ch.assign(state['nom'], 'arg1', prev, true) //todo acc/gen ambiguity
+          ch = ch.assign(state['nom'].var, 'arg1', prev.var, true) //todo acc/gen ambiguity
         }
-        ch = ch.assign(state['nom'], 'arg1', me, true)
+        ch = ch.assign(state['nom'].var, 'arg1', me.var, true)
         return state.withChart(ch)
       case "и": return state.withExpectation(null)
       case "их":
         state = noun(state, 'acc', 'THEY', false)
         return state.withExpectation('noun', { st ->
           def (ch, they) = state.newFrame()
-          ch = ch.assign(they, 'type', 'THEY', false)
-          ch = ch.assign(state['nom'], 'arg1', they, true) //todo possessive for differently cased NPs
+          ch = ch.assign(they.var, 'type', 'THEY', false)
+          ch = ch.assign(state['nom'].var, 'arg1', they.var, true) //todo possessive for differently cased NPs
           st.withChart(ch)
         } as Function1)
       case "они": return noun(state, 'nom', 'THEY', false)
@@ -117,14 +121,14 @@ class Parser {
       case "счета": return noun(state, 'gen', 'COUNTING', false)
       case "вдруг":
         state = state.withRole(state.chart, 'domain')
-        def ch = state.chart.assign(state.domain, "manner", "SUDDENLY", true)
+        def ch = state.chart.assign(state.domain.var, "manner", "SUDDENLY", true)
         return state.withChart(ch)
       case "тоже":
         def (ch, also) = state.newFrame()
         def (ch1, subj) = ch.newFrame(situation)
-        ch1 = ch1.assign(also, 'type', 'ALSO', true)
-        ch1 = ch1.assign(also, 'arg1', subj, true)
-        state = state.withRole(ch1, 'nom', subj).withRole(ch1, 'domain')
+        ch1 = ch1.assign(also.var, 'type', 'ALSO', true)
+        ch1 = ch1.assign(also.var, 'arg1', subj, true)
+        state = state.withRole(ch1, 'nom', subj.frame(ch1)).withRole(ch1, 'domain')
         return state.assign(also, 'theme', state.domain, true)
       case "не":
         return state.assign(state.domain, "negated", "true", false)
@@ -178,7 +182,7 @@ class Parser {
     def (ch, domain) = !state.domain || state.domain.type ? state.newFrame() : [state.chart, state.domain]
     state = state.withRole(state.chart, 'domain', domain)
     state = state.assign(state.domain, "type", type, rheme)
-    if (!situation.s('time')) {
+    if (!situation.frame(state.chart).s('time')) {
       state = state.assign(situation, "time", time, false)
     }
     return thetas(state)

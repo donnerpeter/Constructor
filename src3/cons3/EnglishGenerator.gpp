@@ -21,26 +21,28 @@ class EnglishGenerator {
   private class SituationGenerator {
     final Chart chart
     final Situation situation
+    final Frame sitFrame
     boolean hasSubject
 
     SituationGenerator(Chart chart, Situation situation) {
       this.chart = chart
       this.situation = situation
+      sitFrame = situation.frame(chart)
     }
 
     private def sentence() {
-      def excl = situation.f('exclamation')
+      def excl = sitFrame.f('exclamation')
       if (excl) {
         output << 'Great'
         output << 'was'
-        def a = chart._assignments[situation].find { it.frame != situation && it.value == excl }
+        def a = chart.allAssignments(situation).find { it.frame != sitFrame && it.value == excl }
         if (a) {
           np(a.frame, true)
         }
         return
       }
 
-      List<Frame> allVerbs = chart.frames[situation].findAll { it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY', 'GO_OFF', 'ASK', 'DISCOVER', 'ALSO'] }
+      List<Frame> allVerbs = chart.frames(situation).findAll { it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY', 'GO_OFF', 'ASK', 'DISCOVER', 'ALSO'] }
       def verb = allVerbs[0]
       assert verb : situation.presentable(chart)
 
@@ -84,9 +86,9 @@ class EnglishGenerator {
       }
 
       def question = verb.f('question')
-      if (question instanceof Situation) {
+      if (question?.var instanceof Situation) {
         output << 'about'
-        def think = chart.frames[(Situation)question].find { it.type == 'THINK' }
+        def think = chart.frames((Situation)question.var).find { it.type == 'THINK' }
         def exp = think.f('arg1')
         if (exp?.type == 'THEY') {
           output << 'their'
@@ -97,21 +99,21 @@ class EnglishGenerator {
       }
 
       def theme = verb.f('theme')
-      if (theme instanceof Situation) {
+      if (theme?.var instanceof Situation) {
         if (!theme.f('questioned')) {
           output << ","
           output << "that"
         }
 
-        new SituationGenerator(chart, (Situation)theme).sentence()
+        new SituationGenerator(chart, (Situation)theme.var).sentence()
       } else if (theme && verb.type in ['CAN', 'ALSO']) {
         clause(theme)
       }
 
-      def elaboration = situation.f('elaboration')
-      if (elaboration instanceof Situation) {
+      def elaboration = sitFrame.f('elaboration')
+      if (elaboration?.var instanceof Situation) {
         output << ","
-        new SituationGenerator(chart, (Situation)elaboration).sentence()
+        new SituationGenerator(chart, (Situation)elaboration.var).sentence()
       }
 
       def variants = subj?.allAssignments('variant')
@@ -136,7 +138,7 @@ class EnglishGenerator {
         return
       }
 
-      if (n == situation.f('questioned')) {
+      if (n == sitFrame.f('questioned')) {
         output << 'what'
         return
       }
@@ -155,10 +157,10 @@ class EnglishGenerator {
 
       if (n.type == 'AMAZE') {
         def theme = n.f('theme')
-        if (theme instanceof Situation) {
+        if (theme?.var instanceof Situation) {
           output << ','
           output << 'when'
-          new SituationGenerator(chart, (Situation) theme).sentence()
+          new SituationGenerator(chart, (Situation) theme.var).sentence()
         }
       }
     }

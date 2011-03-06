@@ -6,25 +6,39 @@ package cons3
 
 class Chart {
   final List<Situation> situations = []
-  final Map<Situation, List<Frame>> frames = [:]
-  final Map<Situation, List<Assignment>> _assignments = [:]
+  final Map<Situation, List<Variable>> variables = [:]
+  final Map<Situation, List<Assignment<Variable>>> __assignments = [:]
+
+  List<Frame> frames(Situation situation) {
+    variables[situation].collect { it.frame(this) }
+  }
+
+  List<Assignment<Frame>> allAssignments(Situation situation) {
+    __assignments[situation].collect {
+      def oldValue = it.value
+      def newValue = oldValue instanceof String ? oldValue : ((Variable) oldValue).frame(this)
+      Frame newFrame = it.frame.frame(this)
+      new Assignment<Frame>(newFrame, it.property, newValue, it.rheme)
+    }
+  }
 
   List newSituation() {
     def result = new Situation('#' + (situations.size() + 1), this)
     situations << result
-    frames[result] = []
-    _assignments[result] = []
+    variables[result] = []
+    __assignments[result] = []
     return [this, result]
   }
 
   List newFrame(Situation situation) {
-    def result = new Frame(String.valueOf((char)(frames[situation].size() + (int)'A'.charAt(0))), situation)
-    frames[situation] << result
+    def result = new Variable(String.valueOf((char)(variables[situation].size() + (int)'A'.charAt(0))), situation)
+    variables[situation] << result
     return [this, result]
   }
 
-  Chart assign(Frame frame, String property, value, boolean rheme) {
-    _assignments[frame.situation] << new Assignment(frame, property, value, rheme)
+  Chart assign(Variable frame, String property, value, boolean rheme) {
+    assert value instanceof String || value instanceof Variable
+    __assignments[frame.situation] << new Assignment(frame, property, value, rheme)
     return this
   }
 
@@ -33,7 +47,7 @@ class Chart {
   }
 }
 
-class Situation extends Frame {
+class Situation extends Variable {
   final Chart chart
 
   Situation(String id, Chart chart) {
@@ -42,7 +56,7 @@ class Situation extends Frame {
   }
 
   String presentable(Chart chart) {
-    chart._assignments[this].collect { def eq ->
+    chart.__assignments[this].collect { def eq ->
       return "${eq.frame == (Situation) this ? 'this' : eq.frame.id}.$eq.property${eq.rheme ? ":=" : "=="}${eq.stringValue()}"
     }.join("\n")
   }
@@ -50,16 +64,16 @@ class Situation extends Frame {
 }
 
 class Frame {
-  final String id
-  final Situation situation
+  final Variable var
+  final Chart chart
 
-  Frame(String id, Situation situation) {
-    this.id = id
-    this.situation = situation ?: (Situation) this
+  Frame(Variable var, Chart chart) {
+    this.var = var
+    this.chart = chart
   }
 
   String toString(Chart chart) {
-    return "$id: ${chart._assignments[situation].findAll { it.frame == (Frame) this }}"
+    return "$var: ${chart.allAssignments(var.situation).findAll { it.frame == (Frame) this }}"
   }
 
   Frame f(String attr) {
@@ -74,18 +88,56 @@ class Frame {
 
   String getType() { s('type') }
 
-  List<Assignment> allAssignments(String attr) {
-    return situation.chart._assignments[situation].findAll { it.frame == (Frame) this && it.property == attr }
+  List<Assignment<Frame>> allAssignments(String attr) {
+    return chart.allAssignments(var.situation).findAll { it.frame.var == var && it.property == attr }
+  }
+
+  boolean equals(o) {
+    if (this.is(o)) return true;
+    if (!(o instanceof Frame)) return false;
+
+    Frame frame = (Frame) o;
+
+    if (chart != frame.chart) return false;
+    if (var != frame.var) return false;
+
+    return true;
+  }
+
+  int hashCode() {
+    int result;
+    result = var.hashCode();
+    result = 31 * result + chart.hashCode();
+    return result;
   }
 }
 
-class Assignment {
-  final Frame frame
+class Variable {
+  final String id
+  final Situation situation
+
+  Variable(String id, Situation situation) {
+    this.id = id
+    this.situation = situation ?: (Situation) this
+  }
+
+  String toString() {
+    return "$id in $situation.id"
+  }
+
+  Frame frame(Chart chart) {
+    new Frame(this, chart)
+  }
+
+}
+
+class Assignment<T> {
+  final T frame
   final String property
   final Object value
   final boolean rheme
 
-  Assignment(Frame frame, String property, def value, boolean rheme) {
+  Assignment(T frame, String property, def value, boolean rheme) {
     assert frame
     assert property
     this.frame = frame
@@ -96,11 +148,15 @@ class Assignment {
 
   @Override
   String toString() {
-    return "$frame.id.$property=${stringValue()}"
+    return "${frameId(frame)}.$property=${stringValue()}"
   }
 
   String stringValue() {
-    return value instanceof String ? value : ((Frame) value).id
+    return value instanceof String ? value : frameId(value)
+  }
+
+  private String frameId(value) {
+    return value instanceof Variable ? ((Variable) value).id : ((Frame) value).var.id
   }
 
 }

@@ -45,7 +45,7 @@ class Parser {
 
     ParsingState withSituation(Chart chart, Situation situation) { clone(chart:chart, situation:situation, lastFrame:null, expectation:null, participants:[:]) }
 
-    ParsingState withExpectation(String expectation, Function1<ParsingState, ParsingState> r = {}) { clone(expectation:new Pair(expectation, r)) }
+    ParsingState withExpectation(String expectation, Function1<ParsingState, ParsingState> r = {} as Function1) { clone(expectation:new Pair(expectation, r)) }
 
     ParsingState withRole(Chart chart, String key, Frame frame = null) {
       if (!frame) {
@@ -93,7 +93,7 @@ class Parser {
           situation.assign(they, 'type', 'THEY', false)
           situation.assign(state['nom'], 'arg1', they, true) //todo possessive for differently cased NPs
           st
-        })
+        } as Function1)
       case "они": return noun(state, 'nom', 'THEY', false)
       case "соседям": return noun(state, 'dat', 'NEIGHBOURS', false)
       case "порядок": return noun(state, 'acc', 'ORDER', false)

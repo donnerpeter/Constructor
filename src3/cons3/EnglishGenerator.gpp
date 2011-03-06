@@ -189,7 +189,7 @@ class EnglishGenerator {
         return
       }
 
-      if (n.allAssignments('type')[0].rheme) {
+      if (!n.allAssignments('type')[0].rheme) {
         output << 'the'
         return
       }

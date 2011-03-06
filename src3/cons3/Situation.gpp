@@ -8,14 +8,12 @@ class Chart {
   final List<Situation> situations = []
   final Map<Situation, List<Frame>> frames = [:]
   final Map<Situation, List<Assignment>> _assignments = [:]
-  final Map<Situation, Set<Assignment>> _constraints = [:]
 
   List newSituation() {
     def result = new Situation('#' + (situations.size() + 1), this)
     situations << result
     frames[result] = []
     _assignments[result] = []
-    _constraints[result] = []
     return [this, result]
   }
 
@@ -25,23 +23,10 @@ class Chart {
     return [this, result]
   }
 
-  Chart assign(Frame frame, String property, String value, boolean rheme) {
-    _assign(frame.situation, new StringAssignment(frame, property, value), rheme)
+  Chart assign(Frame frame, String property, value, boolean rheme) {
+    _assignments[frame.situation] << new Assignment(frame, property, value, rheme)
     return this
   }
-
-  Chart assign(Frame frame, String property, Frame value, boolean rheme) {
-    _assign(frame.situation, new FrameAssignment(frame, property, value), rheme)
-    return this
-  }
-
-  private def _assign(Situation situation, Assignment assignment, boolean rheme) {
-    _assignments[situation] << assignment
-    if (!rheme) {
-      _constraints[situation] << assignment
-    }
-  }
-
 
   String presentable() {
     situations.collect { it.presentable(this) }.join("\n--\n")
@@ -57,9 +42,8 @@ class Situation extends Frame {
   }
 
   String presentable(Chart chart) {
-    def constraints = chart._constraints[this]
     chart._assignments[this].collect { def eq ->
-      return "${eq.frame == (Situation) this ? 'this' : eq.frame.id}.$eq.property${eq in constraints ? "==" : ":="}${eq.stringValue()}"
+      return "${eq.frame == (Situation) this ? 'this' : eq.frame.id}.$eq.property${eq.rheme ? ":=" : "=="}${eq.stringValue()}"
     }.join("\n")
   }
 
@@ -79,13 +63,13 @@ class Frame {
   }
 
   Frame f(String attr) {
-    def asg = allAssignments(attr)[0]
-    asg instanceof FrameAssignment ? asg.value : null
+    def v = allAssignments(attr)[0]?.value
+    v instanceof Frame ? (Frame) v : null
   }
 
   String s(String attr) {
-    def asg = allAssignments(attr)[0]
-    asg instanceof StringAssignment ? asg.value : null
+    def v = allAssignments(attr)[0]?.value
+    v instanceof String ? (String) v : null
   }
 
   String getType() { s('type') }
@@ -95,17 +79,19 @@ class Frame {
   }
 }
 
-abstract class Assignment<T> {
+class Assignment<T> {
   final Frame frame
   final String property
   final T value
+  final boolean rheme
 
-  Assignment(Frame frame, String property, T value) {
+  Assignment(Frame frame, String property, def value, boolean rheme) {
     assert frame
     assert property
     this.frame = frame
     this.property = property
     this.value = value
+    this.rheme = rheme
   }
 
   @Override
@@ -113,36 +99,8 @@ abstract class Assignment<T> {
     return "$frame.id.$property=${stringValue()}"
   }
 
-  abstract String stringValue();
-
-  boolean isRheme() {
-    this in frame.situation.chart._constraints[frame.situation]
-  }
-
-}
-
-class StringAssignment extends Assignment<String> {
-
-  StringAssignment(Frame frame, String property, String value) {
-    super(frame, property, value)
-  }
-
-  @Override
   String stringValue() {
-    value
-  }
-
-}
-
-class FrameAssignment extends Assignment<Frame> {
-
-  FrameAssignment(Frame frame, String property, Frame value) {
-    super(frame, property, value)
-  }
-
-  @Override
-  String stringValue() {
-    value.id
+    return value instanceof String ? value : ((Frame) value).id
   }
 
 }

@@ -9,6 +9,16 @@ class Chart {
   final Map<Situation, List<Variable>> variables = [:]
   final Map<Situation, List<Assignment<Variable>>> __assignments = [:]
 
+  Chart() {
+    this([], [:], [:])
+  }
+
+  private Chart(List<Situation> situations, Map<Situation, List<Variable>> variables, Map<Situation, List<Assignment<Variable>>> __assignments) {
+    this.situations = situations
+    this.variables = variables
+    this.__assignments = __assignments
+  }
+
   List<Frame> frames(Situation situation) {
     variables[situation].collect { it.frame(this) }
   }
@@ -24,22 +34,24 @@ class Chart {
 
   List newSituation() {
     def result = new Situation('#' + (situations.size() + 1))
-    situations << result
-    variables[result] = []
-    __assignments[result] = []
-    return [this, result]
+    Map<Situation, List<Variable>> newVars = variables + [(result): []]
+    Map<Situation, List<Assignment<Variable>>> newAss = __assignments + [(result): []]
+    List<Situation> newSitu = situations + [result]
+    return [new Chart(newSitu, newVars, newAss), result]
   }
 
   List newFrame(Situation situation) {
     def result = new Variable(String.valueOf((char)(variables[situation].size() + (int)'A'.charAt(0))), situation)
-    variables[situation] << result
-    return [this, result]
+    Map<Situation, List<Variable>> newVars = [:] + variables
+    newVars[situation] = newVars[situation] + [result]
+    return [new Chart(situations, newVars, __assignments), result]
   }
 
   Chart assign(Variable frame, String property, value, boolean rheme) {
     assert value instanceof String || value instanceof Variable
-    __assignments[frame.situation] << new Assignment(frame, property, value, rheme)
-    return this
+    Map<Situation, List<Assignment<Variable>>> newAsss = [:] + __assignments
+    newAsss[frame.situation] = newAsss[frame.situation] + [new Assignment(frame, property, value, rheme)]
+    return new Chart(situations, variables, newAsss)
   }
 
   String presentable() {
@@ -70,7 +82,7 @@ class Frame {
     this.chart = chart
   }
 
-  String toString(Chart chart) {
+  String toString() {
     return "$var: ${chart.allAssignments(var.situation).findAll { it.frame == (Frame) this }}"
   }
 

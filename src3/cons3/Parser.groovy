@@ -168,6 +168,7 @@ class Parser {
         return state.assign(state.lastFrame, 'variant', word, false)
       case 'Каково':
         def (ch, degree) = state.newFrame()
+        state = state.withChart(ch)
         state = state.assign(situation, 'exclamation', degree, true)
         state = state.withRole(state.chart, 'nom')
         return state.assign(state.lastFrame, 'degree', degree, true)
@@ -180,7 +181,7 @@ class Parser {
   private ParsingState verb(ParsingState state, String type, String time, boolean rheme) {
     def situation = state.situation
     def (ch, domain) = !state.domain || state.domain.type ? state.newFrame() : [state.chart, state.domain]
-    state = state.withRole(state.chart, 'domain', domain)
+    state = state.withRole(ch, 'domain', domain)
     state = state.assign(state.domain, "type", type, rheme)
     if (!situation.frame(state.chart).s('time')) {
       state = state.assign(situation, "time", time, false)
@@ -189,11 +190,10 @@ class Parser {
   }
 
   private ParsingState infinitive(ParsingState state, String type, boolean rheme) {
-    def situation = state.situation
     def oldDomain = state.domain
     def control = oldDomain?.type == 'CAN'
     def (ch, domain) = control || !oldDomain || oldDomain.type ? state.newFrame() : [state.chart, oldDomain]
-    state = state.withRole(state.chart, 'domain', domain)
+    state = state.withRole(ch, 'domain', domain)
     if (control) {
       state = state.assign(oldDomain, 'theme', state.domain, rheme)
     }

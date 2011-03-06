@@ -23,7 +23,7 @@ class Chart {
   }
 
   List newSituation() {
-    def result = new Situation('#' + (situations.size() + 1), this)
+    def result = new Situation('#' + (situations.size() + 1))
     situations << result
     variables[result] = []
     __assignments[result] = []
@@ -48,11 +48,9 @@ class Chart {
 }
 
 class Situation extends Variable {
-  final Chart chart
 
-  Situation(String id, Chart chart) {
+  Situation(String id) {
     super(id, null)
-    this.chart = chart
   }
 
   String presentable(Chart chart) {

@@ -33,7 +33,7 @@ class EnglishGenerator {
       if (excl) {
         output << 'Great'
         output << 'was'
-        def a = situation.chart._assignments[situation].find { it.frame != situation && it.value == excl }
+        def a = chart._assignments[situation].find { it.frame != situation && it.value == excl }
         if (a) {
           np(a.frame, true)
         }
@@ -42,7 +42,7 @@ class EnglishGenerator {
 
       List<Frame> allVerbs = chart.frames[situation].findAll { it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY', 'GO_OFF', 'ASK', 'DISCOVER', 'ALSO'] }
       def verb = allVerbs[0]
-      assert verb : situation.presentable()
+      assert verb : situation.presentable(chart)
 
       clause(verb)
 
@@ -55,7 +55,7 @@ class EnglishGenerator {
     private void clause(Frame verb) {
       def subj = verb.f('arg1')
       if (!hasSubject) {
-        assert subj : "$verb; " + situation.presentable()
+        assert subj : "$verb; " + situation.presentable(chart)
         np(subj, true)
         hasSubject = true
       }

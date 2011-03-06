@@ -44,7 +44,7 @@ class Chart {
 
 
   String presentable() {
-    situations.collect { it.presentable() }.join("\n--\n")
+    situations.collect { it.presentable(this) }.join("\n--\n")
   }
 }
 
@@ -56,7 +56,7 @@ class Situation extends Frame {
     this.chart = chart
   }
 
-  String presentable() {
+  String presentable(Chart chart) {
     def constraints = chart._constraints[this]
     chart._assignments[this].collect { def eq ->
       return "${eq.frame == (Situation) this ? 'this' : eq.frame.id}.$eq.property${eq in constraints ? "==" : ":="}${eq.stringValue()}"
@@ -74,8 +74,8 @@ class Frame {
     this.situation = situation ?: (Situation) this
   }
 
-  String toString() {
-    return "$id: ${situation.chart._assignments[situation].findAll { it.frame == (Frame) this }}"
+  String toString(Chart chart) {
+    return "$id: ${chart._assignments[situation].findAll { it.frame == (Frame) this }}"
   }
 
   Frame f(String attr) {

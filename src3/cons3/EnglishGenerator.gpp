@@ -7,7 +7,7 @@ class EnglishGenerator {
   List<String> output = []
 
   String generate(Chart chart) {
-    new SituationGenerator(chart.situations[0]).sentence()
+    new SituationGenerator(chart, chart.situations[0]).sentence()
     String result = ""
     for (w in output) {
       if (!result.empty && !(w in ['.', ','])) {
@@ -19,10 +19,12 @@ class EnglishGenerator {
   }
 
   private class SituationGenerator {
-    Situation situation
+    final Chart chart
+    final Situation situation
     boolean hasSubject
 
-    SituationGenerator(Situation situation) {
+    SituationGenerator(Chart chart, Situation situation) {
+      this.chart = chart
       this.situation = situation
     }
 
@@ -38,7 +40,7 @@ class EnglishGenerator {
         return
       }
 
-      List<Frame> allVerbs = situation.frames.findAll { it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY', 'GO_OFF', 'ASK', 'DISCOVER', 'ALSO'] }
+      List<Frame> allVerbs = chart.frames[situation].findAll { it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY', 'GO_OFF', 'ASK', 'DISCOVER', 'ALSO'] }
       def verb = allVerbs[0]
       assert verb : situation.presentable()
 
@@ -84,7 +86,7 @@ class EnglishGenerator {
       def question = verb.f('question')
       if (question instanceof Situation) {
         output << 'about'
-        def think = ((Situation) question).frames.find { it.type == 'THINK' }
+        def think = chart.frames[(Situation)question].find { it.type == 'THINK' }
         def exp = think.f('arg1')
         if (exp?.type == 'THEY') {
           output << 'their'
@@ -101,7 +103,7 @@ class EnglishGenerator {
           output << "that"
         }
 
-        new SituationGenerator((Situation)theme).sentence()
+        new SituationGenerator(chart, (Situation)theme).sentence()
       } else if (theme && verb.type in ['CAN', 'ALSO']) {
         clause(theme)
       }
@@ -109,7 +111,7 @@ class EnglishGenerator {
       def elaboration = situation.f('elaboration')
       if (elaboration instanceof Situation) {
         output << ","
-        new SituationGenerator((Situation)elaboration).sentence()
+        new SituationGenerator(chart, (Situation)elaboration).sentence()
       }
 
       def variants = subj?.allAssignments('variant')
@@ -156,7 +158,7 @@ class EnglishGenerator {
         if (theme instanceof Situation) {
           output << ','
           output << 'when'
-          new SituationGenerator((Situation) theme).sentence()
+          new SituationGenerator(chart, (Situation) theme).sentence()
         }
       }
     }

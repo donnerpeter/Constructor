@@ -38,10 +38,6 @@ class Situation extends Frame {
     this.chart = chart
   }
 
-  List<Frame> getFrames() {
-    return chart.frames[this]
-  }
-
   Frame newFrame() {
     return chart.newFrame(this)
   }

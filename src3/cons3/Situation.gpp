@@ -79,10 +79,10 @@ class Frame {
   }
 }
 
-class Assignment<T> {
+class Assignment {
   final Frame frame
   final String property
-  final T value
+  final Object value
   final boolean rheme
 
   Assignment(Frame frame, String property, def value, boolean rheme) {

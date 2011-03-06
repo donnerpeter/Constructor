@@ -31,7 +31,7 @@ class EnglishGenerator {
       if (excl) {
         output << 'Great'
         output << 'was'
-        def a = situation._assignments.find { it.frame != situation && it.value == excl }
+        def a = situation.chart._assignments[situation].find { it.frame != situation && it.value == excl }
         if (a) {
           np(a.frame, true)
         }

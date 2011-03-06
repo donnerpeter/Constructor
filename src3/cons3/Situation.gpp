@@ -6,10 +6,18 @@ package cons3
 
 class Chart {
   final List<Situation> situations = []
+  final Map<Situation, List<Frame>> frames = [:]
 
   Situation newSituation() {
     def result = new Situation('#' + (situations.size() + 1), this)
     situations << result
+    frames[result] = []
+    return result
+  }
+
+  Frame newFrame(Situation situation) {
+    def result = new Frame(String.valueOf((char)(frames[situation].size() + (int)'A'.charAt(0))), situation)
+    frames[situation] << result
     return result
   }
 
@@ -20,7 +28,6 @@ class Chart {
 
 class Situation extends Frame {
   final Chart chart
-  final List<Frame> frames = []
   final List<Assignment> _assignments = []
   final Set<Assignment> _constraints = []
 
@@ -29,10 +36,12 @@ class Situation extends Frame {
     this.chart = chart
   }
 
+  List<Frame> getFrames() {
+    return chart.frames[this]
+  }
+
   Frame newFrame() {
-    def result = new Frame(String.valueOf((char)(frames.size() + (int)'A'.charAt(0))), this)
-    frames << result
-    return result
+    return chart.newFrame(this)
   }
 
   void assign(Frame frame, String property, String value, boolean rheme) {

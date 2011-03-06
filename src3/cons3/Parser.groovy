@@ -6,8 +6,8 @@ package cons3
 class Parser {
 
   Chart parse(String text) {
-    def chart = new Chart()
-    ParsingState state = new ParsingState(chart:chart, situation:chart.newSituation(), participants:[:])
+    def (chart, situation) = new Chart().newSituation()
+    ParsingState state = new ParsingState(chart:chart, situation:situation, participants:[:])
     def tokenizer = new StringTokenizer(text, """ '":,.""", true)
     for (String w in tokenizer) {
       if (w != ' ') {
@@ -88,8 +88,8 @@ class Parser {
       case "случился": return verb(state, "HAPPEN", "PAST", true)
       case "мной": return noun(state, 'instr', 'ME', false)
       case ":":
-        def elaboration = situation.chart.newSituation()
-        state = state.assign(situation, 'elaboration', elaboration, true)
+        def (ch, elaboration) = state.chart.newSituation()
+        state = state.withChart(ch).assign(situation, 'elaboration', elaboration, true)
         return state.withSituation(state.chart, elaboration)
       case "я":
       case "Я": return noun(state, 'nom', 'ME', false)
@@ -139,7 +139,8 @@ class Parser {
       case "думают": return verb(state, 'THINK', 'PRESENT', false)
       case "спросил": return verb(state, 'ASK', 'PAST', true)
       case ",":
-        def next = situation.chart.newSituation()
+        def (ch, next) = state.chart.newSituation()
+        state = state.withChart(ch)
         def domain = state.domain ?: state.lastFrame //todo late closure
         if (domain) {
           def role = domain.type in ['FORGET', 'AMAZE', 'DISCOVER'] ? 'theme' : 'question'

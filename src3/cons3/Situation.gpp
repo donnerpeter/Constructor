@@ -10,13 +10,13 @@ class Chart {
   final Map<Situation, List<Assignment>> _assignments = [:]
   final Map<Situation, Set<Assignment>> _constraints = [:]
 
-  Situation newSituation() {
+  List newSituation() {
     def result = new Situation('#' + (situations.size() + 1), this)
     situations << result
     frames[result] = []
     _assignments[result] = []
     _constraints[result] = []
-    return result
+    return [this, result]
   }
 
   List newFrame(Situation situation) {

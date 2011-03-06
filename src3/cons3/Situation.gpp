@@ -19,10 +19,10 @@ class Chart {
     return result
   }
 
-  Frame newFrame(Situation situation) {
+  List newFrame(Situation situation) {
     def result = new Frame(String.valueOf((char)(frames[situation].size() + (int)'A'.charAt(0))), situation)
     frames[situation] << result
-    return result
+    return [this, result]
   }
 
   String presentable() {
@@ -36,10 +36,6 @@ class Situation extends Frame {
   Situation(String id, Chart chart) {
     super(id, null)
     this.chart = chart
-  }
-
-  Frame newFrame() {
-    return chart.newFrame(this)
   }
 
   void assign(Frame frame, String property, String value, boolean rheme) {

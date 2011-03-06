@@ -25,6 +25,24 @@ class Chart {
     return [this, result]
   }
 
+  Chart assign(Frame frame, String property, String value, boolean rheme) {
+    _assign(frame.situation, new StringAssignment(frame, property, value), rheme)
+    return this
+  }
+
+  Chart assign(Frame frame, String property, Frame value, boolean rheme) {
+    _assign(frame.situation, new FrameAssignment(frame, property, value), rheme)
+    return this
+  }
+
+  private def _assign(Situation situation, Assignment assignment, boolean rheme) {
+    _assignments[situation] << assignment
+    if (!rheme) {
+      _constraints[situation] << assignment
+    }
+  }
+
+
   String presentable() {
     situations.collect { it.presentable() }.join("\n--\n")
   }
@@ -36,21 +54,6 @@ class Situation extends Frame {
   Situation(String id, Chart chart) {
     super(id, null)
     this.chart = chart
-  }
-
-  void assign(Frame frame, String property, String value, boolean rheme) {
-    _assign(new StringAssignment(frame, property, value), rheme)
-  }
-
-  void assign(Frame frame, String property, Frame value, boolean rheme) {
-    _assign(new FrameAssignment(frame, property, value), rheme)
-  }
-
-  private def _assign(Assignment assignment, boolean rheme) {
-    chart._assignments[this] << assignment
-    if (!rheme) {
-      chart._constraints[this] << assignment
-    }
   }
 
   String presentable() {

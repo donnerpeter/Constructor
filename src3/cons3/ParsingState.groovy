@@ -9,6 +9,7 @@ class ParsingState {
   private final Variable lastFrame
   final Pair<String, Function1<ParsingState, ParsingState>> expectation
   private Map<String, Variable> participants = [:]
+  Map<String, Map> constructions = [:]
 
   ParsingState(Map map) {
     chart = map.chart
@@ -16,6 +17,7 @@ class ParsingState {
     lastFrame = map.lastFrame
     expectation = map.expectation
     participants = map.participants
+    constructions = map.constructions
   }
 
   Frame getLastFrame() {
@@ -23,7 +25,7 @@ class ParsingState {
   }
 
   ParsingState clone(Map update) {
-    Map current = [chart:chart, situation:situation, lastFrame:lastFrame, expectation:expectation, participants:participants]
+    Map current = [chart:chart, situation:situation, lastFrame:lastFrame, expectation:expectation, participants:participants, constructions:constructions]
     current.putAll(update)
     return new ParsingState(current)
   }
@@ -63,6 +65,10 @@ class ParsingState {
   }
   ParsingState assign(Situation frame, String property, value, boolean rheme) {
     withChart(chart.assign(frame, property, value instanceof Frame ? value.var : value, rheme))
+  }
+
+  ParsingState withConstruction(Map args, String cxt) {
+    clone(constructions:(constructions + [(cxt):args]))
   }
 
 }

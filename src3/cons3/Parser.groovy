@@ -7,7 +7,7 @@ class Parser {
 
   Chart parse(String text) {
     def (chart, situation) = new Chart().newSituation()
-    ParsingState state = new ParsingState(chart:chart, situation:situation, participants:[:])
+    ParsingState state = new ParsingState(chart:chart, situation:situation, participants:[:], constructions:[:])
     def tokenizer = new StringTokenizer(text, """ '":,.""", true)
     for (String w in tokenizer) {
       if (w != ' ') {
@@ -20,9 +20,19 @@ class Parser {
   ParsingState handleWord(String word, ParsingState state) {
     def situation = state.situation
     switch (word) {
-      case "Удивительный": return adj(state, "property", "AMAZING", true, 'nom')
+      case "Удивительный":
+        def (ch, noun) = state.newFrame()
+        ch = ch.assign(noun.var, 'property', 'AMAZING', true)
+        return state.withChart(ch).withConstruction('adjective', nounFrame:noun.var)
       case "этому": return adj(state, 'determiner', 'THIS', false, 'dat')
-      case "случай": return noun(state, 'nom', "THING", true)
+      case "случай":
+        def adj = state.constructions.adjective
+        if (adj) {
+          Variable noun = adj.nounFrame
+          def ch = state.chart.assign(noun, 'type', 'THING', true)
+          return state.withRole(ch, 'nom', noun.frame(ch))
+        }
+        return noun(state, 'nom', "THING", true)
       case "удивление": return noun(state, 'nom', "AMAZE", true)
       case "поводу": return noun(state, 'dat', "MATTER", false)
       case "случился": return verb(state, "HAPPEN", "PAST", true)

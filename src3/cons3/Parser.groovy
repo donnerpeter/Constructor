@@ -22,21 +22,37 @@ class Parser {
     switch (word) {
       case "Удивительный":
         def (ch, noun) = state.newFrame()
-        ch = ch.assign(noun.var, 'property', 'AMAZING', true)
-        return state.withChart(ch).withConstruction('adjective', nounFrame:noun.var)
+        def (ch1, verb) = ch.newFrame(state.situation)
+        ch = ch1.assign(noun.var, 'property', 'AMAZING', true)
+        return state.withChart(ch).withConstruction('adjective', nounFrame:noun.var).withConstruction('nom', noun:noun.var, head:verb)
       case "этому": return adj(state, 'determiner', 'THIS', false, 'dat')
       case "случай":
         def adj = state.constructions.adjective
         if (adj) {
           Variable noun = adj.nounFrame
           def ch = state.chart.assign(noun, 'type', 'THING', true)
-          return state.withRole(ch, 'nom', noun.frame(ch))
+          return state.withChart(ch)
         }
         return noun(state, 'nom', "THING", true)
       case "удивление": return noun(state, 'nom', "AMAZE", true)
       case "поводу": return noun(state, 'dat', "MATTER", false)
-      case "случился": return verb(state, "HAPPEN", "PAST", true)
-      case "мной": return noun(state, 'instr', 'ME', false)
+      case "случился":
+        def nom = state.constructions.nom
+        if (nom) {
+          Variable verb = nom.head
+          def ch = state.chart.assign(verb, 'type', 'HAPPEN', true).assign(situation, 'time', 'PAST', false).assign(verb, 'arg1', nom.noun, true)
+          return state.withChart(ch).withConstruction('sInstr', head:verb)
+        }
+        return verb(state, "HAPPEN", "PAST", true)
+      case "мной":
+        def sInstr = state.constructions.sInstr
+        if (sInstr) {
+          Variable verb = sInstr.head
+          def (ch, noun) = state.newFrame()
+          ch = ch.assign(noun.var, 'type', 'ME', false).assign(verb, 'experiencer', noun.var, true)
+          return state.withChart(ch)
+        }
+        return noun(state, 'instr', 'ME', false)
       case ":":
         def (ch, elaboration) = state.chart.newSituation()
         state = state.withChart(ch).assign(situation, 'elaboration', elaboration, true)

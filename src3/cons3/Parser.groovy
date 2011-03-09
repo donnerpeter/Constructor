@@ -23,15 +23,13 @@ class Parser {
       case "Удивительный":
         def (ch, noun) = state.newFrame()
         def (ch1, verb) = ch.newFrame(state.situation)
-        ch = ch1.assign(noun.var, 'property', 'AMAZING', true)
-        return state.withChart(ch).withConstruction('adjective', nounFrame:noun.var).withConstruction('nom', noun:noun.var, head:verb)
+        return state.apply(ch1, 'adjective', nounFrame:noun.var, rel:'property', val:'AMAZING').apply('nom', noun:noun.var, head:verb)
       case "этому": return adj(state, 'determiner', 'THIS', false, 'dat')
       case "случай":
         def adj = state.constructions.adjective
         if (adj) {
           Variable noun = adj.nounFrame
-          def ch = state.chart.assign(noun, 'type', 'THING', true)
-          return state.withChart(ch)
+          return state.withChart(state.chart.assign(noun, 'type', 'THING', true))
         }
         return noun(state, 'nom', "THING", true)
       case "удивление": return noun(state, 'nom', "AMAZE", true)
@@ -40,17 +38,16 @@ class Parser {
         def nom = state.constructions.nom
         if (nom) {
           Variable verb = nom.head
-          def ch = state.chart.assign(verb, 'type', 'HAPPEN', true).assign(situation, 'time', 'PAST', false).assign(verb, 'arg1', nom.noun, true)
-          return state.withChart(ch).withConstruction('sInstr', head:verb)
+          def ch = state.chart.assign(verb, 'type', 'HAPPEN', true).assign(situation, 'time', 'PAST', false)
+          return state.apply('sInstr', head:verb).apply(ch, 'nom')
         }
         return verb(state, "HAPPEN", "PAST", true)
       case "мной":
         def sInstr = state.constructions.sInstr
         if (sInstr) {
-          Variable verb = sInstr.head
           def (ch, noun) = state.newFrame()
-          ch = ch.assign(noun.var, 'type', 'ME', false).assign(verb, 'experiencer', noun.var, true)
-          return state.withChart(ch)
+          ch = ch.assign(noun.var, 'type', 'ME', false)
+          return state.apply(ch, 'sInstr', noun:noun.var)
         }
         return noun(state, 'instr', 'ME', false)
       case ":":

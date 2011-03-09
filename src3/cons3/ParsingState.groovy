@@ -71,4 +71,27 @@ class ParsingState {
     clone(constructions:(constructions + [(cxt):args]))
   }
 
+  private Chart _apply(Chart chart, String name, Map args) {
+    switch (name) {
+      case 'adjective':
+        return chart.assign(args.nounFrame, args.rel, args.val, true)
+      case 'nom':
+        return args.noun.frame(chart).type ? chart.assign(args.head, 'arg1', args.noun, true) : chart
+      case 'sInstr':
+        return args.noun ? chart.assign(args.head, 'experiencer', args.noun, true) : chart
+    }
+
+    return chart
+  }
+
+  ParsingState apply(Map newArgs = [:], String name) {
+    apply(newArgs, chart, name)
+  }
+
+  ParsingState apply(Map newArgs = [:], Chart chart, String name) {
+    def args = newArgs + constructions.get(name, [:])
+    return withConstruction(args, name).withChart(_apply(chart, name, args))
+  }
+
+
 }

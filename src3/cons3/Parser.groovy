@@ -53,8 +53,11 @@ class Parser {
       case ":":
         def (ch, elaboration) = state.chart.newSituation()
         state = state.withChart(ch).assign(situation, 'elaboration', elaboration, true)
-        return state.withSituation(state.chart, elaboration)
+        return state.withSituation(elaboration)
       case "я":
+        def (ch, noun) = state.newFrame()
+        def (ch1, verb) = ch.newFrame(situation)
+        return state.withChart(ch1).assign(noun, 'type', 'ME', false).apply('nom', noun:noun.var, head:verb)
       case "Я": return noun(state, 'nom', 'ME', false)
       case "мое":
         def (ch, me) = state.newFrame()
@@ -79,6 +82,10 @@ class Parser {
       case "порядок": return noun(state, 'acc', 'ORDER', false)
       case "счета": return noun(state, 'gen', 'COUNTING', false)
       case "вдруг":
+        def nom = state.constructions.nom
+        if (nom) {
+          return state.assign(nom.head.frame(state.chart), 'manner', 'SUDDENLY', true)
+        }
         state = state.withRole(state.chart, 'domain')
         def ch = state.chart.assign(state.domain.var, "manner", "SUDDENLY", true)
         return state.withChart(ch)
@@ -91,7 +98,14 @@ class Parser {
         return state.assign(also, 'theme', state.domain, true)
       case "не":
         return state.assign(state.domain, "negated", "true", false)
-      case "забыл": return verb(state, 'FORGET', 'PAST', true)
+      case "забыл":
+        def nom = state.constructions.nom
+        if (nom) {
+          Variable verb = nom.head
+          def ch = state.chart.assign(verb, 'type', 'FORGET', true).assign(situation, 'time', 'PAST', false)
+          return state.apply('comp', head:verb).apply(ch, 'nom')
+        }
+        return verb(state, 'FORGET', 'PAST', true)
       case "могут":
         def subj = state['nom']
         state = verb(state, 'CAN', 'PRESENT', false)
@@ -104,12 +118,16 @@ class Parser {
       case ",":
         def (ch, next) = state.chart.newSituation()
         state = state.withChart(ch)
+        if (state.constructions.comp) {
+          return state.apply('comp', comp:next).withSituation(next).withExpectation('question')
+        }
+
         def domain = state.domain ?: state.lastFrame //todo late closure
         if (domain) {
           def role = domain.type in ['FORGET', 'AMAZE', 'DISCOVER'] ? 'theme' : 'question'
           state = state.assign(domain, role, next, state.domain != null)
         }
-        return state.withSituation(state.chart, next).withExpectation(domain?.type == 'DISCOVER' ? 'fact' : 'question')
+        return state.withSituation(next).withExpectation(domain?.type == 'DISCOVER' ? 'fact' : 'question')
       case "что":
         if (state.expectation?.first == 'fact') {
           return state.withExpectation(null)

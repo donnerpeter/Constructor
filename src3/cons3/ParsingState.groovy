@@ -35,7 +35,7 @@ class ParsingState {
     clone(chart:chart, lastFrame:frame.var, expectation:null)
   }
 
-  ParsingState withSituation(Chart chart, Situation situation) { clone(chart:chart, situation:situation, lastFrame:null, expectation:null, participants:[:]) }
+  ParsingState withSituation(Chart chart = this.chart, Situation situation) { clone(chart:chart, situation:situation, lastFrame:null, expectation:null, participants:[:], constructions:[:]) }
 
   ParsingState withExpectation(String expectation, Function1<ParsingState, ParsingState> r = {} as Function1) { clone(expectation:new Pair(expectation, r)) }
 
@@ -76,9 +76,11 @@ class ParsingState {
       case 'adjective':
         return chart.assign(args.nounFrame, args.rel, args.val, true)
       case 'nom':
-        return args.noun.frame(chart).type ? chart.assign(args.head, 'arg1', args.noun, true) : chart
+        return args.head.frame(chart).type ? chart.assign(args.head, 'arg1', args.noun, true) : chart
       case 'sInstr':
         return args.noun ? chart.assign(args.head, 'experiencer', args.noun, true) : chart
+      case 'comp':
+        return args.comp ? chart.assign(args.head, 'theme', args.comp, true) : chart
     }
 
     return chart

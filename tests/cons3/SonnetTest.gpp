@@ -26,10 +26,10 @@ B.arg1:=A
 B.theme:=#3
 --
 this.questioned:=A
-B.type==COME_SCALARLY
 this.time==PRESENT
-B.arg1==A
+B.type==COME_SCALARLY
 B.order==EARLIER
+B.arg1==A
 A.variant==7
 A.variant==8
 """)
@@ -54,15 +54,13 @@ D.arg2:=E
 D.question:=#2
 --
 this.questioned:=A
-B.type==THEY
-C.type==THINK
+C.type==THEY
+D.type==THINK
 this.time==PRESENT
-C.arg1==B
-C.opinion==A
-D.determiner==THIS
-C.topic==D
-D.type==MATTER
-"""
+D.arg1==C
+E.determiner==THIS
+D.topic==E
+E.type==MATTER"""
   }
 
   public void testParse3() throws Exception {

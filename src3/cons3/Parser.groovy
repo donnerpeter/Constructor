@@ -39,7 +39,7 @@ class Parser {
         if (nom) {
           Variable verb = nom.head
           def ch = state.chart.assign(verb, 'type', 'HAPPEN', true).assign(situation, 'time', 'PAST', false)
-          return state.apply('sInstr', head:verb).apply(ch, 'nom')
+          return state.apply('sInstr', head:verb).apply(ch, 'nom', rheme:true)
         }
         return verb(state, "HAPPEN", "PAST", true)
       case "мной":
@@ -103,7 +103,7 @@ class Parser {
         if (nom) {
           Variable verb = nom.head
           def ch = state.chart.assign(verb, 'type', 'FORGET', true).assign(situation, 'time', 'PAST', false)
-          return state.apply('comp', head:verb).apply(ch, 'nom')
+          return state.apply('comp', head:verb).apply(ch, 'nom', rheme:true)
         }
         return verb(state, 'FORGET', 'PAST', true)
       case "могут":
@@ -132,16 +132,33 @@ class Parser {
         if (state.expectation?.first == 'fact') {
           return state.withExpectation(null)
         }
-        state = state.withRole(state.chart, 'nom')
-        state = state.assign(situation, "questioned", state.lastFrame, true)
-        return state.withRole(state.chart, 'questioned', state.lastFrame)
-      case "идет": return verb(state, 'COME_SCALARLY', 'PRESENT', false)
+        def (ch, noun) = state.newFrame()
+        def (ch1, verb) = ch.newFrame(state.situation)
+        return state.apply(ch1, 'nom', noun:noun.var, head:verb, rheme:false).apply('question', questioned:noun.var, situation:situation)
+      case "идет":
+        def nom = state.constructions.nom
+        if (nom) {
+          Variable verb = nom.head
+          def ch = state.chart.assign(situation, 'time', 'PRESENT', false)
+          return state.apply(ch, 'nom').apply('comeScalarly', verb:verb)
+        }
+        return verb(state, 'COME_SCALARLY', 'PRESENT', false)
       case "раньше":
+        def cs = state.constructions.comeScalarly
+        if (cs) {
+          return state.apply('comeScalarly', order:'EARLIER').apply('nom')
+        }
         return state.assign(state.domain, 'order', 'EARLIER', false)
       case "-":
+        if (state.constructions.question) {
+          return state.apply('questionVariants', questioned:state.constructions.question.questioned)
+        }
         return state.withFrame(state.chart, state['nom'])
       case "7":
       case "8":
+        if (state.constructions.questionVariants) {
+          return state.apply('questionVariants', variant:word)
+        }
         return state.assign(state.lastFrame, 'variant', word, false)
       case 'Каково':
         def (ch, degree) = state.newFrame()

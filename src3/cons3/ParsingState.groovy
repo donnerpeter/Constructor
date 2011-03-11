@@ -76,11 +76,17 @@ class ParsingState {
       case 'adjective':
         return chart.assign(args.nounFrame, args.rel, args.val, true)
       case 'nom':
-        return args.head.frame(chart).type ? chart.assign(args.head, 'arg1', args.noun, true) : chart
+        return args.head.frame(chart).type ? chart.assign(args.head, 'arg1', args.noun, args.rheme) : chart
       case 'sInstr':
         return args.noun ? chart.assign(args.head, 'experiencer', args.noun, true) : chart
       case 'comp':
         return args.comp ? chart.assign(args.head, 'theme', args.comp, true) : chart
+      case 'question':
+        return chart.assign(args.situation, 'questioned', args.questioned, true)
+      case 'comeScalarly':
+        return args.order ? chart.assign(args.verb, 'type', 'COME_SCALARLY', false).assign(args.verb, 'order', args.order, false) : chart
+      case 'questionVariants':
+        return args.variant ? chart.assign(args.questioned, 'variant', args.variant, false) : chart
     }
 
     return chart
@@ -91,7 +97,7 @@ class ParsingState {
   }
 
   ParsingState apply(Map newArgs = [:], Chart chart, String name) {
-    def args = newArgs + constructions.get(name, [:])
+    def args = constructions.get(name, [:]) + newArgs
     return withConstruction(args, name).withChart(_apply(chart, name, args))
   }
 

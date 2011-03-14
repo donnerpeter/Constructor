@@ -77,10 +77,14 @@ class ParsingState {
         return chart.assign(args.nounFrame, args.rel, args.val, true)
       case 'nom':
         return args.head.frame(chart).type ? chart.assign(args.head, 'arg1', args.noun, args.rheme) : chart
+      case 'acc':
+        return args.head.frame(chart).type ? chart.assign(args.head, 'arg2', args.noun, args.rheme) : chart
       case 'sInstr':
         return args.noun ? chart.assign(args.head, 'experiencer', args.noun, true) : chart
+      case 'kDat':
+        return args.noun ? chart.assign(args.head, 'goal', args.noun, true) : chart
       case 'comp':
-        return args.comp ? chart.assign(args.head, 'theme', args.comp, true) : chart
+        return args.comp ? chart.assign(args.head, args.head.frame(chart).type == 'FORGET' ? 'theme' : 'question', args.comp, true) : chart
       case 'question':
         return chart.assign(args.situation, 'questioned', args.questioned, true)
       case 'comeScalarly':

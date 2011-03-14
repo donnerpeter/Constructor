@@ -55,10 +55,10 @@ class Parser {
         state = state.withChart(ch).assign(situation, 'elaboration', elaboration, true)
         return state.withSituation(elaboration)
       case "я":
+      case "Я":
         def (ch, noun) = state.newFrame()
         def (ch1, verb) = ch.newFrame(situation)
         return state.withChart(ch1).assign(noun, 'type', 'ME', false).apply('nom', noun:noun.var, head:verb)
-      case "Я": return noun(state, 'nom', 'ME', false)
       case "мое":
         def (ch, me) = state.newFrame()
         ch = ch.assign(me.var, 'type', 'ME', false)
@@ -70,6 +70,11 @@ class Parser {
         return state.withChart(ch)
       case "и": return state.withExpectation(null)
       case "их":
+        if (state.constructions.acc) {
+          def (ch, noun) = state.newFrame()
+          return state.assign(noun, 'type', 'THEY', false).apply('acc', noun:noun.var)
+        }
+
         state = noun(state, 'acc', 'THEY', false)
         return state.withExpectation('noun', { st ->
           def (ch, they) = state.newFrame()
@@ -78,7 +83,14 @@ class Parser {
           st.withChart(ch)
         } as Function1)
       case "они": return noun(state, 'nom', 'THEY', false)
-      case "соседям": return noun(state, 'dat', 'NEIGHBOURS', false)
+      case "соседям":
+        def kDat = state.constructions.kDat
+        if (kDat) {
+          def (ch, noun) = state.newFrame()
+          ch = ch.assign(noun.var, 'type', 'NEIGHBOURS', false)
+          return state.apply(ch, 'kDat', noun:noun.var)
+        }
+        return noun(state, 'dat', 'NEIGHBOURS', false)
       case "порядок": return noun(state, 'acc', 'ORDER', false)
       case "счета": return noun(state, 'gen', 'COUNTING', false)
       case "вдруг":
@@ -110,11 +122,25 @@ class Parser {
         def subj = state['nom']
         state = verb(state, 'CAN', 'PRESENT', false)
         return state.assign(subj, 'type', 'THEY', false)
-      case "отправился": return verb(state, 'GO_OFF', 'PAST', true)
+      case "отправился":
+        def nom = state.constructions.nom
+        if (nom) {
+          def verb = nom.head
+          def ch = state.chart.assign(verb, 'type', 'GO_OFF', true).assign(situation, 'time', 'PAST', false)
+          return state.apply('kDat', head:verb).apply(ch, 'nom', rheme:true, head:verb)
+        }
+        return verb(state, 'GO_OFF', 'PAST', true)
       case "обнаружили": return verb(state, 'DISCOVER', 'PAST', true)
       case "вспомнить": return infinitive(state, 'REMEMBER', false)
       case "думают": return verb(state, 'THINK', 'PRESENT', false)
-      case "спросил": return verb(state, 'ASK', 'PAST', true)
+      case "спросил":
+        def nom = state.constructions.nom
+        if (nom) {
+          def (ch, verb) = state.newFrame()
+          ch = ch.assign(verb.var, 'type', 'ASK', true)//todo don't reassign tense .assign(situation, 'time', 'PAST', false)
+          return state.apply('acc', head:verb.var, rheme:true).apply(ch, 'nom', rheme:true, head:verb.var).apply('comp', head:verb.var)
+        }
+        return verb(state, 'ASK', 'PAST', true)
       case ",":
         def (ch, next) = state.chart.newSituation()
         state = state.withChart(ch)

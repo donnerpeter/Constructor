@@ -23,8 +23,13 @@ class Parser {
       case "Удивительный":
         def (ch, noun) = state.newFrame()
         def (ch1, verb) = ch.newFrame(state.situation)
-        return state.apply(ch1, 'adjective', nounFrame:noun.var, rel:'property', val:'AMAZING').apply('nom', noun:noun.var, head:verb)
-      case "этому": return adj(state, 'determiner', 'THIS', false, 'dat')
+        return state.apply(ch1, 'adjective', nounFrame:noun.var, rel:'property', val:'AMAZING', rheme:true).apply('nom', noun:noun.var, head:verb)
+      case "этому":
+        if (state.constructions.poDat) {
+          def (ch, noun) = state.newFrame()
+          return state.apply(ch, 'adjective', nounFrame:noun.var, rel:'determiner', val:'THIS', rheme:false).apply('poDat', noun:noun.var)
+        }
+        return state
       case "случай":
         def adj = state.constructions.adjective
         if (adj) {
@@ -33,7 +38,13 @@ class Parser {
         }
         return noun(state, 'nom', "THING", true)
       case "удивление": return noun(state, 'nom', "AMAZE", true)
-      case "поводу": return noun(state, 'dat', "MATTER", false)
+      case "поводу":
+        def adj = state.constructions.adjective
+        if (adj) {
+          Variable noun = adj.nounFrame
+          return state.withChart(state.chart.assign(noun, 'type', 'MATTER', false))
+        }
+        return state
       case "случился":
         def nom = state.constructions.nom
         if (nom) {
@@ -82,7 +93,12 @@ class Parser {
           ch = ch.assign(state['nom'].var, 'arg1', they.var, true) //todo possessive for differently cased NPs
           st.withChart(ch)
         } as Function1)
-      case "они": return noun(state, 'nom', 'THEY', false)
+      case "они":
+        def nom = state.constructions.nom
+        def (ch, noun) = state.newFrame()
+        def (ch1, head) = nom?.noun ? [ch, nom.head] : ch.newFrame(state.situation)
+        ch1 = ch1.assign(noun.var, 'type', 'THEY', false)
+        return state.withChart(ch1).apply('nom', noun:noun.var, head: head).withRole(ch1, 'domain', head.frame(ch1)).withRole(ch1, 'nom', noun)
       case "соседям":
         def kDat = state.constructions.kDat
         if (kDat) {
@@ -130,9 +146,17 @@ class Parser {
           return state.apply('kDat', head:verb).apply(ch, 'nom', rheme:true, head:verb)
         }
         return verb(state, 'GO_OFF', 'PAST', true)
-      case "обнаружили": return verb(state, 'DISCOVER', 'PAST', true)
+      case "обнаружили":
+        return verb(state, 'DISCOVER', 'PAST', true)
       case "вспомнить": return infinitive(state, 'REMEMBER', false)
-      case "думают": return verb(state, 'THINK', 'PRESENT', false)
+      case "думают":
+        def nom = state.constructions.nom
+        if (nom) {
+          def verb = nom.head
+          def ch = state.chart.assign(verb, 'type', 'THINK', false).assign(situation, 'time', 'PRESENT', false)
+          return state.apply('poDat', head:verb).apply(ch, 'nom', rheme:false, head:verb).apply('acc', rheme:false)
+        }
+        return verb(state, 'THINK', 'PRESENT', false)
       case "спросил":
         def nom = state.constructions.nom
         if (nom) {
@@ -160,7 +184,7 @@ class Parser {
         }
         def (ch, noun) = state.newFrame()
         def (ch1, verb) = ch.newFrame(state.situation)
-        return state.apply(ch1, 'nom', noun:noun.var, head:verb, rheme:false).apply('question', questioned:noun.var, situation:situation)
+        return state.apply(ch1, 'nom', noun:noun.var, head:verb, rheme:false).apply('acc', noun:noun.var, head:verb, rheme:false).apply('question', questioned:noun.var, situation:situation)
       case "идет":
         def nom = state.constructions.nom
         if (nom) {

@@ -74,13 +74,15 @@ class ParsingState {
   private Chart _apply(Chart chart, String name, Map args) {
     switch (name) {
       case 'adjective':
-        return chart.assign(args.nounFrame, args.rel, args.val, true)
+        return chart.assign(args.nounFrame, args.rel, args.val, args.rheme)
       case 'nom':
         return args.head.frame(chart).type ? chart.assign(args.head, 'arg1', args.noun, args.rheme) : chart
       case 'acc':
         return args.head.frame(chart).type ? chart.assign(args.head, 'arg2', args.noun, args.rheme) : chart
       case 'sInstr':
         return args.noun ? chart.assign(args.head, 'experiencer', args.noun, true) : chart
+      case 'poDat':
+        return args.noun ? chart.assign(args.head, 'topic', args.noun, false) : chart
       case 'kDat':
         return args.noun ? chart.assign(args.head, 'goal', args.noun, true) : chart
       case 'comp':

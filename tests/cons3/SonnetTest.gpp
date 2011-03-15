@@ -55,12 +55,13 @@ D.question:=#2
 --
 this.questioned:=A
 C.type==THEY
-D.type==THINK
+B.type==THINK
 this.time==PRESENT
-D.arg1==C
-E.determiner==THIS
-D.topic==E
-E.type==MATTER"""
+B.arg1==C
+B.arg2==A
+D.determiner==THIS
+B.topic==D
+D.type==MATTER"""
   }
 
   public void testParse3() throws Exception {

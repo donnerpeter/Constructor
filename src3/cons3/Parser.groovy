@@ -37,7 +37,12 @@ class Parser {
           return state.withChart(state.chart.assign(noun, 'type', 'THING', true))
         }
         return noun(state, 'nom', "THING", true)
-      case "удивление": return noun(state, 'nom', "AMAZE", true)
+      case "удивление":
+        def poss = state.constructions.possessive
+        if (poss) {
+          return state.assign(poss.head.frame(state.chart), 'type', 'AMAZE', true).apply('possessive')
+        }
+        return noun(state, 'nom', "AMAZE", true)
       case "поводу":
         def adj = state.constructions.adjective
         if (adj) {
@@ -71,28 +76,17 @@ class Parser {
         def (ch1, verb) = ch.newFrame(situation)
         return state.withChart(ch1).assign(noun, 'type', 'ME', false).apply('nom', noun:noun.var, head:verb)
       case "мое":
-        def (ch, me) = state.newFrame()
-        ch = ch.assign(me.var, 'type', 'ME', false)
-        def prev = state['acc']
-        if (prev) {
-          ch = ch.assign(state['nom'].var, 'arg1', prev.var, true) //todo acc/gen ambiguity
-        }
-        ch = ch.assign(state['nom'].var, 'arg1', me.var, true)
-        return state.withChart(ch)
+        def (ch, noun) = state.newFrame()
+        def (ch2, possHead) = state.constructions.whatA ? [ch, state.constructions.whatA.head] : state.constructions.possessive ? [ch, state.constructions.possessive.possHead] : ch.newFrame(state.situation)
+        state = state.withChart(ch2).assign(noun, 'type', 'ME', false)
+        return state.apply('possessive', possessor:noun.var, head:possHead, conj:state.constructions.possessive)
       case "и": return state.withExpectation(null)
       case "их":
-        if (state.constructions.acc) {
-          def (ch, noun) = state.newFrame()
-          return state.assign(noun, 'type', 'THEY', false).apply('acc', noun:noun.var)
-        }
-
-        state = noun(state, 'acc', 'THEY', false)
-        return state.withExpectation('noun', { st ->
-          def (ch, they) = state.newFrame()
-          ch = ch.assign(they.var, 'type', 'THEY', false)
-          ch = ch.assign(state['nom'].var, 'arg1', they.var, true) //todo possessive for differently cased NPs
-          st.withChart(ch)
-        } as Function1)
+        def (ch, noun) = state.newFrame()
+        def (ch1, verb) = state.constructions.acc ? [ch, state.constructions.acc.head] : ch.newFrame(state.situation)
+        def (ch2, possHead) = state.constructions.whatA ? [ch1, state.constructions.whatA.head] : ch1.newFrame(state.situation)
+        state = state.withChart(ch2).assign(noun, 'type', 'THEY', false).apply('acc', noun:noun.var, head:verb)
+        return state.apply('possessive', possessor:noun.var, head:possHead)
       case "они":
         def nom = state.constructions.nom
         def (ch, noun) = state.newFrame()
@@ -215,8 +209,11 @@ class Parser {
         state = state.withChart(ch)
         state = state.assign(situation, 'exclamation', degree, true)
         state = state.withRole(state.chart, 'nom')
-        return state.assign(state.lastFrame, 'degree', degree, true)
+        return state.assign(state.lastFrame, 'degree', degree, true).apply('whatA', degree:degree, head:state.lastFrame.var, situation:situation)
       case 'было':
+        if (state.constructions.whatA) {
+          return state.apply('whatA', time:'PAST')
+        }
         return state.assign(situation, 'time', 'PAST' , false)
     }
     return state

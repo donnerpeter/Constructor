@@ -70,10 +70,10 @@ this.exclamation:=A
 B.degree:=A
 this.time==PAST
 C.type==THEY
-D.type==ME
-B.arg1:=C
-B.arg1:=D
+E.type==ME
 B.type:=AMAZE
+B.arg1:=C
+B.arg1:=E
 B.theme==#2
 --
 A.type==THEY

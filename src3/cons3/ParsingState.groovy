@@ -93,6 +93,11 @@ class ParsingState {
         return args.order ? chart.assign(args.verb, 'type', 'COME_SCALARLY', false).assign(args.verb, 'order', args.order, false) : chart
       case 'questionVariants':
         return args.variant ? chart.assign(args.questioned, 'variant', args.variant, false) : chart
+      case 'whatA':
+        return args.time ? chart.assign(args.situation, 'time', args.time, false) : chart
+      case 'possessive':
+        chart = args.conj ? _apply(chart, 'possessive', args.conj) : chart //todo generic conj handling
+        return args.head.frame(chart).type ? chart.assign(args.head, 'arg1', args.possessor, true) : chart
     }
 
     return chart

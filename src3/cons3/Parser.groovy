@@ -40,9 +40,9 @@ class Parser {
       case "удивление":
         def poss = state.constructions.possessive
         if (poss) {
-          return state.assign(poss.head.frame(state.chart), 'type', 'AMAZE', true).apply('possessive')
+          return state.assign(poss.head.frame(state.chart), 'type', 'AMAZE', true).apply('possessive').apply('comp', head:poss.head, rheme:false)
         }
-        return noun(state, 'nom', "AMAZE", true)
+        return state
       case "поводу":
         def adj = state.constructions.adjective
         if (adj) {
@@ -92,7 +92,7 @@ class Parser {
         def (ch, noun) = state.newFrame()
         def (ch1, head) = nom?.noun ? [ch, nom.head] : ch.newFrame(state.situation)
         ch1 = ch1.assign(noun.var, 'type', 'THEY', false)
-        return state.withChart(ch1).apply('nom', noun:noun.var, head: head).withRole(ch1, 'domain', head.frame(ch1)).withRole(ch1, 'nom', noun)
+        return state.withChart(ch1).apply('nom', noun:noun.var, head: head)
       case "соседям":
         def kDat = state.constructions.kDat
         if (kDat) {
@@ -125,7 +125,7 @@ class Parser {
         if (nom) {
           Variable verb = nom.head
           def ch = state.chart.assign(verb, 'type', 'FORGET', true).assign(situation, 'time', 'PAST', false)
-          return state.apply('comp', head:verb).apply(ch, 'nom', rheme:true)
+          return state.apply('comp', head:verb, rheme:true).apply(ch, 'nom', rheme:true)
         }
         return verb(state, 'FORGET', 'PAST', true)
       case "могут":
@@ -141,6 +141,12 @@ class Parser {
         }
         return verb(state, 'GO_OFF', 'PAST', true)
       case "обнаружили":
+        def nom = state.constructions.nom
+        if (nom) {
+          def verb = nom.head
+          def ch = state.chart.assign(verb, 'type', 'DISCOVER', true).assign(situation, 'time', 'PAST', false)
+          return state.apply('comp', head:verb, rheme:true).apply(ch, 'nom', rheme:true, head:verb)
+        }
         return verb(state, 'DISCOVER', 'PAST', true)
       case "вспомнить": return infinitive(state, 'REMEMBER', false)
       case "думают":
@@ -156,29 +162,24 @@ class Parser {
         if (nom) {
           def (ch, verb) = state.newFrame()
           ch = ch.assign(verb.var, 'type', 'ASK', true)//todo don't reassign tense .assign(situation, 'time', 'PAST', false)
-          return state.apply('acc', head:verb.var, rheme:true).apply(ch, 'nom', rheme:true, head:verb.var).apply('comp', head:verb.var)
+          return state.apply('acc', head:verb.var, rheme:true).apply(ch, 'nom', rheme:true, head:verb.var).apply('comp', head:verb.var, rheme:true)
         }
         return verb(state, 'ASK', 'PAST', true)
       case ",":
         def (ch, next) = state.chart.newSituation()
         state = state.withChart(ch)
-        if (state.constructions.comp) {
-          return state.apply('comp', comp:next).withSituation(next).withExpectation('question')
+        def comp = state.constructions.comp
+        if (comp) {
+          return state.apply('comp', comp:next).withSituation(next).apply(comp.head.frame(ch).type in ['DISCOVER', 'AMAZE'] ? 'declComp' : 'question', situation:next)
         }
-
-        def domain = state.domain ?: state.lastFrame //todo late closure
-        if (domain) {
-          def role = domain.type in ['FORGET', 'AMAZE', 'DISCOVER'] ? 'theme' : 'question'
-          state = state.assign(domain, role, next, state.domain != null)
-        }
-        return state.withSituation(next).withExpectation(domain?.type == 'DISCOVER' ? 'fact' : 'question')
+        return state
       case "что":
-        if (state.expectation?.first == 'fact') {
-          return state.withExpectation(null)
+        if (state.constructions.question) {
+          def (ch, noun) = state.newFrame()
+          def (ch1, verb) = ch.newFrame(state.situation)
+          return state.apply(ch1, 'nom', noun:noun.var, head:verb, rheme:false).apply('acc', noun:noun.var, head:verb, rheme:false).apply('question', questioned:noun.var)
         }
-        def (ch, noun) = state.newFrame()
-        def (ch1, verb) = ch.newFrame(state.situation)
-        return state.apply(ch1, 'nom', noun:noun.var, head:verb, rheme:false).apply('acc', noun:noun.var, head:verb, rheme:false).apply('question', questioned:noun.var, situation:situation)
+        return state
       case "идет":
         def nom = state.constructions.nom
         if (nom) {

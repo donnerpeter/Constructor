@@ -63,8 +63,8 @@ class ParsingState {
   ParsingState assign(Frame frame, String property, value, boolean rheme) {
     withChart(chart.assign(frame.var, property, value instanceof Frame ? value.var : value, rheme))
   }
-  ParsingState assign(Situation frame, String property, value, boolean rheme) {
-    withChart(chart.assign(frame, property, value instanceof Frame ? value.var : value, rheme))
+  ParsingState assign(Variable var, String property, value, boolean rheme) {
+    withChart(chart.assign(var, property, value instanceof Frame ? value.var : value, rheme))
   }
 
   ParsingState withConstruction(Map args, String cxt) {
@@ -78,11 +78,13 @@ class ParsingState {
       case 'nom':
         return args.head.frame(chart).type ? chart.assign(args.head, 'arg1', args.noun, args.rheme) : chart
       case 'acc':
-        return args.head.frame(chart).type ? chart.assign(args.head, 'arg2', args.noun, args.rheme) : chart
+        return args.head.frame(chart).type && args.noun ? chart.assign(args.head, 'arg2', args.noun, args.rheme) : chart
       case 'sInstr':
         return args.noun ? chart.assign(args.head, 'experiencer', args.noun, true) : chart
       case 'poDat':
         return args.noun ? chart.assign(args.head, 'topic', args.noun, false) : chart
+      case 'nounGen':
+        return args.noun ? chart.assign(args.head, 'criterion', args.noun, false) : chart
       case 'kDat':
         return args.noun ? chart.assign(args.head, 'goal', args.noun, true) : chart
       case 'comp':
@@ -98,6 +100,8 @@ class ParsingState {
       case 'possessive':
         chart = args.conj ? _apply(chart, 'possessive', args.conj) : chart //todo generic conj handling
         return args.head.frame(chart).type ? chart.assign(args.head, 'arg1', args.possessor, true) : chart
+      case 'control':
+        return args.slave ? chart.assign(args.head, 'theme', args.slave, false) : chart
     }
 
     return chart

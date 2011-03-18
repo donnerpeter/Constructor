@@ -101,8 +101,22 @@ class Parser {
           return state.apply(ch, 'kDat', noun:noun.var)
         }
         return noun(state, 'dat', 'NEIGHBOURS', false)
-      case "порядок": return noun(state, 'acc', 'ORDER', false)
-      case "счета": return noun(state, 'gen', 'COUNTING', false)
+      case "порядок":
+        def acc = state.constructions.acc
+        if (acc) {
+          def (ch, noun) = state.newFrame()
+          ch = ch.assign(noun.var, 'type', 'ORDER', false)
+          return state.apply(ch, 'acc', noun:noun.var, rheme:false).apply('nounGen', head:noun.var)
+        }
+        return state
+      case "счета":
+        def nounGen = state.constructions.nounGen
+        if (nounGen) {
+          def (ch, noun) = state.newFrame()
+          ch = ch.assign(noun.var, 'type', 'COUNTING', false)
+          return state.apply(ch, 'nounGen', noun:noun.var)
+        }
+        return state
       case "вдруг":
         def nom = state.constructions.nom
         if (nom) {
@@ -116,10 +130,9 @@ class Parser {
         def (ch1, subj) = ch.newFrame(situation)
         ch1 = ch1.assign(also.var, 'type', 'ALSO', true)
         ch1 = ch1.assign(also.var, 'arg1', subj, true)
-        state = state.withRole(ch1, 'nom', subj.frame(ch1)).withRole(ch1, 'domain')
-        return state.assign(also, 'theme', state.domain, true)
+        return state.withChart(ch1).apply(ch1, 'also', also:also.var, subj:subj)
       case "не":
-        return state.assign(state.domain, "negated", "true", false)
+        return state.apply('negation')
       case "забыл":
         def nom = state.constructions.nom
         if (nom) {
@@ -129,9 +142,24 @@ class Parser {
         }
         return verb(state, 'FORGET', 'PAST', true)
       case "могут":
-        def subj = state['nom']
-        state = verb(state, 'CAN', 'PRESENT', false)
-        return state.assign(subj, 'type', 'THEY', false)
+        def (ch, verb) = state.newFrame()
+        state = state.withChart(ch)
+        def also = state.constructions.also
+        def subj
+        if (also) {
+          subj = also.subj
+          state = state.assign(also.also, 'theme', verb.var, true)
+        }
+        if (state.constructions.negation != null) {
+          state = state.assign(verb.var, 'negated', 'true', false)
+        }
+        if (!subj) {
+          (ch, subj) = state.newFrame()
+          state = state.withChart(ch)
+        }
+        state = state.assign(verb, 'type', 'CAN', false).assign(situation, 'time', 'PRESENT', false)
+        state = state.assign(subj, 'type', 'THEY', false)
+        return state.apply('control', subj:subj, head:verb.var)
       case "отправился":
         def nom = state.constructions.nom
         if (nom) {
@@ -148,7 +176,10 @@ class Parser {
           return state.apply('comp', head:verb, rheme:true).apply(ch, 'nom', rheme:true, head:verb)
         }
         return verb(state, 'DISCOVER', 'PAST', true)
-      case "вспомнить": return infinitive(state, 'REMEMBER', false)
+      case "вспомнить":
+        def (ch, verb) = state.newFrame()
+        state = state.withChart(ch).apply('control', slave:verb.var)
+        return state.assign(verb, 'type', 'REMEMBER', false).apply('acc', head:verb.var)
       case "думают":
         def nom = state.constructions.nom
         if (nom) {

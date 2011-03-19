@@ -36,7 +36,7 @@ class Parser {
           Variable noun = adj.nounFrame
           return state.withChart(state.chart.assign(noun, 'type', 'THING', true))
         }
-        return noun(state, 'nom', "THING", true)
+        return state
       case "удивление":
         def poss = state.constructions.possessive
         if (poss) {
@@ -57,7 +57,7 @@ class Parser {
           def ch = state.chart.assign(verb, 'type', 'HAPPEN', true).assign(situation, 'time', 'PAST', false)
           return state.apply('sInstr', head:verb).apply(ch, 'nom', rheme:true)
         }
-        return verb(state, "HAPPEN", "PAST", true)
+        return state
       case "мной":
         def sInstr = state.constructions.sInstr
         if (sInstr) {
@@ -65,7 +65,7 @@ class Parser {
           ch = ch.assign(noun.var, 'type', 'ME', false)
           return state.apply(ch, 'sInstr', noun:noun.var)
         }
-        return noun(state, 'instr', 'ME', false)
+        return state
       case ":":
         def (ch, elaboration) = state.chart.newSituation()
         state = state.withChart(ch).assign(situation, 'elaboration', elaboration, true)
@@ -100,7 +100,7 @@ class Parser {
           ch = ch.assign(noun.var, 'type', 'NEIGHBOURS', false)
           return state.apply(ch, 'kDat', noun:noun.var)
         }
-        return noun(state, 'dat', 'NEIGHBOURS', false)
+        return state
       case "порядок":
         def acc = state.constructions.acc
         if (acc) {
@@ -140,7 +140,7 @@ class Parser {
           def ch = state.chart.assign(verb, 'type', 'FORGET', true).assign(situation, 'time', 'PAST', false)
           return state.apply('comp', head:verb, rheme:true).apply(ch, 'nom', rheme:true)
         }
-        return verb(state, 'FORGET', 'PAST', true)
+        return state
       case "могут":
         def (ch, verb) = state.newFrame()
         state = state.withChart(ch)
@@ -167,7 +167,7 @@ class Parser {
           def ch = state.chart.assign(verb, 'type', 'GO_OFF', true).assign(situation, 'time', 'PAST', false)
           return state.apply('kDat', head:verb).apply(ch, 'nom', rheme:true, head:verb)
         }
-        return verb(state, 'GO_OFF', 'PAST', true)
+        return state
       case "обнаружили":
         def nom = state.constructions.nom
         if (nom) {
@@ -175,7 +175,7 @@ class Parser {
           def ch = state.chart.assign(verb, 'type', 'DISCOVER', true).assign(situation, 'time', 'PAST', false)
           return state.apply('comp', head:verb, rheme:true).apply(ch, 'nom', rheme:true, head:verb)
         }
-        return verb(state, 'DISCOVER', 'PAST', true)
+        return state
       case "вспомнить":
         def (ch, verb) = state.newFrame()
         state = state.withChart(ch).apply('control', slave:verb.var)
@@ -187,7 +187,7 @@ class Parser {
           def ch = state.chart.assign(verb, 'type', 'THINK', false).assign(situation, 'time', 'PRESENT', false)
           return state.apply('poDat', head:verb).apply(ch, 'nom', rheme:false, head:verb).apply('acc', rheme:false)
         }
-        return verb(state, 'THINK', 'PRESENT', false)
+        return state
       case "спросил":
         def nom = state.constructions.nom
         if (nom) {
@@ -195,7 +195,7 @@ class Parser {
           ch = ch.assign(verb.var, 'type', 'ASK', true)//todo don't reassign tense .assign(situation, 'time', 'PAST', false)
           return state.apply('acc', head:verb.var, rheme:true).apply(ch, 'nom', rheme:true, head:verb.var).apply('comp', head:verb.var, rheme:true)
         }
-        return verb(state, 'ASK', 'PAST', true)
+        return state
       case ",":
         def (ch, next) = state.chart.newSituation()
         state = state.withChart(ch)
@@ -218,7 +218,7 @@ class Parser {
           def ch = state.chart.assign(situation, 'time', 'PRESENT', false)
           return state.apply(ch, 'nom').apply('comeScalarly', verb:verb)
         }
-        return verb(state, 'COME_SCALARLY', 'PRESENT', false)
+        return state
       case "раньше":
         def cs = state.constructions.comeScalarly
         if (cs) {
@@ -247,105 +247,6 @@ class Parser {
           return state.apply('whatA', time:'PAST')
         }
         return state.assign(situation, 'time', 'PAST' , false)
-    }
-    return state
-  }
-
-  private ParsingState verb(ParsingState state, String type, String time, boolean rheme) {
-    def situation = state.situation
-    def (ch, domain) = !state.domain || state.domain.type ? state.newFrame() : [state.chart, state.domain]
-    state = state.withRole(ch, 'domain', domain)
-    state = state.assign(state.domain, "type", type, rheme)
-    if (!situation.frame(state.chart).s('time')) {
-      state = state.assign(situation, "time", time, false)
-    }
-    return thetas(state)
-  }
-
-  private ParsingState infinitive(ParsingState state, String type, boolean rheme) {
-    def oldDomain = state.domain
-    def control = oldDomain?.type == 'CAN'
-    def (ch, domain) = control || !oldDomain || oldDomain.type ? state.newFrame() : [state.chart, oldDomain]
-    state = state.withRole(ch, 'domain', domain)
-    if (control) {
-      state = state.assign(oldDomain, 'theme', state.domain, rheme)
-    }
-    state = state.assign(state.domain, "type", type, rheme)
-    return thetas(state)
-  }
-
-  private ParsingState noun(ParsingState state, String caze, String type, boolean rheme) {
-    def oldLast = state.lastFrame
-    def expectation = state.expectation
-
-    def existing = state[caze]
-    if (existing && (existing.s('type') || existing == state['questioned'])) {
-      def (ch, f) = state.newFrame()
-      state = state.withRole(ch, 'acc', existing).withRole(ch, caze, f)
-    } else {
-      state = state.withRole(state.chart, caze)
-    }
-
-    if (expectation?.first == 'noun') {
-      state = expectation.second.call(state)
-    }
-
-    state = state.assign(state.lastFrame, "type", type, rheme)
-
-    if (caze == 'gen' && oldLast?.type == 'ORDER') {
-      state = state.assign(oldLast, 'criterion', state.lastFrame, rheme)
-    }
-
-    return thetas(state)
-  }
-
-  private ParsingState adj(ParsingState state, String attr, String value, boolean rheme, String caze) {
-    state = state.withRole(state.chart, caze)
-    state = state.assign(state.lastFrame, attr, value, rheme)
-    return thetas(state)
-  }
-
-  private ParsingState thetas(ParsingState state) {
-    def verb = state.domain
-    def type = verb?.type
-    if (!type) return state
-
-
-    if (type == 'THINK') {
-      state = ensureTheta(state, 'nom', 'arg1', false)
-      state = ensureTheta(state, 'acc', 'opinion', false)
-      state = ensureTheta(state, 'dat', 'topic', false) //todo poDat
-    }
-    if (type == 'HAPPEN') {
-      state = ensureTheta(state, 'nom', 'arg1', true)
-      state = ensureTheta(state, 'instr', 'experiencer', true) //todo sInstr
-    }
-    if (type == 'COME_SCALARLY') {
-      state = ensureTheta(state, 'nom', 'arg1', false)
-    }
-    if (type == 'GO_OFF') {
-      state = ensureTheta(state, 'nom', 'arg1', true)
-      state = ensureTheta(state, 'dat', 'goal', true) //todo kDat
-    }
-    if (type == 'ASK') {
-      state = ensureTheta(state, 'nom', 'arg1', true)
-      state = ensureTheta(state, 'acc', 'arg2', true)
-    }
-    if (type == 'FORGET') {
-      state = ensureTheta(state, 'nom', 'arg1', true)
-    }
-    if (type == 'DISCOVER') {
-      state = ensureTheta(state, 'nom', 'arg1', true)
-    }
-    if (type == 'REMEMBER') {
-      state = ensureTheta(state, 'acc', 'arg2', false)
-    }
-    return state
-  }
-
-  private ParsingState ensureTheta(ParsingState state, String caze, String theta, boolean rheme) {
-    if (state[caze] && !state.domain.f(theta)) {
-      state = state.assign(state.domain, theta, state[caze], rheme)
     }
     return state
   }

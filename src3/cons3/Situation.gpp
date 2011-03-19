@@ -20,7 +20,11 @@ class Chart {
   }
 
   List<Frame> frames(Situation situation) {
-    variables[situation].collect { it.frame(this) }
+    vars(situation).collect { it.frame(this) }
+  }
+
+  List<Variable> vars(Situation situation) {
+    return (__assignments[situation].collect { it.frame } as LinkedHashSet) as List
   }
 
   List<Assignment<Frame>> allAssignments(Situation situation) {

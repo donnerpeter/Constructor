@@ -80,7 +80,7 @@ class Parser {
         def (ch2, possHead) = state.constructions.whatA ? [ch, state.constructions.whatA.head] : state.constructions.possessive ? [ch, state.constructions.possessive.possHead] : ch.newFrame(state.situation)
         state = state.withChart(ch2).assign(noun, 'type', 'ME', false)
         return state.apply('possessive', possessor:noun.var, head:possHead, conj:state.constructions.possessive)
-      case "и": return state.withExpectation(null)
+      case "и": return state
       case "их":
         def (ch, noun) = state.newFrame()
         def (ch1, verb) = state.constructions.acc ? [ch, state.constructions.acc.head] : ch.newFrame(state.situation)

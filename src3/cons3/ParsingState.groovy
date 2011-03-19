@@ -6,25 +6,21 @@ package cons3
 class ParsingState {
   final Chart chart
   final Situation situation
-  final Pair<String, Function1<ParsingState, ParsingState>> expectation
   Map<String, Map> constructions = [:]
 
   ParsingState(Map map) {
     chart = map.chart
     situation = map.situation
-    expectation = map.expectation
     constructions = map.constructions
   }
 
   ParsingState clone(Map update) {
-    Map current = [chart:chart, situation:situation, expectation:expectation, constructions:constructions]
+    Map current = [chart:chart, situation:situation, constructions:constructions]
     current.putAll(update)
     return new ParsingState(current)
   }
 
-  ParsingState withSituation(Chart chart = this.chart, Situation situation) { clone(chart:chart, situation:situation, expectation:null, participants:[:], constructions:[:]) }
-
-  ParsingState withExpectation(String expectation, Function1<ParsingState, ParsingState> r = {} as Function1) { clone(expectation:new Pair(expectation, r)) }
+  ParsingState withSituation(Chart chart = this.chart, Situation situation) { clone(chart:chart, situation:situation, participants:[:], constructions:[:]) }
 
   List newFrame() {
     def (ch, var) = chart.newFrame(situation)

@@ -50,11 +50,6 @@ class Chart {
     return [new Chart(newSitu, newAss), result]
   }
 
-  List newFrame(Situation situation) {
-    def result = new Variable(situation)
-    return [this, result]
-  }
-
   Chart assign(Variable frame, String property, value, boolean rheme) {
     assert value instanceof String || value instanceof Variable
     assert frame

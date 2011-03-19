@@ -22,8 +22,8 @@ class ParsingState {
 
   ParsingState withSituation(Chart chart = this.chart, Situation situation) { clone(chart:chart, situation:situation, participants:[:], constructions:[:]) }
 
-  List newFrame() {
-    chart.newFrame(situation)
+  Variable newFrame() {
+    new Variable(situation)
   }
 
   ParsingState withChart(Chart chart) { clone(chart:chart) }

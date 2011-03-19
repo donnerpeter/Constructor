@@ -7,19 +7,17 @@ class ParsingState {
   final Chart chart
   final Situation situation
   final Pair<String, Function1<ParsingState, ParsingState>> expectation
-  private Map<String, Variable> participants = [:]
   Map<String, Map> constructions = [:]
 
   ParsingState(Map map) {
     chart = map.chart
     situation = map.situation
     expectation = map.expectation
-    participants = map.participants
     constructions = map.constructions
   }
 
   ParsingState clone(Map update) {
-    Map current = [chart:chart, situation:situation, expectation:expectation, participants:participants, constructions:constructions]
+    Map current = [chart:chart, situation:situation, expectation:expectation, constructions:constructions]
     current.putAll(update)
     return new ParsingState(current)
   }

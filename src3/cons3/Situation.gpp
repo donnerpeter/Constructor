@@ -54,7 +54,7 @@ class Chart {
   }
 
   List newFrame(Situation situation) {
-    def result = new Variable(String.valueOf((char)(variables[situation].size() + (int)'A'.charAt(0))), situation)
+    def result = new Variable(situation)
     Map<Situation, List<Variable>> newVars = [:] + variables
     newVars[situation] = newVars[situation] + [result]
     return [new Chart(situations, newVars, __assignments), result]
@@ -76,7 +76,7 @@ class Chart {
 class Situation extends Variable {
 
   Situation(String id) {
-    super(id, null)
+    super(id)
   }
 
   String presentable(Chart chart) {
@@ -145,12 +145,19 @@ class Frame {
 }
 
 class Variable {
+  private static int counter = 0
+
   final String id
   final Situation situation
 
-  Variable(String id, Situation situation) {
+  Variable(Situation situation) {
+    this.situation = situation
+    id = "Var${counter++}"
+  }
+
+  Variable(String id) {
     this.id = id
-    this.situation = situation ?: (Situation) this
+    this.situation = (Situation) this
   }
 
   String toString() {

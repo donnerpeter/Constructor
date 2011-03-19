@@ -54,14 +54,15 @@ D.arg2:=E
 D.question:=#2
 --
 this.questioned:=A
-C.type==THEY
-B.type==THINK
+B.type==THEY
+C.type==THINK
 this.time==PRESENT
-B.arg1==C
-B.arg2==A
+C.arg1==B
+C.arg2==A
 D.determiner==THIS
-B.topic==D
-D.type==MATTER"""
+C.topic==D
+D.type==MATTER
+"""
   }
 
   public void testParse3() throws Exception {
@@ -70,10 +71,10 @@ this.exclamation:=A
 B.degree:=A
 this.time==PAST
 C.type==THEY
-E.type==ME
+D.type==ME
 B.type:=AMAZE
 B.arg1:=C
-B.arg1:=E
+B.arg1:=D
 B.theme==#2
 --
 A.type==THEY

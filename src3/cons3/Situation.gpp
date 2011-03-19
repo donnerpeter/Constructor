@@ -24,7 +24,16 @@ class Chart {
   }
 
   List<Variable> vars(Situation situation) {
-    return (__assignments[situation].collect { it.frame } as LinkedHashSet) as List
+    Set<Variable> set = []
+    for (assignment in __assignments[situation]) {
+      if (assignment.frame != situation) {
+        set << assignment.frame
+      }
+      if (assignment.value instanceof Variable && !(assignment.value instanceof Situation)) {
+        set << (Variable) assignment.value
+      }
+    }
+    return set as List
   }
 
   List<Assignment<Frame>> allAssignments(Situation situation) {
@@ -71,8 +80,16 @@ class Situation extends Variable {
   }
 
   String presentable(Chart chart) {
+    Map<Variable, String> naming = [:]
+
+    chart.vars(this).eachWithIndex { Variable var, int i ->
+      naming[var] = String.valueOf((char)(i + (int)'A'.charAt(0)))
+    }
+    chart.situations.each { naming[it] = it.id }
+    naming[this] = 'this'
+
     chart.__assignments[this].collect { def eq ->
-      return "${eq.frame == (Situation) this ? 'this' : eq.frame.id}.$eq.property${eq.rheme ? ":=" : "=="}${eq.stringValue()}"
+      return "${naming[eq.frame]}.$eq.property${eq.rheme ? ":=" : "=="}${ eq.value instanceof String ? eq.value : naming[(Variable)eq.value]}"
     }.join("\n")
   }
 

@@ -122,9 +122,7 @@ class Parser {
         if (nom) {
           return state.assign(nom.head.frame(state.chart), 'manner', 'SUDDENLY', true)
         }
-        state = state.withRole(state.chart, 'domain')
-        def ch = state.chart.assign(state.domain.var, "manner", "SUDDENLY", true)
-        return state.withChart(ch)
+        return state
       case "тоже":
         def (ch, also) = state.newFrame()
         def (ch1, subj) = ch.newFrame(situation)
@@ -224,24 +222,24 @@ class Parser {
         if (cs) {
           return state.apply('comeScalarly', order:'EARLIER').apply('nom')
         }
-        return state.assign(state.domain, 'order', 'EARLIER', false)
+        return state
       case "-":
         if (state.constructions.question) {
           return state.apply('questionVariants', questioned:state.constructions.question.questioned)
         }
-        return state.withFrame(state.chart, state['nom'])
+        return state
       case "7":
       case "8":
         if (state.constructions.questionVariants) {
           return state.apply('questionVariants', variant:word)
         }
-        return state.assign(state.lastFrame, 'variant', word, false)
+        return state
       case 'Каково':
         def (ch, degree) = state.newFrame()
-        state = state.withChart(ch)
+        def (ch1, noun) = ch.newFrame(state.situation)
+        state = state.withChart(ch1)
         state = state.assign(situation, 'exclamation', degree, true)
-        state = state.withRole(state.chart, 'nom')
-        return state.assign(state.lastFrame, 'degree', degree, true).apply('whatA', degree:degree, head:state.lastFrame.var, situation:situation)
+        return state.assign(noun, 'degree', degree, true).apply('whatA', degree:degree, head:noun, situation:situation)
       case 'было':
         if (state.constructions.whatA) {
           return state.apply('whatA', time:'PAST')

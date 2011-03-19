@@ -6,7 +6,6 @@ package cons3
 class ParsingState {
   final Chart chart
   final Situation situation
-  private final Variable lastFrame
   final Pair<String, Function1<ParsingState, ParsingState>> expectation
   private Map<String, Variable> participants = [:]
   Map<String, Map> constructions = [:]
@@ -14,44 +13,20 @@ class ParsingState {
   ParsingState(Map map) {
     chart = map.chart
     situation = map.situation
-    lastFrame = map.lastFrame
     expectation = map.expectation
     participants = map.participants
     constructions = map.constructions
   }
 
-  Frame getLastFrame() {
-    return lastFrame?.frame(chart)
-  }
-
   ParsingState clone(Map update) {
-    Map current = [chart:chart, situation:situation, lastFrame:lastFrame, expectation:expectation, participants:participants, constructions:constructions]
+    Map current = [chart:chart, situation:situation, expectation:expectation, participants:participants, constructions:constructions]
     current.putAll(update)
     return new ParsingState(current)
   }
 
-  ParsingState withFrame(Chart chart, Frame frame) {
-    assert frame
-    clone(chart:chart, lastFrame:frame.var, expectation:null)
-  }
-
-  ParsingState withSituation(Chart chart = this.chart, Situation situation) { clone(chart:chart, situation:situation, lastFrame:null, expectation:null, participants:[:], constructions:[:]) }
+  ParsingState withSituation(Chart chart = this.chart, Situation situation) { clone(chart:chart, situation:situation, expectation:null, participants:[:], constructions:[:]) }
 
   ParsingState withExpectation(String expectation, Function1<ParsingState, ParsingState> r = {} as Function1) { clone(expectation:new Pair(expectation, r)) }
-
-  ParsingState withRole(Chart chart, String key, Frame frame = null) {
-    if (!frame) {
-      frame = getAt(key)
-      if (!frame) {
-        (chart, frame) = newFrame()
-      }
-    }
-    clone(chart:chart, lastFrame:frame.var, expectation:null, participants:(participants + [(key): frame.var]))
-  }
-
-  Frame getAt(String key) { participants[key]?.frame(chart) }
-
-  Frame getDomain() { getAt('domain') }
 
   List newFrame() {
     def (ch, var) = chart.newFrame(situation)
@@ -67,9 +42,6 @@ class ParsingState {
     withChart(chart.assign(var, property, value instanceof Frame ? value.var : value, rheme))
   }
 
-  ParsingState withConstruction(Map args, String cxt) {
-    clone(constructions:(constructions + [(cxt):args]))
-  }
 
   private Chart _apply(Chart chart, String name, Map args) {
     switch (name) {
@@ -113,7 +85,8 @@ class ParsingState {
 
   ParsingState apply(Map newArgs = [:], Chart chart, String name) {
     def args = constructions.get(name, [:]) + newArgs
-    return withConstruction(args, name).withChart(_apply(chart, name, args))
+    def newConstructions = constructions + [(name): args]
+    return clone(constructions: newConstructions).withChart(_apply(chart, name, args))
   }
 
 

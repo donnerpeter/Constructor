@@ -23,17 +23,13 @@ class ParsingState {
   ParsingState withSituation(Chart chart = this.chart, Situation situation) { clone(chart:chart, situation:situation, participants:[:], constructions:[:]) }
 
   List newFrame() {
-    def (ch, var) = chart.newFrame(situation)
-    [ch, var.frame(ch)]
+    chart.newFrame(situation)
   }
 
   ParsingState withChart(Chart chart) { clone(chart:chart) }
 
-  ParsingState assign(Frame frame, String property, value, boolean rheme) {
-    withChart(chart.assign(frame.var, property, value instanceof Frame ? value.var : value, rheme))
-  }
   ParsingState assign(Variable var, String property, value, boolean rheme) {
-    withChart(chart.assign(var, property, value instanceof Frame ? value.var : value, rheme))
+    withChart(chart.assign(var, property, value, rheme))
   }
 
 

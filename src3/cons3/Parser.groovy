@@ -6,8 +6,7 @@ package cons3
 class Parser {
 
   Chart parse(String text) {
-    def (chart, situation) = new Chart().newSituation()
-    ParsingState state = new ParsingState(chart:chart, situation:situation, participants:[:], constructions:[:])
+    ParsingState state = new ParsingState(chart:new Chart(), situation:new Situation(), participants:[:], constructions:[:])
     def tokenizer = new StringTokenizer(text, """ '":,.""", true)
     for (String w in tokenizer) {
       if (w != ' ') {
@@ -67,8 +66,8 @@ class Parser {
         }
         return state
       case ":":
-        def (ch, elaboration) = state.chart.newSituation()
-        state = state.withChart(ch).assign(situation, 'elaboration', elaboration, true)
+        def elaboration = new Situation()
+        state = state.assign(situation, 'elaboration', elaboration, true)
         return state.withSituation(elaboration)
       case "я":
       case "Я":
@@ -193,11 +192,10 @@ class Parser {
         }
         return state
       case ",":
-        def (ch, next) = state.chart.newSituation()
-        state = state.withChart(ch)
+        def next = new Situation()
         def comp = state.constructions.comp
         if (comp) {
-          return state.apply('comp', comp:next).withSituation(next).apply(comp.head.frame(ch).type in ['DISCOVER', 'AMAZE'] ? 'declComp' : 'question', situation:next)
+          return state.apply('comp', comp:next).withSituation(next).apply(comp.head.frame(state.chart).type in ['DISCOVER', 'AMAZE'] ? 'declComp' : 'question', situation:next)
         }
         return state
       case "что":

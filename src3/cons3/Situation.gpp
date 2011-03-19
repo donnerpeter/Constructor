@@ -5,16 +5,18 @@ package cons3
  */
 
 class Chart {
-  final List<Situation> situations = []
   final Map<Situation, List<Assignment<Variable>>> __assignments = [:]
 
   Chart() {
-    this([], [:])
+    this([:])
   }
 
-  private Chart(List<Situation> situations, Map<Situation, List<Assignment<Variable>>> __assignments) {
-    this.situations = situations
+  private Chart(Map<Situation, List<Assignment<Variable>>> __assignments) {
     this.__assignments = __assignments
+  }
+
+  List<Situation> getSituations() {
+    __assignments.keySet() as List
   }
 
   List<Frame> frames(Situation situation) {
@@ -43,19 +45,12 @@ class Chart {
     }
   }
 
-  List newSituation() {
-    def result = new Situation('#' + (situations.size() + 1))
-    Map<Situation, List<Assignment<Variable>>> newAss = __assignments + [(result): []]
-    List<Situation> newSitu = situations + [result]
-    return [new Chart(newSitu, newAss), result]
-  }
-
   Chart assign(Variable frame, String property, value, boolean rheme) {
     assert value instanceof String || value instanceof Variable
     assert frame
     Map<Situation, List<Assignment<Variable>>> newAsss = [:] + __assignments
-    newAsss[frame.situation] = newAsss[frame.situation] + [new Assignment(frame, property, value, rheme)]
-    return new Chart(situations, newAsss)
+    newAsss[frame.situation] = newAsss.get(frame.situation, []) + [new Assignment(frame, property, value, rheme)]
+    return new Chart(newAsss)
   }
 
   String presentable() {
@@ -65,8 +60,8 @@ class Chart {
 
 class Situation extends Variable {
 
-  Situation(String id) {
-    super(id)
+  Situation() {
+    super(null)
   }
 
   String presentable(Chart chart) {
@@ -75,7 +70,9 @@ class Situation extends Variable {
     chart.vars(this).eachWithIndex { Variable var, int i ->
       naming[var] = String.valueOf((char)(i + (int)'A'.charAt(0)))
     }
-    chart.situations.each { naming[it] = it.id }
+    chart.situations.eachWithIndex { Situation sit, int i ->
+      naming[sit] = "#${i + 1}"
+    }
     naming[this] = 'this'
 
     chart.__assignments[this].collect { def eq ->
@@ -141,13 +138,8 @@ class Variable {
   final Situation situation
 
   Variable(Situation situation) {
-    this.situation = situation
-    id = "Var${counter++}"
-  }
-
-  Variable(String id) {
-    this.id = id
-    this.situation = (Situation) this
+    this.situation = situation ?: (Situation)this
+    id = (situation ? 'Sit' : 'Var') + counter++
   }
 
   String toString() {

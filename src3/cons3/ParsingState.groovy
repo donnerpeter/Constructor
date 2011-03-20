@@ -20,7 +20,7 @@ class ParsingState {
     return new ParsingState(current)
   }
 
-  ParsingState withSituation(Chart chart = this.chart, Situation situation) { clone(chart:chart, situation:situation, participants:[:], constructions:[:]) }
+  ParsingState withSituation(Situation situation) { clone(situation:situation, constructions:[:]) }
 
   Variable newFrame() {
     new Variable(situation)
@@ -70,10 +70,6 @@ class ParsingState {
   }
 
   ParsingState apply(Map newArgs = [:], String name) {
-    apply(newArgs, chart, name)
-  }
-
-  ParsingState apply(Map newArgs = [:], Chart chart, String name) {
     def args = constructions.get(name, [:]) + newArgs
     def newConstructions = constructions + [(name): args]
     return clone(constructions: newConstructions).withChart(_apply(chart, name, args))

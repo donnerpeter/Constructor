@@ -33,7 +33,7 @@ class Parser {
         def adj = state.constructions.adjective
         if (adj) {
           Variable noun = adj.nounFrame
-          return state.withChart(state.chart.assign(noun, 'type', 'THING', true))
+          return state.assign(noun, 'type', 'THING', true)
         }
         return state
       case "удивление":
@@ -46,15 +46,15 @@ class Parser {
         def adj = state.constructions.adjective
         if (adj) {
           Variable noun = adj.nounFrame
-          return state.withChart(state.chart.assign(noun, 'type', 'MATTER', false))
+          return state.assign(noun, 'type', 'MATTER', false)
         }
         return state
       case "случился":
         def nom = state.constructions.nom
         if (nom) {
           Variable verb = nom.head
-          def ch = state.chart.assign(verb, 'type', 'HAPPEN', true).assign(situation, 'time', 'PAST', false)
-          return state.apply('sInstr', head:verb).apply(ch, 'nom', rheme:true)
+          state = state.assign(verb, 'type', 'HAPPEN', true).assign(situation, 'time', 'PAST', false)
+          return state.apply('sInstr', head:verb).apply('nom', rheme:true)
         }
         return state
       case "мной":
@@ -134,8 +134,8 @@ class Parser {
         def nom = state.constructions.nom
         if (nom) {
           Variable verb = nom.head
-          def ch = state.chart.assign(verb, 'type', 'FORGET', true).assign(situation, 'time', 'PAST', false)
-          return state.apply('comp', head:verb, rheme:true).apply(ch, 'nom', rheme:true)
+          state = state.assign(verb, 'type', 'FORGET', true).assign(situation, 'time', 'PAST', false)
+          return state.apply('comp', head:verb, rheme:true).apply('nom', rheme:true)
         }
         return state
       case "могут":
@@ -159,16 +159,16 @@ class Parser {
         def nom = state.constructions.nom
         if (nom) {
           def verb = nom.head
-          def ch = state.chart.assign(verb, 'type', 'GO_OFF', true).assign(situation, 'time', 'PAST', false)
-          return state.apply('kDat', head:verb).apply(ch, 'nom', rheme:true, head:verb)
+          state = state.assign(verb, 'type', 'GO_OFF', true).assign(situation, 'time', 'PAST', false)
+          return state.apply('kDat', head:verb).apply('nom', rheme:true, head:verb)
         }
         return state
       case "обнаружили":
         def nom = state.constructions.nom
         if (nom) {
           def verb = nom.head
-          def ch = state.chart.assign(verb, 'type', 'DISCOVER', true).assign(situation, 'time', 'PAST', false)
-          return state.apply('comp', head:verb, rheme:true).apply(ch, 'nom', rheme:true, head:verb)
+          state = state.assign(verb, 'type', 'DISCOVER', true).assign(situation, 'time', 'PAST', false)
+          return state.apply('comp', head:verb, rheme:true).apply('nom', rheme:true, head:verb)
         }
         return state
       case "вспомнить":
@@ -179,8 +179,8 @@ class Parser {
         def nom = state.constructions.nom
         if (nom) {
           def verb = nom.head
-          def ch = state.chart.assign(verb, 'type', 'THINK', false).assign(situation, 'time', 'PRESENT', false)
-          return state.apply('poDat', head:verb).apply(ch, 'nom', rheme:false, head:verb).apply('acc', rheme:false)
+          state = state.assign(verb, 'type', 'THINK', false).assign(situation, 'time', 'PRESENT', false)
+          return state.apply('poDat', head:verb).apply('nom', rheme:false, head:verb).apply('acc', rheme:false)
         }
         return state
       case "спросил":
@@ -209,8 +209,8 @@ class Parser {
         def nom = state.constructions.nom
         if (nom) {
           Variable verb = nom.head
-          def ch = state.chart.assign(situation, 'time', 'PRESENT', false)
-          return state.apply(ch, 'nom').apply('comeScalarly', verb:verb)
+          state = state.assign(situation, 'time', 'PRESENT', false)
+          return state.apply('nom').apply('comeScalarly', verb:verb)
         }
         return state
       case "раньше":

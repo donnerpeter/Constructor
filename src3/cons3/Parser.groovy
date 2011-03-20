@@ -6,7 +6,7 @@ package cons3
 class Parser {
 
   Chart parse(String text) {
-    ParsingState state = new ParsingState(chart:new Chart(), situation:new Situation(), participants:[:], constructions:[:])
+    ParsingState state = new ParsingState(chart: new Chart(), situation: new Situation(), participants:[:], constructions:[:])
     def tokenizer = new StringTokenizer(text, """ '":,.""", true)
     for (String w in tokenizer) {
       if (w != ' ') {
@@ -22,81 +22,81 @@ class Parser {
       case "Удивительный":
         def noun = state.newFrame()
         def verb = state.newFrame()
-        return state.apply('adjective', nounFrame:noun, rel:'property', val:'AMAZING', rheme:true).apply('nom', noun:noun, head:verb)
+        return state.apply('adjective', nounFrame:noun, rel:'property', val:'AMAZING').apply('nom', noun:noun, head:verb)
       case "этому":
         if (state.constructions.poDat) {
           def noun = state.newFrame()
-          return state.apply('adjective', nounFrame:noun, rel:'determiner', val:'THIS', rheme:false).apply('poDat', noun:noun)
+          return state.apply('adjective', nounFrame:noun, rel:'determiner', val:'THIS').apply('poDat', noun:noun)
         }
         return state
       case "случай":
         def adj = state.constructions.adjective
         if (adj) {
           Variable noun = adj.nounFrame
-          return state.assign(noun, 'type', 'THING', true)
+          return state.assign(noun, 'type', 'THING').assign(noun, 'given', 'false')
         }
         return state
       case "удивление":
         def poss = state.constructions.possessive
         if (poss) {
-          return state.assign(poss.head, 'type', 'AMAZE', true).apply('possessive').apply('comp', head:poss.head, rheme:false)
+          return state.assign(poss.head, 'type', 'AMAZE').apply('possessive').apply('comp', head:poss.head)
         }
         return state
       case "поводу":
         def adj = state.constructions.adjective
         if (adj) {
           Variable noun = adj.nounFrame
-          return state.assign(noun, 'type', 'MATTER', false)
+          return state.assign(noun, 'type', 'MATTER')
         }
         return state
       case "случился":
         def nom = state.constructions.nom
         if (nom) {
           Variable verb = nom.head
-          state = state.assign(verb, 'type', 'HAPPEN', true).assign(situation, 'time', 'PAST', false)
-          return state.apply('sInstr', head:verb).apply('nom', rheme:true)
+          state = state.assign(verb, 'type', 'HAPPEN').assign(situation, 'time', 'PAST')
+          return state.apply('sInstr', head:verb).apply('nom')
         }
         return state
       case "мной":
         def sInstr = state.constructions.sInstr
         if (sInstr) {
           def noun = state.newFrame()
-          state = state.assign(noun, 'type', 'ME', false)
+          state = state.assign(noun, 'type', 'ME')
           return state.apply('sInstr', noun:noun)
         }
         return state
       case ":":
         def elaboration = new Situation()
-        state = state.assign(situation, 'elaboration', elaboration, true)
+        state = state.assign(situation, 'elaboration', elaboration)
         return state.withSituation(elaboration)
       case "я":
       case "Я":
         def noun = state.newFrame()
         def verb = state.newFrame()
-        return state.assign(noun, 'type', 'ME', false).apply('nom', noun:noun, head:verb)
+        return state.assign(noun, 'type', 'ME').apply('nom', noun:noun, head:verb)
       case "мое":
         def noun = state.newFrame()
         def possHead = state.constructions.whatA ? state.constructions.whatA.head : state.constructions.possessive ? state.constructions.possessive.possHead : state.newFrame()
-        state = state.assign(noun, 'type', 'ME', false)
+        state = state.assign(noun, 'type', 'ME')
         return state.apply('possessive', possessor:noun, head:possHead, conj:state.constructions.possessive)
       case "и": return state
       case "их":
         def noun = state.newFrame()
         def verb = state.constructions.acc ? state.constructions.acc.head : state.newFrame()
         def possHead = state.constructions.whatA ? state.constructions.whatA.head : state.newFrame()
-        state = state.assign(noun, 'type', 'THEY', false).apply('acc', noun:noun, head:verb)
+        state = state.assign(noun, 'type', 'THEY').apply('acc', noun:noun, head:verb)
         return state.apply('possessive', possessor:noun, head:possHead)
       case "они":
         def nom = state.constructions.nom
         def noun = state.newFrame()
         def head = nom?.noun ? nom.head : state.newFrame()
-        state = state.assign(noun, 'type', 'THEY', false)
+        state = state.assign(noun, 'type', 'THEY')
         return state.apply('nom', noun:noun, head: head)
       case "соседям":
         def kDat = state.constructions.kDat
         if (kDat) {
           def noun = state.newFrame()
-          state = state.assign(noun, 'type', 'NEIGHBOURS', false)
+          state = state.assign(noun, 'type', 'NEIGHBOURS')
           return state.apply('kDat', noun:noun)
         }
         return state
@@ -104,29 +104,29 @@ class Parser {
         def acc = state.constructions.acc
         if (acc) {
           def noun = state.newFrame()
-          state = state.assign(noun, 'type', 'ORDER', false)
-          return state.apply('acc', noun:noun, rheme:false).apply('nounGen', head:noun)
+          state = state.assign(noun, 'type', 'ORDER')
+          return state.apply('acc', noun:noun).apply('nounGen', head:noun)
         }
         return state
       case "счета":
         def nounGen = state.constructions.nounGen
         if (nounGen) {
           def noun = state.newFrame()
-          state = state.assign(noun, 'type', 'COUNTING', false)
+          state = state.assign(noun, 'type', 'COUNTING')
           return state.apply('nounGen', noun:noun)
         }
         return state
       case "вдруг":
         def nom = state.constructions.nom
         if (nom) {
-          return state.assign(nom.head, 'manner', 'SUDDENLY', true)
+          return state.assign(nom.head, 'manner', 'SUDDENLY')
         }
         return state
       case "тоже":
         def also = state.newFrame()
         def subj = state.newFrame()
-        state = state.assign(also, 'type', 'ALSO', true)
-        state = state.assign(also, 'arg1', subj, true)
+        state = state.assign(also, 'type', 'ALSO')
+        state = state.assign(also, 'arg1', subj)
         return state.apply('also', also:also, subj:subj)
       case "не":
         return state.apply('negation')
@@ -134,8 +134,8 @@ class Parser {
         def nom = state.constructions.nom
         if (nom) {
           Variable verb = nom.head
-          state = state.assign(verb, 'type', 'FORGET', true).assign(situation, 'time', 'PAST', false)
-          return state.apply('comp', head:verb, rheme:true).apply('nom', rheme:true)
+          state = state.assign(verb, 'type', 'FORGET').assign(situation, 'time', 'PAST')
+          return state.apply('comp', head:verb).apply('nom')
         }
         return state
       case "могут":
@@ -144,51 +144,51 @@ class Parser {
         def subj = null
         if (also) {
           subj = also.subj
-          state = state.assign(also.also, 'theme', verb, true)
+          state = state.assign(also.also, 'theme', verb)
         }
         if (state.constructions.negation != null) {
-          state = state.assign(verb, 'negated', 'true', false)
+          state = state.assign(verb, 'negated', 'true')
         }
         if (!subj) {
           subj = state.newFrame()
         }
-        state = state.assign(verb, 'type', 'CAN', false).assign(situation, 'time', 'PRESENT', false)
-        state = state.assign(subj, 'type', 'THEY', false)
+        state = state.assign(verb, 'type', 'CAN').assign(situation, 'time', 'PRESENT')
+        state = state.assign(subj, 'type', 'THEY')
         return state.apply('control', subj:subj, head:verb)
       case "отправился":
         def nom = state.constructions.nom
         if (nom) {
           def verb = nom.head
-          state = state.assign(verb, 'type', 'GO_OFF', true).assign(situation, 'time', 'PAST', false)
-          return state.apply('kDat', head:verb).apply('nom', rheme:true, head:verb)
+          state = state.assign(verb, 'type', 'GO_OFF').assign(situation, 'time', 'PAST')
+          return state.apply('kDat', head:verb).apply('nom', head:verb)
         }
         return state
       case "обнаружили":
         def nom = state.constructions.nom
         if (nom) {
           def verb = nom.head
-          state = state.assign(verb, 'type', 'DISCOVER', true).assign(situation, 'time', 'PAST', false)
-          return state.apply('comp', head:verb, rheme:true).apply('nom', rheme:true, head:verb)
+          state = state.assign(verb, 'type', 'DISCOVER').assign(situation, 'time', 'PAST')
+          return state.apply('comp', head:verb).apply('nom', head:verb)
         }
         return state
       case "вспомнить":
         def verb = state.newFrame()
         state = state.apply('control', slave:verb)
-        return state.assign(verb, 'type', 'REMEMBER', false).apply('acc', head:verb)
+        return state.assign(verb, 'type', 'REMEMBER').apply('acc', head:verb)
       case "думают":
         def nom = state.constructions.nom
         if (nom) {
           def verb = nom.head
-          state = state.assign(verb, 'type', 'THINK', false).assign(situation, 'time', 'PRESENT', false)
-          return state.apply('poDat', head:verb).apply('nom', rheme:false, head:verb).apply('acc', rheme:false)
+          state = state.assign(verb, 'type', 'THINK').assign(situation, 'time', 'PRESENT')
+          return state.apply('poDat', head:verb).apply('nom', head:verb).apply('acc')
         }
         return state
       case "спросил":
         def nom = state.constructions.nom
         if (nom) {
           def verb = state.newFrame()
-          state = state.assign(verb, 'type', 'ASK', true)//todo don't reassign tense .assign(situation, 'time', 'PAST', false)
-          return state.apply('acc', head:verb, rheme:true).apply('nom', rheme:true, head:verb).apply('comp', head:verb, rheme:true)
+          state = state.assign(verb, 'type', 'ASK')//todo don't reassign tense .assign(situation, 'time', 'PAST', false)
+          return state.apply('acc', head:verb).apply('nom', head:verb).apply('comp', head:verb)
         }
         return state
       case ",":
@@ -202,14 +202,14 @@ class Parser {
         if (state.constructions.question) {
           def noun = state.newFrame()
           def verb = state.newFrame()
-          return state.apply('nom', noun:noun, head:verb, rheme:false).apply('acc', noun:noun, head:verb, rheme:false).apply('question', questioned:noun)
+          return state.apply('nom', noun:noun, head:verb).apply('acc', noun:noun, head:verb).apply('question', questioned:noun)
         }
         return state
       case "идет":
         def nom = state.constructions.nom
         if (nom) {
           Variable verb = nom.head
-          state = state.assign(situation, 'time', 'PRESENT', false)
+          state = state.assign(situation, 'time', 'PRESENT')
           return state.apply('nom').apply('comeScalarly', verb:verb)
         }
         return state
@@ -233,13 +233,13 @@ class Parser {
       case 'Каково':
         def degree = state.newFrame()
         def noun = state.newFrame()
-        state = state.assign(situation, 'exclamation', degree, true)
-        return state.assign(noun, 'degree', degree, true).apply('whatA', degree:degree, head:noun, situation:situation)
+        state = state.assign(situation, 'exclamation', degree)
+        return state.assign(noun, 'degree', degree).apply('whatA', degree:degree, head:noun, situation:situation)
       case 'было':
         if (state.constructions.whatA) {
           return state.apply('whatA', time:'PAST')
         }
-        return state.assign(situation, 'time', 'PAST' , false)
+        return state.assign(situation, 'time', 'PAST')
     }
     return state
   }

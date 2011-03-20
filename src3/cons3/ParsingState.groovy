@@ -28,42 +28,42 @@ class ParsingState {
 
   ParsingState withChart(Chart chart) { clone(chart:chart) }
 
-  ParsingState assign(Variable var, String property, value, boolean rheme) {
-    withChart(chart.assign(var, property, value, rheme))
+  ParsingState assign(Variable var, String property, def value) {
+    withChart(chart.assign(var, property, value))
   }
 
 
   private Chart _apply(Chart chart, String name, Map args) {
     switch (name) {
       case 'adjective':
-        return chart.assign(args.nounFrame, args.rel, args.val, args.rheme)
+        return chart.assign(args.nounFrame, args.rel, args.val)
       case 'nom':
-        return args.head.frame(chart).type ? chart.assign(args.head, 'arg1', args.noun, args.rheme) : chart
+        return args.head.frame(chart).type ? chart.assign(args.head, 'arg1', args.noun) : chart
       case 'acc':
-        return args.head.frame(chart).type && args.noun ? chart.assign(args.head, 'arg2', args.noun, args.rheme) : chart
+        return args.head.frame(chart).type && args.noun ? chart.assign(args.head, 'arg2', args.noun) : chart
       case 'sInstr':
-        return args.noun ? chart.assign(args.head, 'experiencer', args.noun, true) : chart
+        return args.noun ? chart.assign(args.head, 'experiencer', args.noun) : chart
       case 'poDat':
-        return args.noun ? chart.assign(args.head, 'topic', args.noun, false) : chart
+        return args.noun ? chart.assign(args.head, 'topic', args.noun) : chart
       case 'nounGen':
-        return args.noun ? chart.assign(args.head, 'criterion', args.noun, false) : chart
+        return args.noun ? chart.assign(args.head, 'criterion', args.noun) : chart
       case 'kDat':
-        return args.noun ? chart.assign(args.head, 'goal', args.noun, true) : chart
+        return args.noun ? chart.assign(args.head, 'goal', args.noun) : chart
       case 'comp':
-        return args.comp ? chart.assign(args.head, args.head.frame(chart).type in ['FORGET', 'DISCOVER', 'AMAZE'] ? 'theme' : 'question', args.comp, args.rheme) : chart
+        return args.comp ? chart.assign(args.head, args.head.frame(chart).type in ['FORGET', 'DISCOVER', 'AMAZE'] ? 'theme' : 'question', args.comp) : chart
       case 'question':
-        return args.questioned ? chart.assign(args.situation, 'questioned', args.questioned, true) : chart
+        return args.questioned ? chart.assign(args.situation, 'questioned', args.questioned) : chart
       case 'comeScalarly':
-        return args.order ? chart.assign(args.verb, 'type', 'COME_SCALARLY', false).assign(args.verb, 'order', args.order, false) : chart
+        return args.order ? chart.assign(args.verb, 'type', 'COME_SCALARLY').assign(args.verb, 'order', args.order) : chart
       case 'questionVariants':
-        return args.variant ? chart.assign(args.questioned, 'variant', args.variant, false) : chart
+        return args.variant ? chart.assign(args.questioned, 'variant', args.variant) : chart
       case 'whatA':
-        return args.time ? chart.assign(args.situation, 'time', args.time, false) : chart
+        return args.time ? chart.assign(args.situation, 'time', args.time) : chart
       case 'possessive':
         chart = args.conj ? _apply(chart, 'possessive', args.conj) : chart //todo generic conj handling
-        return args.head.frame(chart).type ? chart.assign(args.head, 'arg1', args.possessor, true) : chart
+        return args.head.frame(chart).type ? chart.assign(args.head, 'arg1', args.possessor) : chart
       case 'control':
-        return args.slave ? chart.assign(args.head, 'theme', args.slave, false) : chart
+        return args.slave ? chart.assign(args.head, 'theme', args.slave) : chart
     }
 
     return chart

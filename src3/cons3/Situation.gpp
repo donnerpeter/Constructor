@@ -41,15 +41,15 @@ class Chart {
       def oldValue = it.value
       def newValue = oldValue instanceof String ? oldValue : ((Variable) oldValue).frame(this)
       Frame newFrame = it.frame.frame(this)
-      new Assignment<Frame>(newFrame, it.property, newValue, it.rheme)
+      new Assignment<Frame>(newFrame, it.property, newValue)
     }
   }
 
-  Chart assign(Variable frame, String property, value, boolean rheme) {
+  Chart assign(Variable frame, String property, def value) {
     assert value instanceof String || value instanceof Variable
     assert frame
     Map<Situation, List<Assignment<Variable>>> newAsss = [:] + __assignments
-    newAsss[frame.situation] = newAsss.get(frame.situation, []) + [new Assignment(frame, property, value, rheme)]
+    newAsss[frame.situation] = newAsss.get(frame.situation, []) + [new Assignment(frame, property, value)]
     return new Chart(newAsss)
   }
 
@@ -75,7 +75,7 @@ class Situation extends Variable {
     }
 
     chart.__assignments[this].collect { def eq ->
-      return "${naming[eq.frame]}.$eq.property${eq.rheme ? ":=" : "=="}${ eq.value instanceof String ? eq.value : naming[(Variable)eq.value]}"
+      return "${naming[eq.frame]}.$eq.property=${ eq.value instanceof String ? eq.value : naming[(Variable)eq.value]}"
     }.join("\n")
   }
 
@@ -155,15 +155,13 @@ class Assignment<T> {
   final T frame
   final String property
   final Object value
-  final boolean rheme
 
-  Assignment(T frame, String property, def value, boolean rheme) {
+  Assignment(T frame, String property, def value) {
     assert frame
     assert property
     this.frame = frame
     this.property = property
     this.value = value
-    this.rheme = rheme
   }
 
   @Override

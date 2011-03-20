@@ -4,6 +4,8 @@ package cons3
  * @author peter
  */
 class ParsingState {
+  static final Closure noInit = { it }
+
   final Chart chart
   final Situation situation
   Map<String, Map> constructions = [:]
@@ -69,10 +71,14 @@ class ParsingState {
     return chart
   }
 
-  ParsingState apply(Map newArgs = [:], String name) {
+  ParsingState apply(Map newArgs = [:], String name, Closure init = noInit) {
     def args = constructions.get(name, [:]) + newArgs
+    def oldInit = args.get('init', noInit)
+    def newInit = { ParsingState state -> init(oldInit(state)) }
+    args.init = newInit
     def newConstructions = constructions + [(name): args]
-    return clone(constructions: newConstructions).withChart(_apply(chart, name, args))
+    ParsingState newState = newInit(this).clone(constructions: newConstructions)
+    return newState.withChart(newState._apply(newState.chart, name, args))
   }
 
 

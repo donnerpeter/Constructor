@@ -5,13 +5,13 @@ package cons3
  */
 
 class Chart {
-  final Map<Situation, List<Assignment<Variable>>> __assignments = [:]
+  final Map<Situation, LinkedHashSet<Assignment<Variable>>> __assignments = [:]
 
   Chart() {
     this([:])
   }
 
-  private Chart(Map<Situation, List<Assignment<Variable>>> __assignments) {
+  private Chart(Map<Situation, LinkedHashSet<Assignment<Variable>>> __assignments) {
     this.__assignments = __assignments
   }
 
@@ -48,8 +48,8 @@ class Chart {
   Chart assign(Variable frame, String property, def value) {
     assert value instanceof String || value instanceof Variable
     assert frame
-    Map<Situation, List<Assignment<Variable>>> newAsss = [:] + __assignments
-    newAsss[frame.situation] = newAsss.get(frame.situation, []) + [new Assignment(frame, property, value)]
+    Map<Situation, LinkedHashSet<Assignment<Variable>>> newAsss = [:] + __assignments
+    newAsss[frame.situation] = newAsss.get(frame.situation, [] as LinkedHashSet) + [new Assignment(frame, property, value)]
     return new Chart(newAsss)
   }
 
@@ -177,4 +177,24 @@ class Assignment<T> {
     return value instanceof Variable ? ((Variable) value).id : ((Frame) value).var.id
   }
 
+  boolean equals(o) {
+    if (this.is(o)) return true;
+    if (!(o instanceof Assignment)) return false;
+
+    Assignment that = (Assignment) o;
+
+    if (frame != that.frame) return false;
+    if (property != that.property) return false;
+    if (value != that.value) return false;
+
+    return true;
+  }
+
+  int hashCode() {
+    int result;
+    result = frame.hashCode();
+    result = 31 * result + property.hashCode();
+    result = 31 * result + value.hashCode();
+    return result;
+  }
 }

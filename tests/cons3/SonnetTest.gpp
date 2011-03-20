@@ -12,21 +12,21 @@ class SonnetTest extends TestCase {
 A.property:=AMAZING
 A.type:=THING
 B.type:=HAPPEN
-this.time==PAST
+#1.time==PAST
 B.arg1:=A
 C.type==ME
 B.experiencer:=C
-this.elaboration:=#2
+#1.elaboration:=#2
 --
 A.type==ME
 B.manner:=SUDDENLY
 B.type:=FORGET
-this.time==PAST
+#2.time==PAST
 B.arg1:=A
 B.theme:=#3
 --
-this.questioned:=A
-this.time==PRESENT
+#3.questioned:=A
+#3.time==PRESENT
 B.type==COME_SCALARLY
 B.order==EARLIER
 B.arg1==A
@@ -43,7 +43,7 @@ A.variant==8
     doParseTest "Я отправился к соседям и спросил их, что они думают по этому поводу", """
 A.type==ME
 B.type:=GO_OFF
-this.time==PAST
+#1.time==PAST
 B.arg1:=A
 C.type==NEIGHBOURS
 B.goal:=C
@@ -53,10 +53,10 @@ E.type==THEY
 D.arg2:=E
 D.question:=#2
 --
-this.questioned:=A
+#2.questioned:=A
 B.type==THEY
 C.type==THINK
-this.time==PRESENT
+#2.time==PRESENT
 C.arg1==B
 C.arg2==A
 D.determiner==THIS
@@ -67,9 +67,9 @@ D.type==MATTER
 
   public void testParse3() throws Exception {
     doParseTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета", """
-this.exclamation:=A
+#1.exclamation:=A
 B.degree:=A
-this.time==PAST
+#1.time==PAST
 C.type==THEY
 D.type==ME
 B.type:=AMAZE
@@ -80,7 +80,7 @@ B.theme==#2
 A.type==THEY
 B.manner:=SUDDENLY
 B.type:=DISCOVER
-this.time==PAST
+#2.time==PAST
 B.arg1:=A
 B.theme:=#3
 --
@@ -89,7 +89,7 @@ A.arg1:=B
 A.theme:=C
 C.negated==true
 C.type==CAN
-this.time==PRESENT
+#3.time==PRESENT
 B.type==THEY
 C.theme==D
 D.type==REMEMBER

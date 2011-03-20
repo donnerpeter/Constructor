@@ -73,7 +73,6 @@ class Situation extends Variable {
     chart.situations.eachWithIndex { Situation sit, int i ->
       naming[sit] = "#${i + 1}"
     }
-    naming[this] = 'this'
 
     chart.__assignments[this].collect { def eq ->
       return "${naming[eq.frame]}.$eq.property${eq.rheme ? ":=" : "=="}${ eq.value instanceof String ? eq.value : naming[(Variable)eq.value]}"

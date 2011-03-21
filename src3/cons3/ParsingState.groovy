@@ -35,40 +35,40 @@ class ParsingState {
   }
 
 
-  private Chart _apply(Chart chart, String name, Map args) {
+  private static ParsingState _apply(ParsingState state, String name, Map args) {
     switch (name) {
       case 'adjective':
-        return chart.assign(args.nounFrame, args.rel, args.val)
+        return state.assign(args.nounFrame, args.rel, args.val)
       case 'nom':
-        return args.head.frame(chart).type ? chart.assign(args.head, 'arg1', args.noun) : chart
+        return args.head.frame(state.chart).type ? state.assign(args.head, 'arg1', args.noun) : state
       case 'acc':
-        return args.head.frame(chart).type && args.noun ? chart.assign(args.head, 'arg2', args.noun) : chart
+        return args.head.frame(state.chart).type && args.noun ? state.assign(args.head, 'arg2', args.noun) : state
       case 'sInstr':
-        return args.noun ? chart.assign(args.head, 'experiencer', args.noun) : chart
+        return args.noun ? state.assign(args.head, 'experiencer', args.noun) : state
       case 'poDat':
-        return args.noun ? chart.assign(args.head, 'topic', args.noun) : chart
+        return args.noun ? state.assign(args.head, 'topic', args.noun) : state
       case 'nounGen':
-        return args.noun ? chart.assign(args.head, 'criterion', args.noun) : chart
+        return args.noun ? state.assign(args.head, 'criterion', args.noun) : state
       case 'kDat':
-        return args.noun ? chart.assign(args.head, 'goal', args.noun) : chart
+        return args.noun ? state.assign(args.head, 'goal', args.noun) : state
       case 'comp':
-        return args.comp ? chart.assign(args.head, args.head.frame(chart).type in ['FORGET', 'DISCOVER', 'AMAZE'] ? 'theme' : 'question', args.comp) : chart
+        return args.comp ? state.assign(args.head, args.head.frame(state.chart).type in ['FORGET', 'DISCOVER', 'AMAZE'] ? 'theme' : 'question', args.comp) : state
       case 'question':
-        return args.questioned ? chart.assign(args.situation, 'questioned', args.questioned) : chart
+        return args.questioned ? state.assign(args.situation, 'questioned', args.questioned) : state
       case 'comeScalarly':
-        return args.order ? chart.assign(args.verb, 'type', 'COME_SCALARLY').assign(args.verb, 'order', args.order) : chart
+        return args.order ? state.assign(args.verb, 'type', 'COME_SCALARLY').assign(args.verb, 'order', args.order) : state
       case 'questionVariants':
-        return args.variant ? chart.assign(args.questioned, 'variant', args.variant) : chart
+        return args.variant ? state.assign(args.questioned, 'variant', args.variant) : state
       case 'whatA':
-        return args.time ? chart.assign(args.situation, 'time', args.time) : chart
+        return args.time ? state.assign(args.situation, 'time', args.time) : state
       case 'possessive':
-        chart = args.conj ? _apply(chart, 'possessive', args.conj) : chart //todo generic conj handling
-        return args.head.frame(chart).type ? chart.assign(args.head, 'arg1', args.possessor) : chart
+        state = args.conj ? _apply(state, 'possessive', args.conj) : state //todo generic conj handling
+        return args.head.frame(state.chart).type ? state.assign(args.head, 'arg1', args.possessor) : state
       case 'control':
-        return args.slave ? chart.assign(args.head, 'theme', args.slave) : chart
+        return args.slave ? state.assign(args.head, 'theme', args.slave) : state
     }
 
-    return chart
+    return state
   }
 
   ParsingState apply(Map newArgs = [:], String name, Closure init = noInit) {
@@ -78,7 +78,7 @@ class ParsingState {
     args.init = newInit
     def newConstructions = constructions + [(name): args]
     ParsingState newState = newInit(this).clone(constructions: newConstructions)
-    return newState.withChart(newState._apply(newState.chart, name, args))
+    return _apply(newState, name, args)
   }
 
 

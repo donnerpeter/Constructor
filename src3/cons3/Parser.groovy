@@ -24,11 +24,8 @@ class Parser {
         def verb = state.newFrame()
         return state.apply('adjective', nounFrame:noun, rel:'property', val:'AMAZING').apply('nom', noun:noun, head:verb)
       case "этому":
-        if (state.constructions.poDat) {
-          def noun = state.newFrame()
-          return state.apply('adjective', nounFrame:noun, rel:'determiner', val:'THIS').apply('poDat', noun:noun)
-        }
-        return state
+        def noun = state.newFrame()
+        return state.apply('adjective', nounFrame:noun, rel:'determiner', val:'THIS').apply('dat', noun:noun)
       case "случай":
         def noun = state.constructions.nom?.noun ?: state.newFrame()
         return state.apply('nom', noun:noun) { it.assign(noun, 'type', 'THING').assign(noun, 'given', 'false') }
@@ -39,12 +36,8 @@ class Parser {
         }
         return state
       case "поводу":
-        def adj = state.constructions.adjective
-        if (adj) {
-          Variable noun = adj.nounFrame
-          return state.assign(noun, 'type', 'MATTER')
-        }
-        return state
+        def noun = state.constructions.dat?.noun ?: state.newFrame()
+        return state.apply('dat', noun:noun) { it.assign(noun, 'type', 'MATTER') }
       case "случился":
         def nom = state.constructions.nom
         if (nom) {
@@ -54,9 +47,13 @@ class Parser {
         }
         return state
       case 'со':
-        state = state.apply('sInstr', prep:'true')
+        state = state.apply('sInstr')
         def save = state.constructions
         return state.clearConstructions().apply('instr', save: save)
+      case 'по':
+        state = state.apply('poDat')
+        def save = state.constructions
+        return state.clearConstructions().apply('dat', save: save)
       case "мной":
         def noun = state.constructions.instr?.noun ?: state.newFrame()
         return state.apply('instr', noun:noun) { it.assign(noun, 'type', 'ME') }

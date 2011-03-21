@@ -43,7 +43,12 @@ class ParsingState {
         return args.head.frame(state.chart).type && args.noun ? state.assign(args.head, 'arg2', args.noun) : state
       case 'instr':
         if (args.save && args.noun) {
-          return state.clone(constructions:args.save).apply('sInstr', noun:args.noun)
+          return state.restore(args.save).apply('sInstr', noun:args.noun)
+        }
+        return state
+      case 'dat':
+        if (args.save && args.noun) {
+          return state.restore(args.save).apply('poDat', noun:args.noun)
         }
         return state
       case 'sInstr':
@@ -87,5 +92,9 @@ class ParsingState {
 
   ParsingState clearConstructions() {
     return clone(constructions: [:])
+  }
+
+  ParsingState restore(Map saved) {
+    clone(constructions: saved + this.constructions)
   }
 }

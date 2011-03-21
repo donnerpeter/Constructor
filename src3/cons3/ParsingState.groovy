@@ -42,15 +42,8 @@ class ParsingState {
       case 'acc':
         return args.head.frame(state.chart).type && args.noun ? state.assign(args.head, 'arg2', args.noun) : state
       case 'instr':
-        if (args.save && args.noun) {
-          return state.restore(args.save).apply('sInstr', noun:args.noun)
-        }
-        return state
       case 'dat':
-        if (args.save && args.noun) {
-          return state.restore(args.save).apply('poDat', noun:args.noun)
-        }
-        return state
+        return handleCase(name, state, args)
       case 'sInstr':
         return args.noun ? state.assign(args.head, 'experiencer', args.noun) : state
       case 'poDat':
@@ -76,6 +69,13 @@ class ParsingState {
         return args.slave ? state.assign(args.head, 'theme', args.slave) : state
     }
 
+    return state
+  }
+
+  private static ParsingState handleCase(String caze, ParsingState state, Map args) {
+    if (args.save && args.noun) {
+      return state.restore(args.save).apply(args.delegate, noun: args.noun)
+    }
     return state
   }
 

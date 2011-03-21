@@ -46,14 +46,9 @@ class Parser {
           return state.apply('sInstr', head:verb).apply('nom')
         }
         return state
-      case 'со':
-        state = state.apply('sInstr')
-        def save = state.constructions
-        return state.clearConstructions().apply('instr', save: save)
-      case 'по':
-        state = state.apply('poDat')
-        def save = state.constructions
-        return state.clearConstructions().apply('dat', save: save)
+      case 'со': return preposition(state, 'sInstr', 'instr')
+      case 'по': return preposition(state, 'poDat', 'dat')
+      case 'к': return preposition(state, 'kDat', 'dat')
       case "мной":
         def noun = state.constructions.instr?.noun ?: state.newFrame()
         return state.apply('instr', noun:noun) { it.assign(noun, 'type', 'ME') }
@@ -85,13 +80,8 @@ class Parser {
         state = state.assign(noun, 'type', 'THEY')
         return state.apply('nom', noun:noun, head: head)
       case "соседям":
-        def kDat = state.constructions.kDat
-        if (kDat) {
-          def noun = state.newFrame()
-          state = state.assign(noun, 'type', 'NEIGHBOURS')
-          return state.apply('kDat', noun:noun)
-        }
-        return state
+        def noun = state.constructions.dat?.noun ?: state.newFrame()
+        return state.apply('dat', noun:noun) { it.assign(noun, 'type', 'NEIGHBOURS') }
       case "порядок":
         def acc = state.constructions.acc
         if (acc) {
@@ -234,6 +224,12 @@ class Parser {
         return state.assign(situation, 'time', 'PAST')
     }
     return state
+  }
+
+  private ParsingState preposition(ParsingState state, String prepCtx, String caze) {
+    state = state.apply(prepCtx)
+    def save = state.constructions
+    return state.clearConstructions().apply(caze, save: save, delegate: prepCtx)
   }
 
 }

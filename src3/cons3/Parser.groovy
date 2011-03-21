@@ -53,14 +53,13 @@ class Parser {
           return state.apply('sInstr', head:verb).apply('nom')
         }
         return state
+      case 'со':
+        state = state.apply('sInstr', prep:'true')
+        def save = state.constructions
+        return state.clearConstructions().apply('instr', save: save)
       case "мной":
-        def sInstr = state.constructions.sInstr
-        if (sInstr) {
-          def noun = state.newFrame()
-          state = state.assign(noun, 'type', 'ME')
-          return state.apply('sInstr', noun:noun)
-        }
-        return state
+        def noun = state.constructions.instr?.noun ?: state.newFrame()
+        return state.apply('instr', noun:noun) { it.assign(noun, 'type', 'ME') }
       case ":":
         def elaboration = new Situation()
         state = state.assign(situation, 'elaboration', elaboration)

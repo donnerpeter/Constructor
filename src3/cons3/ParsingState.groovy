@@ -22,16 +22,14 @@ class ParsingState {
     return new ParsingState(current)
   }
 
-  ParsingState withSituation(Situation situation) { clone(situation:situation, constructions:[:]) }
+  ParsingState withSituation(Situation situation) { clearConstructions().clone(situation:situation) }
 
   Variable newFrame() {
     new Variable(situation)
   }
 
-  ParsingState withChart(Chart chart) { clone(chart:chart) }
-
   ParsingState assign(Variable var, String property, def value) {
-    withChart(chart.assign(var, property, value))
+    clone(chart: chart.assign(var, property, value))
   }
 
 
@@ -43,6 +41,11 @@ class ParsingState {
         return args.head.frame(state.chart).type ? state.assign(args.head, 'arg1', args.noun) : state
       case 'acc':
         return args.head.frame(state.chart).type && args.noun ? state.assign(args.head, 'arg2', args.noun) : state
+      case 'instr':
+        if (args.save && args.noun) {
+          return state.clone(constructions:args.save).apply('sInstr', noun:args.noun)
+        }
+        return state
       case 'sInstr':
         return args.noun ? state.assign(args.head, 'experiencer', args.noun) : state
       case 'poDat':
@@ -82,4 +85,7 @@ class ParsingState {
   }
 
 
+  ParsingState clearConstructions() {
+    return clone(constructions: [:])
+  }
 }

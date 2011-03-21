@@ -30,7 +30,7 @@ class Parser {
         }
         return state
       case "случай":
-        def noun = state.constructions.adjective?.nounFrame ?: state.newFrame()
+        def noun = state.constructions.nom?.noun ?: state.newFrame()
         return state.apply('nom', noun:noun) { it.assign(noun, 'type', 'THING').assign(noun, 'given', 'false') }
       case "удивление":
         def poss = state.constructions.possessive

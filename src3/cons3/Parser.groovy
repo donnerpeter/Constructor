@@ -26,18 +26,14 @@ class Parser {
       case "этому":
         def noun = state.newFrame()
         return state.apply('adjective', nounFrame:noun, rel:'determiner', val:'THIS').apply('dat', noun:noun)
-      case "случай":
-        def noun = state.constructions.nom?.noun ?: state.newFrame()
-        return state.apply('nom', noun:noun) { it.assign(noun, 'type', 'THING').assign(noun, 'given', 'false') }
-      case "удивление":
+      case "случай": return noun(state, 'nom') { st, noun -> st.assign(noun, 'type', 'THING').assign(noun, 'given', 'false') }
+      case "удивление": //todo noun
         def poss = state.constructions.possessive
         if (poss) {
           return state.assign(poss.head, 'type', 'AMAZE').apply('possessive').apply('comp', head:poss.head)
         }
         return state
-      case "поводу":
-        def noun = state.constructions.dat?.noun ?: state.newFrame()
-        return state.apply('dat', noun:noun) { it.assign(noun, 'type', 'MATTER') }
+      case "поводу": return noun(state, 'dat') { st, noun -> st.assign(noun, 'type', 'MATTER') }
       case "случился":
         def nom = state.constructions.nom
         if (nom) {
@@ -49,9 +45,7 @@ class Parser {
       case 'со': return preposition(state, 'sInstr', 'instr')
       case 'по': return preposition(state, 'poDat', 'dat')
       case 'к': return preposition(state, 'kDat', 'dat')
-      case "мной":
-        def noun = state.constructions.instr?.noun ?: state.newFrame()
-        return state.apply('instr', noun:noun) { it.assign(noun, 'type', 'ME') }
+      case "мной": return noun(state, 'instr') { st, noun -> st.assign(noun, 'type', 'ME') }
       case ":":
         def elaboration = new Situation()
         state = state.assign(situation, 'elaboration', elaboration)
@@ -224,6 +218,11 @@ class Parser {
         return state.assign(situation, 'time', 'PAST')
     }
     return state
+  }
+
+  private ParsingState noun(ParsingState state, String caze, Closure init) {
+    def noun = state.constructions[caze]?.noun ?: state.newFrame()
+    return state.apply(caze, noun: noun) { init(it, noun) }
   }
 
   private ParsingState preposition(ParsingState state, String prepCtx, String caze) {

@@ -40,7 +40,7 @@ class ParsingState {
       case 'nom':
         return args.head.frame(state.chart).type ? state.assign(args.head, 'arg1', args.noun) : state
       case 'acc':
-        return args.head.frame(state.chart).type && args.noun ? state.assign(args.head, 'arg2', args.noun) : state
+        return args.head?.frame(state.chart)?.type && args.noun ? state.assign(args.head, 'arg2', args.noun) : state
       case 'instr':
       case 'dat':
         return handleCase(name, state, args)

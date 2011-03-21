@@ -73,25 +73,12 @@ class Parser {
         def head = nom?.noun ? nom.head : state.newFrame()
         state = state.assign(noun, 'type', 'THEY')
         return state.apply('nom', noun:noun, head: head)
-      case "соседям":
-        def noun = state.constructions.dat?.noun ?: state.newFrame()
-        return state.apply('dat', noun:noun) { it.assign(noun, 'type', 'NEIGHBOURS') }
+      case "соседям": return noun(state, 'dat') { st, noun -> st.assign(noun, 'type', 'NEIGHBOURS') }
       case "порядок":
-        def acc = state.constructions.acc
-        if (acc) {
-          def noun = state.newFrame()
-          state = state.assign(noun, 'type', 'ORDER')
-          return state.apply('acc', noun:noun).apply('nounGen', head:noun)
-        }
-        return state
+        state = noun(state, 'acc') { st, noun -> st.assign(noun, 'type', 'ORDER') }
+        return state.apply('nounGen', head:state.constructions.acc.noun)
       case "счета":
-        def nounGen = state.constructions.nounGen
-        if (nounGen) {
-          def noun = state.newFrame()
-          state = state.assign(noun, 'type', 'COUNTING')
-          return state.apply('nounGen', noun:noun)
-        }
-        return state
+        return noun(state, 'nounGen') { st, noun -> st.assign(noun, 'type', 'COUNTING') }
       case "вдруг":
         def nom = state.constructions.nom
         if (nom) {

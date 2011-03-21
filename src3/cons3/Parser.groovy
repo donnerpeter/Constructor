@@ -21,8 +21,7 @@ class Parser {
     switch (word) {
       case "Удивительный":
         def noun = state.newFrame()
-        def verb = state.newFrame()
-        return state.apply('adjective', nounFrame:noun, rel:'property', val:'AMAZING').apply('nom', noun:noun, head:verb)
+        return state.apply('adjective', nounFrame:noun, rel:'property', val:'AMAZING').apply('nom', noun:noun)
       case "этому":
         def noun = state.newFrame()
         return state.apply('adjective', nounFrame:noun, rel:'determiner', val:'THIS').apply('dat', noun:noun)
@@ -35,13 +34,9 @@ class Parser {
         return state
       case "поводу": return noun(state, 'dat') { st, noun -> st.assign(noun, 'type', 'MATTER') }
       case "случился":
-        def nom = state.constructions.nom
-        if (nom) {
-          Variable verb = nom.head
-          state = state.assign(verb, 'type', 'HAPPEN').assign(situation, 'time', 'PAST')
-          return state.apply('sInstr', head:verb).apply('nom')
-        }
-        return state
+        Variable verb = state.newFrame()
+        state = state.assign(verb, 'type', 'HAPPEN').assign(situation, 'time', 'PAST')
+        return state.apply('sInstr', head:verb).apply('nom', head:verb)
       case 'со': return preposition(state, 'sInstr', 'instr')
       case 'по': return preposition(state, 'poDat', 'dat')
       case 'к': return preposition(state, 'kDat', 'dat')
@@ -51,10 +46,7 @@ class Parser {
         state = state.assign(situation, 'elaboration', elaboration)
         return state.withSituation(elaboration)
       case "я":
-      case "Я":
-        def noun = state.newFrame()
-        def verb = state.newFrame()
-        return state.assign(noun, 'type', 'ME').apply('nom', noun:noun, head:verb)
+      case "Я": return noun(state, 'nom') { st, noun -> st.assign(noun, 'type', 'ME') }
       case "мое":
         def noun = state.newFrame()
         def possHead = state.constructions.whatA ? state.constructions.whatA.head : state.constructions.possessive ? state.constructions.possessive.possHead : state.newFrame()
@@ -82,7 +74,8 @@ class Parser {
       case "вдруг":
         def nom = state.constructions.nom
         if (nom) {
-          return state.assign(nom.head, 'manner', 'SUDDENLY')
+          def verb = state.newFrame()
+          return state.assign(verb, 'manner', 'SUDDENLY').apply('nom', head:verb)
         }
         return state
       case "тоже":
@@ -121,7 +114,7 @@ class Parser {
       case "отправился":
         def nom = state.constructions.nom
         if (nom) {
-          def verb = nom.head
+          def verb = state.newFrame()
           state = state.assign(verb, 'type', 'GO_OFF').assign(situation, 'time', 'PAST')
           return state.apply('kDat', head:verb).apply('nom', head:verb)
         }

@@ -92,6 +92,10 @@ class ParsingState {
     return clone(constructions: newConstructions)
   }
 
+  ParsingState inhibit(String name) {
+    return satisfied(name)
+  }
+
   ParsingState satisfied(String name) {
     def newConstructions = new HashMap(constructions)
     newConstructions.remove(name)
@@ -100,18 +104,25 @@ class ParsingState {
 
   ParsingState applyAll(String... names) {
     def hanging = [] as Set
-/*
-    constructions.keySet().each { name1 ->
-      constructions.keySet().each { name2 ->
+    names.each { name1 ->
+      names.each { name2 ->
         if (contradict(name1, name2)) {
           hanging << name1
           hanging << name2
         }
       }
     }
-*/
 
     ParsingState result = this
+    def others = constructions.keySet() - (names as List)
+    names.each { name1 ->
+      others.each { name2 ->
+        if (contradict(name1, name2) || contradict(name2, name1)) {
+          result = result.inhibit(name2)
+        }
+      }
+    }
+
     names.each {
       if (!(it in hanging)) {
         def args = constructions[it]

@@ -159,17 +159,17 @@ class Parser {
         if (state.constructions.question) {
           def noun = state.newFrame()
           def verb = state.newFrame()
-          return state.apply('nom', noun:noun, head:verb).apply('acc', noun:noun, head:verb).apply('question', questioned:noun)
+          return state.
+                  addCtx('nom', noun:noun, head:verb).
+                  addCtx('acc', noun:noun, head:verb).
+                  addCtx('question', questioned:noun).
+                  applyAll('nom', 'acc', 'question')
         }
         return state
       case "идет":
-        def nom = state.constructions.nom
-        if (nom) {
-          Variable verb = nom.head
-          state = state.assign(situation, 'time', 'PRESENT')
-          return state.apply('nom').apply('comeScalarly', verb:verb)
-        }
-        return state
+        Variable verb = state.constructions.nom?.head ?: state.newFrame()
+        state = state.assign(situation, 'time', 'PRESENT')
+        return state.apply('nom').apply('comeScalarly', verb:verb)
       case "раньше":
         def cs = state.constructions.comeScalarly
         if (cs) {

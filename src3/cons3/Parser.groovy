@@ -23,7 +23,7 @@ class Parser {
         def noun = state.newFrame()
         return state.apply('adjective', nounFrame:noun, rel:'property', val:'AMAZING').apply('nom', noun:noun)
       case "этому":
-        def noun = state.newFrame()
+        def noun = state.constructions.dat?.noun ?: state.newFrame()
         return state.apply('adjective', nounFrame:noun, rel:'determiner', val:'THIS').apply('dat', noun:noun)
       case "случай": return noun(state, 'nom') { st, noun -> st.assign(noun, 'type', 'THING').assign(noun, 'given', 'false') }
       case "удивление": //todo noun
@@ -32,7 +32,8 @@ class Parser {
           return state.assign(poss.head, 'type', 'AMAZE').apply('possessive').apply('comp', head:poss.head)
         }
         return state
-      case "поводу": return noun(state, 'dat') { st, noun -> st.assign(noun, 'type', 'MATTER') }
+      case "поводу":
+        return noun(state, 'dat') { st, noun -> st.assign(noun, 'type', 'MATTER') }
       case "случился":
         Variable verb = state.newFrame()
         state = state.assign(verb, 'type', 'HAPPEN').assign(situation, 'time', 'PAST')
@@ -202,13 +203,14 @@ class Parser {
 
   private ParsingState noun(ParsingState state, String caze, Closure init) {
     def noun = state.constructions[caze]?.noun ?: state.newFrame()
-    return state.apply(caze, noun: noun) { init(it, noun) }
+    return state.apply(caze, noun: noun, hasNoun:'true') { init(it, noun) }
   }
 
   private ParsingState preposition(ParsingState state, String prepCtx, String caze) {
-    state = state.apply(prepCtx)
+    def noun = state.newFrame()
+    state = state.apply(prepCtx, noun:noun)
     def save = state.constructions
-    return state.clearConstructions().apply(caze, save: save, delegate: prepCtx)
+    return state.clearConstructions().apply(caze, save: save, delegate: prepCtx, noun:noun)
   }
 
 }

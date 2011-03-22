@@ -15,8 +15,8 @@ A.given=false
 B.type=HAPPEN
 #1.time=PAST
 B.arg1=A
-C.type=ME
 B.experiencer=C
+C.type=ME
 #1.elaboration=#2
 --
 A.type=ME
@@ -46,8 +46,8 @@ A.type=ME
 B.type=GO_OFF
 #1.time=PAST
 B.arg1=A
-C.type=NEIGHBOURS
 B.goal=C
+C.type=NEIGHBOURS
 D.type=ASK
 D.arg1=A
 E.type=THEY
@@ -60,8 +60,8 @@ C.type=THINK
 #2.time=PRESENT
 C.arg1=B
 C.arg2=A
-D.determiner=THIS
 C.topic=D
+D.determiner=THIS
 D.type=MATTER
 """
   }

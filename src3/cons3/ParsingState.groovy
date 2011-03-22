@@ -73,20 +73,55 @@ class ParsingState {
   }
 
   private static ParsingState handleCase(String caze, ParsingState state, Map args) {
-    if (args.save && args.noun) {
-      return state.restore(args.save).apply(args.delegate, noun: args.noun)
+    if (args.save && args.hasNoun) {
+      return state.satisfied(caze).restore(args.save).apply(args.delegate, noun: args.noun)
     }
     return state
   }
 
   ParsingState apply(Map newArgs = [:], String name, Closure init = noInit) {
+    return addCtx(name, newArgs, init).applyAll(name)
+  }
+
+  ParsingState addCtx(String name, Map newArgs, Closure init = noInit) {
     def args = constructions.get(name, [:]) + newArgs
     def oldInit = args.get('init', noInit)
-    def newInit = { ParsingState state -> init(oldInit(state)) }
+    def newInit = { ParsingState state ->
+      init(oldInit(state)) }
     args.init = newInit
     def newConstructions = constructions + [(name): args]
-    ParsingState newState = newInit(this).clone(constructions: newConstructions)
-    return _apply(newState, name, args)
+    return clone(constructions: newConstructions)
+  }
+
+  ParsingState satisfied(String name) {
+    def newConstructions = new HashMap(constructions)
+    newConstructions.remove(name)
+    return clone(constructions: newConstructions)
+  }
+
+  ParsingState applyAll(String... names) {
+    def hanging = [] as Set
+/*
+    constructions.keySet().each { name1 ->
+      constructions.keySet().each { name2 ->
+        if (contradict(name1, name2)) {
+          hanging << name1
+          hanging << name2
+        }
+      }
+    }
+*/
+
+    ParsingState result = this
+    names.each {
+      if (!(it in hanging)) {
+        def args = constructions[it]
+        Closure init = args.init
+        result = _apply(init(result), it, args)
+      }
+
+    }
+    return result
   }
 
 
@@ -96,5 +131,13 @@ class ParsingState {
 
   ParsingState restore(Map saved) {
     clone(constructions: saved + this.constructions)
+  }
+
+  boolean contradict(String name1, String name2) {
+    if (name1 == 'nom' && name2 == 'acc' && constructions[name1].noun == constructions[name2].noun) {
+      return true
+    }
+
+    return false
   }
 }

@@ -79,15 +79,14 @@ class ParsingState {
     return state
   }
 
-  ParsingState apply(Map newArgs = [:], String name, Closure init = noInit) {
-    return addCtx(name, newArgs, init).applyAll(name)
+  ParsingState apply(Map newArgs = [:], String name, Closure init = null) {
+    return addCtx(newArgs, name, init).applyAll(name)
   }
 
-  ParsingState addCtx(String name, Map newArgs, Closure init = noInit) {
+  ParsingState addCtx(Map newArgs, String name, Closure init = null) {
     def args = constructions.get(name, [:]) + newArgs
     def oldInit = args.get('init', noInit)
-    def newInit = { ParsingState state ->
-      init(oldInit(state)) }
+    def newInit = init ? { ParsingState state -> init(oldInit(state)) } : oldInit
     args.init = newInit
     def newConstructions = constructions + [(name): args]
     return clone(constructions: newConstructions)

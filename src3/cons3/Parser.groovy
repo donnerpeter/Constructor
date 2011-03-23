@@ -26,7 +26,7 @@ class Parser {
         def noun = state.constructions.dat?.noun ?: state.newFrame()
         return state.apply('adjective', nounFrame:noun, rel:'determiner', val:'THIS').apply('dat', noun:noun)
       case "случай": return noun(state, 'nom') { st, noun -> st.assign(noun, 'type', 'THING').assign(noun, 'given', 'false') }
-      case "удивление": //todo noun
+      case "удивление":
         state = noun(state, 'nom') { st, noun -> st.assign(noun, 'type', 'AMAZE') }
         return state.apply('comp', head:state.constructions.nom.noun)
       case "поводу":

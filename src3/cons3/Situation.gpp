@@ -138,7 +138,7 @@ class Variable {
 
   Variable(Situation situation) {
     this.situation = situation ?: (Situation)this
-    id = (situation ? 'Sit' : 'Var') + counter++
+    id = (situation ? 'Var' : 'Sit') + counter++
   }
 
   String toString() {

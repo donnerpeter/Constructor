@@ -60,7 +60,10 @@ class ParsingState {
         return args.order ? state.assign(args.verb, 'type', 'COME_SCALARLY').assign(args.verb, 'order', args.order) : state
       case 'questionVariants':
         return args.variant ? state.assign(args.questioned, 'variant', args.variant) : state
-      case 'whatA':
+      case 'shortAdjCopula':
+        if (args.noun && args.pred) {
+          state = state.assign(args.noun, 'degree', args.pred)
+        }
         return args.time ? state.assign(args.situation, 'time', args.time) : state
       case 'possessive':
         state = args.conj ? _apply(state, 'possessive', args.conj) : state //todo generic conj handling

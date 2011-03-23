@@ -27,13 +27,8 @@ class Parser {
         return state.apply('adjective', nounFrame:noun, rel:'determiner', val:'THIS').apply('dat', noun:noun)
       case "случай": return noun(state, 'nom') { st, noun -> st.assign(noun, 'type', 'THING').assign(noun, 'given', 'false') }
       case "удивление": //todo noun
-        /*state = noun(state, 'nom') { st, noun -> st.assign(noun, 'type', 'AMAZE') }
-        return state.apply('comp', head:state.constructions.nom.noun)*/
-        def poss = state.constructions.possessive
-        if (poss) {
-          return state.assign(poss.head, 'type', 'AMAZE').apply('possessive').apply('comp', head:poss.head)
-        }
-        return state
+        state = noun(state, 'nom') { st, noun -> st.assign(noun, 'type', 'AMAZE') }
+        return state.apply('comp', head:state.constructions.nom.noun)
       case "поводу":
         return noun(state, 'dat') { st, noun -> st.assign(noun, 'type', 'MATTER') }
       case "случился":
@@ -51,25 +46,25 @@ class Parser {
       case "я":
       case "Я": return noun(state, 'nom') { st, noun -> st.assign(noun, 'type', 'ME') }
       case "мое":
-        def noun = state.newFrame()
+        def me = state.newFrame()
         def poss = state.constructions.possessive
-        def possHead = state.constructions.whatA?.head ?: poss?.possHead ?: state.newFrame()
-        state = state.assign(noun, 'type', 'ME')
+        def possHead = !state.constructions.nom?.hasNoun && state.constructions.nom?.noun ? state.constructions.nom.noun : state.newFrame()
+        state = state.assign(me, 'type', 'ME')
         if (poss) {
           state = state.satisfied('possessive')
         }
-        return state.apply('possessive', possessor:noun, head:possHead, conj: poss)
+        return state.apply('possessive', possessor:me, head:possHead, conj: poss)
       case "и": return state
       case "их":
-        def noun = state.newFrame()
-        def verb = state.constructions.acc ? state.constructions.acc.head : state.newFrame()
-        def possHead = state.constructions.whatA ? state.constructions.whatA.head : state.newFrame()
+        def they = state.newFrame()
+        def verb = state.constructions.acc?.head ?: state.newFrame()
+        def possHead = !state.constructions.nom?.hasNoun && state.constructions.nom?.noun ? state.constructions.nom.noun : state.newFrame()
 
-        def init = { st -> st.assign(noun, 'type', 'THEY') }
+        def init = { st -> st.assign(they, 'type', 'THEY') }
 
         return state.
-                addCtx('acc', noun:noun, head:verb, init).
-                addCtx('possessive', possessor:noun, head:possHead, init).
+                addCtx('acc', noun:they, head:verb, init).
+                addCtx('possessive', possessor:they, head:possHead, init).
                 applyAll('acc', 'possessive')
       case "они": return noun(state, 'nom') { st, noun -> st.assign(noun, 'type', 'THEY') }
       case "соседям": return noun(state, 'dat') { st, noun -> st.assign(noun, 'type', 'NEIGHBOURS') }
@@ -197,14 +192,11 @@ class Parser {
         return state
       case 'Каково':
         def degree = state.newFrame()
-        def noun = state.newFrame()
         state = state.assign(situation, 'exclamation', degree)
-        return state.assign(noun, 'degree', degree).apply('whatA', degree:degree, head:noun, situation:situation)
+        return state.apply('shortAdjCopula', pred:degree, situation:state.situation)
       case 'было':
-        if (state.constructions.whatA) {
-          return state.apply('whatA', time:'PAST')
-        }
-        return state.assign(situation, 'time', 'PAST')
+        def noun = state.newFrame()
+        return state.apply('shortAdjCopula', time:'PAST', noun: noun).apply('nom', noun:noun)
     }
     return state
   }
@@ -215,12 +207,14 @@ class Parser {
     }
 
     def noun = state.constructions[caze]?.noun ?: state.newFrame()
-    state = state.apply(caze, noun: noun, hasNoun:'true') { init(it, noun) }
-/*
-    if (state.constructions.possessive) {
-      state = state.apply('possessive', head:noun)
+    if (caze == 'nom') {
+      state = state.apply('shortAdjCopula', noun:noun)
     }
-*/
+
+    state = state.apply(caze, noun: noun, hasNoun:'true') { init(it, noun) }
+    if (state.constructions.possessive) {
+      state = state.apply('possessive')
+    }
     return state
   }
 

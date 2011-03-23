@@ -27,6 +27,8 @@ class Parser {
         return state.apply('adjective', nounFrame:noun, rel:'determiner', val:'THIS').apply('dat', noun:noun)
       case "случай": return noun(state, 'nom') { st, noun -> st.assign(noun, 'type', 'THING').assign(noun, 'given', 'false') }
       case "удивление": //todo noun
+        /*state = noun(state, 'nom') { st, noun -> st.assign(noun, 'type', 'AMAZE') }
+        return state.apply('comp', head:state.constructions.nom.noun)*/
         def poss = state.constructions.possessive
         if (poss) {
           return state.assign(poss.head, 'type', 'AMAZE').apply('possessive').apply('comp', head:poss.head)
@@ -50,22 +52,26 @@ class Parser {
       case "Я": return noun(state, 'nom') { st, noun -> st.assign(noun, 'type', 'ME') }
       case "мое":
         def noun = state.newFrame()
-        def possHead = state.constructions.whatA ? state.constructions.whatA.head : state.constructions.possessive ? state.constructions.possessive.possHead : state.newFrame()
+        def poss = state.constructions.possessive
+        def possHead = state.constructions.whatA?.head ?: poss?.possHead ?: state.newFrame()
         state = state.assign(noun, 'type', 'ME')
-        return state.apply('possessive', possessor:noun, head:possHead, conj:state.constructions.possessive)
+        if (poss) {
+          state = state.satisfied('possessive')
+        }
+        return state.apply('possessive', possessor:noun, head:possHead, conj: poss)
       case "и": return state
       case "их":
         def noun = state.newFrame()
         def verb = state.constructions.acc ? state.constructions.acc.head : state.newFrame()
         def possHead = state.constructions.whatA ? state.constructions.whatA.head : state.newFrame()
-        state = state.assign(noun, 'type', 'THEY').apply('acc', noun:noun, head:verb)
-        return state.apply('possessive', possessor:noun, head:possHead)
-      case "они":
-        def nom = state.constructions.nom
-        def noun = state.newFrame()
-        def head = nom?.noun ? nom.head : state.newFrame()
-        state = state.assign(noun, 'type', 'THEY')
-        return state.apply('nom', noun:noun, head: head)
+
+        def init = { st -> st.assign(noun, 'type', 'THEY') }
+
+        return state.
+                addCtx('acc', noun:noun, head:verb, init).
+                addCtx('possessive', possessor:noun, head:possHead, init).
+                applyAll('acc', 'possessive')
+      case "они": return noun(state, 'nom') { st, noun -> st.assign(noun, 'type', 'THEY') }
       case "соседям": return noun(state, 'dat') { st, noun -> st.assign(noun, 'type', 'NEIGHBOURS') }
       case "порядок":
         state = noun(state, 'acc') { st, noun -> st.assign(noun, 'type', 'ORDER') }
@@ -135,17 +141,19 @@ class Parser {
       case "думают":
         def nom = state.constructions.nom
         if (nom) {
-          def verb = nom.head
+          def verb = state.newFrame()
           state = state.assign(verb, 'type', 'THINK').assign(situation, 'time', 'PRESENT')
-          return state.apply('poDat', head:verb).apply('nom', head:verb).apply('acc')
+          return state.apply('poDat', head:verb).apply('nom', head:verb).apply('acc', head:verb)
         }
         return state
       case "спросил":
         def nom = state.constructions.nom
         if (nom) {
+          state = state.satisfied('nom')
           def verb = state.newFrame()
+          nom = nom + [head:verb]
           state = state.assign(verb, 'type', 'ASK')//todo don't reassign tense .assign(situation, 'time', 'PAST', false)
-          return state.apply('acc', head:verb).apply('nom', head:verb).apply('comp', head:verb)
+          return state.apply('acc', head:verb).apply(nom, 'nom').apply('comp', head:verb)
         }
         return state
       case ",":
@@ -158,18 +166,17 @@ class Parser {
       case "что":
         if (state.constructions.question) {
           def noun = state.newFrame()
-          def verb = state.newFrame()
           return state.
-                  addCtx('nom', noun:noun, head:verb).
-                  addCtx('acc', noun:noun, head:verb).
+                  addCtx('nom', noun:noun, hasNoun:'true').
+                  addCtx('acc', noun:noun, hasNoun:'true').
                   addCtx('question', questioned:noun).
                   applyAll('nom', 'acc', 'question')
         }
         return state
       case "идет":
-        Variable verb = state.constructions.nom?.head ?: state.newFrame()
+        Variable verb = state.newFrame()
         state = state.assign(situation, 'time', 'PRESENT')
-        return state.apply('nom').apply('comeScalarly', verb:verb)
+        return state.apply('nom', head:verb).apply('comeScalarly', verb:verb)
       case "раньше":
         def cs = state.constructions.comeScalarly
         if (cs) {
@@ -183,8 +190,9 @@ class Parser {
         return state
       case "7":
       case "8":
-        if (state.constructions.questionVariants) {
-          return state.apply('questionVariants', variant:word)
+        def qv = state.constructions.questionVariants
+        if (qv) {
+          return state.apply('questionVariants', variant:word).satisfied('questionVariants').apply(qv, 'questionVariants')
         }
         return state
       case 'Каково':
@@ -202,8 +210,18 @@ class Parser {
   }
 
   private ParsingState noun(ParsingState state, String caze, Closure init) {
+    if (state.constructions[caze]?.hasNoun) {
+      state = state.inhibit(caze)
+    }
+
     def noun = state.constructions[caze]?.noun ?: state.newFrame()
-    return state.apply(caze, noun: noun, hasNoun:'true') { init(it, noun) }
+    state = state.apply(caze, noun: noun, hasNoun:'true') { init(it, noun) }
+/*
+    if (state.constructions.possessive) {
+      state = state.apply('possessive', head:noun)
+    }
+*/
+    return state
   }
 
   private ParsingState preposition(ParsingState state, String prepCtx, String caze) {

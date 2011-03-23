@@ -84,16 +84,34 @@ class ParsingState {
   }
 
   ParsingState addCtx(Map newArgs, String name, Closure init = null) {
-    def args = constructions.get(name, [:]) + newArgs
+    def oldArgs = constructions.get(name, [:])
+    def replace = false
+    for (cxt in oldArgs.keySet().intersect(newArgs.keySet())) {
+      if (oldArgs[cxt] != newArgs[cxt]) {
+        replace = true
+        oldArgs.clear()
+        break
+      }
+    }
+
+    def args = oldArgs + newArgs
     def oldInit = args.get('init', noInit)
     def newInit = init ? { ParsingState state -> init(oldInit(state)) } : oldInit
     args.init = newInit
     def newConstructions = constructions + [(name): args]
-    return clone(constructions: newConstructions)
+    return (replace ? inhibit(name) : this).clone(constructions: newConstructions)
   }
 
   ParsingState inhibit(String name) {
-    return satisfied(name)
+    def state = satisfied(name)
+
+    def freed = [] as Set
+    state.constructions.keySet().each {
+      if (contradict(it, name) || contradict(name, it)) {
+        freed << it
+      }
+    }
+    return state.applyAll(freed as String[])
   }
 
   ParsingState satisfied(String name) {
@@ -144,7 +162,7 @@ class ParsingState {
   }
 
   boolean contradict(String name1, String name2) {
-    if (name1 == 'nom' && name2 == 'acc' && constructions[name1].noun == constructions[name2].noun) {
+    if (name1 == 'nom' && name2 == 'acc' && constructions[name1].noun == constructions[name2].noun && constructions[name1].noun) {
       return true
     }
 

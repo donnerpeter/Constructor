@@ -185,11 +185,7 @@ class Parser {
         return state
       case "7":
       case "8":
-        def qv = state.constructions.questionVariants
-        if (qv) {
-          return state.apply('questionVariants', variant:word).satisfied('questionVariants').apply(qv, 'questionVariants')
-        }
-        return state
+        return noun(state, 'nom') { st, noun -> st.assign(noun, 'type', word).assign(noun, 'number', 'true') }
       case 'Каково':
         def degree = state.newFrame()
         state = state.assign(situation, 'exclamation', degree)
@@ -214,6 +210,11 @@ class Parser {
     state = state.apply(caze, noun: noun, hasNoun:'true') { init(it, noun) }
     if (state.constructions.possessive) {
       state = state.apply('possessive')
+    }
+
+    def qv = state.constructions.questionVariants
+    if (qv) {
+      return state.apply('questionVariants', variant:noun).satisfied('questionVariants').apply(qv, 'questionVariants')
     }
     return state
   }

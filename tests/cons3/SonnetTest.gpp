@@ -31,8 +31,12 @@ B.theme=#3
 B.type=COME_SCALARLY
 B.order=EARLIER
 B.arg1=A
-A.variant=7
-A.variant=8
+C.type=7
+C.number=true
+A.variant=C
+D.type=8
+D.number=true
+A.variant=D
 """)
   }
 

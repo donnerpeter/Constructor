@@ -119,7 +119,12 @@ class EnglishGenerator {
       def variants = subj?.allAssignments('variant')
       if (variants) {
         output << '-'
-        output << variants.collect { (String)it.value }.join(' or ')
+        def first = true
+        for (var in variants) {
+          if (first) first = false
+          else output << 'or'
+          np((Frame) var.value, true)
+        }
       }
     }
 
@@ -143,6 +148,10 @@ class EnglishGenerator {
         return
       }
 
+      if (n.s('number') == 'true') {
+        output << n.type
+        return
+      }
 
       determiner(n)
       if (n.s('property') == 'AMAZING') {

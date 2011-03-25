@@ -71,7 +71,7 @@ D.type=MATTER
   }
 
   public void testParse3() throws Exception {
-    doParseTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета", """
+    doParseTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета.", """
 #1.exclamation=A
 B.degree=A
 #1.time=PAST
@@ -102,6 +102,7 @@ E.type=ORDER
 D.arg2=E
 F.type=COUNTING
 E.criterion=F
+#3.dot=true
 """
   }
 
@@ -116,8 +117,8 @@ E.criterion=F
   }
 
   public void testTranslate3() throws Exception {
-    doTranslateTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета",
-                    "Great was their and my amazement, when they suddenly discovered, that they couldn't recall the counting order"
+    doTranslateTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета.",
+                    "Great was their and my amazement, when they suddenly discovered, that they couldn't recall the counting order."
   }
 
   static void doTranslateTest(String input, String expected) {

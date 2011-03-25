@@ -183,6 +183,8 @@ class Parser {
           return state.apply('questionVariants', questioned:state.constructions.question.questioned)
         }
         return state
+      case ".":
+        return state.assign(state.situation, 'dot', 'true')
       case "7":
       case "8":
         return noun(state, 'nom') { st, noun -> st.assign(noun, 'type', word).assign(noun, 'number', 'true') }

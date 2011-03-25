@@ -17,6 +17,12 @@ class Parser {
   }
 
   ParsingState handleWord(String word, ParsingState state) {
+    try {
+      Integer.parseInt(word)
+      return noun(state, 'nom') { st, noun -> st.assign(noun, 'type', word).assign(noun, 'number', 'true') }
+    } catch (e) {
+    }
+
     def situation = state.situation
     switch (word) {
       case "Удивительный":
@@ -185,9 +191,6 @@ class Parser {
         return state
       case ".":
         return state.assign(state.situation, 'dot', 'true')
-      case "7":
-      case "8":
-        return noun(state, 'nom') { st, noun -> st.assign(noun, 'type', word).assign(noun, 'number', 'true') }
       case 'Каково':
         def degree = state.newFrame()
         state = state.assign(situation, 'exclamation', degree)

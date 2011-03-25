@@ -40,7 +40,7 @@ A.variant=D
 """)
   }
 
-  private void doParseTest(String input, String expected) {
+  static void doParseTest(String input, String expected) {
     assertEquals expected.trim(), new Parser().parse(input).presentable()
   }
 

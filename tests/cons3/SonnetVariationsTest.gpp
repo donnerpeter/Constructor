@@ -3,8 +3,9 @@ package cons3
 import static SonnetTest.doTranslateTest
 
 import junit.framework.TestCase
+import static cons3.SonnetTest.doParseTest
 
- /**
+/**
  * @author peter
  */
 class SonnetVariationsTest extends TestCase {
@@ -21,6 +22,31 @@ class SonnetVariationsTest extends TestCase {
   public void test3_Their() throws Exception {
     doTranslateTest "Каково же было их удивление",
                     "Great was their amazement"
+  }
+
+  public void _test1_789() throws Exception {
+    doParseTest "Я забыл, что идёт раньше - 7, 8 или 9", """
+"""
+  }
+
+  public void _test4_123() throws Exception {
+    doParseTest "1, 2 и 3 они помнят", """
+"""
+  }
+
+  public void _test4_4() throws Exception {
+    doParseTest "2 и 3 они помнят, а 4 забыли", """
+"""
+  }
+
+  public void _test4_45() throws Exception {
+    doParseTest "2 и 3 они помнят, а 4 и 5 забыли", """
+"""
+  }
+
+  public void _test4_TheyForgot() throws Exception {
+    doParseTest "Они забыли 4 и 5", """
+"""
   }
 
 

@@ -106,6 +106,77 @@ E.criterion=F
 """
   }
 
+  public void testParse3_4() throws Exception {
+    doParseTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета. 1,2,3,4,5 и 6 помнят, а дальше забыли.", """
+#1.exclamation=A
+B.degree=A
+#1.time=PAST
+C.type=THEY
+D.type=ME
+B.type=AMAZE
+B.arg1=C
+B.arg1=D
+B.theme=#2
+--
+A.type=THEY
+B.manner=SUDDENLY
+B.type=DISCOVER
+#2.time=PAST
+B.arg1=A
+B.theme=#3
+--
+A.type=ALSO
+A.arg1=B
+A.theme=C
+C.negated=true
+C.type=CAN
+#3.time=PRESENT
+B.type=THEY
+C.theme=D
+D.type=REMEMBER
+E.type=ORDER
+D.arg2=E
+F.type=COUNTING
+E.criterion=F
+#3.dot=true
+--
+A.type=1
+A.number=true
+B.type=2
+B.number=true
+C.member=A
+C.member=B
+D.type=3
+D.number=true
+C.member=D
+E.type=4
+E.number=true
+C.member=E
+F.type=5
+F.number=true
+C.member=F
+C.conj=and
+G.type=6
+G.number=true
+C.member=G
+H.type=REMEMBER
+#4.time=PRESENT
+H.arg2=C
+I.type=THEY
+H.arg1=I
+#4.but=#5
+--
+A.type=NEXT
+B.type=FORGET
+#5.time=PAST
+B.arg2=A
+C.type=THEY
+B.arg1=C
+#5.dot=true
+
+"""
+  }
+
   public void testTranslate1() throws Exception {
     doTranslateTest "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8",
                     "An amazing thing happened to me today, I suddenly forgot what comes first - 7 or 8"

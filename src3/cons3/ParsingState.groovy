@@ -70,6 +70,19 @@ class ParsingState {
         return args.head.frame(state.chart).type ? state.assign(args.head, 'arg1', args.possessor) : state
       case 'control':
         return args.slave ? state.assign(args.head, 'theme', args.slave) : state
+      case 'seq':
+        if (args.seq) {
+          state = state.assign(args.seq, 'member', args.member)
+          if (args.conj) {
+            state = state.assign(args.seq, 'conj', args.conj)
+          }
+        }
+        return state
+      case 'advObj':
+        if (args.head && args.adv) {
+          state = state.assign(args.head, 'arg2', args.adv)
+        }
+        return state
     }
 
     return state
@@ -90,7 +103,7 @@ class ParsingState {
     def oldArgs = constructions.get(name, [:])
     def replace = false
     for (cxt in oldArgs.keySet().intersect(newArgs.keySet())) {
-      if (oldArgs[cxt] != newArgs[cxt]) {
+      if (oldArgs[cxt] != newArgs[cxt] && oldArgs[cxt]) {
         replace = true
         oldArgs.clear()
         break
@@ -166,6 +179,9 @@ class ParsingState {
 
   boolean contradict(String name1, String name2) {
     if (name1 == 'nom' && name2 == 'acc' && constructions[name1].noun == constructions[name2].noun && constructions[name1].noun) {
+      return true
+    }
+    if (name1 == 'acc' && name2 == 'seq' && constructions[name1].noun == constructions[name2].member) {
       return true
     }
 

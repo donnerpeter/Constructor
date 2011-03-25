@@ -18,9 +18,25 @@ class Parser {
 
   ParsingState handleWord(String word, ParsingState state) {
     try {
-      Integer.parseInt(word)
-      return noun(state, 'nom') { st, noun -> st.assign(noun, 'type', word).assign(noun, 'number', 'true') }
-    } catch (e) {
+      Integer.parseInt(word)                                           //todo generic noun treatment
+      def noun = state.newFrame()
+      def init = { it.assign(noun, 'type', word).assign(noun, 'number', 'true') }
+      state = state.apply('nom', noun:noun, hasNoun:noun, init)
+
+      def qv = state.constructions.questionVariants
+      if (qv) {
+        state = state.apply('questionVariants', variant:noun).satisfied('questionVariants').apply(qv, 'questionVariants')
+      }
+
+      def seqVar = null
+      if (state.constructions.seq?.hasComma || state.constructions.seq?.conj) {
+        seqVar = state.constructions.seq.seq ?: state.newFrame()
+        state = state.apply('seq', seq:seqVar).satisfied('seq')
+      }
+
+      state = state.apply('seq', member:noun, seq:seqVar, init).apply('acc', noun:seqVar, hasNoun:true)
+      return state
+    } catch (NumberFormatException e) {
     }
 
     def situation = state.situation
@@ -60,7 +76,13 @@ class Parser {
           state = state.satisfied('possessive')
         }
         return state.apply('possessive', possessor:me, head:possHead, conj: poss)
-      case "и": return state
+      case "и": return state.constructions.seq ? state.apply('seq', conj:'and') : state
+      case "а":
+        def next = new Situation()
+        return state.assign(situation, 'but', next).withSituation(next)
+      case "дальше":
+        def adv = state.newFrame()
+        return state.apply('advObj', adv: adv) { it.assign(adv, 'type', 'NEXT') }
       case "их":
         def they = state.newFrame()
         def verb = state.constructions.acc?.head ?: state.newFrame()
@@ -102,6 +124,16 @@ class Parser {
           return state.apply('comp', head:verb).apply('nom')
         }
         return state
+      case "забыли":
+        Variable verb = state.newFrame()
+        state = state.assign(verb, 'type', 'FORGET').assign(situation, 'time', 'PAST')
+        def subj = state.newFrame()
+        return state.apply('advObj', head:verb).apply('nom', noun:subj, head:verb) { it.assign(subj, 'type', 'THEY') }
+      case "помнят":
+        Variable verb = state.newFrame()
+        state = state.assign(verb, 'type', 'REMEMBER').assign(situation, 'time', 'PRESENT')
+        def subj = state.newFrame()
+        return state.apply('acc', head:verb).apply('nom', noun:subj, head:verb) { it.assign(subj, 'type', 'THEY') }
       case "могут":
         def verb = state.newFrame()
         def also = state.constructions.also
@@ -163,7 +195,7 @@ class Parser {
         if (comp) {
           return state.apply('comp', comp:next).withSituation(next).apply(comp.head.frame(state.chart).type in ['DISCOVER', 'AMAZE'] ? 'declComp' : 'question', situation:next)
         }
-        return state
+        return state.constructions.seq ? state.apply('seq', hasComma:true) : state
       case "что":
         if (state.constructions.question) {
           def noun = state.newFrame()
@@ -190,7 +222,7 @@ class Parser {
         }
         return state
       case ".":
-        return state.assign(state.situation, 'dot', 'true')
+        return state.assign(state.situation, 'dot', 'true').withSituation(new Situation())
       case 'Каково':
         def degree = state.newFrame()
         state = state.assign(situation, 'exclamation', degree)

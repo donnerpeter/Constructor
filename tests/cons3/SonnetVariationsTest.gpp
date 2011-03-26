@@ -83,11 +83,12 @@ B.type=REMEMBER
 B.arg1=A
 C.type=1
 C.number=true
+B.arg2=C
 D.type=2
 D.number=true
 E.member=C
-E.member=D
 B.arg2=E
+E.member=D
 E.conj=and
 F.type=3
 F.number=true
@@ -95,17 +96,64 @@ E.member=F
 """
   }
 
-  public void _test4_4() throws Exception {
+  public void test4_4() throws Exception {
     doParseTest "2 и 3 они помнят, а 4 забыли", """
+A.type=2
+A.number=true
+B.type=3
+B.number=true
+C.member=A
+C.conj=and
+C.member=B
+D.type=THEY
+E.type=REMEMBER
+#1.time=PRESENT
+E.arg2=C
+E.arg1=D
+#1.but=#2
+--
+A.type=4
+A.number=true
+B.type=FORGET
+#2.time=PAST
+B.arg2=A
+C.type=THEY
+B.arg1=C
 """
   }
 
-  public void _test4_45() throws Exception {
+  public void test4_45() throws Exception {
     doParseTest "2 и 3 они помнят, а 4 и 5 забыли", """
+A.type=2
+A.number=true
+B.type=3
+B.number=true
+C.member=A
+C.conj=and
+C.member=B
+D.type=THEY
+E.type=REMEMBER
+#1.time=PRESENT
+E.arg2=C
+E.arg1=D
+#1.but=#2
+--
+A.type=4
+A.number=true
+B.type=5
+B.number=true
+C.member=A
+C.conj=and
+C.member=B
+D.type=FORGET
+#2.time=PAST
+D.arg2=C
+E.type=THEY
+D.arg1=E
 """
   }
 
-  public void test4_TheyForgot() throws Exception {
+  public void test4_TheyForgot45() throws Exception {
     doParseTest "Они забыли 4 и 5", """
 A.type=THEY
 B.type=FORGET
@@ -114,12 +162,13 @@ C.type=THEY
 B.arg1=C
 D.type=4
 D.number=true
+B.arg2=D
 E.type=5
 E.number=true
 F.member=D
+B.arg2=F
 F.conj=and
 F.member=E
-B.arg2=F
 """
   }
 

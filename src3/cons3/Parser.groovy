@@ -21,7 +21,7 @@ class Parser {
       Integer.parseInt(word)   //todo generic noun treatment
       def noun = state.newFrame()
       def init = { it.assign(noun, 'type', word).assign(noun, 'number', 'true') }
-      state = state.apply('xxx', noun:noun, hasNoun:noun, init)
+      state = state.apply('acc', noun:noun, hasNoun:noun, init)
 
       def seqVar = null
       if (state.constructions.seq?.hasComma || state.constructions.seq?.conj) {
@@ -35,7 +35,11 @@ class Parser {
         state = state.apply('questionVariants', seq:seqVar).satisfied('questionVariants')
       }
 
-      state = state.apply('seq', member:noun, seq:seqVar, init).apply('acc', noun:seqVar, hasNoun:true)
+      if (seqVar) {
+        state = state.apply('acc', noun:seqVar, hasNoun:true)
+      }
+
+      state = state.apply('seq', member:noun, seq:seqVar, init)
 
       return state
     } catch (NumberFormatException e) {

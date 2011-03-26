@@ -73,6 +73,13 @@ class ParsingState {
       case 'seq':
         if (args.seq) {
           state = state.assign(args.seq, 'member', args.member)
+
+          state.chart.allAssignments(state.situation).each {
+            if (it.frame.var != args.seq && it.value instanceof Frame && it.value.var == args.member) {
+              state = state.assign(it.frame.var, it.property, args.seq)
+            }
+          }
+
           if (args.conj) {
             state = state.assign(args.seq, 'conj', args.conj)
           }
@@ -179,9 +186,6 @@ class ParsingState {
 
   boolean contradict(String name1, String name2) {
     if (name1 == 'nom' && name2 == 'acc' && constructions[name1].noun == constructions[name2].noun && constructions[name1].noun) {
-      return true
-    }
-    if (name1 == 'acc' && name2 == 'seq' && constructions[name1].noun == constructions[name2].member) {
       return true
     }
 

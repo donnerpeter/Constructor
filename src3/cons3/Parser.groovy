@@ -133,7 +133,7 @@ class Parser {
         Variable verb = state.newFrame()
         state = state.assign(verb, 'type', 'FORGET').assign(situation, 'time', 'PAST')
         def subj = state.newFrame()
-        return state.apply('advObj', head:verb).apply('nom', noun:subj, head:verb) { it.assign(subj, 'type', 'THEY') }
+        return state.apply('advObj', head:verb).apply('acc', head:verb).apply('nom', noun:subj, head:verb) { it.assign(subj, 'type', 'THEY') }
       case "помнят":
         Variable verb = state.newFrame()
         state = state.assign(verb, 'type', 'REMEMBER').assign(situation, 'time', 'PRESENT')

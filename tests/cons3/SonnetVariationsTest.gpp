@@ -105,8 +105,21 @@ E.member=F
 """
   }
 
-  public void _test4_TheyForgot() throws Exception {
+  public void test4_TheyForgot() throws Exception {
     doParseTest "Они забыли 4 и 5", """
+A.type=THEY
+B.type=FORGET
+#1.time=PAST
+C.type=THEY
+B.arg1=C
+D.type=4
+D.number=true
+E.type=5
+E.number=true
+F.member=D
+F.conj=and
+F.member=E
+B.arg2=F
 """
   }
 

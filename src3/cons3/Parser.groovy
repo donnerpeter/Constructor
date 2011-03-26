@@ -21,7 +21,7 @@ class Parser {
       Integer.parseInt(word)   //todo generic noun treatment
       def noun = state.newFrame()
       def init = { it.assign(noun, 'type', word).assign(noun, 'number', 'true') }
-      state = state.apply('nom', noun:noun, hasNoun:noun, init)
+      state = state.apply('xxx', noun:noun, hasNoun:noun, init)
 
       def seqVar = null
       if (state.constructions.seq?.hasComma || state.constructions.seq?.conj) {
@@ -135,8 +135,12 @@ class Parser {
       case "помнят":
         Variable verb = state.newFrame()
         state = state.assign(verb, 'type', 'REMEMBER').assign(situation, 'time', 'PRESENT')
-        def subj = state.newFrame()
-        return state.apply('acc', head:verb).apply('nom', noun:subj, head:verb) { it.assign(subj, 'type', 'THEY') }
+        state = state.apply('acc', head:verb)
+        if (!state.constructions.nom) {
+          def subj = state.newFrame()
+          state = state.apply('nom', noun:subj) { it.assign(subj, 'type', 'THEY') }
+        }
+        return state.apply('nom', head:verb)
       case "могут":
         def verb = state.newFrame()
         def also = state.constructions.also

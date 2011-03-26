@@ -55,8 +55,23 @@ D.member=F
     doTranslateTest "Я забыл, что идёт раньше - 7, 8 или 9.", "I forgot what comes first - 7, 8 or 9."
   }
 
-  public void _test4_123() throws Exception {
+  public void test4_123() throws Exception {
     doParseTest "1, 2 и 3 они помнят", """
+A.type=1
+A.number=true
+B.type=2
+B.number=true
+C.member=A
+C.member=B
+C.conj=and
+D.type=3
+D.number=true
+C.member=D
+E.type=THEY
+F.type=REMEMBER
+#1.time=PRESENT
+F.arg2=C
+F.arg1=E
 """
   }
 

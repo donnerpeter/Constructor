@@ -95,12 +95,12 @@ class Frame {
   }
 
   Frame f(String attr) {
-    def v = allAssignments(attr)[0]?.value
+    def v = allAssignments(attr).reverse()[0]?.value
     v instanceof Frame ? (Frame) v : null
   }
 
   String s(String attr) {
-    def v = allAssignments(attr)[0]?.value
+    def v = allAssignments(attr).reverse()[0]?.value
     v instanceof String ? (String) v : null
   }
 

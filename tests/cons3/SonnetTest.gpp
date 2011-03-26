@@ -99,7 +99,7 @@ C.type=CAN
 #3.time=PRESENT
 B.type=THEY
 C.theme=D
-D.type=REMEMBER
+D.type=RECALL
 E.type=ORDER
 D.arg2=E
 F.type=COUNTING
@@ -109,7 +109,7 @@ E.criterion=F
   }
 
   public void testParse3_4() throws Exception {
-    doParseTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета. 1,2,3,4,5 и 6 помнят, а дальше забыли.", """
+    doParseTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета. 1, 2, 3, 4, 5 и 6 помнят, а дальше забыли.", """
 #1.exclamation=A
 B.degree=A
 #1.time=PAST
@@ -135,7 +135,7 @@ C.type=CAN
 #3.time=PRESENT
 B.type=THEY
 C.theme=D
-D.type=REMEMBER
+D.type=RECALL
 E.type=ORDER
 D.arg2=E
 F.type=COUNTING
@@ -192,6 +192,18 @@ B.arg1=C
   public void testTranslate3() throws Exception {
     doTranslateTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета.",
                     "Great was their and my amazement, when they suddenly discovered, that they couldn't recall the counting order."
+  }
+
+  public void testTranslate4() throws Exception {
+    doTranslateTest "1, 2, 3, 4, 5 и 6 помнят, а дальше забыли.",
+                    "They remember 1, 2, 3, 4, 5 and 6, but forgot what comes next."
+  }
+
+  public void testTranslate3_4() throws Exception {
+    doTranslateTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета. " +
+                            "1, 2, 3, 4, 5 и 6 помнят, а дальше забыли.",
+                    "Great was their and my amazement, when they suddenly discovered, that they couldn't recall the counting order. " +
+                            "They remembered 1, 2, 3, 4, 5 and 6, but forgot what comes next."
   }
 
   static void doTranslateTest(String input, String expected) {

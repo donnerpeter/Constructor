@@ -5,9 +5,16 @@ package cons3
  */
 class EnglishGenerator {
   List<String> output = []
+  Set<Situation> handled = []
+  boolean past
 
   String generate(Chart chart) {
-    new SituationGenerator(chart, chart.situations[0]).sentence()
+    chart.situations.each {
+      if (!(it in handled)) {
+        new SituationGenerator(chart, it, true).sentence()
+      }
+    }
+
     String result = ""
     for (w in output) {
       if (!result.empty && !(w in ['.', ','])) {
@@ -23,18 +30,32 @@ class EnglishGenerator {
     final Situation situation
     final Frame sitFrame
     boolean hasSubject
+    boolean capitalize
 
-    SituationGenerator(Chart chart, Situation situation) {
+    SituationGenerator(Chart chart, Situation situation, boolean capitalize) {
       this.chart = chart
       this.situation = situation
+      this.capitalize = capitalize
       sitFrame = situation.frame(chart)
+    }
+    
+    private void out(String word) {
+      output << (capitalize ? word.capitalize() : word)
+      capitalize = false
     }
 
     private def sentence() {
+      handled << situation
+
+      if (sitFrame.s('time') == 'PAST') {
+        past = true //todo maintain a tense for the whole discourse
+      }
+
+
       def excl = sitFrame.f('exclamation')
       if (excl) {
-        output << 'Great'
-        output << 'was'
+        out 'great'
+        out 'was'
         def a = chart.allAssignments(situation).find { it.frame != sitFrame && it.value == excl }
         if (a) {
           np(a.frame, true)
@@ -42,19 +63,27 @@ class EnglishGenerator {
         return
       }
 
-      List<Frame> allVerbs = chart.frames(situation).findAll { it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY', 'GO_OFF', 'ASK', 'DISCOVER', 'ALSO'] }
+      List<Frame> allVerbs = chart.frames(situation).findAll { it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY', 'GO_OFF', 'ASK', 'DISCOVER', 'ALSO', 'REMEMBER'] }
       def verb = allVerbs[0]
       assert verb : situation.presentable(chart)
 
       clause(verb)
 
       if (allVerbs.size() > 1) {
-        output << "and"
+        out "and"
         clause(allVerbs[1])
       }
 
+      if (sitFrame.f('but')) {
+        out ','
+        out 'but'
+        def generator = new SituationGenerator(chart, (Situation) sitFrame.f('but').var, false)
+        generator.hasSubject = true
+        generator.sentence()
+      }
+
       if (sitFrame.s('dot') == 'true') {
-        output << '.'
+        out '.'
       }
     }
 
@@ -66,12 +95,13 @@ class EnglishGenerator {
         hasSubject = true
       }
 
-
       if (verb.s('manner') == 'SUDDENLY') {
-        output << 'suddenly'
+        out 'suddenly'
       }
-      if (verb.type != 'ALSO') {
-        output << [HAPPEN: 'happened', FORGET: 'forgot', COME_SCALARLY: 'comes first', GO_OFF: 'went', ASK: 'asked', DISCOVER: 'discovered', CAN: "couldn't", REMEMBER:'recall'][verb.type]
+      def type = verb.type
+      if (type != 'ALSO') {
+        def verbs = [HAPPEN: 'happened', FORGET: 'forgot', COME_SCALARLY: 'comes first', GO_OFF: 'went', ASK: 'asked', DISCOVER: 'discovered', CAN: "couldn't", RECALL:'recall', REMEMBER:(past ? 'remembered' : 'remember')]
+        out(verbs[type])
       }
 
       def dobj = verb.f('arg2')
@@ -81,100 +111,116 @@ class EnglishGenerator {
 
       def io = verb.type == 'HAPPEN' ? verb.f('experiencer') : verb.type == 'GO_OFF' ? verb.f('goal') : null
       if (io) {
-        output << "to"
+        out "to"
         np(io, false)
       }
 
       if (verb.type == 'HAPPEN') {
-        output << "today"
+        out "today"
       }
 
       def question = verb.f('question')
       if (question?.var instanceof Situation) {
-        output << 'about'
-        def think = chart.frames((Situation)question.var).find { it.type == 'THINK' }
+        def questSituation = (Situation) question.var
+        handled << questSituation
+        out 'about'
+        def think = chart.frames(questSituation).find { it.type == 'THINK' }
         def exp = think.f('arg1')
         if (exp?.type == 'THEY') {
-          output << 'their'
+          out 'their'
         }
-        output << 'opinion'
-        output << 'on'
+        out 'opinion'
+        out 'on'
         np(think.f('topic'), false)
       }
 
       def theme = verb.f('theme')
       if (theme?.var instanceof Situation) {
         if (!theme.f('questioned')) {
-          output << ","
-          output << "that"
+          out ","
+          out "that"
         }
 
-        new SituationGenerator(chart, (Situation)theme.var).sentence()
+        new SituationGenerator(chart, (Situation)theme.var, false).sentence()
       } else if (theme && verb.type in ['CAN', 'ALSO']) {
         clause(theme)
       }
 
       def elaboration = sitFrame.f('elaboration')
       if (elaboration?.var instanceof Situation) {
-        output << ","
-        new SituationGenerator(chart, (Situation)elaboration.var).sentence()
+        out ","
+        new SituationGenerator(chart, (Situation)elaboration.var, false).sentence()
       }
 
 
       def variants = subj?.f('variants')
       if (variants) {
-        output << '-'
-        def members = variants.allAssignments('member')
-        members.eachWithIndex { Assignment<Frame> var, int index ->
-          if (index == members.size() - 1) output << 'or'
-          else if (index > 0) output << ','
-          np((Frame)var.value, true)
-        }
+        out '-'
+        npseq(variants)
+      }
+    }
+
+    def npseq(Frame seq) {
+      def members = seq.allAssignments('member')
+      members.eachWithIndex { Assignment<Frame> var, int index ->
+        if (index == members.size() - 1) out seq.s('conj')
+        else if (index > 0) out ','
+        np((Frame) var.value, true)
       }
     }
 
     private def np(Frame n, boolean nom) {
       if (!n) {
-        output << '???'
+        out '???'
         return
       }
 
       if (n.s('type') == 'ME') {
-        output << (nom ? 'I' : "me")
+        out (nom ? 'I' : "me")
         return
       }
       if (n.s('type') == 'THEY') {
-        output << (nom ? 'they' : "them")
+        out (nom ? 'they' : "them")
         return
       }
 
-      if (n == sitFrame.f('questioned')) {
-        output << 'what'
+      if (n == sitFrame.f('questioned')) { //todo a type for seq frames
+        out 'what'
+        return
+      }
+
+      if (n.type == 'NEXT') {
+        out 'what comes next' //todo a non-hacky model for 'what comes next'
         return
       }
 
       if (n.s('number') == 'true') {
-        output << n.type
+        out n.type
+        return
+      }
+
+      if (n.f('member')) {
+        npseq(n)
         return
       }
 
       determiner(n)
       if (n.s('property') == 'AMAZING') {
-        output << "amazing"
+        out "amazing"
       }
       def criterion = n.f('criterion')
       if (criterion) {
-        output << noun(criterion.type)
+        out noun(criterion.type)
       }
 
-      output << noun(n.type)
+      out noun(n.type)
 
       if (n.type == 'AMAZE') {
         def theme = n.f('theme')
         if (theme?.var instanceof Situation) {
-          output << ','
-          output << 'when'
-          new SituationGenerator(chart, (Situation) theme.var).sentence()
+          out ','
+          out 'when'
+          new SituationGenerator(chart, (Situation) theme.var, false).sentence()
         }
       }
     }
@@ -182,7 +228,7 @@ class EnglishGenerator {
     private String determiner(Frame n) {
       def det = n.s('determiner')
       if (det == 'THIS') {
-        output << 'this'
+        out 'this'
         return
       }
 
@@ -191,7 +237,7 @@ class EnglishGenerator {
         if (!assignments.empty) {
           possessive((Frame)assignments[0].value)
           if (assignments.size() > 1) {
-            output << 'and'
+            out 'and'
             possessive((Frame)assignments[1].value)
           }
 
@@ -201,22 +247,22 @@ class EnglishGenerator {
       }
 
       if (n.type == 'NEIGHBOURS') {
-        output << 'my' //todo using the actual inferred model information
+        out 'my' //todo using the actual inferred model information
         return
       }
 
       if (n.s('given') != 'false') {
-        output << 'the'
+        out 'the'
         return
       }
 
-      output << "An"
+      out "An"
     }
 
     private void possessive(Frame poss) {
-      if (poss.type == 'ME') output << 'my'
-      else if (poss.type == 'THEY') output << 'their'
-      else output << poss.type
+      if (poss.type == 'ME') out 'my'
+      else if (poss.type == 'THEY') out 'their'
+      else out poss.type
     }
 
   }

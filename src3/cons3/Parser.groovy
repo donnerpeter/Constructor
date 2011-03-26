@@ -183,7 +183,7 @@ class Parser {
       case "вспомнить":
         def verb = state.newFrame()
         state = state.apply('control', slave:verb)
-        return state.assign(verb, 'type', 'REMEMBER').apply('acc', head:verb)
+        return state.assign(verb, 'type', 'RECALL').apply('acc', head:verb)
       case "думают":
         def nom = state.constructions.nom
         if (nom) {

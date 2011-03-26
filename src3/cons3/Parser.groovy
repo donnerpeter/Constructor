@@ -97,7 +97,9 @@ class Parser {
                 addCtx('acc', noun:they, head:verb, init).
                 addCtx('possessive', possessor:they, head:possHead, init).
                 applyAll('acc', 'possessive')
-      case "они": return noun(state, 'nom') { st, noun -> st.assign(noun, 'type', 'THEY') }
+      case "Они":
+      case "они":
+        return noun(state, 'nom') { st, noun -> st.assign(noun, 'type', 'THEY') }
       case "соседям": return noun(state, 'dat') { st, noun -> st.assign(noun, 'type', 'NEIGHBOURS') }
       case "порядок":
         state = noun(state, 'acc') { st, noun -> st.assign(noun, 'type', 'ORDER') }

@@ -18,23 +18,25 @@ class Parser {
 
   ParsingState handleWord(String word, ParsingState state) {
     try {
-      Integer.parseInt(word)                                           //todo generic noun treatment
+      Integer.parseInt(word)   //todo generic noun treatment
       def noun = state.newFrame()
       def init = { it.assign(noun, 'type', word).assign(noun, 'number', 'true') }
       state = state.apply('nom', noun:noun, hasNoun:noun, init)
-
-      def qv = state.constructions.questionVariants
-      if (qv) {
-        state = state.apply('questionVariants', variant:noun).satisfied('questionVariants').apply(qv, 'questionVariants')
-      }
 
       def seqVar = null
       if (state.constructions.seq?.hasComma || state.constructions.seq?.conj) {
         seqVar = state.constructions.seq.seq ?: state.newFrame()
         state = state.apply('seq', seq:seqVar).satisfied('seq')
       }
+      def qv = state.constructions.questionVariants
+      if (qv) {
+        assert !seqVar
+        seqVar = state.newFrame()
+        state = state.apply('questionVariants', seq:seqVar).satisfied('questionVariants')
+      }
 
       state = state.apply('seq', member:noun, seq:seqVar, init).apply('acc', noun:seqVar, hasNoun:true)
+
       return state
     } catch (NumberFormatException e) {
     }
@@ -77,6 +79,7 @@ class Parser {
         }
         return state.apply('possessive', possessor:me, head:possHead, conj: poss)
       case "и": return state.constructions.seq ? state.apply('seq', conj:'and') : state
+      case "или": return state.constructions.seq ? state.apply('seq', conj:'or') : state
       case "а":
         def next = new Situation()
         return state.assign(situation, 'but', next).withSituation(next)
@@ -119,9 +122,9 @@ class Parser {
       case "забыл":
         def nom = state.constructions.nom
         if (nom) {
-          Variable verb = nom.head
+          Variable verb = nom.head ?: state.newFrame()
           state = state.assign(verb, 'type', 'FORGET').assign(situation, 'time', 'PAST')
-          return state.apply('comp', head:verb).apply('nom')
+          return state.apply('comp', head:verb).apply('nom', head:verb)
         }
         return state
       case "забыли":
@@ -207,6 +210,7 @@ class Parser {
         }
         return state
       case "идет":
+      case "идёт":
         Variable verb = state.newFrame()
         state = state.assign(situation, 'time', 'PRESENT')
         return state.apply('nom', head:verb).apply('comeScalarly', verb:verb)
@@ -249,10 +253,6 @@ class Parser {
       state = state.apply('possessive')
     }
 
-    def qv = state.constructions.questionVariants
-    if (qv) {
-      return state.apply('questionVariants', variant:noun).satisfied('questionVariants').apply(qv, 'questionVariants')
-    }
     return state
   }
 

@@ -33,10 +33,12 @@ B.order=EARLIER
 B.arg1=A
 C.type=7
 C.number=true
-A.variant=C
-D.type=8
-D.number=true
-A.variant=D
+A.variants=D
+D.member=C
+D.conj=or
+E.type=8
+E.number=true
+D.member=E
 """)
   }
 

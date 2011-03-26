@@ -24,9 +24,35 @@ class SonnetVariationsTest extends TestCase {
                     "Great was their amazement"
   }
 
-  public void _test1_789() throws Exception {
+  public void test1_789() throws Exception {
     doParseTest "Я забыл, что идёт раньше - 7, 8 или 9", """
+A.type=ME
+B.type=FORGET
+#1.time=PAST
+B.arg1=A
+B.theme=#2
+--
+#2.questioned=A
+#2.time=PRESENT
+B.type=COME_SCALARLY
+B.order=EARLIER
+B.arg1=A
+C.type=7
+C.number=true
+A.variants=D
+D.member=C
+E.type=8
+E.number=true
+D.member=E
+D.conj=or
+F.type=9
+F.number=true
+D.member=F
 """
+  }
+
+  public void test1_789_Translation() throws Exception {
+    doTranslateTest "Я забыл, что идёт раньше - 7, 8 или 9.", "I forgot what comes first - 7, 8 or 9."
   }
 
   public void _test4_123() throws Exception {

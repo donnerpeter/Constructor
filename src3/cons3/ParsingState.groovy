@@ -59,7 +59,7 @@ class ParsingState {
       case 'comeScalarly':
         return args.order ? state.assign(args.verb, 'type', 'COME_SCALARLY').assign(args.verb, 'order', args.order) : state
       case 'questionVariants':
-        return args.variant ? state.assign(args.questioned, 'variant', args.variant) : state
+        return args.seq ? state.assign(args.questioned, 'variants', args.seq) : state
       case 'shortAdjCopula':
         if (args.noun && args.pred) {
           state = state.assign(args.noun, 'degree', args.pred)

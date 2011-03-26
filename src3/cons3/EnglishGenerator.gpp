@@ -120,14 +120,15 @@ class EnglishGenerator {
         new SituationGenerator(chart, (Situation)elaboration.var).sentence()
       }
 
-      def variants = subj?.allAssignments('variant')
+
+      def variants = subj?.f('variants')
       if (variants) {
         output << '-'
-        def first = true
-        for (var in variants) {
-          if (first) first = false
-          else output << 'or'
-          np((Frame) var.value, true)
+        def members = variants.allAssignments('member')
+        members.eachWithIndex { Assignment<Frame> var, int index ->
+          if (index == members.size() - 1) output << 'or'
+          else if (index > 0) output << ','
+          np((Frame)var.value, true)
         }
       }
     }

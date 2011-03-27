@@ -41,6 +41,8 @@ class ParsingState {
         return args.head?.frame(state.chart)?.type ? state.assign(args.head, 'arg1', args.noun) : state
       case 'acc':
         return args.head?.frame(state.chart)?.type && args.noun ? state.assign(args.head, 'arg2', args.noun) : state
+      case 'gen':
+        return args.head?.frame(state.chart)?.type && args.noun ? state.assign(args.head, 'arg1', args.noun) : state
       case 'instr':
       case 'dat':
         return handleCase(name, state, args)
@@ -71,7 +73,7 @@ class ParsingState {
       case 'control':
         return args.slave ? state.assign(args.head, 'theme', args.slave) : state
       case 'seq':
-        if (args.seq) {
+        if (args.seq && args.member) {
           state = state.assign(args.seq, 'member', args.member)
 
           state.chart.allAssignments(state.situation).each {
@@ -93,6 +95,15 @@ class ParsingState {
       case 'quotedName':
         if (args.finished) {
           state = state.assign(args.noun, 'name', args.name).satisfied('quotedName')
+        }
+        return state
+      case 'relativeClause':
+        return args.noun && args.clause && args.wh ? state.assign(args.noun, 'relative', args.clause).withSituation(args.clause).assign(args.clause, 'wh', args.wh) : state
+      case 'atCorner':
+        if (args.noun) {
+          def corner = args.noun
+          state = state.assign(corner, 'type', 'CORNER')
+          return state.assign(args.head, 'location', corner)
         }
         return state
     }

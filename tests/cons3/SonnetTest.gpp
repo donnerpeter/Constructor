@@ -188,6 +188,20 @@ B.arg1=A
 C.kind=COMMERCIAL
 C.type=SHOP
 C.name=Гастроном
+C.relative=#2
+--
+#2.wh=A
+B.type=CORNER
+A.location=B
+C.type=STREET
+C.name=Знаменская
+B.arg1=C
+D.member=C
+B.arg1=D
+D.conj=and
+E.type=STREET
+E.name=Бассейная
+D.member=E
 """
   }
 

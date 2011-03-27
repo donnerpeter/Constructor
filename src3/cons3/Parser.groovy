@@ -54,6 +54,17 @@ class Parser {
       case "Удивительный":
         def noun = state.newFrame()
         return state.apply('adjective', nounFrame:noun, rel:'property', val:'AMAZING').apply('nom', noun:noun)
+      case "Знаменской": // todo a unified treatment for street names
+      case "Бассейной":
+        def seqVar = null
+        if (state.constructions.seq?.hasComma || state.constructions.seq?.conj) {
+          seqVar = state.constructions.seq.seq ?: state.newFrame()
+          state = state.apply('seq', seq:seqVar).satisfied('seq')
+        }
+
+        def noun = state.newFrame()
+        def init = { it.assign(noun, 'type', 'STREET') }
+        return state.apply('adjective', nounFrame:noun, rel:'name', val:word[0..-3]+"ая", init).apply('gen', noun:noun, init).apply('seq', member:noun, seq:seqVar, init)
       case "коммерческий":
         def noun = state.constructions.acc?.noun ?: state.newFrame()
         return state.apply('adjective', nounFrame:noun, rel:'kind', val:'COMMERCIAL').apply('acc', noun:noun)
@@ -66,6 +77,11 @@ class Parser {
         return state.apply('comp', head:state.constructions.nom.noun)
       case "поводу":
         return noun(state, 'dat') { st, noun -> st.assign(noun, 'type', 'MATTER') }
+      case "улицы":
+        return noun(state, 'gen') { st, noun -> st.assign(noun, 'type', 'STREET') }
+      case "углу":  //todo plain noun
+        def noun = state.newFrame()
+        return state.apply('atCorner', noun:noun).apply('gen', head:noun)
       case "магазин":
         return noun(state, 'acc') { st, noun -> st.assign(noun, 'type', 'SHOP') }
       case "случился":
@@ -76,6 +92,7 @@ class Parser {
       case 'по': return preposition(state, 'poDat', 'dat')
       case 'к': return preposition(state, 'kDat', 'dat')
       case 'в': return preposition(state, 'vAcc', 'acc')
+      case 'на': return state.apply('atCorner')
       case "мной": return noun(state, 'instr') { st, noun -> st.assign(noun, 'type', 'ME') }
       case ":":
         def elaboration = new Situation()
@@ -232,6 +249,9 @@ class Parser {
         if (state.constructions.seq) {
           state = state.apply('seq', hasComma:true)
         }
+        if (state.constructions.relativeClause) {
+          state = state.apply('relativeClause', clause:next)
+        }
         return state
       case "что":
         def noun = state.newFrame()
@@ -239,10 +259,15 @@ class Parser {
           state = state.apply('question', questioned:noun)
         }
         if (!state.constructions.declComp) {
+          //todo generic noun treatment for что
           state = state.
                   addCtx('nom', noun:noun, hasNoun:'true').
                   addCtx('acc', noun:noun, hasNoun:'true').
                   applyAll('nom', 'acc')
+        }
+        if (state.constructions.relativeClause?.clause) {
+          def wh = new Variable(state.constructions.relativeClause.clause)
+          state = state.apply('relativeClause', wh:wh).apply('atCorner', head:wh) //todo pp copula
         }
         return state
       case "идет":
@@ -298,7 +323,7 @@ class Parser {
       state = state.apply('possessive')
     }
 
-    state = state.apply('quotedName', noun:noun)
+    state = state.apply('quotedName', noun:noun).apply('relativeClause', noun:noun)
 
     return state
   }

@@ -227,17 +227,22 @@ class Parser {
         def next = new Situation()
         def comp = state.constructions.comp
         if (comp) {
-          return state.apply('comp', comp:next).withSituation(next).apply(comp.head.frame(state.chart).type in ['DISCOVER', 'AMAZE'] ? 'declComp' : 'question', situation:next)
+          state = state.apply('comp', comp:next).withSituation(next).apply(comp.head.frame(state.chart).type in ['DISCOVER', 'AMAZE'] ? 'declComp' : 'question', situation:next)
         }
-        return state.constructions.seq ? state.apply('seq', hasComma:true) : state
+        if (state.constructions.seq) {
+          state = state.apply('seq', hasComma:true)
+        }
+        return state
       case "что":
+        def noun = state.newFrame()
         if (state.constructions.question) {
-          def noun = state.newFrame()
-          return state.
+          state = state.apply('question', questioned:noun)
+        }
+        if (!state.constructions.declComp) {
+          state = state.
                   addCtx('nom', noun:noun, hasNoun:'true').
                   addCtx('acc', noun:noun, hasNoun:'true').
-                  addCtx('question', questioned:noun).
-                  applyAll('nom', 'acc', 'question')
+                  applyAll('nom', 'acc')
         }
         return state
       case "идет":

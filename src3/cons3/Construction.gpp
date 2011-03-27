@@ -1,0 +1,21 @@
+package cons3
+
+/**
+ * @author peter
+ */
+class Construction {
+  final Function2<ParsingState, Map, ParsingState> action
+  final String name
+
+  Construction(String name, Function2<ParsingState, Map, ParsingState> action) {
+    this.action = action
+    this.name = name
+  }
+
+  @Override
+  String toString() {
+    return name
+  }
+
+
+}

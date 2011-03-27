@@ -52,7 +52,7 @@ class ParsingState {
     }
 
     def args = oldArgs + newArgs
-    def oldInit = args.get('init', noInit)
+    Closure oldInit = args.get('init', noInit)
     def newInit = init ? { ParsingState state -> init(oldInit(state)) } : oldInit
     args.init = newInit
     def newConstructions = constructions + [(name): args]
@@ -90,19 +90,19 @@ class ParsingState {
 
     ParsingState result = this
     def others = constructions.keySet() - (names as List)
-    names.each { name1 ->
-      others.each { name2 ->
+    for (name1 in names) {
+      for (name2 in others) {
         if (contradict(name1, name2) || contradict(name2, name1)) {
           result = result.inhibit(name2)
         }
       }
     }
 
-    names.each {
-      if (!(it in hanging)) {
-        def args = constructions[it]
+    for (cxt in names) {
+      if (!(cxt in hanging)) {
+        def args = constructions[cxt]
         Closure init = args.init
-        result = it.action.call(init(result), args)
+        result = cxt.action.call((ParsingState)init(result), args)
       }
 
     }
@@ -119,7 +119,7 @@ class ParsingState {
   }
 
   boolean contradict(Construction name1, Construction name2) {
-    if (name1.name == 'nom' && name2.name == 'acc' && constructions[name1].noun == constructions[name2].noun && constructions[name1].noun) {
+    if (name1.name == 'nom' && name2.name == 'acc' && this[name1].noun == this[name2].noun && this[name1].noun) {
       return true
     }
 

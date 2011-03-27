@@ -131,19 +131,19 @@ class Parser {
   ParsingState handleWord(String word, ParsingState state) {
     try {
       Integer.parseInt(word)   //todo generic noun treatment
-      def noun = state.newFrame()
+      def noun = state.newVariable()
       def init = { it.assign(noun, 'type', word).assign(noun, 'number', 'true') }
       state = state.apply(acc, noun:noun, hasNoun:noun, init)
 
       def seqVar = null
       if (state[seq]?.hasComma || state[seq]?.conj) {
-        seqVar = state[seq].seq ?: state.newFrame()
+        seqVar = state[seq].seq ?: state.newVariable()
         state = state.apply(seq, seq:seqVar).satisfied(seq)
       }
       def qv = state[questionVariants]
       if (qv) {
         assert !seqVar
-        seqVar = state.newFrame()
+        seqVar = state.newVariable()
         state = state.apply(questionVariants, seq:seqVar).satisfied(questionVariants)
       }
 
@@ -164,24 +164,24 @@ class Parser {
     def situation = state.situation
     switch (word) {
       case "Удивительный":
-        def noun = state.newFrame()
+        def noun = state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'property', val:'AMAZING').apply(nom, noun:noun)
       case "Знаменской": // todo a unified treatment for street names
       case "Бассейной":
         def seqVar = null
         if (state[seq]?.hasComma || state[seq]?.conj) {
-          seqVar = state[seq].seq ?: state.newFrame()
+          seqVar = state[seq].seq ?: state.newVariable()
           state = state.apply(seq, seq:seqVar).satisfied(seq)
         }
 
-        def noun = state.newFrame()
+        def noun = state.newVariable()
         def init = { it.assign(noun, 'type', 'STREET') }
         return state.apply(adjective, nounFrame:noun, rel:'name', val:word[0..-3]+"ая", init).apply(gen, noun:noun, init).apply(seq, member:noun, seq:seqVar, init)
       case "коммерческий":
-        def noun = state[acc]?.noun ?: state.newFrame()
+        def noun = state[acc]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'kind', val:'COMMERCIAL').apply(acc, noun:noun)
       case "этому":
-        def noun = state[dat]?.noun ?: state.newFrame()
+        def noun = state[dat]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'determiner', val:'THIS').apply(dat, noun:noun)
       case "случай": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'THING').assign(noun, 'given', 'false') }
       case "удивление":
@@ -192,12 +192,12 @@ class Parser {
       case "улицы":
         return noun(state, gen) { st, noun -> st.assign(noun, 'type', 'STREET') }
       case "углу":  //todo plain noun
-        def noun = state.newFrame()
+        def noun = state.newVariable()
         return state.apply(atCorner, noun:noun).apply(gen, head:noun)
       case "магазин":
         return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'SHOP') }
       case "случился":
-        Variable verb = state.newFrame()
+        Variable verb = state.newVariable()
         state = state.assign(verb, 'type', 'HAPPEN').assign(situation, 'time', 'PAST')
         return state.apply(sInstr, head:verb).apply(nom, head:verb)
       case 'со': return preposition(state, sInstr, instr)
@@ -214,9 +214,9 @@ class Parser {
       case "Я": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'ME') }
       case "Мы": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'WE') }
       case "мое":
-        def me = state.newFrame()
+        def me = state.newVariable()
         def poss = state[possessive]
-        def possHead = !state[nom]?.hasNoun && state[nom]?.noun ? state[nom].noun : state.newFrame()
+        def possHead = !state[nom]?.hasNoun && state[nom]?.noun ? state[nom].noun : state.newVariable()
         state = state.assign(me, 'type', 'ME')
         if (poss) {
           state = state.satisfied(possessive)
@@ -230,12 +230,12 @@ class Parser {
       case "все":
         return state.assign(state[nom].noun, 'quantifier', 'ALL')
       case "дальше":
-        def adv = state.newFrame()
+        def adv = state.newVariable()
         return state.apply(advObj, adv: adv) { it.assign(adv, 'type', 'NEXT') }
       case "их":
-        def they = state.newFrame()
-        def verb = state[acc]?.head ?: state.newFrame()
-        def possHead = !state[nom]?.hasNoun && state[nom]?.noun ? state[nom].noun : state.newFrame()
+        def they = state.newVariable()
+        def verb = state[acc]?.head ?: state.newVariable()
+        def possHead = !state[nom]?.hasNoun && state[nom]?.noun ? state[nom].noun : state.newVariable()
 
         def init = { st -> st.assign(they, 'type', 'THEY') }
 
@@ -254,13 +254,13 @@ class Parser {
         return noun(state, nounGen) { st, noun -> st.assign(noun, 'type', 'COUNTING') }
       case "вдруг":
         if (state[nom]) {
-          def verb = state.newFrame()
+          def verb = state.newVariable()
           return state.assign(verb, 'manner', 'SUDDENLY').apply(nom, head:verb)
         }
         return state
       case "тоже":
-        def alsoVar = state.newFrame()
-        def subj = state.newFrame()
+        def alsoVar = state.newVariable()
+        def subj = state.newVariable()
         state = state.assign(alsoVar, 'type', 'ALSO')
         state = state.assign(alsoVar, 'arg1', subj)
         return state.apply(also, also:alsoVar, subj:subj)
@@ -268,27 +268,27 @@ class Parser {
         return state.apply(negation)
       case "забыл":
         if (state[nom]) {
-          Variable verb = state[nom].head ?: state.newFrame()
+          Variable verb = state[nom].head ?: state.newVariable()
           state = state.assign(verb, 'type', 'FORGET').assign(situation, 'time', 'PAST')
           return state.apply(comp, head:verb).apply(nom, head:verb)
         }
         return state
       case "забыли":
-        Variable verb = state.newFrame()
+        Variable verb = state.newVariable()
         state = state.assign(verb, 'type', 'FORGET').assign(situation, 'time', 'PAST')
-        def subj = state.newFrame()
+        def subj = state.newVariable()
         return state.apply(advObj, head:verb).apply(acc, head:verb).apply(nom, noun:subj, head:verb) { it.assign(subj, 'type', 'THEY') }
       case "помнят":
-        Variable verb = state.newFrame()
+        Variable verb = state.newVariable()
         state = state.assign(verb, 'type', 'REMEMBER').assign(situation, 'time', 'PRESENT')
         state = state.apply(acc, head:verb)
         if (!state[nom]) {
-          def subj = state.newFrame()
+          def subj = state.newVariable()
           state = state.apply(nom, noun:subj) { it.assign(subj, 'type', 'THEY') }
         }
         return state.apply(nom, head:verb)
       case "могут":
-        def verb = state.newFrame()
+        def verb = state.newVariable()
         def also = state[also]
         def subj = null
         if (also) {
@@ -299,21 +299,21 @@ class Parser {
           state = state.assign(verb, 'negated', 'true')
         }
         if (!subj) {
-          subj = state.newFrame()
+          subj = state.newVariable()
         }
         state = state.assign(verb, 'type', 'CAN').assign(situation, 'time', 'PRESENT')
         state = state.assign(subj, 'type', 'THEY')
         return state.apply(control, subj:subj, head:verb)
       case "отправился":
         if (state[nom]) {
-          def verb = state.newFrame()
+          def verb = state.newVariable()
           state = state.assign(verb, 'type', 'GO_OFF').assign(situation, 'time', 'PAST')
           return state.apply(kDat, head:verb).apply(nom, head:verb)
         }
         return state
       case "пошли":
         if (state[nom]) {
-          def verb = state.newFrame()
+          def verb = state.newVariable()
           state = state.assign(verb, 'type', 'GO').assign(situation, 'time', 'PAST')
           return state.apply(vAcc, head:verb).apply(nom, head:verb)
         }
@@ -326,12 +326,12 @@ class Parser {
         }
         return state
       case "вспомнить":
-        def verb = state.newFrame()
+        def verb = state.newVariable()
         state = state.apply(control, slave:verb)
         return state.assign(verb, 'type', 'RECALL').apply(acc, head:verb)
       case "думают":
         if (state[nom]) {
-          def verb = state.newFrame()
+          def verb = state.newVariable()
           state = state.assign(verb, 'type', 'THINK').assign(situation, 'time', 'PRESENT')
           return state.apply(poDat, head:verb).apply(nom, head:verb).apply(acc, head:verb)
         }
@@ -340,7 +340,7 @@ class Parser {
         def args = state[nom]
         if (args) {
           state = state.satisfied(nom)
-          def verb = state.newFrame()
+          def verb = state.newVariable()
           args = args + [head:verb]
           state = state.assign(verb, 'type', 'ASK').assign(situation, 'time', 'PAST')
           return state.apply(acc, head:verb).apply(args, nom).apply(comp, head:verb)
@@ -359,7 +359,7 @@ class Parser {
         }
         return state
       case "что":
-        def noun = state.newFrame()
+        def noun = state.newVariable()
         if (state[question]) {
           state = state.apply(question, questioned:noun)
         }
@@ -377,7 +377,7 @@ class Parser {
         return state
       case "идет":
       case "идёт":
-        Variable verb = state.newFrame()
+        Variable verb = state.newVariable()
         state = state.assign(situation, 'time', 'PRESENT')
         return state.apply(nom, head:verb).apply(comeScalarly, verb:verb)
       case "раньше":
@@ -394,11 +394,11 @@ class Parser {
       case ".":
         return state.assign(state.situation, 'dot', 'true').withSituation(new Situation())
       case 'Каково':
-        def degree = state.newFrame()
+        def degree = state.newVariable()
         state = state.assign(situation, 'exclamation', degree)
         return state.apply(shortAdjCopula, pred:degree, situation:state.situation)
       case 'было':
-        def noun = state.newFrame()
+        def noun = state.newVariable()
         return state.apply(shortAdjCopula, time:'PAST', noun: noun).apply(nom, noun:noun)
       case '"':
         if (state[quotedName]) {
@@ -418,7 +418,7 @@ class Parser {
       state = state.inhibit(caze)
     }
 
-    def noun = state.constructions[caze]?.noun ?: state.newFrame()
+    def noun = state.constructions[caze]?.noun ?: state.newVariable()
     if (caze == nom) {
       state = state.apply(shortAdjCopula, noun:noun)
     }
@@ -434,7 +434,7 @@ class Parser {
   }
 
   private ParsingState preposition(ParsingState state, Construction prepCtx, Construction caze) {
-    def noun = state.newFrame()
+    def noun = state.newVariable()
     state = state.apply(prepCtx, noun:noun)
     def save = state.constructions
     return state.clearConstructions().apply(caze, save: save, delegate: prepCtx, noun:noun)

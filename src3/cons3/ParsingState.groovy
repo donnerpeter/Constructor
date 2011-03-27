@@ -24,7 +24,7 @@ class ParsingState {
 
   ParsingState withSituation(Situation situation) { clearConstructions().clone(situation:situation) }
 
-  Variable newFrame() {
+  Variable newVariable() {
     new Variable(situation)
   }
 

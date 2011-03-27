@@ -45,11 +45,18 @@ class Parser {
     } catch (NumberFormatException e) {
     }
 
+    if (state.constructions.quotedName?.started && !state.constructions.quotedName.name) {
+      state = state.apply('quotedName', name:word)
+    }
+
     def situation = state.situation
     switch (word) {
       case "Удивительный":
         def noun = state.newFrame()
         return state.apply('adjective', nounFrame:noun, rel:'property', val:'AMAZING').apply('nom', noun:noun)
+      case "коммерческий":
+        def noun = state.constructions.acc?.noun ?: state.newFrame()
+        return state.apply('adjective', nounFrame:noun, rel:'kind', val:'COMMERCIAL').apply('acc', noun:noun)
       case "этому":
         def noun = state.constructions.dat?.noun ?: state.newFrame()
         return state.apply('adjective', nounFrame:noun, rel:'determiner', val:'THIS').apply('dat', noun:noun)
@@ -59,6 +66,8 @@ class Parser {
         return state.apply('comp', head:state.constructions.nom.noun)
       case "поводу":
         return noun(state, 'dat') { st, noun -> st.assign(noun, 'type', 'MATTER') }
+      case "магазин":
+        return noun(state, 'acc') { st, noun -> st.assign(noun, 'type', 'SHOP') }
       case "случился":
         Variable verb = state.newFrame()
         state = state.assign(verb, 'type', 'HAPPEN').assign(situation, 'time', 'PAST')
@@ -66,6 +75,7 @@ class Parser {
       case 'со': return preposition(state, 'sInstr', 'instr')
       case 'по': return preposition(state, 'poDat', 'dat')
       case 'к': return preposition(state, 'kDat', 'dat')
+      case 'в': return preposition(state, 'vAcc', 'acc')
       case "мной": return noun(state, 'instr') { st, noun -> st.assign(noun, 'type', 'ME') }
       case ":":
         def elaboration = new Situation()
@@ -73,6 +83,7 @@ class Parser {
         return state.withSituation(elaboration)
       case "я":
       case "Я": return noun(state, 'nom') { st, noun -> st.assign(noun, 'type', 'ME') }
+      case "Мы": return noun(state, 'nom') { st, noun -> st.assign(noun, 'type', 'WE') }
       case "мое":
         def me = state.newFrame()
         def poss = state.constructions.possessive
@@ -87,6 +98,8 @@ class Parser {
       case "а":
         def next = new Situation()
         return state.assign(situation, 'but', next).withSituation(next)
+      case "все":
+        return state.assign(state.constructions.nom.noun, 'quantifier', 'ALL')
       case "дальше":
         def adv = state.newFrame()
         return state.apply('advObj', adv: adv) { it.assign(adv, 'type', 'NEXT') }
@@ -172,6 +185,14 @@ class Parser {
           return state.apply('kDat', head:verb).apply('nom', head:verb)
         }
         return state
+      case "пошли":
+        def nom = state.constructions.nom
+        if (nom) {
+          def verb = state.newFrame()
+          state = state.assign(verb, 'type', 'GO').assign(situation, 'time', 'PAST')
+          return state.apply('vAcc', head:verb).apply('nom', head:verb)
+        }
+        return state
       case "обнаружили":
         def nom = state.constructions.nom
         if (nom) {
@@ -244,6 +265,15 @@ class Parser {
       case 'было':
         def noun = state.newFrame()
         return state.apply('shortAdjCopula', time:'PAST', noun: noun).apply('nom', noun:noun)
+      case '"':
+        if (state.constructions.quotedName) {
+          if (state.constructions.quotedName.started) {
+            state = state.apply('quotedName', finished:true)
+          } else {
+            state = state.apply('quotedName', started:true)
+          }
+        }
+        return state
     }
     return state
   }
@@ -262,6 +292,8 @@ class Parser {
     if (state.constructions.possessive) {
       state = state.apply('possessive')
     }
+
+    state = state.apply('quotedName', noun:noun)
 
     return state
   }

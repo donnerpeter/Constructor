@@ -90,6 +90,11 @@ class ParsingState {
           state = state.assign(args.head, 'arg2', args.adv)
         }
         return state
+      case 'quotedName':
+        if (args.finished) {
+          state = state.assign(args.noun, 'name', args.name).satisfied('quotedName')
+        }
+        return state
     }
 
     return state

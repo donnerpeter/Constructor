@@ -175,7 +175,19 @@ B.arg2=A
 C.type=THEY
 B.arg1=C
 #5.dot=true
+"""
+  }
 
+  public void testParse5() throws Exception {
+    doParseTest 'Мы все пошли в коммерческий магазин "Гастроном", что на углу Знаменской и Бассейной улицы', """
+A.type=WE
+A.quantifier=ALL
+B.type=GO
+#1.time=PAST
+B.arg1=A
+C.kind=COMMERCIAL
+C.type=SHOP
+C.name=Гастроном
 """
   }
 

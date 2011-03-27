@@ -342,7 +342,7 @@ class Parser {
           state = state.satisfied(nom)
           def verb = state.newFrame()
           args = args + [head:verb]
-          state = state.assign(verb, 'type', 'ASK')//todo don't reassign tense .assign(situation, 'time', 'PAST', false)
+          state = state.assign(verb, 'type', 'ASK').assign(situation, 'time', 'PAST')
           return state.apply(acc, head:verb).apply(args, nom).apply(comp, head:verb)
         }
         return state

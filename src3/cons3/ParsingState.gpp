@@ -46,7 +46,7 @@ class ParsingState {
     for (cxt in oldArgs.keySet().intersect(newArgs.keySet())) {
       if (oldArgs[cxt] != newArgs[cxt] && oldArgs[cxt]) {
         replace = true
-        oldArgs.clear()
+        oldArgs = [:]
         break
       }
     }
@@ -55,7 +55,7 @@ class ParsingState {
     Closure oldInit = args.get('init', noInit)
     def newInit = init ? { ParsingState state -> init(oldInit(state)) } : oldInit
     args.init = newInit
-    def newConstructions = constructions + [(name): args]
+    def newConstructions = constructions + [(name): Collections.unmodifiableMap(args)]
     return (replace ? inhibit(name) : this).clone(constructions: newConstructions)
   }
 

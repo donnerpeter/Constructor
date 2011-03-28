@@ -5,12 +5,18 @@ package cons3
  */
 class Parser {
 
-  Chart parse(String text) {
+  Chart parse(String text, debug = false) {
     ParsingState state = new ParsingState(chart: new Chart(), situation: new Situation(), participants:[:], constructions:[:])
     def tokenizer = new StringTokenizer(text, """ '":,.""", true)
     for (String w in tokenizer) {
       if (w != ' ') {
         state = handleWord(w, state)
+        if (debug) {
+          println w
+          state.constructions.each {
+            println "  $it.key -> $it.value"
+          }
+        }
       }
     }
     return state.chart
@@ -32,17 +38,24 @@ class Parser {
     args.head?.frame(state.chart)?.type ? state.assign(args.head, 'arg1', args.noun) : state
   }
   Construction acc = cxt('acc') { ParsingState state, Map args ->
-    args.head?.frame(state.chart)?.type && args.noun ? state.assign(args.head, 'arg2', args.noun) : state
+    if (args.head?.frame(state.chart)?.type && args.noun) {
+      state = state.assign(args.head, 'arg2', args.noun)
+    }
+    return handleCase(acc, state, args)
   }
   Construction gen = cxt('gen') { ParsingState state, Map args ->
     args.head?.frame(state.chart)?.type && args.noun ? state.assign(args.head, 'arg1', args.noun) : state
   }
   Construction instr = cxt('instr') { ParsingState state, Map args -> handleCase(instr, state, args) }
   Construction dat = cxt('dat') { ParsingState state, Map args -> handleCase(dat, state, args) }
+  Construction prep = cxt('prep') { ParsingState state, Map args -> handleCase(prep, state, args) }
   Construction sInstr = cxt('sInstr') { ParsingState state, Map args ->
     args.noun ? state.assign(args.head, 'experiencer', args.noun) : state
   }
   Construction poDat = cxt('poDat') { ParsingState state, Map args ->
+    args.noun ? state.assign(args.head, 'topic', args.noun) : state
+  }
+  Construction oPrep = cxt('oPrep') { ParsingState state, Map args ->
     args.noun ? state.assign(args.head, 'topic', args.noun) : state
   }
   Construction nounGen = cxt('nounGen') { ParsingState state, Map args -> //todo nounGen -> gen
@@ -117,7 +130,13 @@ class Parser {
     return state
   }
   Construction relativeClause = cxt('relativeClause') { ParsingState state, Map args ->
-    args.noun && args.clause && args.wh ? state.assign(args.noun, 'relative', args.clause).withSituation(args.clause).assign(args.clause, 'wh', args.wh) : state
+    if (args.noun && args.clause && args.wh) {
+      return state.assign(args.noun, 'relative', args.clause).withSituation(args.clause).assign(args.clause, 'wh', args.wh).apply(nestedClause, save: args.save, parent:args.noun.situation)
+    }
+    return state
+  }
+  Construction nestedClause = cxt('nestedClause') { ParsingState state, Map args ->
+    return state
   }
   Construction atCorner = cxt('atCorner') { ParsingState state, Map args ->
     if (args.noun) {
@@ -180,6 +199,11 @@ class Parser {
       case "коммерческий":
         def noun = state[acc]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'kind', val:'COMMERCIAL').apply(acc, noun:noun)
+      case "нашем":
+        def we = state.newVariable()
+        def possHead = state[prep]?.noun ?: state.newVariable()
+        state = state.assign(we, 'type', 'WE')
+        return state.apply(possessive, possessor:we, head:possHead)
       case "этому":
         def noun = state[dat]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'determiner', val:'THIS').apply(dat, noun:noun)
@@ -189,6 +213,8 @@ class Parser {
         return state.apply(comp, head:state[nom].noun)
       case "поводу":
         return noun(state, dat) { st, noun -> st.assign(noun, 'type', 'MATTER') }
+      case "недоумении":
+        return noun(state, prep) { st, noun -> st.assign(noun, 'type', 'PREDICAMENT') }
       case "улицы":
         return noun(state, gen) { st, noun -> st.assign(noun, 'type', 'STREET') }
       case "углу":  //todo plain noun
@@ -202,6 +228,7 @@ class Parser {
         return state.apply(sInstr, head:verb).apply(nom, head:verb)
       case 'со': return preposition(state, sInstr, instr)
       case 'по': return preposition(state, poDat, dat)
+      case 'о': return preposition(state, oPrep, prep)
       case 'к': return preposition(state, kDat, dat)
       case 'в': return preposition(state, vAcc, acc)
       case 'на': return state.apply(atCorner)
@@ -247,6 +274,7 @@ class Parser {
       case "они":
         return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'THEY') }
       case "соседям": return noun(state, dat) { st, noun -> st.assign(noun, 'type', 'NEIGHBOURS') }
+      case "кассиршу": return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'CASHIER') }
       case "порядок":
         state = noun(state, acc) { st, noun -> st.assign(noun, 'type', 'ORDER') }
         return state.apply(nounGen, head:state[acc].noun)
@@ -337,13 +365,14 @@ class Parser {
         }
         return state
       case "спросил":
+      case "спросили":
         def args = state[nom]
         if (args) {
           state = state.satisfied(nom)
           def verb = state.newVariable()
           args = args + [head:verb]
           state = state.assign(verb, 'type', 'ASK').assign(situation, 'time', 'PAST')
-          return state.apply(acc, head:verb).apply(args, nom).apply(comp, head:verb)
+          return state.apply(acc, head:verb).apply(args, nom).apply(comp, head:verb).apply(oPrep, head:verb)
         }
         return state
       case ",":
@@ -356,6 +385,9 @@ class Parser {
         }
         if (state[relativeClause]) {
           state = state.apply(relativeClause, clause:next)
+        }
+        if (state[nestedClause]) {
+          state = state.withSituation(state[nestedClause].parent).clearConstructions().restore(state[nestedClause].save).satisfied(nestedClause)
         }
         return state
       case "что":
@@ -428,7 +460,7 @@ class Parser {
       state = state.apply(possessive)
     }
 
-    state = state.apply(quotedName, noun:noun).apply(relativeClause, noun:noun)
+    state = state.apply(quotedName, noun:noun).apply(relativeClause, noun:noun, save:state.constructions)
 
     return state
   }

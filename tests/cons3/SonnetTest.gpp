@@ -43,7 +43,12 @@ D.member=E
   }
 
   static void doParseTest(String input, String expected) {
-    assertEquals expected.trim(), new Parser().parse(input).presentable()
+    def parser = new Parser()
+    def result = parser.parse(input).presentable()
+    if (expected.trim() != result) {
+      parser.parse(input, true)
+      assertEquals expected.trim(), result
+    }
   }
 
   public void testParse2() throws Exception {
@@ -179,7 +184,7 @@ B.arg1=C
   }
 
   public void testParse5() throws Exception {
-    doParseTest 'Мы все пошли в коммерческий магазин "Гастроном", что на углу Знаменской и Бассейной улицы', """
+    doParseTest 'Мы все пошли в коммерческий магазин "Гастроном", что на углу Знаменской и Бассейной улицы, и спросили кассиршу о нашем недоумении', """
 A.type=WE
 A.quantifier=ALL
 B.type=GO
@@ -189,6 +194,14 @@ C.kind=COMMERCIAL
 C.type=SHOP
 C.name=Гастроном
 C.relative=#2
+D.type=ASK
+D.arg1=A
+E.type=CASHIER
+D.arg2=E
+D.topic=F
+G.type=WE
+F.type=PREDICAMENT
+F.arg1=G
 --
 #2.wh=A
 B.type=CORNER

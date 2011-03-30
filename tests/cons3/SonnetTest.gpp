@@ -190,13 +190,16 @@ A.quantifier=ALL
 B.type=GO
 #1.time=PAST
 B.arg1=A
+B.goal=C
 C.kind=COMMERCIAL
 C.type=SHOP
+C.given=false
 C.name=Гастроном
 C.relative=#2
 D.type=ASK
 D.arg1=A
 E.type=CASHIER
+E.given=false
 D.arg2=E
 D.topic=F
 G.type=WE
@@ -243,6 +246,11 @@ D.member=E
                             "1, 2, 3, 4, 5 и 6 помнят, а дальше забыли.",
                     "Great was their and my amazement, when they suddenly discovered, that they couldn't recall the counting order. " +
                             "They remembered 1, 2, 3, 4, 5 and 6, but forgot what comes next."
+  }
+
+  public void testTranslate5() throws Exception {
+    doTranslateTest 'Мы все пошли в коммерческий магазин "Гастроном", что на углу Знаменской и Бассейной улицы, и спросили кассиршу о нашем недоумении',
+                    "We all went to a commercial grocery store, the one that's on the corner of Znamenskaya and Basseinaya streets to consult a cashier on our predicament"
   }
 
   static void doTranslateTest(String input, String expected) {

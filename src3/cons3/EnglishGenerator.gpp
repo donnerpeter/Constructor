@@ -63,15 +63,31 @@ class EnglishGenerator {
         return
       }
 
-      List<Frame> allVerbs = chart.frames(situation).findAll { it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY', 'GO_OFF', 'ASK', 'DISCOVER', 'ALSO', 'REMEMBER'] }
+      List<Frame> allVerbs = chart.frames(situation).findAll { it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY', 'GO_OFF', 'ASK', 'DISCOVER', 'ALSO', 'REMEMBER', 'GO'] }
       def verb = allVerbs[0]
-      assert verb : situation.presentable(chart)
+      if (!verb) {
+        def wh = sitFrame.f('wh')
+        assert wh: situation.presentable(chart)
+        out "that's"
+        out 'on'
+        def location = wh.f('location')
+        np(location, false)
+        return
+      }
 
       clause(verb)
 
       if (allVerbs.size() > 1) {
-        out "and"
-        clause(allVerbs[1])
+        if (allVerbs[0].type == 'GO_OFF') {
+          out "and"
+          clause(allVerbs[1])
+        } else {
+          out 'to'
+          out 'consult'
+          np(allVerbs[1].f('arg2'), false)
+          out 'on'
+          np(allVerbs[1].f('topic'), false)
+        }
       }
 
       if (sitFrame.f('but')) {
@@ -100,7 +116,9 @@ class EnglishGenerator {
       }
       def type = verb.type
       if (type != 'ALSO') {
-        def verbs = [HAPPEN: 'happened', FORGET: 'forgot', COME_SCALARLY: 'comes first', GO_OFF: 'went', ASK: 'asked', DISCOVER: 'discovered', CAN: "couldn't", RECALL:'recall', REMEMBER:(past ? 'remembered' : 'remember')]
+        def verbs = [HAPPEN: 'happened', FORGET: 'forgot', COME_SCALARLY: 'comes first', GO_OFF: 'went',
+                ASK: 'asked', DISCOVER: 'discovered', CAN: "couldn't", RECALL:'recall',
+                REMEMBER:(past ? 'remembered' : 'remember'), GO:'went']
         out(verbs[type])
       }
 
@@ -109,7 +127,7 @@ class EnglishGenerator {
         np(dobj, false)
       }
 
-      def io = verb.type == 'HAPPEN' ? verb.f('experiencer') : verb.type == 'GO_OFF' ? verb.f('goal') : null
+      def io = verb.type == 'HAPPEN' ? verb.f('experiencer') : verb.type in ['GO_OFF', 'GO'] ? verb.f('goal') : null
       if (io) {
         out "to"
         np(io, false)
@@ -160,13 +178,18 @@ class EnglishGenerator {
       }
     }
 
-    def npseq(Frame seq) {
+    def npseq(Frame _seq) {
+      seq(_seq) { np(it, true) }
+    }
+
+    def seq(Frame seq, Function1<Frame, Void> action) {
       def members = seq.allAssignments('member')
       members.eachWithIndex { Assignment<Frame> var, int index ->
         if (index == members.size() - 1) out seq.s('conj')
         else if (index > 0) out ','
-        np((Frame) var.value, true)
+        action((Frame) var.value)
       }
+
     }
 
     private def np(Frame n, boolean nom) {
@@ -177,6 +200,13 @@ class EnglishGenerator {
 
       if (n.s('type') == 'ME') {
         out (nom ? 'I' : "me")
+        return
+      }
+      if (n.s('type') == 'WE') {
+        out (nom ? 'we' : "us")
+        if (n.s('quantifier') == 'ALL') {
+          out 'all'
+        }
         return
       }
       if (n.s('type') == 'THEY') {
@@ -204,16 +234,24 @@ class EnglishGenerator {
         return
       }
 
-      determiner(n)
+      determiner(n, n.s('property') == 'AMAZING')
       if (n.s('property') == 'AMAZING') {
         out "amazing"
+      }
+      if (n.s('kind') == 'COMMERCIAL') {
+        out "commercial"
       }
       def criterion = n.f('criterion')
       if (criterion) {
         out noun(criterion.type)
       }
 
-      out noun(n.type)
+      if (n.type == 'SHOP' && n.s('name') == 'Гастроном') {
+        out 'grocery'
+        out 'store'
+      } else {
+        out noun(n.type)
+      }
 
       if (n.type == 'AMAZE') {
         def theme = n.f('theme')
@@ -223,16 +261,31 @@ class EnglishGenerator {
           new SituationGenerator(chart, (Situation) theme.var, false).sentence()
         }
       }
+
+      if (n.type == 'CORNER') {
+        out 'of'
+        seq(n.f('arg1')) { out it.s('name') == 'Знаменская' ? 'Znamenskaya' : 'Basseinaya' }
+        out 'streets'
+      }
+
+      def rel = n.f('relative')
+      if (rel?.var instanceof Situation) {
+        out ','
+        out 'the'
+        out 'one'
+        new SituationGenerator(chart, (Situation) rel.var, false).sentence()
+
+      }
     }
 
-    private String determiner(Frame n) {
+    private void determiner(Frame n, boolean an) {
       def det = n.s('determiner')
       if (det == 'THIS') {
         out 'this'
         return
       }
 
-      if (n.type == 'AMAZE') {
+      if (n.type in ['AMAZE', 'PREDICAMENT']) {
         def assignments = n.allAssignments('arg1')
         if (!assignments.empty) {
           possessive((Frame)assignments[0].value)
@@ -243,7 +296,6 @@ class EnglishGenerator {
 
           return
         }
-
       }
 
       if (n.type == 'NEIGHBOURS') {
@@ -256,11 +308,12 @@ class EnglishGenerator {
         return
       }
 
-      out "An"
+      out(an ? "an" : "a")
     }
 
     private void possessive(Frame poss) {
       if (poss.type == 'ME') out 'my'
+      else if (poss.type == 'WE') out 'our'
       else if (poss.type == 'THEY') out 'their'
       else out poss.type
     }
@@ -275,6 +328,9 @@ class EnglishGenerator {
       case 'AMAZE': return 'amazement'
       case 'COUNTING': return 'counting'
       case 'ORDER': return 'order'
+      case 'CASHIER': return 'cashier'
+      case 'CORNER': return 'corner'
+      case 'PREDICAMENT': return 'predicament'
       default: return type
     }
 

@@ -99,7 +99,7 @@ class Parser {
     return state
   }
   Construction vAcc = cxt('vAcc') { ParsingState state, Map args ->
-    return state
+    args.noun ? state.assign(args.head, 'goal', args.noun) : state
   }
   Construction seq = cxt('seq') { ParsingState state, Map args ->
     if (args.seq && args.member) {
@@ -221,7 +221,7 @@ class Parser {
         def noun = state.newVariable()
         return state.apply(atCorner, noun:noun).apply(gen, head:noun)
       case "магазин":
-        return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'SHOP') }
+        return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'SHOP').assign(noun, 'given', 'false') }
       case "случился":
         Variable verb = state.newVariable()
         state = state.assign(verb, 'type', 'HAPPEN').assign(situation, 'time', 'PAST')
@@ -274,7 +274,7 @@ class Parser {
       case "они":
         return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'THEY') }
       case "соседям": return noun(state, dat) { st, noun -> st.assign(noun, 'type', 'NEIGHBOURS') }
-      case "кассиршу": return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'CASHIER') }
+      case "кассиршу": return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'CASHIER').assign(noun, 'given', 'false') }
       case "порядок":
         state = noun(state, acc) { st, noun -> st.assign(noun, 'type', 'ORDER') }
         return state.apply(nounGen, head:state[acc].noun)

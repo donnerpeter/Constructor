@@ -221,6 +221,16 @@ D.member=E
 """
   }
 
+  public void testParse6() throws Exception {
+    doParseTest "Кассирша грустно улыбнулась", """
+A.type=CASHIER
+B.manner=SADLY
+B.type=SMILE
+#1.time=PAST
+B.arg1=A
+"""
+  }
+
   public void testTranslate1() throws Exception {
     doTranslateTest "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8",
                     "An amazing thing happened to me today, I suddenly forgot what comes first - 7 or 8"

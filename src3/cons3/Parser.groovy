@@ -275,6 +275,7 @@ class Parser {
         return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'THEY') }
       case "соседям": return noun(state, dat) { st, noun -> st.assign(noun, 'type', 'NEIGHBOURS') }
       case "кассиршу": return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'CASHIER').assign(noun, 'given', 'false') }
+      case "Кассирша": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'CASHIER') }
       case "порядок":
         state = noun(state, acc) { st, noun -> st.assign(noun, 'type', 'ORDER') }
         return state.apply(nounGen, head:state[acc].noun)
@@ -284,6 +285,12 @@ class Parser {
         if (state[nom]) {
           def verb = state.newVariable()
           return state.assign(verb, 'manner', 'SUDDENLY').apply(nom, head:verb)
+        }
+        return state
+      case "грустно":
+        if (state[nom]) {
+          def verb = state.newVariable()
+          return state.assign(verb, 'manner', 'SADLY').apply(nom, head:verb)
         }
         return state
       case "тоже":
@@ -351,6 +358,13 @@ class Parser {
           def verb = state[nom].head
           state = state.assign(verb, 'type', 'DISCOVER').assign(situation, 'time', 'PAST')
           return state.apply(comp, head:verb).apply(nom, head:verb)
+        }
+        return state
+      case "улыбнулась":
+        if (state[nom]) {
+          def verb = state[nom].head
+          state = state.assign(verb, 'type', 'SMILE').assign(situation, 'time', 'PAST')
+          return state.apply(nom, head:verb)
         }
         return state
       case "вспомнить":

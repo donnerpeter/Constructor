@@ -222,13 +222,19 @@ D.member=E
   }
 
   public void testParse6() throws Exception {
-    doParseTest "Кассирша грустно улыбнулась", """
+    doParseTest "Кассирша грустно улыбнулась, вынула изо рта маленький молоточек", """
 A.type=CASHIER
 B.manner=SADLY
 B.type=SMILE
 #1.time=PAST
 B.arg1=A
-"""
+C.type=TAKE_OUT
+C.arg1=A
+C.source=D
+D.type=MOUTH
+E.size=LITTLE
+C.arg2=E
+E.type=HAMMER"""
   }
 
   public void testTranslate1() throws Exception {

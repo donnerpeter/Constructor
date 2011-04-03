@@ -56,7 +56,7 @@ class Parser {
     args.noun ? state.assign(args.head, 'experiencer', args.noun) : state
   }
   Construction poDat = cxt('poDat') { ParsingState state, Map args ->
-    args.noun ? state.assign(args.head, 'topic', args.noun) : state
+    args.noun && args.head ? state.assign(args.head, 'topic', args.noun) : state
   }
   Construction oPrep = cxt('oPrep') { ParsingState state, Map args ->
     args.noun ? state.assign(args.head, 'topic', args.noun) : state
@@ -144,8 +144,9 @@ class Parser {
     return state
   }
   Construction relativeClause = cxt('relativeClause') { ParsingState state, Map args ->
-    if (args.noun && args.clause && args.wh) {
-      return state.assign(args.noun, 'relative', args.clause).withSituation(args.clause).assign(args.clause, 'wh', args.wh).apply(nestedClause, save: args.save, parent:args.parentSituation)
+    if (args.noun && args.hasComma && args.wh) {
+      def next = new Situation()
+      return state.assign(args.noun, 'relative', next).withSituation(next).assign(next, 'wh', args.wh).apply(nestedClause, save: args.save, parent:args.parentSituation)
     }
     return state
   }
@@ -419,13 +420,9 @@ class Parser {
         }
         return state
       case ",":
-        def next = new Situation()
-        state = state.apply(declComp, hasComma:true).apply(question, hasComma:true)
+        state = state.apply(declComp, hasComma:true).apply(question, hasComma:true).apply(relativeClause, hasComma:true, parentSituation:situation)
         if (state[seq]) {
           state = state.apply(seq, hasComma:true)
-        }
-        if (state[relativeClause]) {
-          state = state.apply(relativeClause, clause:next, parentSituation:situation)
         }
         if (state[nestedClause]) {
           state = state.withSituation(state[nestedClause].parent).clearConstructions().restore(state[nestedClause].save).satisfied(nestedClause)
@@ -443,7 +440,7 @@ class Parser {
                   addCtx(acc, noun:noun, hasNoun:'true').
                   applyAll(nom, acc)
         }
-        if (state[relativeClause]?.clause) {
+        if (state[relativeClause]?.hasComma) {
           def wh = new Variable()
           state = state.apply(relativeClause, wh:wh).apply(atCorner, head:wh) //todo pp copula
         }
@@ -501,7 +498,7 @@ class Parser {
       state = state.apply(possessive)
     }
 
-    state = state.apply(quotedName, noun:noun).apply(relativeClause, noun:noun, save:state.constructions)
+    state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
 
     return state
   }

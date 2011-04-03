@@ -438,7 +438,7 @@ class Parser {
                   applyAll(nom, acc)
         }
         if (state[relativeClause]?.clause) {
-          def wh = new Variable(state[relativeClause].clause)
+          def wh = new Variable()
           state = state.apply(relativeClause, wh:wh).apply(atCorner, head:wh) //todo pp copula
         }
         return state

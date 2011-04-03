@@ -83,15 +83,17 @@ class Situation extends Variable {
 
 class Frame {
   final Variable var
+  final Situation situation
   final Chart chart
 
-  Frame(Variable var, Chart chart) {
+  Frame(Variable var, Situation situation, Chart chart) {
     this.var = var
+    this.situation = situation
     this.chart = chart
   }
 
   String toString() {
-    return "$var: ${chart.allAssignments(var.situation).findAll { it.frame == (Frame) this }}"
+    return "$var: ${chart.allAssignments(situation).findAll { it.frame == (Frame) this }}"
   }
 
   Frame f(String attr) {
@@ -107,7 +109,7 @@ class Frame {
   String getType() { s('type') }
 
   List<Assignment<Frame>> allAssignments(String attr) {
-    return chart.allAssignments(var.situation).findAll { it.frame.var == var && it.property == attr }
+    return chart.allAssignments(situation).findAll { it.frame.var == var && it.property == attr }
   }
 
   boolean equals(o) {
@@ -117,6 +119,7 @@ class Frame {
     Frame frame = (Frame) o;
 
     if (chart != frame.chart) return false;
+    if (situation != frame.situation) return false;
     if (var != frame.var) return false;
 
     return true;
@@ -125,6 +128,7 @@ class Frame {
   int hashCode() {
     int result;
     result = var.hashCode();
+    result = 31 * result + situation.hashCode();
     result = 31 * result + chart.hashCode();
     return result;
   }
@@ -142,11 +146,11 @@ class Variable {
   }
 
   String toString() {
-    return "$id in $situation.id"
+    return "$id"
   }
 
   Frame frame(Chart chart) {
-    new Frame(this, chart)
+    new Frame(this, situation, chart)
   }
 
 }

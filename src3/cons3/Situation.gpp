@@ -45,11 +45,11 @@ class Chart {
     }
   }
 
-  Chart assign(Variable frame, String property, def value) {
+  Chart assign(Variable var, Situation situation, String property, def value) {
     assert value instanceof String || value instanceof Variable
-    assert frame
+    assert var
     Map<Situation, LinkedHashSet<Assignment<Variable>>> newAsss = [:] + __assignments
-    newAsss[frame.situation] = newAsss.get(frame.situation, [] as LinkedHashSet) + [new Assignment(frame, property, value)]
+    newAsss[situation] = newAsss.get(situation, [] as LinkedHashSet) + [new Assignment(var, property, value)]
     return new Chart(newAsss)
   }
 

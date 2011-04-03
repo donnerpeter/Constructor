@@ -67,11 +67,15 @@ class Parser {
   Construction kDat = cxt('kDat') { ParsingState state, Map args ->
     args.noun ? state.assign(args.head, 'goal', args.noun) : state
   }
-  Construction comp = cxt('comp') { ParsingState state, Map args ->
-    args.comp ? state.assign(args.head, args.head.frame(state.chart).type in ['FORGET', 'DISCOVER', 'AMAZE'] ? 'theme' : 'question', args.comp) : state
-  }
   Construction question = cxt('question') { ParsingState state, Map args ->
-    args.questioned ? state.assign(args.situation, 'questioned', args.questioned) : state
+    if (args.hasComma && !args.comp && args.head) {
+      def next = args.comp ?: new Situation()
+      state = state.assign(args.head, args.head.frame(state.chart).type == 'FORGET' ? 'theme' : 'question', next).withSituation(next).apply(question, comp:next)
+    }
+    if (args.questioned && args.comp) {
+      state = state.assign(args.comp, 'questioned', args.questioned)
+    }
+    return state
   }
   Construction comeScalarly = cxt('comeScalarly') { ParsingState state, Map args ->
     args.order ? state.assign(args.verb, 'type', 'COME_SCALARLY').assign(args.verb, 'order', args.order) : state
@@ -93,6 +97,10 @@ class Parser {
     return args.slave ? state.assign(args.head, 'theme', args.slave) : state
   }
   Construction declComp = cxt('declComp') { ParsingState state, Map args ->
+    if (args.hasComma && !args.comp && args.head) {
+      def next = new Situation()
+      state = state.assign(args.head, 'theme', next).withSituation(next).apply(declComp, comp:next)
+    }
     return state
   }
   Construction negation = cxt('negation') { ParsingState state, Map args ->
@@ -219,7 +227,7 @@ class Parser {
       case "случай": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'THING').assign(noun, 'given', 'false') }
       case "удивление":
         state = noun(state, nom) { st, noun -> st.assign(noun, 'type', 'AMAZE') }
-        return state.apply(comp, head:state[nom].noun)
+        return state.apply(declComp, head:state[nom].noun)
       case "поводу":
         return noun(state, dat) { st, noun -> st.assign(noun, 'type', 'MATTER') }
       case "недоумении":
@@ -319,7 +327,7 @@ class Parser {
         if (state[nom]) {
           Variable verb = state[nom].head ?: state.newVariable()
           state = state.assign(verb, 'type', 'FORGET').assign(situation, 'time', 'PAST')
-          return state.apply(comp, head:verb).apply(nom, head:verb)
+          return state.apply(question, head:verb).apply(nom, head:verb)
         }
         return state
       case "забыли":
@@ -370,8 +378,8 @@ class Parser {
       case "обнаружили":
         if (state[nom]) {
           def verb = state[nom].head
-          state = state.assign(verb, 'type', 'DISCOVER').assign(situation, 'time', 'PAST')
-          return state.apply(comp, head:verb).apply(nom, head:verb)
+          state = state.assign(verb, 'type', 'DISCOVER').assign(situation, 'time', 'PAST').inhibit(relativeClause) //todo generic suppress for context-freeness
+          return state.satisfied(declComp).apply(declComp, head:verb).apply(nom, head:verb)
         }
         return state
       case "улыбнулась":
@@ -407,14 +415,12 @@ class Parser {
           def verb = state.newVariable()
           args = args + [head:verb]
           state = state.assign(verb, 'type', 'ASK').assign(situation, 'time', 'PAST')
-          return state.apply(acc, head:verb).apply(args, nom).apply(comp, head:verb).apply(oPrep, head:verb)
+          return state.apply(acc, head:verb).apply(args, nom).apply(question, head:verb).apply(oPrep, head:verb)
         }
         return state
       case ",":
         def next = new Situation()
-        if (state[comp]) {
-          state = state.apply(comp, comp:next).withSituation(next).apply(state[comp].head.frame(state.chart).type in ['DISCOVER', 'AMAZE'] ? declComp : question, situation:next)
-        }
+        state = state.apply(declComp, hasComma:true).apply(question, hasComma:true)
         if (state[seq]) {
           state = state.apply(seq, hasComma:true)
         }

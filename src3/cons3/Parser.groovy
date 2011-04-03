@@ -137,7 +137,7 @@ class Parser {
   }
   Construction relativeClause = cxt('relativeClause') { ParsingState state, Map args ->
     if (args.noun && args.clause && args.wh) {
-      return state.assign(args.noun, 'relative', args.clause).withSituation(args.clause).assign(args.clause, 'wh', args.wh).apply(nestedClause, save: args.save, parent:args.noun.situation)
+      return state.assign(args.noun, 'relative', args.clause).withSituation(args.clause).assign(args.clause, 'wh', args.wh).apply(nestedClause, save: args.save, parent:args.parentSituation)
     }
     return state
   }
@@ -419,7 +419,7 @@ class Parser {
           state = state.apply(seq, hasComma:true)
         }
         if (state[relativeClause]) {
-          state = state.apply(relativeClause, clause:next)
+          state = state.apply(relativeClause, clause:next, parentSituation:situation)
         }
         if (state[nestedClause]) {
           state = state.withSituation(state[nestedClause].parent).clearConstructions().restore(state[nestedClause].save).satisfied(nestedClause)

@@ -212,12 +212,13 @@ A.location=B
 C.type=STREET
 C.name=Знаменская
 B.arg1=C
-D.member=C
-B.arg1=D
-D.conj=and
+D.type=STREET
+D.name=Бассейная
+E.conj=and
+E.member=C
+E.member=D
+B.arg1=E
 E.type=STREET
-E.name=Бассейная
-D.member=E
 """
   }
 

@@ -40,6 +40,9 @@ class Parser {
   Construction acc = cxt('acc') { ParsingState state, Map args ->
     if (args.head?.frame(state.chart)?.type && args.noun) {
       state = state.assign(args.head, 'arg2', args.noun)
+      if (args.hasNoun) {
+        state = state.satisfied(acc)
+      }
     }
     return handleCase(acc, state, args)
   }
@@ -116,19 +119,6 @@ class Parser {
     args.noun ? state.assign(args.head, 'source', args.noun) : state
   }
   Construction seq = cxt('seq') { ParsingState state, Map args ->
-    if (args.seq && args.member) {
-      state = state.assign(args.seq, 'member', args.member)
-
-      state.chart.allAssignments(state.situation).each {
-        if (it.frame.var != args.seq && it.value instanceof Frame && it.value.var == args.member) {
-          state = state.assign(it.frame.var, it.property, args.seq)
-        }
-      }
-
-      if (args.conj) {
-        state = state.assign(args.seq, 'conj', args.conj)
-      }
-    }
     return state
   }
   Construction advObj = cxt('advObj') { ParsingState state, Map args ->
@@ -162,30 +152,73 @@ class Parser {
     return state
   }
 
+  private ParsingState merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, Closure init) {
+    if (cxt in [acc, gen] && oldArgs.noun && newArgs.noun) {
+      def oldNoun = oldArgs.noun
+      Frame frame = oldNoun.frame(state.chart)
+      if (frame.f('member')) {
+        return joinSeq(newArgs, state, cxt, oldNoun, oldArgs, 'noun', init)
+      }
+      def multi = new Variable()
+      return state.addCtx(oldArgs + [noun:multi], cxt) { ParsingState st ->
+        if (state[seq].conj) {
+          st = st.assign(multi, 'conj', state[seq].conj) //todo assign conj in one place
+        }
+        if (init) st = init(st)
+        st.assign(multi, 'member', oldNoun).assign(multi, 'member', newArgs.noun)
+      }
+    }
+
+    return state.addCtx(newArgs, cxt, init)
+  }
+
+  ParsingState joinSeq(Map newArgs, ParsingState state, Construction cxt, Variable seqVar, Map oldArgs, String property, Closure init = null) {
+    return state.addCtx(oldArgs + [(property): seqVar], cxt) { ParsingState st ->
+      if (state[seq]?.conj) {
+        st = st.assign(seqVar, 'conj', state[seq].conj)
+      }
+      if (init) st = init(st)
+      st.assign(seqVar, 'member', newArgs[property])
+    }
+  }
+
+  private ParsingState addCtx(Map args, ParsingState state, Construction cxt, Closure init = null) {
+    if (state[seq]?.hasComma || state[seq]?.conj) {
+      def old = state.constructions[cxt]
+      if (old) {
+        return merge(state, cxt, old, args, init).satisfied(seq)
+      }
+      old = state[seq].save[cxt]
+      if (old) {
+        return merge(state, cxt, old, args, init).satisfied(seq)
+      }
+    }
+
+    return state.addCtx(args, cxt, init)
+  }
+
   ParsingState handleWord(String word, ParsingState state) {
     try {
       Integer.parseInt(word)   //todo generic noun treatment
+
       def noun = state.newVariable()
       def init = { it.assign(noun, 'type', word).assign(noun, 'number', 'true') }
-      state = state.apply(acc, noun:noun, hasNoun:noun, init)
 
-      def seqVar = null
-      if (state[seq]?.hasComma || state[seq]?.conj) {
-        seqVar = state[seq].seq ?: state.newVariable()
-        state = state.apply(seq, seq:seqVar).satisfied(seq)
-      }
+      state = addCtx(state, acc, noun:noun, hasNoun:true, init)
+
+      def save = state.constructions
+
+      state = state.applyAll(acc)
+
       def qv = state[questionVariants]
       if (qv) {
-        assert !seqVar
-        seqVar = state.newVariable()
+        def seqVar = state.newVariable()
         state = state.apply(questionVariants, seq:seqVar).satisfied(questionVariants)
+        state = joinSeq(state, acc, seqVar, noun:noun, [hasNoun:true], 'noun', init).applyAll(acc)
       }
 
-      if (seqVar) {
-        state = state.apply(acc, noun:seqVar, hasNoun:true)
-      }
 
-      state = state.apply(seq, member:noun, seq:seqVar, init)
+      state = state.apply(seq, save:save)
 
       return state
     } catch (NumberFormatException e) {
@@ -202,15 +235,16 @@ class Parser {
         return state.apply(adjective, nounFrame:noun, rel:'property', val:'AMAZING').apply(nom, noun:noun)
       case "Знаменской": // todo a unified treatment for street names
       case "Бассейной":
-        def seqVar = null
-        if (state[seq]?.hasComma || state[seq]?.conj) {
-          seqVar = state[seq].seq ?: state.newVariable()
-          state = state.apply(seq, seq:seqVar).satisfied(seq)
-        }
-
         def noun = state.newVariable()
         def init = { it.assign(noun, 'type', 'STREET') }
-        return state.apply(adjective, nounFrame:noun, rel:'name', val:word[0..-3]+"ая", init).apply(gen, noun:noun, init).apply(seq, member:noun, seq:seqVar, init)
+        state = state.apply(adjective, nounFrame:noun, rel:'name', val:word[0..-3]+"ая", init)
+
+        state = addCtx(state, gen, noun:noun, init)
+
+        def save = state.constructions
+        state = state.applyAll(gen)
+        state = state.apply(seq, save:save)
+        return state
       case "коммерческий":
         def noun = state[acc]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'kind', val:'COMMERCIAL').apply(acc, noun:noun)
@@ -290,7 +324,7 @@ class Parser {
         def init = { st -> st.assign(they, 'type', 'THEY') }
 
         return state.
-                addCtx(acc, noun:they, head:verb, init).
+                addCtx(acc, noun:they, hasNoun:true, head:verb, init).
                 addCtx(possessive, possessor:they, head:possHead, init).
                 applyAll(acc, possessive)
       case "Они":
@@ -300,8 +334,9 @@ class Parser {
       case "кассиршу": return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'CASHIER').assign(noun, 'given', 'false') }
       case "Кассирша": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'CASHIER') }
       case "порядок":
-        state = noun(state, acc) { st, noun -> st.assign(noun, 'type', 'ORDER') }
-        return state.apply(nounGen, head:state[acc].noun)
+        def noun = state.newVariable()
+        state = state.apply(acc, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'ORDER') }
+        return state.apply(nounGen, head:noun) //todo one noun frame - several cases
       case "счета":
         return noun(state, nounGen) { st, noun -> st.assign(noun, 'type', 'COUNTING') }
       case "вдруг":

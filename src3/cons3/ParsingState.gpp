@@ -13,7 +13,7 @@ class ParsingState {
   ParsingState(Map map) {
     chart = map.chart
     situation = map.situation
-    constructions = map.constructions
+    constructions = Collections.unmodifiableMap((Map)map.constructions)
   }
 
   ParsingState clone(Map update) {
@@ -41,7 +41,7 @@ class ParsingState {
   }
 
   ParsingState addCtx(Map newArgs, Construction name, Closure init = null) {
-    def oldArgs = constructions.get(name, [:])
+    def oldArgs = constructions[name] ?: [:]
     def replace = false
     for (cxt in oldArgs.keySet().intersect(newArgs.keySet())) {
       if (oldArgs[cxt] != newArgs[cxt] && oldArgs[cxt]) {
@@ -52,8 +52,8 @@ class ParsingState {
     }
 
     def args = oldArgs + newArgs
-    Closure oldInit = args.get('init', noInit)
-    def newInit = init ? { ParsingState state -> init(oldInit(state)) } : oldInit
+    Closure oldInit = args['init']
+    def newInit = init && oldInit ? { ParsingState state -> init(oldInit(state)) } : init ?: oldInit
     args.init = newInit
     def newConstructions = constructions + [(name): Collections.unmodifiableMap(args)]
     return (replace ? inhibit(name) : this).clone(constructions: newConstructions)
@@ -101,7 +101,7 @@ class ParsingState {
     for (cxt in names) {
       if (!(cxt in hanging)) {
         def args = constructions[cxt]
-        Closure init = args.init
+        Closure init = args.init ?: noInit
         result = cxt.action.call((ParsingState)init(result), args)
       }
 

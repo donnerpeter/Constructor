@@ -93,8 +93,7 @@ class Parser {
     return args.time ? state.assign(args.situation, 'time', args.time) : state
   }
   Construction possessive = cxt('possessive') { ParsingState state, Map args ->
-    state = args.conj ? possessive.action.call(state, args.conj) : state //todo generic conj handling
-    return args.head.frame(state.chart).type ? state.assign(args.head, 'arg1', args.possessor) : state
+    return args.head?.frame(state.chart)?.type ? state.assign(args.head, 'arg1', args.possessor) : state
   }
   Construction control = cxt('control') { ParsingState state, Map args ->
     return args.slave ? state.assign(args.head, 'theme', args.slave) : state
@@ -154,22 +153,29 @@ class Parser {
 
   private ParsingState merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, Closure init) {
     if (cxt in [acc, gen] && oldArgs.noun && newArgs.noun) {
-      def oldNoun = oldArgs.noun
-      Frame frame = oldNoun.frame(state.chart)
-      if (frame.f('member')) {
-        return joinSeq(newArgs, state, cxt, oldNoun, oldArgs, 'noun', init)
-      }
-      def multi = new Variable()
-      return state.addCtx(oldArgs + [noun:multi], cxt) { ParsingState st ->
-        if (state[seq].conj) {
-          st = st.assign(multi, 'conj', state[seq].conj) //todo assign conj in one place
-        }
-        if (init) st = init(st)
-        st.assign(multi, 'member', oldNoun).assign(multi, 'member', newArgs.noun)
-      }
+      return merge(state, cxt, oldArgs, newArgs, 'noun', init)
+    }
+    if (cxt == possessive && oldArgs.possessor && newArgs.possessor) {
+      return merge(state, cxt, oldArgs, newArgs, 'possessor', init)
     }
 
     return state.addCtx(newArgs, cxt, init)
+  }
+
+  private ParsingState merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, String prop, Closure init) {
+    Variable oldNoun = oldArgs[prop]
+    Frame frame = oldNoun.frame(state.chart)
+    if (frame.f('member')) {
+      return joinSeq(newArgs, state, cxt, oldNoun, oldArgs, prop, init)
+    }
+    def multi = new Variable()
+    return state.addCtx(oldArgs + [(prop): multi], cxt) { ParsingState st ->
+      if (state[seq].conj) {
+        st = st.assign(multi, 'conj', state[seq].conj) //todo assign conj in one place
+      }
+      if (init) st = init(st)
+      st.assign(multi, 'member', oldNoun).assign(multi, 'member', newArgs[prop])
+    }
   }
 
   ParsingState joinSeq(Map newArgs, ParsingState state, Construction cxt, Variable seqVar, Map oldArgs, String property, Closure init = null) {
@@ -299,13 +305,9 @@ class Parser {
       case "Мы": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'WE') }
       case "мое":
         def me = state.newVariable()
-        def poss = state[possessive]
-        def possHead = !state[nom]?.hasNoun && state[nom]?.noun ? state[nom].noun : state.newVariable()
-        state = state.assign(me, 'type', 'ME')
-        if (poss) {
-          state = state.satisfied(possessive)
-        }
-        return state.apply(possessive, possessor:me, head:possHead, conj: poss)
+        state = addCtx(state, possessive, possessor:me) { it.assign(me, 'type', 'ME') }
+        def save = state.constructions
+        return state.applyAll(possessive).apply(seq, save:save)
       case "и": return state[seq] ? state.apply(seq, conj:'and') : state
       case "или": return state[seq] ? state.apply(seq, conj:'or') : state
       case "а":
@@ -318,15 +320,11 @@ class Parser {
         return state.apply(advObj, adv: adv) { it.assign(adv, 'type', 'NEXT') }
       case "их":
         def they = state.newVariable()
-        def verb = state[acc]?.head ?: state.newVariable()
-        def possHead = !state[nom]?.hasNoun && state[nom]?.noun ? state[nom].noun : state.newVariable()
-
         def init = { st -> st.assign(they, 'type', 'THEY') }
-
-        return state.
-                addCtx(acc, noun:they, hasNoun:true, head:verb, init).
-                addCtx(possessive, possessor:they, head:possHead, init).
-                applyAll(acc, possessive)
+        state = addCtx(state, possessive, possessor:they, init)
+        state = addCtx(state, acc, noun:they, hasNoun:true, init)
+        def save = state.constructions
+        return state.applyAll(acc, possessive).apply(seq, save:save)
       case "Они":
       case "они":
         return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'THEY') }
@@ -530,7 +528,7 @@ class Parser {
 
     state = state.apply(caze, noun: noun, hasNoun:'true') { init(it, noun) }
     if (state[possessive]) {
-      state = state.apply(possessive)
+      state = state.apply(possessive, head:noun)
     }
 
     state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)

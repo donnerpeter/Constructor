@@ -83,9 +83,11 @@ D.type=MATTER
 B.degree=A
 #1.time=PAST
 C.type=THEY
-D.type=ME
+D.conj=and
+E.type=ME
+D.member=C
+D.member=E
 B.type=AMAZE
-B.arg1=C
 B.arg1=D
 B.theme=#2
 --
@@ -119,9 +121,11 @@ E.criterion=F
 B.degree=A
 #1.time=PAST
 C.type=THEY
-D.type=ME
+D.conj=and
+E.type=ME
+D.member=C
+D.member=E
 B.type=AMAZE
-B.arg1=C
 B.arg1=D
 B.theme=#2
 --

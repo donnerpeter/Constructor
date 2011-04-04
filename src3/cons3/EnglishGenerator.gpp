@@ -286,14 +286,9 @@ class EnglishGenerator {
       }
 
       if (n.type in ['AMAZE', 'PREDICAMENT']) {
-        def assignments = n.allAssignments('arg1')
-        if (!assignments.empty) {
-          possessive((Frame)assignments[0].value)
-          if (assignments.size() > 1) {
-            out 'and'
-            possessive((Frame)assignments[1].value)
-          }
-
+        def assignments = n.f('arg1')
+        if (assignments) {
+          possessive(assignments)
           return
         }
       }
@@ -312,6 +307,11 @@ class EnglishGenerator {
     }
 
     private void possessive(Frame poss) {
+      if (poss.f('member')) {
+        seq(poss) { possessive(it) }
+        return
+      }
+
       if (poss.type == 'ME') out 'my'
       else if (poss.type == 'WE') out 'our'
       else if (poss.type == 'THEY') out 'their'

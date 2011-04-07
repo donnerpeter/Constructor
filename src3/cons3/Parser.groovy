@@ -203,6 +203,15 @@ class Parser {
     return state.addCtx(args, cxt, init)
   }
 
+  ParsingState conjWrap(Map<Construction, Map> constructions, ParsingState state) {
+    for (c in constructions.keySet()) {
+      state = addCtx(constructions[c], state, c, constructions[c].init)
+    }
+    state = state.addCtx(seq, save:state.constructions)
+    return state.applyAll((constructions.keySet() + [seq]) as Construction[])
+  }
+
+
   ParsingState handleWord(String word, ParsingState state) {
     try {
       Integer.parseInt(word)   //todo generic noun treatment
@@ -210,11 +219,7 @@ class Parser {
       def noun = state.newVariable()
       def init = { it.assign(noun, 'type', word).assign(noun, 'number', 'true') }
 
-      state = addCtx(state, acc, noun:noun, hasNoun:true, init)
-
-      def save = state.constructions
-
-      state = state.applyAll(acc)
+      state = conjWrap(state, (acc):[noun:noun, hasNoun:true, init:init])
 
       def qv = state[questionVariants]
       if (qv) {
@@ -222,9 +227,6 @@ class Parser {
         state = state.apply(questionVariants, seq:seqVar).satisfied(questionVariants)
         state = joinSeq(state, acc, seqVar, noun:noun, [hasNoun:true], 'noun', init).applyAll(acc)
       }
-
-
-      state = state.apply(seq, save:save)
 
       return state
     } catch (NumberFormatException e) {
@@ -245,11 +247,7 @@ class Parser {
         def init = { it.assign(noun, 'type', 'STREET') }
         state = state.apply(adjective, nounFrame:noun, rel:'name', val:word[0..-3]+"ая", init)
 
-        state = addCtx(state, gen, noun:noun, init)
-
-        def save = state.constructions
-        state = state.applyAll(gen)
-        state = state.apply(seq, save:save)
+        state = conjWrap(state, (gen):[noun:noun, init:init])
         return state
       case "коммерческий":
         def noun = state[acc]?.noun ?: state.newVariable()

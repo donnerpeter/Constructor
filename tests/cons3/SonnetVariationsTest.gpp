@@ -56,120 +56,23 @@ D.member=F
   }
 
   public void test4_123TheyRemember() throws Exception {
-    doParseTest "1, 2 и 3 они помнят", """
-A.type=1
-A.number=true
-B.type=2
-B.number=true
-C.member=A
-C.member=B
-C.conj=and
-D.type=3
-D.number=true
-C.member=D
-E.type=THEY
-F.type=REMEMBER
-#1.time=PRESENT
-F.arg2=C
-F.arg1=E
-"""
+    doTranslateTest "1, 2 и 3 они помнят", "They remember 1, 2 and 3"
   }
 
   public void test4_TheyRemember123() throws Exception {
-    doParseTest "Они помнят 1, 2 и 3", """
-A.type=THEY
-B.type=REMEMBER
-#1.time=PRESENT
-B.arg1=A
-C.type=1
-C.number=true
-B.arg2=C
-D.type=2
-D.number=true
-E.member=C
-E.member=D
-B.arg2=E
-E.conj=and
-F.type=3
-F.number=true
-E.member=F
-"""
+    doTranslateTest "Они помнят 1, 2 и 3", "They remember 1, 2 and 3"
   }
 
   public void test4_4() throws Exception {
-    doParseTest "2 и 3 они помнят, а 4 забыли", """
-A.type=2
-A.number=true
-B.conj=and
-C.type=3
-C.number=true
-B.member=A
-B.member=C
-D.type=THEY
-E.type=REMEMBER
-#1.time=PRESENT
-E.arg2=B
-E.arg1=D
-#1.but=#2
---
-A.type=4
-A.number=true
-B.type=FORGET
-#2.time=PAST
-B.arg2=A
-C.type=THEY
-B.arg1=C
-"""
+    doTranslateTest "2 и 3 они помнят, а 4 забыли", "They remember 2 and 3, but forgot 4"
   }
 
   public void test4_45() throws Exception {
-    doParseTest "2 и 3 они помнят, а 4 и 5 забыли", """
-A.type=2
-A.number=true
-B.conj=and
-C.type=3
-C.number=true
-B.member=A
-B.member=C
-D.type=THEY
-E.type=REMEMBER
-#1.time=PRESENT
-E.arg2=B
-E.arg1=D
-#1.but=#2
---
-A.type=4
-A.number=true
-B.conj=and
-C.type=5
-C.number=true
-B.member=A
-B.member=C
-D.type=FORGET
-#2.time=PAST
-D.arg2=B
-E.type=THEY
-D.arg1=E
-"""
+    doTranslateTest "2 и 3 они помнят, а 4 и 5 забыли", "They remember 2 and 3, but forgot 4 and 5"
   }
 
   public void test4_TheyForgot45() throws Exception {
-    doParseTest "Они забыли 4 и 5", """
-A.type=THEY
-B.type=FORGET
-#1.time=PAST
-C.type=THEY
-B.arg1=C
-D.type=4
-D.number=true
-B.arg2=D
-E.conj=and
-F.type=5
-F.number=true
-E.member=D
-E.member=F
-B.arg2=E
-"""
+    doTranslateTest "Они забыли 4 и 5", "They forgot 4 and 5"
   }
 
 

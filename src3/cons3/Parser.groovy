@@ -35,7 +35,13 @@ class Parser {
 
   Construction adjective = cxt('adjective') { ParsingState state, Map args -> state.assign(args.nounFrame, args.rel, args.val) }
   Construction nom = cxt('nom') { ParsingState state, Map args ->
-    args.head?.frame(state.chart)?.type && args.noun ? state.assign(args.head, 'arg1', args.noun) : state
+    if (args.head?.frame(state.chart)?.type && args.noun) {
+      state = state.assign(args.head, 'arg1', args.noun)
+      if (args.hasNoun) {
+        state = state.satisfied(nom)
+      }
+    }
+    return state
   }
   Construction acc = cxt('acc') { ParsingState state, Map args ->
     if (args.head?.frame(state.chart)?.type && args.noun) {
@@ -115,7 +121,7 @@ class Parser {
     args.noun ? state.assign(args.head, 'goal', args.noun) : state
   }
   Construction izGen = cxt('izGen') { ParsingState state, Map args ->
-    args.noun ? state.assign(args.head, 'source', args.noun) : state
+    args.head && args.noun ? state.assign(args.head, 'source', args.noun) : state
   }
   Construction seq = cxt('seq') { ParsingState state, Map args ->
     return state
@@ -407,19 +413,13 @@ class Parser {
         }
         return state
       case "улыбнулась":
-        if (state[nom]) {
-          def verb = state[nom].head
-          state = state.assign(verb, 'type', 'SMILE').assign(situation, 'time', 'PAST')
-          return state.apply(nom, head:verb)
-        }
-        return state
+        def verb = state[nom]?.head ?: state.newVariable()
+        state = state.assign(verb, 'type', 'SMILE').assign(situation, 'time', 'PAST')
+        return conjWrap(state, (nom):[head:verb])
       case "вынула":
-        if (state[nom]) {
-          def verb = state.newVariable()
-          state = state.assign(verb, 'type', 'TAKE_OUT').assign(situation, 'time', 'PAST')
-          return state.apply(nom, head:verb, noun:state[nom].noun).apply(izGen, head:verb).apply(acc, head:verb)
-        }
-        return state
+        def verb = state[nom]?.head ?: state.newVariable()
+        state = state.assign(verb, 'type', 'TAKE_OUT').assign(situation, 'time', 'PAST')
+        return conjWrap(state, (nom):[head:verb], (acc):[head:verb], (izGen):[head:verb])
       case "вспомнить":
         def verb = state.newVariable()
         state = state.apply(control, slave:verb)

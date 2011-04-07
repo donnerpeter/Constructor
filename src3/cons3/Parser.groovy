@@ -207,8 +207,8 @@ class Parser {
     for (c in constructions.keySet()) {
       state = addCtx(constructions[c], state, c, constructions[c].init)
     }
-    state = state.addCtx(seq, save:state.constructions)
-    return state.applyAll((constructions.keySet() + [seq]) as Construction[])
+    state = state.applyAll(constructions.keySet() as Construction[])
+    return state.apply(seq, save:state.history)
   }
 
 
@@ -304,8 +304,7 @@ class Parser {
       case "мое":
         def me = state.newVariable()
         state = addCtx(state, possessive, possessor:me) { it.assign(me, 'type', 'ME') }
-        def save = state.constructions
-        return state.applyAll(possessive).apply(seq, save:save)
+        return state.applyAll(possessive).apply(seq, save:state.history)
       case "и": return state[seq] ? state.apply(seq, conj:'and') : state
       case "или": return state[seq] ? state.apply(seq, conj:'or') : state
       case "а":
@@ -321,8 +320,7 @@ class Parser {
         def init = { st -> st.assign(they, 'type', 'THEY') }
         state = addCtx(state, possessive, possessor:they, init)
         state = addCtx(state, acc, noun:they, hasNoun:true, init)
-        def save = state.constructions
-        return state.applyAll(acc, possessive).apply(seq, save:save)
+        return state.applyAll(acc, possessive).apply(seq, save:state.history)
       case "Они":
       case "они":
         return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'THEY') }

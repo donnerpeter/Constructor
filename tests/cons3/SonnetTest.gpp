@@ -214,15 +214,14 @@ F.arg1=G
 B.type=CORNER
 A.location=B
 C.type=STREET
-C.name=Знаменская
 B.arg1=C
-D.type=STREET
-D.name=Бассейная
-E.conj=and
-E.member=C
-E.member=D
-B.arg1=E
+C.name=Знаменская
+D.conj=and
 E.type=STREET
+D.member=C
+D.member=E
+B.arg1=D
+E.name=Бассейная
 """
   }
 

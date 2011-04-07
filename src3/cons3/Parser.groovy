@@ -245,9 +245,9 @@ class Parser {
       case "Бассейной":
         def noun = state.newVariable()
         def init = { it.assign(noun, 'type', 'STREET') }
-        state = state.apply(adjective, nounFrame:noun, rel:'name', val:word[0..-3]+"ая", init)
+        //state = state.apply(adjective, nounFrame:noun, rel:'name', val:word[0..-3]+"ая", init)
 
-        state = conjWrap(state, (gen):[noun:noun, init:init])
+        state = conjWrap(state, (gen):[noun:noun, init:init], (adjective):[nounFrame:noun, rel:'name', val:word[0..-3]+"ая", init:init])
         return state
       case "коммерческий":
         def noun = state[acc]?.noun ?: state.newVariable()
@@ -304,7 +304,7 @@ class Parser {
       case "мое":
         def me = state.newVariable()
         state = addCtx(state, possessive, possessor:me) { it.assign(me, 'type', 'ME') }
-        return state.applyAll(possessive).apply(seq, save:state.history)
+        return state.applyAll(possessive).apply(seq, save: state.history)
       case "и": return state[seq] ? state.apply(seq, conj:'and') : state
       case "или": return state[seq] ? state.apply(seq, conj:'or') : state
       case "а":
@@ -320,7 +320,7 @@ class Parser {
         def init = { st -> st.assign(they, 'type', 'THEY') }
         state = addCtx(state, possessive, possessor:they, init)
         state = addCtx(state, acc, noun:they, hasNoun:true, init)
-        return state.applyAll(acc, possessive).apply(seq, save:state.history)
+        return state.applyAll(acc, possessive).apply(seq, save: state.history)
       case "Они":
       case "они":
         return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'THEY') }
@@ -518,6 +518,11 @@ class Parser {
     }
 
     def noun = state.constructions[caze]?.noun ?: state.newVariable()
+
+    if (noun.frame(state.chart).f('member')) { //todo number agreement
+      noun = noun.frame(state.chart).f('member').var
+    }
+
     if (caze == nom) {
       state = state.apply(shortAdjCopula, noun:noun)
     }

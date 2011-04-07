@@ -303,8 +303,7 @@ class Parser {
       case "Мы": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'WE') }
       case "мое":
         def me = state.newVariable()
-        state = addCtx(state, possessive, possessor:me) { it.assign(me, 'type', 'ME') }
-        return state.applyAll(possessive).apply(seq, save: state.history)
+        return conjWrap(state, (possessive):[possessor:me, init:{ it.assign(me, 'type', 'ME') }])
       case "и": return state[seq] ? state.apply(seq, conj:'and') : state
       case "или": return state[seq] ? state.apply(seq, conj:'or') : state
       case "а":
@@ -318,9 +317,7 @@ class Parser {
       case "их":
         def they = state.newVariable()
         def init = { st -> st.assign(they, 'type', 'THEY') }
-        state = addCtx(state, possessive, possessor:they, init)
-        state = addCtx(state, acc, noun:they, hasNoun:true, init)
-        return state.applyAll(acc, possessive).apply(seq, save: state.history)
+        return conjWrap(state, (possessive):[possessor:they, init:init], (acc):[noun:they, hasNoun:true, init:init])
       case "Они":
       case "они":
         return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'THEY') }

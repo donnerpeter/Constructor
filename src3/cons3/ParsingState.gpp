@@ -9,20 +9,22 @@ class ParsingState {
   final Chart chart
   final Situation situation
   Map<Construction, Map> constructions = [:]
+  Map<Construction, Map> history = [:]
 
   ParsingState(Map map) {
     chart = map.chart
     situation = map.situation
     constructions = Collections.unmodifiableMap((Map)map.constructions)
+    history = Collections.unmodifiableMap((Map)map.history)
   }
 
   ParsingState clone(Map update) {
-    Map current = [chart:chart, situation:situation, constructions:constructions]
+    Map current = [chart:chart, situation:situation, constructions:constructions, history:history]
     current.putAll(update)
     return new ParsingState(current)
   }
 
-  ParsingState withSituation(Situation situation) { clearConstructions().clone(situation:situation) }
+  ParsingState withSituation(Situation situation) { clearConstructions().clone(situation:situation, history:[:]) }
 
   Variable newVariable() {
     new Variable()
@@ -60,7 +62,7 @@ class ParsingState {
   }
 
   ParsingState inhibit(Construction name) {
-    def state = satisfied(name)
+    def state = removeConstruction(name)
 
     def freed = [] as Set
     state.constructions.keySet().each {
@@ -72,6 +74,10 @@ class ParsingState {
   }
 
   ParsingState satisfied(Construction name) {
+    return removeConstruction(name).clone(history: (history + [(name): constructions[name]]))
+  }
+
+  private ParsingState removeConstruction(Construction name) {
     def newConstructions = new HashMap(constructions)
     newConstructions.remove(name)
     return clone(constructions: newConstructions)

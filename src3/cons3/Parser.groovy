@@ -6,7 +6,7 @@ package cons3
 class Parser {
 
   Chart parse(String text, debug = false) {
-    ParsingState state = new ParsingState(chart: new Chart(), situation: new Situation(), participants:[:], constructions:[:])
+    ParsingState state = new ParsingState(chart: new Chart(), situation: new Situation(), participants:[:], constructions:[:], history:[:])
     def tokenizer = new StringTokenizer(text, """ '":,.""", true)
     for (String w in tokenizer) {
       if (w != ' ') {

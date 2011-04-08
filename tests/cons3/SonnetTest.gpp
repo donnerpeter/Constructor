@@ -226,7 +226,7 @@ E.name=Бассейная
   }
 
   public void testParse6() throws Exception {
-    doParseTest "Кассирша грустно улыбнулась, вынула изо рта маленький молоточек", """
+    doParseTest "Кассирша грустно улыбнулась, вынула изо рта маленький молоточек и, слегка подвигав носом, сказала:", """
 A.type=CASHIER
 B.manner=SADLY
 B.type=SMILE
@@ -238,7 +238,15 @@ C.source=D
 D.type=MOUTH
 E.size=LITTLE
 C.arg2=E
-E.type=HAMMER"""
+E.type=HAMMER
+F.manner=SLIGHTLY
+F.type=MOVE
+G.type=NOSE
+F.arg2=G
+H.type=SAY
+H.background=perfect
+H.arg1=A
+"""
   }
 
   public void testTranslate1() throws Exception {

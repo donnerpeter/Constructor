@@ -58,7 +58,12 @@ class Parser {
     }
     return handleCase(gen, state, args)
   }
-  Construction instr = cxt('instr') { ParsingState state, Map args -> handleCase(instr, state, args) }
+  Construction instr = cxt('instr') { ParsingState state, Map args ->
+    if (args.head?.frame(state.chart)?.type && args.noun) {
+      state = state.assign(args.head, 'arg2', args.noun)
+    }
+    handleCase(instr, state, args)
+  }
   Construction dat = cxt('dat') { ParsingState state, Map args -> handleCase(dat, state, args) }
   Construction prep = cxt('prep') { ParsingState state, Map args -> handleCase(prep, state, args) }
   Construction sInstr = cxt('sInstr') { ParsingState state, Map args ->
@@ -154,6 +159,9 @@ class Parser {
       state = state.assign(corner, 'type', 'CORNER')
       return state.assign(args.head, 'location', corner)
     }
+    return state
+  }
+  Construction directSpeech = cxt('directSpeech') { ParsingState state, Map args ->
     return state
   }
 
@@ -304,6 +312,10 @@ class Parser {
       case 'на': return state.apply(atCorner)
       case "мной": return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'ME') }
       case ":":
+        if (state[directSpeech]) {
+          return state //todo construction handling of elaboration and direct speech
+        }
+
         def elaboration = new Situation()
         state = state.assign(situation, 'elaboration', elaboration)
         return state.withSituation(elaboration)
@@ -333,6 +345,7 @@ class Parser {
       case "соседям": return noun(state, dat) { st, noun -> st.assign(noun, 'type', 'NEIGHBOURS') }
       case "кассиршу": return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'CASHIER').assign(noun, 'given', 'false') }
       case "Кассирша": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'CASHIER') }
+      case "носом": return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'NOSE') }
       case "порядок":
         def noun = state.newVariable()
         state = state.apply(acc, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'ORDER') }
@@ -345,6 +358,9 @@ class Parser {
           return state.assign(verb, 'manner', 'SUDDENLY').apply(nom, head:verb)
         }
         return state
+      case "слегка":
+        def verb = state.newVariable()
+        return state.assign(verb, 'manner', 'SLIGHTLY').apply(instr, head:verb) //todo a generic verb/participle place
       case "грустно":
         if (state[nom]) {
           def verb = state.newVariable()
@@ -416,10 +432,18 @@ class Parser {
         def verb = state[nom]?.head ?: state.newVariable()
         state = state.assign(verb, 'type', 'SMILE').assign(situation, 'time', 'PAST')
         return conjWrap(state, (nom):[head:verb])
+      case "сказала":
+        def verb = state[nom]?.head ?: state.newVariable()
+        state = state.assign(verb, 'type', 'SAY').assign(verb, 'background', 'perfect')
+        return conjWrap(state, (nom):[head:verb], (directSpeech):[head:verb])
       case "вынула":
         def verb = state[nom]?.head ?: state.newVariable()
         state = state.assign(verb, 'type', 'TAKE_OUT').assign(situation, 'time', 'PAST')
         return conjWrap(state, (nom):[head:verb], (acc):[head:verb], (izGen):[head:verb])
+      case "подвигав":
+        def verb = state[instr]?.head ?: state.newVariable()
+        state = state.assign(verb, 'type', 'MOVE').assign(situation, 'time', 'PAST')
+        return conjWrap(state, (instr):[head:verb])
       case "вспомнить":
         def verb = state.newVariable()
         state = state.apply(control, slave:verb)

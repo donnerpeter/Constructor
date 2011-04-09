@@ -239,6 +239,7 @@ D.type=MOUTH
 E.size=LITTLE
 C.arg2=E
 E.type=HAMMER
+E.given=false
 F.manner=SLIGHTLY
 F.type=MOVE
 G.type=NOSE
@@ -279,6 +280,11 @@ H.arg1=A
   public void testTranslate5() throws Exception {
     doTranslateTest 'Мы все пошли в коммерческий магазин "Гастроном", что на углу Знаменской и Бассейной улицы, и спросили кассиршу о нашем недоумении',
                     "We all went to a commercial grocery store, the one that's on the corner of Znamenskaya and Basseinaya streets to consult a cashier on our predicament"
+  }
+
+  public void testTranslate6() throws Exception {
+    doTranslateTest 'Кассирша грустно улыбнулась, вынула изо рта маленький молоточек и, слегка подвигав носом, сказала:',
+                    "The cashier gave us a sad smile, took a small hammer out of her mouth, and moving her nose slightly back and forth, she said:"
   }
 
   static void doTranslateTest(String input, String expected) {

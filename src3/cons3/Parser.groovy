@@ -291,7 +291,7 @@ class Parser {
       case "рта":
         return noun(state, gen) { st, noun -> st.assign(noun, 'type', 'MOUTH') }
       case "молоточек":
-        return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'HAMMER') }
+        return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'HAMMER').assign(noun, 'given', 'false') }
       case "улицы":
         return noun(state, gen) { st, noun -> st.assign(noun, 'type', 'STREET') }
       case "углу":  //todo plain noun

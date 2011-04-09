@@ -17,7 +17,7 @@ class EnglishGenerator {
 
     String result = ""
     for (w in output) {
-      if (!result.empty && !(w in ['.', ','])) {
+      if (!result.empty && !(w in ['.', ',', ':'])) {
         result += " "
       }
       result += w
@@ -63,7 +63,7 @@ class EnglishGenerator {
         return
       }
 
-      List<Frame> allVerbs = chart.frames(situation).findAll { it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY', 'GO_OFF', 'ASK', 'DISCOVER', 'ALSO', 'REMEMBER', 'GO'] }
+      List<Frame> allVerbs = chart.frames(situation).findAll { it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY', 'GO_OFF', 'ASK', 'DISCOVER', 'ALSO', 'REMEMBER', 'GO', 'SMILE', 'TAKE_OUT', 'SAY'] }
       def verb = allVerbs[0]
       if (!verb) {
         def wh = sitFrame.f('wh')
@@ -81,7 +81,24 @@ class EnglishGenerator {
         if (allVerbs[0].type == 'GO_OFF') {
           out "and"
           clause(allVerbs[1])
-        } else {
+        } else if (allVerbs[0].type == 'SMILE') {
+          out ','
+          clause(allVerbs[1])
+          out ','
+          out 'and'
+          out 'moving'
+          out 'her'
+          out 'nose'
+          out 'slightly'
+          out 'back'
+          out 'and'
+          out 'forth'
+          out ','
+          out 'she'
+          clause(allVerbs[2])
+          out ':'
+        }
+        else {
           out 'to'
           out 'consult'
           np(allVerbs[1].f('arg2'), false)
@@ -115,9 +132,16 @@ class EnglishGenerator {
         out 'suddenly'
       }
       def type = verb.type
-      if (type != 'ALSO') {
+      if (type == 'SMILE') {
+        out 'gave'
+        out 'us'
+        out 'a'
+        out 'sad'
+        out 'smile'
+      }
+      else if (type != 'ALSO') {
         def verbs = [HAPPEN: 'happened', FORGET: 'forgot', COME_SCALARLY: 'comes first', GO_OFF: 'went',
-                ASK: 'asked', DISCOVER: 'discovered', CAN: "couldn't", RECALL:'recall',
+                ASK: 'asked', DISCOVER: 'discovered', CAN: "couldn't", RECALL:'recall', TAKE_OUT:"took", SAY: 'said',
                 REMEMBER:(past ? 'remembered' : 'remember'), GO:'went']
         out(verbs[type])
       }
@@ -131,6 +155,12 @@ class EnglishGenerator {
       if (io) {
         out "to"
         np(io, false)
+      }
+
+      if (verb.type == 'TAKE_OUT') {
+        out 'out'
+        out 'of'
+        np(verb.f('source'), false)
       }
 
       if (verb.type == 'HAPPEN') {
@@ -241,6 +271,9 @@ class EnglishGenerator {
       if (n.s('kind') == 'COMMERCIAL') {
         out "commercial"
       }
+      if (n.s('size') == 'LITTLE') {
+        out "small"
+      }
       def criterion = n.f('criterion')
       if (criterion) {
         out noun(criterion.type)
@@ -297,6 +330,10 @@ class EnglishGenerator {
         out 'my' //todo using the actual inferred model information
         return
       }
+      if (n.type == 'MOUTH') {
+        out 'her'
+        return
+      }
 
       if (n.s('given') != 'false') {
         out 'the'
@@ -331,6 +368,9 @@ class EnglishGenerator {
       case 'CASHIER': return 'cashier'
       case 'CORNER': return 'corner'
       case 'PREDICAMENT': return 'predicament'
+      case 'HAMMER': return 'hammer'
+      case 'MOUTH': return 'mouth'
+      case 'NOSE': return 'nose'
       default: return type
     }
 

@@ -77,12 +77,14 @@ class EnglishGenerator {
 
       int i = 0
       while (i < allVerbs.size()) {
+        int start = i
+
         def bg = null
         if (allVerbs[i].s('background')) {
           bg = allVerbs[i++]
         }
 
-        if (i > 0) {
+        if (start > 0) {
           if (i == allVerbs.size() - 1) {
             if (i > 1) out ","
             out "and"
@@ -102,11 +104,10 @@ class EnglishGenerator {
           out 'and'
           out 'forth'
           out ','
-          out 'she'
         }
 
         def cur = allVerbs[i++]
-        clause(cur)
+        clause(cur, !hasSubject || bg != null)
         def next = allVerbs[i]
         if (next) {
           if (cur.type == 'GO' && next.type == 'ASK') {
@@ -134,11 +135,15 @@ class EnglishGenerator {
       }
     }
 
-    private void clause(Frame verb) {
+    private void clause(Frame verb, boolean shouldHaveSubject) {
       def subj = verb.f('arg1')
-      if (!hasSubject) {
+      if (shouldHaveSubject) {
         assert subj : "$verb; " + situation.presentable(chart)
-        np(subj, true)
+        if (hasSubject) {
+          out 'she'
+        } else {
+          np(subj, true)
+        }
         hasSubject = true
       }
 
@@ -207,7 +212,7 @@ class EnglishGenerator {
 
         new SituationGenerator(chart, (Situation)theme.var, false).sentence()
       } else if (theme && verb.type in ['CAN', 'ALSO']) {
-        clause(theme)
+        clause(theme, false)
       }
 
       def elaboration = sitFrame.f('elaboration')

@@ -85,9 +85,9 @@ D.member=F
                     "The cashier gave us a smile and said:"
   }
 
-  public void _test6_x1() throws Exception {
+  public void test6_23() throws Exception {
     doTranslateTest 'Кассирша вынула изо рта молоточек и, подвигав носом, сказала:',
-                    "The cashier gave us a sad smile, took a small hammer out of her mouth, and moving her nose slightly back and forth, she said:"
+                    "The cashier took a hammer out of her mouth, and moving her nose back and forth, she said:"
   }
 
   public void _test6_x1x() throws Exception {

@@ -95,7 +95,9 @@ class EnglishGenerator {
           out 'moving'
           out 'her'
           out 'nose'
-          out 'slightly'
+          if (bg.s('manner') == 'SLIGHTLY') {
+            out 'slightly'
+          }
           out 'back'
           out 'and'
           out 'forth'

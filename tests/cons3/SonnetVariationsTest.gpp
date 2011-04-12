@@ -75,14 +75,14 @@ D.member=F
     doTranslateTest "Они забыли 4 и 5", "They forgot 4 and 5"
   }
 
-  public void _test6_x() throws Exception {
+  public void test6_Shorter() throws Exception {
     doTranslateTest 'Кассирша улыбнулась, вынула изо рта молоточек и сказала:',
-                    "The cashier gave us a sad smile, took a small hammer out of her mouth, and moving her nose slightly back and forth, she said:"
+                    "The cashier gave us a smile, took a hammer out of her mouth, and said:"
   }
 
-  public void _test6_xx() throws Exception {
+  public void _test6_13() throws Exception {
     doTranslateTest 'Кассирша улыбнулась и сказала:',
-                    "The cashier gave us a sad smile, took a small hammer out of her mouth, and moving her nose slightly back and forth, she said:"
+                    "The cashier gave us a smile and said:"
   }
 
   public void _test6_x1() throws Exception {

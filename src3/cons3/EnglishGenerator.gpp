@@ -86,15 +86,17 @@ class EnglishGenerator {
           clause(allVerbs[1])
           out ','
           out 'and'
-          out 'moving'
-          out 'her'
-          out 'nose'
-          out 'slightly'
-          out 'back'
-          out 'and'
-          out 'forth'
-          out ','
-          out 'she'
+          if (chart.frames(situation).find { it.type == 'MOVE' && it.s('background') }) {
+            out 'moving'
+            out 'her'
+            out 'nose'
+            out 'slightly'
+            out 'back'
+            out 'and'
+            out 'forth'
+            out ','
+            out 'she'
+          }
           clause(allVerbs[2])
           out ':'
         }
@@ -136,7 +138,9 @@ class EnglishGenerator {
         out 'gave'
         out 'us'
         out 'a'
-        out 'sad'
+        if (verb.s('manner') == 'SADLY') {
+          out 'sad'
+        }
         out 'smile'
       }
       else if (type != 'ALSO') {

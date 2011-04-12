@@ -242,10 +242,10 @@ E.type=HAMMER
 E.given=false
 F.manner=SLIGHTLY
 F.type=MOVE
+F.background=perfect
 G.type=NOSE
 F.arg2=G
 H.type=SAY
-H.background=perfect
 H.arg1=A
 """
   }

@@ -434,7 +434,7 @@ class Parser {
         return conjWrap(state, (nom):[head:verb])
       case "сказала":
         def verb = state[nom]?.head ?: state.newVariable()
-        state = state.assign(verb, 'type', 'SAY').assign(verb, 'background', 'perfect')
+        state = state.assign(verb, 'type', 'SAY').assign(situation, 'time', 'PAST')
         return conjWrap(state, (nom):[head:verb], (directSpeech):[head:verb])
       case "вынула":
         def verb = state[nom]?.head ?: state.newVariable()
@@ -442,7 +442,7 @@ class Parser {
         return conjWrap(state, (nom):[head:verb], (acc):[head:verb], (izGen):[head:verb])
       case "подвигав":
         def verb = state[instr]?.head ?: state.newVariable()
-        state = state.assign(verb, 'type', 'MOVE').assign(situation, 'time', 'PAST')
+        state = state.assign(verb, 'type', 'MOVE').assign(verb, 'background', 'perfect')
         return conjWrap(state, (instr):[head:verb])
       case "вспомнить":
         def verb = state.newVariable()

@@ -95,9 +95,9 @@ D.member=F
                     "Moving her nose slightly back and forth, the cashier said:"
   }
 
-  public void _test6_x1xd() throws Exception {
+  public void test6_Jaw() throws Exception {
     doTranslateTest 'Кассирша, слегка подвигав челюстью, сказала:',
-                    "The cashier gave us a sad smile, took a small hammer out of her mouth, and moving her nose slightly back and forth, she said:"
+                    "Moving her jaw slightly back and forth, the cashier said:"
   }
 
 

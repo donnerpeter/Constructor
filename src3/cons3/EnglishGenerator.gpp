@@ -95,8 +95,7 @@ class EnglishGenerator {
 
         if (bg) {
           out 'moving'
-          out 'her'
-          out 'nose'
+          np(bg.f('arg2'), false)
           if (bg.s('manner') == 'SLIGHTLY') {
             out 'slightly'
           }
@@ -355,7 +354,7 @@ class EnglishGenerator {
         out 'my' //todo using the actual inferred model information
         return
       }
-      if (n.type == 'MOUTH') {
+      if (n.type in ['MOUTH', 'NOSE', 'JAW']) {
         out 'her'
         return
       }
@@ -396,6 +395,7 @@ class EnglishGenerator {
       case 'HAMMER': return 'hammer'
       case 'MOUTH': return 'mouth'
       case 'NOSE': return 'nose'
+      case 'JAW': return 'jaw'
       default: return type
     }
 

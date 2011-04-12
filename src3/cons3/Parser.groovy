@@ -346,6 +346,7 @@ class Parser {
       case "кассиршу": return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'CASHIER').assign(noun, 'given', 'false') }
       case "Кассирша": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'CASHIER') }
       case "носом": return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'NOSE') }
+      case "челюстью": return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'JAW') }
       case "порядок":
         def noun = state.newVariable()
         state = state.apply(acc, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'ORDER') }

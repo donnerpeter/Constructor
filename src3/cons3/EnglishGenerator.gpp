@@ -63,7 +63,7 @@ class EnglishGenerator {
         return
       }
 
-      List<Frame> allVerbs = chart.frames(situation).findAll { it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY', 'GO_OFF', 'ASK', 'DISCOVER', 'ALSO', 'REMEMBER', 'GO', 'SMILE', 'TAKE_OUT', 'SAY'] }
+      List<Frame> allVerbs = chart.frames(situation).findAll { it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY', 'GO_OFF', 'ASK', 'DISCOVER', 'ALSO', 'REMEMBER', 'GO', 'SMILE', 'TAKE_OUT', 'SAY', 'MOVE'] }
       def verb = allVerbs[0]
       if (!verb) {
         def wh = sitFrame.f('wh')
@@ -75,39 +75,49 @@ class EnglishGenerator {
         return
       }
 
-      clause(verb)
-
-      if (allVerbs.size() > 1) {
-        if (allVerbs[0].type == 'GO_OFF') {
-          out "and"
-          clause(allVerbs[1])
-        } else if (allVerbs[0].type == 'SMILE') {
-          out ','
-          clause(allVerbs[1])
-          out ','
-          out 'and'
-          if (chart.frames(situation).find { it.type == 'MOVE' && it.s('background') }) {
-            out 'moving'
-            out 'her'
-            out 'nose'
-            out 'slightly'
-            out 'back'
-            out 'and'
-            out 'forth'
-            out ','
-            out 'she'
-          }
-          clause(allVerbs[2])
-          out ':'
+      int i = 0
+      while (i < allVerbs.size()) {
+        def bg = null
+        if (allVerbs[i].s('background')) {
+          bg = allVerbs[i++]
         }
-        else {
-          out 'to'
-          out 'consult'
-          np(allVerbs[1].f('arg2'), false)
-          out 'on'
-          np(allVerbs[1].f('topic'), false)
+
+        if (i > 0) {
+          if (i == allVerbs.size() - 1) {
+            if (i > 1) out ","
+            out "and"
+          } else {
+            out ","
+          }
+        }
+
+        if (bg) {
+          out 'moving'
+          out 'her'
+          out 'nose'
+          out 'slightly'
+          out 'back'
+          out 'and'
+          out 'forth'
+          out ','
+          out 'she'
+        }
+
+        def cur = allVerbs[i++]
+        clause(cur)
+        def next = allVerbs[i]
+        if (next) {
+          if (cur.type == 'GO' && next.type == 'ASK') {
+            out 'to'
+            out 'consult'
+            np(allVerbs[1].f('arg2'), false)
+            out 'on'
+            np(allVerbs[1].f('topic'), false)
+            i++
+          }
         }
       }
+
 
       if (sitFrame.f('but')) {
         out ','
@@ -209,6 +219,10 @@ class EnglishGenerator {
       if (variants) {
         out '-'
         npseq(variants)
+      }
+
+      if (verb.type == 'SAY') {
+        out ':'
       }
     }
 

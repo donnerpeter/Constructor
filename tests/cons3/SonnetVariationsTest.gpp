@@ -80,7 +80,7 @@ D.member=F
                     "The cashier gave us a smile, took a hammer out of her mouth, and said:"
   }
 
-  public void _test6_13() throws Exception {
+  public void test6_13() throws Exception {
     doTranslateTest 'Кассирша улыбнулась и сказала:',
                     "The cashier gave us a smile and said:"
   }

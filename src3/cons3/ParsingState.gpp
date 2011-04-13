@@ -125,7 +125,7 @@ class ParsingState {
   }
 
   boolean contradict(Construction name1, Construction name2) {
-    if (name1.name == 'nom' && name2.name == 'acc' && this[name1].noun == this[name2].noun && this[name1].noun) {
+    if (name1.name in ['nom', 'prep', 'vPrep'] && name2.name in ['acc', 'vAcc'] && this[name1].noun == this[name2].noun && this[name1].noun) {
       return true
     }
 

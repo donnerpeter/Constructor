@@ -194,10 +194,10 @@ A.quantifier=ALL
 B.type=GO
 #1.time=PAST
 B.arg1=A
-B.goal=C
 C.kind=COMMERCIAL
 C.type=SHOP
 C.given=false
+B.goal=C
 C.name=Гастроном
 C.relative=#2
 D.type=ASK
@@ -247,6 +247,31 @@ G.type=NOSE
 F.arg2=G
 H.type=SAY
 H.arg1=A
+"""
+  }
+
+  public void testParse7() throws Exception {
+    doParseTest "По-моему, семь идет после восьми в том случае, когда восемь идет после семи", """
+#1.opinion_of=ME
+A.type=7
+#1.time=PRESENT
+B.type=COME_SCALARLY
+B.order=AFTER
+B.arg1=A
+C.type=8
+B.anchor=C
+D.determiner=THAT
+D.type=CASE
+B.condition=D
+D.theme=#2
+--
+A.type=8
+#2.time=PRESENT
+B.type=COME_SCALARLY
+B.order=AFTER
+B.arg1=A
+C.type=7
+B.anchor=C
 """
   }
 

@@ -100,5 +100,40 @@ D.member=F
                     "Moving her jaw slightly back and forth, the cashier said:"
   }
 
+  public void _test7() throws Exception {
+    doTranslateTest 'Семь, по-моему, идет после восьми в том случае, когда восемь идет после семи',
+                    "Moving her jaw slightly back and forth, the cashier said:"
+  }
+
+  public void __test7() throws Exception {
+    doTranslateTest 'Семь идет после восьми в том случае, по-моему, когда восемь идет после семи',
+                    "Moving her jaw slightly back and forth, the cashier said:"
+  }
+
+  public void ___test7() throws Exception {
+    doTranslateTest 'Семь идет раньше восьми в том случае, когда восемь идет раньше семи',
+                    "Moving her jaw slightly back and forth, the cashier said:"
+  }
+
+  public void ____test7() throws Exception {
+    doTranslateTest 'Семь идет раньше восьми в случае, когда восемь идет раньше семи',
+                    "Moving her jaw slightly back and forth, the cashier said:"
+  }
+
+  public void _____test7() throws Exception {
+    doTranslateTest 'Семь идет раньше восьми в случае, если восемь идет раньше семи',
+                    "Moving her jaw slightly back and forth, the cashier said:"
+  }
+
+  public void ______test7() throws Exception {
+    doTranslateTest 'Семь идет раньше восьми, когда восемь идет раньше семи',
+                    "Moving her jaw slightly back and forth, the cashier said:"
+  }
+
+  public void _______test7() throws Exception {
+    doTranslateTest 'Семь идет раньше восьми, если восемь идет раньше семи',
+                    "Moving her jaw slightly back and forth, the cashier said:"
+  }
+
 
 }

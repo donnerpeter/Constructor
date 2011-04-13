@@ -53,8 +53,9 @@ class Parser {
     return handleCase(acc, state, args)
   }
   Construction gen = cxt('gen') { ParsingState state, Map args ->
-    if (args.head?.frame(state.chart)?.type && args.noun) {
-      state = state.assign(args.head, 'arg1', args.noun)
+    def type = args.head?.frame(state.chart)?.type
+    if (type && args.noun) {
+      state = state.assign(args.head, type == 'COME_SCALARLY' ? 'anchor' : 'arg1', args.noun)
     }
     return handleCase(gen, state, args)
   }
@@ -123,7 +124,10 @@ class Parser {
     return state
   }
   Construction vAcc = cxt('vAcc') { ParsingState state, Map args ->
-    args.noun ? state.assign(args.head, 'goal', args.noun) : state
+    args.head && args.noun ? state.assign(args.head, 'goal', args.noun) : state
+  }
+  Construction vPrep = cxt('vPrep') { ParsingState state, Map args ->
+    args.head && args.noun ? state.assign(args.head, 'condition', args.noun) : state
   }
   Construction izGen = cxt('izGen') { ParsingState state, Map args ->
     args.head && args.noun ? state.assign(args.head, 'source', args.noun) : state
@@ -280,7 +284,14 @@ class Parser {
       case "этому":
         def noun = state[dat]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'determiner', val:'THIS').apply(dat, noun:noun)
-      case "случай": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'THING').assign(noun, 'given', 'false') }
+      case "том":
+        def noun = state[prep]?.noun ?: state.newVariable()
+        return state.apply(adjective, nounFrame:noun, rel:'determiner', val:'THAT').apply(prep, noun:noun)
+      case "случай": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'THING').assign(noun, 'given', 'false') } //todo случай=CASE or THING
+      case "случае":
+        def noun = state[prep]?.noun ?: state.newVariable()
+        state = state.apply(prep, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'CASE') }
+        return state.apply(declComp, head:noun) //todo one noun frame - several cases
       case "удивление":
         state = noun(state, nom) { st, noun -> st.assign(noun, 'type', 'AMAZE') }
         return state.apply(declComp, head:state[nom].noun)
@@ -307,7 +318,11 @@ class Parser {
       case 'по': return preposition(state, poDat, dat)
       case 'о': return preposition(state, oPrep, prep)
       case 'к': return preposition(state, kDat, dat)
-      case 'в': return preposition(state, vAcc, acc)
+      case 'в':
+        def noun = state.newVariable()
+        state = state.addCtx(vAcc, noun: noun).addCtx(vPrep, noun: noun).applyAll(vAcc, vPrep)
+        def save = state.constructions
+        return state.clearConstructions().addCtx(acc, save: save, delegate: vAcc, noun:noun).addCtx(prep, save: save, delegate: vPrep, noun:noun).applyAll(acc, prep)
       case 'изо': return preposition(state, izGen, gen)
       case 'на': return state.apply(atCorner)
       case "мной": return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'ME') }
@@ -347,6 +362,10 @@ class Parser {
       case "Кассирша": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'CASHIER') }
       case "носом": return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'NOSE') }
       case "челюстью": return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'JAW') }
+      case "семь": return noun(state, nom) { st, noun -> st.assign(noun, 'type', '7') }
+      case "семи": return noun(state, gen) { st, noun -> st.assign(noun, 'type', '7') }
+      case "восемь": return noun(state, nom) { st, noun -> st.assign(noun, 'type', '8') }
+      case "восьми": return noun(state, gen) { st, noun -> st.assign(noun, 'type', '8') }
       case "порядок":
         def noun = state.newVariable()
         state = state.apply(acc, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'ORDER') }
@@ -491,11 +510,17 @@ class Parser {
       case "идёт":
         Variable verb = state.newVariable()
         state = state.assign(situation, 'time', 'PRESENT')
-        return state.apply(nom, head:verb).apply(comeScalarly, verb:verb)
+        return state.apply(nom, head:verb).apply(comeScalarly, verb:verb).apply(vPrep, head:verb)
       case "раньше":
         def cs = state[comeScalarly]
         if (cs) {
           return state.apply(comeScalarly, order:'EARLIER').apply(nom)
+        }
+        return state
+      case "после":
+        def cs = state[comeScalarly]
+        if (cs) {
+          return state.apply(comeScalarly, order:'AFTER').apply(nom).apply(gen, head:cs.verb)
         }
         return state
       case "-":
@@ -512,6 +537,8 @@ class Parser {
       case 'было':
         def noun = state.newVariable()
         return state.apply(shortAdjCopula, time:'PAST', noun: noun).apply(nom, noun:noun)
+      case 'По-моему':
+        return state.assign(state.situation, 'opinion_of', 'ME')
       case '"':
         if (state[quotedName]) {
           if (state[quotedName].started) {

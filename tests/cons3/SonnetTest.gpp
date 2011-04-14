@@ -312,6 +312,11 @@ B.anchor=C
                     "The cashier gave us a sad smile, took a small hammer out of her mouth, and moving her nose slightly back and forth, she said:"
   }
 
+  public void testTranslate7() throws Exception {
+    doTranslateTest 'По-моему, семь идет после восьми в том случае, когда восемь идет после семи',
+                    "In my opinion, a seven comes after an eight, only if an eight comes after a seven"
+  }
+
   static void doTranslateTest(String input, String expected) {
     def chart = new Parser().parse(input)
     def actual = new EnglishGenerator().generate(chart)

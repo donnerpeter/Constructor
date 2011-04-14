@@ -51,6 +51,14 @@ class EnglishGenerator {
         past = true //todo maintain a tense for the whole discourse
       }
 
+      def opinion = sitFrame.s('opinion_of')
+      if (opinion) {
+        out 'in'
+        out 'my'
+        out 'opinion'
+        out ','
+      }
+
 
       def excl = sitFrame.f('exclamation')
       if (excl) {
@@ -159,10 +167,19 @@ class EnglishGenerator {
         }
         out 'smile'
       }
+      else if (type == 'COME_SCALARLY') {
+        out 'comes'
+        if (verb.s('order') == 'EARLIER') {
+          out 'first'
+        } else if (verb.s('order') == 'AFTER') {
+          out 'after'
+          np(verb.f('anchor'), false)
+        }
+      }
       else if (type != 'ALSO') {
-        def verbs = [HAPPEN: 'happened', FORGET: 'forgot', COME_SCALARLY: 'comes first', GO_OFF: 'went',
-                ASK: 'asked', DISCOVER: 'discovered', CAN: "couldn't", RECALL:'recall', TAKE_OUT:"took", SAY: 'said',
-                REMEMBER:(past ? 'remembered' : 'remember'), GO:'went']
+        def verbs = [HAPPEN: 'happened', FORGET: 'forgot', GO_OFF: 'went',
+                ASK: 'asked', DISCOVER: 'discovered', CAN: "couldn't", RECALL: 'recall', TAKE_OUT: "took", SAY: 'said',
+                REMEMBER: (past ? 'remembered' : 'remember'), GO: 'went']
         out(verbs[type])
       }
 
@@ -226,6 +243,15 @@ class EnglishGenerator {
         out '-'
         npseq(variants)
       }
+
+      if (verb.f('condition')) {
+        out ','
+        out 'only'
+        out 'if'
+        def generator = new SituationGenerator(chart, (Situation) verb.f('condition').f('theme').var, false)
+        generator.sentence()
+      }
+
 
       if (verb.type == 'SAY') {
         out ':'
@@ -359,6 +385,9 @@ class EnglishGenerator {
         return
       }
 
+      if (n.type == '7') { out 'a'; return }
+      if (n.type == '8') { out 'an'; return }
+
       if (n.s('given') != 'false') {
         out 'the'
         return
@@ -396,6 +425,8 @@ class EnglishGenerator {
       case 'MOUTH': return 'mouth'
       case 'NOSE': return 'nose'
       case 'JAW': return 'jaw'
+      case '7': return 'seven'
+      case '8': return 'eight'
       default: return type
     }
 

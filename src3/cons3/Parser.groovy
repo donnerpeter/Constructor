@@ -104,6 +104,9 @@ class Parser {
     }
     return args.time ? state.assign(args.situation, 'time', args.time) : state
   }
+  Construction parenthetical = cxt('parenthetical') { ParsingState state, Map args ->
+    return state
+  }
   Construction possessive = cxt('possessive') { ParsingState state, Map args ->
     return args.head?.frame(state.chart)?.type ? state.assign(args.head, 'arg1', args.possessor) : state
   }
@@ -111,7 +114,7 @@ class Parser {
     return args.slave ? state.assign(args.head, 'theme', args.slave) : state
   }
   Construction declComp = cxt('declComp') { ParsingState state, Map args ->
-    if (args.hasComma && !args.comp && args.head) {
+    if (args.hasComma && !args.comp && args.head && args.wh) {
       def next = new Situation()
       state = state.assign(args.head, 'theme', next).withSituation(next).apply(declComp, comp:next)
     }
@@ -362,6 +365,7 @@ class Parser {
       case "Кассирша": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'CASHIER') }
       case "носом": return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'NOSE') }
       case "челюстью": return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'JAW') }
+      case "Семь":
       case "семь": return noun(state, nom) { st, noun -> st.assign(noun, 'type', '7') }
       case "семи": return noun(state, gen) { st, noun -> st.assign(noun, 'type', '7') }
       case "восемь": return noun(state, nom) { st, noun -> st.assign(noun, 'type', '8') }
@@ -488,7 +492,14 @@ class Parser {
         if (state[nestedClause]) {
           state = state.withSituation(state[nestedClause].parent).clearConstructions().restore(state[nestedClause].save).satisfied(nestedClause)
         }
+        if (state[parenthetical]?.hasComma) {
+          state = state.satisfied(parenthetical)
+        } else {
+          state = state.apply(parenthetical, hasComma:true)
+        }
         return state
+      case "когда":
+        return state.apply(declComp, wh:'when')
       case "что":
         def noun = state.newVariable()
         if (state[question]) {
@@ -501,6 +512,7 @@ class Parser {
                   addCtx(acc, noun:noun, hasNoun:'true').
                   applyAll(nom, acc)
         }
+        state = state.apply(declComp, wh:'what')
         if (state[relativeClause]?.hasComma) {
           def wh = new Variable()
           state = state.apply(relativeClause, wh:wh).apply(atCorner, head:wh) //todo pp copula
@@ -538,7 +550,8 @@ class Parser {
         def noun = state.newVariable()
         return state.apply(shortAdjCopula, time:'PAST', noun: noun).apply(nom, noun:noun)
       case 'По-моему':
-        return state.assign(state.situation, 'opinion_of', 'ME')
+      case 'по-моему':
+        return state.assign(state.situation, 'opinion_of', 'ME').apply(parenthetical)
       case '"':
         if (state[quotedName]) {
           if (state[quotedName].started) {

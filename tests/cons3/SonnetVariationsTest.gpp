@@ -115,9 +115,9 @@ D.member=F
                     "A seven comes before an eight, only if an eight comes before a seven"
   }
 
-  public void ____test7() throws Exception {
+  public void test7_JustCaseNotThat() throws Exception {
     doTranslateTest 'Семь идет раньше восьми в случае, когда восемь идет раньше семи',
-                    "Moving her jaw slightly back and forth, the cashier said:"
+                    "A seven comes before an eight, only if an eight comes before a seven"
   }
 
   public void _____test7() throws Exception {

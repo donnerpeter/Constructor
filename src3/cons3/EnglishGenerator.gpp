@@ -68,6 +68,7 @@ class EnglishGenerator {
         if (a) {
           np(a.frame, true)
         }
+        clauseEnd()
         return
       }
 
@@ -237,12 +238,7 @@ class EnglishGenerator {
         clause(theme, false)
       }
 
-      def elaboration = sitFrame.f('elaboration')
-      if (elaboration?.var instanceof Situation) {
-        out ","
-        new SituationGenerator(chart, (Situation)elaboration.var, false).sentence()
-      }
-
+      clauseEnd()
 
       def variants = subj?.f('variants')
       if (variants) {
@@ -250,19 +246,34 @@ class EnglishGenerator {
         npseq(variants)
       }
 
-      if (verb.f('condition')) {
-        out ','
-        out 'only'
-        out 'if'
-        def generator = new SituationGenerator(chart, (Situation) verb.f('condition').f('theme').var, false)
-        generator.sentence()
-      }
-
-
       if (verb.type == 'SAY') {
         out ':'
       }
     }
+
+    def clauseEnd() {
+      def elaboration = sitFrame.f('elaboration')
+      if (elaboration?.var instanceof Situation) {
+        out ","
+        new SituationGenerator(chart, (Situation)elaboration.var, false).sentence()
+      }
+
+      def condition = sitFrame.f('condition')
+      if (condition) {
+        out ','
+        out 'only'
+        out 'if'
+        new SituationGenerator(chart, (Situation) (condition.f('whenCondition') ?: condition.f('ifCondition')).var, false).sentence()
+      }
+
+      def condComp = sitFrame.f('ifCondition') ?: sitFrame.f('whenCondition')
+      if (condComp) {
+        out ','
+        out(sitFrame.f('ifCondition') ? 'if' : 'when')
+        new SituationGenerator(chart, (Situation) condComp.var, false).sentence()
+      }
+    }
+
 
     def npseq(Frame _seq) {
       seq(_seq) { np(it, true) }
@@ -340,15 +351,6 @@ class EnglishGenerator {
         out 'store'
       } else {
         out noun(n.type)
-      }
-
-      if (n.type == 'AMAZE') {
-        def theme = n.f('theme')
-        if (theme?.var instanceof Situation) {
-          out ','
-          out 'when'
-          new SituationGenerator(chart, (Situation) theme.var, false).sentence()
-        }
       }
 
       if (n.type == 'CORNER') {

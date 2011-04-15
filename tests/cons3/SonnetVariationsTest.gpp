@@ -125,14 +125,14 @@ D.member=F
                     "A seven comes before an eight, only if an eight comes before a seven"
   }
 
-  public void ______test7() throws Exception {
+  public void test7_NoCaseWhen() throws Exception {
     doTranslateTest 'Семь идет раньше восьми, когда восемь идет раньше семи',
-                    "Moving her jaw slightly back and forth, the cashier said:"
+                    "A seven comes before an eight, when an eight comes before a seven"
   }
 
-  public void _______test7() throws Exception {
+  public void test7_NoCaseIf() throws Exception {
     doTranslateTest 'Семь идет раньше восьми, если восемь идет раньше семи',
-                    "Moving her jaw slightly back and forth, the cashier said:"
+                    "A seven comes before an eight, if an eight comes before a seven"
   }
 
 

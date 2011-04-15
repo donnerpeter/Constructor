@@ -114,9 +114,16 @@ class Parser {
     return args.slave ? state.assign(args.head, 'theme', args.slave) : state
   }
   Construction declComp = cxt('declComp') { ParsingState state, Map args ->
-    if (args.hasComma && !args.comp && args.head && args.wh) {
+    if (args.hasComma && !args.comp && args.head && args.complementizer) {
       def next = new Situation()
       state = state.assign(args.head, 'theme', next).withSituation(next).apply(declComp, comp:next)
+    }
+    return state
+  }
+  Construction conditionComp = cxt('conditionComp') { ParsingState state, Map args ->
+    if (args.hasComma && !args.comp && args.head && args.wh) {
+      def next = new Situation()
+      state = state.assign(args.head, "${args.wh}Condition", next).withSituation(next).apply(conditionComp, comp:next)
     }
     return state
   }
@@ -130,7 +137,7 @@ class Parser {
     args.head && args.noun ? state.assign(args.head, 'goal', args.noun) : state
   }
   Construction vPrep = cxt('vPrep') { ParsingState state, Map args ->
-    args.head && args.noun ? state.assign(args.head, 'condition', args.noun) : state
+    args.head && args.noun ? state.assign(state.situation, 'condition', args.noun) : state
   }
   Construction izGen = cxt('izGen') { ParsingState state, Map args ->
     args.head && args.noun ? state.assign(args.head, 'source', args.noun) : state
@@ -294,10 +301,9 @@ class Parser {
       case "случае":
         def noun = state[prep]?.noun ?: state.newVariable()
         state = state.apply(prep, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'CASE') }
-        return state.apply(declComp, head:noun) //todo one noun frame - several cases
+        return state.apply(conditionComp, head:noun) //todo one noun frame - several cases
       case "удивление":
-        state = noun(state, nom) { st, noun -> st.assign(noun, 'type', 'AMAZE') }
-        return state.apply(declComp, head:state[nom].noun)
+        return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'AMAZE') }
       case "поводу":
         return noun(state, dat) { st, noun -> st.assign(noun, 'type', 'MATTER') }
       case "недоумении":
@@ -485,7 +491,11 @@ class Parser {
         state = state.assign(verb, 'type', 'ASK').assign(situation, 'time', 'PAST')
         return conjWrap(state, (acc):[head:verb], (nom):[head:verb], (question):[head:verb], (oPrep):[head:verb])
       case ",":
-        state = state.apply(declComp, hasComma:true).apply(question, hasComma:true).apply(relativeClause, hasComma:true, parentSituation:situation)
+        state = state.
+                apply(declComp, hasComma:true).
+                apply(conditionComp, hasComma:true).
+                apply(question, hasComma:true).
+                apply(relativeClause, hasComma:true, parentSituation:situation)
         if (state[seq]) {
           state = state.apply(seq, hasComma:true)
         }
@@ -499,9 +509,9 @@ class Parser {
         }
         return state
       case "если":
-        return state.apply(declComp, wh:'if')
+        return state.apply(conditionComp, wh:'if')
       case "когда":
-        return state.apply(declComp, wh:'when')
+        return state.apply(conditionComp, wh:'when')
       case "что":
         def noun = state.newVariable()
         if (state[question]) {
@@ -514,7 +524,7 @@ class Parser {
                   addCtx(acc, noun:noun, hasNoun:'true').
                   applyAll(nom, acc)
         }
-        state = state.apply(declComp, wh:'what')
+        state = state.apply(declComp, complementizer:'that')
         if (state[relativeClause]?.hasComma) {
           def wh = new Variable()
           state = state.apply(relativeClause, wh:wh).apply(atCorner, head:wh) //todo pp copula
@@ -524,7 +534,7 @@ class Parser {
       case "идёт":
         Variable verb = state.newVariable()
         state = state.assign(situation, 'time', 'PRESENT')
-        return state.apply(nom, head:verb).apply(comeScalarly, verb:verb).apply(vPrep, head:verb)
+        return state.apply(nom, head:verb).apply(comeScalarly, verb:verb).apply(vPrep, head:verb).apply(conditionComp, head:situation)
       case "раньше":
         def cs = state[comeScalarly]
         if (cs) {
@@ -550,7 +560,7 @@ class Parser {
         return state.apply(shortAdjCopula, pred:degree, situation:state.situation)
       case 'было':
         def noun = state.newVariable()
-        return state.apply(shortAdjCopula, time:'PAST', noun: noun).apply(nom, noun:noun)
+        return state.apply(shortAdjCopula, time:'PAST', noun: noun).apply(nom, noun:noun).apply(conditionComp, head:situation)
       case 'По-моему':
       case 'по-моему':
         return state.assign(state.situation, 'opinion_of', 'ME').apply(parenthetical)

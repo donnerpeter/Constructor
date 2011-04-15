@@ -89,7 +89,7 @@ D.member=C
 D.member=E
 B.type=AMAZE
 B.arg1=D
-B.theme=#2
+#1.whenCondition=#2
 --
 A.type=THEY
 B.manner=SUDDENLY
@@ -127,7 +127,7 @@ D.member=C
 D.member=E
 B.type=AMAZE
 B.arg1=D
-B.theme=#2
+#1.whenCondition=#2
 --
 A.type=THEY
 B.manner=SUDDENLY
@@ -262,8 +262,8 @@ C.type=8
 B.anchor=C
 D.determiner=THAT
 D.type=CASE
-B.condition=D
-D.theme=#2
+#1.condition=D
+D.whenCondition=#2
 --
 A.type=8
 #2.time=PRESENT

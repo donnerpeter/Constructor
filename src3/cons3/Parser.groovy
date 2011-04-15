@@ -526,7 +526,7 @@ class Parser {
       case "раньше":
         def cs = state[comeScalarly]
         if (cs) {
-          return state.apply(comeScalarly, order:'EARLIER').apply(nom)
+          return state.apply(comeScalarly, order:'EARLIER').apply(nom).apply(gen, head:cs.verb)
         }
         return state
       case "после":

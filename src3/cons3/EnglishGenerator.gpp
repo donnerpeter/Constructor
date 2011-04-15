@@ -169,11 +169,17 @@ class EnglishGenerator {
       }
       else if (type == 'COME_SCALARLY') {
         out 'comes'
+        def anchor = verb.f('anchor')
         if (verb.s('order') == 'EARLIER') {
-          out 'first'
+          if (anchor) {
+            out 'before'
+            np(anchor, false)
+          } else {
+            out 'first'
+          }
         } else if (verb.s('order') == 'AFTER') {
           out 'after'
-          np(verb.f('anchor'), false)
+          np(anchor, false)
         }
       }
       else if (type != 'ALSO') {

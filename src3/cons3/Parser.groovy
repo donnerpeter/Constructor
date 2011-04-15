@@ -498,6 +498,8 @@ class Parser {
           state = state.apply(parenthetical, hasComma:true)
         }
         return state
+      case "если":
+        return state.apply(declComp, wh:'if')
       case "когда":
         return state.apply(declComp, wh:'when')
       case "что":

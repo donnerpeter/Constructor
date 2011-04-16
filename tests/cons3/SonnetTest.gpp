@@ -247,6 +247,7 @@ G.type=NOSE
 F.arg2=G
 H.type=SAY
 H.arg1=A
+H.message=#2
 """
   }
 
@@ -274,6 +275,56 @@ C.type=7
 B.anchor=C
 """
   }
+
+  public void testParse6_7() throws Exception {
+    doParseTest """Кассирша грустно улыбнулась, вынула изо рта маленький молоточек и, слегка подвигав носом, сказала:
+- По-моему, семь идет после восьми в том случае, когда восемь идет после семи""", """
+A.type=CASHIER
+B.manner=SADLY
+B.type=SMILE
+#1.time=PAST
+B.arg1=A
+C.type=TAKE_OUT
+C.arg1=A
+C.source=D
+D.type=MOUTH
+E.size=LITTLE
+C.arg2=E
+E.type=HAMMER
+E.given=false
+F.manner=SLIGHTLY
+F.type=MOVE
+F.background=perfect
+G.type=NOSE
+F.arg2=G
+H.type=SAY
+H.arg1=A
+H.message=#2
+--
+#2.opinion_of=ME
+A.type=7
+#2.time=PRESENT
+B.type=COME_SCALARLY
+B.order=AFTER
+B.arg1=A
+C.type=8
+B.anchor=C
+D.determiner=THAT
+D.type=CASE
+#2.condition=D
+D.whenCondition=#3
+--
+A.type=8
+#3.time=PRESENT
+B.type=COME_SCALARLY
+B.order=AFTER
+B.arg1=A
+C.type=7
+B.anchor=C
+
+"""
+  }
+
 
   public void testTranslate1() throws Exception {
     doTranslateTest "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8",
@@ -315,6 +366,13 @@ B.anchor=C
   public void testTranslate7() throws Exception {
     doTranslateTest 'По-моему, семь идет после восьми в том случае, когда восемь идет после семи',
                     "In my opinion, a seven comes after an eight, only if an eight comes after a seven"
+  }
+
+  public void testTranslate6_7() throws Exception {
+    doTranslateTest '''Кассирша грустно улыбнулась, вынула изо рта маленький молоточек и, слегка подвигав носом, сказала:
+- По-моему, семь идет после восьми в том случае, когда восемь идет после семи''',
+                    """The cashier gave us a sad smile, took a small hammer out of her mouth, and moving her nose slightly back and forth, she said:
+- In my opinion, a seven comes after an eight, only if an eight comes after a seven"""
   }
 
   static void doTranslateTest(String input, String expected) {

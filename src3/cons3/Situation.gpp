@@ -18,7 +18,15 @@ class Chart {
   }
 
   List<Situation> getSituations() {
-    __assignments.keySet() as List
+    def result = (__assignments.keySet()) as LinkedHashSet
+    __assignments.values().each {
+      it.each {
+        if (it.value instanceof Situation) {
+          result << (Situation) it.value
+        }
+      }
+    }
+    return result as List
   }
 
   List<Frame> frames(Situation situation) {
@@ -60,7 +68,7 @@ class Chart {
   }
 
   String presentable() {
-    situations.collect { it.presentable(this) }.join("\n--\n")
+    situations.collect { it.presentable(this) }.findAll { it.trim().size() > 0 }.join("\n--\n")
   }
 }
 

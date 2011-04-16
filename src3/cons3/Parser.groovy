@@ -176,6 +176,11 @@ class Parser {
     return state
   }
   Construction directSpeech = cxt('directSpeech') { ParsingState state, Map args ->
+    if (args.head && args.hasColon) {
+      def message = new Situation()
+      state = state.assign(args.head, 'message', message).withSituation(message)
+    }
+
     return state
   }
 
@@ -337,7 +342,8 @@ class Parser {
       case "мной": return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'ME') }
       case ":":
         if (state[directSpeech]) {
-          return state //todo construction handling of elaboration and direct speech
+          //todo construction handling of elaboration and direct speech
+          return state.apply(directSpeech, hasColon:true)
         }
 
         def elaboration = new Situation()
@@ -548,6 +554,9 @@ class Parser {
         }
         return state
       case "-":
+        if (state[directSpeech]) {
+          return state.apply(directSpeech, hasDash:true)
+        }
         if (state[question]) {
           return state.apply(questionVariants, questioned:state[question].questioned)
         }

@@ -10,14 +10,14 @@ class EnglishGenerator {
 
   String generate(Chart chart) {
     chart.situations.each {
-      if (!(it in handled)) {
+      if (!(it in handled) && chart.__assignments[it]) {
         new SituationGenerator(chart, it, true).sentence()
       }
     }
 
     String result = ""
     for (w in output) {
-      if (!result.empty && !(w in ['.', ',', ':'])) {
+      if (!result.empty && !(w in ['.', ',', ':', '\n-'])) {
         result += " "
       }
       result += w
@@ -248,6 +248,11 @@ class EnglishGenerator {
 
       if (verb.type == 'SAY') {
         out ':'
+        def message = (Situation) verb.f('message').var
+        if (chart.__assignments[message]) {
+          out '\n-'
+          new SituationGenerator(chart, message, true).sentence()
+        }
       }
     }
 

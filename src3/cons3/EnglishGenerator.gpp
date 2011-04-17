@@ -72,7 +72,11 @@ class EnglishGenerator {
         return
       }
 
-      List<Frame> allVerbs = chart.frames(situation).findAll { it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY', 'GO_OFF', 'ASK', 'DISCOVER', 'ALSO', 'REMEMBER', 'GO', 'SMILE', 'TAKE_OUT', 'SAY', 'MOVE'] }
+      List<Frame> allVerbs = chart.frames(situation).findAll { it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY',
+              'GO_OFF', 'ASK',
+              'DISCOVER', 'ALSO', 'REMEMBER',
+              'GO', 'SMILE', 'TAKE_OUT', 'SAY', 'MOVE',
+              'THANK', 'RUN_OUT'] }
       def verb = allVerbs[0]
       if (!verb) {
         def wh = sitFrame.f('wh')
@@ -186,7 +190,9 @@ class EnglishGenerator {
       else if (type != 'ALSO') {
         def verbs = [HAPPEN: 'happened', FORGET: 'forgot', GO_OFF: 'went',
                 ASK: 'asked', DISCOVER: 'discovered', CAN: "couldn't", RECALL: 'recall', TAKE_OUT: "took", SAY: 'said',
-                REMEMBER: (past ? 'remembered' : 'remember'), GO: 'went']
+                REMEMBER: (past ? 'remembered' : 'remember'), GO: 'went',
+                RUN_OUT:'ran', THANK:'thanked'
+        ]
         out(verbs[type])
       }
 
@@ -195,13 +201,18 @@ class EnglishGenerator {
         np(dobj, false)
       }
 
+      def mood = verb.f('mood')
+      if (mood) {
+        out 'cheerfully'
+      }
+
       def io = verb.type == 'HAPPEN' ? verb.f('experiencer') : verb.type in ['GO_OFF', 'GO'] ? verb.f('goal') : null
       if (io) {
         out "to"
         np(io, false)
       }
 
-      if (verb.type == 'TAKE_OUT') {
+      if (verb.type in ['TAKE_OUT', 'RUN_OUT']) {
         out 'out'
         out 'of'
         np(verb.f('source'), false)

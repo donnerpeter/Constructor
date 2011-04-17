@@ -95,6 +95,12 @@ D.member=F
                     "We all went to a commercial grocery store on the corner to consult a cashier on our predicament"
   }
 
+  //todo
+  public void _test5_TheCashier() throws Exception {
+    doTranslateTest 'Мы спросили кассиршу о нашем недоумении',
+                    "We consulted the cashier on our predicament"
+  }
+
   public void test5_OnTheCornerOfStreets() throws Exception {
     doTranslateTest 'Мы все пошли в коммерческий магазин "Гастроном", что на углу Знаменской и Бассейной улиц, и спросили кассиршу о нашем недоумении',
                     "We all went to a commercial grocery store, the one that's on the corner of Znamenskaya and Basseinaya streets to consult a cashier on our predicament"

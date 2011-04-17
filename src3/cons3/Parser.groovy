@@ -44,8 +44,12 @@ class Parser {
     return state
   }
   Construction acc = cxt('acc') { ParsingState state, Map args ->
-    if (args.head?.frame(state.chart)?.type && args.noun) {
+    def hdType = args.head?.frame(state.chart)?.type
+    if (hdType && args.noun) {
       state = state.assign(args.head, 'arg2', args.noun)
+      if (hdType == 'THANK') {
+        state = state.assign(args.noun, 'given', 'true')
+      }
       if (args.hasNoun) {
         state = state.satisfied(acc)
       }
@@ -354,6 +358,7 @@ class Parser {
         state = state.addCtx(vAcc, noun: noun).addCtx(vPrep, noun: noun).applyAll(vAcc, vPrep)
         def save = state.constructions
         return state.clearConstructions().addCtx(acc, save: save, delegate: vAcc, noun:noun).addCtx(prep, save: save, delegate: vPrep, noun:noun).applyAll(acc, prep)
+      case 'из':
       case 'изо': return preposition(state, izGen, gen)
       case 'на': return preposition(state, naPrep, prep)
       case "мной": return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'ME') }

@@ -333,10 +333,12 @@ B.arg1=A
 C.type=CASHIER
 C.given=false
 B.arg2=C
+C.given=true
 D.type=JOY
 E.type=RUN_OUT
 E.arg1=A
 E.mood=D
+E.source=F
 F.type=SHOP
 """
   }
@@ -389,6 +391,11 @@ F.type=SHOP
 - По-моему, семь идет после восьми в том случае, когда восемь идет после семи''',
                     """The cashier gave us a sad smile, took a small hammer out of her mouth, and moving her nose slightly back and forth, she said:
 - In my opinion, a seven comes after an eight, only if an eight comes after a seven"""
+  }
+
+  public void testTranslate8() throws Exception {
+    doTranslateTest 'Мы поблагодарили кассиршу и с радостью выбежали из магазина',
+                    "We thanked the cashier and ran cheerfully out of the store"
   }
 
   static void doTranslateTest(String input, String expected) {

@@ -161,5 +161,25 @@ D.member=F
                     "A seven comes before an eight, if an eight comes before a seven"
   }
 
+  public void _test8() throws Exception {
+    doTranslateTest 'Мы поблагодарили кассиршу и с большой радостью выбежали из магазина',
+                    "A seven comes before an eight, if an eight comes before a seven"
+  }
+
+  public void __test8() throws Exception {
+    doTranslateTest 'Мы поблагодарили кассиршу и с облегчением выбежали из магазина',
+                    "A seven comes before an eight, if an eight comes before a seven"
+  }
+
+  public void ___test8() throws Exception {
+    doTranslateTest 'Мы поблагодарили её и с радостью выбежали из магазина',
+                    "A seven comes before an eight, if an eight comes before a seven"
+  }
+
+  public void ____test8() throws Exception {
+    doTranslateTest 'Мы поблагодарили её и выбежали из магазина с радостью',
+                    "A seven comes before an eight, if an eight comes before a seven"
+  }
+
 
 }

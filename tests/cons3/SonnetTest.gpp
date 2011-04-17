@@ -321,7 +321,23 @@ B.order=AFTER
 B.arg1=A
 C.type=7
 B.anchor=C
+"""
+  }
 
+  public void testParse8() throws Exception {
+    doParseTest """Мы поблагодарили кассиршу и с радостью выбежали из магазина""", """
+A.type=WE
+B.type=THANK
+#1.time=PAST
+B.arg1=A
+C.type=CASHIER
+C.given=false
+B.arg2=C
+D.type=JOY
+E.type=RUN_OUT
+E.arg1=A
+E.mood=D
+F.type=SHOP
 """
   }
 

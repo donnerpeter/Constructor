@@ -68,7 +68,15 @@ class Parser {
   Construction dat = cxt('dat') { ParsingState state, Map args -> handleCase(dat, state, args) }
   Construction prep = cxt('prep') { ParsingState state, Map args -> handleCase(prep, state, args) }
   Construction sInstr = cxt('sInstr') { ParsingState state, Map args ->
-    args.noun ? state.assign(args.head, 'experiencer', args.noun) : state
+    if (args.head && args.noun) {
+      if ( args.noun.frame(state.chart)?.type == 'JOY') {
+        state = state.assign(args.head, 'mood', args.noun)
+      } else {
+        state = state.assign(args.head, 'experiencer', args.noun)
+      }
+    }
+
+    return state
   }
   Construction poDat = cxt('poDat') { ParsingState state, Map args ->
     args.noun && args.head ? state.assign(args.head, 'topic', args.noun) : state
@@ -312,6 +320,8 @@ class Parser {
         return noun(state, gen) { st, noun -> st.assign(noun, 'type', 'MOUTH') }
       case "молоточек":
         return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'HAMMER').assign(noun, 'given', 'false') }
+      case "радостью":
+        return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'JOY') }
       case "улицы":
         return noun(state, gen) { st, noun -> st.assign(noun, 'type', 'STREET') }
       case "углу":  //todo plain noun
@@ -324,11 +334,18 @@ class Parser {
         state = state.apply(naPrep, head:noun)
         state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
         return state //todo one noun frame - several cases
+      case "магазина":
+        def noun = state[gen]?.noun ?: state.newVariable()
+        state = state.apply(gen, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'SHOP') }
+        state = state.apply(naPrep, head:noun)
+        state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
+        return state //todo one noun frame - several cases
       case "случился":
         Variable verb = state.newVariable()
         state = state.assign(verb, 'type', 'HAPPEN').assign(situation, 'time', 'PAST')
         return state.apply(sInstr, head:verb).apply(nom, head:verb)
       case 'со': return preposition(state, sInstr, instr)
+      case 'с': return preposition(state, sInstr, instr)
       case 'по': return preposition(state, poDat, dat)
       case 'о': return preposition(state, oPrep, prep)
       case 'к': return preposition(state, kDat, dat)
@@ -496,6 +513,14 @@ class Parser {
         def verb = state.newVariable()
         state = state.assign(verb, 'type', 'ASK').assign(situation, 'time', 'PAST')
         return conjWrap(state, (acc):[head:verb], (nom):[head:verb], (question):[head:verb], (oPrep):[head:verb])
+      case "поблагодарили":
+        def verb = state.newVariable()
+        state = state.assign(verb, 'type', 'THANK').assign(situation, 'time', 'PAST')
+        return conjWrap(state, (acc):[head:verb], (nom):[head:verb])
+      case "выбежали":
+        def verb = state.newVariable()
+        state = state.assign(verb, 'type', 'RUN_OUT').assign(situation, 'time', 'PAST')
+        return conjWrap(state, (izGen):[head:verb], (nom):[head:verb], (sInstr):[head:verb])
       case ",":
         state = state.
                 apply(declComp, hasComma:true).

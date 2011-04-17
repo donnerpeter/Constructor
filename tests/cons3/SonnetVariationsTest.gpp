@@ -75,6 +75,32 @@ D.member=F
     doTranslateTest "Они забыли 4 и 5", "They forgot 4 and 5"
   }
 
+  public void test5_Shorter() throws Exception {
+    doTranslateTest 'Мы пошли в магазин "Гастроном", что на углу, и спросили кассиршу о нашем недоумении',
+                    "We went to a grocery store, the one that's on the corner to consult a cashier on our predicament"
+  }
+
+  public void test5_NonameStore() throws Exception {
+    doTranslateTest 'Мы пошли в магазин.',
+                    "We went to a store."
+  }
+
+  public void _test5_OnTheCornerOf() throws Exception {
+    doTranslateTest 'Мы все пошли в коммерческий магазин "Гастроном" на углу Знаменской и Бассейной улицы и спросили кассиршу о нашем недоумении',
+                    "We all went to a commercial grocery store on the corner of Znamenskaya and Basseinaya streets to consult a cashier on our predicament"
+  }
+
+  public void _test5_OnTheCorner() throws Exception {
+    doTranslateTest 'Мы все пошли в коммерческий магазин "Гастроном" на углу и спросили кассиршу о нашем недоумении',
+                    "We all went to a commercial grocery store, the one that's on the corner of Znamenskaya and Basseinaya streets to consult a cashier on our predicament"
+  }
+
+  public void test5_OnTheCornerOfStreets() throws Exception {
+    doTranslateTest 'Мы все пошли в коммерческий магазин "Гастроном", что на углу Знаменской и Бассейной улиц, и спросили кассиршу о нашем недоумении',
+                    "We all went to a commercial grocery store, the one that's on the corner of Znamenskaya and Basseinaya streets to consult a cashier on our predicament"
+  }
+
+
   public void test6_Shorter() throws Exception {
     doTranslateTest 'Кассирша улыбнулась, вынула изо рта молоточек и сказала:',
                     "The cashier gave us a smile, took a hammer out of her mouth, and said:"

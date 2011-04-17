@@ -351,17 +351,22 @@ class EnglishGenerator {
         out noun(criterion.type)
       }
 
-      if (n.type == 'SHOP' && n.s('name') == 'Гастроном') {
-        out 'grocery'
+      if (n.type == 'SHOP') {
+        if (n.s('name') == 'Гастроном') {
+          out 'grocery'
+        }
         out 'store'
       } else {
         out noun(n.type)
       }
 
       if (n.type == 'CORNER') {
-        out 'of'
-        seq(n.f('arg1')) { out it.s('name') == 'Знаменская' ? 'Znamenskaya' : 'Basseinaya' }
-        out 'streets'
+        def arg1 = n.f('arg1')
+        if (arg1) {
+          out 'of'
+          seq(arg1) { out it.s('name') == 'Знаменская' ? 'Znamenskaya' : 'Basseinaya' }
+          out 'streets'
+        }
       }
 
       def rel = n.f('relative')

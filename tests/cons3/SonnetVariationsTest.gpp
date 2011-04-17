@@ -85,14 +85,14 @@ D.member=F
                     "We went to a store."
   }
 
-  public void _test5_OnTheCornerOf() throws Exception {
+  public void test5_OnTheCornerOf() throws Exception {
     doTranslateTest 'Мы все пошли в коммерческий магазин "Гастроном" на углу Знаменской и Бассейной улицы и спросили кассиршу о нашем недоумении',
                     "We all went to a commercial grocery store on the corner of Znamenskaya and Basseinaya streets to consult a cashier on our predicament"
   }
 
-  public void _test5_OnTheCorner() throws Exception {
+  public void test5_OnTheCorner() throws Exception {
     doTranslateTest 'Мы все пошли в коммерческий магазин "Гастроном" на углу и спросили кассиршу о нашем недоумении',
-                    "We all went to a commercial grocery store, the one that's on the corner of Znamenskaya and Basseinaya streets to consult a cashier on our predicament"
+                    "We all went to a commercial grocery store on the corner to consult a cashier on our predicament"
   }
 
   public void test5_OnTheCornerOfStreets() throws Exception {

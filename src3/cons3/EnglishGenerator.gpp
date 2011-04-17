@@ -360,6 +360,12 @@ class EnglishGenerator {
         out noun(n.type)
       }
 
+      def location = n.f('location')
+      if (location) {
+        out 'on'
+        np(location, false)
+      }
+
       if (n.type == 'CORNER') {
         def arg1 = n.f('arg1')
         if (arg1) {

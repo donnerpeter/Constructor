@@ -139,6 +139,9 @@ class Parser {
   Construction vPrep = cxt('vPrep') { ParsingState state, Map args ->
     args.head && args.noun ? state.assign(state.situation, 'condition', args.noun) : state
   }
+  Construction naPrep = cxt('naPrep') { ParsingState state, Map args ->
+    args.head && args.noun ? state.assign(args.head, 'location', args.noun) : state
+  }
   Construction izGen = cxt('izGen') { ParsingState state, Map args ->
     args.head && args.noun ? state.assign(args.head, 'source', args.noun) : state
   }
@@ -165,14 +168,6 @@ class Parser {
     return state
   }
   Construction nestedClause = cxt('nestedClause') { ParsingState state, Map args ->
-    return state
-  }
-  Construction atCorner = cxt('atCorner') { ParsingState state, Map args ->
-    if (args.noun) {
-      def corner = args.noun
-      state = state.assign(corner, 'type', 'CORNER')
-      return state.assign(args.head, 'location', corner)
-    }
     return state
   }
   Construction directSpeech = cxt('directSpeech') { ParsingState state, Map args ->
@@ -320,10 +315,15 @@ class Parser {
       case "улицы":
         return noun(state, gen) { st, noun -> st.assign(noun, 'type', 'STREET') }
       case "углу":  //todo plain noun
-        def noun = state.newVariable()
-        return state.apply(atCorner, noun:noun).apply(gen, head:noun)
+        def noun = state[prep]?.noun ?: state.newVariable()
+        state = state.apply(prep, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'CORNER') }
+        return state.apply(gen, head:noun) //todo one noun frame - several cases
       case "магазин":
-        return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'SHOP').assign(noun, 'given', 'false') }
+        def noun = state[acc]?.noun ?: state.newVariable()
+        state = state.apply(acc, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'SHOP').assign(noun, 'given', 'false') }
+        state = state.apply(naPrep, head:noun)
+        state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
+        return state //todo one noun frame - several cases
       case "случился":
         Variable verb = state.newVariable()
         state = state.assign(verb, 'type', 'HAPPEN').assign(situation, 'time', 'PAST')
@@ -338,7 +338,7 @@ class Parser {
         def save = state.constructions
         return state.clearConstructions().addCtx(acc, save: save, delegate: vAcc, noun:noun).addCtx(prep, save: save, delegate: vPrep, noun:noun).applyAll(acc, prep)
       case 'изо': return preposition(state, izGen, gen)
-      case 'на': return state.apply(atCorner)
+      case 'на': return preposition(state, naPrep, prep)
       case "мной": return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'ME') }
       case ":":
         if (state[directSpeech]) {
@@ -533,7 +533,7 @@ class Parser {
         state = state.apply(declComp, complementizer:'that')
         if (state[relativeClause]?.hasComma) {
           def wh = new Variable()
-          state = state.apply(relativeClause, wh:wh).apply(atCorner, head:wh) //todo pp copula
+          state = state.apply(relativeClause, wh:wh).apply(naPrep, head:wh) //todo pp copula
         }
         return state
       case "идет":

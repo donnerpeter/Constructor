@@ -211,8 +211,8 @@ F.type=PREDICAMENT
 F.arg1=G
 --
 #2.wh=A
-B.type=CORNER
 A.location=B
+B.type=CORNER
 C.type=STREET
 B.arg1=C
 C.name=Знаменская

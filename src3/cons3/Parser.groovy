@@ -48,7 +48,7 @@ class Parser {
     if (hdType && args.noun) {
       state = state.assign(args.head, 'arg2', args.noun)
       if (hdType == 'THANK') {
-        state = state.assign(args.noun, 'given', 'true')
+        state = state.assign(args.noun, 'given', 'true') //todo normal information structure treatment
       }
       if (args.hasNoun) {
         state = state.satisfied(acc)
@@ -298,6 +298,9 @@ class Parser {
       case "маленький":
         def noun = state[acc]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'size', val:'LITTLE').apply(acc, noun:noun)
+      case "большой":
+        def noun = state[instr]?.noun ?: state.newVariable()
+        return state.apply(adjective, nounFrame:noun, rel:'size', val:'BIG').apply(instr, noun:noun)
       case "нашем":
         def we = state.newVariable()
         def possHead = state[prep]?.noun ?: state.newVariable()

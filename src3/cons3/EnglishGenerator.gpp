@@ -202,7 +202,7 @@ class EnglishGenerator {
       }
 
       def mood = verb.f('mood')
-      if (mood) {
+      if (mood && !mood.s('size')) {
         out 'cheerfully'
       }
 
@@ -217,6 +217,12 @@ class EnglishGenerator {
         out 'of'
         np(verb.f('source'), false)
       }
+
+      if (mood && mood.s('size')) {
+        out 'with'
+        np(mood, false)
+      }
+
 
       if (verb.type == 'HAPPEN') {
         out "today"
@@ -357,6 +363,9 @@ class EnglishGenerator {
       if (n.s('size') == 'LITTLE') {
         out "small"
       }
+      if (n.s('size') == 'BIG') {
+        out "great"
+      }
       def criterion = n.f('criterion')
       if (criterion) {
         out noun(criterion.type)
@@ -420,6 +429,10 @@ class EnglishGenerator {
         return
       }
 
+      if (n.type == 'JOY') { //abstract
+        return
+      }
+
       if (n.type == '7') { out 'a'; return }
       if (n.type == '8') { out 'an'; return }
 
@@ -462,6 +475,7 @@ class EnglishGenerator {
       case 'JAW': return 'jaw'
       case '7': return 'seven'
       case '8': return 'eight'
+      case 'JOY': return 'joy'
       default: return type
     }
 

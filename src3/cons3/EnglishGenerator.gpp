@@ -202,7 +202,8 @@ class EnglishGenerator {
       }
 
       def mood = verb.f('mood')
-      def simpleMood = mood?.type == 'JOY' && !mood.s('size')
+      def cheerfully = mood?.type == 'JOY' && !mood.s('size')
+      def simpleMood = cheerfully && chart.earlier(mood, 'type', verb, 'type')
       if (simpleMood) {
         out 'cheerfully'
       }
@@ -220,8 +221,12 @@ class EnglishGenerator {
       }
 
       if (mood && !simpleMood) {
-        out 'with'
-        np(mood, false)
+        if (cheerfully) {
+          out 'cheerfully'
+        } else {
+          out 'with'
+          np(mood, false)
+        }
       }
 
 

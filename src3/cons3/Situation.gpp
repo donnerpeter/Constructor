@@ -33,6 +33,14 @@ class Chart {
     vars(situation).collect { it.frame(this) }
   }
 
+  boolean earlier(Frame f1, String a1, Frame f2, String a2) {
+    assert f1.situation == f2.situation
+    List<Assignment<Variable>> assignments = __assignments[f1.situation] as List
+    def i1 = assignments.findIndexOf { Assignment it -> it.frame == f1.var && it.property == a1 }
+    def i2 = assignments.findIndexOf { Assignment it -> it.frame == f2.var && it.property == a2 }
+    return i1 < i2
+  }
+
   List<Variable> vars(Situation situation) {
     Set<Variable> set = []
     for (assignment in __assignments[situation]) {

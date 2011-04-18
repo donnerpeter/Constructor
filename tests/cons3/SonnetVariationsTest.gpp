@@ -95,8 +95,7 @@ D.member=F
                     "We all went to a commercial grocery store on the corner to consult a cashier on our predicament"
   }
 
-  //todo
-  public void _test5_TheCashier() throws Exception {
+  public void test5_TheCashier() throws Exception {
     doTranslateTest 'Мы спросили кассиршу о нашем недоумении',
                     "We consulted the cashier on our predicament"
   }

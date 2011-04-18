@@ -189,7 +189,8 @@ class EnglishGenerator {
       }
       else if (type != 'ALSO') {
         def verbs = [HAPPEN: 'happened', FORGET: 'forgot', GO_OFF: 'went',
-                ASK: 'asked', DISCOVER: 'discovered', CAN: "couldn't", RECALL: 'recall', TAKE_OUT: "took", SAY: 'said',
+                ASK: (verb.f('topic')?.type == 'PREDICAMENT' ? 'consulted' : 'asked'),
+                DISCOVER: 'discovered', CAN: "couldn't", RECALL: 'recall', TAKE_OUT: "took", SAY: 'said',
                 REMEMBER: (past ? 'remembered' : 'remember'), GO: 'went',
                 RUN_OUT:'ran', THANK:'thanked'
         ]
@@ -208,9 +209,11 @@ class EnglishGenerator {
         out 'cheerfully'
       }
 
-      def io = verb.type == 'HAPPEN' ? verb.f('experiencer') : verb.type in ['GO_OFF', 'GO'] ? verb.f('goal') : null
+      def io = verb.type == 'HAPPEN' ? verb.f('experiencer') :
+        verb.type in ['GO_OFF', 'GO'] ? verb.f('goal') :
+          verb.type == 'ASK' ? verb.f('topic') : null
       if (io) {
-        out "to"
+        out(verb.type == 'ASK' ? 'on' : "to")
         np(io, false)
       }
 

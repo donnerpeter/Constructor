@@ -401,7 +401,9 @@ class Parser {
       case "они":
         return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'THEY') }
       case "соседям": return noun(state, dat) { st, noun -> st.assign(noun, 'type', 'NEIGHBOURS') }
-      case "кассиршу": return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'CASHIER').assign(noun, 'given', 'false') }
+      case "кассиршу":
+        def shop = state.chart.frames(situation).find { it.type == 'SHOP' }
+        return noun(state, acc) { st, noun -> st = st.assign(noun, 'type', 'CASHIER').assign(noun, 'given', shop ? 'false' : 'true') }
       case "Кассирша": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'CASHIER') }
       case "ее":
       case "её":

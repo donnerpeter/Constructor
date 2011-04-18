@@ -318,18 +318,22 @@ class EnglishGenerator {
         return
       }
 
-      if (n.s('type') == 'ME') {
+      if (n.type == 'ME') {
         out (nom ? 'I' : "me")
         return
       }
-      if (n.s('type') == 'WE') {
+      if (n.type == 'SHE') {
+        out (nom ? 'she' : "her")
+        return
+      }
+      if (n.type == 'WE') {
         out (nom ? 'we' : "us")
         if (n.s('quantifier') == 'ALL') {
           out 'all'
         }
         return
       }
-      if (n.s('type') == 'THEY') {
+      if (n.type == 'THEY') {
         out (nom ? 'they' : "them")
         return
       }

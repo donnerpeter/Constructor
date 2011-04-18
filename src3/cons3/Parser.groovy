@@ -405,7 +405,7 @@ class Parser {
       case "Кассирша": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'CASHIER') }
       case "ее":
       case "её":
-        return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'CASHIER') }
+        return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'SHE') }
       case "носом": return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'NOSE') }
       case "челюстью": return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'JAW') }
       case "Семь":

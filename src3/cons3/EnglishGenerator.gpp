@@ -202,7 +202,8 @@ class EnglishGenerator {
       }
 
       def mood = verb.f('mood')
-      if (mood && !mood.s('size')) {
+      def simpleMood = mood?.type == 'JOY' && !mood.s('size')
+      if (simpleMood) {
         out 'cheerfully'
       }
 
@@ -218,7 +219,7 @@ class EnglishGenerator {
         np(verb.f('source'), false)
       }
 
-      if (mood && mood.s('size')) {
+      if (mood && !simpleMood) {
         out 'with'
         np(mood, false)
       }
@@ -429,7 +430,7 @@ class EnglishGenerator {
         return
       }
 
-      if (n.type == 'JOY') { //abstract
+      if (n.type in ['JOY', 'RELIEF']) { //abstract
         return
       }
 
@@ -476,6 +477,7 @@ class EnglishGenerator {
       case '7': return 'seven'
       case '8': return 'eight'
       case 'JOY': return 'joy'
+      case 'RELIEF': return 'relief'
       default: return type
     }
 

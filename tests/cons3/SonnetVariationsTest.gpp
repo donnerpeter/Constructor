@@ -172,9 +172,14 @@ D.member=F
                     "We thanked the cashier and ran out of the store with great joy"
   }
 
-  public void __test8() throws Exception {
+  public void test8_Relieved() throws Exception {
     doTranslateTest 'Мы поблагодарили кассиршу и с облегчением выбежали из магазина',
-                    "We thanked the cashier and ran cheerfully out of the store"
+                    "We thanked the cashier and ran out of the store with relief"
+  }
+
+  public void test8_GreatRelieve() throws Exception {
+    doTranslateTest 'Мы поблагодарили кассиршу и с большим облегчением выбежали из магазина',
+                    "We thanked the cashier and ran out of the store with great relief"
   }
 
   public void ___test8() throws Exception {

@@ -73,7 +73,7 @@ class Parser {
   Construction prep = cxt('prep') { ParsingState state, Map args -> handleCase(prep, state, args) }
   Construction sInstr = cxt('sInstr') { ParsingState state, Map args ->
     if (args.head && args.noun) {
-      if ( args.noun.frame(state.chart)?.type == 'JOY') {
+      if ( args.noun.frame(state.chart)?.type in ['JOY', 'RELIEF']) {
         state = state.assign(args.head, 'mood', args.noun)
       } else {
         state = state.assign(args.head, 'experiencer', args.noun)
@@ -298,6 +298,7 @@ class Parser {
       case "маленький":
         def noun = state[acc]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'size', val:'LITTLE').apply(acc, noun:noun)
+      case "большим":
       case "большой":
         def noun = state[instr]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'size', val:'BIG').apply(instr, noun:noun)
@@ -329,6 +330,8 @@ class Parser {
         return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'HAMMER').assign(noun, 'given', 'false') }
       case "радостью":
         return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'JOY') }
+      case "облегчением":
+        return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'RELIEF') }
       case "улицы":
         return noun(state, gen) { st, noun -> st.assign(noun, 'type', 'STREET') }
       case "углу":  //todo plain noun

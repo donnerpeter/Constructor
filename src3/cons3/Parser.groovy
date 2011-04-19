@@ -359,6 +359,7 @@ class Parser {
       case 'по': return preposition(state, poDat, dat)
       case 'о': return preposition(state, oPrep, prep)
       case 'к': return preposition(state, kDat, dat)
+      case 'к': return preposition(state, kDat, dat)
       case 'в':
         def noun = state.newVariable()
         state = state.addCtx(vAcc, noun: noun).addCtx(vPrep, noun: noun).applyAll(vAcc, vPrep)
@@ -379,7 +380,9 @@ class Parser {
         return state.withSituation(elaboration)
       case "я":
       case "Я": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'ME') }
-      case "Мы": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'WE') }
+      case "мы":
+      case "Мы":
+        return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'WE') }
       case "мое":
         def me = state.newVariable()
         return conjWrap(state, (possessive):[possessor:me, init:{ it.assign(me, 'type', 'ME') }])
@@ -388,6 +391,10 @@ class Parser {
       case "а":
         def next = new Situation()
         return state.assign(situation, 'but', next).withSituation(next)
+      case "Но":
+        return state.assign(situation, 'but', new Situation())
+      case "тут":
+        return state.assign(situation, 'emphasis', 'true')
       case "все":
         return state.assign(state[nom].noun, 'quantifier', 'ALL')
       case "дальше":
@@ -403,8 +410,9 @@ class Parser {
       case "соседям": return noun(state, dat) { st, noun -> st.assign(noun, 'type', 'NEIGHBOURS') }
       case "кассиршу":
         def shop = state.chart.frames(situation).find { it.type == 'SHOP' }
-        return noun(state, acc) { st, noun -> st = st.assign(noun, 'type', 'CASHIER').assign(noun, 'given', shop ? 'false' : 'true') }
+        return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'CASHIER').assign(noun, 'given', shop ? 'false' : 'true') }
       case "Кассирша": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'CASHIER') }
+      case "кассирши": return noun(state, nounGen) { st, noun -> st.assign(noun, 'type', 'CASHIER') }
       case "ее":
       case "её":
         return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'SHE') }
@@ -419,12 +427,22 @@ class Parser {
         def noun = state.newVariable()
         state = state.apply(acc, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'ORDER') }
         return state.apply(nounGen, head:noun) //todo one noun frame - several cases
+      case "слова":
+        def noun = state.newVariable()
+        state = state.apply(acc, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'WORDS') }
+        return state.apply(nounGen, head:noun) //todo one noun frame - several cases
       case "счета":
         return noun(state, nounGen) { st, noun -> st.assign(noun, 'type', 'COUNTING') }
       case "вдруг":
         if (state[nom]) {
           def verb = state.newVariable()
           return state.assign(verb, 'manner', 'SUDDENLY').apply(nom, head:verb)
+        }
+        return state
+      case "опять":
+        if (state[nom]) {
+          def verb = state.newVariable()
+          return state.assign(verb, 'anchor', 'AGAIN').apply(nom, head:verb)
         }
         return state
       case "слегка":
@@ -513,6 +531,10 @@ class Parser {
         def verb = state[instr]?.head ?: state.newVariable()
         state = state.assign(verb, 'type', 'MOVE').assign(verb, 'background', 'perfect')
         return conjWrap(state, (instr):[head:verb])
+      case "вдумываясь":
+        def verb = state.newVariable()
+        state = state.assign(verb, 'type', 'THINK').assign(verb, 'background', 'present')
+        return conjWrap(state, (vAcc):[head:verb])
       case "вспомнить":
         def verb = state.newVariable()
         state = state.apply(control, slave:verb)
@@ -537,6 +559,10 @@ class Parser {
         def verb = state.newVariable()
         state = state.assign(verb, 'type', 'RUN_OUT').assign(situation, 'time', 'PAST')
         return conjWrap(state, (izGen):[head:verb], (nom):[head:verb], (sInstr):[head:verb])
+      case "приуныли":
+        def verb = state.newVariable()
+        state = state.assign(verb, 'type', 'GET_SAD').assign(situation, 'time', 'PAST')
+        return conjWrap(state, (nom):[head:verb])
       case ",":
         state = state.
                 apply(declComp, hasComma:true).

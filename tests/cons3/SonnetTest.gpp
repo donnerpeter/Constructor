@@ -397,6 +397,22 @@ F.type=SHOP
                     "We thanked the cashier and ran cheerfully out of the store"
   }
 
+  public void testParse9() throws Exception {
+    doParseTest 'Но тут, вдумываясь в слова кассирши, мы опять приуныли', '''
+#1.but=#2
+#1.emphasis=true
+A.type=THINK
+A.background=present
+B.type=WORDS
+C.type=CASHIER
+B.criterion=C
+D.type=WE
+E.anchor=AGAIN
+F.type=GET_SAD
+#1.time=PAST
+'''
+  }
+
   static void doTranslateTest(String input, String expected) {
     def chart = new Parser().parse(input)
     def actual = new EnglishGenerator().generate(chart)

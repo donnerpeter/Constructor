@@ -398,8 +398,8 @@ F.type=SHOP
   }
 
   public void testParse9() throws Exception {
-    doParseTest 'Но тут, вдумываясь в слова кассирши, мы опять приуныли', '''
-#1.but=#2
+    doParseTest 'Но тут, вдумываясь в слова кассирши, мы опять приуныли, так как ее слова показались нам лишенными всякого смысла.', '''
+#1.but=#3
 #1.emphasis=true
 A.type=THINK
 A.background=present
@@ -410,6 +410,21 @@ D.type=WE
 E.anchor=AGAIN
 F.type=GET_SAD
 #1.time=PAST
+F.reason=#2
+--
+A.type=SHE
+B.type=WORDS
+B.author=A
+C.type=SEEM
+#2.time=PAST
+C.arg1=B
+D.type=WE
+E.type=LACK
+C.theme=E
+F.determiner=ANY
+E.arg2=F
+F.type=MEANING
+#2.dot=true
 '''
   }
 

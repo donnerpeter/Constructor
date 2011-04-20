@@ -207,6 +207,19 @@ D.member=F
     doTranslateTest 'Тут мы опять приуныли',
                     "We thanked her and ran out of the store cheerfully"
   }
+  public void _____test9() throws Exception {
+    doTranslateTest 'Ее слова нам показались лишенными всякого смысла',
+                    "We thanked her and ran out of the store cheerfully"
+  }
+  public void ______test9() throws Exception {
+    doTranslateTest 'Нам ее слова показались лишенными всякого смысла',
+                    "We thanked her and ran out of the store cheerfully"
+  }
+
+  public void _______test9() throws Exception {
+    doTranslateTest 'Ее слова нам показались лишенными смысла',
+                    "We thanked her and ran out of the store cheerfully"
+  }
 
 
 }

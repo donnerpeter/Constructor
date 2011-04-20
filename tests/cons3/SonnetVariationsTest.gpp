@@ -187,7 +187,7 @@ D.member=F
   }
 
   public void test8_HerPostfixJoy() throws Exception {
-    doTranslateTest 'Мы поблагодарили её и выбежали из магазина с радостью',
+    doTranslateTest 'Мы поблагодарили ее и выбежали из магазина с радостью',
                     "We thanked her and ran out of the store cheerfully"
   }
 

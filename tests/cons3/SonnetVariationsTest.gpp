@@ -191,5 +191,22 @@ D.member=F
                     "We thanked her and ran out of the store cheerfully"
   }
 
+  public void _test9() throws Exception {
+    doTranslateTest 'Но тут мы опять приуныли',
+                    "We thanked her and ran out of the store cheerfully"
+  }
+  public void __test9() throws Exception {
+    doTranslateTest 'Но потом мы опять приуныли',
+                    "We thanked her and ran out of the store cheerfully"
+  }
+  public void ___test9() throws Exception {
+    doTranslateTest 'Потом мы опять приуныли',
+                    "We thanked her and ran out of the store cheerfully"
+  }
+  public void ____test9() throws Exception {
+    doTranslateTest 'Тут мы опять приуныли',
+                    "We thanked her and ran out of the store cheerfully"
+  }
+
 
 }

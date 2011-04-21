@@ -404,13 +404,15 @@ F.type=SHOP
 A.type=THINK
 A.background=present
 B.type=WORDS
+A.theme=B
 C.type=CASHIER
-B.criterion=C
+B.author=C
 D.type=WE
 E.anchor=AGAIN
-F.type=GET_SAD
+E.type=GET_SAD
 #1.time=PAST
-F.reason=#2
+E.arg1=D
+#1.reason=#2
 --
 A.type=SHE
 B.type=WORDS
@@ -426,6 +428,11 @@ E.arg2=F
 F.type=MEANING
 #2.dot=true
 '''
+  }
+
+  public void testTranslate9() throws Exception {
+    doTranslateTest 'Но тут, вдумываясь в слова кассирши, мы опять приуныли, так как ее слова показались нам лишенными всякого смысла.',
+            "But there, thinking carefully about cashier's words, we got sad again because her words were void of any meaning."
   }
 
   static void doTranslateTest(String input, String expected) {

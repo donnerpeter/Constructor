@@ -92,7 +92,7 @@ class Parser {
     args.noun ? state.assign(args.head, 'topic', args.noun) : state
   }
   Construction nounGen = cxt('nounGen') { ParsingState state, Map args -> //todo nounGen -> gen
-    args.noun ? state.assign(args.head, 'criterion', args.noun) : state
+    args.noun ? state.assign(args.head, args.head.frame(state.chart).type == 'WORDS' ? 'author' : 'criterion', args.noun) : state
   }
   Construction kDat = cxt('kDat') { ParsingState state, Map args ->
     args.noun ? state.assign(args.head, 'goal', args.noun) : state
@@ -162,7 +162,10 @@ class Parser {
     return state
   }
   Construction vAcc = cxt('vAcc') { ParsingState state, Map args ->
-    args.head && args.noun ? state.assign(args.head, 'goal', args.noun) : state
+    if (args.head && args.noun) {
+      state = state.assign(args.head, args.head.frame(state.chart).type == 'THINK' ? 'theme' : 'goal', args.noun)
+    }
+    state
   }
   Construction vPrep = cxt('vPrep') { ParsingState state, Map args ->
     args.head && args.noun ? state.assign(state.situation, 'condition', args.noun) : state
@@ -456,7 +459,7 @@ class Parser {
         state = state.apply(acc, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'ORDER') }
         return state.apply(nounGen, head:noun) //todo one noun frame - several cases
       case "слова":
-        def noun = state.newVariable()
+        def noun = state[acc]?.hasNoun ? state.newVariable() : state[acc]?.noun ?: state.newVariable()
         def init = { it.assign(noun, 'type', 'WORDS') }
         state = state.
                 addCtx(nom, noun:noun, hasNoun:true, init).
@@ -598,9 +601,9 @@ class Parser {
         state = state.assign(verb, 'type', 'RUN_OUT').assign(situation, 'time', 'PAST')
         return conjWrap(state, (izGen):[head:verb], (nom):[head:verb], (sInstr):[head:verb])
       case "приуныли":
-        def verb = state.newVariable()
+        def verb = state[nom]?.head ?: state.newVariable()
         state = state.assign(verb, 'type', 'GET_SAD').assign(situation, 'time', 'PAST')
-        return conjWrap(state, (nom):[head:verb], (reasonComp):[head:verb])
+        return conjWrap(state, (nom):[head:verb], (reasonComp):[head:situation])
       case ",":
         state = state.
                 apply(declComp, hasComma:true).

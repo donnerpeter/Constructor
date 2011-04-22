@@ -54,11 +54,11 @@ class EnglishGenerator {
       def butSit = (Situation) sitFrame.f('but')?.var
       if (butSit && !chart.__assignments[butSit]) {
         out 'but'
-        if (sitFrame.s('emphasis')) {
-          out 'there'
-        } else if (sitFrame.s('relTime') == 'AFTER') {
-          out 'then'
-        }
+      }
+      if (sitFrame.s('emphasis')) {
+        out 'there'
+      } else if (sitFrame.s('relTime') == 'AFTER') {
+        out 'then'
       }
 
       def opinion = sitFrame.s('opinion_of')

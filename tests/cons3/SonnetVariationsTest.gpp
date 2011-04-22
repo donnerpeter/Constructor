@@ -199,13 +199,13 @@ D.member=F
     doTranslateTest 'Но потом мы опять приуныли',
                     "But then we got sad again"
   }
-  public void ___test9() throws Exception {
+  public void test9_ThenNotBut() throws Exception {
     doTranslateTest 'Потом мы опять приуныли',
-                    "We thanked her and ran out of the store cheerfully"
+                    "Then we got sad again"
   }
-  public void ____test9() throws Exception {
+  public void test9_ThereNotBut() throws Exception {
     doTranslateTest 'Тут мы опять приуныли',
-                    "We thanked her and ran out of the store cheerfully"
+                    "There we got sad again"
   }
 
   public void ________test9() throws Exception {

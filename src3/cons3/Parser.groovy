@@ -422,9 +422,11 @@ class Parser {
         return state.assign(situation, 'but', next).withSituation(next)
       case "Но":
         return state.assign(situation, 'but', new Situation())
+      case "Тут":
       case "тут":
         return state.assign(situation, 'emphasis', 'true')
       case "потом":
+      case "Потом":
         return state.assign(situation, 'relTime', 'AFTER')
       case "все":
         return state.assign(state[nom].noun, 'quantifier', 'ALL')

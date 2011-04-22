@@ -195,9 +195,9 @@ D.member=F
     doTranslateTest 'Но тут мы опять приуныли',
                     "But there we got sad again"
   }
-  public void __test9() throws Exception {
+  public void test9_Short1Then() throws Exception {
     doTranslateTest 'Но потом мы опять приуныли',
-                    "We thanked her and ran out of the store cheerfully"
+                    "But then we got sad again"
   }
   public void ___test9() throws Exception {
     doTranslateTest 'Потом мы опять приуныли',

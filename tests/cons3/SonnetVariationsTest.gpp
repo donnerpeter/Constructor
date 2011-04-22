@@ -216,9 +216,9 @@ D.member=F
     doTranslateTest 'Мы опять приуныли, вдумываясь в слова кассирши',
                     "We got sad again, thinking carefully about cashier's words"
   }
-  public void _____test9() throws Exception {
+  public void test9_2Only() throws Exception {
     doTranslateTest 'Ее слова нам показались лишенными всякого смысла',
-                    "We thanked her and ran out of the store cheerfully"
+                    "Her words were void of any meaning"
   }
   public void ______test9() throws Exception {
     doTranslateTest 'Нам ее слова показались лишенными всякого смысла',

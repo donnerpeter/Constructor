@@ -447,6 +447,7 @@ class Parser {
       case "Кассирша": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'CASHIER') }
       case "кассирши": return noun(state, nounGen) { st, noun -> st.assign(noun, 'type', 'CASHIER') }
       case "ее":
+      case "Ее":
       case "её":
         def she = state.newVariable()
         def init = { st -> st.assign(she, 'type', 'SHE') }

@@ -703,6 +703,10 @@ class Parser {
         def lack = state.newVariable()
         state = state.assign(lack, 'type', 'LACK')
         return state.apply(participleArg, participle:lack).apply(gen, head:lack)
+      case 'бессмысленными':
+        def part = state.newVariable()
+        state = state.assign(part, 'type', 'MEANINGLESS')
+        return state.apply(participleArg, participle:part)
     }
     return state
   }

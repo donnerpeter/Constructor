@@ -220,26 +220,19 @@ D.member=F
     doTranslateTest 'Ее слова нам показались лишенными всякого смысла',
                     "Her words were void of any meaning"
   }
-  public void ______test9() throws Exception {
+  public void test9_2WePrefix() throws Exception {
     doTranslateTest 'Нам ее слова показались лишенными всякого смысла',
-                    "We thanked her and ran out of the store cheerfully"
+                    "Her words were void of any meaning"
   }
 
-  public void _______test9() throws Exception {
+  public void test9_JustMeaning() throws Exception {
     doTranslateTest 'Ее слова нам показались лишенными смысла',
-                    "We thanked her and ran out of the store cheerfully"
+                    "Her words were void of meaning"
   }
-  public void ___$____test9() throws Exception {
-    doTranslateTest 'Ее слова нам показались полными смысла',
-                    "We thanked her and ran out of the store cheerfully"
-  }
-  public void ____$___test9() throws Exception {
-    doTranslateTest 'Ее слова нам показались наполненными смыслом',
-                    "We thanked her and ran out of the store cheerfully"
-  }
-  public void _____$__test9() throws Exception {
-    doTranslateTest 'Ее слова нам показались умными',
-                    "We thanked her and ran out of the store cheerfully"
+
+  public void test9_Meaningless() throws Exception {
+    doTranslateTest 'Ее слова нам показались бессмысленными',
+                    "Her words were meaningless"
   }
 
 

@@ -220,10 +220,14 @@ class EnglishGenerator {
       }
       else if (type == 'SEEM') {
         out 'were'
-        out 'void'
-        out 'of'
-        out 'any'
-        out 'meaning'
+        def theme = verb.f('theme')
+        if (theme?.type == 'LACK') {
+          out 'void'
+          out 'of'
+          np(theme.f('arg2'), false)
+        } else if (theme?.type == 'MEANINGLESS') {
+          out 'meaningless'
+        }
       }
       else if (type != 'ALSO') {
         def verbs = [HAPPEN: 'happened', FORGET: 'forgot', GO_OFF: 'went',
@@ -474,6 +478,11 @@ class EnglishGenerator {
         out 'this'
         return
       }
+      if (det == 'ANY') {
+        out 'any'
+        return
+      }
+
 
       if (n.type in ['AMAZE', 'PREDICAMENT'] && n.f('arg1')) {
         possessive(n.f('arg1'))
@@ -492,7 +501,7 @@ class EnglishGenerator {
         return
       }
 
-      if (n.type in ['JOY', 'RELIEF']) { //abstract
+      if (n.type in ['JOY', 'RELIEF', 'MEANING']) { //abstract
         return
       }
 
@@ -545,6 +554,7 @@ class EnglishGenerator {
       case 'JOY': return 'joy'
       case 'RELIEF': return 'relief'
       case 'WORDS': return 'words'
+      case 'MEANING': return 'meaning'
       default: return type
     }
 

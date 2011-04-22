@@ -208,13 +208,13 @@ D.member=F
                     "There we got sad again"
   }
 
-  public void ________test9() throws Exception {
+  public void test9_ThinkingGotSad() throws Exception {
     doTranslateTest 'Вдумываясь в слова кассирши, мы опять приуныли',
-                    "We thanked her and ran out of the store cheerfully"
+                    "Thinking carefully about cashier's words, we got sad again"
   }
-  public void _________test9() throws Exception {
+  public void test9_GotSadThinking() throws Exception {
     doTranslateTest 'Мы опять приуныли, вдумываясь в слова кассирши',
-                    "We thanked her and ran out of the store cheerfully"
+                    "We got sad again, thinking carefully about cashier's words"
   }
   public void _____test9() throws Exception {
     doTranslateTest 'Ее слова нам показались лишенными всякого смысла',

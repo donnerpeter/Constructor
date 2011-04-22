@@ -22,6 +22,10 @@ class EnglishGenerator {
       }
       result += w
     }
+    if (result.endsWith(',')) {
+      result = result[0..-2]
+    }
+
     return result
   }
 
@@ -40,6 +44,10 @@ class EnglishGenerator {
     }
     
     private void out(String word) {
+      if (word == ',') {
+        if (output.empty || output[-1] == ',') return
+      }
+
       output << (capitalize ? word.capitalize() : word)
       capitalize = false
     }
@@ -139,7 +147,9 @@ class EnglishGenerator {
         }
 
         def cur = allVerbs[i++]
-        clause(cur, !hasSubject || bg != null)
+        if (cur) {
+          clause(cur, !hasSubject || bg != null)
+        }
         def next = allVerbs[i]
         if (next) {
           if (cur.type == 'GO' && next.type == 'ASK') {
@@ -168,6 +178,7 @@ class EnglishGenerator {
     }
 
     private void clause(Frame verb, boolean shouldHaveSubject) {
+      assert verb
       def subj = verb.f('arg1')
       if (shouldHaveSubject) {
         assert subj : "$verb; " + situation.presentable(chart)

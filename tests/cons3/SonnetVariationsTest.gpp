@@ -95,6 +95,16 @@ D.member=F
                     "We all went to a commercial grocery store on the corner to consult a cashier on our predicament"
   }
 
+  //todo PP copula
+  public void _test5_ShopIsOnTheCorner() throws Exception {
+    doTranslateTest 'Магазин на углу.',
+                    ''
+  }
+  public void _test5_ShopWasOnTheCorner() throws Exception {
+    doTranslateTest 'Магазин был на углу.',
+                    ''
+  }
+
   public void test5_TheCashier() throws Exception {
     doTranslateTest 'Мы спросили кассиршу о нашем недоумении',
                     "We consulted the cashier on our predicament"
@@ -233,6 +243,35 @@ D.member=F
   public void test9_Meaningless() throws Exception {
     doTranslateTest 'Ее слова нам показались бессмысленными',
                     "Her words were meaningless"
+  }
+
+  public void _test10() throws Exception {
+    doTranslateTest 'Что делать?',
+                    ''
+  }
+  public void __test10() throws Exception {
+    doTranslateTest 'Я спросил, что делать.',
+                    ''
+  }
+  public void ___test10() throws Exception {
+    doTranslateTest 'Делать нечего.',
+                    ''
+  }
+  public void ____test10() throws Exception {
+    doTranslateTest 'Делать нам нечего.',
+                    ''
+  }
+  public void ______test10() throws Exception {
+    doTranslateTest 'Нам делать нечего.',
+                    ''
+  }
+  public void _______test10() throws Exception {
+    doTranslateTest 'Я сказал, что нам нечего делать.',
+                    ''
+  }
+  public void ________test10() throws Exception {
+    doTranslateTest 'Я сказал, что нам нечего было делать.',
+                    ''
   }
 
 

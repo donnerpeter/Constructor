@@ -7,7 +7,7 @@ class Parser {
 
   Chart parse(String text, debug = false) {
     ParsingState state = new ParsingState(chart: new Chart(), situation: new Situation(), participants:[:], constructions:[:], history:[:])
-    def tokenizer = new StringTokenizer(text, """ '":,.""", true)
+    def tokenizer = new StringTokenizer(text, """ '":,.?!""", true)
     for (String w in tokenizer) {
       if (w != ' ') {
         state = handleWord(w, state)
@@ -117,7 +117,7 @@ class Parser {
     if (args.noun && args.pred) {
       state = state.assign(args.noun, 'degree', args.pred)
     }
-    return args.time ? state.assign(args.situation, 'time', args.time) : state
+    return state
   }
   Construction parenthetical = cxt('parenthetical') { ParsingState state, Map args ->
     return state
@@ -586,6 +586,9 @@ class Parser {
         def verb = state.newVariable()
         state = state.apply(control, slave:verb)
         return state.assign(verb, 'type', 'RECALL').apply(acc, head:verb)
+      case "делать":
+        def verb = state.newVariable()
+        return state.assign(verb, 'type', 'DO').apply(acc, head:verb).apply(dat, head:verb)
       case "думают":
         if (state[nom]) {
           def verb = state.newVariable()
@@ -633,11 +636,10 @@ class Parser {
         return state.apply(conditionComp, wh:'if')
       case "когда":
         return state.apply(conditionComp, wh:'when')
+      case "Что":
       case "что":
         def noun = state.newVariable()
-        if (state[question]) {
-          state = state.apply(question, questioned:noun)
-        }
+        state = state.apply(question, questioned:noun)
         if (!state[declComp]) {
           //todo generic noun treatment for что
           state = state.
@@ -683,13 +685,14 @@ class Parser {
         state = state.assign(situation, 'exclamation', degree)
         return state.apply(shortAdjCopula, pred:degree, situation:state.situation)
       case 'было':
-        def noun = state.newVariable()
-        return state.apply(shortAdjCopula, time:'PAST', noun: noun).apply(nom, noun:noun).apply(conditionComp, head:situation)
+        state = state.assign(situation, 'time', 'PAST')
+        return state.apply(conditionComp, head:situation)
       case 'так':
         return state.apply(reasonComp, active:true)
       case 'По-моему':
       case 'по-моему':
         return state.assign(state.situation, 'opinion_of', 'ME').apply(parenthetical)
+      case '?': return state.apply(question, comp:situation)
       case '"':
         if (state[quotedName]) {
           if (state[quotedName].started) {

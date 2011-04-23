@@ -80,15 +80,15 @@ D.type=MATTER
   public void testParse3() throws Exception {
     doParseTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета.", """
 #1.exclamation=A
-B.degree=A
 #1.time=PAST
-C.type=THEY
-D.conj=and
-E.type=ME
-D.member=C
-D.member=E
-B.type=AMAZE
-B.arg1=D
+B.type=THEY
+C.conj=and
+D.type=ME
+C.member=B
+C.member=D
+E.degree=A
+E.type=AMAZE
+E.arg1=C
 #1.whenCondition=#2
 --
 A.type=THEY
@@ -118,15 +118,15 @@ E.criterion=F
   public void testParse3_4() throws Exception {
     doParseTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета. 1, 2, 3, 4, 5 и 6 помнят, а дальше забыли.", """
 #1.exclamation=A
-B.degree=A
 #1.time=PAST
-C.type=THEY
-D.conj=and
-E.type=ME
-D.member=C
-D.member=E
-B.type=AMAZE
-B.arg1=D
+B.type=THEY
+C.conj=and
+D.type=ME
+C.member=B
+C.member=D
+E.degree=A
+E.type=AMAZE
+E.arg1=C
 #1.whenCondition=#2
 --
 A.type=THEY
@@ -433,6 +433,16 @@ F.type=MEANING
   public void testTranslate9() throws Exception {
     doTranslateTest 'Но тут, вдумываясь в слова кассирши, мы опять приуныли, так как ее слова показались нам лишенными всякого смысла.',
             "But there, thinking carefully about cashier's words, we got sad again because her words were void of any meaning."
+  }
+
+  public void testParse10() throws Exception {
+    doParseTest 'Что нам было делать?', '''
+A.type=WE
+#1.time=PAST
+B.type=DO
+B.arg2=C
+#1.questioned=C
+'''
   }
 
   static void doTranslateTest(String input, String expected) {

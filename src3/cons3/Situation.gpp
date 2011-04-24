@@ -120,7 +120,29 @@ class Frame {
       return (Frame) v
     }
 
+    if (attr == 'arg1') {
+      if (type == 'NEIGHBOURS') {
+        return mockFrame(type:'ME')
+      }
+      if (type in ['MOUTH', 'NOSE', 'JAW']) {
+        return mockFrame(type:'SHE')
+      }
+    }
+
     return null
+  }
+
+  private Frame mockFrame(Map attrs) {
+    return new Frame(new Variable(), situation, chart) {
+
+      @Override
+      String s(String attr) {
+        def s = attrs[attr]
+        return s instanceof String ? (String) s : null
+      }
+
+    }
+
   }
 
   String s(String attr) {

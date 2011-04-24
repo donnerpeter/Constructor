@@ -497,22 +497,15 @@ class EnglishGenerator {
       }
 
 
-      if (n.type in ['AMAZE', 'PREDICAMENT'] && n.f('arg1')) {
+      if (n.type in ['AMAZE', 'PREDICAMENT', 'NEIGHBOURS', 'MOUTH', 'NOSE', 'JAW'] && n.f('arg1')) {
         possessive(n.f('arg1'))
         return
-      } else if (n.type == 'WORDS' && n.f('author')) {
+      }
+      if (n.type == 'WORDS' && n.f('author')) {
         possessive(n.f('author'))
         return
       }
 
-      if (n.type == 'NEIGHBOURS') {
-        out 'my' //todo using the actual inferred model information
-        return
-      }
-      if (n.type in ['MOUTH', 'NOSE', 'JAW']) {
-        out 'her'
-        return
-      }
 
       if (n.type in ['JOY', 'RELIEF', 'MEANING']) { //abstract
         return

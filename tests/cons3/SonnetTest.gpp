@@ -445,6 +445,10 @@ B.arg2=C
 '''
   }
 
+  public void testTranslate10() throws Exception {
+    doTranslateTest 'Что нам было делать?', 'What were we supposed to do?'
+  }
+
   static void doTranslateTest(String input, String expected) {
     def chart = new Parser().parse(input)
     def actual = new EnglishGenerator().generate(chart)

@@ -17,7 +17,7 @@ class EnglishGenerator {
 
     String result = ""
     for (w in output) {
-      if (!result.empty && !(w in ['.', ',', ':', '\n-', "'s"])) {
+      if (!result.empty && !(w in ['.', ',', ':', '\n-', "'s", '?'])) {
         result += " "
       }
       result += w
@@ -100,12 +100,25 @@ class EnglishGenerator {
       def verb = allVerbs[0]
       if (!verb) {
         def wh = sitFrame.f('wh')
-        assert wh: situation.presentable(chart)
-        out "that's"
-        out 'on'
-        def location = wh.f('location')
-        np(location, false)
-        return
+        if (wh) {
+          out "that's"
+          out 'on'
+          def location = wh.f('location')
+          np(location, false)
+          return
+        }
+        def questioned = sitFrame.f('questioned')
+        assert questioned: situation.presentable(chart)
+        if (questioned) {
+          out 'what'
+          out 'were'
+          out 'we'
+          out 'supposed'
+          out 'to'
+          out 'do'
+          out '?'
+          return
+        }
       }
 
       int i = 0

@@ -249,8 +249,12 @@ D.member=F
     doTranslateTest 'Что делать?',
                     ''
   }
-  public void $_test10() throws Exception {
+  public void _$_test10() throws Exception {
     doTranslateTest 'Что мне было делать?',
+                    ''
+  }
+  public void __$_test10() throws Exception {
+    doTranslateTest 'Что мне было нужно?',
                     ''
   }
   public void __test10() throws Exception {

@@ -47,9 +47,6 @@ class Parser {
     def hdType = args.head?.frame(state.chart)?.type
     if (hdType && args.noun) {
       state = state.assign(args.head, 'arg2', args.noun)
-      if (hdType == 'THANK') {
-        state = state.assign(args.noun, 'given', 'true') //todo normal information structure treatment
-      }
       if (args.hasNoun) {
         state = state.satisfied(acc)
       }
@@ -338,7 +335,7 @@ class Parser {
       case "том":
         def noun = state[prep]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'determiner', val:'THAT').apply(prep, noun:noun)
-      case "случай": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'THING').assign(noun, 'given', 'false') } //todo случай=CASE or THING
+      case "случай": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'THING') } //todo случай=CASE or THING
       case "случае":
         def noun = state[prep]?.noun ?: state.newVariable()
         state = state.apply(prep, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'CASE') }
@@ -354,7 +351,7 @@ class Parser {
       case "смысла":
         return noun(state, gen) { st, noun -> st.assign(noun, 'type', 'MEANING') }
       case "молоточек":
-        return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'HAMMER').assign(noun, 'given', 'false') }
+        return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'HAMMER') }
       case "радостью":
         return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'JOY') }
       case "облегчением":
@@ -367,7 +364,7 @@ class Parser {
         return state.apply(gen, head:noun) //todo one noun frame - several cases
       case "магазин":
         def noun = state[acc]?.noun ?: state.newVariable()
-        state = state.apply(acc, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'SHOP').assign(noun, 'given', 'false') }
+        state = state.apply(acc, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'SHOP') }
         state = state.apply(naPrep, head:noun)
         state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
         return state //todo one noun frame - several cases
@@ -442,8 +439,7 @@ class Parser {
         return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'THEY') }
       case "соседям": return noun(state, dat) { st, noun -> st.assign(noun, 'type', 'NEIGHBOURS') }
       case "кассиршу":
-        def shop = state.chart.frames(situation).find { it.type == 'SHOP' }
-        return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'CASHIER').assign(noun, 'given', shop ? 'false' : 'true') }
+        return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'CASHIER') }
       case "Кассирша": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'CASHIER') }
       case "кассирши": return noun(state, nounGen) { st, noun -> st.assign(noun, 'type', 'CASHIER') }
       case "ее":

@@ -116,12 +116,33 @@ class Frame {
 
   Frame f(String attr) {
     def v = allAssignments(attr).reverse()[0]?.value
-    v instanceof Frame ? (Frame) v : null
+    if (v instanceof Frame) {
+      return (Frame) v
+    }
+
+    return null
   }
 
   String s(String attr) {
     def v = allAssignments(attr).reverse()[0]?.value
-    v instanceof String ? (String) v : null
+    if (v instanceof String) {
+      return (String) v
+    }
+
+    if (attr == 'given') {
+      if (type in ['THING', 'HAMMER']) return 'false'
+      if (type == 'CASHIER') {
+        def shop = chart.frames(situation).find { it.type == 'SHOP' }
+        return shop && chart.earlier(shop, 'type', this, 'type') ? 'false' : 'true'
+      }
+      if (type == 'SHOP') {
+        def verb = chart.frames(situation).find { it.f('source') == (Frame) this }
+        return verb ? 'true' : 'false'
+      }
+      return 'true'
+    }
+
+    return null
   }
 
   String getType() { s('type') }

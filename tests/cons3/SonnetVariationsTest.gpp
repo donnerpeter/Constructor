@@ -249,6 +249,18 @@ D.member=F
     doTranslateTest 'Что делать?',
                     'What to do?'
   }
+  public void test10_WhatToDo_Me() throws Exception {
+    doTranslateTest 'Что мне делать?',
+                    'What am I supposed to do?'
+  }
+  public void test10_WhatToAsk() throws Exception {
+    doTranslateTest 'Что спросить?',
+                    'What to ask?'
+  }
+  public void test10_WhatToAsk_Me() throws Exception {
+    doTranslateTest 'Что мне спросить?',
+                    'What am I supposed to ask?'
+  }
   public void test10_Me() throws Exception {
     doTranslateTest 'Что мне было делать?',
                     'What was I supposed to do?'

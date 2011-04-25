@@ -589,6 +589,9 @@ class Parser {
       case "делать":
         def verb = state.newVariable()
         return state.assign(verb, 'type', 'DO').apply(acc, head:verb).apply(dat, head:verb, infinitive:true)
+      case "спросить":
+        def verb = state.newVariable()
+        return state.assign(verb, 'type', 'ASK').apply(acc, head:verb).apply(dat, head:verb, infinitive:true)
       case "думают":
         if (state[nom]) {
           def verb = state.newVariable()

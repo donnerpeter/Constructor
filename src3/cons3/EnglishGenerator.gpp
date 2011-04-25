@@ -150,7 +150,7 @@ class EnglishGenerator {
 
         def cur = allVerbs[i++]
         if (cur) {
-          clause(cur, !hasSubject || bg != null, topLevel)
+          clause(cur, topLevel && !cur.f('arg1') ? false : !hasSubject || bg != null, topLevel)
         }
         def next = allVerbs[i]
         if (next) {
@@ -176,6 +176,8 @@ class EnglishGenerator {
 
       if (sitFrame.s('dot') == 'true') {
         out '.'
+      } else if (sitFrame.f('questioned') && topLevel) {
+        out '?'
       }
     }
 
@@ -189,17 +191,11 @@ class EnglishGenerator {
 
         if (subj) {
           if (subj.type == 'WE') {
-            out 'were'
+            out(past ? 'were': 'are')
           } else {
-            out 'was'
+            out(past ? 'was': 'am')
           }
-          np(subj, true)
-          out 'supposed'
         }
-        out 'to'
-        out 'do'
-        out '?'
-        return
       }
 
       if (shouldHaveSubject) {
@@ -252,18 +248,18 @@ class EnglishGenerator {
         }
       }
       else if (type != 'ALSO') {
-        def verbs = [HAPPEN: 'happened', FORGET: 'forgot', GO_OFF: 'went',
-                ASK: (verb.f('topic')?.type == 'PREDICAMENT' ? 'consulted' : 'asked'),
-                DISCOVER: 'discovered', CAN: "couldn't", RECALL: 'recall', TAKE_OUT: "took", SAY: 'said',
-                REMEMBER: (past ? 'remembered' : 'remember'), GO: 'went',
-                RUN_OUT: 'ran', THANK: 'thanked',
-                GET_SAD: 'got sad'
-        ]
-        out(verbs[type])
+        if (questioned && topLevel) {
+          if (subj) {
+            out 'supposed'
+          }
+          out 'to'
+        }
+
+        out(mainVerb(verb))
       }
 
       def dobj = verb.f('arg2')
-      if (dobj) {
+      if (dobj && dobj != questioned) {
         np(dobj, false)
       }
 
@@ -348,6 +344,18 @@ class EnglishGenerator {
           new SituationGenerator(chart, message, true).sentence(true)
         }
       }
+    }
+
+    private String mainVerb(Frame verb) {
+      def type = verb.type
+      def verbs = [HAPPEN: 'happened', FORGET: 'forgot', GO_OFF: 'went',
+              ASK: (verb.f('topic')?.type == 'PREDICAMENT' ? 'consulted' : (past ? 'asked' : 'ask')),
+              DISCOVER: 'discovered', CAN: "couldn't", RECALL: 'recall', TAKE_OUT: "took", SAY: 'said',
+              REMEMBER: (past ? 'remembered' : 'remember'), GO: 'went',
+              RUN_OUT: 'ran', THANK: 'thanked',
+              GET_SAD: 'got sad', DO: 'do'
+      ]
+      return verbs[type]
     }
 
     def clauseEnd() {

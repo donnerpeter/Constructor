@@ -101,14 +101,21 @@ class EnglishGenerator {
       def verb = allVerbs[0]
       if (!verb) {
         def wh = sitFrame.f('wh')
-        assert wh: situation.presentable(chart)
+        def subj
         if (wh) {
+          subj = wh
           out "that's"
-          out 'on'
-          def location = wh.f('location')
-          np(location, false)
-          return
+        } else {
+          def copulaTopic = sitFrame.f('copulaTopic')
+          assert copulaTopic: situation.presentable(chart)
+          subj = copulaTopic
+          np(copulaTopic, true)
+          out 'was'
         }
+        out 'on'
+        def location = subj.f('location')
+        np(location, false)
+        return
       }
 
       int i = 0
@@ -499,7 +506,7 @@ class EnglishGenerator {
       }
 
       def location = n.f('location')
-      if (location) {
+      if (location && n != sitFrame.f('copulaTopic')) {
         out 'on'
         np(location, false)
       }

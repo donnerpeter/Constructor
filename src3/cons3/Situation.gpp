@@ -152,6 +152,10 @@ class Frame {
     }
 
     if (attr == 'given') {
+      if (this == situation.frame(chart).f('copulaTopic')) {
+        return 'true'
+      }
+
       if (type in ['THING', 'HAMMER']) return 'false'
       if (type == 'CASHIER') {
         def shop = chart.frames(situation).find { it.type == 'SHOP' }

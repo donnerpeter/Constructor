@@ -83,6 +83,26 @@ class ParsingState {
     return clone(constructions: newConstructions)
   }
 
+  ParsingState apply(Map<Construction, Map<String, Object>> constructions) {
+    def result = this
+    for (cxt in constructions.keySet()) {
+      result = result.addCtx(constructions[cxt], cxt)
+    }
+
+    def old = constructions.keySet().intersect(this.constructions.keySet())
+    def fresh = constructions.keySet() - this.constructions.keySet()
+    for (cxt1 in old) {
+      for (cxt2 in fresh) {
+        if (result.contradict(cxt1, cxt2) || result.contradict(cxt2, cxt1)) {
+          result = result.inhibit(cxt2)
+        }
+      }
+
+    }
+
+    return result.applyAll(constructions.keySet().intersect(result.constructions.keySet()) as Construction[])
+  }
+
   ParsingState applyAll(Construction... names) {
     def hanging = [] as Set
     names.each { name1 ->

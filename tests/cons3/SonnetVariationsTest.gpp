@@ -95,14 +95,9 @@ D.member=F
                     "We all went to a commercial grocery store on the corner to consult a cashier on our predicament"
   }
 
-  //todo PP copula
-  public void _test5_ShopIsOnTheCorner() throws Exception {
-    doTranslateTest 'Магазин на углу.',
-                    ''
-  }
-  public void _test5_ShopWasOnTheCorner() throws Exception {
+  public void test5_ShopWasOnTheCorner() throws Exception {
     doTranslateTest 'Магазин был на углу.',
-                    ''
+                    'The store was on the corner'
   }
 
   public void test5_TheCashier() throws Exception {

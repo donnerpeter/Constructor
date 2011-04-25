@@ -370,9 +370,11 @@ class Parser {
         def noun = state[prep]?.noun ?: state.newVariable()
         state = state.apply(prep, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'CORNER') }
         return state.apply(gen, head:noun) //todo one noun frame - several cases
+      case "Магазин":
       case "магазин":
         def noun = state[acc]?.noun ?: state.newVariable()
-        state = state.apply(acc, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'SHOP') }
+        def init = { it.assign(noun, 'type', 'SHOP') }
+        state = state.apply((nom):[noun:noun, hasNoun:true, init:init], (acc):[noun:noun, hasNoun:true, init:init])
         state = state.apply(naPrep, head:noun)
         state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
         return state //todo one noun frame - several cases
@@ -698,6 +700,9 @@ class Parser {
         def degree = state.newVariable()
         state = state.assign(situation, 'exclamation', degree)
         return state.apply(shortAdjCopula, pred:degree, situation:state.situation)
+      case 'был':
+        state = state.assign(situation, 'time', 'PAST').assign(situation, 'copulaTopic', state[nom].noun)
+        return state.apply(naPrep, head:state[nom].noun).apply(nom)
       case 'было':
         state = state.assign(situation, 'time', 'PAST')
         return state.apply(conditionComp, head:situation)

@@ -285,26 +285,6 @@ D.member=F
     doTranslateTest 'Я спросил, что делать.',
                     'I asked what to do.'
   }
-  public void ___test10() throws Exception {
-    doTranslateTest 'Делать нечего.',
-                    ''
-  }
-  public void ____test10() throws Exception {
-    doTranslateTest 'Делать нам нечего.',
-                    ''
-  }
-  public void ______test10() throws Exception {
-    doTranslateTest 'Нам делать нечего.',
-                    ''
-  }
-  public void _______test10() throws Exception {
-    doTranslateTest 'Я сказал, что нам нечего делать.',
-                    ''
-  }
-  public void ________test10() throws Exception {
-    doTranslateTest 'Я сказал, что нам нечего было делать.',
-                    ''
-  }
 
 
 }

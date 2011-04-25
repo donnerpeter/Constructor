@@ -47,6 +47,9 @@ class Parser {
     def hdType = args.head?.frame(state.chart)?.type
     if (hdType && args.noun) {
       state = state.assign(args.head, 'arg2', args.noun)
+      if (args.infinitive) {
+        state = state.assign(args.situation, 'imperative', 'true')
+      }
       if (args.hasNoun) {
         state = state.satisfied(acc)
       }
@@ -588,10 +591,13 @@ class Parser {
         return state.assign(verb, 'type', 'RECALL').apply(acc, head:verb)
       case "делать":
         def verb = state.newVariable()
-        return state.assign(verb, 'type', 'DO').apply(acc, head:verb).apply(dat, head:verb, infinitive:true)
+        return state.assign(verb, 'type', 'DO').apply(acc, head:verb, infinitive:true, situation:situation).apply(dat, head:verb, infinitive:true)
+      case "нужно":
+        def verb = state.newVariable()
+        return state.assign(verb, 'type', 'NEED').apply(acc, head:verb).apply(dat, head:verb, infinitive:true)
       case "спросить":
         def verb = state.newVariable()
-        return state.assign(verb, 'type', 'ASK').apply(acc, head:verb).apply(dat, head:verb, infinitive:true)
+        return state.assign(verb, 'type', 'ASK').apply(acc, head:verb, infinitive:true, situation:situation).apply(dat, head:verb, infinitive:true)
       case "думают":
         if (state[nom]) {
           def verb = state.newVariable()

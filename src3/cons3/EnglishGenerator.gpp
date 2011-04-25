@@ -95,7 +95,8 @@ class EnglishGenerator {
               'DISCOVER', 'ALSO', 'REMEMBER',
               'GO', 'SMILE', 'TAKE_OUT', 'SAY', 'MOVE',
               'THANK', 'RUN_OUT',
-              'GET_SAD', 'SEEM', 'THINK', 'DO'
+              'GET_SAD', 'SEEM', 'THINK',
+              'DO', 'NEED'
       ] }
       def verb = allVerbs[0]
       if (!verb) {
@@ -181,28 +182,44 @@ class EnglishGenerator {
       }
     }
 
+    private String aux(Frame verb, Frame subj, boolean imperative) {
+      if (imperative && subj) {
+        if (subj.type == 'WE') {
+          return past ? 'were': 'are'
+        }
+        return past ? 'was': 'am'
+      }
+      def questioned = sitFrame.f('questioned')
+      if (questioned) {
+        return past ? 'did' : 'do'
+      }
+
+      return null
+    }
+
     private void clause(Frame verb, boolean shouldHaveSubject, boolean topLevel) {
       assert verb
       def subj = verb.f('arg1')
 
       def questioned = sitFrame.f('questioned')
-      if (questioned && topLevel) {
-        out 'what'
+      boolean imperative = sitFrame.s('imperative') == 'true'
 
-        if (subj) {
-          if (subj.type == 'WE') {
-            out(past ? 'were': 'are')
-          } else {
-            out(past ? 'was': 'am')
-          }
+      if (questioned) {
+        out 'what'
+      }
+
+      if (topLevel && subj) {
+        def aux = aux(verb, subj, imperative)
+        if (aux) {
+          out aux
         }
       }
 
       if (shouldHaveSubject) {
         assert subj : "$verb; " + situation.presentable(chart)
         if (hasSubject) {
-          out 'she'
-        } else {
+          out 'she' //todo infer
+        } else if (subj != questioned) {
           np(subj, true)
         }
         hasSubject = true
@@ -248,7 +265,7 @@ class EnglishGenerator {
         }
       }
       else if (type != 'ALSO') {
-        if (questioned && topLevel) {
+        if (imperative) {
           if (subj) {
             out 'supposed'
           }
@@ -353,7 +370,7 @@ class EnglishGenerator {
               DISCOVER: 'discovered', CAN: "couldn't", RECALL: 'recall', TAKE_OUT: "took", SAY: 'said',
               REMEMBER: (past ? 'remembered' : 'remember'), GO: 'went',
               RUN_OUT: 'ran', THANK: 'thanked',
-              GET_SAD: 'got sad', DO: 'do'
+              GET_SAD: 'got sad', DO: 'do', NEED:'need'
       ]
       return verbs[type]
     }

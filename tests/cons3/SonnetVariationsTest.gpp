@@ -265,9 +265,21 @@ D.member=F
     doTranslateTest 'Что мне было делать?',
                     'What was I supposed to do?'
   }
-  public void __$_test10() throws Exception {
+  public void test10_INeedPresent() throws Exception {
+    doTranslateTest 'Что мне нужно?',
+                    'What do I need?'
+  }
+  public void test10_INeedPast() throws Exception {
     doTranslateTest 'Что мне было нужно?',
-                    ''
+                    'What did I need?'
+  }
+  public void _test10_INeedPast() throws Exception {
+    doTranslateTest 'Что мы делали?',
+                    'What did I need?'
+  }
+  public void __test10_INeedPast() throws Exception {
+    doTranslateTest 'Что я делал?',
+                    'What did I need?'
   }
   public void __test10() throws Exception {
     doTranslateTest 'Я спросил, что делать.',

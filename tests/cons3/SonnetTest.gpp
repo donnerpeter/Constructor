@@ -435,6 +435,7 @@ A.type=WE
 #1.time=PAST
 B.type=DO
 B.arg2=C
+B.arg1=A
 #1.questioned=C
 '''
   }

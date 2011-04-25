@@ -11,7 +11,7 @@ class EnglishGenerator {
   String generate(Chart chart) {
     chart.situations.each {
       if (!(it in handled) && chart.__assignments[it]) {
-        new SituationGenerator(chart, it, true).sentence()
+        new SituationGenerator(chart, it, true).sentence(true)
       }
     }
 
@@ -52,7 +52,7 @@ class EnglishGenerator {
       capitalize = false
     }
 
-    private def sentence() {
+    private def sentence(boolean topLevel) {
       handled << situation
 
       if (sitFrame.s('time') == 'PAST') {
@@ -95,28 +95,17 @@ class EnglishGenerator {
               'DISCOVER', 'ALSO', 'REMEMBER',
               'GO', 'SMILE', 'TAKE_OUT', 'SAY', 'MOVE',
               'THANK', 'RUN_OUT',
-              'GET_SAD', 'SEEM', 'THINK',
+              'GET_SAD', 'SEEM', 'THINK', 'DO'
       ] }
       def verb = allVerbs[0]
       if (!verb) {
         def wh = sitFrame.f('wh')
+        assert wh: situation.presentable(chart)
         if (wh) {
           out "that's"
           out 'on'
           def location = wh.f('location')
           np(location, false)
-          return
-        }
-        def questioned = sitFrame.f('questioned')
-        assert questioned: situation.presentable(chart)
-        if (questioned) {
-          out 'what'
-          out 'were'
-          out 'we'
-          out 'supposed'
-          out 'to'
-          out 'do'
-          out '?'
           return
         }
       }
@@ -161,7 +150,7 @@ class EnglishGenerator {
 
         def cur = allVerbs[i++]
         if (cur) {
-          clause(cur, !hasSubject || bg != null)
+          clause(cur, !hasSubject || bg != null, topLevel)
         }
         def next = allVerbs[i]
         if (next) {
@@ -182,7 +171,7 @@ class EnglishGenerator {
         out 'but'
         def generator = new SituationGenerator(chart, butSit, false)
         generator.hasSubject = true
-        generator.sentence()
+        generator.sentence(false)
       }
 
       if (sitFrame.s('dot') == 'true') {
@@ -190,9 +179,29 @@ class EnglishGenerator {
       }
     }
 
-    private void clause(Frame verb, boolean shouldHaveSubject) {
+    private void clause(Frame verb, boolean shouldHaveSubject, boolean topLevel) {
       assert verb
       def subj = verb.f('arg1')
+
+      def questioned = sitFrame.f('questioned')
+      if (questioned && topLevel) {
+        out 'what'
+        assert subj : situation.presentable(chart)
+
+        if (subj.type == 'WE') {
+          out 'were'
+          out 'we'
+        } else {
+          out 'was'
+          out 'I'
+        }
+        out 'supposed'
+        out 'to'
+        out 'do'
+        out '?'
+        return
+      }
+
       if (shouldHaveSubject) {
         assert subj : "$verb; " + situation.presentable(chart)
         if (hasSubject) {
@@ -318,9 +327,9 @@ class EnglishGenerator {
           out "that"
         }
 
-        new SituationGenerator(chart, (Situation)theme.var, false).sentence()
+        new SituationGenerator(chart, (Situation)theme.var, false).sentence(false)
       } else if (theme && verb.type in ['CAN', 'ALSO']) {
-        clause(theme, false)
+        clause(theme, false, false)
       }
 
       clauseEnd()
@@ -336,7 +345,7 @@ class EnglishGenerator {
         def message = (Situation) verb.f('message').var
         if (chart.__assignments[message]) {
           out '\n-'
-          new SituationGenerator(chart, message, true).sentence()
+          new SituationGenerator(chart, message, true).sentence(true)
         }
       }
     }
@@ -345,7 +354,7 @@ class EnglishGenerator {
       def elaboration = sitFrame.f('elaboration')
       if (elaboration?.var instanceof Situation) {
         out ","
-        new SituationGenerator(chart, (Situation)elaboration.var, false).sentence()
+        new SituationGenerator(chart, (Situation)elaboration.var, false).sentence(false)
       }
 
       def condition = sitFrame.f('condition')
@@ -353,20 +362,20 @@ class EnglishGenerator {
         out ','
         out 'only'
         out 'if'
-        new SituationGenerator(chart, (Situation) (condition.f('whenCondition') ?: condition.f('ifCondition')).var, false).sentence()
+        new SituationGenerator(chart, (Situation) (condition.f('whenCondition') ?: condition.f('ifCondition')).var, false).sentence(false)
       }
 
       def condComp = sitFrame.f('ifCondition') ?: sitFrame.f('whenCondition')
       if (condComp) {
         out ','
         out(sitFrame.f('ifCondition') ? 'if' : 'when')
-        new SituationGenerator(chart, (Situation) condComp.var, false).sentence()
+        new SituationGenerator(chart, (Situation) condComp.var, false).sentence(false)
       }
 
       def reason = sitFrame.f('reason')
       if (reason) {
         out 'because'
-        new SituationGenerator(chart, (Situation) reason.var, false).sentence()
+        new SituationGenerator(chart, (Situation) reason.var, false).sentence(false)
       }
     }
 
@@ -480,7 +489,7 @@ class EnglishGenerator {
         out ','
         out 'the'
         out 'one'
-        new SituationGenerator(chart, (Situation) rel.var, false).sentence()
+        new SituationGenerator(chart, (Situation) rel.var, false).sentence(false)
 
       }
     }

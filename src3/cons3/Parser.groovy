@@ -69,7 +69,12 @@ class Parser {
     }
     handleCase(instr, state, args)
   }
-  Construction dat = cxt('dat') { ParsingState state, Map args -> handleCase(dat, state, args) }
+  Construction dat = cxt('dat') { ParsingState state, Map args ->
+    if (args.head && args.noun && args.infinitive) {
+      state = state.assign(args.head, 'arg1', args.noun)
+    }
+    handleCase(dat, state, args)
+  }
   Construction prep = cxt('prep') { ParsingState state, Map args -> handleCase(prep, state, args) }
   Construction sInstr = cxt('sInstr') { ParsingState state, Map args ->
     if (args.head && args.noun) {
@@ -392,7 +397,7 @@ class Parser {
       case 'из':
       case 'изо': return preposition(state, izGen, gen)
       case 'на': return preposition(state, naPrep, prep)
-      case "мной": return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'ME') }
+      case "мной": return noun(state, instr, 'ME')
       case ":":
         if (state[directSpeech]) {
           //todo construction handling of elaboration and direct speech
@@ -403,12 +408,11 @@ class Parser {
         state = state.assign(situation, 'elaboration', elaboration)
         return state.withSituation(elaboration)
       case "я":
-      case "Я": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'ME') }
+      case "Я": return noun(state, nom, 'ME')
+      case "мне": return noun(state, dat, 'ME')
       case "мы":
-      case "Мы":
-        return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'WE') }
-      case "нам":
-        return noun(state, dat) { st, noun -> st.assign(noun, 'type', 'WE') }
+      case "Мы": return noun(state, nom, 'WE')
+      case "нам": return noun(state, dat, 'WE')
       case "мое":
         def me = state.newVariable()
         return conjWrap(state, (possessive):[possessor:me, init:{ it.assign(me, 'type', 'ME') }])
@@ -584,7 +588,7 @@ class Parser {
         return state.assign(verb, 'type', 'RECALL').apply(acc, head:verb)
       case "делать":
         def verb = state.newVariable()
-        return state.assign(verb, 'type', 'DO').apply(acc, head:verb).apply(dat, head:verb)
+        return state.assign(verb, 'type', 'DO').apply(acc, head:verb).apply(dat, head:verb, infinitive:true)
       case "думают":
         if (state[nom]) {
           def verb = state.newVariable()
@@ -710,6 +714,9 @@ class Parser {
     return state
   }
 
+  private ParsingState noun(ParsingState state, Construction caze, String type) {
+    return noun(state, caze) { st, n -> st.assign(n, 'type', type) }
+  }
   private ParsingState noun(ParsingState state, Construction caze, Closure init) {
     if (state.constructions[caze]?.hasNoun) {
       state = state.inhibit(caze)

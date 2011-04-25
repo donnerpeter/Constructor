@@ -281,9 +281,9 @@ D.member=F
     doTranslateTest 'Что я делал?',
                     'What did I do?'
   }
-  public void __test10() throws Exception {
+  public void test10_Subordinate() throws Exception {
     doTranslateTest 'Я спросил, что делать.',
-                    ''
+                    'I asked what to do.'
   }
   public void ___test10() throws Exception {
     doTranslateTest 'Делать нечего.',

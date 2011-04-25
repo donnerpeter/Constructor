@@ -151,7 +151,7 @@ class EnglishGenerator {
 
         def cur = allVerbs[i++]
         if (cur) {
-          clause(cur, topLevel && !cur.f('arg1') ? false : !hasSubject || bg != null, topLevel)
+          clause(cur, sitFrame.s('imperative') ? cur.f('arg1') != null : !hasSubject || bg != null, topLevel)
         }
         def next = allVerbs[i]
         if (next) {
@@ -321,16 +321,20 @@ class EnglishGenerator {
       def question = verb.f('question')
       if (question?.var instanceof Situation) {
         def questSituation = (Situation) question.var
-        handled << questSituation
-        out 'about'
         def think = chart.frames(questSituation).find { it.type == 'THINK' }
-        def exp = think.f('arg1')
-        if (exp?.type == 'THEY') {
-          out 'their'
+        if (think) {
+          handled << questSituation
+          out 'about'
+          def exp = think.f('arg1')
+          if (exp?.type == 'THEY') {
+            out 'their'
+          }
+          out 'opinion'
+          out 'on'
+          np(think.f('topic'), false)
+        } else {
+          new SituationGenerator(chart, questSituation, false).sentence(false)
         }
-        out 'opinion'
-        out 'on'
-        np(think.f('topic'), false)
       }
 
       def theme = verb.f('theme')

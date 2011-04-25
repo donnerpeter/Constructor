@@ -245,9 +245,9 @@ D.member=F
                     "Her words were meaningless"
   }
 
-  public void _test10() throws Exception {
+  public void test10_WhatToDo() throws Exception {
     doTranslateTest 'Что делать?',
-                    ''
+                    'What to do?'
   }
   public void test10_Me() throws Exception {
     doTranslateTest 'Что мне было делать?',

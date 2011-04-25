@@ -186,16 +186,16 @@ class EnglishGenerator {
       def questioned = sitFrame.f('questioned')
       if (questioned && topLevel) {
         out 'what'
-        assert subj : situation.presentable(chart)
 
-        if (subj.type == 'WE') {
-          out 'were'
-          out 'we'
-        } else {
-          out 'was'
-          out 'I'
+        if (subj) {
+          if (subj.type == 'WE') {
+            out 'were'
+          } else {
+            out 'was'
+          }
+          np(subj, true)
+          out 'supposed'
         }
-        out 'supposed'
         out 'to'
         out 'do'
         out '?'

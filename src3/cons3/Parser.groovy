@@ -610,6 +610,11 @@ class Parser {
         def verb = state.newVariable()
         state = state.assign(verb, 'type', 'ASK').assign(situation, 'time', 'PAST')
         return conjWrap(state, (acc):[head:verb], (nom):[head:verb], (question):[head:verb], (oPrep):[head:verb])
+      case "делал":
+      case "делали":
+        def verb = state.newVariable()
+        state = state.assign(verb, 'type', 'DO').assign(situation, 'time', 'PAST')
+        return conjWrap(state, (acc):[head:verb], (nom):[head:verb])
       case "поблагодарили":
         def verb = state.newVariable()
         state = state.assign(verb, 'type', 'THANK').assign(situation, 'time', 'PAST')

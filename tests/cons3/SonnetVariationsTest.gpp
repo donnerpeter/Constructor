@@ -273,13 +273,13 @@ D.member=F
     doTranslateTest 'Что мне было нужно?',
                     'What did I need?'
   }
-  public void _test10_INeedPast() throws Exception {
+  public void test10_WhatDidWeDo() throws Exception {
     doTranslateTest 'Что мы делали?',
-                    'What did I need?'
+                    'What did we do?'
   }
-  public void __test10_INeedPast() throws Exception {
+  public void test10_WhatDidIDo() throws Exception {
     doTranslateTest 'Что я делал?',
-                    'What did I need?'
+                    'What did I do?'
   }
   public void __test10() throws Exception {
     doTranslateTest 'Я спросил, что делать.',

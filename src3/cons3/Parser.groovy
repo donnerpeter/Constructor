@@ -615,13 +615,13 @@ class Parser {
         if (state[question]) {
           state = state.apply((question):[mainVerb:verb, imperative:true])
         }
-        return state.assign(verb, 'type', 'DO').apply((acc):[head:verb, infinitive:true, situation:situation], (dat):[head:verb, infinitive:true])
+        return state.assign(verb, 'type', 'DO').apply((acc):[head:verb], (dat):[head:verb, infinitive:true])
       case "считать":
         def verb = state.newVariable()
         if (state[question]) {
           state = state.apply((question):[mainVerb:verb, imperative:true])
         }
-        return state.assign(verb, 'type', 'COUNT').apply((acc):[head:verb, infinitive:true, situation:situation], (dat):[head:verb, infinitive:true], (control):[slave:verb])
+        return state.assign(verb, 'type', 'COUNT').apply((acc):[head:verb], (dat):[head:verb, infinitive:true], (control):[slave:verb])
       case "нужно":
         def verb = state.newVariable()
         return state.assign(verb, 'type', 'NEED').apply((acc):[head:verb], (dat):[head:verb, infinitive:true])
@@ -630,7 +630,7 @@ class Parser {
         if (state[question]) {
           state = state.apply((question):[mainVerb:verb, imperative:true])
         }
-        return state.assign(verb, 'type', 'ASK').apply((acc):[head:verb, infinitive:true, situation:situation], (dat):[head:verb, infinitive:true])
+        return state.assign(verb, 'type', 'ASK').apply((acc):[head:verb], (dat):[head:verb, infinitive:true])
       case "думают":
         if (state[nom]) {
           def verb = state.newVariable()

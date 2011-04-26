@@ -47,9 +47,6 @@ class Parser {
     def hdType = args.head?.frame(state.chart)?.type
     if (hdType && args.noun) {
       state = state.assign(args.head, 'arg2', args.noun)
-      if (args.infinitive) {
-        state = state.assign(args.situation, 'imperative', 'true')
-      }
       if (args.hasNoun) {
         state = state.satisfied(acc)
       }
@@ -97,7 +94,7 @@ class Parser {
     args.noun ? state.assign(args.head, 'topic', args.noun) : state
   }
   Construction nounGen = cxt('nounGen') { ParsingState state, Map args -> //todo nounGen -> gen
-    args.noun ? state.assign(args.head, args.head.frame(state.chart).type == 'WORDS' ? 'author' : 'criterion', args.noun) : state
+    args.noun && args.head ? state.assign(args.head, args.head.frame(state.chart).type == 'WORDS' ? 'author' : 'criterion', args.noun) : state
   }
   Construction kDat = cxt('kDat') { ParsingState state, Map args ->
     args.noun ? state.assign(args.head, 'goal', args.noun) : state
@@ -108,6 +105,9 @@ class Parser {
       state = state.assign(args.head, args.head.frame(state.chart).type == 'FORGET' ? 'theme' : 'question', next).withSituation(next).apply(question, comp:next)
     }
     if (args.questioned && args.comp) {
+      if (args.imperative) {
+        state = state.assign(state.situation, 'imperative', 'true')
+      }
       state = state.assign(args.comp, 'questioned', args.questioned)
     }
     return state
@@ -215,6 +215,12 @@ class Parser {
       state = state.assign(args.head, 'message', message).withSituation(message)
     }
 
+    return state
+  }
+  Construction summerGarden = cxt('summerGarden') { ParsingState state, Map args ->
+    if (args.summer && args.garden) {
+      state = state.assign(args.garden, 'name', 'Летний сад')
+    }
     return state
   }
 
@@ -325,6 +331,9 @@ class Parser {
       case "маленький":
         def noun = state[acc]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'size', val:'LITTLE').apply(acc, noun:noun)
+      case "Летний":
+        def noun = state[acc]?.noun ?: state.newVariable()
+        return state.apply((adjective):[nounFrame:noun, rel:'timeAnchor', val:'SUMMER'], (acc):[noun:noun], (summerGarden):[summer:true])
       case "большим":
       case "большой":
         def noun = state[instr]?.noun ?: state.newVariable()
@@ -377,6 +386,13 @@ class Parser {
         state = state.apply((nom):[noun:noun, hasNoun:true, init:init], (acc):[noun:noun, hasNoun:true, init:init])
         state = state.apply(naPrep, head:noun)
         state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
+        return state //todo one noun frame - several cases
+      case "сад":
+        def noun = state[acc]?.noun ?: state.newVariable()
+        def init = { it.assign(noun, 'type', 'GARDEN') }
+        state = state.apply((nom):[noun:noun, hasNoun:true, init:init], (acc):[noun:noun, hasNoun:true, init:init], (summerGarden):[garden:noun])
+        state = state.apply(naPrep, head:noun)
+        state = state.satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
         return state //todo one noun frame - several cases
       case "магазина":
         def noun = state[gen]?.noun ?: state.newVariable()
@@ -444,26 +460,25 @@ class Parser {
         def init = { st -> st.assign(they, 'type', 'THEY') }
         return conjWrap(state, (possessive):[possessor:they, init:init], (acc):[noun:they, hasNoun:true, init:init])
       case "Они":
-      case "они":
-        return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'THEY') }
-      case "соседям": return noun(state, dat) { st, noun -> st.assign(noun, 'type', 'NEIGHBOURS') }
-      case "кассиршу":
-        return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'CASHIER') }
-      case "Кассирша": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'CASHIER') }
-      case "кассирши": return noun(state, nounGen) { st, noun -> st.assign(noun, 'type', 'CASHIER') }
+      case "они": return noun(state, nom, 'THEY')
+      case "соседям": return noun(state, dat, 'NEIGHBOURS')
+      case "кассиршу": return noun(state, acc, 'CASHIER')
+      case "Кассирша": return noun(state, nom, 'CASHIER') //todo кассир
+      case "кассирши": return noun(state, nounGen, 'CASHIER')
+      case "деревья": return noun(state, acc, 'TREES')
       case "ее":
       case "Ее":
       case "её":
         def she = state.newVariable()
         def init = { st -> st.assign(she, 'type', 'SHE') }
         return conjWrap(state, (possessive):[possessor:she, init:init], (acc):[noun:she, hasNoun:true, init:init])
-      case "носом": return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'NOSE') }
-      case "челюстью": return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'JAW') }
+      case "носом": return noun(state, instr, 'NOSE')
+      case "челюстью": return noun(state, instr, 'JAW')
       case "Семь":
-      case "семь": return noun(state, nom) { st, noun -> st.assign(noun, 'type', '7') }
-      case "семи": return noun(state, gen) { st, noun -> st.assign(noun, 'type', '7') }
-      case "восемь": return noun(state, nom) { st, noun -> st.assign(noun, 'type', '8') }
-      case "восьми": return noun(state, gen) { st, noun -> st.assign(noun, 'type', '8') }
+      case "семь": return noun(state, nom, '7')
+      case "семи": return noun(state, gen, '7')
+      case "восемь": return noun(state, nom, '8')
+      case "восьми": return noun(state, gen, '8')
       case "порядок":
         def noun = state.newVariable()
         state = state.apply(acc, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'ORDER') }
@@ -547,6 +562,10 @@ class Parser {
         state = state.assign(verb, 'type', 'CAN').assign(situation, 'time', 'PRESENT')
         state = state.assign(subj, 'type', 'THEY')
         return state.apply(control, subj:subj, head:verb)
+      case 'стали':
+        def verb = state.newVariable()
+        state = state.assign(verb, 'type', 'BEGIN').assign(situation, 'time', 'PAST')
+        return conjWrap(state, (control):[subj:state[nom], head:verb], (nom):[head:verb])
       case "отправился":
         def verb = state.newVariable()
         state = state.assign(verb, 'type', 'GO_OFF').assign(situation, 'time', 'PAST')
@@ -593,13 +612,25 @@ class Parser {
         return state.assign(verb, 'type', 'RECALL').apply(acc, head:verb)
       case "делать":
         def verb = state.newVariable()
-        return state.assign(verb, 'type', 'DO').apply(acc, head:verb, infinitive:true, situation:situation).apply(dat, head:verb, infinitive:true)
+        if (state[question]) {
+          state = state.apply((question):[mainVerb:verb, imperative:true])
+        }
+        return state.assign(verb, 'type', 'DO').apply((acc):[head:verb, infinitive:true, situation:situation], (dat):[head:verb, infinitive:true])
+      case "считать":
+        def verb = state.newVariable()
+        if (state[question]) {
+          state = state.apply((question):[mainVerb:verb, imperative:true])
+        }
+        return state.assign(verb, 'type', 'COUNT').apply((acc):[head:verb, infinitive:true, situation:situation], (dat):[head:verb, infinitive:true], (control):[slave:verb])
       case "нужно":
         def verb = state.newVariable()
-        return state.assign(verb, 'type', 'NEED').apply(acc, head:verb).apply(dat, head:verb, infinitive:true)
+        return state.assign(verb, 'type', 'NEED').apply((acc):[head:verb], (dat):[head:verb, infinitive:true])
       case "спросить":
         def verb = state.newVariable()
-        return state.assign(verb, 'type', 'ASK').apply(acc, head:verb, infinitive:true, situation:situation).apply(dat, head:verb, infinitive:true)
+        if (state[question]) {
+          state = state.apply((question):[mainVerb:verb, imperative:true])
+        }
+        return state.assign(verb, 'type', 'ASK').apply((acc):[head:verb, infinitive:true, situation:situation], (dat):[head:verb, infinitive:true])
       case "думают":
         if (state[nom]) {
           def verb = state.newVariable()

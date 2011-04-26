@@ -435,14 +435,32 @@ A.type=WE
 #1.time=PAST
 B.type=DO
 B.arg2=C
-#1.imperative=true
 B.arg1=A
+#1.imperative=true
 #1.questioned=C
 '''
   }
 
   public void testTranslate10() throws Exception {
     doTranslateTest 'Что нам было делать?', 'What were we supposed to do?'
+  }
+
+  public void testParse11() throws Exception {
+    doParseTest 'Мы пошли в Летний сад и стали там считать деревья', '''
+A.type=WE
+B.type=GO
+#1.time=PAST
+B.arg1=A
+C.type=GARDEN
+B.goal=C
+C.name=Летний сад
+D.type=BEGIN
+D.arg1=A
+E.type=COUNT
+D.theme=E
+F.type=TREES
+E.arg2=F
+'''
   }
 
   static void doTranslateTest(String input, String expected) {

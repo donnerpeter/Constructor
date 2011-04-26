@@ -148,6 +148,9 @@ class ParsingState {
     if (name1.name in ['nom', 'prep', 'vPrep'] && name2.name in ['acc', 'vAcc'] && this[name1].noun == this[name2].noun && this[name1].noun) {
       return true
     }
+    if (name1.name == 'summerGarden' && name2.name == 'adjective') {
+      return true
+    }
 
     return false
   }

@@ -302,6 +302,12 @@ D.member=F
   public void ____test11() throws Exception {
     doTranslateTest 'На углу был большой сад', ''
   }
+  public void ______test11() throws Exception {
+    doTranslateTest 'Мы стали считать деньги', ''
+  }
+  public void _______test11() throws Exception {
+    doTranslateTest 'Мы стали поливать деревья', ''
+  }
 
 
 }

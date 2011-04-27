@@ -463,6 +463,11 @@ E.arg2=F
 '''
   }
 
+  public void testTranslate11() throws Exception {
+    doTranslateTest 'Мы пошли в Летний сад и стали там считать деревья',
+                    'We went to the Summer Garden and started counting trees'
+  }
+
   static void doTranslateTest(String input, String expected) {
     def chart = new Parser().parse(input)
     def actual = new EnglishGenerator().generate(chart)

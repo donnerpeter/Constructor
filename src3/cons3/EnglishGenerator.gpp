@@ -96,7 +96,8 @@ class EnglishGenerator {
               'GO', 'SMILE', 'TAKE_OUT', 'SAY', 'MOVE',
               'THANK', 'RUN_OUT',
               'GET_SAD', 'SEEM', 'THINK',
-              'DO', 'NEED'
+              'DO', 'NEED',
+              'BEGIN'
       ] }
       def verb = allVerbs[0]
       if (!verb) {
@@ -354,6 +355,9 @@ class EnglishGenerator {
         new SituationGenerator(chart, (Situation)theme.var, false).sentence(false)
       } else if (theme && verb.type in ['CAN', 'ALSO']) {
         clause(theme, false, false)
+      } else if (theme && verb.type == 'BEGIN') {
+        out 'counting'
+        out 'trees'
       }
 
       clauseEnd()
@@ -381,7 +385,8 @@ class EnglishGenerator {
               DISCOVER: 'discovered', CAN: "couldn't", RECALL: 'recall', TAKE_OUT: "took", SAY: 'said',
               REMEMBER: (past ? 'remembered' : 'remember'), GO: 'went',
               RUN_OUT: 'ran', THANK: 'thanked',
-              GET_SAD: 'got sad', DO: 'do', NEED:'need'
+              GET_SAD: 'got sad', DO: 'do', NEED:'need',
+              BEGIN:'started'
       ]
       return verbs[type]
     }
@@ -500,8 +505,11 @@ class EnglishGenerator {
         if (n.s('name') == 'Гастроном') {
           out 'grocery'
         }
-        out 'store'
-      } else {
+        out('store')
+      } else if (n.type == 'GARDEN') {
+        out(n.s('name') == 'Летний сад' ? 'Summer Garden' : 'garden')
+      }
+      else {
         out noun(n.type)
       }
 

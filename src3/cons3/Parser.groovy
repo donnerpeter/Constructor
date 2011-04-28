@@ -734,8 +734,9 @@ class Parser {
         state = state.assign(situation, 'exclamation', degree)
         return state.apply(shortAdjCopula, pred:degree, situation:state.situation)
       case 'был':
-        state = state.assign(situation, 'time', 'PAST').assign(situation, 'copulaTopic', state[nom].noun)
-        return state.apply(naPrep, head:state[nom].noun).apply(nom)
+        def subj = state[nom]?.noun ?: state.newVariable()
+        state = state.assign(situation, 'time', 'PAST').assign(situation, 'copulaTopic', subj)
+        return state.apply(naPrep, head: subj).apply(nom, noun:subj)
       case 'было':
         state = state.assign(situation, 'time', 'PAST')
         return state.apply(conditionComp, head:situation)

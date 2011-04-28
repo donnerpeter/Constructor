@@ -120,6 +120,10 @@ class Frame {
       return (Frame) v
     }
 
+    if (!situation) {
+      return null
+    }
+
     if (attr == 'arg1') {
       if (type == 'NEIGHBOURS') {
         return mockFrame(type:'ME')
@@ -149,6 +153,10 @@ class Frame {
     def v = allAssignments(attr).reverse()[0]?.value
     if (v instanceof String) {
       return (String) v
+    }
+
+    if (!situation) {
+      return null
     }
 
     if (attr == 'given') {

@@ -100,12 +100,6 @@ D.member=F
                     'The store was on the corner'
   }
 
-  //todo inverse pp copula
-  public void _test5_ShopWasOnTheCorner() throws Exception {
-    doTranslateTest 'На углу был магазин.',
-                    'The store was on the corner'
-  }
-
   public void test5_TheCashier() throws Exception {
     doTranslateTest 'Мы спросили кассиршу о нашем недоумении',
                     "We consulted the cashier on our predicament"
@@ -298,12 +292,6 @@ D.member=F
   public void test11_BigGardenOnTheCorner() throws Exception {
     doTranslateTest 'Мы пошли в большой сад, что на углу Знаменской и Бассейной улиц',
                     "We went to the big garden, the one that's on the corner of Znamenskaya and Basseinaya streets"
-  }
-  public void _____test11() throws Exception {
-    doTranslateTest 'На углу был маленький сад', ''
-  }
-  public void ____test11() throws Exception {
-    doTranslateTest 'На углу был большой сад', ''
   }
   public void ______test11() throws Exception {
     doTranslateTest 'Мы стали считать деньги', ''

@@ -611,9 +611,7 @@ class Parser {
         return conjWrap(state, (vAcc):[head:verb])
       case "вспомнить":
         def verb = state.newVariable()
-        state = state.apply(control, slave:verb)
-        return state.assign(verb, 'type', 'RECALL').apply(acc, head:verb)
-        //return infinitive(state, verb, 'RECALL', [(acc):[head:verb]])
+        return infinitive(state, verb, 'RECALL', [(acc):[head:verb]])
       case "делать":
         def verb = state.newVariable()
         return infinitive(state, verb, 'DO', [(acc):[head:verb]])

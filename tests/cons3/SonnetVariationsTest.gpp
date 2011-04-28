@@ -287,8 +287,9 @@ D.member=F
                     'I asked what to do.'
   }
 
-  public void _test11() throws Exception {
-    doTranslateTest 'Мы пошли в сад', ''
+  public void test11_JustGarden() throws Exception {
+    doTranslateTest 'Мы пошли в сад',
+                    'We went to the garden'
   }
   public void __test11() throws Exception {
     doTranslateTest 'Мы пошли в маленький сад на углу', ''

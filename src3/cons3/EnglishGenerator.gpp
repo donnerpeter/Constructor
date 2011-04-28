@@ -356,8 +356,11 @@ class EnglishGenerator {
       } else if (theme && verb.type in ['CAN', 'ALSO']) {
         clause(theme, false, false)
       } else if (theme && verb.type == 'BEGIN') {
-        out 'counting'
-        out 'trees'
+        out(theme.type == 'TO_WATER' ? 'watering' : theme.type == 'DANCE' ? 'dancing' : 'counting')
+        def dObj = theme.f('arg2')
+        if (dObj) {
+          np(dObj, false)
+        }
       }
 
       clauseEnd()
@@ -560,7 +563,7 @@ class EnglishGenerator {
       }
 
 
-      if (n.type in ['JOY', 'RELIEF', 'MEANING']) { //abstract
+      if (n.type in ['JOY', 'RELIEF', 'MEANING', 'MONEY', 'TREES']) { //abstract
         return
       }
 
@@ -614,6 +617,8 @@ class EnglishGenerator {
       case 'RELIEF': return 'relief'
       case 'WORDS': return 'words'
       case 'MEANING': return 'meaning'
+      case 'TREES': return 'trees'
+      case 'MONEY': return 'money'
       default: return type
     }
 

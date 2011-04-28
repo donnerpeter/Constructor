@@ -293,11 +293,17 @@ D.member=F
     doTranslateTest 'Мы пошли в большой сад, что на углу Знаменской и Бассейной улиц',
                     "We went to the big garden, the one that's on the corner of Znamenskaya and Basseinaya streets"
   }
-  public void ______test11() throws Exception {
-    doTranslateTest 'Мы стали считать деньги', ''
+  public void test11_CountMouney() throws Exception {
+    doTranslateTest 'Мы стали считать деньги',
+                    'We started counting money'
   }
-  public void _______test11() throws Exception {
-    doTranslateTest 'Мы стали поливать деревья', ''
+  public void test11_WaterTrees() throws Exception {
+    doTranslateTest 'Мы стали поливать деревья',
+                    'We started watering trees'
+  }
+  public void test11_Dance() throws Exception {
+    doTranslateTest 'Мы стали танцевать',
+                    'We started dancing'
   }
 
 

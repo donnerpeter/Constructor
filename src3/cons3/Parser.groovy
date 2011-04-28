@@ -137,7 +137,7 @@ class Parser {
     return state
   }
   Construction control = cxt('control') { ParsingState state, Map args ->
-    return args.slave ? state.assign(args.head, 'theme', args.slave) : state
+    return args.head && args.slave ? state.assign(args.head, 'theme', args.slave) : state
   }
   Construction declComp = cxt('declComp') { ParsingState state, Map args ->
     if (args.hasComma && !args.comp && args.head && args.complementizer) {
@@ -468,6 +468,7 @@ class Parser {
       case "Кассирша": return noun(state, nom, 'CASHIER') //todo кассир
       case "кассирши": return noun(state, nounGen, 'CASHIER')
       case "деревья": return noun(state, acc, 'TREES')
+      case "деньги": return noun(state, acc, 'MONEY')
       case "ее":
       case "Ее":
       case "её":
@@ -612,27 +613,25 @@ class Parser {
         def verb = state.newVariable()
         state = state.apply(control, slave:verb)
         return state.assign(verb, 'type', 'RECALL').apply(acc, head:verb)
+        //return infinitive(state, verb, 'RECALL', [(acc):[head:verb]])
       case "делать":
         def verb = state.newVariable()
-        if (state[question]) {
-          state = state.apply((question):[mainVerb:verb, imperative:true])
-        }
-        return state.assign(verb, 'type', 'DO').apply((acc):[head:verb], (dat):[head:verb, infinitive:true])
+        return infinitive(state, verb, 'DO', [(acc):[head:verb]])
       case "считать":
         def verb = state.newVariable()
-        if (state[question]) {
-          state = state.apply((question):[mainVerb:verb, imperative:true])
-        }
-        return state.assign(verb, 'type', 'COUNT').apply((acc):[head:verb], (dat):[head:verb, infinitive:true], (control):[slave:verb])
+        return infinitive(state, verb, 'COUNT', [(acc):[head:verb]])
+      case "поливать":
+        def verb = state.newVariable()
+        return infinitive(state, verb, 'TO_WATER', [(acc):[head:verb]])
+      case "танцевать":
+        def verb = state.newVariable()
+        return infinitive(state, verb, 'DANCE', [:])
       case "нужно":
         def verb = state.newVariable()
         return state.assign(verb, 'type', 'NEED').apply((acc):[head:verb], (dat):[head:verb, infinitive:true])
       case "спросить":
         def verb = state.newVariable()
-        if (state[question]) {
-          state = state.apply((question):[mainVerb:verb, imperative:true])
-        }
-        return state.assign(verb, 'type', 'ASK').apply((acc):[head:verb], (dat):[head:verb, infinitive:true])
+        return infinitive(state, verb, 'ASK', [(acc):[head:verb]])
       case "думают":
         if (state[nom]) {
           def verb = state.newVariable()
@@ -765,6 +764,13 @@ class Parser {
         return state.apply(participleArg, participle:part)
     }
     return state
+  }
+
+  private ParsingState infinitive(ParsingState state, Variable verb, String type, LinkedHashMap<Construction, LinkedHashMap<String, Variable>> args) {
+    if (state[question]) {
+      state = state.apply((question): [mainVerb: verb, imperative: true])
+    }
+    return state.assign(verb, 'type', type).apply(args + [(dat): [head: verb, infinitive: true], (control): [slave: verb]])
   }
 
   private ParsingState noun(ParsingState state, Construction caze, String type) {

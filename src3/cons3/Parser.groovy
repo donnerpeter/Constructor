@@ -335,9 +335,11 @@ class Parser {
         def noun = state[acc]?.noun ?: state.newVariable()
         return state.apply((adjective):[nounFrame:noun, rel:'timeAnchor', val:'SUMMER'], (acc):[noun:noun], (summerGarden):[summer:true])
       case "большим":
-      case "большой":
         def noun = state[instr]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'size', val:'BIG').apply(instr, noun:noun)
+      case "большой":
+        def noun = state[instr]?.noun ?: state[acc]?.noun ?: state.newVariable()
+        return state.apply((adjective):[nounFrame:noun, rel:'size', val:'BIG'], (instr):[noun:noun], (acc):[noun:noun])
       case "нашем":
         def we = state.newVariable()
         def possHead = state[prep]?.noun ?: state.newVariable()

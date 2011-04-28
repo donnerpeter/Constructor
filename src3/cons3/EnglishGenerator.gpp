@@ -494,7 +494,7 @@ class EnglishGenerator {
         out "small"
       }
       if (n.s('size') == 'BIG') {
-        out "great"
+        out(n.type == 'GARDEN' ? 'big' : "great")
       }
       def criterion = n.f('criterion')
       if (criterion) {

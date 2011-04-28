@@ -291,11 +291,13 @@ D.member=F
     doTranslateTest 'Мы пошли в сад',
                     'We went to the garden'
   }
-  public void __test11() throws Exception {
-    doTranslateTest 'Мы пошли в маленький сад на углу', ''
+  public void test11_LittleGardenOnTheCorner() throws Exception {
+    doTranslateTest 'Мы пошли в маленький сад на углу',
+                    'We went to the small garden on the corner'
   }
-  public void ___test11() throws Exception {
-    doTranslateTest 'Мы пошли в большой сад, что на углу Знаменской и Бассейной улиц', ''
+  public void test11_BigGardenOnTheCorner() throws Exception {
+    doTranslateTest 'Мы пошли в большой сад, что на углу Знаменской и Бассейной улиц',
+                    "We went to the big garden, the one that's on the corner of Znamenskaya and Basseinaya streets"
   }
   public void _____test11() throws Exception {
     doTranslateTest 'На углу был маленький сад', ''

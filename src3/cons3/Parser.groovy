@@ -500,18 +500,10 @@ class Parser {
       case "слова":
         def noun = state[acc]?.hasNoun ? state.newVariable() : state[acc]?.noun ?: state.newVariable()
         def init = { it.assign(noun, 'type', 'WORDS') }
-        state = state.
-                addCtx(nom, noun:noun, hasNoun:true, init).
-                addCtx(acc, noun:noun, hasNoun:true, init).
-                addCtx(nounGen, head:noun, init).
-                addCtx(possessive, head:noun, init).
-                applyAll(nom, acc, nounGen, possessive)
-/* //todo apply for words
         state = state.apply((nom):[noun:noun, hasNoun:true, init:init],
                             (acc):[noun:noun, hasNoun:true, init:init],
                             (nounGen):[head:noun, init:init],
                             (possessive):[head:noun, init:init])
-*/
         return state
       case "счета": return noun(state, nounGen, 'COUNTING')
       case "счете": return noun(state, prep, 'COUNTING')

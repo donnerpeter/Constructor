@@ -42,23 +42,28 @@ class ParsingState {
     return addCtx(newArgs, name, init).applyAll(name)
   }
 
-  ParsingState addCtx(Map newArgs, Construction name, Closure init = null) {
-    def oldArgs = constructions[name] ?: [:]
-    def replace = false
-    for (cxt in oldArgs.keySet().intersect(newArgs.keySet())) {
-      if (oldArgs[cxt] != newArgs[cxt] && oldArgs[cxt]) {
-        replace = true
-        oldArgs = [:]
-        break
+  private boolean overwrites(Construction name, Map newArgs) {
+    def oldArgs = constructions[name]
+    if (!oldArgs) {
+      return true
+    }
+    for (arg in oldArgs.keySet().intersect(newArgs.keySet())) {
+      if (arg != 'init' && oldArgs[arg] != newArgs[arg] && oldArgs[arg]) {
+        return true
       }
     }
+    return false
+  }
 
+  ParsingState addCtx(Map newArgs, Construction name, Closure init = null) {
+    def replace = overwrites(name, newArgs)
+    Map oldArgs = replace ? [:] : constructions[name]
     def args = oldArgs + newArgs
     Closure oldInit = args['init']
     def newInit = init && oldInit ? { ParsingState state -> init(oldInit(state)) } : init ?: oldInit
     args.init = newInit
     def newConstructions = constructions + [(name): Collections.unmodifiableMap(args)]
-    return (replace ? inhibit(name) : this).clone(constructions: newConstructions)
+    return (replace && constructions[name] != null ? inhibit(name) : this).clone(constructions: newConstructions)
   }
 
   ParsingState inhibit(Construction name) {
@@ -85,12 +90,17 @@ class ParsingState {
 
   ParsingState apply(Map<Construction, Map<String, Object>> constructions) {
     def result = this
+    Set<Construction> fresh = [] as Set
+    Set<Construction> old = [] as Set
     for (cxt in constructions.keySet()) {
       result = result.addCtx(constructions[cxt], cxt)
+      if (this.constructions[cxt] && !overwrites(cxt, constructions[cxt])) {
+        old << cxt
+      } else {
+        fresh << cxt
+      }
     }
 
-    def old = constructions.keySet().intersect(this.constructions.keySet())
-    def fresh = constructions.keySet() - this.constructions.keySet()
     for (cxt1 in old) {
       for (cxt2 in fresh) {
         if (result.contradict(cxt1, cxt2) || result.contradict(cxt2, cxt1)) {

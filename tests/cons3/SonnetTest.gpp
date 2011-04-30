@@ -468,6 +468,26 @@ E.arg2=F
                     'We went to the Summer Garden and started counting trees'
   }
 
+  public void testParse12() throws Exception {
+    doParseTest 'Но дойдя в счете до 6-ти, мы остановились и начали спорить', '''
+#1.but=#2
+A.type=COME_TO
+A.background=perfect
+B.type=COUNTING
+A.domain=B
+A.goal=C
+C.type=6
+C.number=true
+D.type=WE
+E.type=STOP
+#1.time=PAST
+E.arg1=D
+F.type=BEGIN
+F.arg1=D
+G.type=ARGUE
+F.theme=G'''
+  }
+
   static void doTranslateTest(String input, String expected) {
     def chart = new Parser().parse(input)
     def actual = new EnglishGenerator().generate(chart)

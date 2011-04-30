@@ -305,6 +305,26 @@ D.member=F
     doTranslateTest 'Мы стали танцевать',
                     'We started dancing'
   }
+  public void _test12_Dance() throws Exception {
+    doTranslateTest 'Мы начали считать деревья',
+                    'We started dancing'
+  }
+  public void __test12_Dance() throws Exception {
+    doTranslateTest 'Дойдя до сада, мы начали считать деревья',
+                    'We started dancing'
+  }
+  public void ___test12_Dance() throws Exception {
+    doTranslateTest 'Дойдя до 5-ти, мы начали спорить',
+                    'We started dancing'
+  }
+  public void ____test12_Dance() throws Exception {
+    doTranslateTest 'Но, дойдя до 5, мы начали спорить',
+                    'We started dancing'
+  }
+  public void _____test12_Dance() throws Exception {
+    doTranslateTest 'Дойдя до шести, мы начали спорить',
+                    'We started dancing'
+  }
 
 
 }

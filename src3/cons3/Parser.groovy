@@ -90,6 +90,9 @@ class Parser {
   Construction poDat = cxt('poDat') { ParsingState state, Map args ->
     args.noun && args.head ? state.assign(args.head, 'topic', args.noun) : state
   }
+  Construction poAttribution = cxt('poAttribution') { ParsingState state, Map args ->
+    state
+  }
   Construction oPrep = cxt('oPrep') { ParsingState state, Map args ->
     args.noun ? state.assign(args.head, 'topic', args.noun) : state
   }
@@ -397,6 +400,14 @@ class Parser {
         return state //todo one noun frame - several cases
       case "магазина":
         def noun = state[gen]?.noun ?: state.newVariable()
+        state = state.apply(gen, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'SHOP') }
+        state = state.apply(naPrep, head:noun)
+        state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
+        return state //todo one noun frame - several cases
+      case "мнению":
+        def noun = state[dat]?.noun ?: state.newVariable()
+        state = state.apply(poAttribution, noun:noun)
+
         state = state.apply(gen, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'SHOP') }
         state = state.apply(naPrep, head:noun)
         state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)

@@ -2,6 +2,7 @@ package cons3
 
 import junit.framework.TestCase
 import static cons3.SonnetTest.doParseTest
+import static cons3.SonnetTest.doTranslateTest
 
 /**
  * @author peter

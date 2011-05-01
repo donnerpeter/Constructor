@@ -468,9 +468,9 @@ E.arg2=F
                     'We went to the Summer Garden and started counting trees'
   }
 
-  public void testParse12() throws Exception {
-    doParseTest 'Но дойдя в счете до 6-ти, мы остановились и начали спорить', '''
-#1.but=#2
+  public void _testParse12() throws Exception {
+    doParseTest 'Но дойдя в счете до 6-ти, мы остановились и начали спорить: по мнению одних дальше следовало 7, по мнению других - 8', '''
+#1.but=#3
 A.type=COME_TO
 A.background=perfect
 B.type=COUNTING
@@ -485,7 +485,11 @@ E.arg1=D
 F.type=BEGIN
 F.arg1=D
 G.type=ARGUE
-F.theme=G'''
+F.theme=G
+#1.elaboration=#2
+--
+
+'''
   }
 
   static void doTranslateTest(String input, String expected) {

@@ -331,8 +331,6 @@ class Parser {
       case "Бассейной":
         def noun = state.newVariable()
         def init = { it.assign(noun, 'type', 'STREET') }
-        //state = state.apply(adjective, nounFrame:noun, rel:'name', val:word[0..-3]+"ая", init)
-
         state = conjWrap(state, (gen):[noun:noun, init:init], (adjective):[nounFrame:noun, rel:'name', val:word[0..-3]+"ая", init:init])
         return state
       case "коммерческий":
@@ -364,29 +362,20 @@ class Parser {
       case "том":
         def noun = state[prep]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'determiner', val:'THAT').apply(prep, noun:noun)
-      case "случай": return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'THING') } //todo случай=CASE or THING
+      case "случай": return noun(state, nom, 'THING') //todo случай=CASE or THING
       case "случае":
         def noun = state[prep]?.noun ?: state.newVariable()
         state = state.apply(prep, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'CASE') }
         return state.apply(conditionComp, head:noun) //todo one noun frame - several cases
-      case "удивление":
-        return noun(state, nom) { st, noun -> st.assign(noun, 'type', 'AMAZE') }
-      case "поводу":
-        return noun(state, dat) { st, noun -> st.assign(noun, 'type', 'MATTER') }
-      case "недоумении":
-        return noun(state, prep) { st, noun -> st.assign(noun, 'type', 'PREDICAMENT') }
-      case "рта":
-        return noun(state, gen) { st, noun -> st.assign(noun, 'type', 'MOUTH') }
-      case "смысла":
-        return noun(state, gen) { st, noun -> st.assign(noun, 'type', 'MEANING') }
-      case "молоточек":
-        return noun(state, acc) { st, noun -> st.assign(noun, 'type', 'HAMMER') }
-      case "радостью":
-        return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'JOY') }
-      case "облегчением":
-        return noun(state, instr) { st, noun -> st.assign(noun, 'type', 'RELIEF') }
-      case "улицы":
-        return noun(state, gen) { st, noun -> st.assign(noun, 'type', 'STREET') }
+      case "удивление": return noun(state, nom, 'AMAZE')
+      case "поводу": return noun(state, dat, 'MATTER')
+      case "недоумении": return noun(state, prep, 'PREDICAMENT')
+      case "рта": return noun(state, gen, 'MOUTH')
+      case "смысла": return noun(state, gen, 'MEANING')
+      case "молоточек": return noun(state, acc, 'HAMMER')
+      case "радостью": return noun(state, instr, 'JOY')
+      case "облегчением": return noun(state, instr, 'RELIEF')
+      case "улицы": return noun(state, gen, 'STREET')
       case "углу":  //todo plain noun
         def noun = state[prep]?.noun ?: state.newVariable()
         state = state.apply(prep, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'CORNER') }

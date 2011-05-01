@@ -28,7 +28,7 @@ class Parser {
 
   private static ParsingState handleCase(Construction caze, ParsingState state, Map args) {
     if (args.save && args.hasNoun) {
-      return state.satisfied(caze).restore(args.save).apply(args.delegate, noun: args.noun)
+      return state.satisfied(caze).restore(args.save).apply((Construction)args.delegate, noun: args.noun)
     }
     return state
   }
@@ -249,7 +249,7 @@ class Parser {
   }
 
   private ParsingState merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, String prop, Closure init) {
-    Variable oldNoun = oldArgs[prop]
+    Variable oldNoun = (Variable) oldArgs[prop]
     Frame frame = oldNoun.frame(state.chart)
     if (frame.f('member')) {
       return joinSeq(newArgs, state, cxt, oldNoun, oldArgs, prop, init)

@@ -1,0 +1,5 @@
+I'm exploring how computers can do natural language parsing in a more or less human-like way: serial left-to-right incremental parsing with bound working memory. For parsing, I use something along the lines of Construction Grammar approach. The intermediate semantic representation is frame-based.
+
+As a way of ensuring that the parser produces something that makes sense, I translate the text to another language. The generator is completely mocked up, but that doesn't matter as long as it generates the correct text that a human translator has produced before. Sometimes inference is needed, it's also mocked up.
+
+Currently I'm translating Daniil Kharms' 'Sonnet' into English.

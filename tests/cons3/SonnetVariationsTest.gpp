@@ -1,7 +1,5 @@
 package cons3
 
-import static SonnetTest.doTranslateTest
-
 import junit.framework.TestCase
 import static cons3.SonnetTest.doParseTest
 
@@ -325,6 +323,23 @@ D.member=F
     doTranslateTest 'Дойдя до шести, мы начали спорить',
                     'We started dancing'
   }
+  public void ______test12_Dance() throws Exception {
+    doTranslateTest 'По моему мнению, раньше идет 7, а по их мнению - 8',
+                    'We started dancing'
+  }
+  public void _______test12_Dance() throws Exception {
+    doTranslateTest 'По моему скромному мнению, раньше идет 7, а по их нескромному мнению - 8',
+                    'We started dancing'
+  }
+  public void ________test12_Dance() throws Exception {
+    doTranslateTest 'По-моему, раньше идет 7, а по мнению кассирши - 8',
+                    'We started dancing'
+  }
+  public void _________test12_Dance() throws Exception {
+    doTranslateTest 'По словам кассирши, раньше идет 7',
+                    'We started dancing'
+  }
+
 
 
 }

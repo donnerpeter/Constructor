@@ -265,30 +265,37 @@ class Parser {
 
   private Update merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, String prop, Closure init, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
     Variable first = (Variable) oldArgs[prop]
-    Frame frame = first.frame(state.chart)
-    if (frame.f('member')) {
+    if (state[seq]?.members) {
       return joinSeq(newArgs, state, cxt, first, oldArgs, prop, update, init)
     }
     def second = newArgs[prop]
     Variable multi = seqs[new Pair(first, second)] ?: new Variable()
     seqs[new Pair(first, second)] = multi
-    return update.addCxt(oldArgs + [(prop): multi], cxt) { ParsingState st ->
+    Closure oldInit = oldArgs.init
+    return update.addCxt(oldArgs + [(prop): multi, base:newArgs], cxt) { ParsingState st ->
+      if (oldInit) st = oldInit(st)
       if (state[seq].conj) {
         st = st.assign(multi, 'conj', state[seq].conj) //todo assign conj in one place
       }
       if (init) st = init(st)
-      st.assign(multi, 'member', first).assign(multi, 'member', second)
-    }
+      st = st.assign(multi, 'member', first)
+      st.assign(multi, 'member', second)
+    }.addCxt(seq, members:[first, second])
   }
 
   Update joinSeq(Map newArgs, ParsingState state, Construction cxt, Variable seqVar, Map oldArgs, String property, Update update, Closure init = null) {
-    return update.addCxt(oldArgs + [(property): seqVar], cxt) { ParsingState st ->
+    def newMember = newArgs[property]
+    def oldMembers = state[seq].members
+    Closure oldInit = oldArgs.init
+    return update.addCxt(oldArgs + [(property): seqVar, base:newArgs], cxt) { ParsingState st ->
+      if (oldInit) st = oldInit(st)
+      //todo use the actual state (st)
       if (state[seq]?.conj) {
         st = st.assign(seqVar, 'conj', state[seq].conj)
       }
       if (init) st = init(st)
-      st.assign(seqVar, 'member', newArgs[property])
-    }
+      st.assign(seqVar, 'member', newMember)
+    }.addCxt(seq, members: oldMembers + [newMember])
   }
 
   private Update addCtx(Map args, ParsingState state, Construction cxt, Closure init, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
@@ -315,10 +322,11 @@ class Parser {
       update = addCtx(constructions[c], state, c, constructions[c].init, update, seqs)
     }
     state = state.apply(update.map)
+    def members = state[seq]?.members ?: []
     if (satisfySeq && (state[seq]?.hasComma || state[seq]?.conj)) {
       state = state.satisfied(seq)
     }
-    return state.apply(seq, save:state.history)
+    return state.apply(seq, save:state.history, members:members)
   }
 
 
@@ -329,7 +337,7 @@ class Parser {
       def noun = state.newVariable()
       def init = { it.assign(noun, 'type', word).assign(noun, 'number', 'true') }
 
-      state = conjWrap(state, (acc):[noun:noun, hasNoun:true, init:init])
+      state = conjWrap(state, (acc):[noun:noun, hasNoun:true, init:init], (nom):[noun:noun, hasNoun:true, init:init])
 
       def qv = state[questionVariants]
       if (qv) {
@@ -775,7 +783,7 @@ class Parser {
           return state.apply(directSpeech, hasDash:true)
         }
         if (state[question]) {
-          return state.apply(questionVariants, questioned:state[question].questioned)
+          return state.clearHistory().apply(questionVariants, questioned:state[question].questioned)
         }
         return state
       case ".":

@@ -114,6 +114,18 @@ class Frame {
     return "$var: ${chart.allAssignments(situation).findAll { it.frame == (Frame) this }}"
   }
 
+  List<Frame> conjArg(String attr) {
+    def value = f(attr)
+    if (!value) {
+      return []
+    }
+
+    if (value.f('member')) {
+      return value.allAssignments('member').collect { (Frame) it.value }
+    }
+    return [value]
+  }
+
   Frame f(String attr) {
     def v = allAssignments(attr).reverse()[0]?.value
     if (v instanceof Frame) {

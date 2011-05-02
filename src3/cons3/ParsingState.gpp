@@ -18,10 +18,14 @@ class ParsingState {
     history = Collections.unmodifiableMap((Map)map.history)
   }
 
-  ParsingState clone(Map update) {
+  private ParsingState clone(Map update) {
     Map current = [chart:chart, situation:situation, constructions:constructions, history:history]
     current.putAll(update)
     return new ParsingState(current)
+  }
+
+  ParsingState clearHistory() {
+    clone(history:[:])
   }
 
   ParsingState withSituation(Situation situation) { clearConstructions().clone(situation:situation, history:[:]) }
@@ -66,13 +70,20 @@ class ParsingState {
     return (replace && constructions[name] != null ? inhibit(name) : this).clone(constructions: newConstructions)
   }
 
-  ParsingState inhibit(Construction name) {
-    def state = removeConstruction(name)
+  ParsingState inhibit(Construction... cxts) {
+    def state = this
+    for (c in cxts) {
+      state = state.removeConstruction(c)
+    }
 
-    def freed = [] as Set
-    state.constructions.keySet().each {
-      if (contradict(it, name) || contradict(name, it)) {
-        freed << it
+    def freed = [] as LinkedHashSet
+    Set<Construction> remaining = state.constructions.keySet() as LinkedHashSet
+    remaining.removeAll(cxts as List)
+    remaining.each {
+      for (c in cxts) {
+        if (contradict(it, c) || contradict(c, it)) {
+          freed << it
+        }
       }
     }
     return state.applyAll(freed as Construction[])
@@ -92,19 +103,28 @@ class ParsingState {
     def result = this
     Set<Construction> fresh = [] as LinkedHashSet
     Set<Construction> old = [] as LinkedHashSet
+    Set<Construction> replaced = [] as LinkedHashSet
     for (cxt in constructions.keySet()) {
-      result = result.addCtx(constructions[cxt], cxt)
-      if (this.constructions[cxt] && !overwrites(cxt, constructions[cxt])) {
-        old << cxt
+      if (this.constructions[cxt]) {
+        if (overwrites(cxt, constructions[cxt])) {
+          replaced << cxt
+        } else {
+          old << cxt
+        }
       } else {
         fresh << cxt
       }
     }
+    result = result.inhibit(replaced as Construction[])
 
-    for (cxt1 in old) {
-      for (cxt2 in fresh) {
+    for (cxt in constructions.keySet()) {
+      result = result.addCtx(constructions[cxt], cxt)
+    }
+
+    for (cxt1 in (fresh + replaced)) {
+      for (cxt2 in old) {
         if (result.contradict(cxt1, cxt2) || result.contradict(cxt2, cxt1)) {
-          result = result.inhibit(cxt2)
+          result = result.inhibit(cxt1)
         }
       }
 
@@ -116,7 +136,7 @@ class ParsingState {
   }
 
   ParsingState applyAll(Construction... names) {
-    def hanging = [] as LinkedHashSet
+    Set<Construction> hanging = [] as LinkedHashSet
     names.each { name1 ->
       names.each { name2 ->
         if (contradict(name1, name2)) {
@@ -138,13 +158,52 @@ class ParsingState {
 
     for (cxt in names) {
       if (!(cxt in hanging)) {
-        def args = constructions[cxt]
-        Closure init = args.init ?: noInit
-        result = cxt.action.call((ParsingState)init(result), args)
+        if (result[cxt]) {
+          result = result.doApply(cxt)
+        }
       }
-
     }
+
+    for (cxt1 in hanging) {
+      for (cxt2 in hanging) {
+        if (cxt1 != cxt2 && result[cxt1] && result[cxt2]) {
+          def alt1 = result.apply(cxt1)
+          def alt2 = result.apply(cxt2)
+          if (morePlausible(alt1, alt2)) {
+            result = result.inhibit(cxt2)
+          }
+          else if (morePlausible(alt2, alt1)) {
+            result = result.inhibit(cxt1)
+          }
+        }
+      }
+    }
+
     return result
+  }
+
+  boolean isHuman(Frame f) {
+    return !f.s('number')
+  }
+
+  boolean morePlausible(ParsingState st1, ParsingState st2) {
+    def remember2 = st2.chart.frames(st2.situation).find { it.type in ['REMEMBER', 'FORGET'] }
+    def remember1 = st1.chart.frames(st1.situation).find { it.type in ['REMEMBER', 'FORGET'] }
+    if (remember2 && remember1 && !remember2.conjArg('arg1').every { isHuman(it) } && remember1.conjArg('arg1').every { isHuman(it) }) {
+      return true
+    }
+
+    if (st2.constructions.keySet().find { it.name == 'nom' } && st2.chart.frames(st2.situation).find { it.type in ['COME_SCALARLY', 'FORGET'] }?.f('arg1')) {
+      return true //todo prohibit two nom's in one situation
+    }
+
+    return false
+  }
+
+  ParsingState doApply(Construction cxt) {
+    def args = constructions[cxt]
+    Closure init = args.init ?: noInit
+    return cxt.action.call((ParsingState)init(this), args)
   }
 
 
@@ -157,8 +216,18 @@ class ParsingState {
   }
 
   boolean contradict(Construction name1, Construction name2) {
-    if (name1.name in ['nom', 'prep', 'vPrep'] && name2.name in ['acc', 'vAcc'] && this[name1].noun == this[name2].noun && this[name1].noun) {
-      return true
+    if (name1.name in ['nom', 'prep', 'vPrep'] && name2.name in ['acc', 'vAcc'] && this[name1].noun && this[name2].noun) {
+      if (this[name1].noun == this[name2].noun) return true
+
+      Map base1 = this[name1].base
+      Map base2 = this[name2].base
+      if (base1?.noun) {
+        return base1.noun in [this[name2].noun, base2?.noun]
+      }
+      if (base2?.noun) {
+        return base2.noun in [this[name1].noun, base1?.noun]
+      }
+      return false
     }
     if (name1.name == 'summerGarden' && name2.name == 'adjective') {
       return true

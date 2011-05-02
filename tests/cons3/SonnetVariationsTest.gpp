@@ -340,6 +340,30 @@ D.member=F
     doTranslateTest 'По словам кассирши, раньше идет 7',
                     'We started dancing'
   }
+  public void __________test12_Dance() throws Exception {
+    doTranslateTest 'По словам кассирши, потом идет 7',
+                    'We started dancing'
+  }
+  public void _____________test12_Dance() throws Exception {
+    doTranslateTest 'По словам кассирши, после 8 идет 7',
+                    'We started dancing'
+  }
+  public void ____________test12_Dance() throws Exception {
+    doTranslateTest 'После 6-ти идет 7',
+                    'We started dancing'
+  }
+  public void ______________test12_Dance() throws Exception {
+    doTranslateTest 'После 6 следовало 7',
+                    'We started dancing'
+  }
+  public void ___________test12_Dance() throws Exception {
+    doTranslateTest '7 идет раньше 8',
+                    'We started dancing'
+  }
+  public void _______________test12_Dance() throws Exception {
+    doTranslateTest 'По мнению кассирши и по мнению других, 7 идет раньше 8',
+                    'We started dancing'
+  }
 
 
 

@@ -90,8 +90,8 @@ class ParsingState {
 
   ParsingState apply(Map<Construction, Map<String, Object>> constructions) {
     def result = this
-    Set<Construction> fresh = [] as Set
-    Set<Construction> old = [] as Set
+    Set<Construction> fresh = [] as LinkedHashSet
+    Set<Construction> old = [] as LinkedHashSet
     for (cxt in constructions.keySet()) {
       result = result.addCtx(constructions[cxt], cxt)
       if (this.constructions[cxt] && !overwrites(cxt, constructions[cxt])) {
@@ -110,11 +110,13 @@ class ParsingState {
 
     }
 
-    return result.applyAll(constructions.keySet().intersect(result.constructions.keySet()) as Construction[])
+    def cs = constructions.keySet() as LinkedHashSet
+    cs.retainAll(result.constructions.keySet())
+    return result.applyAll(cs as Construction[])
   }
 
   ParsingState applyAll(Construction... names) {
-    def hanging = [] as Set
+    def hanging = [] as LinkedHashSet
     names.each { name1 ->
       names.each { name2 ->
         if (contradict(name1, name2)) {
@@ -125,7 +127,7 @@ class ParsingState {
     }
 
     ParsingState result = this
-    def others = constructions.keySet() - (names as List)
+    LinkedHashSet<Construction> others = (constructions.keySet() as LinkedHashSet) - (names as List)
     for (name1 in names) {
       for (name2 in others) {
         if (contradict(name1, name2) || contradict(name2, name1)) {
@@ -161,6 +163,10 @@ class ParsingState {
     if (name1.name == 'summerGarden' && name2.name == 'adjective') {
       return true
     }
+    if (name1.name == 'comeScalarly' && name2.name == 'advObj') {
+      return true
+    }
+
 
     return false
   }

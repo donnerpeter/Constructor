@@ -1,5 +1,7 @@
 package cons3
 
+import groovy.transform.Immutable
+
 /**
  * @author peter
  */
@@ -88,16 +90,26 @@ class Parser {
     return state
   }
   Construction poDat = cxt('poDat') { ParsingState state, Map args ->
-    args.noun && args.head ? state.assign(args.head, 'topic', args.noun) : state
-  }
-  Construction poAttribution = cxt('poAttribution') { ParsingState state, Map args ->
-    state
+    def nType = args.noun?.frame(state.chart)?.type
+    if (nType) {
+      if (nType == 'OPINION') {
+        state = state.assign(state.situation, 'opinion_of', args.noun)
+      } else if (args.head) {
+        state = state.assign(args.head, 'topic', args.noun)
+      }
+    }
+
+    return state
   }
   Construction oPrep = cxt('oPrep') { ParsingState state, Map args ->
     args.noun ? state.assign(args.head, 'topic', args.noun) : state
   }
   Construction nounGen = cxt('nounGen') { ParsingState state, Map args -> //todo nounGen -> gen
-    args.noun && args.head ? state.assign(args.head, args.head.frame(state.chart).type == 'WORDS' ? 'author' : 'criterion', args.noun) : state
+    if (args.noun && args.head) {
+      def hType = args.head.frame(state.chart).type
+      state = state.assign(args.head, hType == 'WORDS' ? 'author' : hType == 'OPINION' ? 'arg1' : 'criterion', args.noun)
+    }
+    return state
   }
   Construction kDat = cxt('kDat') { ParsingState state, Map args ->
     args.noun ? state.assign(args.head, 'goal', args.noun) : state
@@ -116,10 +128,10 @@ class Parser {
     return state
   }
   Construction comeScalarly = cxt('comeScalarly') { ParsingState state, Map args ->
-    args.order ? state.assign(args.verb, 'type', 'COME_SCALARLY').assign(args.verb, 'order', args.order) : state
+    args.verb && args.order ? state.assign(args.verb, 'type', 'COME_SCALARLY').assign(args.verb, 'order', args.order) : state
   }
   Construction questionVariants = cxt('questionVariants') { ParsingState state, Map args ->
-    args.seq ? state.assign(args.questioned, 'variants', args.seq) : state
+    args.seq && args.questioned ? state.assign(args.questioned, 'variants', args.seq) : state
   }
   Construction shortAdjCopula = cxt('shortAdjCopula') { ParsingState state, Map args ->
     if (args.noun && args.pred) {
@@ -237,38 +249,40 @@ class Parser {
     return state
   }
 
-  private ParsingState merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, Closure init) {
-    if (cxt in [acc, gen] && oldArgs.noun && newArgs.noun) {
-      return merge(state, cxt, oldArgs, newArgs, 'noun', init)
+  private Update merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, Closure init, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
+    if (cxt in [nom, acc, gen] && oldArgs.noun && newArgs.noun) {
+      return merge(state, cxt, oldArgs, newArgs, 'noun', init, update, seqs)
     }
     if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun) {
-      return state.addCtx(oldArgs + [head:newArgs.head], cxt, init)
+      return update.addCxt(oldArgs + [head:newArgs.head], cxt, init)
     }
     if (cxt == possessive && oldArgs.possessor && newArgs.possessor) {
-      return merge(state, cxt, oldArgs, newArgs, 'possessor', init)
+      return merge(state, cxt, oldArgs, newArgs, 'possessor', init, update, seqs)
     }
 
-    return state.addCtx(newArgs, cxt, init)
+    return update.addCxt(newArgs, cxt, init)
   }
 
-  private ParsingState merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, String prop, Closure init) {
-    Variable oldNoun = (Variable) oldArgs[prop]
-    Frame frame = oldNoun.frame(state.chart)
+  private Update merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, String prop, Closure init, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
+    Variable first = (Variable) oldArgs[prop]
+    Frame frame = first.frame(state.chart)
     if (frame.f('member')) {
-      return joinSeq(newArgs, state, cxt, oldNoun, oldArgs, prop, init)
+      return joinSeq(newArgs, state, cxt, first, oldArgs, prop, update, init)
     }
-    def multi = new Variable()
-    return state.addCtx(oldArgs + [(prop): multi], cxt) { ParsingState st ->
+    def second = newArgs[prop]
+    Variable multi = seqs[new Pair(first, second)] ?: new Variable()
+    seqs[new Pair(first, second)] = multi
+    return update.addCxt(oldArgs + [(prop): multi], cxt) { ParsingState st ->
       if (state[seq].conj) {
         st = st.assign(multi, 'conj', state[seq].conj) //todo assign conj in one place
       }
       if (init) st = init(st)
-      st.assign(multi, 'member', oldNoun).assign(multi, 'member', newArgs[prop])
+      st.assign(multi, 'member', first).assign(multi, 'member', second)
     }
   }
 
-  ParsingState joinSeq(Map newArgs, ParsingState state, Construction cxt, Variable seqVar, Map oldArgs, String property, Closure init = null) {
-    return state.addCtx(oldArgs + [(property): seqVar], cxt) { ParsingState st ->
+  Update joinSeq(Map newArgs, ParsingState state, Construction cxt, Variable seqVar, Map oldArgs, String property, Update update, Closure init = null) {
+    return update.addCxt(oldArgs + [(property): seqVar], cxt) { ParsingState st ->
       if (state[seq]?.conj) {
         st = st.assign(seqVar, 'conj', state[seq].conj)
       }
@@ -277,26 +291,33 @@ class Parser {
     }
   }
 
-  private ParsingState addCtx(Map args, ParsingState state, Construction cxt, Closure init = null) {
+  private Update addCtx(Map args, ParsingState state, Construction cxt, Closure init, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
     if (state[seq]?.hasComma || state[seq]?.conj) {
       def old = state.constructions[cxt]
       if (old) {
-        return merge(state, cxt, old, args, init).satisfied(seq)
+        return merge(state, cxt, old, args, init, update, seqs)
       }
       old = state[seq].save[cxt]
       if (old) {
-        return merge(state, cxt, old, args, init).satisfied(seq)
+        return merge(state, cxt, old, args, init, update, seqs)
       }
     }
 
-    return state.addCtx(args, cxt, init)
+    return update.addCxt(args, cxt, init)
   }
 
   ParsingState conjWrap(Map<Construction, Map> constructions, ParsingState state) {
+    boolean satisfySeq = false
+    Update update = new Update([:])
+    def seqs = [:]
     for (c in constructions.keySet()) {
-      state = addCtx(constructions[c], state, c, constructions[c].init)
+      satisfySeq |= state.constructions[c] || state[seq] && state[seq].save[c]
+      update = addCtx(constructions[c], state, c, constructions[c].init, update, seqs)
     }
-    state = state.applyAll(constructions.keySet() as Construction[])
+    state = state.apply(update.map)
+    if (satisfySeq && (state[seq]?.hasComma || state[seq]?.conj)) {
+      state = state.satisfied(seq)
+    }
     return state.apply(seq, save:state.history)
   }
 
@@ -314,7 +335,9 @@ class Parser {
       if (qv) {
         def seqVar = state.newVariable()
         state = state.apply(questionVariants, seq:seqVar).satisfied(questionVariants)
-        state = joinSeq(state, acc, seqVar, noun:noun, [hasNoun:true], 'noun', init).applyAll(acc)
+        def update = new Update([:])
+        update = joinSeq(state, acc, seqVar, noun:noun, [hasNoun:true], 'noun', update, init)
+        state = state.apply(update.map)
       }
 
       return state
@@ -405,13 +428,14 @@ class Parser {
         state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
         return state //todo one noun frame - several cases
       case "мнению":
-        def noun = state[dat]?.noun ?: state.newVariable()
-        state = state.apply(poAttribution, noun:noun)
-
-        state = state.apply(gen, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'SHOP') }
-        state = state.apply(naPrep, head:noun)
-        state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
-        return state //todo one noun frame - several cases
+        def oldDat = state[dat]
+        def noun = oldDat?.noun ?: state.newVariable()
+        if (state.situation.frame(state.chart).f('opinion_of')) {
+          state = state.withSituation(new Situation())
+        }
+        state = state.assign(noun, 'type', 'OPINION')
+        state = state.apply(oldDat + [noun: noun, hasNoun:true], dat)
+        return state.apply(nounGen, head:noun)
       case "случился":
         Variable verb = state.newVariable()
         state = state.assign(verb, 'type', 'HAPPEN').assign(situation, 'time', 'PAST')
@@ -467,7 +491,7 @@ class Parser {
         return state.assign(state[nom].noun, 'quantifier', 'ALL')
       case "дальше":
         def adv = state.newVariable()
-        return state.apply(advObj, adv: adv) { it.assign(adv, 'type', 'NEXT') }
+        return state.apply((comeScalarly):[order:'AFTER'],  (advObj):[adv: adv, init:{ it.assign(adv, 'type', 'NEXT') }])
       case "их":
         def they = state.newVariable()
         def init = { st -> st.assign(they, 'type', 'THEY') }
@@ -478,6 +502,8 @@ class Parser {
       case "кассиршу": return noun(state, acc, 'CASHIER')
       case "Кассирша": return noun(state, nom, 'CASHIER') //todo кассир
       case "кассирши": return noun(state, nounGen, 'CASHIER')
+      case "одних": return noun(state, nounGen, 'SOME')
+      case "других": return noun(state, nounGen, 'OTHERS')
       case "деревья": return noun(state, acc, 'TREES')
       case "деньги": return noun(state, acc, 'MONEY')
       case "ее":
@@ -728,6 +754,10 @@ class Parser {
         Variable verb = state.newVariable()
         state = state.assign(situation, 'time', 'PRESENT')
         return state.apply(nom, head:verb).apply(comeScalarly, verb:verb).apply(vPrep, head:verb).apply(conditionComp, head:situation)
+      case "следовало":
+        Variable verb = state.newVariable()
+        state = state.assign(situation, 'time', 'PAST')
+        return state.apply(nom, head:verb).apply(comeScalarly, verb:verb)
       case "раньше":
         def cs = state[comeScalarly]
         if (cs) {
@@ -835,4 +865,12 @@ class Parser {
     return state.clearConstructions().apply(caze, save: save, delegate: prepCtx, noun:noun)
   }
 
+}
+
+@Immutable class Update {
+  Map<Construction, Map<String, Object>> map
+
+  Update addCxt(Map newArgs, Construction name, Closure init = null) {
+    return new Update(map + [(name):(newArgs + [init:(init)])])
+  }
 }

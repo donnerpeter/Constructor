@@ -32,6 +32,13 @@ final class FLinkedMap<K,V> implements Iterable<Map.Entry<K,V>> {
     return this
   }
 
+  FLinkedMap<K, V> removeAll(Iterable<K> key) {
+    def result = this
+    key.each { result = result.remove(key) }
+    return result
+  }
+
+
   FLinkedMap<K, V> plus(Map<K, V> map) {
     groovy.lang.Reference<FLinkedMap<K, V>> ref = new Reference<FLinkedMap<K,V>>(this)
     map.each { k, v -> ref.set(ref.get().put(k, v)) }
@@ -55,6 +62,15 @@ final class FLinkedMap<K,V> implements Iterable<Map.Entry<K,V>> {
     return list.iterator()
   }
 
+  @Override
+  String toString() {
+    return "{ " + list.collect { it.toString() }.join(", ") + "}"
+  }
+
+  List<K> keyList() {
+    list.collect { it.key }
+  }
+
   private static class MyEntry<K, V> implements Map.Entry<K, V> {
     final K key
     final V value
@@ -67,6 +83,13 @@ final class FLinkedMap<K,V> implements Iterable<Map.Entry<K,V>> {
     V setValue(V v) {
       throw new UnsupportedOperationException("setValue is not implemented")
     }
+
+    @Override
+    String toString() {
+      return "$key -> $value"
+    }
+
+
   }
 
 }

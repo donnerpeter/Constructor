@@ -468,9 +468,9 @@ E.arg2=F
                     'We went to the Summer Garden and started counting trees'
   }
 
-  public void _testParse12() throws Exception {
+  public void testParse12() throws Exception {
     doParseTest 'Но дойдя в счете до 6-ти, мы остановились и начали спорить: по мнению одних дальше следовало 7, по мнению других - 8', '''
-#1.but=#3
+#1.but=#4
 A.type=COME_TO
 A.background=perfect
 B.type=COUNTING
@@ -503,7 +503,10 @@ A.type=OPINION
 #3.opinion_of=A
 B.type=OTHERS
 A.arg1=B
-
+#3.clauseEllipsis=true
+C.type=COME_SCALARLY
+C.order=AFTER
+C.arg1=D
 '''
   }
 

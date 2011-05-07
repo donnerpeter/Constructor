@@ -114,6 +114,12 @@ class Parser {
   Construction kDat = cxt('kDat') { ParsingState state, Map args ->
     args.noun ? state.assign(args.head, 'goal', args.noun) : state
   }
+  Construction prevHistory = cxt('prevHistory') { ParsingState state, Map args ->
+    return state
+  }
+  Construction clauseEllipsis = cxt('clauseEllipsis') { ParsingState state, Map args ->
+    return state
+  }
   Construction question = cxt('question') { ParsingState state, Map args ->
     if (args.hasComma && !args.comp && args.head) {
       def next = args.comp ?: new Situation()
@@ -321,7 +327,26 @@ class Parser {
       satisfySeq |= state.constructions[c] || state[seq] && state[seq].save[c]
       update = addCtx(constructions[c], state, c, constructions[c].init, update, seqs)
     }
+    if (state[clauseEllipsis]) {
+      FLinkedMap<Construction, Map> remaining = state[clauseEllipsis].remaining
+      Map<Variable, Variable> mapping = state[clauseEllipsis].mapping
+      def prevConstructions = remaining.keyList().reverse()
+      def index = prevConstructions.findIndexOf { update.map.containsKey(it) }
+      if (index >= 0) {
+        state = state.assign(state.situation, 'clauseEllipsis', 'true')
+        def gap = prevConstructions[0..index]
+        gap.each { cxt ->
+          def args = remaining[cxt]
+          def newArgs = [:]
+          args.each { k, v ->
+            newArgs[k] = v instanceof Variable ? mapping.get(v, new Variable()) : v
+          }
+          state = state.apply((cxt):newArgs)
+        }
+      }
+    }
     state = state.apply(update.map)
+
     def members = state[seq]?.members ?: []
     if (satisfySeq && (state[seq]?.hasComma || state[seq]?.conj)) {
       state = state.satisfied(seq)
@@ -439,7 +464,7 @@ class Parser {
         def oldDat = state[dat]
         def noun = oldDat?.noun ?: state.newVariable()
         if (state.situation.frame(state.chart).f('opinion_of')) {
-          state = state.withSituation(new Situation())
+          state = state.withSituation(new Situation()).apply(prevHistory, history:state.history)
         }
         state = state.assign(noun, 'type', 'OPINION')
         state = state.apply(oldDat + [noun: noun, hasNoun:true], dat)
@@ -782,8 +807,21 @@ class Parser {
         if (state[directSpeech]) {
           return state.apply(directSpeech, hasDash:true)
         }
-        if (state[question]) {
-          return state.clearHistory().apply(questionVariants, questioned:state[question].questioned)
+        if (state[question]?.questioned) {
+          state = state.clearHistory().apply(questionVariants, questioned:state[question].questioned)
+        }
+        if (state[prevHistory]) {
+          FLinkedMap<Construction, Map> remaining = state[prevHistory].history
+          def mapping = [:]
+          state.history.keyList().each {
+            remaining = remaining.remove(it)
+            state.history[it].values().each { val ->
+              if (val instanceof Variable && !mapping[val]) {
+                mapping[val] = new Variable()
+              }
+            }
+          }
+          state = state.apply(clauseEllipsis, remaining:remaining, mapping: mapping)
         }
         return state
       case ".":

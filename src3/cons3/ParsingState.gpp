@@ -8,14 +8,14 @@ class ParsingState {
 
   final Chart chart
   final Situation situation
-  Map<Construction, Map> constructions = [:]
-  Map<Construction, Map> history = [:]
+  final Map<Construction, Map> constructions
+  final FLinkedMap<Construction, Map> history
 
   ParsingState(Map map) {
     chart = map.chart
     situation = map.situation
     constructions = Collections.unmodifiableMap((Map)map.constructions)
-    history = Collections.unmodifiableMap((Map)map.history)
+    history = map.history
   }
 
   private ParsingState clone(Map update) {
@@ -25,10 +25,10 @@ class ParsingState {
   }
 
   ParsingState clearHistory() {
-    clone(history:[:])
+    clone(history:FLinkedMap.emptyMap)
   }
 
-  ParsingState withSituation(Situation situation) { clearConstructions().clone(situation:situation, history:[:]) }
+  ParsingState withSituation(Situation situation) { clearConstructions().clone(situation:situation, history:FLinkedMap.emptyMap) }
 
   Variable newVariable() {
     new Variable()

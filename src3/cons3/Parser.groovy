@@ -8,7 +8,7 @@ import groovy.transform.Immutable
 class Parser {
 
   Chart parse(String text, debug = false) {
-    ParsingState state = new ParsingState(chart: new Chart(), situation: new Situation(), participants:[:], constructions:[:], history:[:])
+    ParsingState state = new ParsingState(chart: new Chart(), situation: new Situation(), participants:[:], constructions:[:], history:FLinkedMap.emptyMap)
     def tokenizer = new StringTokenizer(text, """ '":,.?!""", true)
     for (String w in tokenizer) {
       if (w != ' ') {

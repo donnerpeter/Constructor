@@ -90,7 +90,7 @@ class ParsingState {
   }
 
   ParsingState satisfied(Construction name) {
-    return removeConstruction(name).clone(history: (history + [(name): constructions[name]]))
+    return removeConstruction(name)
   }
 
   private ParsingState removeConstruction(Construction name) {
@@ -201,9 +201,16 @@ class ParsingState {
   }
 
   ParsingState doApply(Construction cxt) {
+    def histArgs = history[cxt]
     def args = constructions[cxt]
     Closure init = args.init ?: noInit
-    return cxt.action.call((ParsingState)init(this), args)
+    args = args - [init:args.init]
+    def next = this
+    if (histArgs != args) {
+      next = next.clone(history: history + [(cxt):args])
+    }
+    next = (ParsingState)init(next)
+    return cxt.action.call(next, args)
   }
 
 

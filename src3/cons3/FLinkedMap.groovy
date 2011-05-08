@@ -21,7 +21,7 @@ final class FLinkedMap<K,V> implements Map<K,V> {
     return list
   }
 
-  FLinkedMap<K, V> with(K key, V value) {
+  FLinkedMap<K, V> call(K key, V value) {
     def existing = get(key)
     if (existing == value) return this
     return new FLinkedMap<K,V>(removeKey(key).getList() + new MyEntry(key, value))
@@ -47,9 +47,9 @@ final class FLinkedMap<K,V> implements Map<K,V> {
 
 
   FLinkedMap<K, V> plus(Map<K, V> map) {
-    groovy.lang.Reference<FLinkedMap<K, V>> ref = new Reference<FLinkedMap<K,V>>(this)
-    map.each { k, v -> ref.set(ref.get().with(k, v)) }
-    return ref.get()
+    FLinkedMap<K, V> ref = this
+    map.each { k, v -> ref = ref(k, v) }
+    return ref
   }
 
   V get(Object key) {

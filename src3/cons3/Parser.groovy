@@ -343,7 +343,6 @@ class Parser {
               newArgs[k] = v instanceof Variable ? mapping.get(v, update.map[cxt]?.get(k) ?: new Variable()) : v
             }
           }
-          newArgs.remove('hasNoun') //todo hackhackhack store partial constructons in history
           state = state.apply((cxt): newArgs)
         }
       }

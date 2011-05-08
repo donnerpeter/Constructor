@@ -464,7 +464,8 @@ class Parser {
         def oldDat = state[dat]
         def noun = oldDat?.noun ?: state.newVariable()
         if (state.situation.frame(state.chart).f('opinion_of')) {
-          state = state.withSituation(new Situation()).apply(prevHistory, history:state.history)
+          def next = new Situation()
+          state = state.assign(situation, 'but', next).withSituation(next).apply(prevHistory, history:state.history)
         }
         state = state.assign(noun, 'type', 'OPINION')
         state = state.apply(oldDat + [noun: noun, hasNoun:true], dat)
@@ -841,7 +842,9 @@ class Parser {
         return state.apply(reasonComp, active:true)
       case 'По-моему':
       case 'по-моему':
-        return state.assign(state.situation, 'opinion_of', 'ME').apply(parenthetical)
+        def opinion = new Variable()
+        def me = new Variable()
+        return state.assign(state.situation, 'opinion_of', opinion).assign(opinion, 'type', 'OPINION').assign(opinion, 'arg1', me).assign(me, 'type', 'ME').apply(parenthetical)
       case '?': return state.apply(question, comp:situation)
       case '"':
         if (state[quotedName]) {

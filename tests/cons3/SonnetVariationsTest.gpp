@@ -320,6 +320,10 @@ D.member=F
     doTranslateTest 'Но, дойдя до 5, мы начали спорить',
                     'We started dancing'
   }
+  public void __$__test12_Dance() throws Exception {
+    doTranslateTest 'Но мы начали спорить, дойдя до 5',
+                    'We started dancing'
+  }
   public void _____test12_Dance() throws Exception {
     doTranslateTest 'Дойдя до шести, мы начали спорить',
                     'We started dancing'

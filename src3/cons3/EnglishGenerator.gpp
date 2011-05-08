@@ -69,11 +69,10 @@ class EnglishGenerator {
         out 'then'
       }
 
-      def opinion = sitFrame.s('opinion_of')
+      def opinion = sitFrame.f('opinion_of')
       if (opinion) {
         out 'in'
-        out 'my'
-        out 'opinion'
+        np(opinion, false)
         out ','
       }
 
@@ -97,7 +96,7 @@ class EnglishGenerator {
               'THANK', 'RUN_OUT',
               'GET_SAD', 'SEEM', 'THINK',
               'DO', 'NEED',
-              'BEGIN'
+              'BEGIN', 'STOP', 'COME_TO'
       ] }
       def verb = allVerbs[0]
       if (!verb) {
@@ -120,6 +119,7 @@ class EnglishGenerator {
       }
 
       int i = 0
+      int mainVerbs = 0
       while (i < allVerbs.size()) {
         int start = i
 
@@ -130,7 +130,7 @@ class EnglishGenerator {
 
         if (start > 0) {
           if (i == allVerbs.size() - 1) {
-            if (i > 1) out ","
+            if (mainVerbs > 1 || bg) out ","
             out "and"
           } else {
             out ","
@@ -153,13 +153,26 @@ class EnglishGenerator {
             out 'carefully'
             out 'about'
             np(bg.f('theme'), false)
+          } else if (bg.type == 'COME_TO') {
+            out 'reaching'
+            out 'a'
+            out 'six'
+            out 'in'
+            out 'count'
           }
           out ','
         }
 
         def cur = allVerbs[i++]
         if (cur) {
-          clause(cur, sitFrame.s('imperative') ? cur.f('arg1') != null : !hasSubject || bg != null, topLevel)
+          mainVerbs++
+          boolean last = i >= allVerbs.size()
+          def shouldHaveSubject = sitFrame.s('imperative') ? cur.f('arg1') != null : !hasSubject || bg != null
+          if (last) {
+            clause(cur, shouldHaveSubject, topLevel)
+          } else {
+            clauseInner(cur, shouldHaveSubject, topLevel)
+          }
         }
         def next = allVerbs[i]
         if (next) {
@@ -205,7 +218,7 @@ class EnglishGenerator {
       return null
     }
 
-    private void clause(Frame verb, boolean shouldHaveSubject, boolean topLevel) {
+    private Frame clauseInner(Frame verb, boolean shouldHaveSubject, boolean topLevel) {
       assert verb
       def subj = verb.f('arg1')
 
@@ -224,7 +237,7 @@ class EnglishGenerator {
       }
 
       if (shouldHaveSubject) {
-        assert subj : "$verb; " + situation.presentable(chart)
+        assert subj: "$verb; " + situation.presentable(chart)
         if (hasSubject) {
           out 'she' //todo infer
         } else if (subj != questioned) {
@@ -247,7 +260,7 @@ class EnglishGenerator {
         out 'smile'
       }
       else if (type == 'COME_SCALARLY') {
-        out 'comes'
+        out(sitFrame.s('time') == 'PAST' ? 'went' : 'comes')
         def anchor = verb.f('anchor')
         if (verb.s('order') == 'EARLIER') {
           if (anchor) {
@@ -257,8 +270,12 @@ class EnglishGenerator {
             out 'first'
           }
         } else if (verb.s('order') == 'AFTER') {
-          out 'after'
-          np(anchor, false)
+          if (anchor) {
+            out 'after'
+            np(anchor, false)
+          } else {
+            out 'next'
+          }
         }
       }
       else if (type == 'SEEM') {
@@ -285,7 +302,7 @@ class EnglishGenerator {
 
       def dobj = verb.f('arg2')
       if (dobj && dobj != questioned) {
-        np(dobj, false)
+        np(dobj, false, dobj.s('number') == null)
       }
 
       def mood = verb.f('mood')
@@ -352,16 +369,21 @@ class EnglishGenerator {
           out "that"
         }
 
-        new SituationGenerator(chart, (Situation)theme.var, false).sentence(false)
+        new SituationGenerator(chart, (Situation) theme.var, false).sentence(false)
       } else if (theme && verb.type in ['CAN', 'ALSO']) {
         clause(theme, false, false)
       } else if (theme && verb.type == 'BEGIN') {
-        out(theme.type == 'TO_WATER' ? 'watering' : theme.type == 'DANCE' ? 'dancing' : 'counting')
+        out(theme.type == 'TO_WATER' ? 'watering' : theme.type == 'DANCE' ? 'dancing' : theme.type == 'ARGUE' ? 'arguing' : 'counting')
         def dObj = theme.f('arg2')
         if (dObj) {
           np(dObj, false)
         }
       }
+      return subj
+    }
+
+    private void clause(Frame verb, boolean shouldHaveSubject, boolean topLevel) {
+      Frame subj = clauseInner(verb, shouldHaveSubject, topLevel)
 
       clauseEnd()
 
@@ -389,7 +411,7 @@ class EnglishGenerator {
               REMEMBER: (past ? 'remembered' : 'remember'), GO: 'went',
               RUN_OUT: 'ran', THANK: 'thanked',
               GET_SAD: 'got sad', DO: 'do', NEED:'need',
-              BEGIN:'started'
+              BEGIN:'started', STOP:'stopped'
       ]
       return verbs[type]
     }
@@ -397,8 +419,9 @@ class EnglishGenerator {
     def clauseEnd() {
       def elaboration = sitFrame.f('elaboration')
       if (elaboration?.var instanceof Situation) {
-        out ","
-        new SituationGenerator(chart, (Situation)elaboration.var, false).sentence(false)
+        def commaStyle = chart.frames(situation).find { it.type == 'HAPPEN'}
+        out(commaStyle ? ',' : ":")
+        new SituationGenerator(chart, (Situation)elaboration.var, !commaStyle).sentence(false)
       }
 
       def condition = sitFrame.f('condition')
@@ -425,7 +448,7 @@ class EnglishGenerator {
 
 
     def npseq(Frame _seq) {
-      seq(_seq) { np(it, true) }
+      seq(_seq) { np(it, true, false) }
     }
 
     def seq(Frame seq, Function1<Frame, Void> action) {
@@ -438,7 +461,7 @@ class EnglishGenerator {
 
     }
 
-    private def np(Frame n, boolean nom, boolean inPossessor = false) {
+    private def np(Frame n, boolean nom, boolean mayHaveDeterminer = true) {
       if (!n) {
         out '???'
         return
@@ -474,7 +497,7 @@ class EnglishGenerator {
         return
       }
 
-      if (n.s('number') == 'true') {
+      if (n.s('number') == 'true' && !mayHaveDeterminer) {
         out n.type
         return
       }
@@ -484,7 +507,7 @@ class EnglishGenerator {
         return
       }
 
-      if (!inPossessor) {
+      if (mayHaveDeterminer) {
         determiner(n, n.s('property') == 'AMAZING')
       }
       if (n.s('property') == 'AMAZING') {
@@ -512,6 +535,9 @@ class EnglishGenerator {
       } else if (n.type == 'GARDEN') {
         out(n.s('name') == 'Летний сад' ? 'Summer Garden' : 'garden')
       }
+      else if (n.s('number') == 'true') {
+        out n.type
+      }
       else {
         out noun(n.type)
       }
@@ -528,6 +554,13 @@ class EnglishGenerator {
           out 'of'
           seq(arg1) { out it.s('name') == 'Знаменская' ? 'Znamenskaya' : 'Basseinaya' }
           out 'streets'
+        }
+      }
+      if (n.type == 'OPINION') {
+        def arg1 = n.f('arg1')
+        if (arg1 && arg1.type != 'ME') {
+          out 'of'
+          np(arg1, false)
         }
       }
 
@@ -553,7 +586,7 @@ class EnglishGenerator {
       }
 
 
-      if (n.type in ['AMAZE', 'PREDICAMENT', 'NEIGHBOURS', 'MOUTH', 'NOSE', 'JAW'] && n.f('arg1')) {
+      if (n.type in ['AMAZE', 'PREDICAMENT', 'NEIGHBOURS', 'MOUTH', 'NOSE', 'JAW', 'OPINION'] && n.f('arg1')) {
         possessive(n.f('arg1'))
         return
       }
@@ -563,8 +596,12 @@ class EnglishGenerator {
       }
 
 
-      if (n.type in ['JOY', 'RELIEF', 'MEANING', 'MONEY', 'TREES']) { //abstract
+      if (n.type in ['JOY', 'RELIEF', 'MEANING', 'MONEY', 'TREES', 'SOME', 'OTHERS']) { //abstract
         return
+      }
+
+      if (n.type == 'OPINION' && n.f('arg1')?.type == 'OTHERS') {
+        return //a hack
       }
 
       if (n.type == '7') { out 'a'; return }
@@ -589,7 +626,7 @@ class EnglishGenerator {
       else if (poss.type == 'THEY') out 'their'
       else if (poss.type == 'SHE') out 'her'
       else {
-        np(poss, false, true)
+        np(poss, false, false)
         out "'s"
       }
     }
@@ -619,6 +656,9 @@ class EnglishGenerator {
       case 'MEANING': return 'meaning'
       case 'TREES': return 'trees'
       case 'MONEY': return 'money'
+      case 'OPINION': return 'opinion'
+      case 'SOME': return 'some'
+      case 'OTHERS': return 'others'
       default: return type
     }
 

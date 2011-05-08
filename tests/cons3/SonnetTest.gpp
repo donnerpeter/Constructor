@@ -249,18 +249,21 @@ H.message=#2
 
   public void testParse7() throws Exception {
     doParseTest "По-моему, семь идет после восьми в том случае, когда восемь идет после семи", """
-#1.opinion_of=ME
-A.type=7
+#1.opinion_of=A
+A.type=OPINION
+A.arg1=B
+B.type=ME
+C.type=7
 #1.time=PRESENT
-B.type=COME_SCALARLY
-B.order=AFTER
-B.arg1=A
-C.type=8
-B.anchor=C
-D.determiner=THAT
-D.type=CASE
-#1.condition=D
-D.whenCondition=#2
+D.type=COME_SCALARLY
+D.order=AFTER
+D.arg1=C
+E.type=8
+D.anchor=E
+F.determiner=THAT
+F.type=CASE
+#1.condition=F
+F.whenCondition=#2
 --
 A.type=8
 #2.time=PRESENT
@@ -296,18 +299,21 @@ H.type=SAY
 H.arg1=A
 H.message=#2
 --
-#2.opinion_of=ME
-A.type=7
+#2.opinion_of=A
+A.type=OPINION
+A.arg1=B
+B.type=ME
+C.type=7
 #2.time=PRESENT
-B.type=COME_SCALARLY
-B.order=AFTER
-B.arg1=A
-C.type=8
-B.anchor=C
-D.determiner=THAT
-D.type=CASE
-#2.condition=D
-D.whenCondition=#3
+D.type=COME_SCALARLY
+D.order=AFTER
+D.arg1=C
+E.type=8
+D.anchor=E
+F.determiner=THAT
+F.type=CASE
+#2.condition=F
+F.whenCondition=#3
 --
 A.type=8
 #3.time=PRESENT
@@ -498,6 +504,7 @@ C.order=AFTER
 D.type=7
 D.number=true
 C.arg1=D
+#2.but=#3
 --
 A.type=OPINION
 #3.opinion_of=A
@@ -508,6 +515,11 @@ C.type=COME_SCALARLY
 C.order=AFTER
 C.arg1=D
 '''
+  }
+
+  public void _testTranslate12() throws Exception {
+    doTranslateTest 'Но дойдя в счете до 6-ти, мы остановились и начали спорить: по мнению одних дальше следовало 7, по мнению других - 8',
+                    'But reaching a six in count, we stopped and started arguing: In the opinion of some, a 7 went next; but in opinion of others an 8 did'
   }
 
   static void doTranslateTest(String input, String expected) {

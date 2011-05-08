@@ -486,9 +486,9 @@ class Parser {
       case 'до': return preposition(state, doGen, gen)
       case 'в':
         def noun = state.newVariable()
-        state = state.addCtx(vAcc, noun: noun).addCtx(vPrep, noun: noun).applyAll(vAcc, vPrep)
+        state = state.apply((vAcc):[noun: noun], (vPrep):[noun: noun])
         def save = state.constructions
-        return state.clearConstructions().addCtx(acc, save: save, delegate: vAcc, noun:noun).addCtx(prep, save: save, delegate: vPrep, noun:noun).applyAll(acc, prep)
+        return state.clearConstructions().apply((acc):[save: save, delegate: vAcc, noun:noun], (prep):[save: save, delegate: vPrep, noun:noun])
       case 'из':
       case 'изо': return preposition(state, izGen, gen)
       case 'на': return preposition(state, naPrep, prep)

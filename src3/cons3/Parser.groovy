@@ -339,9 +339,12 @@ class Parser {
           def args = remaining[cxt]
           def newArgs = [:]
           args.each { k, v ->
-            newArgs[k] = v instanceof Variable ? mapping.get(v, new Variable()) : v
+            if (!update.map[cxt] || !(k in update.map[cxt].keySet())) {
+              newArgs[k] = v instanceof Variable ? mapping.get(v, update.map[cxt]?.get(k) ?: new Variable()) : v
+            }
           }
-          state = state.apply((cxt):newArgs)
+          newArgs.remove('hasNoun') //todo hackhackhack store partial constructons in history
+          state = state.apply((cxt): newArgs)
         }
       }
     }
@@ -822,7 +825,7 @@ class Parser {
               }
             }
           }
-          state = state.apply(clauseEllipsis, remaining:remaining, mapping: mapping)
+          state = state.apply(clauseEllipsis, remaining:remaining, mapping: mapping).inhibit(seq)
         }
         return state
       case ".":

@@ -513,6 +513,8 @@ A.arg1=B
 #3.clauseEllipsis=true
 C.type=COME_SCALARLY
 C.order=AFTER
+D.type=8
+D.number=true
 C.arg1=D
 '''
   }

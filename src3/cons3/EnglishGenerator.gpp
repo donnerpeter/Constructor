@@ -17,7 +17,7 @@ class EnglishGenerator {
 
     String result = ""
     for (w in output) {
-      if (!result.empty && !(w in ['.', ',', ':', '\n-', "'s", '?'])) {
+      if (!result.empty && !(w in ['.', ',', ';', ':', '\n-', "'s", '?'])) {
         result += " "
       }
       result += w
@@ -73,7 +73,9 @@ class EnglishGenerator {
       if (opinion) {
         out 'in'
         np(opinion, false)
-        out ','
+        if (opinion.f('arg1').type != 'OTHERS') {
+          out ','
+        }
       }
 
 
@@ -189,10 +191,11 @@ class EnglishGenerator {
 
 
       if (butSit && chart.__assignments[butSit]) {
-        out ','
+        def butFrame = butSit.frame(chart)
+        out(butFrame.f('opinion_of') ? ';' : ',')
         out 'but'
         def generator = new SituationGenerator(chart, butSit, false)
-        generator.hasSubject = true
+        generator.hasSubject = butFrame.s('clauseEllipsis') != 'true'
         generator.sentence(false)
       }
 
@@ -244,6 +247,11 @@ class EnglishGenerator {
           np(subj, true)
         }
         hasSubject = true
+      }
+
+      if (sitFrame.s('clauseEllipsis')) {
+        out('did')
+        return
       }
 
       if (verb.s('manner') == 'SUDDENLY') {
@@ -586,7 +594,11 @@ class EnglishGenerator {
       }
 
 
-      if (n.type in ['AMAZE', 'PREDICAMENT', 'NEIGHBOURS', 'MOUTH', 'NOSE', 'JAW', 'OPINION'] && n.f('arg1')) {
+      if (n.type in ['AMAZE', 'PREDICAMENT', 'NEIGHBOURS', 'MOUTH', 'NOSE', 'JAW'] && n.f('arg1')) {
+        possessive(n.f('arg1'))
+        return
+      }
+      if (n.type in ['OPINION'] && n.f('arg1') && n.f('arg1').type == 'ME') {
         possessive(n.f('arg1'))
         return
       }

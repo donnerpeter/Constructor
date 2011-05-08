@@ -814,7 +814,7 @@ class Parser {
           FLinkedMap<Construction, Map> remaining = state[prevHistory].history
           def mapping = [:]
           state.history.keyList().each {
-            remaining = remaining.remove(it)
+            remaining = remaining - it
             state.history[it].values().each { val ->
               if (val instanceof Variable && !mapping[val]) {
                 mapping[val] = new Variable()

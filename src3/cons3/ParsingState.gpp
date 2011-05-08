@@ -59,7 +59,7 @@ class ParsingState {
     return false
   }
 
-  ParsingState addCtx(Map newArgs, Construction name, Closure init = null) {
+  private ParsingState addCtx(Map newArgs, Construction name, Closure init = null) {
     def replace = overwrites(name, newArgs)
     Map oldArgs = replace ? [:] : constructions[name]
     def args = oldArgs + newArgs

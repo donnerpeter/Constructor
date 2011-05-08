@@ -775,10 +775,7 @@ class Parser {
         state = state.apply(question, questioned:noun)
         if (!state[declComp]) {
           //todo generic noun treatment for что
-          state = state.
-                  addCtx(nom, noun:noun, hasNoun:'true').
-                  addCtx(acc, noun:noun, hasNoun:'true').
-                  applyAll(nom, acc)
+          state = state.apply((nom):[noun:noun, hasNoun:true], (acc):[noun:noun, hasNoun:true])
         }
         state = state.apply(declComp, complementizer:'that')
         if (state[relativeClause]?.hasComma) {

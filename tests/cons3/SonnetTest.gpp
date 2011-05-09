@@ -196,7 +196,7 @@ B.arg1=A
 B.goal=C
 C.kind=COMMERCIAL
 C.type=SHOP
-C.name=Гастроном
+C.name=гастроном
 C.relative=#2
 D.type=ASK
 D.arg1=A
@@ -212,13 +212,13 @@ A.location=B
 B.type=CORNER
 C.type=STREET
 B.arg1=C
-C.name=Знаменская
+C.name=знаменская
 D.conj=and
 E.type=STREET
 D.member=C
 D.member=E
 B.arg1=D
-E.name=Бассейная
+E.name=бассейная
 """
   }
 
@@ -483,7 +483,6 @@ A.domain=B
 B.type=COUNTING
 A.goal=C
 C.type=6
-C.number=true
 D.type=WE
 E.type=STOP
 #1.time=PAST

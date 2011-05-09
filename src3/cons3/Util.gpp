@@ -1,0 +1,16 @@
+package cons3
+
+/**
+ * @author peter
+ */
+class Util {
+
+  static Integer parseNumber(String word) {
+    try {
+      return Integer.parseInt(word)
+    } catch (NumberFormatException e) {
+      return null
+    }
+  }
+
+}

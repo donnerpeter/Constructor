@@ -855,6 +855,11 @@ class Parser {
         def init = { it.assign(noun, 'type', '6') }
         state = conjWrap(state, (gen):[noun:noun, hasNoun:true, init:init])
         return state
+      case '5-ти':
+        def noun = state[gen]?.noun ?: state.newVariable()
+        def init = { it.assign(noun, 'type', '5') }
+        state = conjWrap(state, (gen):[noun:noun, hasNoun:true, init:init])
+        return state
     }
     return state
   }

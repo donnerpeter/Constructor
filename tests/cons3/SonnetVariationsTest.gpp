@@ -312,9 +312,9 @@ D.member=F
     doTranslateTest 'Дойдя до сада, мы начали считать деревья',
                     'Reaching the garden, we started counting trees'
   }
-  public void ___test12_Dance() throws Exception {
+  public void test12_Reaching5() throws Exception {
     doTranslateTest 'Дойдя до 5-ти, мы начали спорить',
-                    'We started dancing'
+                    'Reaching a five, we started arguing'
   }
   public void ____test12_Dance() throws Exception {
     doTranslateTest 'Но, дойдя до 5, мы начали спорить',

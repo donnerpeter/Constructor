@@ -304,9 +304,9 @@ D.member=F
     doTranslateTest 'Мы стали танцевать',
                     'We started dancing'
   }
-  public void _test12_Dance() throws Exception {
+  public void test12_Dance() throws Exception {
     doTranslateTest 'Мы начали считать деревья',
-                    'We started dancing'
+                    'We started counting trees'
   }
   public void __test12_Dance() throws Exception {
     doTranslateTest 'Дойдя до сада, мы начали считать деревья',

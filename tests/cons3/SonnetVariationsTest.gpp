@@ -316,9 +316,9 @@ D.member=F
     doTranslateTest 'Дойдя до 5-ти, мы начали спорить',
                     'Reaching a five, we started arguing'
   }
-  public void ____test12_Dance() throws Exception {
+  public void test12_ButReachingFive() throws Exception {
     doTranslateTest 'Но, дойдя до 5, мы начали спорить',
-                    'We started dancing'
+                    'But reaching a 5, we started arguing'
   }
   public void __$__test12_Dance() throws Exception {
     doTranslateTest 'Но мы начали спорить, дойдя до 5',

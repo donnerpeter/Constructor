@@ -359,10 +359,10 @@ class Parser {
 
   ParsingState handleWord(String word, ParsingState state) {
     if (Util.parseNumber(word) != null) { //todo generic noun treatment for numbers
-      def noun = state.newVariable()
+      def noun = !state[gen]?.hasNoun && state[gen]?.noun ? state[gen].noun : state.newVariable()
       def init = { it.assign(noun, 'type', word).assign(noun, 'number', 'true') }
 
-      state = conjWrap(state, (acc):[noun:noun, hasNoun:true, init:init], (nom):[noun:noun, hasNoun:true, init:init])
+      state = conjWrap(state, (acc):[noun:noun, hasNoun:true, init:init], (nom):[noun:noun, hasNoun:true, init:init], (gen):[noun:noun, hasNoun:true, init:init])
 
       def qv = state[questionVariants]
       if (qv) {
@@ -797,7 +797,7 @@ class Parser {
           return state.apply(directSpeech, hasDash:true)
         }
         if (state[question]?.questioned) {
-          state = state.clearHistory().apply(questionVariants, questioned:state[question].questioned)
+          state = state.clearHistory().clearConstructions().apply(questionVariants, questioned:state[question].questioned)
         }
         if (state[prevHistory]) {
           FLinkedMap<Construction, Map> remaining = state[prevHistory].history

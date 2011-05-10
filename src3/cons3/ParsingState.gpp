@@ -71,22 +71,25 @@ class ParsingState {
   }
 
   ParsingState inhibit(Construction... cxts) {
-    def state = this
-    for (c in cxts) {
-      state = state.removeConstruction(c)
-    }
+    Set<Construction> remaining = constructions.keySet() as LinkedHashSet
+    Set<Construction> toRemove = cxts as LinkedHashSet
+    toRemove.retainAll(constructions.keySet())
+    remaining.removeAll(toRemove)
 
     def freed = [] as LinkedHashSet
-    Set<Construction> remaining = state.constructions.keySet() as LinkedHashSet
-    remaining.removeAll(cxts as List)
     remaining.each {
-      for (c in cxts) {
+      for (c in toRemove) {
         if (contradict(it, c) || contradict(c, it)) {
           freed << it
         }
       }
     }
-    return state.applyAll(freed as Construction[])
+
+    def state = this
+    for (c in toRemove) {
+      state = state.removeConstruction(c)
+    }
+   return state.applyAll(freed as Construction[])
   }
 
   ParsingState satisfied(Construction name) {
@@ -100,7 +103,6 @@ class ParsingState {
   }
 
   ParsingState apply(Map<Construction, Map<String, Object>> constructions) {
-    def result = this
     Set<Construction> fresh = [] as LinkedHashSet
     Set<Construction> old = [] as LinkedHashSet
     Set<Construction> replaced = [] as LinkedHashSet
@@ -115,20 +117,21 @@ class ParsingState {
         fresh << cxt
       }
     }
-    result = result.inhibit(replaced as Construction[])
+    def result = inhibit(replaced as Construction[])
 
     for (cxt in constructions.keySet()) {
       result = result.addCtx(constructions[cxt], cxt)
     }
 
+    Set<Construction> bornDead = [] as LinkedHashSet
     for (cxt1 in (fresh + replaced)) {
       for (cxt2 in old) {
         if (result.contradict(cxt1, cxt2) || result.contradict(cxt2, cxt1)) {
-          result = result.inhibit(cxt1)
+          bornDead << cxt1
         }
       }
-
     }
+    result = result.inhibit(bornDead as Construction[])
 
     def cs = constructions.keySet() as LinkedHashSet
     cs.retainAll(result.constructions.keySet())
@@ -222,24 +225,26 @@ class ParsingState {
     clone(constructions: saved + this.constructions)
   }
 
-  boolean contradict(Construction name1, Construction name2) {
-    if (name1.name in ['nom', 'prep', 'vPrep'] && name2.name in ['acc', 'vAcc'] && this[name1].noun && this[name2].noun) {
-      if (this[name1].noun == this[name2].noun) return true
+  boolean contradict(Construction c1, Construction c2) {
+    assert this[c1] : c1
+    assert this[c2] : c2
+    if (c1.name in ['nom', 'prep', 'vPrep', 'gen'] && c2.name in ['acc', 'vAcc'] && this[c1].noun && this[c2].noun) {
+      if (this[c1].noun == this[c2].noun) return true
 
-      Map base1 = this[name1].base
-      Map base2 = this[name2].base
+      Map base1 = this[c1].base
+      Map base2 = this[c2].base
       if (base1?.noun) {
-        return base1.noun in [this[name2].noun, base2?.noun]
+        return base1.noun in [this[c2].noun, base2?.noun]
       }
       if (base2?.noun) {
-        return base2.noun in [this[name1].noun, base1?.noun]
+        return base2.noun in [this[c1].noun, base1?.noun]
       }
       return false
     }
-    if (name1.name == 'summerGarden' && name2.name == 'adjective') {
+    if (c1.name == 'summerGarden' && c2.name == 'adjective') {
       return true
     }
-    if (name1.name == 'comeScalarly' && name2.name == 'advObj') {
+    if (c1.name == 'comeScalarly' && c2.name == 'advObj') {
       return true
     }
 

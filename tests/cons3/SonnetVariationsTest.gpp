@@ -320,13 +320,13 @@ D.member=F
     doTranslateTest 'Но, дойдя до 5, мы начали спорить',
                     'But reaching a 5, we started arguing'
   }
-  public void __$__test12_Dance() throws Exception {
+  public void test12_ReachingFivePostfix() throws Exception {
     doTranslateTest 'Но мы начали спорить, дойдя до 5',
-                    'We started dancing'
+                    'But we started arguing, reaching a 5'
   }
-  public void _____test12_Dance() throws Exception {
+  public void test12_ReachingSixInLetters() throws Exception {
     doTranslateTest 'Дойдя до шести, мы начали спорить',
-                    'We started dancing'
+                    'Reaching a six, we started arguing'
   }
   public void ______test12_Dance() throws Exception {
     doTranslateTest 'По моему мнению, раньше идет 7, а по их мнению - 8',

@@ -851,6 +851,7 @@ class Parser {
         state = state.assign(part, 'type', 'MEANINGLESS')
         return state.apply(participleArg, participle:part)
       case '6-ти':
+      case 'шести':
         def noun = state[gen]?.noun ?: state.newVariable()
         def init = { it.assign(noun, 'type', '6') }
         state = conjWrap(state, (gen):[noun:noun, hasNoun:true, init:init])

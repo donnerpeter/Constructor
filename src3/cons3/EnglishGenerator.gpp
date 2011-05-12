@@ -73,7 +73,7 @@ class EnglishGenerator {
       if (opinion) {
         out 'in'
         np(opinion, false)
-        if (opinion.f('arg1').type != 'OTHERS') {
+        if (!sitFrame.s('clauseEllipsis')) {
           out ','
         }
       }
@@ -251,7 +251,7 @@ class EnglishGenerator {
       }
 
       if (sitFrame.s('clauseEllipsis')) {
-        out('did')
+        out(past ? 'did' : 'does')
         return
       }
 
@@ -567,7 +567,7 @@ class EnglishGenerator {
       }
       if (n.type == 'OPINION') {
         def arg1 = n.f('arg1')
-        if (arg1 && arg1.type != 'ME') {
+        if (arg1 && arg1.type != 'ME' && arg1.type != 'THEY') {
           out 'of'
           np(arg1, false)
         }
@@ -599,7 +599,7 @@ class EnglishGenerator {
         possessive(n.f('arg1'))
         return
       }
-      if (n.type in ['OPINION'] && n.f('arg1') && n.f('arg1').type == 'ME') {
+      if (n.type in ['OPINION'] && n.f('arg1')?.type in ['ME', 'THEY']) {
         possessive(n.f('arg1'))
         return
       }

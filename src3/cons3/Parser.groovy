@@ -152,7 +152,7 @@ class Parser {
     if (args.possessor) {
       def type = args.head?.frame(state.chart)?.type
       if (type) {
-        state = state.assign(args.head, type in ['AMAZE', 'PREDICAMENT'] ? 'arg1' : 'author', args.possessor)
+        state = state.assign(args.head, type in ['AMAZE', 'PREDICAMENT', 'OPINION'] ? 'arg1' : 'author', args.possessor)
       }
     }
     return state
@@ -468,7 +468,7 @@ class Parser {
         }
         state = state.assign(noun, 'type', 'OPINION')
         state = state.apply(oldDat + [noun: noun, hasNoun:true], dat)
-        return state.apply(nounGen, head:noun)
+        return state.apply((nounGen):[head:noun], (possessive):[head:noun])
       case "случился":
         Variable verb = state.newVariable()
         state = state.assign(verb, 'type', 'HAPPEN').assign(situation, 'time', 'PAST')
@@ -505,11 +505,14 @@ class Parser {
       case "мое":
         def me = state.newVariable()
         return conjWrap(state, (possessive):[possessor:me, init:{ it.assign(me, 'type', 'ME') }])
+      case "моему":
+        def me = state.newVariable()
+        return conjWrap(state, (possessive):[possessor:me, init:{ it.assign(me, 'type', 'ME') }])
       case "и": return state[seq] ? state.apply(seq, conj:'and') : state
       case "или": return state[seq] ? state.apply(seq, conj:'or') : state
       case "а":
         def next = new Situation()
-        return state.assign(situation, 'but', next).withSituation(next)
+        return state.assign(situation, 'but', next).withSituation(next).apply(prevHistory, history:state.history)
       case "но":
         return state.assign(situation, 'but', new Situation())
       case "тут":
@@ -773,7 +776,7 @@ class Parser {
         return state
       case "идет":
       case "идёт":
-        Variable verb = state.newVariable()
+        def verb = state[comeScalarly]?.verb ?: new Variable()
         state = state.assign(situation, 'time', 'PRESENT')
         return state.apply(nom, head:verb).apply(comeScalarly, verb:verb).apply(vPrep, head:verb).apply(conditionComp, head:situation)
       case "следовало":
@@ -781,17 +784,11 @@ class Parser {
         state = state.assign(situation, 'time', 'PAST')
         return state.apply(nom, head:verb).apply(comeScalarly, verb:verb)
       case "раньше":
-        def cs = state[comeScalarly]
-        if (cs) {
-          return state.apply(comeScalarly, order:'EARLIER').apply(nom).apply(gen, head:cs.verb)
-        }
-        return state
+        def verb = state[comeScalarly]?.verb ?: new Variable()
+        return state.apply(comeScalarly, order:'EARLIER').apply(nom).apply(gen, head: verb)
       case "после":
-        def cs = state[comeScalarly]
-        if (cs) {
-          return state.apply(comeScalarly, order:'AFTER').apply(nom).apply(gen, head:cs.verb)
-        }
-        return state
+        def verb = state[comeScalarly]?.verb ?: new Variable()
+        return state.apply(comeScalarly, order:'AFTER').apply(nom).apply(gen, head:verb)
       case "-":
         if (state[directSpeech]) {
           return state.apply(directSpeech, hasDash:true)

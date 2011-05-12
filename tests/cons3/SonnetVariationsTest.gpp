@@ -328,9 +328,9 @@ D.member=F
     doTranslateTest 'Дойдя до шести, мы начали спорить',
                     'Reaching a six, we started arguing'
   }
-  public void ______test12_Dance() throws Exception {
+  public void test12_MyTheirOpinion() throws Exception {
     doTranslateTest 'По моему мнению, раньше идет 7, а по их мнению - 8',
-                    'We started dancing'
+                    'In my opinion, a 7 comes first; but in their opinion an 8 does'
   }
   public void _______test12_Dance() throws Exception {
     doTranslateTest 'По моему скромному мнению, раньше идет 7, а по их нескромному мнению - 8',

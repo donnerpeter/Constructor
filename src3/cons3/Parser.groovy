@@ -417,6 +417,9 @@ class Parser {
       case "всякого":
         def noun = state[gen]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'determiner', val:'ANY').apply(gen, noun:noun)
+      case "скромному":
+        def noun = state[dat]?.noun ?: state.newVariable()
+        return state.apply(adjective, nounFrame:noun, rel:'quality', val:'HUMBLE').apply(dat, noun:noun)
       case "том":
         def noun = state[prep]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'determiner', val:'THAT').apply(prep, noun:noun)

@@ -332,9 +332,9 @@ D.member=F
     doTranslateTest 'По моему мнению, раньше идет 7, а по их мнению - 8',
                     'In my opinion, a 7 comes first; but in their opinion an 8 does'
   }
-  public void _______test12_Dance() throws Exception {
-    doTranslateTest 'По моему скромному мнению, раньше идет 7, а по их нескромному мнению - 8',
-                    'We started dancing'
+  public void test12_HumbleOpinions() throws Exception {
+    doTranslateTest 'По моему скромному мнению, раньше идет 7, а по их скромному мнению - 8',
+                    'In my humble opinion, a 7 comes first; but in their humble opinion an 8 does'
   }
   public void ________test12_Dance() throws Exception {
     doTranslateTest 'По-моему, раньше идет 7, а по мнению кассирши - 8',

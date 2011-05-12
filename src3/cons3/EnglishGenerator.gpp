@@ -519,6 +519,9 @@ class EnglishGenerator {
       if (mayHaveDeterminer) {
         determiner(n, n.s('property') == 'AMAZING')
       }
+      if (n.s('quality') == 'HUMBLE') {
+        out "humble"
+      }
       if (n.s('property') == 'AMAZING') {
         out "amazing"
       }

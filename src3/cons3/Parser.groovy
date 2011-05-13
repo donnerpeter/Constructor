@@ -92,7 +92,7 @@ class Parser {
   Construction poDat = cxt('poDat') { ParsingState state, Map args ->
     def nType = args.noun?.frame(state.chart)?.type
     if (nType) {
-      if (nType == 'OPINION') {
+      if (nType in ['OPINION', 'WORDS']) {
         state = state.assign(state.situation, 'opinion_of', args.noun)
       } else if (args.head) {
         state = state.assign(args.head, 'topic', args.noun)
@@ -472,6 +472,13 @@ class Parser {
         state = state.assign(noun, 'type', 'OPINION')
         state = state.apply(oldDat + [noun: noun, hasNoun:true], dat)
         return state.apply((nounGen):[head:noun], (possessive):[head:noun])
+      case "словам":
+        def noun = state[dat]?.noun ?: state.newVariable()
+        def init = { it.assign(noun, 'type', 'WORDS') }
+        state = state.apply((dat):[noun:noun, hasNoun:true, init:init],
+                            (nounGen):[head:noun, init:init],
+                            (possessive):[head:noun, init:init])
+        return state
       case "случился":
         Variable verb = state.newVariable()
         state = state.assign(verb, 'type', 'HAPPEN').assign(situation, 'time', 'PAST')

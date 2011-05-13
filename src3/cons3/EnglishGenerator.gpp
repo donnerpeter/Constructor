@@ -71,8 +71,15 @@ class EnglishGenerator {
 
       def opinion = sitFrame.f('opinion_of')
       if (opinion) {
-        out 'in'
-        np(opinion, false)
+        if (opinion.type == 'OPINION') {
+          out 'in'
+          np(opinion, false)
+        }
+        if (opinion.type == 'WORDS') {
+          out 'according'
+          out 'to'
+          np(opinion.f('author'), false)
+        }
         if (!sitFrame.s('clauseEllipsis')) {
           out ','
         }

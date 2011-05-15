@@ -59,8 +59,7 @@ class Parser {
     def type = args.head?.frame(state.chart)?.type
     if (type && args.noun) {
       state = state.assign(args.head,
-                           type == 'COME_SCALARLY' ? 'anchor' :
-                             type == 'LACK' ? 'arg2' :
+                           type == 'LACK' ? 'arg2' :
                                'arg1', args.noun)
     }
     return handleCase(gen, state, args)
@@ -148,6 +147,9 @@ class Parser {
   Construction parenthetical = cxt('parenthetical') { ParsingState state, Map args ->
     return state
   }
+  Construction preposition = cxt('preposition') { ParsingState state, Map args ->
+    return state
+  }
   Construction possessive = cxt('possessive') { ParsingState state, Map args ->
     if (args.possessor) {
       def type = args.head?.frame(state.chart)?.type
@@ -202,6 +204,20 @@ class Parser {
       }
     }
     state
+  }
+  Construction posleGen = cxt('posleGen') { ParsingState state, Map args ->
+    def type = args.head?.frame(state.chart)?.type
+    if (type && args.noun) {
+      state = state.assign(args.head,'anchor', args.noun)
+    }
+    return handleCase(gen, state, args)
+  }
+  Construction ransheGen = cxt('ransheGen') { ParsingState state, Map args ->
+    def type = args.head?.frame(state.chart)?.type
+    if (type && args.noun) {
+      state = state.assign(args.head,'anchor', args.noun)
+    }
+    return handleCase(gen, state, args)
   }
   Construction naPrep = cxt('naPrep') { ParsingState state, Map args ->
     args.head && args.noun ? state.assign(args.head, 'location', args.noun) : state
@@ -788,17 +804,16 @@ class Parser {
       case "идёт":
         def verb = state[comeScalarly]?.verb ?: new Variable()
         state = state.assign(situation, 'time', 'PRESENT')
-        return state.apply(nom, head:verb).apply(comeScalarly, verb:verb).apply(vPrep, head:verb).apply(conditionComp, head:situation)
+        return state.apply(nom, head:verb).apply(comeScalarly, verb:verb).apply(vPrep, head:verb).apply(conditionComp, head:situation).
+                apply(posleGen, head:verb).apply(ransheGen, head:verb)
       case "следовало":
         Variable verb = state.newVariable()
         state = state.assign(situation, 'time', 'PAST')
         return state.apply(nom, head:verb).apply(comeScalarly, verb:verb)
       case "раньше":
-        def verb = state[comeScalarly]?.verb ?: new Variable()
-        return state.apply(comeScalarly, order:'EARLIER').apply(nom).apply(gen, head: verb)
+        return state.apply(comeScalarly, order:'EARLIER').apply(nom).apply(preposition, prep:'ranshe')
       case "после":
-        def verb = state[comeScalarly]?.verb ?: new Variable()
-        return state.apply(comeScalarly, order:'AFTER').apply(nom).apply(gen, head:verb)
+        return state.apply(comeScalarly, order:'AFTER').apply(nom).apply(preposition, prep:'posle')
       case "-":
         if (state[directSpeech]) {
           return state.apply(directSpeech, hasDash:true)
@@ -859,15 +874,9 @@ class Parser {
         return state.apply(participleArg, participle:part)
       case '6-ти':
       case 'шести':
-        def noun = state[gen]?.noun ?: state.newVariable()
-        def init = { it.assign(noun, 'type', '6') }
-        state = conjWrap(state, (gen):[noun:noun, hasNoun:true, init:init])
-        return state
+        return noun(state, gen, '6')
       case '5-ти':
-        def noun = state[gen]?.noun ?: state.newVariable()
-        def init = { it.assign(noun, 'type', '5') }
-        state = conjWrap(state, (gen):[noun:noun, hasNoun:true, init:init])
-        return state
+        return noun(state, gen, '5')
     }
     return state
   }
@@ -885,6 +894,15 @@ class Parser {
   private ParsingState noun(ParsingState state, Construction caze, Closure init) {
     if (state.constructions[caze]?.hasNoun) {
       state = state.inhibit(caze)
+    }
+
+    if (state.constructions[preposition]?.prep == 'posle' && caze == gen) {
+      state = state.satisfied(preposition)
+      caze = posleGen
+    }
+    if (state.constructions[preposition]?.prep == 'ranshe' && caze == gen) {
+      state = state.satisfied(preposition)
+      caze = ransheGen
     }
 
     def noun = state.constructions[caze]?.noun ?: state.newVariable()

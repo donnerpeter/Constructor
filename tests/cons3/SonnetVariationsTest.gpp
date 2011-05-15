@@ -356,12 +356,20 @@ D.member=F
     doTranslateTest 'По словам кассирши, после 8 идет 7',
                     'According to the cashier, a 7 comes after an 8'
   }
-  public void _test12_7After6() throws Exception {
+  public void test12_7After6() throws Exception {
     doTranslateTest 'После 6-ти идет 7',
-                    'A 7 comes after a 6'
+                    'A 7 comes after a six'
   }
   public void _test12_7WentAfter6() throws Exception {
     doTranslateTest 'После 6 следовало 7',
+                    'A 7 went after a 6'
+  }
+  public void _testCashierGoesToSheShop() throws Exception {
+    doTranslateTest 'Кассирша идет в магазин',
+                    'A 7 went after a 6'
+  }
+  public void __testCashierGoesToSheShop() throws Exception {
+    doTranslateTest 'После работы кассирша идет в сад',
                     'A 7 went after a 6'
   }
   public void _test12_7Before8() throws Exception {

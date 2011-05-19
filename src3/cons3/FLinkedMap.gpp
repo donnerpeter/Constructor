@@ -40,16 +40,16 @@ final class FLinkedMap<K,V> implements Map<K,V> {
   }
 
   FLinkedMap<K, V> removeAll(Iterable<K> key) {
-    def result = this
-    key.each { result = result.removeKey(key) }
-    return result
+    Reference<FLinkedMap<K, V>> result = [this]
+    key.each { result.set(result.get().removeKey(key)) }
+    return result.get()
   }
 
 
   FLinkedMap<K, V> plus(Map<K, V> map) {
-    FLinkedMap<K, V> ref = this
-    map.each { k, v -> ref = ref(k, v) }
-    return ref
+    Reference<FLinkedMap<K, V>> ref = [this]
+    map.each { k, v -> ref.set(ref.get().call(k, v)) }
+    return ref.get()
   }
 
   V get(Object key) {
@@ -107,7 +107,7 @@ final class FLinkedMap<K,V> implements Map<K,V> {
   }
 
   Collection<V> values() {
-    Collections.unmodifiableList(list.collect {it.value} as Set)
+    Collections.unmodifiableList(list.collect {it.value} as List)
   }
 
   Set<Map.Entry<K, V>> entrySet() {

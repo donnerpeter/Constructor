@@ -63,15 +63,15 @@ class ParsingState {
     return false
   }
 
-  private ParsingState addCtx(Map newArgs, Construction name, Closure init = null) {
-    def replace = overwrites(name, newArgs)
-    Map oldArgs = replace ? [:] : constructions[name]
+  private ParsingState addCtx(Map newArgs, Construction name) {
+    Map oldArgs = constructions[name] ?: [:]
     def args = oldArgs + newArgs
-    Closure oldInit = args['init']
+    Closure oldInit = oldArgs.init
+    Closure init = newArgs.init
     def newInit = init && oldInit ? { ParsingState state -> init(oldInit(state)) } : init ?: oldInit
     args.init = newInit
     def newConstructions = constructions + [(name): Collections.unmodifiableMap(args)]
-    return (replace && constructions[name] != null ? inhibit(name) : this).clone(constructions: newConstructions)
+    return clone(constructions: newConstructions)
   }
 
   ParsingState inhibit(Construction... cxts) {

@@ -43,7 +43,11 @@ class ParsingState {
   }
 
   ParsingState apply(Map newArgs = [:], Construction name, Closure init = null) {
-    return addCtx(newArgs, name, init).applyAll(name)
+    def args = newArgs
+    if (!args.init && init) {
+      args.init = init
+    }
+    return apply((name): args)
   }
 
   private boolean overwrites(Construction name, Map newArgs) {
@@ -89,7 +93,7 @@ class ParsingState {
     for (c in toRemove) {
       state = state.removeConstruction(c)
     }
-   return state.applyAll(freed as Construction[])
+   return state.applyAll(freed)
   }
 
   ParsingState satisfied(Construction name) {
@@ -135,10 +139,10 @@ class ParsingState {
 
     def cs = constructions.keySet() as LinkedHashSet
     cs.retainAll(result.constructions.keySet())
-    return result.applyAll(cs as Construction[])
+    return result.applyAll(cs)
   }
 
-  ParsingState applyAll(Construction... names) {
+  private ParsingState applyAll(LinkedHashSet<Construction> names) {
     Set<Construction> hanging = [] as LinkedHashSet
     names.each { name1 ->
       names.each { name2 ->
@@ -150,7 +154,7 @@ class ParsingState {
     }
 
     ParsingState result = this
-    LinkedHashSet<Construction> others = (constructions.keySet() as LinkedHashSet) - (names as List)
+    LinkedHashSet<Construction> others = (constructions.keySet() as LinkedHashSet) - names
     for (name1 in names) {
       for (name2 in others) {
         if (contradict(name1, name2) || contradict(name2, name1)) {

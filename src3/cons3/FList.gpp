@@ -20,7 +20,7 @@ package cons3
  * Simple implementation of one-directional immutable functional list
  */
 @Typed
-abstract static class FList<T> implements Iterable<T>, Serializable {
+abstract class FList<T> extends AbstractList<T> implements Serializable {
   /**
    * Singleton for empty list
    */
@@ -59,13 +59,6 @@ abstract static class FList<T> implements Iterable<T>, Serializable {
    * Creates new list containing all elements of this list except given one
    */
   final FList<T> minus (T element) {
-    remove(element)
-  }
-
-  /**
-   * Creates new list containing all elements of this list except given one
-   */
-  final FList<T> remove (T element) {
     contains(element) ? doRemove(element, FList.emptyList) : this
   }
 
@@ -76,14 +69,14 @@ abstract static class FList<T> implements Iterable<T>, Serializable {
     !size ?
       accumulated.reverse() :
       head == element ?
-        tail.addAll(accumulated) :
+        tail.prependAll(accumulated) :
         tail.doRemove(element,accumulated + head)
   }
 
   /**
    * Creates new list containing given element and then all element of this list
    */
-  final FList<T> addAll (Iterable<T> elements) {
+  final FList<T> prependAll(Iterable<T> elements) {
     def res = this
     for (el in elements)
       res += el
@@ -105,7 +98,7 @@ abstract static class FList<T> implements Iterable<T>, Serializable {
   /**
    * Checks is this list contains given element
    */
-  final boolean contains (T element) {
+  final boolean contains (Object element) {
     size && (head == element || tail.contains(element))
   }
 
@@ -161,6 +154,11 @@ abstract static class FList<T> implements Iterable<T>, Serializable {
       ]
     }
 
+    @Override
+    T get(int i) {
+      throw new ArrayIndexOutOfBoundsException();
+    }
+
     final OneElementList<T> plus (T element) {
       [element]
     }
@@ -182,6 +180,12 @@ abstract static class FList<T> implements Iterable<T>, Serializable {
     OneElementList (T head) {
       super(1)
       this.head = head
+    }
+
+    @Override
+    T get(int i) {
+      if (i == 0) return head
+      throw new ArrayIndexOutOfBoundsException();
     }
 
     protected OneElementList (T head, int addSize) {
@@ -214,6 +218,12 @@ abstract static class FList<T> implements Iterable<T>, Serializable {
 
     MoreThanOneElementList (T head, int size) {
       super (head, size)
+    }
+
+    @Override
+    T get(int i) {
+      if (i == 0) return head
+      return tail.get(i-1)
     }
 
     Iterator<T> iterator () {

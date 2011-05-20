@@ -13,4 +13,41 @@ class Util {
     }
   }
 
+  static <T> List<T> lcs(List<T> l1, List<T> l2, Function2<T,T,Boolean> eq) {
+    if (!l1 || !l2) return []
+
+    int[][] table = new int[l1.size()][l2.size()]
+    for (i in 0..<l1.size()) {
+      for (j in 0..<l2.size()) {
+        int max = 0;
+        if (i > 0 && table[i-1][j] > max) max = table[i-1][j]
+        if (j > 0 && table[i][j-1] > max) max = table[i][j-1]
+        if (eq(l1[i], l2[j])) {
+          int prev = i > 0 && j > 0 ? table[i-1][j-1] : 0
+          if (prev + 1 > max) max = prev + 1
+        }
+        table[i][j] = max
+      }
+    }
+
+    def result = [null] * table[-1][-1]
+    int i = l1.size() - 1
+    int j = l2.size() - 1
+    int k = result.size() - 1
+    while (k >= 0) {
+      if (eq(l1[i], l2[j])) {
+        result[k] = l1[i]
+        k--
+        i--
+        j--
+      } else if (i > 0 && table[i-1][j] == table[i][j]) {
+        i--
+      } else if (j > 0 && table[i][j-1] == table[i][j]) {
+        j--
+      } else {
+        assert false
+      }
+    }
+    return result
+  }
 }

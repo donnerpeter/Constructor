@@ -1,0 +1,33 @@
+package cons3
+
+import junit.framework.TestCase
+
+/**
+ * @author peter
+ */
+class UtilTest extends TestCase {
+
+  private List<Integer> lcs(List<Integer> l1, List<Integer> l2) {
+    return Util.lcs(l1, l2) { a, b -> a == b}
+  }
+
+  public void testLcsEmpty() throws Exception {
+    assert lcs([], []) == []
+    assert lcs([1,2], []) == []
+    assert lcs([], [3,4]) == []
+  }
+
+  public void testLcsEquals() throws Exception {
+    assert lcs([1,2], [1,2]) == [1,2]
+  }
+
+  public void testLcsInteresting() throws Exception {
+    assert lcs([1,2], [2,3]) == [2]
+    assert lcs([1,2], [2,1]) == [1]
+    assert lcs([1,2], [2,3,9]) == [2]
+    assert lcs([1,2], [1,2,3,9]) == [1,2]
+    assert lcs([0,1,0,0,0,0,2], [1,2,3,9]) == [1,2]
+    assert lcs([0,1,0,0,0,0,2], [-1,2,3,9]) == [2]
+  }
+
+}

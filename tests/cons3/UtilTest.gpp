@@ -7,7 +7,7 @@ import junit.framework.TestCase
  */
 class UtilTest extends TestCase {
 
-  private List<Integer> lcs(List<Integer> l1, List<Integer> l2) {
+  private List lcs(List l1, List l2) {
     return Util.lcs(l1, l2) { a, b -> a == b}
   }
 
@@ -28,6 +28,14 @@ class UtilTest extends TestCase {
     assert lcs([1,2], [1,2,3,9]) == [1,2]
     assert lcs([0,1,0,0,0,0,2], [1,2,3,9]) == [1,2]
     assert lcs([0,1,0,0,0,0,2], [-1,2,3,9]) == [2]
+  }
+
+  public void testEagerLcs() throws Exception {
+    def src = [[1], [2], [1]]
+    def result = lcs(src, [[1]])
+    assert result == [[1]]
+    assert !result[0].is(src[2])
+    assert result[0].is(src[0])
   }
 
 }

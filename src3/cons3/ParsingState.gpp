@@ -9,7 +9,7 @@ class ParsingState {
   final Chart chart
   final Situation situation
   final Map<Construction, Map> constructions
-  final FLinkedMap<Construction, Map> history
+  final FList<Map<Construction, Map>> history
 
   ParsingState(Map map) {
     chart = map.chart
@@ -25,10 +25,10 @@ class ParsingState {
   }
 
   ParsingState clearHistory() {
-    clone(history:FLinkedMap.emptyMap)
+    clone(history:FList.emptyList)
   }
 
-  ParsingState withSituation(Situation situation) { clearConstructions().clone(situation:situation, history:FLinkedMap.emptyMap) }
+  ParsingState withSituation(Situation situation) { clearConstructions().clearHistory().clone(situation:situation) }
 
   Variable newVariable() {
     new Variable()
@@ -64,14 +64,16 @@ class ParsingState {
   }
 
   private ParsingState addCtx(Map newArgs, Construction name) {
-    Map oldArgs = constructions[name] ?: [:]
-    def args = oldArgs + newArgs
-    Closure oldInit = oldArgs.init
+    return clone(constructions: constructions + [(name): unify(constructions[name], newArgs)])
+  }
+
+  static Map unify(Map oldArgs, Map newArgs) {
+    def args = oldArgs ? oldArgs + newArgs : newArgs
+    Closure oldInit = oldArgs?.init
     Closure init = newArgs.init
     def newInit = init && oldInit ? { ParsingState state -> init(oldInit(state)) } : init ?: oldInit
     args.init = newInit
-    def newConstructions = constructions + [(name): Collections.unmodifiableMap(args)]
-    return clone(constructions: newConstructions)
+    return Collections.unmodifiableMap(args)
   }
 
   ParsingState inhibit(Construction... cxts) {
@@ -139,7 +141,7 @@ class ParsingState {
 
     def cs = constructions.keySet() as LinkedHashSet
     cs.retainAll(result.constructions.keySet())
-    return result.applyAll(cs)
+    return result.applyAll(cs).clone(history: history + FLinkedMap.fromMap(constructions))
   }
 
   private ParsingState applyAll(LinkedHashSet<Construction> names) {
@@ -208,14 +210,10 @@ class ParsingState {
   }
 
   ParsingState doApply(Construction cxt) {
-    def histArgs = history[cxt]
     def args = constructions[cxt]
     Closure init = args.init ?: noInit
     args = args - [init:args.init]
     def next = this
-    if (histArgs != args) {
-      next = next.clone(history: history + [(cxt):args])
-    }
     next = (ParsingState)init(next)
     return cxt.action.call(next, args)
   }

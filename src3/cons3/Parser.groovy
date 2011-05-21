@@ -8,7 +8,7 @@ import groovy.transform.Immutable
 class Parser {
 
   Chart parse(String text, debug = false) {
-    ParsingState state = new ParsingState(chart: new Chart(), situation: new Situation(), participants:[:], constructions:[:], history:FLinkedMap.emptyMap)
+    ParsingState state = new ParsingState(chart: new Chart(), situation: new Situation(), participants:[:], constructions:[:], history:FList.emptyList)
     def tokenizer = new StringTokenizer(text, """ '":,.?!""", true)
     for (String w in tokenizer) {
       if (w != ' ') {
@@ -344,22 +344,35 @@ class Parser {
       update = addCtx(constructions[c], state, c, constructions[c].init, update, seqs)
     }
     if (state[clauseEllipsis]) {
-      FLinkedMap<Construction, Map> remaining = state[clauseEllipsis].remaining
       Map<Variable, Variable> mapping = state[clauseEllipsis].mapping
-      def prevConstructions = remaining.keyList().reverse()
-      def index = prevConstructions.findIndexOf { update.map.containsKey(it) }
+      List<Map<Construction, Map>> prevConstructions = state[clauseEllipsis].remaining
+      def index = prevConstructions.findIndexOf { areSimilar(it, update.map) }
       if (index >= 0) {
-        state = state.assign(state.situation, 'clauseEllipsis', 'true')
-        def gap = prevConstructions[0..index]
-        gap.each { cxt ->
-          def args = remaining[cxt]
-          def newArgs = [:]
-          args.each { k, v ->
-            if (!update.map[cxt] || !(k in update.map[cxt].keySet())) {
-              newArgs[k] = v instanceof Variable ? mapping.get(v, update.map[cxt]?.get(k) ?: new Variable()) : v
+        state = state.satisfied(clauseEllipsis).assign(state.situation, 'clauseEllipsis', 'true')
+        prevConstructions[0..index].each { Map<Construction, Map> oldContribution ->
+          for (cxt in oldContribution.keySet()) {
+            oldContribution[cxt].each { k, v ->
+              if (v instanceof Variable) {
+                def nv = update.map[cxt]?.get(k) ?: mapping.get(v)
+                if (!nv) {
+                  nv = new Variable()
+                }
+                mapping[v] = nv
+              }
             }
           }
-          state = state.apply((cxt): newArgs)
+        }
+
+        prevConstructions[0..<index].each { Map<Construction, Map> oldContribution ->
+          FLinkedMap newContribution = FLinkedMap.emptyMap
+          for (cxt in oldContribution.keySet()) {
+            def newArgs = [:]
+            oldContribution[cxt].each { k, v ->
+              newArgs[k] = v instanceof Variable ? mapping[v] : v
+            }
+            newContribution = newContribution(cxt, newArgs)
+          }
+          state = state.apply(newContribution)
         }
       }
     }
@@ -369,7 +382,11 @@ class Parser {
     if (satisfySeq && (state[seq]?.hasComma || state[seq]?.conj)) {
       state = state.satisfied(seq)
     }
-    return state.apply(seq, save:state.history, members:members)
+    FLinkedMap<Construction, Map> save = FLinkedMap.emptyMap
+    state.history.reverse().each { map ->
+      map.each { cxt, args -> save = save(cxt, ParsingState.unify(save[cxt], args)) }
+    }
+    return state.apply(seq, save:save, members:members)
   }
 
 
@@ -485,8 +502,14 @@ class Parser {
           def next = new Situation()
           state = state.assign(situation, 'but', next).withSituation(next).apply(prevHistory, history:state.history)
         }
-        state = state.assign(noun, 'type', 'OPINION')
-        state = state.apply(oldDat + [noun: noun, hasNoun:true], dat)
+        state = state.assign(noun, 'type', 'OPINION').
+                apply(parenthetical) // todo common constructions in по-моему & по моему мнению
+        //todo save-restore restores too much
+        def saveTrim = [:]
+        [poDat, prevHistory].each { cxt ->
+          oldDat.save?.get(cxt)?.with { saveTrim[cxt] = it }
+        }
+        state = state.apply(oldDat + [noun: noun, hasNoun:true, save: saveTrim], dat)
         return state.apply((nounGen):[head:noun], (possessive):[head:noun])
       case "словам":
         def noun = state[dat]?.noun ?: state.newVariable()
@@ -822,17 +845,20 @@ class Parser {
           state = state.clearHistory().clearConstructions().apply(questionVariants, questioned:state[question].questioned)
         }
         if (state[prevHistory]) {
-          FLinkedMap<Construction, Map> remaining = state[prevHistory].history
           def mapping = [:]
-          state.history.keyList().each {
-            remaining = remaining - it
-            state.history[it].values().each { val ->
+          FList<Map<Construction, Map>> old = state[prevHistory].history.reverse()
+          def lcs = Util.lcs(old, state.history.reverse(), { a, b -> areSimilar(a, b) } as Function2)
+          lcs.each { map ->
+            map.values().each { val ->
               if (val instanceof Variable && !mapping[val]) {
                 mapping[val] = new Variable()
               }
             }
           }
-          state = state.apply(clauseEllipsis, remaining:remaining, mapping: mapping).inhibit(seq)
+
+          def nextStart = old.indexOf(lcs[-1]) + 1
+          FList<Map<Construction, Map>> remaining = FList.fromList(old[nextStart..-1]).reverse()
+          state = state.apply(clauseEllipsis, remaining:remaining, mapping: mapping).satisfied(prevHistory).inhibit(seq)
         }
         return state
       case ".":
@@ -879,6 +905,11 @@ class Parser {
         return noun(state, gen, '5')
     }
     return state
+  }
+
+  private boolean areSimilar(Map<Construction, Map> c1, Map<Construction, Map> c2) {
+    def common = c1.keySet().intersect(c2.keySet())
+    return common.size() > 0 && common.every { c1[it].keySet() == c2[it].keySet() }
   }
 
   private ParsingState infinitive(ParsingState state, Variable verb, String type, LinkedHashMap<Construction, LinkedHashMap<String, Variable>> args) {

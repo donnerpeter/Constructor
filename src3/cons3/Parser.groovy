@@ -240,6 +240,12 @@ class Parser {
     }
     return state
   }
+  Construction adverb = cxt('adverb') { ParsingState state, Map args ->
+    if (args.head && args.adv) {
+      state = state.assign(args.head, 'manner', args.adv)
+    }
+    return state
+  }
   Construction quotedName = cxt('quotedName') { ParsingState state, Map args ->
     if (args.finished) {
       state = state.assign(args.noun, 'name', args.name).satisfied(quotedName)
@@ -611,27 +617,15 @@ class Parser {
         return state
       case "счета": return noun(state, nounGen, 'COUNTING')
       case "счете": return noun(state, prep, 'COUNTING')
-      case "вдруг":
-        if (state[nom]) {
-          def verb = state.newVariable()
-          return state.assign(verb, 'manner', 'SUDDENLY').apply(nom, head:verb)
-        }
-        return state
+      case "вдруг": return state.apply(adverb, adv:'SUDDENLY')
       case "опять":
         if (state[nom]) {
           def verb = state.newVariable()
           return state.assign(verb, 'anchor', 'AGAIN').apply(nom, head:verb)
         }
         return state
-      case "слегка":
-        def verb = state.newVariable()
-        return state.assign(verb, 'manner', 'SLIGHTLY').apply(instr, head:verb) //todo a generic verb/participle place
-      case "грустно":
-        if (state[nom]) {
-          def verb = state.newVariable()
-          return state.assign(verb, 'manner', 'SADLY').apply(nom, head:verb)
-        }
-        return state
+      case "слегка": return state.apply(adverb, adv:'SLIGHTLY')
+      case "грустно": return state.apply(adverb, adv:'SADLY')
       case "тоже":
         def alsoVar = state.newVariable()
         def subj = state.newVariable()
@@ -644,7 +638,7 @@ class Parser {
         if (state[nom]) {
           Variable verb = state[nom].head ?: state.newVariable()
           state = state.assign(verb, 'type', 'FORGET').assign(situation, 'time', 'PAST')
-          return state.apply(question, head:verb).apply(nom, head:verb)
+          return state.apply(question, head:verb).apply(nom, head:verb).apply(adverb, head:verb)
         }
         return state
       case "забыли":
@@ -696,15 +690,15 @@ class Parser {
         return conjWrap(state, (nom):[head:verb], (vAcc):[head:verb])
       case "обнаружили":
         if (state[nom]) {
-          def verb = state[nom].head
+          def verb = new Variable()
           state = state.assign(verb, 'type', 'DISCOVER').assign(situation, 'time', 'PAST').inhibit(relativeClause) //todo generic suppress for context-freeness
-          return state.satisfied(declComp).apply(declComp, head:verb).apply(nom, head:verb)
+          return state.satisfied(declComp).apply(declComp, head:verb).apply(nom, head:verb).apply(adverb, head:verb)
         }
         return state
       case "улыбнулась":
         def verb = state[nom]?.head ?: state.newVariable()
         state = state.assign(verb, 'type', 'SMILE').assign(situation, 'time', 'PAST')
-        return conjWrap(state, (nom):[head:verb])
+        return conjWrap(state, (nom):[head:verb], (adverb):[head:verb])
       case "сказала":
         def verb = state[nom]?.head ?: state.newVariable()
         state = state.assign(verb, 'type', 'SAY').assign(situation, 'time', 'PAST')
@@ -720,7 +714,7 @@ class Parser {
       case "подвигав":
         def verb = state[instr]?.head ?: state.newVariable()
         state = state.assign(verb, 'type', 'MOVE').assign(verb, 'background', 'perfect')
-        return conjWrap(state, (instr):[head:verb])
+        return conjWrap(state, (instr):[head:verb], (adverb):[head:verb])
       case "дойдя":
         def verb = state[instr]?.head ?: state.newVariable()
         state = state.assign(verb, 'type', 'COME_TO').assign(verb, 'background', 'perfect')

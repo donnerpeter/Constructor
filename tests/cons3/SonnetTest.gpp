@@ -19,10 +19,10 @@ C.type=ME
 #1.elaboration=#2
 --
 A.type=ME
-B.manner=SUDDENLY
 B.type=FORGET
 #2.time=PAST
 B.arg1=A
+B.manner=SUDDENLY
 B.theme=#3
 --
 #3.questioned=A
@@ -91,10 +91,10 @@ E.arg1=C
 #1.whenCondition=#2
 --
 A.type=THEY
-B.manner=SUDDENLY
 B.type=DISCOVER
 #2.time=PAST
 B.arg1=A
+B.manner=SUDDENLY
 B.theme=#3
 --
 A.type=ALSO
@@ -129,10 +129,10 @@ E.arg1=C
 #1.whenCondition=#2
 --
 A.type=THEY
-B.manner=SUDDENLY
 B.type=DISCOVER
 #2.time=PAST
 B.arg1=A
+B.manner=SUDDENLY
 B.theme=#3
 --
 A.type=ALSO
@@ -225,10 +225,10 @@ E.name=бассейная
   public void testParse6() throws Exception {
     doParseTest "Кассирша грустно улыбнулась, вынула изо рта маленький молоточек и, слегка подвигав носом, сказала:", """
 A.type=CASHIER
-B.manner=SADLY
 B.type=SMILE
 #1.time=PAST
 B.arg1=A
+B.manner=SADLY
 C.type=TAKE_OUT
 C.arg1=A
 C.source=D
@@ -236,9 +236,9 @@ D.type=MOUTH
 E.size=LITTLE
 C.arg2=E
 E.type=HAMMER
-F.manner=SLIGHTLY
 F.type=MOVE
 F.background=perfect
+F.manner=SLIGHTLY
 G.type=NOSE
 F.arg2=G
 H.type=SAY
@@ -279,10 +279,10 @@ B.anchor=C
     doParseTest """Кассирша грустно улыбнулась, вынула изо рта маленький молоточек и, слегка подвигав носом, сказала:
 - По-моему, семь идет после восьми в том случае, когда восемь идет после семи""", """
 A.type=CASHIER
-B.manner=SADLY
 B.type=SMILE
 #1.time=PAST
 B.arg1=A
+B.manner=SADLY
 C.type=TAKE_OUT
 C.arg1=A
 C.source=D
@@ -290,9 +290,9 @@ D.type=MOUTH
 E.size=LITTLE
 C.arg2=E
 E.type=HAMMER
-F.manner=SLIGHTLY
 F.type=MOVE
 F.background=perfect
+F.manner=SLIGHTLY
 G.type=NOSE
 F.arg2=G
 H.type=SAY

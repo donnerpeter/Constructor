@@ -54,6 +54,15 @@ abstract class FList<T> extends AbstractList<T> implements Serializable {
 
   final int size () { size }
 
+  FList<T> subList(int from) {
+    if (from == 0) return this
+    if (!tail) {
+      if (from == 1) return emptyList
+      throw new ArrayIndexOutOfBoundsException()
+    }
+    return tail.subList(from - 1)
+  }
+
   /**
    * Creates new list containing given element and then all element of this list
    */

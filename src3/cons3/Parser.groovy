@@ -781,12 +781,11 @@ class Parser {
         state = state.assign(verb, 'type', 'STOP').assign(situation, 'time', 'PAST')
         return conjWrap(state, (nom):[head:verb])
       case ",":
-        state = state.
-                apply(declComp, hasComma:true).
-                apply(conditionComp, hasComma:true).
-                apply(reasonComp, hasComma:true).
-                apply(question, hasComma:true).
-                apply(relativeClause, hasComma:true, parentSituation:situation)
+        state = state.apply((declComp):[hasComma:true],
+                            (conditionComp):[hasComma:true],
+                            (reasonComp):[hasComma:true],
+                            (question):[hasComma:true],
+                            (relativeClause):[hasComma:true, parentSituation:situation])
         if (state[seq]) {
           state = state.apply(seq, hasComma:true)
         }

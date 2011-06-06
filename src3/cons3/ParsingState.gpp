@@ -9,7 +9,7 @@ class ParsingState {
   final Chart chart
   final Situation situation
   final Map<Construction, Map> constructions
-  final FList<Map<Construction, Map>> history
+  final FList<Contribution> history
 
   ParsingState(Map map) {
     chart = map.chart
@@ -24,11 +24,7 @@ class ParsingState {
     return new ParsingState(current)
   }
 
-  ParsingState clearHistory() {
-    clone(history:FList.emptyList)
-  }
-
-  ParsingState withSituation(Situation situation) { clearConstructions().clearHistory().clone(situation:situation) }
+  ParsingState withSituation(Situation situation) { clearConstructions().clone(situation:situation) }
 
   Variable newVariable() {
     new Variable()
@@ -69,11 +65,15 @@ class ParsingState {
 
   static Map unify(Map oldArgs, Map newArgs) {
     def args = oldArgs ? oldArgs + newArgs : newArgs
-    Closure oldInit = oldArgs?.init
-    Closure init = newArgs.init
-    def newInit = init && oldInit ? { ParsingState state -> init(oldInit(state)) } : init ?: oldInit
-    args.init = newInit
+    def merged = mergeInits((Closure) oldArgs?.init, (Closure) newArgs.init)
+    if (merged) {
+      args += [init:merged]
+    }
     return Collections.unmodifiableMap(args)
+  }
+
+  static Closure mergeInits(Closure oldInit, Closure newInit) {
+    return newInit && oldInit ? { ParsingState state -> newInit(oldInit(state)) } : newInit ?: oldInit
   }
 
   ParsingState inhibit(Construction... cxts) {
@@ -123,7 +123,7 @@ class ParsingState {
         fresh << cxt
       }
     }
-    def result = inhibit(replaced as Construction[])
+    def result = clone(history: history + new Contribution(this, FLinkedMap.fromMap(constructions))).inhibit(replaced as Construction[])
 
     for (cxt in constructions.keySet()) {
       result = result.addCtx(constructions[cxt], cxt)
@@ -141,7 +141,8 @@ class ParsingState {
 
     def cs = constructions.keySet() as LinkedHashSet
     cs.retainAll(result.constructions.keySet())
-    return result.applyAll(cs).clone(history: history + FLinkedMap.fromMap(constructions))
+    result = result.applyAll(cs)
+    return result
   }
 
   private ParsingState applyAll(LinkedHashSet<Construction> names) {
@@ -228,8 +229,8 @@ class ParsingState {
   }
 
   boolean contradict(Construction c1, Construction c2) {
-    assert this[c1] : c1
-    assert this[c2] : c2
+    assert this[c1] != null : c1
+    assert this[c2] != null : c2
     if (c1.name in ['nom', 'prep', 'vPrep', 'gen'] && c2.name in ['acc', 'vAcc'] && this[c1].noun && this[c2].noun) {
       if (this[c1].noun == this[c2].noun) return true
 

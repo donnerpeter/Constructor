@@ -40,13 +40,13 @@ C.type=7
 C.number=true
 A.variants=D
 D.member=C
+D.member=E
 E.type=8
 E.number=true
-D.member=E
 D.conj=or
+D.member=F
 F.type=9
 F.number=true
-D.member=F
 """
   }
 
@@ -122,6 +122,12 @@ D.member=F
 
   public void test6_2and3Clauses() throws Exception {
     doTranslateTest 'Кассирша вынула изо рта молоточек и, подвигав носом, сказала:',
+                    "The cashier took a hammer out of her mouth, and moving her nose back and forth, she said:"
+  }
+
+  //todo
+  public void _test6_2and3Clauses() throws Exception {
+    doTranslateTest 'Кассирша грустно улыбнулась, слегка подвигала носом и сказала:',
                     "The cashier took a hammer out of her mouth, and moving her nose back and forth, she said:"
   }
 

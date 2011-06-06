@@ -111,7 +111,7 @@ class Parser {
     return state
   }
   Construction kDat = cxt('kDat') { ParsingState state, Map args ->
-    args.noun ? state.assign(args.head, 'goal', args.noun) : state
+    args.noun && args.head ? state.assign(args.head, 'goal', args.noun) : state
   }
   Construction prevHistory = cxt('prevHistory') { ParsingState state, Map args ->
     return state
@@ -136,7 +136,7 @@ class Parser {
     args.verb && args.order ? state.assign(args.verb, 'type', 'COME_SCALARLY').assign(args.verb, 'order', args.order) : state
   }
   Construction questionVariants = cxt('questionVariants') { ParsingState state, Map args ->
-    args.seq && args.questioned ? state.assign(args.questioned, 'variants', args.seq) : state
+    args.seq && args.questioned ? state.assign(args.questioned, 'variants', args.seq).satisfied(questionVariants) : state
   }
   Construction shortAdjCopula = cxt('shortAdjCopula') { ParsingState state, Map args ->
     if (args.noun && args.pred) {
@@ -277,87 +277,96 @@ class Parser {
     return state
   }
 
-  private Update merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, Closure init, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
+  private Update merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
     if (cxt in [nom, acc, gen] && oldArgs.noun && newArgs.noun) {
-      return merge(state, cxt, oldArgs, newArgs, 'noun', init, update, seqs)
+      return merge(state, cxt, oldArgs, newArgs, 'noun', update, seqs)
     }
     if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun) {
-      return update.addCxt(oldArgs + [head:newArgs.head], cxt, init)
+      return update.addCxt(oldArgs + [head:newArgs.head], cxt, newArgs.init)
     }
     if (cxt == possessive && oldArgs.possessor && newArgs.possessor) {
-      return merge(state, cxt, oldArgs, newArgs, 'possessor', init, update, seqs)
+      return merge(state, cxt, oldArgs, newArgs, 'possessor', update, seqs)
     }
 
-    return update.addCxt(newArgs, cxt, init)
+    return update.addCxt(newArgs, cxt)
   }
 
-  private Update merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, String prop, Closure init, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
-    Variable first = (Variable) oldArgs[prop]
-    if (state[seq]?.members) {
-      return joinSeq(newArgs, state, cxt, first, oldArgs, prop, update, init)
+  Construction seqStart = this.cxt('seqStart') { ParsingState st, Map args ->
+    st = st.assign(args.multi, 'member', args.first)
+    if (args.conj) {
+      st = st.assign(args.multi, 'conj', args.conj)
     }
+    st.assign(args.multi, 'member', args.second).satisfied(seqStart)
+  }
+
+  private Update merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, String prop, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
+    Variable first = (Variable) oldArgs[prop]
+    if (first.frame(state.chart).f('member')) {
+      return joinSeq(newArgs, state, cxt, first, oldArgs, prop, update)
+    }
+
     def second = newArgs[prop]
     Variable multi = seqs[new Pair(first, second)] ?: new Variable()
     seqs[new Pair(first, second)] = multi
-    Closure oldInit = oldArgs.init
-    return update.addCxt(oldArgs + [(prop): multi, base:newArgs], cxt) { ParsingState st ->
-      if (oldInit) st = oldInit(st)
-      if (state[seq].conj) {
-        st = st.assign(multi, 'conj', state[seq].conj) //todo assign conj in one place
-      }
-      if (init) st = init(st)
-      st = st.assign(multi, 'member', first)
-      st.assign(multi, 'member', second)
-    }.addCxt(seq, members:[first, second])
+    return update.
+            addCxt(seqStart, multi:multi, first:first, second:second, conj:state[seq].conj).
+            addCxt(oldArgs + [(prop): multi], cxt, ParsingState.mergeInits((Closure)oldArgs.init, (Closure)newArgs.init))
   }
 
-  Update joinSeq(Map newArgs, ParsingState state, Construction cxt, Variable seqVar, Map oldArgs, String property, Update update, Closure init = null) {
-    def newMember = newArgs[property]
-    def oldMembers = state[seq].members
-    Closure oldInit = oldArgs.init
-    return update.addCxt(oldArgs + [(property): seqVar, base:newArgs], cxt) { ParsingState st ->
-      if (oldInit) st = oldInit(st)
-      //todo use the actual state (st)
-      if (state[seq]?.conj) {
-        st = st.assign(seqVar, 'conj', state[seq].conj)
-      }
-      if (init) st = init(st)
-      st.assign(seqVar, 'member', newMember)
-    }.addCxt(seq, members: oldMembers + [newMember])
-  }
-
-  private Update addCtx(Map args, ParsingState state, Construction cxt, Closure init, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
-    if (state[seq]?.hasComma || state[seq]?.conj) {
-      def old = state.constructions[cxt]
-      if (old) {
-        return merge(state, cxt, old, args, init, update, seqs)
-      }
-      old = state[seq].save[cxt]
-      if (old) {
-        return merge(state, cxt, old, args, init, update, seqs)
-      }
+  Construction seqNext = this.cxt('seqNext') { ParsingState st, Map args ->
+    if (args.conj) {
+      st = st.assign(args.multi, 'conj', args.conj)
     }
+    st.assign(args.multi, 'member', args.next).satisfied(seqNext)
+  }
 
-    return update.addCxt(args, cxt, init)
+  Update joinSeq(Map newArgs, ParsingState state, Construction cxt, Variable seqVar, Map oldArgs, String property, Update update) {
+    def newMember = newArgs[property]
+    return update.
+            addCxt(oldArgs + [(property): seqVar], cxt, ParsingState.mergeInits((Closure)oldArgs.init, (Closure)newArgs.init)).
+            addCxt(seqNext, multi:seqVar, next:newMember, conj:state[seq]?.conj)
   }
 
   ParsingState conjWrap(Map<Construction, Map> constructions, ParsingState state) {
-    boolean satisfySeq = false
-    Update update = new Update([:])
-    def seqs = [:]
-    for (c in constructions.keySet()) {
-      satisfySeq |= state.constructions[c] || state[seq] && state[seq].save[c]
-      update = addCtx(constructions[c], state, c, constructions[c].init, update, seqs)
+    Update update = new Update(FLinkedMap.emptyMap)
+    if (state[seq]) {
+      FList<Contribution> history = state[seq].save.history
+      def similar = history.findIndexOf { areSimilar(it.apps, constructions) }
+      if (similar >= 0) {
+        def prev = history[similar].apps
+        def seqs = [:]
+        for (cxt in constructions.keySet()) {
+          if (cxt in prev) {
+            update = merge(state, cxt, prev[cxt], constructions[cxt], update, seqs)
+          } else {
+            update = update.addCxt(constructions[cxt], cxt)
+          }
+        }
+
+        def modernHistory = state.history
+        state = state.clearConstructions().restore(history[similar].before.constructions)
+
+        def lastConj = modernHistory.findIndexOf { it.apps[seq] != null }
+        if (lastConj) {
+          for (contribution in modernHistory.subList(0, lastConj).reverse()) {
+            state = state.apply(contribution.apps)
+          }
+        }
+        return state.apply(update.map)
+      }
+    }
+    for (cxt in constructions.keySet()) {
+      update = update.addCxt(constructions[cxt], cxt)
     }
     if (state[clauseEllipsis]) {
       Map<Variable, Variable> mapping = state[clauseEllipsis].mapping
-      List<Map<Construction, Map>> prevConstructions = state[clauseEllipsis].remaining
-      def index = prevConstructions.findIndexOf { areSimilar(it, update.map) }
+      List<Contribution> prevConstructions = state[clauseEllipsis].remaining
+      def index = prevConstructions.findIndexOf { areSimilar(it.apps, update.map) }
       if (index >= 0) {
         state = state.satisfied(clauseEllipsis).assign(state.situation, 'clauseEllipsis', 'true')
-        prevConstructions[0..index].each { Map<Construction, Map> oldContribution ->
-          for (cxt in oldContribution.keySet()) {
-            oldContribution[cxt].each { k, v ->
+        prevConstructions[0..index].each { Contribution oldContribution ->
+          oldContribution.apps.each { cxt, upd ->
+            upd.each { k, v ->
               if (v instanceof Variable) {
                 def nv = update.map[cxt]?.get(k) ?: mapping.get(v)
                 if (!nv) {
@@ -369,11 +378,11 @@ class Parser {
           }
         }
 
-        prevConstructions[0..<index].each { Map<Construction, Map> oldContribution ->
+        prevConstructions[0..<index].each { Contribution oldContribution ->
           FLinkedMap newContribution = FLinkedMap.emptyMap
-          for (cxt in oldContribution.keySet()) {
+          for (cxt in oldContribution.apps.keySet()) {
             def newArgs = [:]
-            oldContribution[cxt].each { k, v ->
+            oldContribution.apps[cxt].each { k, v ->
               newArgs[k] = v instanceof Variable ? mapping[v] : v
             }
             newContribution = newContribution(cxt, newArgs)
@@ -382,17 +391,7 @@ class Parser {
         }
       }
     }
-    state = state.apply(update.map)
-
-    def members = state[seq]?.members ?: []
-    if (satisfySeq && (state[seq]?.hasComma || state[seq]?.conj)) {
-      state = state.satisfied(seq)
-    }
-    FLinkedMap<Construction, Map> save = FLinkedMap.emptyMap
-    state.history.reverse().each { map ->
-      map.each { cxt, args -> save = save(cxt, ParsingState.unify(save[cxt], args)) }
-    }
-    return state.apply(seq, save:save, members:members)
+    return state.apply(update.map)
   }
 
 
@@ -406,9 +405,11 @@ class Parser {
       def qv = state[questionVariants]
       if (qv) {
         def seqVar = state.newVariable()
-        state = state.apply(questionVariants, seq:seqVar).satisfied(questionVariants)
-        def update = new Update([:])
-        update = joinSeq(state, acc, seqVar, noun:noun, [hasNoun:true], 'noun', update, init)
+        state = state.apply(questionVariants, seq:seqVar)
+        def update = new Update(FLinkedMap.emptyMap)
+        update = joinSeq(state, acc, seqVar, noun:noun, init:init, [hasNoun:true], 'noun', update)
+        update = joinSeq(state, gen, seqVar, noun:noun, init:init, [hasNoun:true], 'noun', update)
+        update = joinSeq(state, nom, seqVar, noun:noun, init:init, [hasNoun:true], 'noun', update)
         state = state.apply(update.map)
       }
 
@@ -506,7 +507,7 @@ class Parser {
         def noun = oldDat?.noun ?: state.newVariable()
         if (state.situation.frame(state.chart).f('opinion_of')) {
           def next = new Situation()
-          state = state.assign(situation, 'but', next).withSituation(next).apply(prevHistory, history:state.history)
+          state = state.assign(situation, 'but', next).withSituation(next).apply(prevHistory, history:state)
         }
         state = state.assign(noun, 'type', 'OPINION').
                 apply(parenthetical) // todo common constructions in по-моему & по моему мнению
@@ -563,11 +564,11 @@ class Parser {
       case "моему":
         def me = state.newVariable()
         return conjWrap(state, (possessive):[possessor:me, init:{ it.assign(me, 'type', 'ME') }])
-      case "и": return state[seq] ? state.apply(seq, conj:'and') : state
-      case "или": return state[seq] ? state.apply(seq, conj:'or') : state
+      case "и": return state.apply(seq, save:state, conj:'and')
+      case "или": return state.apply(seq, save:state, conj:'or')
       case "а":
         def next = new Situation()
-        return state.assign(situation, 'but', next).withSituation(next).apply(prevHistory, history:state.history)
+        return state.assign(situation, 'but', next).withSituation(next).apply(prevHistory, history:state)
       case "но":
         return state.assign(situation, 'but', new Situation())
       case "тут":
@@ -712,7 +713,7 @@ class Parser {
         state = state.assign(verb, 'type', 'SEEM').assign(situation, 'time', 'PAST')
         return conjWrap(state, (nom):[head:verb], (dat):[head:verb], (participleArg):[head:verb])
       case "подвигав":
-        def verb = state[instr]?.head ?: state.newVariable()
+        def verb = state.newVariable()
         state = state.assign(verb, 'type', 'MOVE').assign(verb, 'background', 'perfect')
         return conjWrap(state, (instr):[head:verb], (adverb):[head:verb])
       case "дойдя":
@@ -785,10 +786,9 @@ class Parser {
                             (conditionComp):[hasComma:true],
                             (reasonComp):[hasComma:true],
                             (question):[hasComma:true],
-                            (relativeClause):[hasComma:true, parentSituation:situation])
-        if (state[seq]) {
-          state = state.apply(seq, hasComma:true)
-        }
+                            (relativeClause):[hasComma:true, parentSituation:situation],
+                            (prevHistory):[history:state],
+                            (seq):[save:state, hasComma:true])
         if (state[nestedClause]) {
           state = state.withSituation(state[nestedClause].parent).clearConstructions().restore(state[nestedClause].save).satisfied(nestedClause)
         }
@@ -835,23 +835,27 @@ class Parser {
           return state.apply(directSpeech, hasDash:true)
         }
         if (state[question]?.questioned) {
-          state = state.clearHistory().clearConstructions().apply(questionVariants, questioned:state[question].questioned)
+          state = state.clearConstructions().apply(questionVariants, questioned:state[question].questioned)
         }
         if (state[prevHistory]) {
           def mapping = [:]
-          FList<Map<Construction, Map>> old = state[prevHistory].history.reverse()
-          def lcs = Util.lcs(old, state.history.reverse(), { a, b -> areSimilar(a, b) } as Function2)
-          lcs.each { map ->
-            map.values().each { val ->
-              if (val instanceof Variable && !mapping[val]) {
-                mapping[val] = new Variable()
+          FList<Contribution> old = state[prevHistory].history.history
+          def modern = state.history[0..state.history.size - old.size]
+          def lcs = Util.lcs(old, modern, { a, b -> areSimilar(a.apps, b.apps) } as Function2)
+          if (lcs) {
+            lcs.each { contribution ->
+              contribution.apps.values().each { val ->
+                if (val instanceof Variable && !mapping[val]) {
+                  mapping[val] = new Variable()
+                }
               }
             }
+            def commonStart = old.indexOf(lcs[0])
+            if (commonStart) {
+              FList<Contribution> remaining = FList.fromList(old[0..commonStart-1])
+              state = state.apply(clauseEllipsis, remaining:remaining, mapping: mapping).satisfied(prevHistory).inhibit(seq)
+            }
           }
-
-          def nextStart = old.indexOf(lcs[-1]) + 1
-          FList<Map<Construction, Map>> remaining = FList.fromList(old[nextStart..-1]).reverse()
-          state = state.apply(clauseEllipsis, remaining:remaining, mapping: mapping).satisfied(prevHistory).inhibit(seq)
         }
         return state
       case ".":
@@ -902,7 +906,8 @@ class Parser {
 
   private boolean areSimilar(Map<Construction, Map> c1, Map<Construction, Map> c2) {
     def common = c1.keySet().intersect(c2.keySet())
-    return common.size() > 0 && common.every { c1[it].keySet() == c2[it].keySet() }
+    return common.size() > 0 && common.every { (c1[it].keySet() - 'init') == (c2[it].keySet() - 'init') } &&
+            !(prevHistory in common) //todo commas are not particularly important for ellipsis lcs
   }
 
   private ParsingState infinitive(ParsingState state, Variable verb, String type, LinkedHashMap<Construction, LinkedHashMap<String, Variable>> args) {
@@ -962,6 +967,9 @@ class Parser {
   Map<Construction, Map<String, Object>> map
 
   Update addCxt(Map newArgs, Construction name, Closure init = null) {
-    return new Update(map + [(name):(newArgs + [init:(init)])])
+    if (init) {
+      newArgs += [init:init]
+    }
+    return new Update(map + [(name):newArgs])
   }
 }

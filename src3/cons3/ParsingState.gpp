@@ -247,7 +247,7 @@ class ParsingState {
     if (c1.name == 'summerGarden' && c2.name == 'adjective') {
       return true
     }
-    if (c1.name == 'comeScalarly' && c2.name == 'advObj') {
+    if (c1.name == 'comeScalarly' && c2.name in ['advObj', 'relTime']) {
       return true
     }
 

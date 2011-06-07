@@ -350,7 +350,7 @@ F.number=true
     doTranslateTest 'По словам кассирши, раньше идет 7',
                     'According to the cashier, a 7 comes first'
   }
-  public void _test12_7Next() throws Exception {
+  public void test12_7Next() throws Exception {
     doTranslateTest 'По словам кассирши, потом идет 7',
                     'According to the cashier, a 7 comes next'
   }

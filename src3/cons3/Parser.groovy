@@ -240,6 +240,12 @@ class Parser {
     }
     return state
   }
+  Construction relTime = cxt('relTime') { ParsingState state, Map args ->
+    if (args.head && args.relTime) {
+      state = state.assign(args.head, 'relTime', args.relTime)
+    }
+    return state
+  }
   Construction adverb = cxt('adverb') { ParsingState state, Map args ->
     if (args.head && args.adv) {
       state = state.assign(args.head, 'manner', args.adv)
@@ -574,7 +580,7 @@ class Parser {
       case "тут":
         return state.assign(situation, 'emphasis', 'true')
       case "потом":
-        return state.assign(situation, 'relTime', 'AFTER')
+        return state.apply((comeScalarly):[order:'AFTER'], (nom):[:], (relTime):[relTime:'AFTER'])
       case "все":
         return state.assign(state[nom].noun, 'quantifier', 'ALL')
       case "дальше":
@@ -776,7 +782,7 @@ class Parser {
       case "приуныли":
         def verb = state[nom]?.head ?: state.newVariable()
         state = state.assign(verb, 'type', 'GET_SAD').assign(situation, 'time', 'PAST')
-        return conjWrap(state, (nom):[head:verb], (reasonComp):[head:situation])
+        return conjWrap(state, (nom):[head:verb], (reasonComp):[head:situation], (relTime):[head:state.situation])
       case "остановились":
         def verb = state[nom]?.head ?: state.newVariable()
         state = state.assign(verb, 'type', 'STOP').assign(situation, 'time', 'PAST')

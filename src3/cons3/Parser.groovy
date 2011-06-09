@@ -406,16 +406,31 @@ class Parser {
       def noun = !state[gen]?.hasNoun && state[gen]?.noun ? state[gen].noun : state.newVariable()
       def init = { it.assign(noun, 'type', word).assign(noun, 'number', 'true') }
 
-      state = conjWrap(state, (acc):[noun:noun, hasNoun:true, init:init], (nom):[noun:noun, hasNoun:true, init:init], (gen):[noun:noun, hasNoun:true, init:init])
+      def cases = []
+      if (state[preposition]?.prep != 'posle') {
+        cases << nom
+      }
+      if (state[preposition]?.prep == 'posle') {
+        cases << posleGen
+      } else {
+        cases << gen
+      }
+      cases << acc
+
+      if (state[preposition]) {
+        state = state.satisfied(preposition)
+      }
+
+      state = conjWrap(cases.collectEntries { [it, [noun:noun, hasNoun:true, init:init]] },  state)
 
       def qv = state[questionVariants]
       if (qv) {
         def seqVar = state.newVariable()
         state = state.apply(questionVariants, seq:seqVar)
         def update = new Update(FLinkedMap.emptyMap)
-        update = joinSeq(state, acc, seqVar, noun:noun, init:init, [hasNoun:true], 'noun', update)
-        update = joinSeq(state, gen, seqVar, noun:noun, init:init, [hasNoun:true], 'noun', update)
-        update = joinSeq(state, nom, seqVar, noun:noun, init:init, [hasNoun:true], 'noun', update)
+        cases.each {
+          update = joinSeq(state, it, seqVar, noun:noun, init:init, [hasNoun:true], 'noun', update)
+        }
         state = state.apply(update.map)
       }
 

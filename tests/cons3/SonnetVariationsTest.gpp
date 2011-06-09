@@ -358,7 +358,7 @@ F.number=true
     doTranslateTest 'Раньше потом следовало 7',
                     'Before, a 7 went next'
   }
-  public void _test12_7After8() throws Exception {
+  public void test12_7After8() throws Exception {
     doTranslateTest 'По словам кассирши, после 8 идет 7',
                     'According to the cashier, a 7 comes after an 8'
   }

@@ -67,6 +67,9 @@ class EnglishGenerator {
         out 'there'
       } else if (sitFrame.s('relTime') == 'AFTER') {
         out 'then'
+      } else if (sitFrame.s('relTime') == 'BEFORE') {
+        out 'before'
+        out ','
       }
 
       def opinion = sitFrame.f('opinion_of')

@@ -595,12 +595,20 @@ class Parser {
       case "тут":
         return state.assign(situation, 'emphasis', 'true')
       case "потом":
-        return state.apply((comeScalarly):[order:'AFTER'], (nom):[:], (relTime):[relTime:'AFTER'])
+        def token = new Object()
+        Update update = new Update((comeScalarly):[order:'AFTER', id: token], (nom):[:])
+        if (state[comeScalarly]?.order) {
+          state = state.inhibit(comeScalarly)
+        } else {
+          update = update.addCxt(relTime, relTime:'AFTER', id:token)
+        }
+        return state.apply(update.map)
       case "все":
         return state.assign(state[nom].noun, 'quantifier', 'ALL')
       case "дальше":
         def adv = state.newVariable()
-        return state.apply((comeScalarly):[order:'AFTER'],  (advObj):[adv: adv, init:{ it.assign(adv, 'type', 'NEXT') }])
+        def token = new Object()
+        return state.apply((comeScalarly):[order:'AFTER', id: token],  (advObj):[adv: adv, id:token, init:{ it.assign(adv, 'type', 'NEXT') }])
       case "их":
         def they = state.newVariable()
         def init = { st -> st.assign(they, 'type', 'THEY') }
@@ -846,9 +854,10 @@ class Parser {
       case "следовало":
         Variable verb = state.newVariable()
         state = state.assign(situation, 'time', 'PAST')
-        return state.apply(nom, head:verb).apply(comeScalarly, verb:verb)
+        return state.apply(nom, head:verb).apply(comeScalarly, verb:verb).apply(posleGen, head:verb).apply(relTime, head:situation)
       case "раньше":
-        return state.apply(comeScalarly, order:'EARLIER').apply(nom).apply(preposition, prep:'ranshe')
+        def token = new Object()
+        return state.apply((comeScalarly):[order:'EARLIER', id: token], (nom):[:], (preposition):[prep:'ranshe'], (relTime):[relTime:'BEFORE', id:token])
       case "после":
         return state.apply(comeScalarly, order:'AFTER').apply(nom).apply(preposition, prep:'posle')
       case "-":

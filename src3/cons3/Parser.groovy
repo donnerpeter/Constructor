@@ -407,11 +407,13 @@ class Parser {
       def init = { it.assign(noun, 'type', word).assign(noun, 'number', 'true') }
 
       def cases = []
-      if (state[preposition]?.prep != 'posle') {
+      if (!(state[preposition]?.prep in ['posle', 'ranshe'])) {
         cases << nom
       }
       if (state[preposition]?.prep == 'posle') {
         cases << posleGen
+      } else if (state[preposition]?.prep == 'ranshe') {
+        cases << ransheGen
       } else {
         cases << gen
       }
@@ -849,12 +851,12 @@ class Parser {
       case "идёт":
         def verb = state[comeScalarly]?.verb ?: new Variable()
         state = state.assign(situation, 'time', 'PRESENT')
-        return state.apply(nom, head:verb).apply(comeScalarly, verb:verb).apply(vPrep, head:verb).apply(conditionComp, head:situation).
+        return state.inhibit(preposition).apply(nom, head:verb).apply(comeScalarly, verb:verb).apply(vPrep, head:verb).apply(conditionComp, head:situation).
                 apply(posleGen, head:verb).apply(ransheGen, head:verb)
       case "следовало":
         Variable verb = state.newVariable()
         state = state.assign(situation, 'time', 'PAST')
-        return state.apply(nom, head:verb).apply(comeScalarly, verb:verb).apply(posleGen, head:verb).apply(relTime, head:situation)
+        return state.inhibit(preposition).apply(nom, head:verb).apply(comeScalarly, verb:verb).apply(posleGen, head:verb).apply(relTime, head:situation)
       case "раньше":
         def token = new Object()
         return state.apply((comeScalarly):[order:'EARLIER', id: token], (nom):[:], (preposition):[prep:'ranshe'], (relTime):[relTime:'BEFORE', id:token])

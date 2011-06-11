@@ -372,13 +372,13 @@ F.number=true
   }
   public void _testCashierGoesToSheShop() throws Exception {
     doTranslateTest 'Кассирша идет в магазин',
-                    'A 7 went after a 6'
+                    'The cashier goes to the shop'
   }
-  public void __testCashierGoesToSheShop() throws Exception {
+  public void _testAfterWorkCashierGoesToSheShop() throws Exception {
     doTranslateTest 'После работы кассирша идет в сад',
-                    'A 7 went after a 6'
+                    'After work, the cashier goes to the garden'
   }
-  public void _test12_7Before8() throws Exception {
+  public void test12_7Before8() throws Exception {
     doTranslateTest '7 идет раньше 8',
                     'A 7 comes before an 8'
   }

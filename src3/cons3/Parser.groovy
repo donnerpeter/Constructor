@@ -851,8 +851,10 @@ class Parser {
       case "идёт":
         def verb = new Variable()
         state = state.assign(situation, 'time', 'PRESENT')
-        return state.inhibit(preposition).apply((comeScalarly):[verb:verb],
-                                                (vPrep):[head:verb], (nom):[head:verb], (posleGen):[head:verb], (ransheGen):[head:verb],
+        def goes = cxt('идёт') { ParsingState st, Map args -> st.assign(verb, 'type', 'GO') }
+        return state.inhibit(preposition).apply((comeScalarly):[verb:verb], (goes):[verb:verb],
+                                                (vAcc):[head:verb], (vPrep):[head:verb], (nom):[head:verb],
+                                                (posleGen):[head:verb], (ransheGen):[head:verb],
                                                 (conditionComp):[head:situation])
       case "следовало":
         Variable verb = state.newVariable()

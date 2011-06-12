@@ -370,9 +370,9 @@ F.number=true
     doTranslateTest 'После 6 следовало 7',
                     'A 7 went after a 6'
   }
-  public void _testCashierGoesToSheShop() throws Exception {
+  public void testCashierGoesToSheShop() throws Exception {
     doTranslateTest 'Кассирша идет в магазин',
-                    'The cashier goes to the shop'
+                    'The cashier goes to the store'
   }
   public void _testAfterWorkCashierGoesToSheShop() throws Exception {
     doTranslateTest 'После работы кассирша идет в сад',

@@ -250,6 +250,12 @@ class ParsingState {
     if (c1.name == 'comeScalarly' && c2.name in ['advObj', 'relTime'] && this[c1].id == this[c2].id) {
       return true
     }
+    if (c1.name == 'comeScalarly' && c2.name == 'идёт' && this[c1].verb == this[c2].verb) {
+      return true
+    }
+    if (c1.name == 'comeScalarly' && c2.name == 'vAcc' && this[c1].verb == this[c2].head) {
+      return true
+    }
 
 
     return false

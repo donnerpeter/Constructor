@@ -182,6 +182,11 @@ class Frame {
         return shop && chart.earlier(shop, 'type', this, 'type') ? 'false' : 'true'
       }
       if (type == 'SHOP') {
+        def cashier = chart.frames(situation).find { it.type == 'CASHIER' }
+        if (cashier && chart.earlier(cashier, 'type', this, 'type')) {
+          return 'true'
+        }
+
         def verb = chart.frames(situation).find { it.f('source') == (Frame) this }
         return verb ? 'true' : 'false'
       }

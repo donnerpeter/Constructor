@@ -1,0 +1,83 @@
+Examples from Chaves: Coordinate Structures
+
+
+5.2
+
+The boy will either write a mystery or he'll write a romance.
+Мальчик либо напишет детектив, либо напишет роман.
+
+The boy will write either a mystery or he'll write a romance.
+??? Мальчик напишет либо детектив, либо напишет роман.
+
+Fred wanted to either open the door, or he wanted to close the window.
+??? Фред хотел либо открыть дверь, либо он хотел закрыть окно.
+
+To him John gave a football and Kim gave a book.
+??? Ему Джон дал футбольный мяч, а Ким дала книгу.
+
+It offers something that every kid wants and that every parent tries to help their child to achieve.
+??? что-то, что каждый ребенок хочет, и каждый родитель пытается помочь своему ребенку достичь ???
+
+We went to see a movie which the critics praised but that Fred said would probably be too violent for my taste.
+??? Мы пошли смотреть фильм, который критики хвалили, но который, Фред сказал, возможно, будет слишком жестоким для меня.
+
+I saw Tom and a friend.
+??? Я увидел Тома с другом.
+
+Tom is married and bought a house in the suburbs.
+Том женат, и купил дом в пригороде.
+
+Sue buys groceries here and could be interested in working with us.
+Сью покупает здесь продукты и ей может быть интересно работать с нами.
+
+Dan protested for two years and will keep on protesting.
+Дэн протестовал два года и будет продолжать протестовать.
+
+Sue has sang in public and Kim has tap-danced.
+Сью пела публично, а Ким танцевала чечетку.
+
+Elvis is alive and there was a CIA conspiracy.
+??? Элвис жив, а ЦРУ что-то скрывает.
+
+I stayed home but Fred could have gone fishing.
+Я остался дома, но Фред мог пойти на рыбалку.
+
+Tom went to NY yesterday and he will return next Tuesday.
+??? Том уехал в Нью-Йорк вчера, и он вернется в следующий вторник.
+
+Fred sang well and will keep on singing.
+Фред пел хорошо и будет продолжать петь.
+
+We conducted surveys both on the streets and in homeless centers.
+Мы провели опросы как на улицах, так и в центрах для бездомных.
+
+5.3
+
+Kim laughed and sang.
+Ким смеялась и пела.
+??? Ким засмеялась и запела.
+
+Kim danced and Sue sang.
+Ким танцевала, а Сью пела.
+
+Kim or Sue laughed.
+??? Ким или Сью засмеялась.
+
+A dog or a wolf howled.
+??? Собака или волк завыл
+
+Every boy or every girl must sing.
+??? Каждый мальчик или каждая девочка должна петь
+
+A mother and wife knows this.
+A mother and a wife knows this.
+Мать и жена знает это.
+
+Every father and every husband knows this.
+Каждый отец и каждый муж знает это.
+
+Every father and husband knows this.
+Каждый отец и муж знает это.
+
+A father and a husband complains.
+Отец и муж жалуется.

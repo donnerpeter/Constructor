@@ -425,10 +425,6 @@ class Parser {
       }
       cases << acc
 
-      if (state[preposition]) {
-        state = state.satisfied(preposition)
-      }
-
       state = conjWrap(cases.collectEntries { [it, [noun:noun, hasNoun:true, init:init]] },  state)
 
       def qv = state[questionVariants]
@@ -972,11 +968,9 @@ class Parser {
     }
 
     if (state.constructions[preposition]?.prep == 'posle' && caze == gen) {
-      state = state.satisfied(preposition)
       caze = posleGen
     }
     if (state.constructions[preposition]?.prep == 'ranshe' && caze == gen) {
-      state = state.satisfied(preposition)
       caze = ransheGen
     }
 

@@ -179,10 +179,10 @@ class ParsingState {
         if (cxt1 != cxt2 && result[cxt1] && result[cxt2]) {
           def alt1 = result.apply(cxt1)
           def alt2 = result.apply(cxt2)
-          if (morePlausible(alt1, alt2)) {
+          if (alt1.morePlausible(alt2)) {
             result = result.inhibit(cxt2)
           }
-          else if (morePlausible(alt2, alt1)) {
+          else if (alt2.morePlausible(alt1)) {
             result = result.inhibit(cxt1)
           }
         }
@@ -192,18 +192,8 @@ class ParsingState {
     return result
   }
 
-  boolean isHuman(Frame f) {
-    return !f.s('number')
-  }
-
-  boolean morePlausible(ParsingState st1, ParsingState st2) {
-    def remember2 = st2.chart.frames(st2.situation).find { it.type in ['REMEMBER', 'FORGET'] }
-    def remember1 = st1.chart.frames(st1.situation).find { it.type in ['REMEMBER', 'FORGET'] }
-    if (remember2 && remember1 && !remember2.conjArg('arg1').every { isHuman(it) } && remember1.conjArg('arg1').every { isHuman(it) }) {
-      return true
-    }
-
-    if (st2.constructions.keySet().find { it.name == 'nom' } && st2.chart.frames(st2.situation).find { it.type in ['COME_SCALARLY', 'FORGET'] }?.f('arg1')) {
+  boolean morePlausible(ParsingState than) {
+    if (than.constructions.keySet().find { it.name == 'nom' } && than.chart.frames(than.situation).find { it.type in ['COME_SCALARLY', 'FORGET'] }?.f('arg1')) {
       return true //todo prohibit two nom's in one situation
     }
 

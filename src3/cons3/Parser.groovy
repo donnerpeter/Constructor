@@ -191,7 +191,7 @@ class Parser {
   }
   Construction vAcc = cxt('vAcc') { ParsingState state, Map args ->
     if (args.head && args.noun) {
-      state = state.assign(args.head, args.head.frame(state.chart).type == 'THINK' ? 'theme' : 'goal', args.noun)
+      state = state.assign(args.head, args.head.frame(state.chart).type == 'THINK' ? 'theme' : 'goal', args.noun).apply(nom).apply(posleGen) //todo apply everything on every change
     }
     state
   }
@@ -243,6 +243,12 @@ class Parser {
   Construction relTime = cxt('relTime') { ParsingState state, Map args ->
     if (args.head && args.relTime) {
       state = state.assign(args.head, 'relTime', args.relTime)
+    }
+    return state
+  }
+  Construction absTime = cxt('absTime') { ParsingState state, Map args ->
+    if (args.head && args.rel && args.noun) {
+      state = state.assign(args.head, 'relTime_after', args.noun)
     }
     return state
   }
@@ -649,6 +655,10 @@ class Parser {
         return state
       case "счета": return noun(state, nounGen, 'COUNTING')
       case "счете": return noun(state, prep, 'COUNTING')
+      case "работы":
+        state = noun(state, gen, 'WORK')
+        state = state.apply(absTime, noun:state[posleGen].noun)
+        return state
       case "вдруг": return state.apply(adverb, adv:'SUDDENLY')
       case "опять":
         if (state[nom]) {
@@ -855,7 +865,7 @@ class Parser {
         return state.inhibit(preposition).apply((comeScalarly):[verb:verb], (goes):[verb:verb],
                                                 (vAcc):[head:verb], (vPrep):[head:verb], (nom):[head:verb],
                                                 (posleGen):[head:verb], (ransheGen):[head:verb],
-                                                (conditionComp):[head:situation])
+                                                (conditionComp):[head:situation], (absTime):[head:situation])
       case "следовало":
         Variable verb = state.newVariable()
         state = state.assign(situation, 'time', 'PAST')
@@ -864,7 +874,8 @@ class Parser {
         def token = new Object()
         return state.apply((comeScalarly):[order:'EARLIER', id: token], (nom):[:], (preposition):[prep:'ranshe'], (relTime):[relTime:'BEFORE', id:token])
       case "после":
-        return state.apply((comeScalarly):[order:'AFTER'], (nom):[:], (preposition):[prep:'posle'])
+        def token = new Object()
+        return state.apply((comeScalarly):[order:'AFTER', id:token], (nom):[:], (preposition):[prep:'posle'], (absTime):[rel:'AFTER', id:token])
       case "-":
         if (state[directSpeech]) {
           return state.apply(directSpeech, hasDash:true)

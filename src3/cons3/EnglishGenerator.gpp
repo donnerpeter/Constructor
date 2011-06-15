@@ -65,10 +65,14 @@ class EnglishGenerator {
       }
       if (sitFrame.s('emphasis')) {
         out 'there'
-      } else if (sitFrame.s('relTime') == 'AFTER') {
+      } else if (sitFrame.s('relTime') == 'AFTER') { //todo a generic situation time frame
         out 'then'
       } else if (sitFrame.s('relTime') == 'BEFORE') {
         out 'before'
+        out ','
+      } else if (sitFrame.f('relTime_after')) {
+        out 'after'
+        np(sitFrame.f('relTime_after'), false)
         out ','
       }
 
@@ -448,7 +452,9 @@ class EnglishGenerator {
         out ','
         out 'only'
         out 'if'
-        new SituationGenerator(chart, (Situation) (condition.f('whenCondition') ?: condition.f('ifCondition')).var, false).sentence(false)
+        def content = condition.f('whenCondition') ?: condition.f('ifCondition')
+        assert content : chart.presentable()
+        new SituationGenerator(chart, (Situation) content.var, false).sentence(false)
       }
 
       def condComp = sitFrame.f('ifCondition') ?: sitFrame.f('whenCondition')
@@ -687,6 +693,7 @@ class EnglishGenerator {
       case 'OPINION': return 'opinion'
       case 'SOME': return 'some'
       case 'OTHERS': return 'others'
+      case 'WORK': return 'work'
       default: return type
     }
 

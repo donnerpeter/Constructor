@@ -241,16 +241,6 @@ class ParsingState {
 
     if (c1.name in ['nom', 'prep', 'vPrep', 'gen'] && c2.name in ['acc', 'vAcc'] && this[c1].noun && this[c2].noun) {
       if (this[c1].noun == this[c2].noun) return true
-
-      Map base1 = this[c1].base
-      Map base2 = this[c2].base
-      if (base1?.noun) {
-        return base1.noun in [this[c2].noun, base2?.noun]
-      }
-      if (base2?.noun) {
-        return base2.noun in [this[c1].noun, base1?.noun]
-      }
-      return false
     }
 
     return false

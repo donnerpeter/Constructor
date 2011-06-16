@@ -52,7 +52,7 @@ class ParsingState {
       return true
     }
     for (arg in oldArgs.keySet().intersect(newArgs.keySet())) {
-      if (arg != 'init' && oldArgs[arg] != newArgs[arg] && oldArgs[arg]) {
+      if (arg != 'init' && arg != 'xor' && oldArgs[arg] != newArgs[arg] && oldArgs[arg]) {
         return true
       }
     }
@@ -255,13 +255,6 @@ class ParsingState {
     if (c1.name == 'summerGarden' && c2.name == 'adjective') {
       return true
     }
-    if (c1.name == 'comeScalarly' && c2.name == 'идёт' && this[c1].verb == this[c2].verb) {
-      return true
-    }
-    if (c1.name == 'comeScalarly' && c2.name == 'vAcc' && this[c1].verb == this[c2].head) {
-      return true
-    }
-
 
     return false
   }

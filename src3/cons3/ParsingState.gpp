@@ -252,9 +252,6 @@ class ParsingState {
       }
       return false
     }
-    if (c1.name == 'summerGarden' && c2.name == 'adjective') {
-      return true
-    }
 
     return false
   }

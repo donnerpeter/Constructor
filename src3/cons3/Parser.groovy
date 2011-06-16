@@ -465,7 +465,7 @@ class Parser {
         return state.apply(adjective, nounFrame:noun, rel:'size', val:'LITTLE').apply(acc, noun:noun)
       case "летний":
         def noun = state[acc]?.noun ?: state.newVariable()
-        return state.apply((adjective):[nounFrame:noun, rel:'timeAnchor', val:'SUMMER'], (acc):[noun:noun], (summerGarden):[summer:true])
+        return state.apply((adjective):[nounFrame:noun, rel:'timeAnchor', val:'SUMMER', xor:t.a], (acc):[noun:noun], (summerGarden):[summer:true, xor:t.a])
       case "большим":
         def noun = state[instr]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'size', val:'BIG').apply(instr, noun:noun)

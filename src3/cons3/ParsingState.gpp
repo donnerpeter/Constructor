@@ -101,7 +101,7 @@ class ParsingState {
     def freed = [] as LinkedHashSet
     remaining.each {
       for (c in toRemove) {
-        if (contradict(it, c) || contradict(c, it)) {
+        if (contradict(it, c)) {
           freed << it
         }
       }
@@ -148,7 +148,7 @@ class ParsingState {
     Set<Construction> bornDead = [] as LinkedHashSet
     for (cxt1 in (fresh + replaced)) {
       for (cxt2 in old) {
-        if (result.contradict(cxt1, cxt2) || result.contradict(cxt2, cxt1)) {
+        if (result.contradict(cxt1, cxt2)) {
           bornDead << cxt1
         }
       }
@@ -176,7 +176,7 @@ class ParsingState {
     LinkedHashSet<Construction> others = (constructions.keySet() as LinkedHashSet) - names
     for (name1 in names) {
       for (name2 in others) {
-        if (contradict(name1, name2) || contradict(name2, name1)) {
+        if (contradict(name1, name2)) {
           result = result.inhibit(name2)
         }
       }

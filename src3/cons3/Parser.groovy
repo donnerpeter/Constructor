@@ -408,6 +408,7 @@ class Parser {
 
 
   ParsingState handleWord(String word, ParsingState state) {
+    Tokens t = new Tokens()
     if (Util.parseNumber(word) != null) { //todo generic noun treatment for numbers
       def noun = !state[gen]?.hasNoun && state[gen]?.noun ? state[gen].noun : state.newVariable()
       def init = { it.assign(noun, 'type', word).assign(noun, 'number', 'true') }
@@ -599,20 +600,18 @@ class Parser {
       case "тут":
         return state.assign(situation, 'emphasis', 'true')
       case "потом":
-        def token = new Object()
-        Update update = new Update((comeScalarly):[order:'AFTER', id: token], (nom):[:])
+        Update update = new Update((comeScalarly):[order:'AFTER', xor: t.a], (nom):[:])
         if (state[comeScalarly]?.order) {
           state = state.inhibit(comeScalarly)
         } else {
-          update = update.addCxt(relTime, relTime:'AFTER', id:token)
+          update = update.addCxt(relTime, relTime:'AFTER', xor:t.a)
         }
         return state.apply(update.map)
       case "все":
         return state.assign(state[nom].noun, 'quantifier', 'ALL')
       case "дальше":
         def adv = state.newVariable()
-        def token = new Object()
-        return state.apply((comeScalarly):[order:'AFTER', id: token],  (advObj):[adv: adv, id:token, init:{ it.assign(adv, 'type', 'NEXT') }])
+        return state.apply((comeScalarly):[order:'AFTER', xor: t.a],  (advObj):[adv: adv, xor:t.a, init:{ it.assign(adv, 'type', 'NEXT') }])
       case "их":
         def they = state.newVariable()
         def init = { st -> st.assign(they, 'type', 'THEY') }
@@ -867,11 +866,9 @@ class Parser {
         state = state.assign(situation, 'time', 'PAST')
         return state.inhibit(preposition).apply((nom):[head:verb], (comeScalarly):[verb:verb], (posleGen):[head:verb], (relTime):[head:situation])
       case "раньше":
-        def token = new Object()
-        return state.apply((comeScalarly):[order:'EARLIER', id: token], (nom):[:], (preposition):[prep:'ranshe'], (relTime):[relTime:'BEFORE', id:token])
+        return state.apply((comeScalarly):[order:'EARLIER', xor:t.a], (nom):[:], (preposition):[prep:'ranshe'], (relTime):[relTime:'BEFORE', xor:t.a])
       case "после":
-        def token = new Object()
-        return state.apply((comeScalarly):[order:'AFTER', id:token], (nom):[:], (preposition):[prep:'posle'], (absTime):[rel:'AFTER', id:token])
+        return state.apply((comeScalarly):[order:'AFTER', xor:t.a], (nom):[:], (preposition):[prep:'posle'], (absTime):[rel:'AFTER', xor:t.a])
       case "-":
         if (state[directSpeech]) {
           return state.apply(directSpeech, hasDash:true)

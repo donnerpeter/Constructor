@@ -1,0 +1,34 @@
+package cons3
+
+import groovy.transform.TupleConstructor
+
+/**
+ * @author peter
+ */
+class Tokens {
+  private static int counter = 0
+  private final Map<String, Token> allocated = [:]
+  private final int id = counter++
+
+  public Object getProperty(String name) {
+    Set<Token> result = []
+    for (i in 0..<name.length()) {
+      String s = name[i]
+      result << allocated.get(s, new Token(s + id))
+    }
+    return result
+  }
+
+  @TupleConstructor
+  private static class Token {
+    final String name
+
+    @Override
+    String toString() {
+      return name
+    }
+
+
+  }
+
+}

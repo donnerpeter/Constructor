@@ -70,15 +70,22 @@ class ParsingState {
       args += [init:merged]
     }
 
-    def xor = (((Set) oldArgs?.xor) ?: Collections.emptySet()) + (((Set) newArgs?.xor) ?: Collections.emptySet())
+    Collection xor = mergeXor(oldArgs, newArgs)
     if (xor) {
       args += [xor:xor]
-    } else {
-      args = new LinkedHashMap(args)
-      args.remove('xor')
     }
 
     return Collections.unmodifiableMap(args)
+  }
+
+  static Collection mergeXor(Map oldArgs, Map newArgs) {
+    Set xor1 = oldArgs?.xor
+    Set xor2 = newArgs?.xor
+    def xor = (xor1 ?: Collections.emptySet()) + (xor2 ?: Collections.emptySet())
+    if (!xor) {
+      xor = null
+    }
+    return xor
   }
 
   static Closure mergeInits(Closure oldInit, Closure newInit) {
@@ -237,10 +244,6 @@ class ParsingState {
     Set xor2 = this[c2].xor
     if (xor1 && xor2 && xor1.intersect(xor2)) {
       return true
-    }
-
-    if (c1.name in ['nom', 'prep', 'vPrep', 'gen'] && c2.name in ['acc', 'vAcc'] && this[c1].noun && this[c2].noun) {
-      if (this[c1].noun == this[c2].noun) return true
     }
 
     return false

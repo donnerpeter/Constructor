@@ -322,7 +322,7 @@ class Parser {
     seqs[new Pair(first, second)] = multi
     return update.
             addCxt(seqStart, multi:multi, first:first, second:second, conj:state[seq].conj).
-            addCxt(oldArgs + [(prop): multi], cxt, ParsingState.mergeInits((Closure)oldArgs.init, (Closure)newArgs.init))
+            addCxt(oldArgs + [(prop): multi, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt, ParsingState.mergeInits((Closure)oldArgs.init, (Closure)newArgs.init))
   }
 
   Construction seqNext = this.cxt('seqNext') { ParsingState st, Map args ->
@@ -335,7 +335,7 @@ class Parser {
   Update joinSeq(Map newArgs, ParsingState state, Construction cxt, Variable seqVar, Map oldArgs, String property, Update update) {
     def newMember = newArgs[property]
     return update.
-            addCxt(oldArgs + [(property): seqVar], cxt, ParsingState.mergeInits((Closure)oldArgs.init, (Closure)newArgs.init)).
+            addCxt(oldArgs + [(property): seqVar, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt, ParsingState.mergeInits((Closure)oldArgs.init, (Closure)newArgs.init)).
             addCxt(seqNext, multi:seqVar, next:newMember, conj:state[seq]?.conj)
   }
 
@@ -413,6 +413,8 @@ class Parser {
       def noun = !state[gen]?.hasNoun && state[gen]?.noun ? state[gen].noun : state.newVariable()
       def init = { it.assign(noun, 'type', word).assign(noun, 'number', 'true') }
 
+      def tokens = [(nom):t.a, (gen):t.b, (acc):t.ab] //todo nom-gen contradiction
+
       def cases = []
       if (!(state[preposition]?.prep in ['posle', 'ranshe'])) {
         cases << nom
@@ -426,7 +428,7 @@ class Parser {
       }
       cases << acc
 
-      state = conjWrap(cases.collectEntries { [it, [noun:noun, hasNoun:true, init:init]] },  state)
+      state = conjWrap(cases.collectEntries { [it, [noun:noun, hasNoun:true, init:init, xor:tokens[it]]] },  state)
 
       def qv = state[questionVariants]
       if (qv) {
@@ -434,7 +436,7 @@ class Parser {
         state = state.apply(questionVariants, seq:seqVar)
         def update = new Update(FLinkedMap.emptyMap)
         cases.each {
-          update = joinSeq(state, it, seqVar, noun:noun, init:init, [hasNoun:true], 'noun', update)
+          update = joinSeq(state, it, seqVar, noun:noun, init:init, [hasNoun:true, xor:tokens[it]], 'noun', update)
         }
         state = state.apply(update.map)
       }
@@ -510,14 +512,14 @@ class Parser {
       case "магазин":
         def noun = state[acc]?.noun ?: state.newVariable()
         def init = { it.assign(noun, 'type', 'SHOP') }
-        state = state.apply((nom):[noun:noun, hasNoun:true, init:init], (acc):[noun:noun, hasNoun:true, init:init])
+        state = state.apply((nom):[noun:noun, hasNoun:true, init:init, xor:t.a], (acc):[noun:noun, hasNoun:true, init:init, xor:t.a])
         state = state.apply(naPrep, head:noun)
         state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
         return state //todo one noun frame - several cases
       case "сад":
         def noun = state[acc]?.noun ?: state.newVariable()
         def init = { it.assign(noun, 'type', 'GARDEN') }
-        state = state.apply((nom):[noun:noun, hasNoun:true, init:init], (acc):[noun:noun, hasNoun:true, init:init], (summerGarden):[garden:noun])
+        state = state.apply((nom):[noun:noun, hasNoun:true, init:init, xor:t.a], (acc):[noun:noun, hasNoun:true, init:init, xor:t.a], (summerGarden):[garden:noun])
         state = state.apply(naPrep, head:noun)
         state = state.satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
         return state //todo one noun frame - several cases
@@ -564,9 +566,9 @@ class Parser {
       case 'до': return preposition(state, doGen, gen)
       case 'в':
         def noun = state.newVariable()
-        state = state.apply((vAcc):[noun: noun], (vPrep):[noun: noun])
+        state = state.apply((vAcc):[noun: noun, xor:t.a], (vPrep):[noun: noun, xor:t.a])
         def save = state.constructions
-        return state.clearConstructions().apply((acc):[save: save, delegate: vAcc, noun:noun], (prep):[save: save, delegate: vPrep, noun:noun])
+        return state.clearConstructions().apply((acc):[save: save, delegate: vAcc, noun:noun, xor:t.b], (prep):[save: save, delegate: vPrep, noun:noun, xor:t.b])
       case 'из':
       case 'изо': return preposition(state, izGen, gen)
       case 'на': return preposition(state, naPrep, prep)
@@ -844,7 +846,7 @@ class Parser {
         state = state.apply(question, questioned:noun)
         if (!state[declComp]) {
           //todo generic noun treatment for что
-          state = state.apply((nom):[noun:noun, hasNoun:true], (acc):[noun:noun, hasNoun:true])
+          state = state.apply((nom):[noun:noun, hasNoun:true, xor:t.a], (acc):[noun:noun, hasNoun:true, xor:t.a])
         }
         state = state.apply(declComp, complementizer:'that')
         if (state[relativeClause]?.hasComma) {
@@ -945,7 +947,7 @@ class Parser {
 
   private boolean areSimilar(Map<Construction, Map> c1, Map<Construction, Map> c2) {
     def common = c1.keySet().intersect(c2.keySet())
-    return common.size() > 0 && common.every { (c1[it].keySet() - 'init') == (c2[it].keySet() - 'init') } &&
+    return common.size() > 0 && common.every { (c1[it].keySet() - 'init' - 'xor') == (c2[it].keySet() - 'init' - 'xor') } &&
             !(prevHistory in common) //todo commas are not particularly important for ellipsis lcs
   }
 

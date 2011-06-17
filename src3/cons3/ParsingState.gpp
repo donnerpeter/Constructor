@@ -99,10 +99,10 @@ class ParsingState {
     remaining.removeAll(toRemove)
 
     def freed = [] as LinkedHashSet
-    remaining.each {
+    for (removed in remaining) {
       for (c in toRemove) {
-        if (contradict(it, c)) {
-          freed << it
+        if (contradict(this[removed], this[c])) {
+          freed << removed
         }
       }
     }
@@ -148,7 +148,7 @@ class ParsingState {
     Set<Construction> bornDead = [] as LinkedHashSet
     for (cxt1 in (fresh + replaced)) {
       for (cxt2 in old) {
-        if (result.contradict(cxt1, cxt2)) {
+        if (contradict(result[cxt1], result[cxt2])) {
           bornDead << cxt1
         }
       }
@@ -163,9 +163,9 @@ class ParsingState {
 
   private ParsingState applyAll(LinkedHashSet<Construction> names) {
     Set<Construction> hanging = [] as LinkedHashSet
-    names.each { name1 ->
-      names.each { name2 ->
-        if (contradict(name1, name2)) {
+    for (name1 in names) {
+      for (name2 in names) {
+        if (contradict(this[name1], this[name2])) {
           hanging << name1
           hanging << name2
         }
@@ -176,7 +176,7 @@ class ParsingState {
     LinkedHashSet<Construction> others = (constructions.keySet() as LinkedHashSet) - names
     for (name1 in names) {
       for (name2 in others) {
-        if (contradict(name1, name2)) {
+        if (contradict(this[name1], this[name2])) {
           result = result.inhibit(name2)
         }
       }
@@ -234,18 +234,11 @@ class ParsingState {
     clone(constructions: saved + this.constructions)
   }
 
-  boolean contradict(Construction c1, Construction c2) {
-    if (c1 == c2) return false
+  private static boolean contradict(Map args1, Map args2) {
+    if (args1.is(args2)) return false
 
-    assert this[c1] != null : c1
-    assert this[c2] != null : c2
-
-    Set xor1 = this[c1].xor
-    Set xor2 = this[c2].xor
-    if (xor1 && xor2 && xor1.intersect(xor2)) {
-      return true
-    }
-
-    return false
+    Set xor1 = args1.xor
+    Set xor2 = args2.xor
+    return xor1 && xor2 && xor1.intersect(xor2)
   }
 }

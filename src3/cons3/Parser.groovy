@@ -413,8 +413,6 @@ class Parser {
       def noun = !state[gen]?.hasNoun && state[gen]?.noun ? state[gen].noun : state.newVariable()
       def init = { it.assign(noun, 'type', word).assign(noun, 'number', 'true') }
 
-      def tokens = [(nom):t.a, (gen):t.b, (acc):t.ab] //todo nom-gen contradiction
-
       def cases = []
       if (!(state[preposition]?.prep in ['posle', 'ranshe'])) {
         cases << nom
@@ -428,17 +426,17 @@ class Parser {
       }
       cases << acc
 
-      state = conjWrap(cases.collectEntries { [it, [noun:noun, hasNoun:true, init:init, xor:tokens[it]]] },  state)
-
       def qv = state[questionVariants]
       if (qv) {
         def seqVar = state.newVariable()
-        state = state.apply(questionVariants, seq:seqVar)
+        state = state.apply((questionVariants):[seq:seqVar], (nom):[:])
         def update = new Update(FLinkedMap.emptyMap)
         cases.each {
-          update = joinSeq(state, it, seqVar, noun:noun, init:init, [hasNoun:true, xor:tokens[it]], 'noun', update)
+          update = joinSeq(state, it, seqVar, noun:noun, init:init, [hasNoun:true, xor:t.a], 'noun', update)
         }
         state = state.apply(update.map)
+      } else {
+        state = conjWrap(cases.collectEntries { [it, [noun:noun, hasNoun:true, init:init, xor:t.a]] },  state)
       }
 
       return state

@@ -48,7 +48,7 @@ class ParsingState {
 
   private boolean overwrites(Construction name, Map newArgs) {
     def oldArgs = constructions[name]
-    if (!oldArgs) {
+    if (oldArgs == null) {
       return true
     }
     for (arg in oldArgs.keySet().intersect(newArgs.keySet())) {
@@ -129,7 +129,7 @@ class ParsingState {
     Set<Construction> old = [] as LinkedHashSet
     Set<Construction> replaced = [] as LinkedHashSet
     for (cxt in constructions.keySet()) {
-      if (this.constructions[cxt]) {
+      if (this.constructions[cxt] != null) {
         if (overwrites(cxt, constructions[cxt])) {
           replaced << cxt
         } else {

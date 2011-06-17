@@ -30,14 +30,14 @@ B.theme=#3
 B.type=COME_SCALARLY
 B.order=EARLIER
 B.arg1=A
-C.type=7
-C.number=true
-A.variants=D
-D.member=C
-D.conj=or
-D.member=E
+A.variants=C
+D.type=7
+D.number=true
+C.member=D
 E.type=8
 E.number=true
+C.conj=or
+C.member=E
 """)
   }
 

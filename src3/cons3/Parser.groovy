@@ -74,7 +74,7 @@ class Parser {
     if (args.head && args.noun && args.infinitive) {
       state = state.assign(args.head, 'arg1', args.noun)
     }
-    handleCase(dat, state, args)
+    state
   }
   Construction prep = cxt('prep') { ParsingState state, Map args -> handleCase(prep, state, args) }
   Construction sInstr = cxt('sInstr') { ParsingState state, Map args ->
@@ -478,14 +478,14 @@ class Parser {
         state = state.assign(we, 'type', 'WE')
         return state.apply(possessive, possessor:we, head:possHead)
       case "этому":
-        def noun = state[dat]?.noun ?: state.newVariable()
-        return state.apply(adjective, nounFrame:noun, rel:'determiner', val:'THIS').apply(dat, noun:noun)
+        def noun = state[poDat]?.noun ?: state.newVariable()
+        return state.apply(adjective, nounFrame:noun, rel:'determiner', val:'THIS').apply(poDat, noun:noun)
       case "всякого":
         def noun = state[gen]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'determiner', val:'ANY').apply(gen, noun:noun)
       case "скромному":
-        def noun = state[dat]?.noun ?: state.newVariable()
-        return state.apply(adjective, nounFrame:noun, rel:'quality', val:'HUMBLE').apply(dat, noun:noun)
+        def noun = state[poDat]?.noun ?: state.newVariable()
+        return state.apply(adjective, nounFrame:noun, rel:'quality', val:'HUMBLE').apply(poDat, noun:noun)
       case "том":
         def noun = state[prep]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'determiner', val:'THAT').apply(prep, noun:noun)
@@ -529,25 +529,19 @@ class Parser {
         state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
         return state //todo one noun frame - several cases
       case "мнению":
-        def oldDat = state[dat]
-        def noun = oldDat?.noun ?: state.newVariable()
         if (state.situation.frame(state.chart).f('opinion_of')) {
           def next = new Situation()
           state = state.assign(situation, 'but', next).withSituation(next).apply(prevHistory, history:state)
         }
-        state = state.assign(noun, 'type', 'OPINION').
-                apply(parenthetical) // todo common constructions in по-моему & по моему мнению
-        //todo save-restore restores too much
-        def saveTrim = [:]
-        [poDat, prevHistory].each { cxt ->
-          oldDat.save?.get(cxt)?.with { saveTrim[cxt] = it }
-        }
-        state = state.apply(oldDat + [noun: noun, hasNoun:true, save: saveTrim], dat)
-        return state.apply((nounGen):[head:noun], (possessive):[head:noun])
+        def oldDat = state[poDat]
+        def noun = oldDat?.noun ?: state.newVariable()
+        state = state.assign(noun, 'type', 'OPINION')
+        return state.apply((nounGen):[head:noun], (possessive):[head:noun], (poDat):[noun:noun, hasNoun:true],
+                           (parenthetical):[:]) // todo common constructions in по-моему & по моему мнению
       case "словам":
-        def noun = state[dat]?.noun ?: state.newVariable()
+        def noun = state[poDat]?.noun ?: state.newVariable()
         def init = { it.assign(noun, 'type', 'WORDS') }
-        state = state.apply((dat):[noun:noun, hasNoun:true, init:init],
+        state = state.apply((poDat):[noun:noun, hasNoun:true, init:init],
                             (nounGen):[head:noun, init:init],
                             (possessive):[head:noun, init:init])
         return state
@@ -557,7 +551,7 @@ class Parser {
         return state.apply(sInstr, head:verb).apply(nom, head:verb)
       case 'со': return preposition(state, sInstr, instr)
       case 'с': return preposition(state, sInstr, instr)
-      case 'по': return preposition(state, poDat, dat)
+      case 'по': return state.apply(preposition, prep:'по')
       case 'о': return preposition(state, oPrep, prep)
       case 'к': return preposition(state, kDat, dat)
       case 'к': return preposition(state, kDat, dat)
@@ -946,7 +940,7 @@ class Parser {
   private boolean areSimilar(Map<Construction, Map> c1, Map<Construction, Map> c2) {
     def common = c1.keySet().intersect(c2.keySet())
     return common.size() > 0 && common.every { (c1[it].keySet() - 'init' - 'xor') == (c2[it].keySet() - 'init' - 'xor') } &&
-            !(prevHistory in common) //todo commas are not particularly important for ellipsis lcs
+            !(prevHistory in common) && !(preposition in common) //todo commas are not particularly important for ellipsis lcs
   }
 
   private ParsingState infinitive(ParsingState state, Variable verb, String type, LinkedHashMap<Construction, LinkedHashMap<String, Variable>> args) {
@@ -969,6 +963,9 @@ class Parser {
     }
     if (state.constructions[preposition]?.prep == 'ranshe' && caze == gen) {
       caze = ransheGen
+    }
+    if (state.constructions[preposition]?.prep == 'по' && caze == dat) {
+      caze = poDat
     }
 
     def noun = state.constructions[caze]?.noun ?: state.newVariable()

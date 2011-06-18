@@ -23,6 +23,7 @@
     <option name="LOCALE" />
     <option name="OPEN_IN_BROWSER" value="true" />
   </component>
+  <component name="NullableNotNullManager" />
   <component name="ProjectDetails">
     <option name="projectName" value="constructor" />
   </component>

@@ -78,15 +78,7 @@ class EnglishGenerator {
 
       def opinion = sitFrame.f('opinion_of')
       if (opinion) {
-        if (opinion.type == 'OPINION') {
-          out 'in'
-          np(opinion, false)
-        }
-        if (opinion.type == 'WORDS') {
-          out 'according'
-          out 'to'
-          np(opinion.f('author'), false)
-        }
+        opinionOf(opinion)
         if (!sitFrame.s('clauseEllipsis')) {
           out ','
         }
@@ -218,6 +210,23 @@ class EnglishGenerator {
         out '.'
       } else if (sitFrame.f('questioned') && topLevel) {
         out '?'
+      }
+    }
+
+    private def opinionOf(Frame opinion) {
+      if (opinion.f('member')) {
+        seq(opinion) { opinionOf(it) }
+        return
+      }
+
+      if (opinion.type == 'OPINION') {
+        out 'in'
+        np(opinion, false)
+      }
+      if (opinion.type == 'WORDS') {
+        out 'according'
+        out 'to'
+        np(opinion.f('author'), false)
       }
     }
 

@@ -390,8 +390,8 @@ C.member=F
     doTranslateTest '7 идет раньше 8',
                     'A 7 comes before an 8'
   }
-  public void _test12_InOpinionCoordination() throws Exception {
-    doParseTest 'По мнению кассирши и по мнению других, 7 идет раньше 8',
+  public void test12_InOpinionCoordination() throws Exception {
+    doTranslateTest 'По мнению кассирши и по мнению других, 7 идет раньше 8',
                     'In the opinion of the cashier and in opinion of others, a 7 comes before an 8'
   }
   public void _test12_OpinionCoordination() throws Exception {

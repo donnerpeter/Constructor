@@ -555,11 +555,7 @@ class Parser {
         return state.apply(sInstr, head:verb).apply(nom, head:verb)
       case 'со': return preposition(state, sInstr, instr)
       case 'с': return preposition(state, sInstr, instr)
-      case 'по':
-        if (state[poDat]?.noun) {
-          state = state.inhibit(poDat)
-        }
-        return state.apply((preposition):[prep:'по'])
+      case 'по': return state.apply((preposition):[prep:'по'], (poDat):[noun:new Variable()])
       case 'о': return preposition(state, oPrep, prep)
       case 'к': return preposition(state, kDat, dat)
       case 'к': return preposition(state, kDat, dat)

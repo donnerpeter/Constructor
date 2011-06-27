@@ -6,18 +6,17 @@ import groovy.transform.Immutable
  * @author peter
  */
 class Parser {
+  String log = ""
 
-  Chart parse(String text, debug = false) {
+  Chart parse(String text) {
     ParsingState state = new ParsingState(chart: new Chart(), situation: new Situation(), participants:[:], constructions:[:], history:FList.emptyList)
     def tokenizer = new StringTokenizer(text, """ '":,.?!""", true)
     for (String w in tokenizer) {
       if (w != ' ') {
         state = handleWord(w.toLowerCase(), state)
-        if (debug) {
-          println w
-          state.constructions.each {
-            println "  $it.key -> $it.value"
-          }
+        log += w + "\n"
+        state.constructions.each {
+          log += "  $it.key -> $it.value\n"
         }
       }
     }

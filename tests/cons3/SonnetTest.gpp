@@ -45,7 +45,7 @@ C.member=E
     def parser = new Parser()
     def result = parser.parse(input).presentable()
     if (expected.trim() != result) {
-      parser.parse(input, true)
+      println parser.log
       assertEquals expected.trim(), result
     }
   }
@@ -524,10 +524,12 @@ C.arg1=D
   }
 
   static void doTranslateTest(String input, String expected) {
-    def chart = new Parser().parse(input)
+    def parser = new Parser()
+    def chart = parser.parse(input)
     def actual = new EnglishGenerator().generate(chart)
     if (actual != expected) {
       println chart.presentable()
+      println "\nLog:\n\n$parser.log"
     }
     assertEquals expected, actual
   }

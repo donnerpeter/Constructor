@@ -313,6 +313,9 @@ class Parser {
     if (args.conj) {
       st = st.assign(args.multi, 'conj', args.conj)
     }
+    if (args.distinguish) {
+      st = st.assign(args.second, 'distinguished_in', args.multi)
+    }
     st.assign(args.multi, 'member', args.second).satisfied(seqStart)
   }
 
@@ -326,7 +329,7 @@ class Parser {
     Variable multi = seqs[new Pair(first, second)] ?: new Variable()
     seqs[new Pair(first, second)] = multi
     return update.
-            addCxt(seqStart, multi:multi, first:first, second:second, conj:state[seq].conj).
+            addCxt(seqStart, multi:multi, first:first, second:second, conj:state[seq].conj, distinguish:newArgs.repeated).
             addCxt(oldArgs + [(prop): multi, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt, ParsingState.mergeInits((Closure)oldArgs.init, (Closure)newArgs.init))
   }
 
@@ -538,9 +541,9 @@ class Parser {
           def next = new Situation()
           state = state.assign(situation, 'but', next).withSituation(next).apply(prevHistory, history:state)
         }
-        def noun = state[poDat]?.noun ?: state.newVariable()
+        def noun = state[poDat]?.noun && !state[poDat]?.hasNoun ? state[poDat].noun : state.newVariable()
         state = state.assign(noun, 'type', 'OPINION')
-        return conjWrap(state, (nounGen):[head:noun], (possessive):[head:noun], (poDat):[noun:noun, hasNoun:true],
+        return conjWrap(state, (nounGen):[head:noun], (possessive):[head:noun], (poDat):[noun:noun, hasNoun:true, repeated:state[poDat]?.repeated],
                            (parenthetical):[:]) // todo common constructions in по-моему & по моему мнению
       case "словам":
         def noun = state[poDat]?.noun ?: state.newVariable()
@@ -555,7 +558,8 @@ class Parser {
         return state.apply(sInstr, head:verb).apply(nom, head:verb)
       case 'со': return preposition(state, sInstr, instr)
       case 'с': return preposition(state, sInstr, instr)
-      case 'по': return state.apply((preposition):[prep:'по'], (poDat):[noun:new Variable()])
+      case 'по':
+        return state.apply((preposition):[prep:'по'], (poDat):[noun:new Variable(), repeated:(state[seq] != null)])
       case 'о': return preposition(state, oPrep, prep)
       case 'к': return preposition(state, kDat, dat)
       case 'к': return preposition(state, kDat, dat)

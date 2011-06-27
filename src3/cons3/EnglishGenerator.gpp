@@ -78,7 +78,7 @@ class EnglishGenerator {
 
       def opinion = sitFrame.f('opinion_of')
       if (opinion) {
-        opinionOf(opinion)
+        opinionOf(opinion, null)
         if (!sitFrame.s('clauseEllipsis')) {
           out ','
         }
@@ -213,21 +213,29 @@ class EnglishGenerator {
       }
     }
 
-    private def opinionOf(Frame opinion) {
+    private String opinionOf(Frame opinion, String prevOpinion) {
       if (opinion.f('member')) {
-        seq(opinion) { opinionOf(it) }
-        return
+        groovy.lang.Reference prev = [null] //todo alex <String>
+        seq(opinion) {
+          String p = prev.get()
+          String next = ((SituationGenerator) this).opinionOf(it, p)
+          prev.set(next)
+        }
+        return true
       }
 
       if (opinion.type == 'OPINION') {
-        out 'in'
+        if (prevOpinion != 'OPINION' || opinion.f('distinguished_in')) {
+          out 'in'
+        }
         np(opinion, false)
       }
-      if (opinion.type == 'WORDS') {
+      else if (opinion.type == 'WORDS') {
         out 'according'
         out 'to'
         np(opinion.f('author'), false)
       }
+      return opinion.type
     }
 
     private String aux(Frame verb, Frame subj, boolean imperative) {

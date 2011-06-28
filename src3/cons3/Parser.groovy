@@ -424,17 +424,19 @@ class Parser {
   ParsingState handleWord(String word, ParsingState state) {
     Tokens t = new Tokens()
     if (Util.parseNumber(word) != null) { //todo generic noun treatment for numbers
-      def noun = !state[gen]?.hasNoun && state[gen]?.noun ? state[gen].noun : state.newVariable()
+      def noun = !state[doGen]?.hasNoun && state[doGen]?.noun ? state[doGen].noun : state.newVariable()
       def init = { it.assign(noun, 'type', word).assign(noun, 'number', 'true') }
 
       def cases = []
-      if (!(state[preposition]?.prep in ['posle', 'ranshe'])) {
+      if (!(state[preposition]?.prep in ['posle', 'ranshe', 'до'])) {
         cases << nom
       }
       if (state[preposition]?.prep == 'posle') {
         cases << posleGen
       } else if (state[preposition]?.prep == 'ranshe') {
         cases << ransheGen
+      } else if (state[preposition]?.prep == 'до') {
+        cases << doGen
       } else {
         cases << gen
       }
@@ -577,7 +579,8 @@ class Parser {
       case 'о': return preposition(state, oPrep, prep)
       case 'к': return preposition(state, kDat, dat)
       case 'к': return preposition(state, kDat, dat)
-      case 'до': return preposition(state, doGen, gen)
+      case 'до':
+        return state.apply((preposition):[prep:'до'], (doGen):[noun:new Variable()])
       case 'в':
         def noun = state.newVariable()
         return state.apply((preposition):[prep:'в'], (vAcc):[noun:noun, xor:t.b], (vPrep):[noun:noun, xor:t.b])
@@ -1017,6 +1020,7 @@ class Parser {
     if (p == 'по' && caze == dat) return poDat
     if (p == 'в' && caze == prep) return vPrep
     if (p == 'в' && caze == acc) return vAcc
+    if (p == 'до' && caze == gen) return doGen
     return caze
   }
 

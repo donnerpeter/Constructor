@@ -195,7 +195,14 @@ class Parser {
   }
   Construction vAcc = cxt('vAcc') { ParsingState state, Map args ->
     if (args.head && args.noun) {
-      state = state.assign(args.head, args.head.frame(state.chart).type == 'THINK' ? 'theme' : 'goal', args.noun).apply(nom).apply(posleGen) //todo apply everything on every change
+      state = state.assign(args.head, args.head.frame(state.chart).type == 'THINK' ? 'theme' : 'goal', args.noun)
+      //todo apply everything on every change
+      if (state[nom]) {
+        state = state.apply(nom)
+      }
+      if (state[posleGen]) {
+        state = state.apply(posleGen)
+      }
     }
     state
   }
@@ -465,20 +472,24 @@ class Parser {
         state = conjWrap(state, (gen):[noun:noun, init:init], (adjective):[nounFrame:noun, rel:'name', val:word[0..-3]+"ая", init:init])
         return state
       case "коммерческий":
-        def noun = state[acc]?.noun ?: state.newVariable()
-        return state.apply(adjective, nounFrame:noun, rel:'kind', val:'COMMERCIAL').apply(acc, noun:noun)
+        def _acc = transformCase(state, acc)
+        def noun = state[_acc]?.noun ?: state.newVariable()
+        return state.apply(adjective, nounFrame:noun, rel:'kind', val:'COMMERCIAL').apply(_acc, noun:noun)
       case "маленький":
-        def noun = state[acc]?.noun ?: state.newVariable()
-        return state.apply(adjective, nounFrame:noun, rel:'size', val:'LITTLE').apply(acc, noun:noun)
+        def _acc = transformCase(state, acc)
+        def noun = state[_acc]?.noun ?: state.newVariable()
+        return state.apply(adjective, nounFrame:noun, rel:'size', val:'LITTLE').apply(_acc, noun:noun)
       case "летний":
-        def noun = state[acc]?.noun ?: state.newVariable()
-        return state.apply((adjective):[nounFrame:noun, rel:'timeAnchor', val:'SUMMER', xor:t.a], (acc):[noun:noun], (summerGarden):[summer:true, xor:t.a])
+        def _acc = transformCase(state, acc)
+        def noun = state[_acc]?.noun ?: state.newVariable()
+        return state.apply((adjective):[nounFrame:noun, rel:'timeAnchor', val:'SUMMER', xor:t.a], (_acc):[noun:noun], (summerGarden):[summer:true, xor:t.a])
       case "большим":
         def noun = state[instr]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'size', val:'BIG').apply(instr, noun:noun)
       case "большой":
-        def noun = state[instr]?.noun ?: state[acc]?.noun ?: state.newVariable()
-        return state.apply((adjective):[nounFrame:noun, rel:'size', val:'BIG'], (instr):[noun:noun], (acc):[noun:noun])
+        def _acc = transformCase(state, acc)
+        def noun = state[instr]?.noun ?: state[_acc]?.noun ?: state.newVariable()
+        return state.apply((adjective):[nounFrame:noun, rel:'size', val:'BIG'], (instr):[noun:noun], (_acc):[noun:noun])
       case "нашем":
         def we = state.newVariable()
         def possHead = state[prep]?.noun ?: state.newVariable()
@@ -494,12 +505,14 @@ class Parser {
         def noun = state[poDat]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'quality', val:'HUMBLE').apply(poDat, noun:noun)
       case "том":
-        def noun = state[prep]?.noun ?: state.newVariable()
-        return state.apply(adjective, nounFrame:noun, rel:'determiner', val:'THAT').apply(prep, noun:noun)
+        def _prep = transformCase(state, prep)
+        def noun = state[_prep]?.noun ?: state.newVariable()
+        return state.apply(adjective, nounFrame:noun, rel:'determiner', val:'THAT').apply(_prep, noun:noun)
       case "случай": return noun(state, nom, 'THING') //todo случай=CASE or THING
       case "случае":
-        def noun = state[prep]?.noun ?: state.newVariable()
-        state = state.apply(prep, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'CASE') }
+        def _prep = transformCase(state, prep)
+        def noun = state[_prep]?.noun ?: state.newVariable()
+        state = state.apply(_prep, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'CASE') }
         return state.apply(conditionComp, head:noun) //todo one noun frame - several cases
       case "удивление": return noun(state, nom, 'AMAZE')
       case "поводу": return noun(state, dat, 'MATTER')
@@ -515,16 +528,18 @@ class Parser {
         state = state.apply(prep, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'CORNER') }
         return state.apply(gen, head:noun) //todo one noun frame - several cases
       case "магазин":
-        def noun = state[acc]?.noun ?: state.newVariable()
+        def _acc = transformCase(state, acc)
+        def noun = state[_acc]?.noun ?: state.newVariable()
         def init = { it.assign(noun, 'type', 'SHOP') }
-        state = state.apply((nom):[noun:noun, hasNoun:true, init:init, xor:t.a], (acc):[noun:noun, hasNoun:true, init:init, xor:t.a])
+        state = state.apply((transformCase(state, nom)):[noun:noun, hasNoun:true, init:init, xor:t.a], (_acc):[noun:noun, hasNoun:true, init:init, xor:t.a])
         state = state.apply(naPrep, head:noun)
         state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
         return state //todo one noun frame - several cases
       case "сад":
-        def noun = state[acc]?.noun ?: state.newVariable()
+        def _acc = transformCase(state, acc)
+        def noun = state[_acc]?.noun ?: state.newVariable()
         def init = { it.assign(noun, 'type', 'GARDEN') }
-        state = state.apply((nom):[noun:noun, hasNoun:true, init:init, xor:t.a], (acc):[noun:noun, hasNoun:true, init:init, xor:t.a], (summerGarden):[garden:noun])
+        state = state.apply((transformCase(state, nom)):[noun:noun, hasNoun:true, init:init, xor:t.a], (_acc):[noun:noun, hasNoun:true, init:init, xor:t.a], (summerGarden):[garden:noun])
         state = state.apply(naPrep, head:noun)
         state = state.satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
         return state //todo one noun frame - several cases
@@ -565,9 +580,7 @@ class Parser {
       case 'до': return preposition(state, doGen, gen)
       case 'в':
         def noun = state.newVariable()
-        state = state.apply((vAcc):[noun: noun, xor:t.a], (vPrep):[noun: noun, xor:t.a])
-        def save = state.constructions
-        return state.clearConstructions().apply((acc):[save: save, delegate: vAcc, noun:noun, xor:t.b], (prep):[save: save, delegate: vPrep, noun:noun, xor:t.b])
+        return state.apply((preposition):[prep:'в'], (vAcc):[noun:noun, xor:t.b], (vPrep):[noun:noun, xor:t.b])
       case 'из':
       case 'изо': return preposition(state, izGen, gen)
       case 'на': return preposition(state, naPrep, prep)
@@ -642,10 +655,11 @@ class Parser {
         state = state.apply(acc, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'ORDER') }
         return state.apply(nounGen, head:noun) //todo one noun frame - several cases
       case "слова":
-        def noun = state[acc]?.hasNoun ? state.newVariable() : state[acc]?.noun ?: state.newVariable()
+        def _acc = transformCase(state, acc)
+        def noun = state[_acc]?.hasNoun ? state.newVariable() : state[_acc]?.noun ?: state.newVariable()
         def init = { it.assign(noun, 'type', 'WORDS') }
-        state = state.apply((nom):[noun:noun, hasNoun:true, init:init],
-                            (acc):[noun:noun, hasNoun:true, init:init],
+        state = state.apply((transformCase(state, nom)):[noun:noun, hasNoun:true, init:init, xor:t.a],
+                            (_acc):[noun:noun, hasNoun:true, init:init, xor:t.a],
                             (nounGen):[head:noun, init:init],
                             (possessive):[head:noun, init:init])
         return state
@@ -973,15 +987,7 @@ class Parser {
       state = state.inhibit(caze)
     }
 
-    if (state.constructions[preposition]?.prep == 'posle' && caze == gen) {
-      caze = posleGen
-    }
-    if (state.constructions[preposition]?.prep == 'ranshe' && caze == gen) {
-      caze = ransheGen
-    }
-    if (state.constructions[preposition]?.prep == 'по' && caze == dat) {
-      caze = poDat
-    }
+    caze = transformCase(state, caze)
 
     def noun = state.constructions[caze]?.noun ?: state.newVariable()
 
@@ -1001,6 +1007,17 @@ class Parser {
     state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
 
     return state
+  }
+
+  private Construction transformCase(ParsingState state, Construction caze) {
+    def p = state.constructions[preposition]?.prep
+
+    if (p == 'posle' && caze == gen) return posleGen
+    if (p == 'ranshe' && caze == gen) return ransheGen
+    if (p == 'по' && caze == dat) return poDat
+    if (p == 'в' && caze == prep) return vPrep
+    if (p == 'в' && caze == acc) return vAcc
+    return caze
   }
 
   private ParsingState preposition(ParsingState state, Construction prepCtx, Construction caze) {

@@ -490,7 +490,7 @@ class EnglishGenerator {
 
 
     def npseq(Frame _seq) {
-      seq(_seq) { np(it, true, false) }
+      seq(_seq) { np(it, true, it.s('number') == null) }
     }
 
     def seq(Frame seq, Function1<Frame, Void> action) {

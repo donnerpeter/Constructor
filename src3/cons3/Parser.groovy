@@ -301,7 +301,7 @@ class Parser {
   }
 
   private Update merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
-    if (cxt in [nom, acc, gen, poDat] && oldArgs.noun && newArgs.noun) {
+    if (cxt in [nom, acc, gen, poDat, nounGen] && oldArgs.noun && newArgs.noun) {
       return merge(state, cxt, oldArgs, newArgs, 'noun', update, seqs)
     }
     if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun) {
@@ -356,7 +356,12 @@ class Parser {
   ParsingState conjWrap(Map<Construction, Map> constructions, ParsingState state) {
     Update update = new Update(FLinkedMap.emptyMap)
     if (state[seq]) {
-      FList<Contribution> history = state[seq].save.history
+      List<Contribution> history = state[seq].save.history
+      //todo a wiser conj limit
+      def limit = history.reverse().findIndexOf { it.before.situation == state.situation }
+      if (limit > 0) {
+        history = history.subList(0, history.size() - limit)
+      }
       def similar = history.findIndexOf { areSimilar(it.apps, constructions) }
       if (similar >= 0) {
         def prev = history[similar].apps
@@ -661,10 +666,13 @@ class Parser {
         def _acc = transformCase(state, acc)
         def noun = state[_acc]?.hasNoun ? state.newVariable() : state[_acc]?.noun ?: state.newVariable()
         def init = { it.assign(noun, 'type', 'WORDS') }
-        state = state.apply((transformCase(state, nom)):[noun:noun, hasNoun:true, init:init, xor:t.a],
-                            (_acc):[noun:noun, hasNoun:true, init:init, xor:t.a],
-                            (nounGen):[head:noun, init:init],
-                            (possessive):[head:noun, init:init])
+        Update update = new Update((_acc):[noun:noun, hasNoun:true, init:init, xor:t.a],
+                                   (nounGen):[head:noun, init:init],
+                                   (possessive):[head:noun, init:init])
+        if (!state[preposition]) {
+          update = update.addCxt(transformCase(state, nom), noun:noun, hasNoun:true, init:init, xor:t.a)
+        }
+        state = state.apply(update.map)
         return state
       case "счета": return noun(state, nounGen, 'COUNTING')
       case "счете": return noun(state, prep, 'COUNTING')
@@ -1002,7 +1010,7 @@ class Parser {
       state = state.apply(shortAdjCopula, noun:noun)
     }
 
-    state = state.apply(caze, noun: noun, hasNoun:'true') { init(it, noun) }
+    state = conjWrap(state, (caze):[noun:noun, hasNoun:true, init:{ init(it, noun) }])
     if (state[possessive]) {
       state = state.apply(possessive, head:noun)
     }

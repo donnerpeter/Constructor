@@ -78,7 +78,7 @@ class EnglishGenerator {
 
       def opinion = sitFrame.f('opinion_of')
       if (opinion) {
-        opinionOf(opinion, null)
+        opinionOf(opinion, null, null)
         if (!sitFrame.s('clauseEllipsis')) {
           out ','
         }
@@ -213,12 +213,12 @@ class EnglishGenerator {
       }
     }
 
-    private String opinionOf(Frame opinion, String prevOpinion) {
+    private String opinionOf(Frame opinion, String prevOpinion, Frame parent) {
       if (opinion.f('member')) {
         groovy.lang.Reference prev = [null] //todo alex <String>
         seq(opinion) {
           String p = prev.get()
-          String next = ((SituationGenerator) this).opinionOf(it, p)
+          String next = ((SituationGenerator) this).opinionOf(it, p, opinion)
           prev.set(next)
         }
         return true
@@ -233,6 +233,14 @@ class EnglishGenerator {
       else if (opinion.type == 'WORDS') {
         out 'according'
         out 'to'
+        if (parent) {
+          //todo generic right periphery ellipsis
+          List<Frame> members = parent.allAssignments('member').collect { it.value } as List
+          def i = members.indexOf(opinion)
+          if (i < members.size() - 1 && members[i + 1].type == 'OPINION' && members[i + 1].f('arg1') == opinion.f('author')) {
+            return opinion.type
+          }
+        }
         np(opinion.f('author'), false)
       }
       return opinion.type

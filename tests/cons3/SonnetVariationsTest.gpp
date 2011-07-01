@@ -410,9 +410,9 @@ C.member=F
     doTranslateTest 'По словам кассирши и по мнению других, 7 идет раньше 8',
                     'According to the cashier and in opinion of others, a 7 comes before an 8'
   }
-  public void ___test12_OpinionantCoordination() throws Exception {
+  public void test12_OpinionCoordinationWithWords_SamePerson_RepeatedPreposition() throws Exception {
     doTranslateTest 'По словам и по мнению кассирши, 7 идет раньше 8',
-                    'In the opinion of the cashier and others, a 7 comes before an 8'
+                    'According to and in the opinion of the cashier, a 7 comes before an 8'
   }
 
 

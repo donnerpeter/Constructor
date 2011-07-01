@@ -109,8 +109,25 @@ class Parser {
   }
   Construction nounGen = cxt('nounGen') { ParsingState state, Map args -> //todo nounGen -> gen
     if (args.noun && args.head) {
-      def hType = args.head.frame(state.chart).type
-      state = state.assign(args.head, hType == 'WORDS' ? 'author' : hType == 'OPINION' ? 'arg1' : 'criterion', args.noun)
+      Frame head = args.head.frame(state.chart)
+      def heads = []
+      if (head.f('member')) {
+        head.allAssignments('member').each {
+          heads << it.value.var
+        }
+      } else {
+        heads << args.head
+      }
+      int i = 0
+      for (h in heads) {
+        def hf = h.frame(state.chart)
+        def hType = hf.type
+        def attr = hType == 'WORDS' ? 'author' : hType == 'OPINION' ? 'arg1' : 'criterion'
+        if (i == heads.size() - 1 || !hf.f(attr)) {
+          state = state.assign(h, attr, args.noun)
+        }
+        i++
+      }
     }
     return state
   }
@@ -306,6 +323,9 @@ class Parser {
     }
     if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun) {
       return update.addCxt(oldArgs + [head:newArgs.head], cxt, newArgs.init)
+    }
+    if (cxt in [nounGen] && oldArgs.head && newArgs.head && !newArgs.noun) {
+      return merge(state, cxt, oldArgs, newArgs, 'head', update, seqs)
     }
     if (cxt == possessive && oldArgs.possessor && newArgs.possessor) {
       return merge(state, cxt, oldArgs, newArgs, 'possessor', update, seqs)

@@ -402,9 +402,9 @@ C.member=F
     doTranslateTest 'По мнению кассирши и других, 7 идет раньше 8',
                     'In the opinion of the cashier and others, a 7 comes before an 8'
   }
-  public void __test12_OpinionantCoordination() throws Exception {
+  public void test12_OpinionCoordinationWithWords_SamePerson() throws Exception {
     doTranslateTest 'По словам и мнению кассирши, 7 идет раньше 8',
-                    'In the opinion of the cashier and others, a 7 comes before an 8'
+                    'According to and in the opinion of the cashier, a 7 comes before an 8'
   }
   public void test12_OpinionCoordinationWithWords() throws Exception {
     doTranslateTest 'По словам кассирши и по мнению других, 7 идет раньше 8',

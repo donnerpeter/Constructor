@@ -128,7 +128,7 @@ C.member=F
   //todo
   public void _test6_2and3Clauses() throws Exception {
     doTranslateTest 'Кассирша грустно улыбнулась, слегка подвигала носом и сказала:',
-                    "The cashier took a hammer out of her mouth, and moving her nose back and forth, she said:"
+                    "The cashier smiled sadly, moved her nose back and forth, and said:"
   }
 
   public void test6_3ClauseOnly() throws Exception {
@@ -352,7 +352,7 @@ C.member=F
   }
   public void _test12_ImhoVsCashierLater() throws Exception {
     doTranslateTest 'По-моему, 7 идет раньше, а по мнению кассирши - потом',
-                    'In my opinion, a 7 comes first; but in the opinion of the cashier an 8 does'
+                    'In my opinion, a 7 comes first; but in the opinion of the cashier it comes next'
   }
   public void test12_AccordingCashier() throws Exception {
     doTranslateTest 'По словам кассирши, раньше идет 7',

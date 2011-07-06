@@ -415,7 +415,7 @@ class Parser {
       def index = prevConstructions.findIndexOf { areSimilar(it.apps, update.map) }
       if (index >= 0) {
         state = state.satisfied(clauseEllipsis).assign(state.situation, 'clauseEllipsis', 'true')
-        prevConstructions[0..index].each { Contribution oldContribution ->
+        prevConstructions.each { Contribution oldContribution ->
           oldContribution.apps.each { cxt, upd ->
             upd.each { k, v ->
               if (v instanceof Variable) {
@@ -429,7 +429,9 @@ class Parser {
           }
         }
 
-        prevConstructions[0..<index].each { Contribution oldContribution ->
+        prevConstructions.eachWithIndex { Contribution oldContribution, int i ->
+          if (i == index) return
+
           FLinkedMap newContribution = FLinkedMap.emptyMap
           for (cxt in oldContribution.apps.keySet()) {
             def newArgs = [:]

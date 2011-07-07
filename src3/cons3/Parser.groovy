@@ -1,7 +1,5 @@
 package cons3
 
-import groovy.transform.Immutable
-
 /**
  * @author peter
  */

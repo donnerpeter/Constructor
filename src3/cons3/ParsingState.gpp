@@ -30,8 +30,8 @@ class ParsingState {
     new Variable()
   }
 
-  ParsingState assign(Variable var, String property, def value) {
-    clone(chart: chart.assign(var, situation, property, value))
+  ParsingState assign(def var, String property, def value) {
+    clone(chart: chart.assign((Variable)var, situation, property, value))
   }
 
   Map getAt(Construction construction) {

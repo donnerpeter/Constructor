@@ -10,13 +10,17 @@ class Tokens {
   private final Map<String, Token> allocated = [:]
   private final int id = counter++
 
-  public Object getProperty(String name) {
+  public Set<Token> getProperty(String name) {
     Set<Token> result = []
     for (i in 0..<name.length()) {
       String s = name[i]
       result << allocated.get(s, new Token(s + id))
     }
     return result
+  }
+
+  public Set<Token> getUnresolvedProperty(String name) {
+    return getProperty(name)
   }
 
   @TupleConstructor

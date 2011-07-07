@@ -215,11 +215,10 @@ class EnglishGenerator {
 
     private String opinionOf(Frame opinion, String prevOpinion, Frame parent) {
       if (opinion.f('member')) {
-        groovy.lang.Reference prev = [null] //todo alex <String>
+        groovy.lang.Reference prev = [null]
         seq(opinion) {
           String p = prev.get()
-          String next = ((SituationGenerator) this).opinionOf(it, p, opinion)
-          prev.set(next)
+          prev.set(opinionOf(it, p, opinion))
         }
         return true
       }

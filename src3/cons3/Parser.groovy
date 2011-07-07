@@ -13,8 +13,8 @@ class Parser {
       if (w != ' ') {
         state = handleWord(w.toLowerCase(), state)
         log += w + "\n"
-        state.constructions.each {
-          log += "  $it.key -> $it.value\n"
+        for (k in state.constructions.keySet()) {
+          log += "  $k -> ${state.constructions[k]}\n"
         }
       }
     }
@@ -27,14 +27,14 @@ class Parser {
 
   private static ParsingState handleCase(Construction caze, ParsingState state, Map args) {
     if (args.save && args.hasNoun) {
-      return state.satisfied(caze).restore(args.save).apply((Construction)args.delegate, noun: args.noun)
+      return state.satisfied(caze).restore((Map)args.save).apply((Construction)args.delegate, noun: args.noun)
     }
     return state
   }
 
-  Construction adjective = cxt('adjective') { ParsingState state, Map args -> state.assign(args.nounFrame, args.rel, args.val) }
+  Construction adjective = cxt('adjective') { ParsingState state, Map args -> state.assign(args.nounFrame, (String)args.rel, args.val) }
   Construction nom = cxt('nom') { ParsingState state, Map args ->
-    if (args.head?.frame(state.chart)?.type && args.noun) {
+    if (((Variable) args.head)?.frame(state.chart)?.type && args.noun) {
       state = state.assign(args.head, 'arg1', args.noun)
       if (args.hasNoun) {
         state = state.satisfied(nom)
@@ -43,7 +43,7 @@ class Parser {
     return state
   }
   Construction acc = cxt('acc') { ParsingState state, Map args ->
-    def hdType = args.head?.frame(state.chart)?.type
+    def hdType = ((Variable) args.head)?.frame(state.chart)?.type
     if (hdType && args.noun) {
       state = state.assign(args.head, 'arg2', args.noun)
       if (args.hasNoun) {
@@ -53,7 +53,7 @@ class Parser {
     return handleCase(acc, state, args)
   }
   Construction gen = cxt('gen') { ParsingState state, Map args ->
-    def type = args.head?.frame(state.chart)?.type
+    def type = ((Variable) args.head)?.frame(state.chart)?.type
     if (type && args.noun) {
       state = state.assign(args.head,
                            type == 'LACK' ? 'arg2' :
@@ -62,7 +62,7 @@ class Parser {
     return handleCase(gen, state, args)
   }
   Construction instr = cxt('instr') { ParsingState state, Map args ->
-    if (args.head?.frame(state.chart)?.type && args.noun) {
+    if (((Variable) args.head)?.frame(state.chart)?.type && args.noun) {
       state = state.assign(args.head, 'arg2', args.noun)
     }
     handleCase(instr, state, args)
@@ -76,7 +76,7 @@ class Parser {
   Construction prep = cxt('prep') { ParsingState state, Map args -> handleCase(prep, state, args) }
   Construction sInstr = cxt('sInstr') { ParsingState state, Map args ->
     if (args.head && args.noun) {
-      if ( args.noun.frame(state.chart)?.type in ['JOY', 'RELIEF']) {
+      if ( ((Variable) args.noun).frame(state.chart)?.type in ['JOY', 'RELIEF']) {
         state = state.assign(args.head, 'mood', args.noun)
       } else {
         state = state.assign(args.head, 'experiencer', args.noun)
@@ -86,7 +86,7 @@ class Parser {
     return state
   }
   Construction poDat = cxt('poDat') { ParsingState state, Map args ->
-    def lastNoun = args.noun
+    Variable lastNoun = args.noun
     def member = lastNoun?.frame(state.chart)?.f('member')
     if (member) {
       lastNoun = member.var
@@ -107,11 +107,11 @@ class Parser {
   }
   Construction nounGen = cxt('nounGen') { ParsingState state, Map args -> //todo nounGen -> gen
     if (args.noun && args.head) {
-      Frame head = args.head.frame(state.chart)
-      def heads = []
+      Frame head = ((Variable) args.head).frame(state.chart)
+      List<Variable> heads = []
       if (head.f('member')) {
         head.allAssignments('member').each {
-          heads << it.value.var
+          heads << ((Frame) it.value).var
         }
       } else {
         heads << args.head
@@ -140,8 +140,8 @@ class Parser {
   }
   Construction question = cxt('question') { ParsingState state, Map args ->
     if (args.hasComma && !args.comp && args.head) {
-      def next = args.comp ?: new Situation()
-      state = state.assign(args.head, args.head.frame(state.chart).type == 'FORGET' ? 'theme' : 'question', next).withSituation(next).apply(question, comp:next)
+      Situation next = args.comp ?: new Situation()
+      state = state.assign(args.head, ((Variable) args.head).frame(state.chart).type == 'FORGET' ? 'theme' : 'question', next).withSituation(next).apply(question, comp:next)
     }
     if (args.questioned && args.comp) {
       if (args.imperative) {
@@ -171,7 +171,7 @@ class Parser {
   }
   Construction possessive = cxt('possessive') { ParsingState state, Map args ->
     if (args.possessor) {
-      def type = args.head?.frame(state.chart)?.type
+      def type = ((Variable) args.head)?.frame(state.chart)?.type
       if (type) {
         state = state.assign(args.head, type in ['AMAZE', 'PREDICAMENT', 'OPINION'] ? 'arg1' : 'author', args.possessor)
       }
@@ -210,7 +210,7 @@ class Parser {
   }
   Construction vAcc = cxt('vAcc') { ParsingState state, Map args ->
     if (args.head && args.noun) {
-      state = state.assign(args.head, args.head.frame(state.chart).type == 'THINK' ? 'theme' : 'goal', args.noun)
+      state = state.assign(args.head, ((Variable) args.head).frame(state.chart).type == 'THINK' ? 'theme' : 'goal', args.noun)
       //todo apply everything on every change
       if (state[nom]) {
         state = state.apply(nom)
@@ -223,7 +223,7 @@ class Parser {
   }
   Construction vPrep = cxt('vPrep') { ParsingState state, Map args ->
     if (args.head && args.noun) {
-      if (args.head.frame(state.chart).type == 'COME_TO') {
+      if (((Variable) args.head).frame(state.chart).type == 'COME_TO') {
         state = state.assign(args.head, 'domain', args.noun)
       } else {
         state = state.assign(state.situation, 'condition', args.noun)
@@ -232,14 +232,14 @@ class Parser {
     state
   }
   Construction posleGen = cxt('posleGen') { ParsingState state, Map args ->
-    def type = args.head?.frame(state.chart)?.type
+    def type = ((Variable) args.head)?.frame(state.chart)?.type
     if (type && args.noun) {
       state = state.assign(args.head,'anchor', args.noun)
     }
     return handleCase(gen, state, args)
   }
   Construction ransheGen = cxt('ransheGen') { ParsingState state, Map args ->
-    def type = args.head?.frame(state.chart)?.type
+    def type = ((Variable) args.head)?.frame(state.chart)?.type
     if (type && args.noun) {
       state = state.assign(args.head,'anchor', args.noun)
     }
@@ -320,7 +320,7 @@ class Parser {
       return merge(state, cxt, oldArgs, newArgs, 'noun', update, seqs)
     }
     if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun) {
-      return update.addCxt(oldArgs + [head:newArgs.head], cxt, newArgs.init)
+      return update.addCxt(oldArgs + [head:newArgs.head], cxt, (Closure)newArgs.init)
     }
     if (cxt in [nounGen] && oldArgs.head && newArgs.head && !newArgs.noun) {
       return merge(state, cxt, oldArgs, newArgs, 'head', update, seqs)
@@ -374,13 +374,13 @@ class Parser {
   ParsingState conjWrap(Map<Construction, Map> constructions, ParsingState state) {
     Update update = new Update(FLinkedMap.emptyMap)
     if (state[seq]) {
-      List<Contribution> history = state[seq].save.history
+      List<Contribution> history = ((ParsingState) state[seq].save).history
       //todo a wiser conj limit
-      def limit = history.reverse().findIndexOf { it.before.situation == state.situation }
+      def limit = history.reverse().findIndexOf { Contribution it -> it.before.situation == state.situation }
       if (limit > 0) {
         history = history.subList(0, history.size() - limit)
       }
-      def similar = history.findIndexOf { areSimilar(it.apps, constructions) }
+      def similar = history.findIndexOf { Contribution it -> areSimilar(it.apps, constructions) }
       if (similar >= 0) {
         def prev = history[similar].apps
         def seqs = [:]
@@ -395,7 +395,7 @@ class Parser {
         def modernHistory = state.history
         state = state.clearConstructions().restore(history[similar].before.constructions)
 
-        def lastConj = modernHistory.findIndexOf { it.apps[seq] != null }
+        def lastConj = modernHistory.findIndexOf { Contribution it -> it.apps[seq] != null }
         if (lastConj) {
           for (contribution in modernHistory.subList(0, lastConj).reverse()) {
             state = state.apply(contribution.apps)
@@ -410,7 +410,7 @@ class Parser {
     if (state[clauseEllipsis]) {
       Map<Variable, Variable> mapping = state[clauseEllipsis].mapping
       List<Contribution> prevConstructions = state[clauseEllipsis].remaining
-      def index = prevConstructions.findIndexOf { areSimilar(it.apps, update.map) }
+      def index = prevConstructions.findIndexOf { Contribution it -> areSimilar(it.apps, update.map) }
       if (index >= 0) {
         state = state.satisfied(clauseEllipsis)
         prevConstructions.each { Contribution oldContribution ->
@@ -430,14 +430,15 @@ class Parser {
         def ellipsis = new Variable()
         state = state.assign(ellipsis, 'type', 'ellipsis').startMeta(ellipsis)
 
-        prevConstructions.eachWithIndex { Contribution oldContribution, int i ->
-          if (i == index) return
+        for (i in 0..<prevConstructions.size()) {
+          if (i == index) continue
 
+          Contribution oldContribution = prevConstructions[i]
           FLinkedMap newContribution = FLinkedMap.emptyMap
           for (cxt in oldContribution.apps.keySet()) {
             def newArgs = [:]
             oldContribution.apps[cxt].each { k, v ->
-              newArgs[k] = v instanceof Variable ? mapping[v] : v
+              newArgs[k] = v instanceof Variable ? mapping[(Variable) v] : v
             }
             newContribution = newContribution(cxt, newArgs)
           }
@@ -456,10 +457,10 @@ class Parser {
     if (Util.parseNumber(word) != null) { //todo generic noun treatment for numbers
       def noun = !state[doGen]?.hasNoun && state[doGen]?.noun ? state[doGen].noun : state.newVariable()
 
-      def sem = cxt("sem_$word") { ParsingState st, Map args -> st.assign(args.var, 'type', word).assign(args.var, 'number', 'true') }
+      def sem = cxt("sem_$word") { ParsingState st, Map args -> st.assign(args.var, 'type', word).assign((Variable)args.var, 'number', 'true') }
 
 
-      def cases = []
+      List<Construction> cases = []
       if (!(state[preposition]?.prep in ['posle', 'ranshe', 'до'])) {
         cases << nom
       }
@@ -479,8 +480,8 @@ class Parser {
         def seqVar = state.newVariable()
         state = state.apply((questionVariants):[seq:seqVar], (nom):[:])
         def update = new Update((sem):[var:noun])
-        cases.each {
-          update = joinSeq(state, it, seqVar, noun:noun, [hasNoun:true, xor:t.a], 'noun', update)
+        for (caze in cases) {
+          update = joinSeq(state, caze, seqVar, noun: noun, [hasNoun: true, xor: t.a], 'noun', update)
         }
         state = state.apply(update.map)
       } else {
@@ -502,7 +503,7 @@ class Parser {
       case "знаменской": // todo a unified treatment for street names
       case "бассейной":
         def noun = state.newVariable()
-        def init = { it.assign(noun, 'type', 'STREET') }
+        def init = { ParsingState it -> it.assign(noun, 'type', 'STREET') }
         state = conjWrap(state, (gen):[noun:noun, init:init], (adjective):[nounFrame:noun, rel:'name', val:word[0..-3]+"ая", init:init])
         return state
       case "коммерческий":
@@ -546,7 +547,7 @@ class Parser {
       case "случае":
         def _prep = transformCase(state, prep)
         def noun = state[_prep]?.noun ?: state.newVariable()
-        state = state.apply(_prep, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'CASE') }
+        state = state.apply(_prep, noun: noun, hasNoun:true) { ParsingState it ->it.assign(noun, 'type', 'CASE') }
         return state.apply(conditionComp, head:noun) //todo one noun frame - several cases
       case "удивление": return noun(state, nom, 'AMAZE')
       case "поводу": return noun(state, dat, 'MATTER')
@@ -559,12 +560,12 @@ class Parser {
       case "улицы": return noun(state, gen, 'STREET')
       case "углу":  //todo plain noun
         def noun = state[prep]?.noun ?: state.newVariable()
-        state = state.apply(prep, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'CORNER') }
+        state = state.apply(prep, noun: noun, hasNoun:true) {ParsingState it -> it.assign(noun, 'type', 'CORNER') }
         return state.apply(gen, head:noun) //todo one noun frame - several cases
       case "магазин":
         def _acc = transformCase(state, acc)
         def noun = state[_acc]?.noun ?: state.newVariable()
-        def init = { it.assign(noun, 'type', 'SHOP') }
+        def init = {ParsingState it -> it.assign(noun, 'type', 'SHOP') }
         state = state.apply((transformCase(state, nom)):[noun:noun, hasNoun:true, init:init, xor:t.a], (_acc):[noun:noun, hasNoun:true, init:init, xor:t.a])
         state = state.apply(naPrep, head:noun)
         state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
@@ -572,7 +573,7 @@ class Parser {
       case "сад":
         def _acc = transformCase(state, acc)
         def noun = state[_acc]?.noun ?: state.newVariable()
-        def init = { it.assign(noun, 'type', 'GARDEN') }
+        def init = {ParsingState it -> it.assign(noun, 'type', 'GARDEN') }
         state = state.apply((transformCase(state, nom)):[noun:noun, hasNoun:true, init:init, xor:t.a], (_acc):[noun:noun, hasNoun:true, init:init, xor:t.a], (summerGarden):[garden:noun])
         state = state.apply(naPrep, head:noun)
         state = state.satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
@@ -580,7 +581,7 @@ class Parser {
       case "сада": return noun(state, gen, 'GARDEN')
       case "магазина":
         def noun = state[gen]?.noun ?: state.newVariable()
-        state = state.apply(gen, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'SHOP') }
+        state = state.apply(gen, noun: noun, hasNoun:true) {ParsingState it -> it.assign(noun, 'type', 'SHOP') }
         state = state.apply(naPrep, head:noun)
         state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
         return state //todo one noun frame - several cases
@@ -595,7 +596,7 @@ class Parser {
                            (parenthetical):[:]) // todo common constructions in по-моему & по моему мнению
       case "словам":
         def noun = state[poDat]?.noun ?: state.newVariable()
-        def init = { it.assign(noun, 'type', 'WORDS') }
+        def init = {ParsingState it -> it.assign(noun, 'type', 'WORDS') }
         state = state.apply((poDat):[noun:noun, hasNoun:true, init:init],
                             (nounGen):[head:noun, init:init],
                             (possessive):[head:noun, init:init])
@@ -635,10 +636,10 @@ class Parser {
       case "нам": return noun(state, dat, 'WE')
       case "мое":
         def me = state.newVariable()
-        return conjWrap(state, (possessive):[possessor:me, init:{ it.assign(me, 'type', 'ME') }])
+        return conjWrap(state, (possessive):[possessor:me, init:{ ParsingState it ->it.assign(me, 'type', 'ME') }])
       case "моему":
         def me = state.newVariable()
-        return conjWrap(state, (possessive):[possessor:me, init:{ it.assign(me, 'type', 'ME') }])
+        return conjWrap(state, (possessive):[possessor:me, init:{ ParsingState it ->it.assign(me, 'type', 'ME') }])
       case "и": return state.apply(seq, save:state, conj:'and')
       case "или": return state.apply(seq, save:state, conj:'or')
       case "а":
@@ -660,10 +661,10 @@ class Parser {
         return state.assign(state[nom].noun, 'quantifier', 'ALL')
       case "дальше":
         def adv = state.newVariable()
-        return state.apply((comeScalarly):[order:'AFTER', xor: t.a],  (advObj):[adv: adv, xor:t.a, init:{ it.assign(adv, 'type', 'NEXT') }])
+        return state.apply((comeScalarly):[order:'AFTER', xor: t.a],  (advObj):[adv: adv, xor:t.a, init:{ ParsingState it ->it.assign(adv, 'type', 'NEXT') }])
       case "их":
         def they = state.newVariable()
-        def init = { st -> st.assign(they, 'type', 'THEY') }
+        def init = {ParsingState st -> st.assign(they, 'type', 'THEY') }
         return conjWrap(state, (possessive):[possessor:they, init:init], (acc):[noun:they, hasNoun:true, init:init])
       case "они": return noun(state, nom, 'THEY')
       case "соседям": return noun(state, dat, 'NEIGHBOURS')
@@ -677,7 +678,7 @@ class Parser {
       case "ее":
       case "её":
         def she = state.newVariable()
-        def init = { st -> st.assign(she, 'type', 'SHE') }
+        def init = {ParsingState st -> st.assign(she, 'type', 'SHE') }
         return conjWrap(state, (possessive):[possessor:she, init:init], (acc):[noun:she, hasNoun:true, init:init])
       case "носом": return noun(state, instr, 'NOSE')
       case "челюстью": return noun(state, instr, 'JAW')
@@ -687,12 +688,12 @@ class Parser {
       case "восьми": return noun(state, gen, '8')
       case "порядок":
         def noun = state.newVariable()
-        state = state.apply(acc, noun: noun, hasNoun:true) { it.assign(noun, 'type', 'ORDER') }
+        state = state.apply(acc, noun: noun, hasNoun:true) { ParsingState it ->it.assign(noun, 'type', 'ORDER') }
         return state.apply(nounGen, head:noun) //todo one noun frame - several cases
       case "слова":
         def _acc = transformCase(state, acc)
         def noun = state[_acc]?.hasNoun ? state.newVariable() : state[_acc]?.noun ?: state.newVariable()
-        def init = { it.assign(noun, 'type', 'WORDS') }
+        def init = {ParsingState it -> it.assign(noun, 'type', 'WORDS') }
         Update update = new Update((_acc):[noun:noun, hasNoun:true, init:init, xor:t.a],
                                    (nounGen):[head:noun, init:init],
                                    (possessive):[head:noun, init:init])
@@ -735,14 +736,14 @@ class Parser {
         Variable verb = state.newVariable()
         state = state.assign(verb, 'type', 'FORGET').assign(situation, 'time', 'PAST')
         def subj = state.newVariable()
-        return state.apply(advObj, head:verb).apply(acc, head:verb).apply(nom, noun:subj, head:verb) { it.assign(subj, 'type', 'THEY') }
+        return state.apply(advObj, head:verb).apply(acc, head:verb).apply(nom, noun:subj, head:verb) { ParsingState it ->it.assign(subj, 'type', 'THEY') }
       case "помнят":
         Variable verb = state.newVariable()
         state = state.assign(verb, 'type', 'REMEMBER').assign(situation, 'time', 'PRESENT')
         state = state.apply(acc, head:verb)
         if (!state[nom]) {
           def subj = state.newVariable()
-          state = state.apply(nom, noun:subj) { it.assign(subj, 'type', 'THEY') }
+          state = state.apply(nom, noun:subj) { ParsingState it ->it.assign(subj, 'type', 'THEY') }
         }
         return state.apply(nom, head:verb)
       case "могут":
@@ -879,7 +880,7 @@ class Parser {
                             (prevHistory):[history:state],
                             (seq):[save:state, hasComma:true])
         if (state[nestedClause]) {
-          state = state.withSituation(state[nestedClause].parent).clearConstructions().restore(state[nestedClause].save).satisfied(nestedClause)
+          state = state.withSituation((Situation)state[nestedClause].parent).clearConstructions().restore((Map)state[nestedClause].save).satisfied(nestedClause)
         }
         if (state[parenthetical]?.hasComma) {
           state = state.satisfied(parenthetical)
@@ -931,11 +932,11 @@ class Parser {
         }
         if (state[prevHistory]) {
           def mapping = [:]
-          FList<Contribution> old = state[prevHistory].history.history
+          FList<Contribution> old = ((ParsingState) state[prevHistory].history).history
           def modern = state.history[0..state.history.size - old.size]
-          def lcs = Util.lcs(old, modern, { a, b -> areSimilar(a.apps, b.apps) } as Function2)
+          def lcs = Util.lcs(old, modern, { Contribution a, Contribution b -> areSimilar(a.apps, b.apps) } as Function2)
           if (lcs) {
-            lcs.each { contribution ->
+            lcs.each { Contribution contribution ->
               contribution.apps.values().each { val ->
                 if (val instanceof Variable && !mapping[val]) {
                   mapping[val] = new Variable()
@@ -1010,7 +1011,7 @@ class Parser {
             !(prevHistory in common) //todo commas are not particularly important for ellipsis lcs
   }
 
-  private ParsingState infinitive(ParsingState state, Variable verb, String type, LinkedHashMap<Construction, LinkedHashMap<String, Variable>> args) {
+  private ParsingState infinitive(ParsingState state, Variable verb, String type, LinkedHashMap<Construction, LinkedHashMap<String, Object>> args) {
     if (state[question]) {
       state = state.apply((question): [mainVerb: verb, imperative: true])
     }
@@ -1018,7 +1019,7 @@ class Parser {
   }
 
   private ParsingState noun(ParsingState state, Construction caze, String type) {
-    return noun(state, caze) { st, n -> st.assign(n, 'type', type) }
+    return noun(state, caze) { ParsingState st, Variable n -> st.assign(n, 'type', type) }
   }
   private ParsingState noun(ParsingState state, Construction caze, Closure init) {
     if (state.constructions[caze]?.hasNoun) {

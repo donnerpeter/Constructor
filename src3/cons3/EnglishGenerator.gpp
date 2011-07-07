@@ -288,7 +288,7 @@ class EnglishGenerator {
         hasSubject = true
       }
 
-      if (hasClauseEllipsis(situation)) {
+      if (verb.findMeta('type', 'ellipsis')) {
         out(past ? 'did' : 'does')
         return
       }
@@ -540,7 +540,7 @@ class EnglishGenerator {
         return
       }
 
-      if (n == sitFrame.f('questioned')) { //todo a type for seq frames
+      if (n == sitFrame.f('questioned')) {
         out 'what'
         return
       }
@@ -550,12 +550,17 @@ class EnglishGenerator {
         return
       }
 
+      if (n.findMeta('type', 'ellipsis')) {
+        out 'it'
+        return
+      }
+
       if (n.s('number') == 'true' && !mayHaveDeterminer) {
         out n.type
         return
       }
 
-      if (n.f('member')) {
+      if (n.f('member')) { //todo a type for seq frames
         npseq(n)
         return
       }

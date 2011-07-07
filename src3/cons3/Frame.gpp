@@ -129,4 +129,21 @@ class Frame {
     result = 31 * result + chart.hashCode();
     return result;
   }
+
+  Frame findMeta(String attr, String metaType) {
+    return allMetas(attr).find { it.type == metaType }
+  }
+
+  List<Frame> allMetas(String attr) {
+    if (!situation) {
+      return []
+    }
+    def a = chart.__assignments[situation].findAll { it.frame == var && it.property == attr } as List
+    Assignment<Variable> last = a.reverse()[0]
+    if (last) {
+      return chart.__metas[last].collect { it.frame(chart) }
+    }
+
+    return []
+  }
 }

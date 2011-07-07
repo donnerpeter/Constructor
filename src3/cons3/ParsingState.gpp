@@ -124,6 +124,13 @@ class ParsingState {
     return clone(constructions: newConstructions)
   }
 
+  ParsingState startMeta(Variable meta) {
+    return clone(chart: chart.startMeta(meta))
+  }
+  ParsingState finishMeta(Variable meta) {
+    return clone(chart: chart.finishMeta(meta))
+  }
+
   ParsingState apply(Map<Construction, Map<String, Object>> constructions) {
     Set<Construction> fresh = [] as LinkedHashSet
     Set<Construction> old = [] as LinkedHashSet

@@ -5,16 +5,20 @@ package cons3
  */
 
 class Chart {
-  final Map<Situation, LinkedHashSet<Assignment<Variable>>> __assignments = [:]
-  final Map<Variable, Situation> __vars = [:]
+  final Map<Situation, LinkedHashSet<Assignment<Variable>>> __assignments
+  final Map<Variable, Situation> __vars
+  private final FList<Variable> currentMetas
+  final FLinkedMap<Assignment<Variable>, FList<Variable>> __metas
 
   Chart() {
-    this([:], [:])
+    this([:], [:], FList.emptyList, FLinkedMap.emptyMap)
   }
 
-  private Chart(Map<Situation, LinkedHashSet<Assignment<Variable>>> __assignments, Map<Variable, Situation> vars) {
+  private Chart(Map<Situation, LinkedHashSet<Assignment<Variable>>> __assignments, Map<Variable, Situation> __vars, FList<Variable> currentMetas, FLinkedMap<Assignment<Variable>, FList<Variable>> metas) {
     this.__assignments = __assignments
-    this.__vars = vars
+    this.__vars = __vars
+    this.currentMetas = currentMetas
+    this.__metas = metas
   }
 
   List<Situation> getSituations() {
@@ -68,15 +72,24 @@ class Chart {
     assert var
 
     Map<Situation, LinkedHashSet<Assignment<Variable>>> newAsss = [:] + __assignments
-    newAsss[situation] = newAsss.get(situation, [] as LinkedHashSet) + [new Assignment(var, property, value)]
+    def assignment = new Assignment(var, property, value)
+    newAsss[situation] = newAsss.get(situation, [] as LinkedHashSet) + [assignment]
 
     Map<Variable, Situation> newVars = [:] + __vars
     newVars[var] = situation
-    return new Chart(newAsss, newVars)
+    return new Chart(newAsss, newVars, currentMetas, __metas + [(assignment):currentMetas])
   }
 
   String presentable() {
     situations.collect { it.presentable(this) }.findAll { it.trim().size() > 0 }.join("\n--\n")
+  }
+
+  Chart startMeta(Variable meta) {
+    return new Chart(__assignments, __vars, currentMetas + meta, __metas)
+  }
+
+  Chart finishMeta(Variable meta) {
+    return new Chart(__assignments, __vars, currentMetas - meta, __metas)
   }
 }
 
@@ -92,9 +105,23 @@ class Situation extends Variable {
       naming[sit] = "#${i + 1}"
     }
 
-    chart.__assignments[this].collect { def eq ->
-      return "${naming[eq.frame]}.$eq.property=${ eq.value instanceof String ? eq.value : naming[(Variable)eq.value]}"
-    }.join("\n")
+    Set<Variable> prevMetas = []
+    List<String> lines = []
+    for (eq in chart.__assignments[this]) {
+      Set<Variable> metas = chart.__metas[eq] as Set
+      for (finished in (prevMetas - metas)) {
+        lines << "</${naming[finished]}>"
+      }
+      for (started in (metas - prevMetas)) {
+        lines << "<${naming[started]}>"
+      }
+      prevMetas = metas
+      lines << "${naming[eq.frame]}.$eq.property=${ eq.value instanceof String ? eq.value : naming[(Variable)eq.value]}"
+    }
+    for (finished in prevMetas) {
+      lines << "</${naming[finished]}>"
+    }
+    return lines.join("\n")
   }
 
 }

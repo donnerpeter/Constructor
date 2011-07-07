@@ -414,7 +414,7 @@ class Parser {
       List<Contribution> prevConstructions = state[clauseEllipsis].remaining
       def index = prevConstructions.findIndexOf { areSimilar(it.apps, update.map) }
       if (index >= 0) {
-        state = state.satisfied(clauseEllipsis).assign(state.situation, 'clauseEllipsis', 'true')
+        state = state.satisfied(clauseEllipsis)
         prevConstructions.each { Contribution oldContribution ->
           oldContribution.apps.each { cxt, upd ->
             upd.each { k, v ->
@@ -429,6 +429,9 @@ class Parser {
           }
         }
 
+        def ellipsis = new Variable()
+        state = state.assign(ellipsis, 'type', 'ellipsis').startMeta(ellipsis)
+
         prevConstructions.eachWithIndex { Contribution oldContribution, int i ->
           if (i == index) return
 
@@ -442,6 +445,8 @@ class Parser {
           }
           state = state.apply(newContribution)
         }
+
+        state = state.finishMeta(ellipsis)
       }
     }
     return state.apply(update.map)

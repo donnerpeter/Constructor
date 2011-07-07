@@ -79,7 +79,7 @@ class EnglishGenerator {
       def opinion = sitFrame.f('opinion_of')
       if (opinion) {
         opinionOf(opinion, null, null)
-        if (!sitFrame.s('clauseEllipsis')) {
+        if (!hasClauseEllipsis(situation)) {
           out ','
         }
       }
@@ -202,7 +202,7 @@ class EnglishGenerator {
         out(butFrame.f('opinion_of') ? ';' : ',')
         out 'but'
         def generator = new SituationGenerator(chart, butSit, false)
-        generator.hasSubject = butFrame.s('clauseEllipsis') != 'true'
+        generator.hasSubject = !hasClauseEllipsis(butSit)
         generator.sentence(false)
       }
 
@@ -289,7 +289,7 @@ class EnglishGenerator {
         hasSubject = true
       }
 
-      if (sitFrame.s('clauseEllipsis')) {
+      if (hasClauseEllipsis(situation)) {
         out(past ? 'did' : 'does')
         return
       }
@@ -428,6 +428,10 @@ class EnglishGenerator {
         }
       }
       return subj
+    }
+
+    private Frame hasClauseEllipsis(Situation sit) {
+      return chart.frames(sit).find { it.type == 'ellipsis' }
     }
 
     private void clause(Frame verb, boolean shouldHaveSubject, boolean topLevel) {

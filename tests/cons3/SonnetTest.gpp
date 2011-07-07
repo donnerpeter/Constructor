@@ -509,13 +509,14 @@ A.type=OPINION
 #3.opinion_of=A
 B.type=OTHERS
 A.arg1=B
-#3.clauseEllipsis=true
-C.type=COME_SCALARLY
-C.order=AFTER
-D.type=8
-D.number=true
-C.arg1=D
-'''
+C.type=ellipsis
+<C>
+D.type=COME_SCALARLY
+D.order=AFTER
+</C>
+E.type=8
+E.number=true
+D.arg1=E'''
   }
 
   public void testTranslate12() throws Exception {

@@ -60,7 +60,7 @@ class Chart {
   List<Assignment<Frame>> allAssignments(Situation situation) {
     __assignments[situation].collect {
       def oldValue = it.value
-      def newValue = oldValue instanceof String ? oldValue : ((Variable) oldValue).frame(this)
+      def newValue = oldValue instanceof String ? oldValue : ((Variable) (Object)oldValue).frame(this) //todo alex
       Frame newFrame = it.frame.frame(this)
       new Assignment<Frame>(newFrame, it.property, newValue)
     }

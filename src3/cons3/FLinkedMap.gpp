@@ -1,7 +1,5 @@
 package cons3
 
-import groovypp.concurrent.FList
-
 /**
  * @author peter
  */
@@ -34,7 +32,7 @@ final class FLinkedMap<K,V> implements Map<K,V> {
   FLinkedMap<K, V> removeKey(K key) {
     MyEntry<K,V> existing = list.find { it.key == key }
     if (existing) {
-      return new FLinkedMap<K,V>(list.remove(existing))
+      return new FLinkedMap<K,V>(list - existing)
     }
     return this
   }
@@ -120,6 +118,10 @@ final class FLinkedMap<K,V> implements Map<K,V> {
 
   V put(K k, V v) {
     throw new UnsupportedOperationException("put is not implemented")
+  }
+
+  FLinkedMap<K, V> reverse() {
+    return new FLinkedMap(list.reverse())
   }
 
   private static class MyEntry<K, V> implements Map.Entry<K, V> {

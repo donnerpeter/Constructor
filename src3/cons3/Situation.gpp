@@ -71,8 +71,12 @@ class Chart {
     assert value instanceof String || value instanceof Variable
     assert var
 
-    Map<Situation, LinkedHashSet<Assignment<Variable>>> newAsss = [:] + __assignments
     def assignment = new Assignment(var, property, value)
+    if (__assignments[situation]?.contains(assignment)) {
+      return this
+    }
+
+    Map<Situation, LinkedHashSet<Assignment<Variable>>> newAsss = [:] + __assignments
     newAsss[situation] = newAsss.get(situation, [] as LinkedHashSet) + [assignment]
 
     Map<Variable, Situation> newVars = [:] + __vars
@@ -260,7 +264,7 @@ class Variable {
   final String id
 
   Variable() {
-    id = ((this instanceof Situation) ? 'Var' : 'Sit') + counter++
+    id = ((this instanceof Situation) ? 'Sit' : 'Var') + counter++
   }
 
   String toString() {

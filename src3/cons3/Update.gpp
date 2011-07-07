@@ -1,12 +1,14 @@
 package cons3
 
-import groovy.transform.Immutable
-
 /**
  * @author peter
  */
-@Immutable class Update {
+class Update {
   Map<Construction, Map<String, Object>> map
+
+  Update(Map<Construction, Map<String, Object>> map) {
+    this.map = map.asImmutable()
+  }
 
   Update addCxt(Map newArgs, Construction name, Closure init = null) {
     if (init) {

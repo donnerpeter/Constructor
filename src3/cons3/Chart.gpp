@@ -1,0 +1,97 @@
+package cons3
+
+/**
+ * @author peter
+ */
+class Chart {
+  final Map<Situation, LinkedHashSet<Assignment<Variable>>> __assignments
+  final Map<Variable, Situation> __vars
+  private final FList<Variable> currentMetas
+  final FLinkedMap<Assignment<Variable>, FList<Variable>> __metas
+
+  Chart() {
+    this([:], [:], FList.emptyList, FLinkedMap.emptyMap)
+  }
+
+  private Chart(Map<Situation, LinkedHashSet<Assignment<Variable>>> __assignments, Map<Variable, Situation> __vars, FList<Variable> currentMetas, FLinkedMap<Assignment<Variable>, FList<Variable>> metas) {
+    this.__assignments = __assignments
+    this.__vars = __vars
+    this.currentMetas = currentMetas
+    this.__metas = metas
+  }
+
+  List<Situation> getSituations() {
+    def result = (__assignments.keySet()) as LinkedHashSet
+    __assignments.values().each {
+      it.each {
+        if (it.value instanceof Situation) {
+          result << (Situation) it.value
+        }
+      }
+    }
+    return result as List
+  }
+
+  List<Frame> frames(Situation situation) {
+    vars(situation).collect { it.frame(this) }
+  }
+
+  boolean earlier(Frame f1, String a1, Frame f2, String a2) {
+    assert f1.situation == f2.situation
+    List<Assignment<Variable>> assignments = __assignments[f1.situation] as List
+    def i1 = assignments.findIndexOf { Assignment it -> it.frame == f1.var && it.property == a1 }
+    def i2 = assignments.findIndexOf { Assignment it -> it.frame == f2.var && it.property == a2 }
+    return i1 < i2
+  }
+
+  List<Variable> vars(Situation situation) {
+    Set<Variable> set = []
+    for (assignment in __assignments[situation]) {
+      if (assignment.frame != situation) {
+        set << assignment.frame
+      }
+      if (assignment.value instanceof Variable && !(assignment.value instanceof Situation)) {
+        set << (Variable) assignment.value
+      }
+    }
+    return set as List
+  }
+
+  List<Assignment<Frame>> allAssignments(Situation situation) {
+    __assignments[situation].collect {
+      def oldValue = it.value
+      def newValue = oldValue instanceof String ? oldValue : ((Variable) oldValue).frame(this)
+      Frame newFrame = it.frame.frame(this)
+      new Assignment<Frame>(newFrame, it.property, newValue)
+    }
+  }
+
+  Chart assign(Variable var, Situation situation, String property, def value) {
+    assert value instanceof String || value instanceof Variable
+    assert var
+
+    def assignment = new Assignment(var, property, value)
+    if (__assignments[situation]?.contains(assignment)) {
+      return this
+    }
+
+    Map<Situation, LinkedHashSet<Assignment<Variable>>> newAsss = [:] + __assignments
+    newAsss[situation] = newAsss.get(situation, [] as LinkedHashSet) + [assignment]
+
+    Map<Variable, Situation> newVars = [:] + __vars
+    newVars[var] = situation
+    return new Chart(newAsss, newVars, currentMetas, __metas + [(assignment):currentMetas])
+  }
+
+  String presentable() {
+    situations.collect { it.presentable(this) }.findAll { it.trim().size() > 0 }.join("\n--\n")
+  }
+
+  Chart startMeta(Variable meta) {
+    return new Chart(__assignments, __vars, currentMetas + meta, __metas)
+  }
+
+  Chart finishMeta(Variable meta) {
+    return new Chart(__assignments, __vars, currentMetas - meta, __metas)
+  }
+}

@@ -1,0 +1,132 @@
+package cons3
+
+/**
+ * @author peter
+ */
+class Frame {
+  final Variable var
+  final Situation situation
+  final Chart chart
+
+  Frame(Variable var, Situation situation, Chart chart) {
+    this.var = var
+    this.situation = situation
+    this.chart = chart
+  }
+
+  String toString() {
+    return "$var: ${chart.allAssignments(situation).findAll { it.frame == (Frame) this }}"
+  }
+
+  List<Frame> conjArg(String attr) {
+    def value = f(attr)
+    if (!value) {
+      return []
+    }
+
+    if (value.f('member')) {
+      return value.allAssignments('member').collect { (Frame) it.value }
+    }
+    return [value]
+  }
+
+  Frame f(String attr) {
+    def v = allAssignments(attr).reverse()[0]?.value
+    if (v instanceof Frame) {
+      return (Frame) v
+    }
+
+    if (!situation) {
+      return null
+    }
+
+    if (attr == 'arg1') {
+      if (type == 'NEIGHBOURS') {
+        return mockFrame(type:'ME')
+      }
+      if (type in ['MOUTH', 'NOSE', 'JAW']) {
+        return mockFrame(type:'SHE')
+      }
+    }
+
+    return null
+  }
+
+  private Frame mockFrame(Map attrs) {
+    return new Frame(new Variable(), situation, chart) {
+
+      @Override
+      String s(String attr) {
+        def s = attrs[attr]
+        return s instanceof String ? (String) s : null
+      }
+
+    }
+
+  }
+
+  String s(String attr) {
+    def v = allAssignments(attr).reverse()[0]?.value
+    if (v instanceof String) {
+      return (String) v
+    }
+
+    if (!situation) {
+      return null
+    }
+
+    if (attr == 'given') {
+      if (this == situation.frame(chart).f('copulaTopic')) {
+        return 'true'
+      }
+
+      if (type in ['THING', 'HAMMER']) return 'false'
+      if (type == 'CASHIER') {
+        def shop = chart.frames(situation).find { it.type == 'SHOP' }
+        return shop && chart.earlier(shop, 'type', this, 'type') ? 'false' : 'true'
+      }
+      if (type == 'SHOP') {
+        def cashier = chart.frames(situation).find { it.type == 'CASHIER' }
+        if (cashier && chart.earlier(cashier, 'type', this, 'type')) {
+          return 'true'
+        }
+
+        def verb = chart.frames(situation).find { it.f('source') == (Frame) this }
+        return verb ? 'true' : 'false'
+      }
+      return 'true'
+    }
+
+    return null
+  }
+
+  String getType() { s('type') }
+
+  List<Assignment<Frame>> allAssignments(String attr) {
+    if (!situation) {
+      return []
+    }
+    return chart.allAssignments(situation).findAll { it.frame.var == var && it.property == attr }
+  }
+
+  boolean equals(o) {
+    if (this.is(o)) return true;
+    if (!(o instanceof Frame)) return false;
+
+    Frame frame = (Frame) o;
+
+    if (chart != frame.chart) return false;
+    if (situation != frame.situation) return false;
+    if (var != frame.var) return false;
+
+    return true;
+  }
+
+  int hashCode() {
+    int result;
+    result = var.hashCode();
+    result = 31 * result + situation?.hashCode();
+    result = 31 * result + chart.hashCode();
+    return result;
+  }
+}

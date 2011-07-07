@@ -457,7 +457,9 @@ class Parser {
     Tokens t = new Tokens()
     if (Util.parseNumber(word) != null) { //todo generic noun treatment for numbers
       def noun = !state[doGen]?.hasNoun && state[doGen]?.noun ? state[doGen].noun : state.newVariable()
-      def init = { it.assign(noun, 'type', word).assign(noun, 'number', 'true') }
+
+      def sem = cxt("sem_$word") { ParsingState st, Map args -> st.assign(args.var, 'type', word).assign(args.var, 'number', 'true') }
+
 
       def cases = []
       if (!(state[preposition]?.prep in ['posle', 'ranshe', 'до'])) {
@@ -478,13 +480,13 @@ class Parser {
       if (qv) {
         def seqVar = state.newVariable()
         state = state.apply((questionVariants):[seq:seqVar], (nom):[:])
-        def update = new Update(FLinkedMap.emptyMap)
+        def update = new Update((sem):[var:noun])
         cases.each {
-          update = joinSeq(state, it, seqVar, noun:noun, init:init, [hasNoun:true, xor:t.a], 'noun', update)
+          update = joinSeq(state, it, seqVar, noun:noun, [hasNoun:true, xor:t.a], 'noun', update)
         }
         state = state.apply(update.map)
       } else {
-        state = conjWrap(cases.collectEntries { [it, [noun:noun, hasNoun:true, init:init, xor:t.a]] },  state)
+        state = conjWrap([(sem):[var:noun]] + cases.collectEntries { [it, [noun:noun, hasNoun:true, xor:t.a]] },  state)
       }
 
       return state

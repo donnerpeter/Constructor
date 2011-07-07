@@ -1028,7 +1028,7 @@ class Parser {
 
     caze = transformCase(state, caze)
 
-    def noun = state.constructions[caze]?.noun ?: state.newVariable()
+    Variable noun = state.constructions[caze]?.noun ?: state.newVariable()
 
     if (noun.frame(state.chart).f('member')) { //todo number agreement
       noun = noun.frame(state.chart).f('member').var

@@ -650,7 +650,7 @@ class Parser {
         } else {
           update = update.addCxt(relTime, relTime:'AFTER', xor:t.a)
         }
-        return state.apply(update.map)
+        return conjWrap(update.map, state)
       case "все":
         return state.assign(state[nom].noun, 'quantifier', 'ALL')
       case "дальше":

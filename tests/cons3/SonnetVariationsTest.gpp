@@ -125,10 +125,9 @@ C.member=F
                     "The cashier took a hammer out of her mouth, and moving her nose back and forth, she said:"
   }
 
-  //todo
-  public void _test6_2and3Clauses() throws Exception {
+  public void test6_WithoutBackgrounded() throws Exception {
     doTranslateTest 'Кассирша грустно улыбнулась, слегка подвигала носом и сказала:',
-                    "The cashier smiled sadly, moved her nose back and forth, and said:"
+                    "The cashier gave us a sad smile, moved her nose slightly back and forth, and said:"
   }
 
   public void test6_3ClauseOnly() throws Exception {

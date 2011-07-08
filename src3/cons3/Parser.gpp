@@ -806,6 +806,10 @@ class Parser {
         def verb = state.newVariable()
         state = state.assign(verb, 'type', 'MOVE').assign(verb, 'background', 'perfect')
         return conjWrap(state, (instr):[head:verb], (adverb):[head:verb])
+      case "подвигала":
+        def verb = state.newVariable()
+        state = state.assign(verb, 'type', 'MOVE')
+        return conjWrap(state, (instr):[head:verb], (adverb):[head:verb])
       case "дойдя":
         def verb = state[instr]?.head ?: state.newVariable()
         state = state.assign(verb, 'type', 'COME_TO').assign(verb, 'background', 'perfect')

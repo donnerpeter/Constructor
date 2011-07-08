@@ -149,12 +149,7 @@ class EnglishGenerator {
           if (bg.type == 'MOVE') {
             out 'moving'
             np(bg.f('arg2'), false)
-            if (bg.s('manner') == 'SLIGHTLY') {
-              out 'slightly'
-            }
-            out 'back'
-            out 'and'
-            out 'forth'
+            emitMoveTail(bg)
           } else if (bg.type == 'THINK') {
             out ','
             out 'thinking'
@@ -211,6 +206,15 @@ class EnglishGenerator {
       } else if (sitFrame.f('questioned') && topLevel) {
         out '?'
       }
+    }
+
+    private def emitMoveTail(Frame verb) {
+      if (verb.s('manner') == 'SLIGHTLY') {
+        out 'slightly'
+      }
+      out 'back'
+      out 'and'
+      out 'forth'
     }
 
     private String opinionOf(Frame opinion, String prevOpinion, Frame parent) {
@@ -359,6 +363,10 @@ class EnglishGenerator {
         out 'cheerfully'
       }
 
+      if (verb.type == 'MOVE') {
+        emitMoveTail(verb)
+      }
+
       def io = verb.type == 'HAPPEN' ? verb.f('experiencer') :
         verb.type in ['GO_OFF', 'GO'] ? verb.f('goal') :
           verb.type == 'ASK' ? verb.f('topic') : null
@@ -462,7 +470,8 @@ class EnglishGenerator {
               REMEMBER: (past ? 'remembered' : 'remember'), GO: (past ? 'went' : 'goes'),
               RUN_OUT: 'ran', THANK: 'thanked',
               GET_SAD: 'got sad', DO: 'do', NEED:'need',
-              BEGIN:'started', STOP:'stopped'
+              BEGIN:'started', STOP:'stopped',
+              MOVE:'moved'
       ]
       return verbs[type]
     }

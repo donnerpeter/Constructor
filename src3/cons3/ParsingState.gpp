@@ -246,6 +246,6 @@ class ParsingState {
 
     Set xor1 = args1.xor
     Set xor2 = args2.xor
-    return xor1 && xor2 && xor1.intersect(xor2)
+    return xor1 && xor2 && Util.intersect(xor1, xor2)
   }
 }

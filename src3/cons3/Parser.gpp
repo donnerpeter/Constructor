@@ -998,7 +998,7 @@ class Parser {
   }
 
   private boolean areSimilar(Map<Construction, Map> c1, Map<Construction, Map> c2) {
-    def common = c1.keySet().intersect(c2.keySet())
+    def common = Util.intersect(c1.keySet(), c2.keySet())
 
     if (common.size() == 1 && preposition in common) {
       return false

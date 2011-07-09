@@ -85,6 +85,13 @@ class Parser {
 
     return state
   }
+  Construction sGen = cxt('sGen') { ParsingState state, Map args ->
+    if (args.head && args.noun) {
+      state = state.assign(args.head, 'source', args.noun)
+    }
+
+    return state
+  }
   Construction poDat = cxt('poDat') { ParsingState state, Map args ->
     Variable lastNoun = args.noun
     def member = lastNoun?.frame(state.chart)?.f('member')
@@ -96,7 +103,11 @@ class Parser {
       if (nType in ['OPINION', 'WORDS']) {
         state = state.assign(state.situation, 'opinion_of', args.noun)
       } else if (args.head) {
-        state = state.assign(args.head, 'topic', args.noun)
+        if (nType == 'LUCK') {
+          state = state.assign(args.noun, 'topic', args.head)
+        } else {
+          state = state.assign(args.head, 'topic', args.noun)
+        }
       }
     }
 
@@ -518,6 +529,9 @@ class Parser {
         def _acc = transformCase(state, acc)
         def noun = state[_acc]?.noun ?: state.newVariable()
         return state.apply((adjective):[nounFrame:noun, rel:'timeAnchor', val:'SUMMER', xor:t.a], (_acc):[noun:noun], (summerGarden):[summer:true, xor:t.a])
+      case "какой-то":
+        def noun = state.newVariable()
+        return state.apply((adjective):[nounFrame:noun, rel:'determiner', val:'SOME'], (nom):[noun:noun])
       case "большим":
         def noun = state[instr]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'size', val:'BIG').apply(instr, noun:noun)
@@ -558,6 +572,8 @@ class Parser {
       case "радостью": return noun(state, instr, 'JOY')
       case "облегчением": return noun(state, instr, 'RELIEF')
       case "улицы": return noun(state, gen, 'STREET')
+      case "скамейки": return noun(state, gen, 'BENCH')
+      case "ребенок": return noun(state, nom, 'CHILD')
       case "углу":  //todo plain noun
         def noun = state[prep]?.noun ?: state.newVariable()
         state = state.apply(prep, noun: noun, hasNoun:true) {ParsingState it -> it.assign(noun, 'type', 'CORNER') }
@@ -601,6 +617,9 @@ class Parser {
                             (nounGen):[head:noun, init:init],
                             (possessive):[head:noun, init:init])
         return state
+      case "счастию":
+        def noun = state[poDat]?.noun ?: state.newVariable()
+        return state.assign(noun, 'type', 'LUCK').apply((poDat):[noun:noun, hasNoun:true])
       case "случился":
         Variable verb = state.newVariable()
         state = state.assign(verb, 'type', 'HAPPEN').assign(situation, 'time', 'PAST')
@@ -772,6 +791,10 @@ class Parser {
         def verb = state.newVariable()
         state = state.assign(verb, 'type', 'BEGIN').assign(situation, 'time', 'PAST')
         return conjWrap(state, (control):[subj:state[nom], head:verb], (nom):[head:verb])
+      case 'свалился':
+        def verb = state.newVariable()
+        state = state.assign(verb, 'type', 'FALL').assign(situation, 'time', 'PAST')
+        return conjWrap(state, (nom):[head:verb], (sGen):[head:verb], (poDat):[head:verb])
       case "отправился":
         def verb = state.newVariable()
         state = state.assign(verb, 'type', 'GO_OFF').assign(situation, 'time', 'PAST')

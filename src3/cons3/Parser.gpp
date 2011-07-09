@@ -666,10 +666,9 @@ class Parser {
       case "и": return state.apply(seq, save:state, conj:'and')
       case "или": return state.apply(seq, save:state, conj:'or')
       case "а":
+      case "но":
         def next = new Situation()
         return state.assign(situation, 'but', next).withSituation(next).apply(prevHistory, history:state)
-      case "но":
-        return state.assign(situation, 'but', new Situation())
       case "тут":
         return state.assign(situation, 'emphasis', 'true')
       case "потом":

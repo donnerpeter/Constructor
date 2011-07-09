@@ -399,8 +399,9 @@ F.type=SHOP
 
   public void testParse9() throws Exception {
     doParseTest 'Но тут, вдумываясь в слова кассирши, мы опять приуныли, так как ее слова показались нам лишенными всякого смысла.', '''
-#1.but=#3
-#1.emphasis=true
+#1.but=#2
+--
+#2.emphasis=true
 A.type=THINK
 A.background=present
 A.theme=B
@@ -410,15 +411,15 @@ B.author=C
 D.type=WE
 E.anchor=AGAIN
 E.type=GET_SAD
-#1.time=PAST
+#2.time=PAST
 E.arg1=D
-#1.reason=#2
+#2.reason=#3
 --
 A.type=SHE
 B.type=WORDS
 B.author=A
 C.type=SEEM
-#2.time=PAST
+#3.time=PAST
 C.arg1=B
 D.type=WE
 E.type=LACK
@@ -426,7 +427,7 @@ C.theme=E
 F.determiner=ANY
 E.arg2=F
 F.type=MEANING
-#2.dot=true
+#3.dot=true
 '''
   }
 
@@ -476,7 +477,8 @@ E.arg2=F
 
   public void testParse12() throws Exception {
     doParseTest 'Но дойдя в счете до 6-ти, мы остановились и начали спорить: по мнению одних дальше следовало 7, по мнению других - 8', '''
-#1.but=#4
+#1.but=#2
+--
 A.type=COME_TO
 A.background=perfect
 A.domain=B
@@ -485,28 +487,28 @@ A.goal=C
 C.type=6
 D.type=WE
 E.type=STOP
-#1.time=PAST
+#2.time=PAST
 E.arg1=D
 F.type=BEGIN
 F.arg1=D
 G.type=ARGUE
 F.theme=G
-#1.elaboration=#2
+#2.elaboration=#3
 --
 A.type=OPINION
-#2.opinion_of=A
+#3.opinion_of=A
 B.type=SOME
 A.arg1=B
-#2.time=PAST
+#3.time=PAST
 C.type=COME_SCALARLY
 C.order=AFTER
 C.arg1=D
 D.type=7
 D.number=true
-#2.but=#3
+#3.but=#4
 --
 A.type=OPINION
-#3.opinion_of=A
+#4.opinion_of=A
 B.type=OTHERS
 A.arg1=B
 C.type=ellipsis
@@ -540,6 +542,7 @@ B.type=BENCH
 C.type=FALL
 #2.time=PAST
 C.source=B
+A.topic=C
 D.determiner=SOME
 C.arg1=D
 D.type=CHILD

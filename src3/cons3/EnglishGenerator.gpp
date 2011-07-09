@@ -59,10 +59,6 @@ class EnglishGenerator {
         past = true //todo maintain a tense for the whole discourse
       }
 
-      def butSit = (Situation) sitFrame.f('but')?.var
-      if (butSit && !chart.__assignments[butSit]) {
-        out 'but'
-      }
       if (sitFrame.s('emphasis')) {
         out 'there'
       } else if (sitFrame.s('relTime') == 'AFTER') { //todo a generic situation time frame
@@ -106,8 +102,7 @@ class EnglishGenerator {
               'DO', 'NEED',
               'BEGIN', 'STOP', 'COME_TO'
       ] }
-      def verb = allVerbs[0]
-      if (!verb) {
+      if (!allVerbs && !sitFrame.f('but')) {
         def wh = sitFrame.f('wh')
         def subj
         if (wh) {
@@ -192,12 +187,13 @@ class EnglishGenerator {
       }
 
 
-      if (butSit && chart.__assignments[butSit]) {
-        def butFrame = butSit.frame(chart)
+      def butFrame = sitFrame.f('but')
+      if (butFrame) {
         out(butFrame.f('opinion_of') ? ';' : ',')
         out 'but'
+        def butSit = (Situation) butFrame.var
         def generator = new SituationGenerator(chart, butSit, false)
-        generator.hasSubject = !hasClauseEllipsis(butSit)
+        generator.hasSubject = !hasClauseEllipsis(butSit) && chart.__assignments[situation].size() > 1 // not just but at the sentence beginning
         generator.sentence(false)
       }
 

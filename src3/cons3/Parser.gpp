@@ -280,7 +280,7 @@ class Parser {
   }
   Construction adverb = cxt('adverb') { ParsingState state, Map args ->
     if (args.head && args.adv) {
-      state = state.assign(args.head, 'manner', args.adv)
+      state = state.assign(args.head, args.adv == 'LONG' ? 'duration' : 'manner', args.adv)
     }
     return state
   }
@@ -716,6 +716,7 @@ class Parser {
         }
         return state
       case "слегка": return state.apply(adverb, adv:'SLIGHTLY')
+      case "долго": return state.apply(adverb, adv:'LONG')
       case "грустно": return state.apply(adverb, adv:'SADLY')
       case "тоже":
         def alsoVar = state.newVariable()
@@ -779,6 +780,10 @@ class Parser {
         def verb = state.newVariable()
         state = state.assign(verb, 'type', 'GO').assign(situation, 'time', 'PAST')
         return conjWrap(state, (nom):[head:verb], (vAcc):[head:verb])
+      case "спорили":
+        def verb = state.newVariable()
+        state = state.assign(verb, 'type', 'ARGUE').assign(situation, 'time', 'PAST')
+        return conjWrap(state, (nom):[head:verb], (adverb):[head:verb])
       case "обнаружили":
         if (state[nom]) {
           def verb = new Variable()

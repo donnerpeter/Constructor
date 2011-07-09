@@ -533,12 +533,14 @@ class Parser {
         def noun = state.newVariable()
         return state.apply((adjective):[nounFrame:noun, rel:'determiner', val:'SOME'], (nom):[noun:noun])
       case "большим":
-        def noun = state[instr]?.noun ?: state.newVariable()
-        return state.apply(adjective, nounFrame:noun, rel:'size', val:'BIG').apply(instr, noun:noun)
+        def _instr = transformCase(state, instr)
+        def noun = state[_instr]?.noun ?: state.newVariable()
+        return state.apply(adjective, nounFrame:noun, rel:'size', val:'BIG').apply(_instr, noun:noun)
       case "большой":
         def _acc = transformCase(state, acc)
-        def noun = state[instr]?.noun ?: state[_acc]?.noun ?: state.newVariable()
-        return state.apply((adjective):[nounFrame:noun, rel:'size', val:'BIG'], (instr):[noun:noun], (_acc):[noun:noun])
+        def _instr = transformCase(state, instr)
+        def noun = state[_instr]?.noun ?: state[_acc]?.noun ?: state.newVariable()
+        return state.apply((adjective):[nounFrame:noun, rel:'size', val:'BIG'], (_instr):[noun:noun], (_acc):[noun:noun])
       case "нашем":
         def we = state.newVariable()
         def possHead = state[prep]?.noun ?: state.newVariable()
@@ -624,8 +626,10 @@ class Parser {
         Variable verb = state.newVariable()
         state = state.assign(verb, 'type', 'HAPPEN').assign(situation, 'time', 'PAST')
         return state.apply(sInstr, head:verb).apply(nom, head:verb)
-      case 'со': return preposition(state, sInstr, instr)
-      case 'с': return preposition(state, sInstr, instr)
+      case 'со':
+      case 'с':
+        def noun = state.newVariable()
+        return state.apply((preposition):[prep:'с'], (sInstr):[noun:noun, xor:t.b], (sGen):[noun:noun, xor:t.b])
       case 'по':
         return state.apply((preposition):[prep:'по'], (poDat):[noun:new Variable(), repeated:(state[seq] != null)])
       case 'о': return preposition(state, oPrep, prep)
@@ -1088,6 +1092,8 @@ class Parser {
     if (p == 'по' && caze == dat) return poDat
     if (p == 'в' && caze == prep) return vPrep
     if (p == 'в' && caze == acc) return vAcc
+    if (p == 'с' && caze == gen) return sGen
+    if (p == 'с' && caze == instr) return sInstr
     if (p == 'до' && caze == gen) return doGen
     return caze
   }

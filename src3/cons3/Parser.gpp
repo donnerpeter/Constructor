@@ -36,9 +36,6 @@ class Parser {
   Construction nom = cxt('nom') { ParsingState state, Map args ->
     if (((Variable) args.head)?.frame(state.chart)?.type && args.noun) {
       state = state.assign(args.head, 'arg1', args.noun)
-      if (args.hasNoun) {
-        state = state.satisfied(nom)
-      }
     }
     return state
   }
@@ -816,26 +813,23 @@ class Parser {
         state = state.assign(verb, 'type', 'ARGUE').assign(situation, 'time', 'PAST')
         return conjWrap(state, (nom):[head:verb], (adverb):[head:verb])
       case "обнаружили":
-        if (state[nom]) {
-          def verb = new Variable()
-          state = state.assign(verb, 'type', 'DISCOVER').assign(situation, 'time', 'PAST').inhibit(relativeClause) //todo generic suppress for context-freeness
-          return state.satisfied(declComp).apply(declComp, head:verb).apply(nom, head:verb).apply(adverb, head:verb)
-        }
-        return state
+        def verb = new Variable()
+        state = state.assign(verb, 'type', 'DISCOVER').assign(situation, 'time', 'PAST').inhibit(relativeClause) //todo generic suppress for context-freeness
+        return state.satisfied(declComp).apply(declComp, head:verb).apply(nom, head:verb).apply(adverb, head:verb)
       case "улыбнулась":
-        def verb = state[nom]?.head ?: state.newVariable()
+        def verb = state.newVariable()
         state = state.assign(verb, 'type', 'SMILE').assign(situation, 'time', 'PAST')
         return conjWrap(state, (nom):[head:verb], (adverb):[head:verb])
       case "сказала":
-        def verb = state[nom]?.head ?: state.newVariable()
+        def verb = state.newVariable()
         state = state.assign(verb, 'type', 'SAY').assign(situation, 'time', 'PAST')
         return conjWrap(state, (nom):[head:verb], (directSpeech):[head:verb])
       case "вынула":
-        def verb = state[nom]?.head ?: state.newVariable()
+        def verb = state.newVariable()
         state = state.assign(verb, 'type', 'TAKE_OUT').assign(situation, 'time', 'PAST')
         return conjWrap(state, (nom):[head:verb], (acc):[head:verb], (izGen):[head:verb])
       case "показались":
-        def verb = state[nom]?.head ?: state.newVariable()
+        def verb = state.newVariable()
         state = state.assign(verb, 'type', 'SEEM').assign(situation, 'time', 'PAST')
         return conjWrap(state, (nom):[head:verb], (dat):[head:verb], (participleArg):[head:verb])
       case "подвигав":

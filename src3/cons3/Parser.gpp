@@ -330,7 +330,7 @@ class Parser {
       return merge(state, cxt, oldArgs, newArgs, 'noun', update, seqs)
     }
     if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun) {
-      return update.addCxt(oldArgs + [head:newArgs.head], cxt, (Closure)newArgs.init)
+      return update.addCxt((state[cxt] ?: oldArgs) + [head:newArgs.head], cxt, (Closure)newArgs.init)
     }
     if (cxt in [nounGen] && oldArgs.head && newArgs.head && !newArgs.noun) {
       return merge(state, cxt, oldArgs, newArgs, 'head', update, seqs)

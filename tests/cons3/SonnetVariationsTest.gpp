@@ -413,6 +413,14 @@ C.member=F
     doTranslateTest 'По словам и по мнению кассирши, 7 идет раньше 8',
                     'According to and in the opinion of the cashier, a 7 comes before an 8'
   }
+  public void _test13_OpinionCoordinationWithWords_SamePerson_RepeatedPreposition() throws Exception {
+    doTranslateTest 'Ребенок свалился и сломал себе челюсть',
+                    ''
+  }
+  public void __test13_OpinionCoordinationWithWords_SamePerson_RepeatedPreposition() throws Exception {
+    doTranslateTest 'Ребенок свалился и сломал себе челюсти',
+                    ''
+  }
 
 
 

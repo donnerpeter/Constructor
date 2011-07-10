@@ -703,6 +703,7 @@ class Parser {
         def init = {ParsingState st -> st.assign(she, 'type', 'SHE') }
         return conjWrap(state, (possessive):[possessor:she, init:init], (acc):[noun:she, hasNoun:true, init:init])
       case "носом": return noun(state, instr, 'NOSE')
+      case "челюсти": return noun(state, gen, 'JAW')
       case "челюстью": return noun(state, instr, 'JAW')
       case "семь": return noun(state, nom, '7')
       case "семи": return noun(state, gen, '7')
@@ -798,6 +799,10 @@ class Parser {
         def verb = state.newVariable()
         state = state.assign(verb, 'type', 'FALL').assign(situation, 'time', 'PAST')
         return conjWrap(state, (nom):[head:verb], (sGen):[head:verb], (poDat):[head:verb])
+      case 'сломал':
+        def verb = state.newVariable()
+        state = state.assign(verb, 'type', 'BREAK').assign(situation, 'time', 'PAST')
+        return conjWrap(state, (nom):[head:verb], (acc):[head:verb], (dat):[head:verb])
       case "отправился":
         def verb = state.newVariable()
         state = state.assign(verb, 'type', 'GO_OFF').assign(situation, 'time', 'PAST')
@@ -1001,6 +1006,9 @@ class Parser {
         return state.apply(conditionComp, head:situation)
       case 'так':
         return state.apply(reasonComp, active:true)
+      case 'обе':
+        def num = new Variable()
+        return state.assign(num, 'type', 'BOTH').apply((gen):[head:num], (acc):[noun:num])
       case 'по-моему':
         def opinion = new Variable()
         def me = new Variable()

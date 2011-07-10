@@ -528,7 +528,7 @@ E.number=true
   }
 
   public void testParse13() throws Exception {
-    doParseTest "Мы спорили бы очень долго, но, по счастию тут со скамейки свалился какой-то ребенок", """
+    doParseTest "Мы спорили бы очень долго, но, по счастию тут со скамейки свалился какой-то ребенок и сломал себе обе челюсти", """
 A.type=WE
 B.type=ARGUE
 #1.time=PAST
@@ -546,6 +546,7 @@ A.topic=C
 D.determiner=SOME
 C.arg1=D
 D.type=CHILD
+a
 """
   }
 

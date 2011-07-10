@@ -43,9 +43,6 @@ class Parser {
     def hdType = ((Variable) args.head)?.frame(state.chart)?.type
     if (hdType && args.noun) {
       state = state.assign(args.head, 'arg2', args.noun)
-      if (args.hasNoun) {
-        state = state.satisfied(acc)
-      }
     }
     return handleCase(acc, state, args)
   }

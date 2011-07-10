@@ -49,9 +49,14 @@ class Parser {
   Construction gen = cxt('gen') { ParsingState state, Map args ->
     def type = ((Variable) args.head)?.frame(state.chart)?.type
     if (type && args.noun) {
-      state = state.assign(args.head,
-                           type == 'LACK' ? 'arg2' :
+      if (((Variable) args.head)?.frame(state.chart)?.type == 'BOTH') {
+        state = state.assign(args.noun, 'quantifier', args.head)
+      } else {
+        state = state.assign(args.head,
+                             type == 'LACK' ? 'arg2' :
                                'arg1', args.noun)
+
+      }
     }
     return handleCase(gen, state, args)
   }
@@ -1077,12 +1082,20 @@ class Parser {
       state = state.apply(possessive, head:noun)
     }
 
+    if (state[preposition] && !state[preposition].hasNoun) {
+      state = state.apply((preposition):[hasNoun:true])
+    }
+
     state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
 
     return state
   }
 
   private Construction transformCase(ParsingState state, Construction caze) {
+    if (state.constructions[preposition]?.hasNoun) {
+      return caze
+    }
+
     def p = state.constructions[preposition]?.prep
 
     if (p == 'posle' && caze == gen) return posleGen

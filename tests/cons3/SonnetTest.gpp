@@ -546,7 +546,12 @@ A.topic=C
 D.determiner=SOME
 C.arg1=D
 D.type=CHILD
-a
+E.type=BREAK
+E.arg1=D
+F.type=BOTH
+E.arg2=F
+G.type=JAW
+G.quantifier=F
 """
   }
 

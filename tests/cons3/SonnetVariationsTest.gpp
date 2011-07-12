@@ -441,6 +441,18 @@ C.member=F
     doTranslateTest 'Ребенок сломал себе обе челюсти и палец',
                     ''
   }
+  public void ________test13_OpinionCoordinationWithWords_SamePerson_RepeatedPreposition() throws Exception {
+    doTranslateTest 'Ребенок сломал мне три пальца',
+                    ''
+  }
+  public void _________test13_OpinionCoordinationWithWords_SamePerson_RepeatedPreposition() throws Exception {
+    doTranslateTest 'Кассирша сломала себе 8 пальцев',
+                    ''
+  }
+  public void __________test13_OpinionCoordinationWithWords_SamePerson_RepeatedPreposition() throws Exception {
+    doTranslateTest 'Кассир сломал себе 2 пальца',
+                    ''
+  }
 
 
 

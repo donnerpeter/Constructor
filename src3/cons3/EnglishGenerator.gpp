@@ -193,7 +193,12 @@ class EnglishGenerator {
         out( sitFrame.s('mood') == 'subjunctive' ? 'when' : 'but')
         def butSit = (Situation) butFrame.var
         def generator = new SituationGenerator(chart, butSit, false)
-        //generator.hasSubject = !hasClauseEllipsis(butSit) && chart.__assignments[situation].size() > 1 // not just but at the sentence beginning
+        if (conjuncts.size() == 1 && conjuncts[0].frame) {
+          def butConjuncts = generator.planConjuncts(false)
+          if (butConjuncts.size() == 1 && conjuncts[0].frame.f('arg1')?.type == butConjuncts[0].frame.f('arg1')?.type) {
+            generator.hasSubject = true
+          }
+        }
         generator.sentence(false)
       }
 

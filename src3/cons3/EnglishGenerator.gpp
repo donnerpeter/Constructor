@@ -532,7 +532,8 @@ class EnglishGenerator {
       if (elaboration?.var instanceof Situation) {
         def commaStyle = chart.frames(situation).find { it.type == 'HAPPEN'}
         out(commaStyle ? ',' : ":")
-        new SituationGenerator(chart, (Situation)elaboration.var, !commaStyle).sentence(false)
+        def sameSentence = commaStyle || chart.frames(situation).find { it.type == 'ARGUE' }
+        new SituationGenerator(chart, (Situation)elaboration.var, !sameSentence).sentence(false)
       }
 
       def condition = sitFrame.f('condition')

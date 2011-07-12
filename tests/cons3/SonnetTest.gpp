@@ -523,9 +523,8 @@ E.number=true
   }
 
   public void testTranslate12() throws Exception {
-    //todo in
     doTranslateTest 'Но дойдя в счете до 6-ти, мы остановились и начали спорить: по мнению одних дальше следовало 7, по мнению других - 8',
-                    'But reaching a six in count, we stopped and started arguing: In the opinion of some, a 7 went next; but in opinion of others an 8 did'
+                    'But reaching a six in count, we stopped and started arguing: in the opinion of some, a 7 went next; but in opinion of others an 8 did'
   }
 
   public void testParse13() throws Exception {

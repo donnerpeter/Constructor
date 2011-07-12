@@ -107,6 +107,24 @@ class EnglishGenerator {
           np(comp.f('topic'), false)
         }
 
+        if (!frame && !bg) {
+          def wh = sitFrame.f('wh')
+          def subj
+          if (wh) {
+            subj = wh
+            out "that's"
+          } else {
+            def copulaTopic = sitFrame.f('copulaTopic')
+            assert copulaTopic: situation.presentable(chart)
+            subj = copulaTopic
+            np(copulaTopic, true)
+            out 'was'
+          }
+          out 'on'
+          def location = subj.f('location')
+          np(location, false)
+        }
+
       }
 
     }
@@ -155,68 +173,19 @@ class EnglishGenerator {
         return
       }
 
-      List<Frame> allVerbs = chart.frames(situation).findAll { it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY',
-              'GO_OFF', 'ASK',
-              'DISCOVER', 'ALSO', 'REMEMBER',
-              'GO', 'SMILE', 'TAKE_OUT', 'SAY', 'MOVE',
-              'THANK', 'RUN_OUT',
-              'GET_SAD', 'SEEM', 'THINK',
-              'DO', 'NEED',
-              'BEGIN', 'STOP', 'COME_TO',
-              'ARGUE', 'FALL', 'BREAK'
-      ] }
-      if (!allVerbs && !sitFrame.f('but')) {
-        def wh = sitFrame.f('wh')
-        def subj
-        if (wh) {
-          subj = wh
-          out "that's"
-        } else {
-          def copulaTopic = sitFrame.f('copulaTopic')
-          assert copulaTopic: situation.presentable(chart)
-          subj = copulaTopic
-          np(copulaTopic, true)
-          out 'was'
-        }
-        out 'on'
-        def location = subj.f('location')
-        np(location, false)
-        return
-      }
+      List<ClauseGenerator> conjuncts = planConjuncts(topLevel)
 
-      int i = 0
-      int mainVerbs = 0
-      while (i < allVerbs.size()) {
-        int start = i
-
-        Frame bg = null
-        if (allVerbs[i].s('background')) {
-          bg = allVerbs[i++]
-        }
-
-        if (start > 0) {
-          if (i == allVerbs.size() - 1) {
-            if (mainVerbs > 1 || bg) out ","
+      for (int j in 0..<conjuncts.size()) {
+        if (j > 0) {
+          if (j == conjuncts.size() - 1 && (!conjuncts[j].bg || conjuncts[j].frame)) {
+            if (j > 1 || conjuncts[j].bg) out ","
             out "and"
           } else {
             out ","
           }
         }
-
-        def cur = allVerbs[i++]
-        boolean last = i >= allVerbs.size()
-        if (cur) {
-          mainVerbs++
-        }
-        Frame comp = null
-        def next = allVerbs[i]
-        if (cur?.type == 'GO' && next?.type == 'ASK') {
-          comp = next
-          i++
-        }
-        new ClauseGenerator(cur, bg, last, topLevel, comp).generate()
+        conjuncts[j].generate()
       }
-
 
       def butFrame = sitFrame.f('but')
       if (butFrame) {
@@ -233,6 +202,48 @@ class EnglishGenerator {
       } else if (sitFrame.f('questioned') && topLevel) {
         out '?'
       }
+    }
+
+    private List<ClauseGenerator> planConjuncts(boolean topLevel) {
+      List<Frame> allVerbs = chart.frames(situation).findAll {
+        it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY',
+                'GO_OFF', 'ASK',
+                'DISCOVER', 'ALSO', 'REMEMBER',
+                'GO', 'SMILE', 'TAKE_OUT', 'SAY', 'MOVE',
+                'THANK', 'RUN_OUT',
+                'GET_SAD', 'SEEM', 'THINK',
+                'DO', 'NEED',
+                'BEGIN', 'STOP', 'COME_TO',
+                'ARGUE', 'FALL', 'BREAK'
+        ]
+      }
+      List<ClauseGenerator> conjuncts = []
+      if (!allVerbs && !sitFrame.f('but')) {
+        conjuncts << new ClauseGenerator(null, null, false, topLevel, null)
+      } else {
+        int i = 0
+        int mainVerbs = 0
+        while (i < allVerbs.size()) {
+          Frame bg = null
+          if (allVerbs[i].s('background')) {
+            bg = allVerbs[i++]
+          }
+
+          def cur = allVerbs[i++]
+          boolean last = i >= allVerbs.size()
+          if (cur) {
+            mainVerbs++
+          }
+          Frame comp = null
+          def next = allVerbs[i]
+          if (cur?.type == 'GO' && next?.type == 'ASK') {
+            comp = next
+            i++
+          }
+          conjuncts << new ClauseGenerator(cur, bg, last, topLevel, comp)
+        }
+      }
+      return conjuncts
     }
 
     private def emitMoveTail(Frame verb) {

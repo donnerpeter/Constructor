@@ -96,7 +96,7 @@ C.member=F
 
   public void test5_ShopWasOnTheCorner() throws Exception {
     doTranslateTest 'Магазин был на углу.',
-                    'The store was on the corner'
+                    'The store was on the corner.'
   }
 
   public void test5_TheCashier() throws Exception {

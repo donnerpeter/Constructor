@@ -55,19 +55,17 @@ class EnglishGenerator {
     private class ClauseGenerator {
       Frame frame
       Frame bg
-      boolean last
       boolean topLevel
       Frame comp
 
-      ClauseGenerator(Frame frame, Frame bg, boolean last, boolean topLevel, Frame comp) {
+      ClauseGenerator(Frame frame, Frame bg, boolean topLevel, Frame comp) {
         this.frame = frame
         this.bg = bg
-        this.last = last
         this.topLevel = topLevel
         this.comp = comp
       }
 
-      def generate() {
+      def generate(boolean last) {
         if (bg) {
           if (bg.type == 'MOVE') {
             out 'moving'
@@ -176,15 +174,16 @@ class EnglishGenerator {
       List<ClauseGenerator> conjuncts = planConjuncts(topLevel)
 
       for (int j in 0..<conjuncts.size()) {
+        def last = j == conjuncts.size() - 1
         if (j > 0) {
-          if (j == conjuncts.size() - 1 && (!conjuncts[j].bg || conjuncts[j].frame)) {
+          if (last && (!conjuncts[j].bg || conjuncts[j].frame)) {
             if (j > 1 || conjuncts[j].bg) out ","
             out "and"
           } else {
             out ","
           }
         }
-        conjuncts[j].generate()
+        conjuncts[j].generate(last)
       }
 
       def butFrame = sitFrame.f('but')
@@ -224,7 +223,7 @@ class EnglishGenerator {
       }
       List<ClauseGenerator> conjuncts = []
       if (!allVerbs && !sitFrame.f('but')) {
-        conjuncts << new ClauseGenerator(null, null, false, topLevel, null)
+        conjuncts << new ClauseGenerator(null, null, topLevel, null)
       } else {
         int i = 0
         int mainVerbs = 0
@@ -235,9 +234,12 @@ class EnglishGenerator {
           }
 
           def cur = allVerbs[i++]
-          boolean last = i >= allVerbs.size()
           if (cur) {
             mainVerbs++
+            if (cur.type == 'BEGIN') {
+              mainVerbs++
+              i++
+            }
           }
           Frame comp = null
           def next = allVerbs[i]
@@ -245,7 +247,7 @@ class EnglishGenerator {
             comp = next
             i++
           }
-          conjuncts << new ClauseGenerator(cur, bg, last, topLevel, comp)
+          conjuncts << new ClauseGenerator(cur, bg, topLevel, comp)
         }
       }
       return conjuncts

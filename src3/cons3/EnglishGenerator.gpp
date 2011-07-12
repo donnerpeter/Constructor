@@ -59,7 +59,10 @@ class EnglishGenerator {
         past = true //todo maintain a tense for the whole discourse
       }
 
-      if (sitFrame.s('emphasis')) {
+      if (chart.frames(situation).find { it.type == 'LUCK' }) {
+        out 'by some sheer luck,'
+      }
+      else if (sitFrame.s('emphasis')) {
         out 'there'
       } else if (sitFrame.s('relTime') == 'AFTER') { //todo a generic situation time frame
         out 'then'
@@ -100,7 +103,8 @@ class EnglishGenerator {
               'THANK', 'RUN_OUT',
               'GET_SAD', 'SEEM', 'THINK',
               'DO', 'NEED',
-              'BEGIN', 'STOP', 'COME_TO'
+              'BEGIN', 'STOP', 'COME_TO',
+              'ARGUE', 'FALL', 'BREAK'
       ] }
       if (!allVerbs && !sitFrame.f('but')) {
         def wh = sitFrame.f('wh')
@@ -190,7 +194,7 @@ class EnglishGenerator {
       def butFrame = sitFrame.f('but')
       if (butFrame) {
         out(butFrame.f('opinion_of') ? ';' : ',')
-        out 'but'
+        out( sitFrame.s('mood') == 'subjunctive' ? 'when' : 'but')
         def butSit = (Situation) butFrame.var
         def generator = new SituationGenerator(chart, butSit, false)
         generator.hasSubject = !hasClauseEllipsis(butSit) && chart.__assignments[situation].size() > 1 // not just but at the sentence beginning
@@ -365,9 +369,10 @@ class EnglishGenerator {
 
       def io = verb.type == 'HAPPEN' ? verb.f('experiencer') :
         verb.type in ['GO_OFF', 'GO'] ? verb.f('goal') :
-          verb.type == 'ASK' ? verb.f('topic') : null
+          verb.type == 'ASK' ? verb.f('topic') :
+            verb.type == 'FALL' ? verb.f('source') : null
       if (io) {
-        out(verb.type == 'ASK' ? 'on' : "to")
+        out(verb.type == 'FALL' ? 'off' : verb.type == 'ASK' ? 'on' : "to")
         np(io, false)
       }
 
@@ -392,6 +397,10 @@ class EnglishGenerator {
       }
       if (verb.s('anchor') == 'AGAIN') {
         out 'again'
+      }
+
+      if (verb.s('duration') == 'LONG') {
+        out 'for a long time'
       }
 
       def question = verb.f('question')
@@ -467,7 +476,8 @@ class EnglishGenerator {
               RUN_OUT: 'ran', THANK: 'thanked',
               GET_SAD: 'got sad', DO: 'do', NEED:'need',
               BEGIN:'started', STOP:'stopped',
-              MOVE:'moved'
+              MOVE:'moved',
+              ARGUE:'were arguing', 'FALL':'fell', BREAK:'broke'
       ]
       return verbs[type]
     }
@@ -590,7 +600,7 @@ class EnglishGenerator {
       }
       def criterion = n.f('criterion')
       if (criterion) {
-        out noun(criterion.type)
+        out noun(criterion)
       }
 
       if (n.type == 'SHOP') {
@@ -605,7 +615,7 @@ class EnglishGenerator {
         out n.type
       }
       else {
-        out noun(n.type)
+        out noun(n)
       }
 
       def location = n.f('location')
@@ -650,18 +660,25 @@ class EnglishGenerator {
         out 'any'
         return
       }
+      if (det == 'SOME') {
+        out 'a'
+        return
+      }
 
+      if (n.s('quantifier') == 'BOTH') {
+        out 'both of'
+      }
 
       if (n.type in ['AMAZE', 'PREDICAMENT', 'NEIGHBOURS', 'MOUTH', 'NOSE', 'JAW'] && n.f('arg1')) {
-        possessive(n.f('arg1'))
+        possessive(n.f('arg1'), n)
         return
       }
       if (n.type in ['OPINION'] && n.f('arg1')?.type in ['ME', 'THEY']) {
-        possessive(n.f('arg1'))
+        possessive(n.f('arg1'), n)
         return
       }
       if (n.type == 'WORDS' && n.f('author')) {
-        possessive(n.f('author'))
+        possessive(n.f('author'), n)
         return
       }
 
@@ -685,9 +702,15 @@ class EnglishGenerator {
       out(an ? "an" : "a")
     }
 
-    private void possessive(Frame poss) {
+    private void possessive(Frame poss, Frame noun) {
       if (poss.f('member')) {
-        seq(poss) { possessive(it) }
+        seq(poss) { possessive(it, noun) }
+        return
+      }
+
+      Frame verb = noun.chart.frames(noun.situation).find { it.f('arg2') == noun }
+      if (verb && poss == verb.f('arg1')) {
+        out 'his'
         return
       }
 
@@ -703,7 +726,8 @@ class EnglishGenerator {
 
   }
 
-  private String noun(String type) {
+  private String noun(Frame noun) {
+    def type = noun.type
     switch (type) {
       case 'THING': return 'thing'
       case 'NEIGHBOURS': return 'neighbors'
@@ -717,7 +741,7 @@ class EnglishGenerator {
       case 'HAMMER': return 'hammer'
       case 'MOUTH': return 'mouth'
       case 'NOSE': return 'nose'
-      case 'JAW': return 'jaw'
+      case 'JAW': return noun.s('quantifier') == 'BOTH' ? 'jaws' : 'jaw'
       case '5': return 'five'
       case '6': return 'six'
       case '7': return 'seven'
@@ -732,6 +756,8 @@ class EnglishGenerator {
       case 'SOME': return 'some'
       case 'OTHERS': return 'others'
       case 'WORK': return 'work'
+      case 'CHILD': return 'child'
+      case 'BENCH': return 'bench'
       default: return type
     }
 

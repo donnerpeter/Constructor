@@ -21,8 +21,8 @@ class Parser {
     return state.chart
   }
 
-  Construction cxt(String name, Closure cl) {
-    new Construction(name, cl as Function2)
+  Construction cxt(String name, Function2<ParsingState, Map, ParsingState> cl) {
+    new Construction(name, cl)
   }
 
   private static ParsingState handleCase(Construction caze, ParsingState state, Map args) {
@@ -141,6 +141,9 @@ class Parser {
   }
   Construction kDat = cxt('kDat') { ParsingState state, Map args ->
     args.noun && args.head ? state.assign(args.head, 'goal', args.noun) : state
+  }
+  Construction dativePart = cxt('dativePart') { state, args ->
+    args.dat && args.head && args.acc ? state.assign(args.acc, 'arg1', args.dat) : state
   }
   Construction prevHistory = cxt('prevHistory') { ParsingState state, Map args ->
     return state
@@ -801,7 +804,7 @@ class Parser {
       case 'сломал':
         def verb = state.newVariable()
         state = state.assign(verb, 'type', 'BREAK').assign(situation, 'time', 'PAST')
-        return conjWrap(state, (nom):[head:verb], (acc):[head:verb], (dat):[head:verb])
+        return conjWrap(state, (nom):[head:verb], (acc):[head:verb], (dat):[head:verb], (dativePart):[head:verb])
       case "отправился":
         def verb = state.newVariable()
         state = state.assign(verb, 'type', 'GO_OFF').assign(situation, 'time', 'PAST')
@@ -993,6 +996,8 @@ class Parser {
         def degree = state.newVariable()
         state = state.assign(situation, 'exclamation', degree)
         return state.apply(shortAdjCopula, pred:degree, situation:state.situation)
+      case 'бы':
+        return state.assign(situation, 'mood', 'subjunctive')
       case 'был':
         def subj = state[nom]?.noun ?: state.newVariable()
         state = state.assign(situation, 'time', 'PAST').assign(situation, 'copulaTopic', subj)
@@ -1004,7 +1009,10 @@ class Parser {
         return state.apply(reasonComp, active:true)
       case 'обе':
         def num = new Variable()
-        return state.assign(num, 'type', 'BOTH').apply((gen):[head:num], (acc):[noun:num])
+        return state.assign(num, 'quantifier', 'BOTH').apply((gen):[noun:num], (acc):[noun:num], (dativePart):[acc:num])
+      case 'себе':
+        def noun = state[nom]?.noun ?: new Variable()
+        return state.apply((nom):[noun:noun], (dat):[noun:noun], (dativePart):[dat:noun])
       case 'по-моему':
         def opinion = new Variable()
         def me = new Variable()

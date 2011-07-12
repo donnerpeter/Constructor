@@ -523,6 +523,7 @@ E.number=true
   }
 
   public void testTranslate12() throws Exception {
+    //todo in
     doTranslateTest 'Но дойдя в счете до 6-ти, мы остановились и начали спорить: по мнению одних дальше следовало 7, по мнению других - 8',
                     'But reaching a six in count, we stopped and started arguing: In the opinion of some, a 7 went next; but in opinion of others an 8 did'
   }
@@ -533,6 +534,7 @@ A.type=WE
 B.type=ARGUE
 #1.time=PAST
 B.arg1=A
+#1.mood=subjunctive
 B.duration=LONG
 #1.but=#2
 --
@@ -548,11 +550,16 @@ C.arg1=D
 D.type=CHILD
 E.type=BREAK
 E.arg1=D
-F.type=BOTH
+F.quantifier=BOTH
 E.arg2=F
-G.type=JAW
-G.quantifier=F
+F.arg1=D
+F.type=JAW
 """
+  }
+
+  public void testTranslate13() throws Exception {
+    doTranslateTest 'Мы спорили бы очень долго, но, по счастию тут со скамейки свалился какой-то ребенок и сломал себе обе челюсти',
+                    'We were arguing for a long time, when by some sheer luck, a child fell off a bench and broke both of his jaws'
   }
 
   static void doTranslateTest(String input, String expected) {

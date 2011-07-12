@@ -52,6 +52,65 @@ class EnglishGenerator {
       capitalize = false
     }
 
+    private class ClauseGenerator {
+      Frame frame
+      Frame bg
+      boolean last
+      boolean topLevel
+      Frame comp
+
+      ClauseGenerator(Frame frame, Frame bg, boolean last, boolean topLevel, Frame comp) {
+        this.frame = frame
+        this.bg = bg
+        this.last = last
+        this.topLevel = topLevel
+        this.comp = comp
+      }
+
+      def generate() {
+        if (bg) {
+          if (bg.type == 'MOVE') {
+            out 'moving'
+            np(bg.f('arg2'), false)
+            emitMoveTail(bg)
+          } else if (bg.type == 'THINK') {
+            out ','
+            out 'thinking'
+            out 'carefully'
+            out 'about'
+            np(bg.f('theme'), false)
+          } else if (bg.type == 'COME_TO') {
+            out 'reaching'
+            np(bg.f('goal'), false)
+            if (bg.f('domain')?.type == 'COUNTING') {
+              out 'in'
+              out 'count'
+            }
+          }
+          out ','
+        }
+
+        if (frame) {
+          def shouldHaveSubject = sitFrame.s('imperative') ? frame.f('arg1') != null : !hasSubject || bg != null
+          if (last) {
+            clause(frame, shouldHaveSubject, topLevel)
+          } else {
+            clauseInner(frame, shouldHaveSubject, topLevel)
+          }
+        }
+
+        if (comp) {
+          out 'to'
+          out 'consult'
+          np(comp.f('arg2'), false)
+          out 'on'
+          np(comp.f('topic'), false)
+        }
+
+      }
+
+    }
+
     private def sentence(boolean topLevel) {
       handled << situation
 
@@ -130,7 +189,7 @@ class EnglishGenerator {
       while (i < allVerbs.size()) {
         int start = i
 
-        def bg = null
+        Frame bg = null
         if (allVerbs[i].s('background')) {
           bg = allVerbs[i++]
         }
@@ -144,50 +203,18 @@ class EnglishGenerator {
           }
         }
 
-        if (bg) {
-          if (bg.type == 'MOVE') {
-            out 'moving'
-            np(bg.f('arg2'), false)
-            emitMoveTail(bg)
-          } else if (bg.type == 'THINK') {
-            out ','
-            out 'thinking'
-            out 'carefully'
-            out 'about'
-            np(bg.f('theme'), false)
-          } else if (bg.type == 'COME_TO') {
-            out 'reaching'
-            np(bg.f('goal'), false)
-            if (bg.f('domain')?.type == 'COUNTING') {
-              out 'in'
-              out 'count'
-            }
-          }
-          out ','
-        }
-
         def cur = allVerbs[i++]
+        boolean last = i >= allVerbs.size()
         if (cur) {
           mainVerbs++
-          boolean last = i >= allVerbs.size()
-          def shouldHaveSubject = sitFrame.s('imperative') ? cur.f('arg1') != null : !hasSubject || bg != null
-          if (last) {
-            clause(cur, shouldHaveSubject, topLevel)
-          } else {
-            clauseInner(cur, shouldHaveSubject, topLevel)
-          }
         }
+        Frame comp = null
         def next = allVerbs[i]
-        if (next) {
-          if (cur.type == 'GO' && next.type == 'ASK') {
-            out 'to'
-            out 'consult'
-            np(allVerbs[1].f('arg2'), false)
-            out 'on'
-            np(allVerbs[1].f('topic'), false)
-            i++
-          }
+        if (cur?.type == 'GO' && next?.type == 'ASK') {
+          comp = next
+          i++
         }
+        new ClauseGenerator(cur, bg, last, topLevel, comp).generate()
       }
 
 
@@ -197,7 +224,7 @@ class EnglishGenerator {
         out( sitFrame.s('mood') == 'subjunctive' ? 'when' : 'but')
         def butSit = (Situation) butFrame.var
         def generator = new SituationGenerator(chart, butSit, false)
-        generator.hasSubject = !hasClauseEllipsis(butSit) && chart.__assignments[situation].size() > 1 // not just but at the sentence beginning
+        //generator.hasSubject = !hasClauseEllipsis(butSit) && chart.__assignments[situation].size() > 1 // not just but at the sentence beginning
         generator.sentence(false)
       }
 

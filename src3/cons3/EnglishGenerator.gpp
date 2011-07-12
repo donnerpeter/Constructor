@@ -194,7 +194,7 @@ class EnglishGenerator {
         def generator = new SituationGenerator(chart, butSit, false)
         if (conjuncts.size() == 1 && conjuncts[0].frame) {
           def butConjuncts = generator.planConjuncts(false)
-          if (butConjuncts.size() == 1 && conjuncts[0].frame.f('arg1')?.type == butConjuncts[0].frame.f('arg1')?.type) {
+          if (butConjuncts.size() == 1 && conjuncts[0].frame.f('arg1')?.type == butConjuncts[0].frame.f('arg1')?.type && !hasClauseEllipsis(butSit)) {
             generator.hasSubject = true
           }
         }

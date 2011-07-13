@@ -714,6 +714,10 @@ class EnglishGenerator {
       if (n.f('quantifier')?.type == 'BOTH') {
         out 'both of'
       }
+      else if (n.f('quantifier')?.type == '8') {
+        out 'eight'
+        return
+      }
 
       if (n.type in ['AMAZE', 'PREDICAMENT', 'NEIGHBOURS', 'MOUTH', 'NOSE', 'JAW', 'JAWS'] && n.f('arg1')) {
         possessive(n.f('arg1'), n)
@@ -805,6 +809,7 @@ class EnglishGenerator {
       case 'WORK': return 'work'
       case 'CHILD': return 'child'
       case 'BENCH': return 'bench'
+      case 'FINGERS': return 'fingers'
       default: return type
     }
 

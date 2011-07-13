@@ -719,7 +719,10 @@ class Parser {
         return conjWrap(state, (acc):[noun: noun], (dativePart):[acc: noun], (typeCxt(noun, 'JAW')):[:])
       case "семь": return noun(state, nom, '7')
       case "семи": return noun(state, gen, '7')
-      case "восемь": return noun(state, nom, '8')
+      case "восемь":
+        def noun = new Variable()
+        def num = new Variable()
+        return state.inhibit(numQuantifier).apply((nom):[noun: noun, xor:t.ac], (typeCxt(noun, '8')):[xor:t.bd], (numQuantifier):[num: num, xor:t.ab], (typeCxt(num, '8')):[xor:t.cd])
       case "восьми": return noun(state, gen, '8')
       case "порядок":
         def noun = state.newVariable()
@@ -1139,7 +1142,7 @@ class Parser {
   }
 
   private Construction typeCxt(Variable var, String type) {
-    return cxt("type_$type") { st, a -> st.assign(var, 'type', type) }
+    return cxt("type_$var$type") { st, a -> st.assign(var, 'type', type) }
   }
 
 }

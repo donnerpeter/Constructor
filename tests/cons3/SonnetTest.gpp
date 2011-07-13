@@ -265,8 +265,8 @@ F.determiner=THAT
 F.type=CASE
 F.whenCondition=#2
 --
-A.type=8
 #2.time=PRESENT
+A.type=8
 B.type=COME_SCALARLY
 B.order=AFTER
 B.arg1=A
@@ -315,8 +315,8 @@ F.determiner=THAT
 F.type=CASE
 F.whenCondition=#3
 --
-A.type=8
 #3.time=PRESENT
+A.type=8
 B.type=COME_SCALARLY
 B.order=AFTER
 B.arg1=A

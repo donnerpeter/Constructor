@@ -215,6 +215,9 @@ class Parser {
     }
     return state
   }
+  Construction numQuantifier = cxt('numQuantifier') { ParsingState state, Map args ->
+    return args.num && args.noun ? state.assign(args.noun, 'quantifier', args.num) : state
+  }
   Construction negation = cxt('negation') { ParsingState state, Map args ->
     return state
   }
@@ -705,9 +708,11 @@ class Parser {
         def init = {ParsingState st -> st.assign(she, 'type', 'SHE') }
         return conjWrap(state, (possessive):[possessor:she, init:init], (acc):[noun:she, hasNoun:true, init:init])
       case "носом": return noun(state, instr, 'NOSE')
+      case "пальцев": return noun(state, gen, 'FINGERS')
       case "челюсти":
-        Variable noun = state[gen]?.noun ?: new Variable()
-        return conjWrap(state, (gen):[noun: noun, xor:t.ab], (acc):[noun: noun, xor:t.a], (dativePart):[acc: noun, xor:t.b], (typeCxt(noun, 'JAWS')):[:])
+        Construction _gen = transformCase(state, gen)
+        Variable noun = state[_gen]?.noun ?: new Variable()
+        return conjWrap(state, (_gen):[noun: noun], (acc):[noun:noun], (dativePart):[acc: noun], (typeCxt(noun, 'JAWS')):[:], (numQuantifier):[noun:noun])
       case "челюстью": return noun(state, instr, 'JAW')
       case "челюсть":
         def noun = new Variable()
@@ -1014,7 +1019,7 @@ class Parser {
         return state.apply(reasonComp, active:true)
       case 'обе':
         def num = new Variable()
-        return state.assign(num, 'quantifier', 'BOTH').apply((gen):[noun:num], (acc):[noun:num], (dativePart):[acc:num])
+        return state.inhibit(numQuantifier).assign(num, 'type', 'BOTH').apply((numQuantifier):[num:num])
       case 'себе':
         def noun = state[nom]?.noun ?: new Variable()
         return state.apply((nom):[noun:noun], (dat):[noun:noun], (dativePart):[dat:noun])
@@ -1099,17 +1104,21 @@ class Parser {
       state = state.apply((preposition):[hasNoun:true])
     }
 
-    state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
+    state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions).apply((numQuantifier):[noun:noun])
 
     return state
   }
 
   private Construction transformCase(ParsingState state, Construction caze) {
-    if (state.constructions[preposition]?.hasNoun) {
+    if (state[numQuantifier]?.num && !state[numQuantifier].noun && caze == gen) {
+      return acc
+    }
+
+    if (state[preposition]?.hasNoun) {
       return caze
     }
 
-    def p = state.constructions[preposition]?.prep
+    def p = state[preposition]?.prep
 
     if (p == 'posle' && caze == gen) return posleGen
     if (p == 'ranshe' && caze == gen) return ransheGen

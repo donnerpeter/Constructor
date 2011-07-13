@@ -711,7 +711,7 @@ class EnglishGenerator {
         return
       }
 
-      if (n.s('quantifier') == 'BOTH') {
+      if (n.f('quantifier')?.type == 'BOTH') {
         out 'both of'
       }
 

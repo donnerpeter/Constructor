@@ -549,10 +549,11 @@ C.arg1=D
 D.type=CHILD
 E.type=BREAK
 E.arg1=D
-F.quantifier=BOTH
-E.arg2=F
-F.arg1=D
-F.type=JAWS
+F.type=BOTH
+E.arg2=G
+G.arg1=D
+G.type=JAWS
+G.quantifier=F
 """
   }
 

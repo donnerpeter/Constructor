@@ -426,9 +426,13 @@ C.member=F
     doTranslateTest 'Ребенок свалился и сломал себе челюсти',
                     'The child fell and broke his jaws'
   }
-  public void _test13_() throws Exception {
+  public void _test13_EightFingers() throws Exception {
+    doTranslateTest 'Ребенок сломал себе восемь пальцев',
+                    'The child broke eight fingers'
+  }
+  public void _test13_BothJawsAndEightFingers() throws Exception {
     doTranslateTest 'Ребенок сломал себе обе челюсти и восемь пальцев',
-                    ''
+                    'The child broke both of his jaws and eight fingers'
   }
   public void ____test13_() throws Exception {
     doTranslateTest 'Ребенок сломал себе обе челюсти и 8 пальцев',

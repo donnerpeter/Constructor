@@ -191,7 +191,7 @@ class ParsingState {
 
     for (cxt in names) {
       if (!(cxt in hanging)) {
-        if (result[cxt]) {
+        if (result[cxt] != null) {
           result = result.doApply(cxt)
         }
       }

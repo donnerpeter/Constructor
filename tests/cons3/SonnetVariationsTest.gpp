@@ -418,43 +418,43 @@ C.member=F
     doTranslateTest 'По словам и по мнению кассирши, 7 идет раньше 8',
                     'According to and in the opinion of the cashier, a 7 comes before an 8'
   }
-  public void _test13_OpinionCoordinationWithWords_SamePerson_RepeatedPreposition() throws Exception {
+  public void test13_OneJaw() throws Exception {
     doTranslateTest 'Ребенок свалился и сломал себе челюсть',
-                    ''
+                    'The child fell and broke his jaw'
   }
-  public void __test13_OpinionCoordinationWithWords_SamePerson_RepeatedPreposition() throws Exception {
+  public void _test13_ManyJaws() throws Exception {
     doTranslateTest 'Ребенок свалился и сломал себе челюсти',
-                    ''
+                    'The child fell and broke his jaws'
   }
-  public void ___test13_OpinionCoordinationWithWords_SamePerson_RepeatedPreposition() throws Exception {
+  public void _test13_() throws Exception {
     doTranslateTest 'Ребенок сломал себе обе челюсти и восемь пальцев',
                     ''
   }
-  public void ____test13_OpinionCoordinationWithWords_SamePerson_RepeatedPreposition() throws Exception {
+  public void ____test13_() throws Exception {
     doTranslateTest 'Ребенок сломал себе обе челюсти и 8 пальцев',
                     ''
   }
-  public void _____test13_OpinionCoordinationWithWords_SamePerson_RepeatedPreposition() throws Exception {
+  public void _____test13_() throws Exception {
     doTranslateTest 'Ребенок сломал себе обе челюсти и два пальца',
                     ''
   }
-  public void ______test13_OpinionCoordinationWithWords_SamePerson_RepeatedPreposition() throws Exception {
+  public void ______test13_() throws Exception {
     doTranslateTest 'Ребенок сломал себе обе челюсти и один палец',
                     ''
   }
-  public void _______test13_OpinionCoordinationWithWords_SamePerson_RepeatedPreposition() throws Exception {
+  public void _______test13_() throws Exception {
     doTranslateTest 'Ребенок сломал себе обе челюсти и палец',
                     ''
   }
-  public void ________test13_OpinionCoordinationWithWords_SamePerson_RepeatedPreposition() throws Exception {
+  public void ________test13_() throws Exception {
     doTranslateTest 'Ребенок сломал мне три пальца',
                     ''
   }
-  public void _________test13_OpinionCoordinationWithWords_SamePerson_RepeatedPreposition() throws Exception {
+  public void _________test13_() throws Exception {
     doTranslateTest 'Кассирша сломала себе 8 пальцев',
                     ''
   }
-  public void __________test13_OpinionCoordinationWithWords_SamePerson_RepeatedPreposition() throws Exception {
+  public void __________test13_() throws Exception {
     doTranslateTest 'Кассир сломал себе 2 пальца',
                     ''
   }

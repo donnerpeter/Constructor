@@ -707,6 +707,9 @@ class Parser {
       case "носом": return noun(state, instr, 'NOSE')
       case "челюсти": return noun(state, gen, 'JAW')
       case "челюстью": return noun(state, instr, 'JAW')
+      case "челюсть":
+        def noun = new Variable()
+        return conjWrap(state, (acc):[noun: noun], (dativePart):[acc: noun], (typeCxt(noun, 'JAW')):[:])
       case "семь": return noun(state, nom, '7')
       case "семи": return noun(state, gen, '7')
       case "восемь": return noun(state, nom, '8')
@@ -1122,6 +1125,10 @@ class Parser {
     state = state.apply(prepCtx, noun:noun)
     def save = state.constructions
     return state.clearConstructions().apply(caze, save: save, delegate: prepCtx, noun:noun)
+  }
+
+  private Construction typeCxt(Variable var, String type) {
+    return cxt("type_$type") { st, a -> st.assign(var, 'type', type) }
   }
 
 }

@@ -715,7 +715,7 @@ class EnglishGenerator {
         out 'both of'
       }
 
-      if (n.type in ['AMAZE', 'PREDICAMENT', 'NEIGHBOURS', 'MOUTH', 'NOSE', 'JAW'] && n.f('arg1')) {
+      if (n.type in ['AMAZE', 'PREDICAMENT', 'NEIGHBOURS', 'MOUTH', 'NOSE', 'JAW', 'JAWS'] && n.f('arg1')) {
         possessive(n.f('arg1'), n)
         return
       }
@@ -787,7 +787,8 @@ class EnglishGenerator {
       case 'HAMMER': return 'hammer'
       case 'MOUTH': return 'mouth'
       case 'NOSE': return 'nose'
-      case 'JAW': return noun.s('quantifier') == 'BOTH' ? 'jaws' : 'jaw'
+      case 'JAW': return 'jaw'
+      case 'JAWS': return 'jaws'
       case '5': return 'five'
       case '6': return 'six'
       case '7': return 'seven'

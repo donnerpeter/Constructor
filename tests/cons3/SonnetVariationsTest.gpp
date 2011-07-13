@@ -422,7 +422,7 @@ C.member=F
     doTranslateTest 'Ребенок свалился и сломал себе челюсть',
                     'The child fell and broke his jaw'
   }
-  public void _test13_ManyJaws() throws Exception {
+  public void test13_ManyJaws() throws Exception {
     doTranslateTest 'Ребенок свалился и сломал себе челюсти',
                     'The child fell and broke his jaws'
   }

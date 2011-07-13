@@ -705,7 +705,9 @@ class Parser {
         def init = {ParsingState st -> st.assign(she, 'type', 'SHE') }
         return conjWrap(state, (possessive):[possessor:she, init:init], (acc):[noun:she, hasNoun:true, init:init])
       case "носом": return noun(state, instr, 'NOSE')
-      case "челюсти": return noun(state, gen, 'JAW')
+      case "челюсти":
+        Variable noun = state[gen]?.noun ?: new Variable()
+        return conjWrap(state, (gen):[noun: noun, xor:t.ab], (acc):[noun: noun, xor:t.a], (dativePart):[acc: noun, xor:t.b], (typeCxt(noun, 'JAWS')):[:])
       case "челюстью": return noun(state, instr, 'JAW')
       case "челюсть":
         def noun = new Variable()

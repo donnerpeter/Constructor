@@ -98,11 +98,11 @@ class ParsingState {
     toRemove.retainAll(constructions.keySet())
     remaining.removeAll(toRemove)
 
-    def freed = [] as LinkedHashSet
+    Map<Construction, Map<String, Object>> freed = [:]
     for (removed in remaining) {
       for (c in toRemove) {
         if (contradict(this[removed], this[c])) {
-          freed << removed
+          freed[removed] = [:]
         }
       }
     }
@@ -111,7 +111,8 @@ class ParsingState {
     for (c in toRemove) {
       state = state.removeConstruction(c)
     }
-   return state.applyAll(freed)
+
+   return freed ? state.apply(freed).clone(history: history + new Contribution(this, FLinkedMap.emptyMap, FList.fromList(cxts as List))) : state
   }
 
   ParsingState satisfied(Construction name) {
@@ -146,7 +147,7 @@ class ParsingState {
         fresh << cxt
       }
     }
-    def result = clone(history: history + new Contribution(this, FLinkedMap.fromMap(constructions))).inhibit(replaced as Construction[])
+    def result = clone(history: history + new Contribution(this, FLinkedMap.fromMap(constructions), FList.emptyList)).inhibit(replaced as Construction[])
 
     for (cxt in constructions.keySet()) {
       result = result.addCtx(constructions[cxt], cxt)

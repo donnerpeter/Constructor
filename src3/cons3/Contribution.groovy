@@ -9,8 +9,7 @@ import groovy.transform.TupleConstructor
 class Contribution {
   final ParsingState before
   final FLinkedMap<Construction, Map> apps
-  final Construction satisfied
-  final Construction inhibited
+  final FList<Construction> inhibited
 
   @Override
   String toString() {

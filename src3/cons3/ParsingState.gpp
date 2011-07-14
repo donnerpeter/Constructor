@@ -147,7 +147,7 @@ class ParsingState {
         fresh << cxt
       }
     }
-    def result = clone(history: history + new Contribution(this, FLinkedMap.fromMap(constructions), FList.emptyList)).inhibit(replaced as Construction[])
+    def result = inhibit(replaced as Construction[])
 
     for (cxt in constructions.keySet()) {
       result = result.addCtx(constructions[cxt], cxt)
@@ -166,7 +166,7 @@ class ParsingState {
     def cs = constructions.keySet() as LinkedHashSet
     cs.retainAll(result.constructions.keySet())
     result = result.applyAll(cs)
-    return result
+    return result.clone(history: history + new Contribution(this, FLinkedMap.fromMap(constructions), FList.emptyList))
   }
 
   private ParsingState applyAll(LinkedHashSet<Construction> names) {

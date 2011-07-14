@@ -1082,11 +1082,11 @@ class Parser {
     return noun(state, caze) { ParsingState st, Variable n -> st.assign(n, 'type', type) }
   }
   private ParsingState noun(ParsingState state, Construction caze, Closure init) {
+    caze = transformCase(state, caze)
+
     if (state.constructions[caze]?.hasNoun) {
       state = state.inhibit(caze)
     }
-
-    caze = transformCase(state, caze)
 
     Variable noun = state.constructions[caze]?.noun ?: state.newVariable()
 

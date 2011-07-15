@@ -34,7 +34,7 @@ class Parser {
 
   Construction adjective = cxt('adjective') { ParsingState state, Map args -> state.assign(args.nounFrame, (String)args.rel, args.val) }
   Construction nom = cxt('nom') { ParsingState state, Map args ->
-    if (((Variable) args.head)?.frame(state.chart)?.type && args.noun) {
+    if (args.head && args.noun) {
       state = state.assign(args.head, 'arg1', args.noun)
     }
     return state
@@ -248,8 +248,7 @@ class Parser {
     state
   }
   Construction posleGen = cxt('posleGen') { ParsingState state, Map args ->
-    def type = ((Variable) args.head)?.frame(state.chart)?.type
-    if (type && args.noun) {
+    if (args.head && args.noun) {
       state = state.assign(args.head,'anchor', args.noun)
     }
     return handleCase(gen, state, args)
@@ -963,7 +962,7 @@ class Parser {
         def verb = new Variable()
         state = state.assign(situation, 'time', 'PRESENT')
         def goes = cxt('идёт') { ParsingState st, Map args -> st.assign(verb, 'type', 'GO') }
-        return state.inhibit(preposition).apply((comeScalarly):[verb:verb, xor:t.ab], (goes):[verb:verb, xor:t.a],
+        return state.inhibit(preposition, numQuantifier).apply((comeScalarly):[verb:verb, xor:t.ab], (goes):[verb:verb, xor:t.a],
                                                 (vAcc):[head:verb, xor:t.b], (vPrep):[head:verb], (nom):[head:verb],
                                                 (posleGen):[head:verb], (ransheGen):[head:verb],
                                                 (conditionComp):[head:situation], (absTime):[head:situation])
@@ -972,9 +971,9 @@ class Parser {
         state = state.assign(situation, 'time', 'PAST')
         return state.inhibit(preposition).apply((nom):[head:verb], (comeScalarly):[verb:verb], (posleGen):[head:verb], (relTime):[head:situation])
       case "раньше":
-        return state.apply((comeScalarly):[order:'EARLIER', xor:t.a], (nom):[:], (preposition):[prep:'ranshe'], (relTime):[relTime:'BEFORE', xor:t.a])
+        return state.apply((comeScalarly):[order:'EARLIER', xor:t.a], (preposition):[prep:'ranshe'], (relTime):[relTime:'BEFORE', xor:t.a])
       case "после":
-        return state.apply((comeScalarly):[order:'AFTER', xor:t.a], (nom):[:], (preposition):[prep:'posle'], (absTime):[rel:'AFTER', xor:t.a])
+        return state.apply((comeScalarly):[order:'AFTER', xor:t.a], (preposition):[prep:'posle'], (absTime):[rel:'AFTER', xor:t.a])
       case "-":
         if (state[directSpeech]) {
           return state.apply(directSpeech, hasDash:true)
@@ -1142,7 +1141,7 @@ class Parser {
   }
 
   private Construction typeCxt(Variable var, String type) {
-    return cxt("type_$var$type") { st, a -> st.assign(var, 'type', type) }
+    return cxt("type_${var}_$type") { st, a -> st.assign(var, 'type', type) }
   }
 
 }

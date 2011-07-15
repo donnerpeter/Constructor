@@ -33,9 +33,9 @@ B.theme=#2
 --
 #2.questioned=A
 #2.time=PRESENT
+B.arg1=A
 B.type=COME_SCALARLY
 B.order=EARLIER
-B.arg1=A
 A.variants=C
 D.type=7
 D.number=true

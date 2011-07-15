@@ -132,10 +132,14 @@ class ParsingState {
     return clone(chart: chart.finishMeta(meta))
   }
 
+  LinkedHashSet<Construction> findContradictors(Construction c, Set<Construction> among) {
+    return among.findAll { contradict(constructions[it], constructions[c]) } as LinkedHashSet
+  }
+
   ParsingState apply(Map<Construction, Map<String, Object>> constructions) {
-    Set<Construction> fresh = [] as LinkedHashSet
-    Set<Construction> old = [] as LinkedHashSet
-    Set<Construction> replaced = [] as LinkedHashSet
+    LinkedHashSet<Construction> fresh = []
+    LinkedHashSet<Construction> old = []
+    LinkedHashSet<Construction> replaced = []
     for (cxt in constructions.keySet()) {
       if (this.constructions[cxt] != null) {
         if (overwrites(cxt, constructions[cxt])) {
@@ -153,19 +157,50 @@ class ParsingState {
       result = result.addCtx(constructions[cxt], cxt)
     }
 
-    Set<Construction> bornDead = [] as LinkedHashSet
-    for (cxt1 in (fresh + replaced)) {
-      for (cxt2 in old) {
-        if (contradict(result[cxt1], result[cxt2])) {
-          bornDead << cxt1
+    LinkedHashSet<Construction> all = result.constructions.keySet() as LinkedHashSet
+    LinkedHashSet<Construction> toRemove = (fresh + replaced).findAll { result.findContradictors(it, old) }
+    LinkedHashSet<Construction> runCandidates = (constructions.keySet() as LinkedHashSet) - toRemove
+
+    LinkedHashSet<Construction> hanging
+    LinkedHashSet<Construction> toApply
+
+    while (true) {
+      runCandidates += (all - toRemove - runCandidates).findAll { result.findContradictors(it, toRemove) } as LinkedHashSet
+      hanging = runCandidates.findAll { result.findContradictors(it, runCandidates) }
+      toApply = runCandidates - hanging
+      LinkedHashSet<Construction> newToRemove = (all - toApply).findAll { result.findContradictors(it, toApply) } as LinkedHashSet
+      if (toRemove.containsAll(newToRemove)) {
+        break
+      }
+
+      toRemove += newToRemove
+    }
+
+    for (cxt in toRemove) {
+      result = result.removeConstruction(cxt)
+    }
+
+    for (cxt in toApply) {
+      if (result[cxt] != null) {
+        result = result.doApply(cxt)
+      }
+    }
+
+    for (cxt1 in hanging) {
+      for (cxt2 in hanging) {
+        if (cxt1 != cxt2 && result[cxt1] != null && result[cxt2] != null) {
+          def alt1 = result.apply(cxt1)
+          def alt2 = result.apply(cxt2)
+          if (alt1.morePlausible(alt2)) {
+            result = alt1
+          }
+          else if (alt2.morePlausible(alt1)) {
+            result = alt2
+          }
         }
       }
     }
-    result = result.inhibit(bornDead as Construction[])
 
-    def cs = constructions.keySet() as LinkedHashSet
-    cs.retainAll(result.constructions.keySet())
-    result = result.applyAll(cs)
     return result.clone(history: history + new Contribution(this, FLinkedMap.fromMap(constructions), FList.emptyList))
   }
 
@@ -217,8 +252,14 @@ class ParsingState {
   }
 
   boolean morePlausible(ParsingState than) {
-    if (than.constructions.keySet().find { it.name == 'nom' } && than.chart.frames(than.situation).find { it.type in ['COME_SCALARLY', 'FORGET'] }?.f('arg1')) {
-      return true //todo prohibit two nom's in one situation
+    if (than.chart.frames(than.situation).find { it.type == 'GO' && it.f('arg1')?.type in ['7', '8'] } &&
+            !chart.frames(situation).find { it.type == 'GO' && it.f('arg1')?.type in ['7', '8'] }) {
+      return true
+    }
+
+    Frame comeScalarly = chart.frames(situation).find { it.type == 'COME_SCALARLY' }
+    if (comeScalarly && comeScalarly.s('order') && !comeScalarly.var.frame(than.chart)?.type) {
+      return true
     }
 
     return false

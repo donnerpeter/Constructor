@@ -27,9 +27,9 @@ B.theme=#3
 --
 #3.questioned=A
 #3.time=PRESENT
+B.arg1=A
 B.type=COME_SCALARLY
 B.order=EARLIER
-B.arg1=A
 A.variants=C
 D.type=7
 D.number=true
@@ -255,9 +255,9 @@ A.arg1=B
 B.type=ME
 C.type=7
 #1.time=PRESENT
+D.arg1=C
 D.type=COME_SCALARLY
 D.order=AFTER
-D.arg1=C
 E.type=8
 D.anchor=E
 #1.condition=F
@@ -267,9 +267,9 @@ F.whenCondition=#2
 --
 #2.time=PRESENT
 A.type=8
+B.arg1=A
 B.type=COME_SCALARLY
 B.order=AFTER
-B.arg1=A
 C.type=7
 B.anchor=C
 """
@@ -305,9 +305,9 @@ A.arg1=B
 B.type=ME
 C.type=7
 #2.time=PRESENT
+D.arg1=C
 D.type=COME_SCALARLY
 D.order=AFTER
-D.arg1=C
 E.type=8
 D.anchor=E
 #2.condition=F
@@ -317,9 +317,9 @@ F.whenCondition=#3
 --
 #3.time=PRESENT
 A.type=8
+B.arg1=A
 B.type=COME_SCALARLY
 B.order=AFTER
-B.arg1=A
 C.type=7
 B.anchor=C
 """
@@ -410,9 +410,9 @@ C.type=CASHIER
 B.author=C
 D.type=WE
 E.anchor=AGAIN
+E.arg1=D
 E.type=GET_SAD
 #2.time=PAST
-E.arg1=D
 #2.reason=#3
 --
 A.type=SHE
@@ -502,9 +502,9 @@ A.arg1=B
 #3.time=PAST
 C.type=COME_SCALARLY
 C.order=AFTER
-C.arg1=D
 D.type=7
 D.number=true
+C.arg1=D
 #3.but=#4
 --
 A.type=OPINION
@@ -516,9 +516,9 @@ C.type=ellipsis
 D.type=COME_SCALARLY
 D.order=AFTER
 </C>
-D.arg1=E
 E.type=8
 E.number=true
+D.arg1=E
 '''
   }
 

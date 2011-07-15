@@ -204,53 +204,6 @@ class ParsingState {
     return result.clone(history: history + new Contribution(this, FLinkedMap.fromMap(constructions), FList.emptyList))
   }
 
-  private ParsingState applyAll(LinkedHashSet<Construction> names) {
-    Set<Construction> hanging = [] as LinkedHashSet
-    for (name1 in names) {
-      for (name2 in names) {
-        if (contradict(this[name1], this[name2])) {
-          hanging << name1
-          hanging << name2
-        }
-      }
-    }
-
-    ParsingState result = this
-    LinkedHashSet<Construction> others = (constructions.keySet() as LinkedHashSet) - names
-    for (name1 in names) {
-      for (name2 in others) {
-        if (contradict(this[name1], this[name2])) {
-          result = result.inhibit(name2)
-        }
-      }
-    }
-
-    for (cxt in names) {
-      if (!(cxt in hanging)) {
-        if (result[cxt] != null) {
-          result = result.doApply(cxt)
-        }
-      }
-    }
-
-    for (cxt1 in hanging) {
-      for (cxt2 in hanging) {
-        if (cxt1 != cxt2 && result[cxt1] && result[cxt2]) {
-          def alt1 = result.apply(cxt1)
-          def alt2 = result.apply(cxt2)
-          if (alt1.morePlausible(alt2)) {
-            result = result.inhibit(cxt2)
-          }
-          else if (alt2.morePlausible(alt1)) {
-            result = result.inhibit(cxt1)
-          }
-        }
-      }
-    }
-
-    return result
-  }
-
   boolean morePlausible(ParsingState than) {
     if (than.chart.frames(than.situation).find { it.type == 'GO' && it.f('arg1')?.type in ['7', '8'] } &&
             !chart.frames(situation).find { it.type == 'GO' && it.f('arg1')?.type in ['7', '8'] }) {

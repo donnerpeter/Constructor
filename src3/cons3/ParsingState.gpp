@@ -187,16 +187,10 @@ class ParsingState {
     }
 
     for (cxt1 in hanging) {
-      for (cxt2 in hanging) {
-        if (cxt1 != cxt2 && result[cxt1] != null && result[cxt2] != null) {
-          def alt1 = result.apply(cxt1)
-          def alt2 = result.apply(cxt2)
-          if (alt1.morePlausible(alt2)) {
-            result = alt1
-          }
-          else if (alt2.morePlausible(alt1)) {
-            result = alt2
-          }
+      if (result[cxt1] != null) {
+        def alt1 = result.apply(cxt1)
+        if (result.findContradictors(cxt1, result.constructions.keySet()).every { alt1.morePlausible(result.apply(it)) }) {
+          result = alt1
         }
       }
     }

@@ -133,7 +133,7 @@ class ParsingState {
   }
 
   LinkedHashSet<Construction> findContradictors(Construction c, Set<Construction> among) {
-    return among.findAll { contradict(constructions[it], constructions[c]) } as LinkedHashSet
+    return (among as LinkedHashSet<Construction>).findAll { contradict(constructions[it], constructions[c]) }
   }
 
   ParsingState apply(Map<Construction, Map<String, Object>> constructions) {
@@ -193,6 +193,15 @@ class ParsingState {
           result = alt1
         }
       }
+    }
+
+    LinkedHashSet<Construction> stillHanging = Util.intersect(hanging, result.constructions.keySet()) as LinkedHashSet
+    stillHanging = stillHanging.findAll { result.findContradictors(it, stillHanging) }
+    while (stillHanging) {
+      def next = stillHanging.iterator().next()
+      result = result.doApply(next)
+      stillHanging.remove(next)
+      stillHanging -= result.findContradictors(next, stillHanging)
     }
 
     return result.clone(history: history + new Contribution(this, FLinkedMap.fromMap(constructions), FList.emptyList))

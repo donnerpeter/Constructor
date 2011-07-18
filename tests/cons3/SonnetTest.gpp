@@ -265,8 +265,8 @@ F.determiner=THAT
 F.type=CASE
 F.whenCondition=#2
 --
-#2.time=PRESENT
 A.type=8
+#2.time=PRESENT
 B.arg1=A
 B.type=COME_SCALARLY
 B.order=AFTER
@@ -315,8 +315,8 @@ F.determiner=THAT
 F.type=CASE
 F.whenCondition=#3
 --
-#3.time=PRESENT
 A.type=8
+#3.time=PRESENT
 B.arg1=A
 B.type=COME_SCALARLY
 B.order=AFTER
@@ -459,6 +459,7 @@ B.type=GO
 #1.time=PAST
 B.arg1=A
 B.goal=C
+C.timeAnchor=SUMMER
 C.type=GARDEN
 C.name=Летний сад
 D.type=BEGIN

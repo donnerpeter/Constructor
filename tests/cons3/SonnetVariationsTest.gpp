@@ -62,6 +62,10 @@ C.member=F
     doTranslateTest "Они помнят 1, 2 и 3", "They remember 1, 2 and 3"
   }
 
+  public void test4_TheyRemember78() throws Exception {
+    doTranslateTest "Они помнят семь и восемь", "They remember a seven and an eight"
+  }
+
   public void test4_4() throws Exception {
     doTranslateTest "2 и 3 они помнят, а 4 забыли", "They remember 2 and 3, but forgot 4"
   }

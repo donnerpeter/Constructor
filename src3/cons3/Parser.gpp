@@ -716,12 +716,15 @@ class Parser {
       case "челюсть":
         def noun = new Variable()
         return conjWrap(state, (acc):[noun: noun], (dativePart):[acc: noun], (typeCxt(noun, 'JAW')):[:])
-      case "семь": return noun(state, nom, '7')
+      case "семь":
+        def noun = new Variable()
+        def num = new Variable()
+        return conjWrap(state.inhibit(numQuantifier), (nom):[noun: noun, xor:t.ac], (acc):[noun: noun, xor:t.ac], (typeCxt(noun, '7')):[xor:t.bd], (numQuantifier):[num: num, xor:t.b], (typeCxt(num, '7')):[xor:t.cd])
       case "семи": return noun(state, gen, '7')
       case "восемь":
         def noun = new Variable()
         def num = new Variable()
-        return state.inhibit(numQuantifier).apply((nom):[noun: noun, xor:t.ac], (typeCxt(noun, '8')):[xor:t.bd], (numQuantifier):[num: num, xor:t.ab], (typeCxt(num, '8')):[xor:t.cd])
+        return conjWrap(state.inhibit(numQuantifier), (nom):[noun: noun, xor:t.a], (acc):[noun: noun, xor:t.a], (typeCxt(noun, '8')):[xor:t.bd], (numQuantifier):[num: num, xor:t.b], (typeCxt(num, '8')):[xor:t.d])
       case "восьми": return noun(state, gen, '8')
       case "порядок":
         def noun = state.newVariable()

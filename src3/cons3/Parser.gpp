@@ -590,7 +590,7 @@ class Parser {
         def init = {ParsingState it -> it.assign(noun, 'type', 'SHOP') }
         state = state.apply((transformCase(state, nom)):[noun:noun, hasNoun:true, init:init, xor:t.a], (_acc):[noun:noun, hasNoun:true, init:init, xor:t.a])
         state = state.apply(naPrep, head:noun)
-        state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
+        state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state)
         return state //todo one noun frame - several cases
       case "сад":
         def _acc = transformCase(state, acc)
@@ -598,14 +598,14 @@ class Parser {
         def init = {ParsingState it -> it.assign(noun, 'type', 'GARDEN') }
         state = state.apply((transformCase(state, nom)):[noun:noun, hasNoun:true, init:init, xor:t.a], (_acc):[noun:noun, hasNoun:true, init:init, xor:t.a], (summerGarden):[garden:noun])
         state = state.apply(naPrep, head:noun)
-        state = state.satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
+        state = state.satisfied(relativeClause).apply(relativeClause, noun:noun, save:state)
         return state //todo one noun frame - several cases
       case "сада": return noun(state, gen, 'GARDEN')
       case "магазина":
         def noun = state[gen]?.noun ?: state.newVariable()
         state = state.apply(gen, noun: noun, hasNoun:true) {ParsingState it -> it.assign(noun, 'type', 'SHOP') }
         state = state.apply(naPrep, head:noun)
-        state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions)
+        state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state)
         return state //todo one noun frame - several cases
       case "мнению":
         if (state.situation.frame(state.chart).f('opinion_of') && !state[seq]?.conj) {
@@ -934,7 +934,7 @@ class Parser {
                             (prevHistory):[history:state],
                             (seq):[save:state, hasComma:true])
         if (state[nestedClause]) {
-          state = state.withSituation((Situation)state[nestedClause].parent).clearConstructions().restore((Map)state[nestedClause].save).satisfied(nestedClause)
+          state = state.withSituation((Situation)state[nestedClause].parent).clearConstructions().restore(((ParsingState) state[nestedClause].save).constructions).satisfied(nestedClause)
         }
         if (state[parenthetical]?.hasComma) {
           state = state.satisfied(parenthetical)
@@ -1109,7 +1109,7 @@ class Parser {
       state = state.apply((preposition):[hasNoun:true])
     }
 
-    state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state.constructions).apply((numQuantifier):[noun:noun])
+    state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state).apply((numQuantifier):[noun:noun])
 
     return state
   }

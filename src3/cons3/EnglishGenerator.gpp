@@ -758,7 +758,7 @@ class EnglishGenerator {
         return
       }
 
-      Frame verb = noun.chart.frames(noun.situation).find { it.f('arg2') == noun }
+      Frame verb = noun.chart.frames(noun.situation).find { noun in (it.f('arg2')?.flatten() ?: []) }
       if (verb && poss == verb.f('arg1')) {
         out 'his'
         return

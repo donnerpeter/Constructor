@@ -434,7 +434,7 @@ C.member=F
     doTranslateTest 'Ребенок сломал себе восемь пальцев',
                     'The child broke eight fingers'
   }
-  public void _test13_BothJawsAndEightFingers() throws Exception {
+  public void test13_BothJawsAndEightFingers() throws Exception {
     doTranslateTest 'Ребенок сломал себе обе челюсти и восемь пальцев',
                     'The child broke both of his jaws and eight fingers'
   }

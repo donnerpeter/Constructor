@@ -118,14 +118,7 @@ class Parser {
   Construction nounGen = cxt('nounGen') { ParsingState state, Map args -> //todo nounGen -> gen
     if (args.noun && args.head) {
       Frame head = ((Variable) args.head).frame(state.chart)
-      List<Variable> heads = []
-      if (head.f('member')) {
-        head.allAssignments('member').each {
-          heads << ((Frame) it.value).var
-        }
-      } else {
-        heads << args.head
-      }
+      List<Variable> heads = head.flatten().collect {it.var}
       int i = 0
       for (h in heads) {
         def hf = h.frame(state.chart)
@@ -332,16 +325,16 @@ class Parser {
 
   private Update merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
     if (cxt in [nom, acc, gen, poDat, nounGen] && oldArgs.noun && newArgs.noun) {
-      return merge(state, cxt, oldArgs, newArgs, 'noun', update, seqs)
+      return doMerge(state, cxt, oldArgs, newArgs, 'noun', update, seqs)
     }
     if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun) {
       return update.addCxt((state[cxt] ?: oldArgs) + [head:newArgs.head], cxt, (Closure)newArgs.init)
     }
     if (cxt in [nounGen] && oldArgs.head && newArgs.head && !newArgs.noun) {
-      return merge(state, cxt, oldArgs, newArgs, 'head', update, seqs)
+      return doMerge(state, cxt, oldArgs, newArgs, 'head', update, seqs)
     }
     if (cxt == possessive && oldArgs.possessor && newArgs.possessor) {
-      return merge(state, cxt, oldArgs, newArgs, 'possessor', update, seqs)
+      return doMerge(state, cxt, oldArgs, newArgs, 'possessor', update, seqs)
     }
 
     return update.addCxt(newArgs, cxt)
@@ -358,7 +351,7 @@ class Parser {
     st.assign(args.multi, 'member', args.second).satisfied(seqStart)
   }
 
-  private Update merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, String prop, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
+  private Update doMerge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, String prop, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
     Variable first = (Variable) oldArgs[prop]
     if (first.frame(state.chart).f('member')) {
       return joinSeq(newArgs, state, cxt, first, oldArgs, prop, update)
@@ -1069,7 +1062,7 @@ class Parser {
       return false
     }
 
-    return common.size() > 0 && common.every { (c1[it].keySet() - 'init' - 'xor') == (c2[it].keySet() - 'init' - 'xor') } &&
+    return common.size() > 0 && common.any { (c1[it].keySet() - 'init' - 'xor') == (c2[it].keySet() - 'init' - 'xor') } &&
             !(prevHistory in common) //todo commas are not particularly important for ellipsis lcs
   }
 

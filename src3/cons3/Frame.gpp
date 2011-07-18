@@ -65,6 +65,17 @@ class Frame {
 
   }
 
+  FList<Frame> flatten() {
+    if (f('member')) {
+      FList<Frame> heads = FList.emptyList
+      for (member in allAssignments('member')) {
+        heads = heads + (Frame) member.value
+      }
+      return heads.reverse()
+    }
+    return FList.fromList([this])
+  }
+
   String s(String attr) {
     def v = allAssignments(attr).reverse()[0]?.value
     if (v instanceof String) {

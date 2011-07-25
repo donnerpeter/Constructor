@@ -328,7 +328,10 @@ class EnglishGenerator {
       }
 
       if (shouldHaveSubject) {
-        assert subj: "$verb; " + situation.presentable(chart)
+        if (!subj) {
+          println "No subject: $verb"
+          return
+        }
         if (hasSubject) {
           out 'she' //todo infer
         } else if (subj != questioned) {

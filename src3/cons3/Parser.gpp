@@ -209,6 +209,10 @@ class Parser {
     return state
   }
   Construction numQuantifier = cxt('numQuantifier') { ParsingState state, Map args ->
+    if (args.noun && !args.num) {
+      return state.satisfied(numQuantifier) //todo inverted quantification
+    }
+
     return args.num && args.noun ? state.assign(args.noun, 'quantifier', args.num) : state
   }
   Construction negation = cxt('negation') { ParsingState state, Map args ->
@@ -450,7 +454,7 @@ class Parser {
             }
             newContribution = newContribution(cxt, newArgs)
           }
-          state = state.apply(newContribution)
+          state = state.apply(newContribution.reverse())
         }
 
         state = state.finishMeta(ellipsis)
@@ -464,8 +468,9 @@ class Parser {
     Tokens t = new Tokens()
     if (Util.parseNumber(word) != null) { //todo generic noun treatment for numbers
       def noun = !state[doGen]?.hasNoun && state[doGen]?.noun ? state[doGen].noun : state.newVariable()
+      def num = new Variable()
 
-      def sem = cxt("sem_$word") { ParsingState st, Map args -> st.assign(args.var, 'type', word).assign((Variable)args.var, 'number', 'true') }
+      def sem = cxt("sem_$word") { ParsingState st, Map args -> st.assign(args.var, 'type', word).assign(args.var, 'number', 'true') }
 
 
       List<Construction> cases = []
@@ -493,7 +498,11 @@ class Parser {
         }
         state = state.apply(update.map)
       } else {
-        state = conjWrap([(sem):[var:noun]] + cases.collectEntries { [it, [noun:noun, hasNoun:true, xor:t.a]] },  state)
+        state = conjWrap(cases.collectEntries { [it, [noun:noun, hasNoun:true, xor:t.a]] } +
+                                 [(sem):[var:noun, xor:t.bd]] +
+                                 [(numQuantifier):[num: num, xor:t.b],
+                                         (typeCxt(num, word)):[xor:t.d, var:num]],
+                         state)
       }
 
       return state
@@ -704,20 +713,20 @@ class Parser {
       case "челюсти":
         Construction _gen = transformCase(state, gen)
         Variable noun = state[_gen]?.noun ?: new Variable()
-        return conjWrap(state, (_gen):[noun: noun], (acc):[noun:noun], (dativePart):[acc: noun], (typeCxt(noun, 'JAWS')):[:], (numQuantifier):[noun:noun])
+        return conjWrap(state, (_gen):[noun: noun], (acc):[noun:noun], (dativePart):[acc: noun], (typeCxt(noun, 'JAWS')):[var:noun], (numQuantifier):[noun:noun])
       case "челюстью": return noun(state, instr, 'JAW')
       case "челюсть":
         def noun = new Variable()
-        return conjWrap(state, (acc):[noun: noun], (dativePart):[acc: noun], (typeCxt(noun, 'JAW')):[:])
+        return conjWrap(state, (acc):[noun: noun], (dativePart):[acc: noun], (typeCxt(noun, 'JAW')):[var:noun])
       case "семь":
         def noun = new Variable()
         def num = new Variable()
-        return conjWrap(state.inhibit(numQuantifier), (nom):[noun: noun, xor:t.ac], (acc):[noun: noun, xor:t.ac], (typeCxt(noun, '7')):[xor:t.bd], (numQuantifier):[num: num, xor:t.b], (typeCxt(num, '7')):[xor:t.cd])
+        return conjWrap(state.inhibit(numQuantifier), (nom):[noun: noun, xor:t.ac], (acc):[noun: noun, xor:t.ac], (typeCxt(noun, '7')):[xor:t.bd, var:noun], (numQuantifier):[num: num, xor:t.b], (typeCxt(num, '7')):[xor:t.cd, var:num])
       case "семи": return noun(state, gen, '7')
       case "восемь":
         def noun = new Variable()
         def num = new Variable()
-        return conjWrap(state.inhibit(numQuantifier), (nom):[noun: noun, xor:t.a], (acc):[noun: noun, xor:t.a], (typeCxt(noun, '8')):[xor:t.bd], (numQuantifier):[num: num, xor:t.b], (typeCxt(num, '8')):[xor:t.d])
+        return conjWrap(state.inhibit(numQuantifier), (nom):[noun: noun, xor:t.a], (acc):[noun: noun, xor:t.a], (typeCxt(noun, '8')):[xor:t.bd, var:noun], (numQuantifier):[num: num, xor:t.b], (typeCxt(num, '8')):[xor:t.d, var:num])
       case "восьми": return noun(state, gen, '8')
       case "порядок":
         def noun = state.newVariable()
@@ -957,7 +966,7 @@ class Parser {
       case "идёт":
         def verb = new Variable()
         state = state.assign(situation, 'time', 'PRESENT')
-        def goes = cxt('идёт') { ParsingState st, Map args -> st.assign(verb, 'type', 'GO') }
+        def goes = cxt('идёт') { ParsingState st, Map args -> st.assign(args.verb, 'type', 'GO') }
         return state.inhibit(preposition, numQuantifier).apply((comeScalarly):[verb:verb, xor:t.ab], (goes):[verb:verb, xor:t.a],
                                                 (vAcc):[head:verb, xor:t.b], (vPrep):[head:verb], (nom):[head:verb],
                                                 (posleGen):[head:verb], (ransheGen):[head:verb],
@@ -965,7 +974,7 @@ class Parser {
       case "следовало":
         Variable verb = state.newVariable()
         state = state.assign(situation, 'time', 'PAST')
-        return state.inhibit(preposition).apply((nom):[head:verb], (comeScalarly):[verb:verb], (posleGen):[head:verb], (relTime):[head:situation])
+        return state.inhibit(preposition, numQuantifier).apply((nom):[head:verb], (comeScalarly):[verb:verb], (posleGen):[head:verb], (relTime):[head:situation])
       case "раньше":
         return state.apply((comeScalarly):[order:'EARLIER', xor:t.a], (preposition):[prep:'ranshe'], (relTime):[relTime:'BEFORE', xor:t.a])
       case "после":
@@ -993,7 +1002,7 @@ class Parser {
             def commonStart = old.indexOf(lcs[0])
             if (commonStart) {
               FList<Contribution> remaining = FList.fromList(old[0..commonStart-1])
-              state = state.apply(clauseEllipsis, remaining:remaining, mapping: mapping).satisfied(prevHistory).inhibit(seq)
+              state = state.clearConstructions().apply(clauseEllipsis, remaining:remaining, mapping: mapping)
             }
           }
         }
@@ -1079,11 +1088,7 @@ class Parser {
   private ParsingState noun(ParsingState state, Construction caze, Closure init) {
     caze = transformCase(state, caze)
 
-    if (state.constructions[caze]?.hasNoun) {
-      state = state.inhibit(caze)
-    }
-
-    Variable noun = state.constructions[caze]?.noun ?: state.newVariable()
+    Variable noun = state.constructions[caze]?.noun && !state.constructions[caze].hasNoun ? state.constructions[caze]?.noun : state.newVariable()
 
     if (noun.frame(state.chart).f('member')) { //todo number agreement
       noun = noun.frame(state.chart).f('member').var
@@ -1137,7 +1142,7 @@ class Parser {
   }
 
   private Construction typeCxt(Variable var, String type) {
-    return cxt("type_${var}_$type") { st, a -> st.assign(var, 'type', type) }
+    return cxt("type_${var}_$type") { st, a -> st.assign(a.var, 'type', type) }
   }
 
 }

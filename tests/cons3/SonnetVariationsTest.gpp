@@ -40,13 +40,13 @@ A.variants=C
 D.type=7
 D.number=true
 C.member=D
+C.member=E
 E.type=8
 E.number=true
-C.member=E
-F.type=9
-F.number=true
 C.conj=or
 C.member=F
+F.type=9
+F.number=true
 """
   }
 
@@ -386,7 +386,7 @@ C.member=F
     doTranslateTest 'После 6 следовало 7',
                     'A 7 went after a 6'
   }
-  public void testCashierGoesToSheShop() throws Exception {
+  public void testCashierGoesToTheShop() throws Exception {
     doTranslateTest 'Кассирша идет в магазин',
                     'The cashier goes to the store'
   }
@@ -438,9 +438,9 @@ C.member=F
     doTranslateTest 'Ребенок сломал себе обе челюсти и восемь пальцев',
                     'The child broke both of his jaws and eight fingers'
   }
-  public void ____test13_() throws Exception {
+  public void _test13_BothJawsAnd8Fingers() throws Exception {
     doTranslateTest 'Ребенок сломал себе обе челюсти и 8 пальцев',
-                    ''
+                    'The child broke both of his jaws and 8 fingers'
   }
   public void _____test13_() throws Exception {
     doTranslateTest 'Ребенок сломал себе обе челюсти и два пальца',

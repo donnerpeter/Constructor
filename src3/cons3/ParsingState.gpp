@@ -204,7 +204,7 @@ class ParsingState {
       stillHanging -= result.findContradictors(next, stillHanging)
     }
 
-    return result.clone(history: history + new Contribution(this, FLinkedMap.fromMap(constructions), FList.emptyList))
+    return result.clone(history: history + new Contribution(this, FLinkedMap.fromMap(constructions).reverse(), FList.emptyList))
   }
 
   boolean morePlausible(ParsingState than) {

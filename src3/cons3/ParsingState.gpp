@@ -93,6 +93,8 @@ class ParsingState {
   }
 
   ParsingState inhibit(Construction... cxts) {
+    if (!cxts) return this
+
     Set<Construction> remaining = constructions.keySet() as LinkedHashSet
     Set<Construction> toRemove = cxts as LinkedHashSet
     toRemove.retainAll(constructions.keySet())
@@ -112,7 +114,7 @@ class ParsingState {
       state = state.removeConstruction(c)
     }
 
-   return freed ? state.apply(freed).clone(history: history + new Contribution(this, FLinkedMap.emptyMap, FList.fromList(cxts as List))) : state
+   return (freed ? state.apply(freed) : state).clone(history: history + new Contribution(this, FLinkedMap.emptyMap, FList.fromList(cxts as List)))
   }
 
   ParsingState satisfied(Construction name) {

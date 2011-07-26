@@ -1063,16 +1063,14 @@ class Parser {
 
   private boolean areSimilar(Map<Construction, Map> c1, Map<Construction, Map> c2) {
     def common = Util.intersect(c1.keySet(), c2.keySet())
+    common = Util.intersect(common, [nom, acc, gen, dat, instr, prep, possessive, parenthetical, nounGen, comeScalarly, poDat])
+    common = common.findAll { (c1[it].keySet() - 'init' - 'xor') == (c2[it].keySet() - 'init' - 'xor') }
 
-    if (common.size() == 1 && preposition in common) {
-      return false
-    }
     if (common.size() == 1 && possessive in common && c1[possessive].head) {
       return false
     }
 
-    return common.size() > 0 && common.any { (c1[it].keySet() - 'init' - 'xor') == (c2[it].keySet() - 'init' - 'xor') } &&
-            !(prevHistory in common) //todo commas are not particularly important for ellipsis lcs
+    return common.size() > 0
   }
 
   private ParsingState infinitive(ParsingState state, Variable verb, String type, LinkedHashMap<Construction, LinkedHashMap<String, Object>> args) {
@@ -1094,22 +1092,25 @@ class Parser {
       noun = noun.frame(state.chart).f('member').var
     }
 
+    Update update = new Update([:])
+
     if (caze == nom) {
-      state = state.apply(shortAdjCopula, noun:noun)
+      update = update.addCxt(shortAdjCopula, noun:noun)
     }
 
-    state = conjWrap(state, (caze):[noun:noun, hasNoun:true, init:{ init(it, noun) }])
+    update = update.addCxt(caze, noun:noun, hasNoun:true, init:{ init(it, noun) })
+
     if (state[possessive]) {
-      state = state.apply(possessive, head:noun)
+      update = update.addCxt(possessive, head:noun)
     }
 
     if (state[preposition] && !state[preposition].hasNoun) {
-      state = state.apply((preposition):[hasNoun:true])
+      update = update.addCxt(preposition, hasNoun:true)
     }
 
-    state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state).apply((numQuantifier):[noun:noun])
+    update = update.addCxt(quotedName, noun:noun).addCxt(numQuantifier, noun:noun)
 
-    return state
+    return conjWrap(update.map, state).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state)
   }
 
   private Construction transformCase(ParsingState state, Construction caze) {

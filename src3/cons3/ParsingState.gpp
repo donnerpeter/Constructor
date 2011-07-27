@@ -8,13 +8,13 @@ class ParsingState {
 
   final Chart chart
   final Situation situation
-  final Map<Construction, Map> constructions
+  final FLinkedMap<Construction, Map> constructions
   final FList<Contribution> history
 
   ParsingState(Map map) {
     chart = map.chart
     situation = map.situation
-    constructions = Collections.unmodifiableMap((Map)map.constructions)
+    constructions = map.constructions
     history = map.history
   }
 
@@ -122,9 +122,7 @@ class ParsingState {
   }
 
   private ParsingState removeConstruction(Construction name) {
-    def newConstructions = new HashMap(constructions)
-    newConstructions.remove(name)
-    return clone(constructions: newConstructions)
+    return clone(constructions: constructions.removeKey(name))
   }
 
   ParsingState startMeta(Variable meta) {
@@ -234,10 +232,10 @@ class ParsingState {
 
 
   ParsingState clearConstructions() {
-    return clone(constructions: [:])
+    return clone(constructions: FLinkedMap.emptyMap)
   }
 
-  ParsingState restore(Map saved) {
+  ParsingState restore(FLinkedMap saved) {
     clone(constructions: saved + this.constructions)
   }
 

@@ -7,7 +7,7 @@ class Parser {
   String log = ""
 
   Chart parse(String text) {
-    ParsingState state = new ParsingState(chart: new Chart(), situation: new Situation(), participants:[:], constructions:[:], history:FList.emptyList)
+    ParsingState state = new ParsingState(chart: new Chart(), situation: new Situation(), constructions:FLinkedMap.emptyMap, history:FList.emptyList)
     def tokenizer = new StringTokenizer(text, """ '":,.?!""", true)
     for (String w in tokenizer) {
       if (w != ' ') {
@@ -27,7 +27,7 @@ class Parser {
 
   private static ParsingState handleCase(Construction caze, ParsingState state, Map args) {
     if (args.save && args.hasNoun) {
-      return state.satisfied(caze).restore((Map)args.save).apply((Construction)args.delegate, noun: args.noun)
+      return state.satisfied(caze).restore((FLinkedMap)args.save).apply((Construction)args.delegate, noun: args.noun)
     }
     return state
   }
@@ -331,7 +331,7 @@ class Parser {
     if (cxt in [nom, acc, gen, poDat, nounGen] && oldArgs.noun && newArgs.noun) {
       return doMerge(state, cxt, oldArgs, newArgs, 'noun', update, seqs)
     }
-    if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun) {
+    if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun && state[cxt]?.head) {
       return update.addCxt((state[cxt] ?: oldArgs) + [head:newArgs.head], cxt, (Closure)newArgs.init)
     }
     if (cxt in [nounGen] && oldArgs.head && newArgs.head && !newArgs.noun) {

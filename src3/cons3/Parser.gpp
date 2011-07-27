@@ -243,7 +243,7 @@ class Parser extends RussianConstructions {
         return state.apply((adjective):[nounFrame:noun, rel:'size', val:'BIG'], (_instr):[noun:noun], (_acc):[noun:noun])
       case "нашем":
         def we = state.newVariable()
-        def possHead = state[prep]?.noun ?: state.newVariable()
+        def possHead = state[oPrep]?.noun ?: state.newVariable()
         state = state.assign(we, 'type', 'WE')
         return state.apply(possessive, possessor:we, head:possHead)
       case "этому":
@@ -277,8 +277,9 @@ class Parser extends RussianConstructions {
       case "скамейки": return noun(state, gen, 'BENCH')
       case "ребенок": return noun(state, nom, 'CHILD')
       case "углу":  //todo plain noun
-        def noun = state[prep]?.noun ?: state.newVariable()
-        state = state.apply(prep, noun: noun, hasNoun:true) {ParsingState it -> it.assign(noun, 'type', 'CORNER') }
+        def _prep = transformCase(state, prep)
+        def noun = state[_prep]?.noun ?: state.newVariable()
+        state = state.apply(_prep, noun: noun, hasNoun:true) {ParsingState it -> it.assign(noun, 'type', 'CORNER') }
         return state.apply(gen, head:noun) //todo one noun frame - several cases
       case "магазин":
         def _acc = transformCase(state, acc)
@@ -298,8 +299,9 @@ class Parser extends RussianConstructions {
         return state //todo one noun frame - several cases
       case "сада": return noun(state, gen, 'GARDEN')
       case "магазина":
-        def noun = state[gen]?.noun ?: state.newVariable()
-        state = state.apply(gen, noun: noun, hasNoun:true) {ParsingState it -> it.assign(noun, 'type', 'SHOP') }
+        def _gen = transformCase(state, gen)
+        def noun = state[_gen]?.noun ?: state.newVariable()
+        state = state.apply(_gen, noun: noun, hasNoun:true) {ParsingState it -> it.assign(noun, 'type', 'SHOP') }
         state = state.apply(naPrep, head:noun)
         state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state)
         return state //todo one noun frame - several cases
@@ -332,17 +334,16 @@ class Parser extends RussianConstructions {
         return state.apply((preposition):[prep:'с'], (sInstr):[noun:noun, xor:t.b], (sGen):[noun:noun, xor:t.b])
       case 'по':
         return state.apply((preposition):[prep:'по'], (poDat):[noun:new Variable(), repeated:(state[seq] != null)])
-      case 'о': return preposition(state, oPrep, prep)
-      case 'к': return preposition(state, kDat, dat)
-      case 'к': return preposition(state, kDat, dat)
+      case 'о': return state.apply((preposition):[prep:'о'], (oPrep):[noun:new Variable()])
+      case 'к': return state.apply((preposition):[prep:'к'], (kDat):[noun:new Variable()])
       case 'до':
         return state.apply((preposition):[prep:'до'], (doGen):[noun:new Variable()])
       case 'в':
         def noun = state.newVariable()
         return state.apply((preposition):[prep:'в'], (vAcc):[noun:noun, xor:t.b], (vPrep):[noun:noun, xor:t.b])
       case 'из':
-      case 'изо': return preposition(state, izGen, gen)
-      case 'на': return preposition(state, naPrep, prep)
+      case 'изо': return state.apply((preposition):[prep:'из'], (izGen):[noun:new Variable()])
+      case 'на': return state.apply((preposition):[prep:'на'], (naPrep):[noun:new Variable()])
       case "мной": return noun(state, instr, 'ME')
       case ":":
         if (state[directSpeech]) {
@@ -849,14 +850,11 @@ class Parser extends RussianConstructions {
     if (p == 'с' && caze == gen) return sGen
     if (p == 'с' && caze == instr) return sInstr
     if (p == 'до' && caze == gen) return doGen
+    if (p == 'к' && caze == dat) return kDat
+    if (p == 'о' && caze == prep) return oPrep
+    if (p == 'из' && caze == gen) return izGen
+    if (p == 'на' && caze == prep) return naPrep
     return caze
-  }
-
-  private ParsingState preposition(ParsingState state, Construction prepCtx, Construction caze) {
-    def noun = state.newVariable()
-    state = state.apply(prepCtx, noun:noun)
-    def save = state.constructions
-    return state.clearConstructions().apply(caze, save: save, delegate: prepCtx, noun:noun)
   }
 
   private Construction typeCxt(Variable var, String type) {

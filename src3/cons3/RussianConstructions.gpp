@@ -8,13 +8,6 @@ class RussianConstructions {
     new Construction(name, cl)
   }
 
-  private static ParsingState handleCase(Construction caze, ParsingState state, Map args) {
-    if (args.save && args.hasNoun) {
-      return state.satisfied(caze).restore((FLinkedMap)args.save).apply((Construction)args.delegate, noun: args.noun)
-    }
-    return state
-  }
-
   Construction adjective = cxt('adjective') { ParsingState state, Map args -> state.assign(args.nounFrame, (String)args.rel, args.val) }
   Construction nom = cxt('nom') { ParsingState state, Map args ->
     if (args.head && args.noun) {
@@ -26,7 +19,7 @@ class RussianConstructions {
     if (args.head && args.noun) {
       state = state.assign(args.head, 'arg2', args.noun)
     }
-    return handleCase(acc, state, args)
+    return state
   }
   Construction gen = cxt('gen') { ParsingState state, Map args ->
     def type = ((Variable) args.head)?.frame(state.chart)?.type
@@ -40,13 +33,13 @@ class RussianConstructions {
 
       }
     }
-    return handleCase(gen, state, args)
+    return state
   }
   Construction instr = cxt('instr') { ParsingState state, Map args ->
     if (((Variable) args.head)?.frame(state.chart)?.type && args.noun) {
       state = state.assign(args.head, 'arg2', args.noun)
     }
-    handleCase(instr, state, args)
+    state
   }
   Construction dat = cxt('dat') { ParsingState state, Map args ->
     if (args.head && args.noun && args.infinitive) {
@@ -54,7 +47,7 @@ class RussianConstructions {
     }
     state
   }
-  Construction prep = cxt('prep') { ParsingState state, Map args -> handleCase(prep, state, args) }
+  Construction prep = cxt('prep') { ParsingState state, Map args -> state }
   Construction sInstr = cxt('sInstr') { ParsingState state, Map args ->
     if (args.head && args.noun) {
       if ( ((Variable) args.noun).frame(state.chart)?.type in ['JOY', 'RELIEF']) {
@@ -230,14 +223,14 @@ class RussianConstructions {
     if (args.head && args.noun) {
       state = state.assign(args.head,'anchor', args.noun)
     }
-    return handleCase(gen, state, args)
+    return state
   }
   Construction ransheGen = cxt('ransheGen') { ParsingState state, Map args ->
     def type = ((Variable) args.head)?.frame(state.chart)?.type
     if (type && args.noun) {
       state = state.assign(args.head,'anchor', args.noun)
     }
-    return handleCase(gen, state, args)
+    return state
   }
   Construction naPrep = cxt('naPrep') { ParsingState state, Map args ->
     args.head && args.noun ? state.assign(args.head, 'location', args.noun) : state

@@ -434,6 +434,10 @@ F.number=true
     doTranslateTest 'Ребенок сломал себе восемь пальцев',
                     'The child broke eight fingers'
   }
+  public void test13_8Fingers() throws Exception {
+    doTranslateTest 'Ребенок сломал себе 8 пальцев',
+                    'The child broke 8 fingers'
+  }
   public void test13_BothJawsAndEightFingers() throws Exception {
     doTranslateTest 'Ребенок сломал себе обе челюсти и восемь пальцев',
                     'The child broke both of his jaws and eight fingers'

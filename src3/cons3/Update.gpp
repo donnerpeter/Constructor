@@ -4,16 +4,20 @@ package cons3
  * @author peter
  */
 class Update {
-  Map<Construction, Map<String, Object>> map
+  FLinkedMap<Construction, Map<String, Object>> map
 
   Update(Map<Construction, Map<String, Object>> map) {
-    this.map = map.asImmutable()
+    this.map = map instanceof FLinkedMap ? map : FLinkedMap.fromMap(map)
   }
 
   Update addCxt(Map newArgs, Construction name, Closure init = null) {
     if (init) {
       newArgs += [init:init]
     }
-    return new Update(map + [(name):newArgs])
+    return new Update(map.putValue(name, newArgs))
+  }
+
+  ParsingState apply(ParsingState state) {
+    return state.apply(map.reverse())
   }
 }

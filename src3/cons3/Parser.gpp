@@ -413,7 +413,7 @@ class Parser {
             state = state.apply(contribution.apps)
           }
         }
-        return state.apply(update.map)
+        return update.apply(state)
       }
     }
     for (cxt in constructions.keySet()) {
@@ -452,7 +452,7 @@ class Parser {
             oldContribution.apps[cxt].each { k, v ->
               newArgs[k] = v instanceof Variable ? mapping[(Variable) v] : v
             }
-            newContribution = newContribution.prepend(cxt, newArgs)
+            newContribution = newContribution.putValue(cxt, newArgs)
           }
           state = state.apply(newContribution.reverse())
         }
@@ -460,7 +460,7 @@ class Parser {
         state = state.finishMeta(ellipsis)
       }
     }
-    return state.apply(update.map)
+    return update.apply(state)
   }
 
 
@@ -496,7 +496,7 @@ class Parser {
         for (caze in cases) {
           update = joinSeq(state, caze, seqVar, noun: noun, [hasNoun: true, xor: t.a], 'noun', update)
         }
-        state = state.apply(update.map)
+        state = update.apply(state)
       } else {
         state = conjWrap(cases.collectEntries { [it, [noun:noun, hasNoun:true, xor:t.a]] } +
                                  [(sem):[var:noun, xor:t.bd]] +
@@ -684,7 +684,7 @@ class Parser {
         } else {
           update = update.addCxt(relTime, relTime:'AFTER', xor:t.a)
         }
-        return conjWrap(update.map, state)
+        return conjWrap(update.map.reverse(), state)
       case "все":
         return state.assign(state[nom].noun, 'quantifier', 'ALL')
       case "дальше":
@@ -742,7 +742,7 @@ class Parser {
         if (!state[preposition]) {
           update = update.addCxt(transformCase(state, nom), noun:noun, hasNoun:true, init:init, xor:t.a)
         }
-        state = state.apply(update.map)
+        state = update.apply(state)
         return state
       case "счета": return noun(state, nounGen, 'COUNTING')
       case "счете": return noun(state, prep, 'COUNTING')
@@ -1110,7 +1110,7 @@ class Parser {
 
     update = update.addCxt(quotedName, noun:noun).addCxt(numQuantifier, noun:noun)
 
-    return conjWrap(update.map, state).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state)
+    return conjWrap(update.map.reverse(), state).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state)
   }
 
   private Construction transformCase(ParsingState state, Construction caze) {

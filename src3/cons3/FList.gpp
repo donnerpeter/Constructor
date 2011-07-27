@@ -123,6 +123,12 @@ abstract class FList<T> extends AbstractList<T> implements Serializable {
     new Serial(flist:this)
   }
 
+  FList<T> replace(T old, T with) {
+    if (size == 0) throw new IllegalArgumentException()
+    if (head == old) return tail.prepend(with)
+    return tail.replace(old, with).prepend(head)
+  }
+
   static class Serial implements Externalizable {
     FList flist
 

@@ -19,8 +19,13 @@ final class FLinkedMap<K,V> implements Map<K,V> {
     return list
   }
 
-  FLinkedMap<K, V> prepend(K key, V value) {
-    return new FLinkedMap<K,V>(removeKey(key).getList() + new MyEntry(key, value))
+  FLinkedMap<K, V> putValue(K key, V value) {
+    def newEntry = new MyEntry(key, value)
+    def existing = list.find { it.key == key }
+    if (existing) {
+      return new FLinkedMap<K,V>(list.replace(existing, newEntry))
+    }
+    return new FLinkedMap<K,V>(list + newEntry)
   }
 
   FLinkedMap<K, V> minus(K key) {
@@ -44,7 +49,7 @@ final class FLinkedMap<K,V> implements Map<K,V> {
 
   FLinkedMap<K, V> plus(Map<K, V> map) {
     Reference<FLinkedMap<K, V>> ref = [this]
-    map.each { k, v -> ref.set(ref.get().prepend(k, v)) }
+    map.each { k, v -> ref.set(ref.get().putValue(k, v)) }
     return ref.get()
   }
 

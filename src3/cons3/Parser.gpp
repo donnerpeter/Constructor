@@ -452,7 +452,7 @@ class Parser {
             oldContribution.apps[cxt].each { k, v ->
               newArgs[k] = v instanceof Variable ? mapping[(Variable) v] : v
             }
-            newContribution = newContribution(cxt, newArgs)
+            newContribution = newContribution.prepend(cxt, newArgs)
           }
           state = state.apply(newContribution.reverse())
         }

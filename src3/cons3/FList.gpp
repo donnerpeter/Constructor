@@ -68,6 +68,10 @@ abstract class FList<T> extends AbstractList<T> implements Serializable {
    */
   abstract FList<T> plus (T element)
 
+  FList<T> prepend(T element) {
+    plus(element)
+  }
+
   /**
    * Creates new list containing all elements of this list except given one
    */

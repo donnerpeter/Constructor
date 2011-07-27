@@ -718,7 +718,7 @@ class EnglishGenerator {
         out 'both of'
       }
       else if (n.f('quantifier')?.type == '8') {
-        out 'eight'
+        out(n.f('quantifier').s('number') == 'true' ? '8' : 'eight')
         return
       }
 

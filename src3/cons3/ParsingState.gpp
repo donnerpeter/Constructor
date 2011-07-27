@@ -151,7 +151,19 @@ class ParsingState {
         fresh << cxt
       }
     }
-    def result = inhibit(replaced as Construction[])
+
+    def result = this
+    LinkedHashSet<Construction> toRestore = replaced.findAll { findContradictors(it, old) }
+    for (c in toRestore) {
+      def prev = history.find { it.before[c] != result[c] }
+      if (prev && !prev.before.overwrites(c, constructions[c])) {
+        replaced.remove(c)
+        result = result.removeConstruction(c).addCtx(prev.before[c], c)
+        old << c
+      }
+    }
+
+    result = result.inhibit(replaced as Construction[])
 
     for (cxt in constructions.keySet()) {
       result = result.addCtx(constructions[cxt], cxt)

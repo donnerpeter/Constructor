@@ -466,11 +466,10 @@ class Parser {
   ParsingState handleWord(String word, ParsingState state) {
     Tokens t = new Tokens()
     if (Util.parseNumber(word) != null) { //todo generic noun treatment for numbers
-      def noun = !state[doGen]?.hasNoun && state[doGen]?.noun ? state[doGen].noun : state.newVariable()
+      Variable noun = !state[doGen]?.hasNoun && state[doGen]?.noun ? state[doGen].noun : state.newVariable()
       def num = new Variable()
 
-      def sem = cxt("sem_$word") { ParsingState st, Map args -> st.assign(args.var, 'type', word).assign(args.var, 'number', 'true') }
-
+      def sem = numberTypeCxt(noun, word)
 
       List<Construction> cases = []
       if (!(state[preposition]?.prep in ['posle', 'ranshe', 'до'])) {
@@ -497,10 +496,10 @@ class Parser {
         }
         state = update.apply(state)
       } else {
-        state = conjWrap(cases.collectEntries { [it, [noun:noun, hasNoun:true, xor:t.a]] } +
+        state = conjWrap(cases.collectEntries { [it, [noun:noun, hasNoun:true, xor:t.ace]] } +
                                  [(sem):[var:noun, xor:t.bd]] +
-                                 [(numQuantifier):[num: num, xor:t.b],
-                                         (typeCxt(num, word)):[xor:t.d, var:num]],
+                                 [(numQuantifier):[num: num, xor:t.bc],
+                                         (numberTypeCxt(num, word)):[xor:t.de, var:num]],
                          state)
       }
 
@@ -693,7 +692,7 @@ class Parser {
         def they = state.newVariable()
         def init = {ParsingState st -> st.assign(they, 'type', 'THEY') }
         return conjWrap(state, (possessive):[possessor:they, init:init], (acc):[noun:they, hasNoun:true, init:init])
-      case "они": return noun(state, nom, 'THEY')
+      case "они": return pronoun(state, nom, 'THEY')
       case "соседям": return noun(state, dat, 'NEIGHBOURS')
       case "кассиршу": return noun(state, acc, 'CASHIER')
       case "кассирша": return noun(state, nom, 'CASHIER') //todo кассир
@@ -1060,6 +1059,10 @@ class Parser {
     return state
   }
 
+  private Construction numberTypeCxt(Variable var, String word) {
+    return cxt("sem_number_${var}_$word") { ParsingState st, Map args -> st.assign(args.var, 'type', word).assign(args.var, 'number', 'true') }
+  }
+
   private boolean areSimilar(Map<Construction, Map> c1, Map<Construction, Map> c2) {
     def common = Util.intersect(c1.keySet(), c2.keySet())
     common = Util.intersect(common, [nom, acc, gen, dat, instr, prep, possessive, parenthetical, nounGen, comeScalarly, poDat])
@@ -1083,8 +1086,32 @@ class Parser {
     return noun(state, caze) { ParsingState st, Variable n -> st.assign(n, 'type', type) }
   }
   private ParsingState noun(ParsingState state, Construction caze, Closure init) {
+    state = state.satisfied(relativeClause)
+
     caze = transformCase(state, caze)
 
+    Update update = _nounBase(state, caze, init)
+
+    def noun = update.map[caze].noun
+    if (state[possessive]) {
+      update = update.addCxt(possessive, head: noun)
+    }
+
+    update = update.addCxt(quotedName, noun:noun).addCxt(numQuantifier, noun:noun)
+
+    return conjWrap(update.map.reverse(), state)
+  }
+  private ParsingState pronoun(ParsingState state, Construction caze, String type) {
+    state = state.satisfied(relativeClause)
+
+    caze = transformCase(state, caze)
+
+    Update update = _nounBase(state, caze, { ParsingState st, Variable n -> st.assign(n, 'type', type) })
+
+    return conjWrap(update.map.reverse(), state)
+  }
+
+  private Update _nounBase(ParsingState state, Construction caze, Closure init) {
     Variable noun = state.constructions[caze]?.noun && !state.constructions[caze].hasNoun ? state.constructions[caze]?.noun : state.newVariable()
 
     if (noun.frame(state.chart).f('member')) { //todo number agreement
@@ -1099,17 +1126,12 @@ class Parser {
 
     update = update.addCxt(caze, noun:noun, hasNoun:true, init:{ init(it, noun) })
 
-    if (state[possessive]) {
-      update = update.addCxt(possessive, head:noun)
-    }
-
     if (state[preposition] && !state[preposition].hasNoun) {
       update = update.addCxt(preposition, hasNoun:true)
     }
 
-    update = update.addCxt(quotedName, noun:noun).addCxt(numQuantifier, noun:noun)
-
-    return conjWrap(update.map.reverse(), state).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state)
+    update = update.addCxt(relativeClause, noun:noun, save:state)
+    return update
   }
 
   private Construction transformCase(ParsingState state, Construction caze) {

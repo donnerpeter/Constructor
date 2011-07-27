@@ -40,8 +40,7 @@ class Parser {
     return state
   }
   Construction acc = cxt('acc') { ParsingState state, Map args ->
-    def hdType = ((Variable) args.head)?.frame(state.chart)?.type
-    if (hdType && args.noun) {
+    if (args.head && args.noun) {
       state = state.assign(args.head, 'arg2', args.noun)
     }
     return handleCase(acc, state, args)

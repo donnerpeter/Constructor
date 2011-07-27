@@ -158,8 +158,14 @@ class ParsingState {
     }
 
     LinkedHashSet<Construction> all = result.constructions.keySet() as LinkedHashSet
-    LinkedHashSet<Construction> toRemove = (fresh + replaced).findAll { result.findContradictors(it, old) }
+    LinkedHashSet<Construction> toRemove = (all - constructions.keySet()).findAll { result.findContradictors(it, old) }
     LinkedHashSet<Construction> runCandidates = (constructions.keySet() as LinkedHashSet) - toRemove
+
+    old.each {
+      LinkedHashSet<Construction> unlucky = result.findContradictors(it, runCandidates - old)
+      runCandidates.removeAll(unlucky)
+      runCandidates.addAll(unlucky)
+    }
 
     LinkedHashSet<Construction> hanging
     LinkedHashSet<Construction> toApply
@@ -199,9 +205,9 @@ class ParsingState {
     stillHanging = stillHanging.findAll { result.findContradictors(it, stillHanging) }
     while (stillHanging) {
       def next = stillHanging.iterator().next()
+      def contradictors = result.findContradictors(next, stillHanging)
       result = result.doApply(next)
-      stillHanging.remove(next)
-      stillHanging -= result.findContradictors(next, stillHanging)
+      stillHanging = Util.intersect(stillHanging - next - contradictors, result.constructions.keySet())
     }
 
     return result.clone(history: history + new Contribution(this, FLinkedMap.fromMap(constructions).reverse(), FList.emptyList))

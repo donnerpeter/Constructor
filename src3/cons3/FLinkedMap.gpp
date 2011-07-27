@@ -58,8 +58,13 @@ final class FLinkedMap<K,V> implements Map<K,V> {
   }
 
   V get(Object key) {
-    MyEntry<K, V> existing = list.find { it.key == key }
-    return existing?.value
+    //todo find { it.key == key } slow
+    for (it in list) {
+      if (it.key == key) {
+        return it.value
+      }
+    }
+    return null
   }
 
   V getAt(K key) {
@@ -108,7 +113,7 @@ final class FLinkedMap<K,V> implements Map<K,V> {
   }
 
   Set<K> keySet() {
-    Collections.unmodifiableSet(list.collect {it.key} as LinkedHashSet)
+    Collections.unmodifiableSet(new LinkedHashSet<K>(list.collect {it.key})) //todo 'as LinkedHashSet' slow
   }
 
   Collection<V> values() {

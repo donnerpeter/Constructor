@@ -133,7 +133,7 @@ class ParsingState {
   }
 
   LinkedHashSet<Construction> findContradictors(Construction c, Set<Construction> among) {
-    return (among as LinkedHashSet<Construction>).findAll { contradict(constructions[it], constructions[c]) }
+    return new LinkedHashSet<Construction>(among).findAll { contradict(constructions[it], constructions[c]) }
   }
 
   ParsingState apply(Map<Construction, Map<String, Object>> constructions) {

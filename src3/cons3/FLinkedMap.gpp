@@ -58,7 +58,7 @@ final class FLinkedMap<K,V> implements Map<K,V> {
   }
 
   V get(Object key) {
-    //todo find { it.key == key } slow
+    //todo find { it.key == key } slow: DefaultTypeTranformation.castToBoolean
     for (it in list) {
       if (it.key == key) {
         return it.value
@@ -113,7 +113,7 @@ final class FLinkedMap<K,V> implements Map<K,V> {
   }
 
   Set<K> keySet() {
-    Collections.unmodifiableSet(new LinkedHashSet<K>(list.collect {it.key})) //todo 'as LinkedHashSet' slow
+    Collections.unmodifiableSet(new LinkedHashSet<K>(list.collect {it.key})) //todo 'as LinkedHashSet' slow: Class.forName
   }
 
   Collection<V> values() {

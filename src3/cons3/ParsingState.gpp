@@ -46,13 +46,12 @@ class ParsingState {
     return apply((name): args)
   }
 
-  private boolean overwrites(Construction name, Map newArgs) {
-    def oldArgs = constructions[name]
-    if (oldArgs == null) {
+  static boolean overwrites(Map before, Map newArgs) {
+    if (before == null) {
       return true
     }
-    for (arg in oldArgs.keySet().intersect(newArgs.keySet())) {
-      if (arg != 'init' && arg != 'xor' && oldArgs[arg] != newArgs[arg] && oldArgs[arg]) {
+    for (arg in before.keySet().intersect(newArgs.keySet())) {
+      if (arg != 'init' && arg != 'xor' && before[arg] != newArgs[arg] && before[arg]) {
         return true
       }
     }
@@ -142,7 +141,7 @@ class ParsingState {
     LinkedHashSet<Construction> replaced = []
     for (cxt in constructions.keySet()) {
       if (this.constructions[cxt] != null) {
-        if (overwrites(cxt, constructions[cxt])) {
+        if (overwrites(this.constructions[cxt], constructions[cxt])) {
           replaced << cxt
         } else {
           old << cxt
@@ -156,7 +155,7 @@ class ParsingState {
     LinkedHashSet<Construction> toRestore = replaced.findAll { findContradictors(it, old) }
     for (c in toRestore) {
       def prev = history.find { it.before[c] != result[c] }
-      if (prev && !prev.before.overwrites(c, constructions[c])) {
+      if (prev && !overwrites(prev.before.constructions[c], constructions[c])) {
         replaced.remove(c)
         result = result.removeConstruction(c).addCtx(prev.before[c], c)
         old << c
@@ -241,9 +240,10 @@ class ParsingState {
 
   ParsingState doApply(Construction cxt) {
     def args = constructions[cxt]
+    def next = removeConstruction(cxt).addCtx(args, cxt)
+    
     Closure init = args.init ?: noInit
     args = args - [init:args.init]
-    def next = this
     next = (ParsingState)init(next)
     return cxt.action.call(next, args)
   }

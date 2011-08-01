@@ -100,10 +100,21 @@ class ParsingState {
   ParsingState inhibit(Construction... cxts) {
     if (!cxts) return this
 
-    Set<Construction> remaining = constructions.keySet() as LinkedHashSet
     Set<Construction> toRemove = cxts as LinkedHashSet
     toRemove.retainAll(constructions.keySet())
-    remaining.removeAll(toRemove)
+
+    Map<Construction, Map<String, Object>> freed = freedByInhibition(toRemove)
+
+    def state = this
+    for (c in toRemove) {
+      state = state.removeConstruction(c)
+    }
+
+   return (freed ? state.apply(freed) : state).clone(history: history + new Contribution(this, FLinkedMap.emptyMap, FList.fromList(cxts as List)))
+  }
+
+  Map<Construction, Map<String, Object>> freedByInhibition(Set<Construction> toRemove) {
+    LinkedHashSet<Construction> remaining = (constructions.keySet() as LinkedHashSet) - toRemove
 
     Map<Construction, Map<String, Object>> freed = [:]
     for (removed in remaining) {
@@ -113,13 +124,7 @@ class ParsingState {
         }
       }
     }
-
-    def state = this
-    for (c in toRemove) {
-      state = state.removeConstruction(c)
-    }
-
-   return (freed ? state.apply(freed) : state).clone(history: history + new Contribution(this, FLinkedMap.emptyMap, FList.fromList(cxts as List)))
+    return freed
   }
 
   ParsingState satisfied(Construction name) {
@@ -168,15 +173,18 @@ class ParsingState {
       }
     }
 
-    result = result.inhibit(replaced as Construction[])
+    def freed = result.freedByInhibition(replaced)
 
+    for (cxt in replaced) {
+      result = result.removeConstruction(cxt)
+    }
     for (cxt in constructions.keySet()) {
       result = result.addCtx(constructions[cxt], cxt)
     }
 
     LinkedHashSet<Construction> all = result.constructions.keySet() as LinkedHashSet
-    LinkedHashSet<Construction> toRemove = (all - constructions.keySet()).findAll { result.findContradictors(it, old) }
-    LinkedHashSet<Construction> runCandidates = (constructions.keySet() as LinkedHashSet) - toRemove
+    LinkedHashSet<Construction> toRemove = ((all - constructions.keySet()).findAll { result.findContradictors(it, old) } as LinkedHashSet)
+    LinkedHashSet<Construction> runCandidates = ((constructions.keySet() as LinkedHashSet) + freed.keySet() as LinkedHashSet) - toRemove
 
     old.each {
       LinkedHashSet<Construction> unlucky = result.findContradictors(it, runCandidates - old)

@@ -222,9 +222,9 @@ class ParsingState {
     result = result.clone(active: result.active.withoutAll(hanging))
     for (cxt1 in hanging) {
       if (result[cxt1] != null) {
-        def alt1 = result.apply(cxt1)
-        if (result.findContradictors(cxt1, result.constructions.keySet()).every { alt1.morePlausible(result.apply(it)) }) {
-          result = alt1
+        def alt1 = result.doApply(cxt1)
+        if (result.findContradictors(cxt1, result.constructions.keySet()).every { alt1.morePlausible(result.doApply(it)) }) {
+          result = result.apply(cxt1)
         }
       }
     }

@@ -55,7 +55,7 @@ class Util {
     return result
   }
 
-  static <T> LinkedHashSet<T> intersect(Set<T> set1, Set<T> set2) {
+  static <T> LinkedHashSet<T> intersect(Set<T> set1, Collection<T> set2) {
     def ts = new LinkedHashSet<T>(set1)
     ts.retainAll(set2)
     return ts

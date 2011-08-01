@@ -10,16 +10,22 @@ class ParsingState {
   final Situation situation
   final FLinkedMap<Construction, Map> constructions
   final FList<Contribution> history
+  final FList<Construction> active
+
+  ParsingState() {
+    this(chart: new Chart(), situation: new Situation(), constructions: FLinkedMap.emptyMap, history: FList.emptyList, active: FList.emptyList)
+  }
 
   ParsingState(Map map) {
     chart = map.chart
     situation = map.situation
     constructions = map.constructions
     history = map.history
+    active = map.active
   }
 
   private ParsingState clone(Map update) {
-    Map current = [chart:chart, situation:situation, constructions:constructions, history:history]
+    Map current = [chart:chart, situation:situation, constructions:constructions, history:history, active:active]
     current.putAll(update)
     return new ParsingState(current)
   }
@@ -121,7 +127,7 @@ class ParsingState {
   }
 
   private ParsingState removeConstruction(Construction name) {
-    return clone(constructions: constructions.removeKey(name))
+    return clone(constructions: constructions.removeKey(name), active: active - name)
   }
 
   ParsingState startMeta(Variable meta) {
@@ -203,6 +209,9 @@ class ParsingState {
       }
     }
 
+
+    //hanging = Util.intersect(hanging, result.active) + hanging
+    result = result.clone(active: result.active.withoutAll(hanging))
     for (cxt1 in hanging) {
       if (result[cxt1] != null) {
         def alt1 = result.apply(cxt1)
@@ -240,7 +249,7 @@ class ParsingState {
 
   ParsingState doApply(Construction cxt) {
     def args = constructions[cxt]
-    def next = removeConstruction(cxt).addCtx(args, cxt)
+    def next = clone(active: active - cxt + cxt)
     
     Closure init = args.init ?: noInit
     args = args - [init:args.init]

@@ -7,14 +7,14 @@ class Parser extends RussianConstructions {
   String log = ""
 
   Chart parse(String text) {
-    ParsingState state = new ParsingState(chart: new Chart(), situation: new Situation(), constructions:FLinkedMap.emptyMap, history:FList.emptyList)
+    ParsingState state = new ParsingState()
     def tokenizer = new StringTokenizer(text, """ '":,.?!""", true)
     for (String w in tokenizer) {
       if (w != ' ') {
         state = handleWord(w.toLowerCase(), state)
         log += w + "\n"
         for (k in state.constructions.keySet()) {
-          log += "  $k -> ${state.constructions[k]}\n"
+          log += "  ${k in state.active ? '*' : ' '}$k -> ${state.constructions[k]}\n"
         }
       }
     }
@@ -22,18 +22,21 @@ class Parser extends RussianConstructions {
   }
 
 
-  private Update merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
-    if (cxt in [nom, acc, gen, poDat, nounGen] && oldArgs.noun && newArgs.noun) {
-      return doMerge(state, cxt, oldArgs, newArgs, 'noun', update, seqs)
-    }
-    if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun && state[cxt]?.head) {
-      return update.addCxt((state[cxt] ?: oldArgs) + [head:newArgs.head], cxt, (Closure)newArgs.init)
-    }
-    if (cxt in [nounGen] && oldArgs.head && newArgs.head && !newArgs.noun) {
-      return doMerge(state, cxt, oldArgs, newArgs, 'head', update, seqs)
-    }
-    if (cxt == possessive && oldArgs.possessor && newArgs.possessor) {
-      return doMerge(state, cxt, oldArgs, newArgs, 'possessor', update, seqs)
+  private Update merge(ParsingState state, Construction cxt, Contribution prev, Map newArgs, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
+    Map oldArgs = prev.apps[cxt]
+    if (oldArgs != null) {
+      if (cxt in [nom, acc, gen, poDat, nounGen] && oldArgs.noun && newArgs.noun) {
+        return doMerge(state, cxt, oldArgs, newArgs, 'noun', update, seqs)
+      }
+      if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun && state[cxt]?.head) {
+        return update.addCxt((state[cxt] ?: oldArgs) + [head:newArgs.head], cxt, (Closure)newArgs.init)
+      }
+      if (cxt in [nounGen] && oldArgs.head && newArgs.head && !newArgs.noun) {
+        return doMerge(state, cxt, oldArgs, newArgs, 'head', update, seqs)
+      }
+      if (cxt == possessive && oldArgs.possessor && newArgs.possessor) {
+        return doMerge(state, cxt, oldArgs, newArgs, 'possessor', update, seqs)
+      }
     }
 
     return update.addCxt(newArgs, cxt)
@@ -92,11 +95,7 @@ class Parser extends RussianConstructions {
         def prev = history[similar].apps
         def seqs = [:]
         for (cxt in constructions.keySet()) {
-          if (cxt in prev) {
-            update = merge(state, cxt, prev[cxt], constructions[cxt], update, seqs)
-          } else {
-            update = update.addCxt(constructions[cxt], cxt)
-          }
+          update = merge(state, cxt, history[similar], constructions[cxt], update, seqs)
         }
 
         def modernHistory = state.history
@@ -285,10 +284,15 @@ class Parser extends RussianConstructions {
         def _acc = transformCase(state, acc)
         def noun = state[_acc]?.noun ?: state.newVariable()
         def init = {ParsingState it -> it.assign(noun, 'type', 'SHOP') }
-        state = state.apply((transformCase(state, nom)):[noun:noun, hasNoun:true, init:init, xor:t.a], (_acc):[noun:noun, hasNoun:true, init:init, xor:t.a])
-        state = state.apply(naPrep, head:noun)
-        state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state)
-        return state //todo one noun frame - several cases
+        Update update = new Update([:])
+        if (!state[preposition]?.hasNoun) {
+          update = update.addCxt(nom, noun:noun, hasNoun:true, init:init, xor:t.a)
+        }
+        update = update.addCxt(_acc, noun:noun, hasNoun:true, init:init, xor:t.a)
+        update = update.addCxt(naPrep, head:noun)
+        update = update.addCxt(quotedName, noun:noun)
+        update = update.addCxt(relativeClause, noun:noun, save:state)
+        return update.apply(state.satisfied(relativeClause))
       case "сад":
         def _acc = transformCase(state, acc)
         def noun = state[_acc]?.noun ?: state.newVariable()
@@ -333,7 +337,7 @@ class Parser extends RussianConstructions {
         def noun = state.newVariable()
         return state.apply((preposition):[prep:'с'], (sInstr):[noun:noun, xor:t.b], (sGen):[noun:noun, xor:t.b])
       case 'по':
-        return state.apply((preposition):[prep:'по'], (poDat):[noun:new Variable(), repeated:(state[seq] != null)])
+        return state.inhibit(nounGen).apply((preposition):[prep:'по'], (poDat):[noun:new Variable(), repeated:(state[seq] != null)])
       case 'о': return state.apply((preposition):[prep:'о'], (oPrep):[noun:new Variable()])
       case 'к': return state.apply((preposition):[prep:'к'], (kDat):[noun:new Variable()])
       case 'до':
@@ -388,7 +392,7 @@ class Parser extends RussianConstructions {
       case "их":
         def they = state.newVariable()
         def init = {ParsingState st -> st.assign(they, 'type', 'THEY') }
-        return conjWrap(state, (possessive):[possessor:they, init:init], (acc):[noun:they, hasNoun:true, init:init])
+        return conjWrap(state, (possessive):[possessor:they, init:init, xor:t.a], (acc):[noun:they, hasNoun:true, init:init, xor:t.a])
       case "они": return pronoun(state, nom, 'THEY')
       case "соседям": return noun(state, dat, 'NEIGHBOURS')
       case "кассиршу": return noun(state, acc, 'CASHIER')
@@ -504,11 +508,11 @@ class Parser extends RussianConstructions {
       case 'стали':
         def verb = state.newVariable()
         state = state.assign(verb, 'type', 'BEGIN').assign(situation, 'time', 'PAST')
-        return conjWrap(state, (control):[subj:state[nom], head:verb], (nom):[head:verb])
+        return conjWrap(state.inhibit(preposition), (control):[subj:state[nom], head:verb], (nom):[head:verb])
       case 'начали':
         def verb = state.newVariable()
         state = state.assign(verb, 'type', 'BEGIN').assign(situation, 'time', 'PAST')
-        return conjWrap(state, (control):[subj:state[nom], head:verb], (nom):[head:verb])
+        return conjWrap(state.inhibit(preposition), (control):[subj:state[nom], head:verb], (nom):[head:verb])
       case 'свалился':
         def verb = state.newVariable()
         state = state.assign(verb, 'type', 'FALL').assign(situation, 'time', 'PAST')
@@ -600,7 +604,7 @@ class Parser extends RussianConstructions {
       case "спросили":
         def verb = state.newVariable()
         state = state.assign(verb, 'type', 'ASK').assign(situation, 'time', 'PAST')
-        return conjWrap(state, (acc):[head:verb], (nom):[head:verb], (question):[head:verb], (oPrep):[head:verb])
+        return conjWrap(state.inhibit(preposition), (acc):[head:verb], (nom):[head:verb], (question):[head:verb], (oPrep):[head:verb])
       case "делал":
       case "делали":
         def verb = state.newVariable()

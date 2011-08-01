@@ -545,7 +545,11 @@ class EnglishGenerator {
         out 'only'
         out 'if'
         def content = condition.f('whenCondition') ?: condition.f('ifCondition')
-        assert content : chart.presentable()
+        if (!content) {
+          println "No condition: " + chart.presentable()
+          return
+        }
+
         new SituationGenerator(chart, (Situation) content.var, false).sentence(false)
       }
 

@@ -260,9 +260,9 @@ D.type=COME_SCALARLY
 D.order=AFTER
 E.type=8
 D.anchor=E
-#1.condition=F
 F.determiner=THAT
 F.type=CASE
+#1.condition=F
 F.whenCondition=#2
 --
 A.type=8
@@ -310,9 +310,9 @@ D.type=COME_SCALARLY
 D.order=AFTER
 E.type=8
 D.anchor=E
-#2.condition=F
 F.determiner=THAT
 F.type=CASE
+#2.condition=F
 F.whenCondition=#3
 --
 A.type=8
@@ -568,7 +568,7 @@ G.quantifier=F
     def chart = parser.parse(input)
     def actual = new EnglishGenerator().generate(chart)
     if (actual != expected) {
-      println chart.presentable()
+      println "\nChart:\n\n${chart.presentable()}"
       println "\nLog:\n\n$parser.log"
     }
     assertEquals expected, actual

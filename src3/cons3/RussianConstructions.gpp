@@ -213,7 +213,7 @@ class RussianConstructions {
     if (args.head && args.noun) {
       if (((Variable) args.head).frame(state.chart).type == 'COME_TO') {
         state = state.assign(args.head, 'domain', args.noun)
-      } else {
+      } else if (((Variable) args.noun).frame(state.chart).type == 'CASE') {
         state = state.assign(state.situation, 'condition', args.noun)
       }
     }

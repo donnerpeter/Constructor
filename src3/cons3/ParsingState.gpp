@@ -218,7 +218,7 @@ class ParsingState {
     }
 
 
-    //hanging = Util.intersect(hanging, result.active) + hanging
+    hanging = Util.intersect(hanging, result.active) + hanging
     result = result.clone(active: result.active.withoutAll(hanging))
     for (cxt1 in hanging) {
       if (result[cxt1] != null) {

@@ -220,13 +220,16 @@ class ParsingState {
 
     hanging = Util.intersect(hanging, result.active) + hanging
     result = result.clone(active: result.active.withoutAll(hanging))
+    Map<Construction, Map<String, Object>> plausible = [:]
     for (cxt1 in hanging) {
-      if (result[cxt1] != null) {
-        def alt1 = result.doApply(cxt1)
-        if (result.findContradictors(cxt1, result.constructions.keySet()).every { alt1.morePlausible(result.doApply(it)) }) {
-          result = result.apply(cxt1)
-        }
+      def alt1 = result.doApply(cxt1)
+      if (result.findContradictors(cxt1, result.constructions.keySet()).every { alt1.morePlausible(result.doApply(it)) }) {
+        plausible[cxt1] = result[cxt1]
       }
+    }
+
+    if (plausible) {
+      result = result.apply(plausible)
     }
 
     LinkedHashSet<Construction> stillHanging = Util.intersect(hanging, result.constructions.keySet()) as LinkedHashSet
@@ -242,16 +245,6 @@ class ParsingState {
   }
 
   boolean morePlausible(ParsingState than) {
-    if (than.chart.frames(than.situation).find { it.type == 'GO' && it.f('arg1')?.type in ['7', '8'] } &&
-            !chart.frames(situation).find { it.type == 'GO' && it.f('arg1')?.type in ['7', '8'] }) {
-      return true
-    }
-
-    Frame comeScalarly = chart.frames(situation).find { it.type == 'COME_SCALARLY' }
-    if (comeScalarly && comeScalarly.s('order') && !comeScalarly.var.frame(than.chart)?.type) {
-      return true
-    }
-
     return false
   }
 

@@ -26,55 +26,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
   }
 
   ParsingState conjWrap(Map<Construction, Map> constructions, ParsingState state) {
-    Update update = new Update(FLinkedMap.emptyMap)
-    for (cxt in constructions.keySet()) {
-      update = update.addCxt(constructions[cxt], cxt)
-    }
-    if (state[clauseEllipsis]) {
-      Map<Variable, Variable> mapping = state[clauseEllipsis].mapping
-      List<Contribution> prevConstructions = state[clauseEllipsis].remaining
-      def index = prevConstructions.findIndexOf { Contribution it -> areSimilar(it.apps, update.map) }
-      if (index >= 0) {
-        state = state.satisfied(clauseEllipsis)
-        prevConstructions.each { Contribution oldContribution ->
-          oldContribution.apps.each { cxt, upd ->
-            upd.each { k, v ->
-              if (v instanceof Variable) {
-                def nv = update.map[cxt]?.get(k) ?: mapping.get(v)
-                if (!nv) {
-                  nv = new Variable()
-                }
-                mapping[v] = nv
-              }
-            }
-          }
-        }
-
-        def ellipsis = new Variable()
-        state = state.assign(ellipsis, 'type', 'ellipsis').startMeta(ellipsis)
-
-        for (i in 0..<prevConstructions.size()) {
-          if (i == index) continue
-
-          Contribution oldContribution = prevConstructions[i]
-          //todo a normal condition for ellipsis participation
-          if (!oldContribution.apps.keySet().intersect(importantForSimilarity - [parenthetical])) continue
-
-          FLinkedMap newContribution = FLinkedMap.emptyMap
-          for (cxt in oldContribution.apps.keySet()) {
-            def newArgs = [:]
-            oldContribution.apps[cxt].each { k, v ->
-              newArgs[k] = v instanceof Variable ? mapping[(Variable) v] : v
-            }
-            newContribution = newContribution.putValue(cxt, newArgs)
-          }
-          state = state.apply(newContribution.reverse())
-        }
-
-        state = state.finishMeta(ellipsis)
-      }
-    }
-    return update.apply(state)
+    return state.apply(constructions)
   }
 
 
@@ -621,7 +573,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
             def commonStart = old.indexOf(lcs[0])
             if (commonStart) {
               FList<Contribution> remaining = FList.fromList(old[0..commonStart-1])
-              state = state.clearConstructions().apply(clauseEllipsis, remaining:remaining, mapping: mapping)
+              state = state.clearConstructions().apply(clauseEllipsis, remaining:remaining, mapping: mapping, interceptor:new EllipsisInterceptor())
             }
           }
         }

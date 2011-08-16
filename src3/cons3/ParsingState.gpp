@@ -146,13 +146,18 @@ class ParsingState {
     return new LinkedHashSet<Construction>(among).findAll { contradict(constructions[it], constructions[c]) }
   }
 
-  ParsingState apply(Map<Construction, Map<String, Object>> constructions) {
+  Function2<Map<Construction, Map<String, Object>>, ParsingState, ParsingState> getApplier() {
     for (Map value in this.constructions.values()) {
       if (value.interceptor != null) {
-        return ((Interceptor) value.interceptor).intercept(constructions, this) { contr, state -> state.baseApply(contr) }
+        def interceptor = (Interceptor) value.interceptor
+        return { c, s -> interceptor.intercept(c, s) { contr, state -> state.baseApply(contr) } }
       }
     }
-    return baseApply(constructions)
+    return { c, s -> s.baseApply(c) }
+  }
+
+  ParsingState apply(Map<Construction, Map<String, Object>> constructions) {
+    applier(constructions, this)
   }
 
   private ParsingState baseApply(Map<Construction, Map<String, Object>> constructions) {

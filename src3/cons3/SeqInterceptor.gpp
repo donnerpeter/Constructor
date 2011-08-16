@@ -6,9 +6,16 @@ import static cons3.Construction.cxt
  * @author peter
  */
 class SeqInterceptor implements Interceptor, RussianConstructions {
+  ParsingState before
+  String conj
+
+  SeqInterceptor(ParsingState before, String conj) {
+    this.before = before
+    this.conj = conj
+  }
 
   ParsingState intercept(Map<Construction, Map<String, Object>> constructions, ParsingState state, Function2<Map<Construction, Map<String, Object>>, ParsingState, ParsingState> base) {
-    List<Contribution> history = ((ParsingState) state[seq].save).history
+    List<Contribution> history = before.history
 
     //todo a wiser conj limit
     def limit = history.reverse().findIndexOf { Contribution it -> it.before.situation == state.situation }
@@ -79,7 +86,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
     Variable multi = seqs[new Pair(first, second)] ?: new Variable()
     seqs[new Pair(first, second)] = multi
     return update.
-            addCxt(seqStart, multi:multi, first:first, second:second, conj:state[seq].conj, distinguish:state[cxt]?.repeated).
+            addCxt(seqStart, multi:multi, first:first, second:second, conj:conj, distinguish:state[cxt]?.repeated).
             addCxt(oldArgs + [(prop): multi, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt, ParsingState.mergeInits((Closure)oldArgs.init, (Closure)newArgs.init))
   }
 

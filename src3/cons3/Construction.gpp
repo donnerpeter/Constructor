@@ -17,5 +17,11 @@ class Construction {
     return name
   }
 
+  static Construction cxt(String name, Function2<ParsingState, Map, ParsingState> cl) {
+    new Construction(name, cl)
+  }
+  static Construction cxt(String name, Closure cl) {
+    new Construction(name, cl as Function2)
+  }
 
 }

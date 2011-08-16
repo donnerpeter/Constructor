@@ -1,0 +1,100 @@
+package cons3
+
+import static cons3.Construction.cxt
+
+/**
+ * @author peter
+ */
+class SeqInterceptor implements Interceptor, RussianConstructions {
+
+  ParsingState intercept(Map<Construction, Map<String, Object>> constructions, ParsingState state, Function2<Map<Construction, Map<String, Object>>, ParsingState, ParsingState> base) {
+    List<Contribution> history = ((ParsingState) state[seq].save).history
+
+    //todo a wiser conj limit
+    def limit = history.reverse().findIndexOf { Contribution it -> it.before.situation == state.situation }
+    if (limit > 0) {
+      history = history.subList(0, history.size() - limit)
+    }
+    def similar = history.findIndexOf { Contribution it -> Parser.areSimilar(it.apps, constructions) }
+    //todo exclude prepositions in a generic way
+    if (similar >= 0 && !(poDat in constructions && preposition in constructions)) {
+      Update update = new Update(FLinkedMap.emptyMap)
+      def seqs = [:]
+      for (cxt in constructions.keySet()) {
+        update = merge(state, cxt, history[similar], constructions[cxt], update, seqs)
+      }
+
+      def modernHistory = state.history
+      state = state.clearConstructions().restore(history[similar].before.constructions)
+
+      def lastConj = modernHistory.findIndexOf { Contribution it -> it.apps[seq] != null }
+      if (lastConj) {
+        for (contribution in modernHistory.subList(0, lastConj).reverse()) {
+          state = state.apply(contribution.apps)
+        }
+      }
+      return base(update.map.reverse(), state)
+    }
+    return base(constructions, state)
+  }
+
+  private Update merge(ParsingState state, Construction cxt, Contribution prev, Map newArgs, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
+    Map oldArgs = prev.apps[cxt]
+    if (oldArgs != null) {
+      if (cxt in [nom, acc, gen, poDat, nounGen] && oldArgs.noun && newArgs.noun) {
+        return doMerge(state, cxt, oldArgs, newArgs, 'noun', update, seqs)
+      }
+      if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun && state[cxt]?.head) {
+        return update.addCxt((state[cxt] ?: oldArgs) + [head:newArgs.head], cxt, (Closure)newArgs.init)
+      }
+      if (cxt in [nounGen] && oldArgs.head && newArgs.head && !newArgs.noun) {
+        return doMerge(state, cxt, oldArgs, newArgs, 'head', update, seqs)
+      }
+      if (cxt == possessive && oldArgs.possessor && newArgs.possessor) {
+        return doMerge(state, cxt, oldArgs, newArgs, 'possessor', update, seqs)
+      }
+    }
+
+    return update.addCxt(newArgs, cxt)
+  }
+
+  Construction seqStart = cxt('seqStart') { ParsingState st, Map args ->
+    st = st.assign(args.multi, 'member', args.first)
+    if (args.conj) {
+      st = st.assign(args.multi, 'conj', args.conj)
+    }
+    if (args.distinguish) {
+      st = st.assign(args.second, 'distinguished_in', args.multi)
+    }
+    st.assign(args.multi, 'member', args.second).satisfied(seqStart)
+  }
+
+  private Update doMerge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, String prop, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
+    Variable first = (Variable) oldArgs[prop]
+    if (first.frame(state.chart).f('member')) {
+      return joinSeq(newArgs, state, cxt, first, oldArgs, prop, update)
+    }
+
+    def second = newArgs[prop]
+    Variable multi = seqs[new Pair(first, second)] ?: new Variable()
+    seqs[new Pair(first, second)] = multi
+    return update.
+            addCxt(seqStart, multi:multi, first:first, second:second, conj:state[seq].conj, distinguish:state[cxt]?.repeated).
+            addCxt(oldArgs + [(prop): multi, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt, ParsingState.mergeInits((Closure)oldArgs.init, (Closure)newArgs.init))
+  }
+
+  static Construction seqNext = cxt('seqNext') { ParsingState st, Map args ->
+    if (args.conj) {
+      st = st.assign(args.multi, 'conj', args.conj)
+    }
+    st.assign(args.multi, 'member', args.next).satisfied(seqNext)
+  }
+
+  static Update joinSeq(Map newArgs, ParsingState state, Construction cxt, Variable seqVar, Map oldArgs, String property, Update update) {
+    def newMember = newArgs[property]
+    return update.
+            addCxt(oldArgs + [(property): seqVar, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt, ParsingState.mergeInits((Closure)oldArgs.init, (Closure)newArgs.init)).
+            addCxt(seqNext, multi:seqVar, next:newMember, conj:state[seq]?.conj)
+  }
+
+}

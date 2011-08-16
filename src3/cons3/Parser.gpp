@@ -1,9 +1,13 @@
 package cons3
 
+import static cons3.Construction.cxt
+import static cons3.RussianConstructions.*
+
 /**
  * @author peter
  */
-class Parser extends RussianConstructions {
+class Parser { //todo alex implements cons3.RussianConstructions
+  public static final ArrayList<Construction> importantForSimilarity = [nom, acc, gen, dat, instr, prep, possessive, parenthetical, nounGen, comeScalarly, poDat]
   String log = ""
 
   Chart parse(String text) {
@@ -21,95 +25,8 @@ class Parser extends RussianConstructions {
     return state.chart
   }
 
-
-  private Update merge(ParsingState state, Construction cxt, Contribution prev, Map newArgs, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
-    Map oldArgs = prev.apps[cxt]
-    if (oldArgs != null) {
-      if (cxt in [nom, acc, gen, poDat, nounGen] && oldArgs.noun && newArgs.noun) {
-        return doMerge(state, cxt, oldArgs, newArgs, 'noun', update, seqs)
-      }
-      if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun && state[cxt]?.head) {
-        return update.addCxt((state[cxt] ?: oldArgs) + [head:newArgs.head], cxt, (Closure)newArgs.init)
-      }
-      if (cxt in [nounGen] && oldArgs.head && newArgs.head && !newArgs.noun) {
-        return doMerge(state, cxt, oldArgs, newArgs, 'head', update, seqs)
-      }
-      if (cxt == possessive && oldArgs.possessor && newArgs.possessor) {
-        return doMerge(state, cxt, oldArgs, newArgs, 'possessor', update, seqs)
-      }
-    }
-
-    return update.addCxt(newArgs, cxt)
-  }
-
-  Construction seqStart = this.cxt('seqStart') { ParsingState st, Map args ->
-    st = st.assign(args.multi, 'member', args.first)
-    if (args.conj) {
-      st = st.assign(args.multi, 'conj', args.conj)
-    }
-    if (args.distinguish) {
-      st = st.assign(args.second, 'distinguished_in', args.multi)
-    }
-    st.assign(args.multi, 'member', args.second).satisfied(seqStart)
-  }
-
-  private Update doMerge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, String prop, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
-    Variable first = (Variable) oldArgs[prop]
-    if (first.frame(state.chart).f('member')) {
-      return joinSeq(newArgs, state, cxt, first, oldArgs, prop, update)
-    }
-
-    def second = newArgs[prop]
-    Variable multi = seqs[new Pair(first, second)] ?: new Variable()
-    seqs[new Pair(first, second)] = multi
-    return update.
-            addCxt(seqStart, multi:multi, first:first, second:second, conj:state[seq].conj, distinguish:state[cxt]?.repeated).
-            addCxt(oldArgs + [(prop): multi, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt, ParsingState.mergeInits((Closure)oldArgs.init, (Closure)newArgs.init))
-  }
-
-  Construction seqNext = this.cxt('seqNext') { ParsingState st, Map args ->
-    if (args.conj) {
-      st = st.assign(args.multi, 'conj', args.conj)
-    }
-    st.assign(args.multi, 'member', args.next).satisfied(seqNext)
-  }
-
-  Update joinSeq(Map newArgs, ParsingState state, Construction cxt, Variable seqVar, Map oldArgs, String property, Update update) {
-    def newMember = newArgs[property]
-    return update.
-            addCxt(oldArgs + [(property): seqVar, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt, ParsingState.mergeInits((Closure)oldArgs.init, (Closure)newArgs.init)).
-            addCxt(seqNext, multi:seqVar, next:newMember, conj:state[seq]?.conj)
-  }
-
   ParsingState conjWrap(Map<Construction, Map> constructions, ParsingState state) {
     Update update = new Update(FLinkedMap.emptyMap)
-    if (state[seq]) {
-      List<Contribution> history = ((ParsingState) state[seq].save).history
-      //todo a wiser conj limit
-      def limit = history.reverse().findIndexOf { Contribution it -> it.before.situation == state.situation }
-      if (limit > 0) {
-        history = history.subList(0, history.size() - limit)
-      }
-      def similar = history.findIndexOf { Contribution it -> areSimilar(it.apps, constructions) }
-      if (similar >= 0) {
-        def prev = history[similar].apps
-        def seqs = [:]
-        for (cxt in constructions.keySet()) {
-          update = merge(state, cxt, history[similar], constructions[cxt], update, seqs)
-        }
-
-        def modernHistory = state.history
-        state = state.clearConstructions().restore(history[similar].before.constructions)
-
-        def lastConj = modernHistory.findIndexOf { Contribution it -> it.apps[seq] != null }
-        if (lastConj) {
-          for (contribution in modernHistory.subList(0, lastConj).reverse()) {
-            state = state.apply(contribution.apps)
-          }
-        }
-        return update.apply(state)
-      }
-    }
     for (cxt in constructions.keySet()) {
       update = update.addCxt(constructions[cxt], cxt)
     }
@@ -140,6 +57,9 @@ class Parser extends RussianConstructions {
           if (i == index) continue
 
           Contribution oldContribution = prevConstructions[i]
+          //todo a normal condition for ellipsis participation
+          if (!oldContribution.apps.keySet().intersect(importantForSimilarity - [parenthetical])) continue
+
           FLinkedMap newContribution = FLinkedMap.emptyMap
           for (cxt in oldContribution.apps.keySet()) {
             def newArgs = [:]
@@ -187,7 +107,7 @@ class Parser extends RussianConstructions {
         state = state.apply((questionVariants):[seq:seqVar], (nom):[:])
         def update = new Update((sem):[var:noun])
         for (caze in cases) {
-          update = joinSeq(state, caze, seqVar, noun: noun, [hasNoun: true, xor: t.a], 'noun', update)
+          update = SeqInterceptor.joinSeq(state, caze, seqVar, noun: noun, [hasNoun: true, xor: t.a], 'noun', update)
         }
         state = update.apply(state)
       } else {
@@ -368,8 +288,8 @@ class Parser extends RussianConstructions {
       case "моему":
         def me = state.newVariable()
         return conjWrap(state, (possessive):[possessor:me, init:{ ParsingState it ->it.assign(me, 'type', 'ME') }])
-      case "и": return state.apply(seq, save:state, conj:'and')
-      case "или": return state.apply(seq, save:state, conj:'or')
+      case "и": return state.apply(seq, save:state, conj:'and', interceptor:new SeqInterceptor())
+      case "или": return state.apply(seq, save:state, conj:'or', interceptor:new SeqInterceptor())
       case "а":
       case "но":
         def next = new Situation()
@@ -627,22 +547,22 @@ class Parser extends RussianConstructions {
         state = state.assign(verb, 'type', 'STOP').assign(situation, 'time', 'PAST')
         return conjWrap(state, (nom):[head:verb])
       case ",":
-        state = state.apply((declComp):[hasComma:true],
-                            (conditionComp):[hasComma:true],
-                            (reasonComp):[hasComma:true],
-                            (question):[hasComma:true],
-                            (relativeClause):[hasComma:true, parentSituation:situation],
-                            (prevHistory):[history:state],
-                            (seq):[save:state, hasComma:true])
         if (state[nestedClause]) {
-          state = state.withSituation((Situation)state[nestedClause].parent).clearConstructions().restore(((ParsingState) state[nestedClause].save).constructions).satisfied(nestedClause)
+          return state.withSituation((Situation)state[nestedClause].parent).clearConstructions().restore(((ParsingState) state[nestedClause].save).constructions).satisfied(nestedClause)
         }
+        Update update = new Update((declComp):[hasComma:true],
+                                   (conditionComp):[hasComma:true],
+                                   (reasonComp):[hasComma:true],
+                                   (question):[hasComma:true],
+                                   (relativeClause):[hasComma:true, parentSituation:situation],
+                                   (prevHistory):[history:state],
+                                   (seq):[save:state, hasComma:true, interceptor:new SeqInterceptor()])
         if (state[parenthetical]?.hasComma) {
           state = state.satisfied(parenthetical)
         } else {
-          state = state.apply(parenthetical, hasComma:true)
+          update = update.addCxt(parenthetical, hasComma:true)
         }
-        return state
+        return update.apply(state)
       case "если":
         return state.apply(conditionComp, wh:'if')
       case "когда":
@@ -764,9 +684,9 @@ class Parser extends RussianConstructions {
     return cxt("sem_number_${var}_$word") { ParsingState st, Map args -> st.assign(args.var, 'type', word).assign(args.var, 'number', 'true') }
   }
 
-  private boolean areSimilar(Map<Construction, Map> c1, Map<Construction, Map> c2) {
+  static boolean areSimilar(Map<Construction, Map> c1, Map<Construction, Map> c2) {
     def common = Util.intersect(c1.keySet(), c2.keySet())
-    common = Util.intersect(common, [nom, acc, gen, dat, instr, prep, possessive, parenthetical, nounGen, comeScalarly, poDat])
+    common = Util.intersect(common, importantForSimilarity)
     common = common.findAll { (c1[it].keySet() - 'init' - 'xor') == (c2[it].keySet() - 'init' - 'xor') }
 
     if (common.size() == 1 && possessive in common && c1[possessive].head) {

@@ -1,0 +1,10 @@
+package cons3
+
+/**
+ * @author peter
+ */
+public interface Interceptor {
+  ParsingState intercept(Map<Construction, Map<String, Object>> contribution,
+                         ParsingState state,
+                         Function2<Map<Construction, Map<String, Object>>, ParsingState, ParsingState> base)
+}

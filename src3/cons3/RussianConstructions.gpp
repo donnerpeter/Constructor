@@ -1,14 +1,14 @@
 package cons3
 
+import static cons3.Construction.cxt
+
 /**
  * @author peter
  */
-class RussianConstructions {
-  Construction cxt(String name, Function2<ParsingState, Map, ParsingState> cl) {
-    new Construction(name, cl)
-  }
+interface RussianConstructions {
 
-  Construction adjective = cxt('adjective') { ParsingState state, Map args -> state.assign(args.nounFrame, (String)args.rel, args.val) }
+  Construction adjective = cxt('adjective') { ParsingState state, Map args ->
+    state.assign(args.nounFrame, (String)args.rel, args.val) }
   Construction nom = cxt('nom') { ParsingState state, Map args ->
     if (args.head && args.noun) {
       state = state.assign(args.head, 'arg1', args.noun)

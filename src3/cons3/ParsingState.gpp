@@ -147,6 +147,15 @@ class ParsingState {
   }
 
   ParsingState apply(Map<Construction, Map<String, Object>> constructions) {
+    for (Map value in this.constructions.values()) {
+      if (value.interceptor != null) {
+        return ((Interceptor) value.interceptor).intercept(constructions, this) { contr, state -> state.baseApply(contr) }
+      }
+    }
+    return baseApply(constructions)
+  }
+
+  private ParsingState baseApply(Map<Construction, Map<String, Object>> constructions) {
     LinkedHashSet<Construction> fresh = []
     LinkedHashSet<Construction> old = []
     LinkedHashSet<Construction> replaced = []

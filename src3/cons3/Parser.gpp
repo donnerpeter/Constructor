@@ -269,8 +269,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return conjWrap(state, (possessive):[possessor:she, init:init], (acc):[noun:she, hasNoun:true, init:init])
       case "носом": return noun(state, instr, 'NOSE')
       case "пальцев": return noun(state, gen, 'FINGERS')
+      case "пальца": return noun(state, gen, 'FINGERS')
       case "челюсти":
-        Variable noun = state[gen]?.noun ?: new Variable()
+        Variable noun = state[gen]?.noun && !state[gen].hasNoun ? state[gen].noun : new Variable()
         return conjWrap(state, (gen):[noun: noun, hasNoun:true], (acc):[noun:noun, hasNoun:true], (dativePart):[acc: noun], (typeCxt(noun, 'JAWS')):[var:noun], (numQuantifier):[noun:noun])
       case "челюстью": return noun(state, instr, 'JAW')
       case "челюсть":
@@ -290,6 +291,12 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 apply((nom):[noun: noun, xor:t.ae], (acc):[noun: noun, xor:t.ae], (typeCxt(noun, '8')):[xor:t.bd, var:noun],
                       (numQuantifier):[num: num, xor:t.be, interceptor:new NumQuantifier(), prev:state], (typeCxt(num, '8')):[xor:t.d, var:num])
       case "восьми": return noun(state, gen, '8')
+      case "два":
+        def noun = new Variable()
+        def num = new Variable()
+        return state.inhibit(numQuantifier).
+                apply((nom):[noun: noun, xor:t.ae], (acc):[noun: noun, xor:t.ae], (typeCxt(noun, '2')):[xor:t.bd, var:noun],
+                      (numQuantifier):[num: num, xor:t.be, interceptor:new NumQuantifier(), prev:state], (typeCxt(num, '2')):[xor:t.d, var:num])
       case "порядок":
         def noun = state.newVariable()
         state = state.apply(acc, noun: noun, hasNoun:true) { ParsingState it ->it.assign(noun, 'type', 'ORDER') }

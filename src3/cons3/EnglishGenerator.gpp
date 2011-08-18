@@ -725,6 +725,14 @@ class EnglishGenerator {
         out(n.f('quantifier').s('number') == 'true' ? '8' : 'eight')
         return
       }
+      else if (n.f('quantifier')?.type == '2') {
+        out(n.f('quantifier').s('number') == 'true' ? '2' : 'two')
+        return
+      }
+      else if (n.f('quantifier')?.type == '3') {
+        out(n.f('quantifier').s('number') == 'true' ? '3' : 'three')
+        return
+      }
 
       if (n.type in ['AMAZE', 'PREDICAMENT', 'NEIGHBOURS', 'MOUTH', 'NOSE', 'JAW', 'JAWS'] && n.f('arg1')) {
         possessive(n.f('arg1'), n)

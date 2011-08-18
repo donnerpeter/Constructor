@@ -37,13 +37,18 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       def lastConj = modernHistory.findIndexOf { Contribution it -> it.apps[seq] != null }
       if (lastConj) {
         for (contribution in modernHistory.subList(0, lastConj).reverse()) {
-          state = state.apply(contribution.apps)
+          state = base(contribution.apps, state)
         }
       }
       return base(update.map.reverse(), state)
     }
     return base(constructions, state)
   }
+
+  Map<String, Object> getArgs(Construction construction, ParsingState state) {
+    null
+  }
+
 
   private Update merge(ParsingState state, Construction cxt, Contribution prev, Map newArgs, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
     Map oldArgs = prev.apps[cxt]

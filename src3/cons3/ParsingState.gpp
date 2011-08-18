@@ -41,6 +41,16 @@ class ParsingState {
   }
 
   Map getAt(Construction construction) {
+    for (Map value in this.constructions.values()) {
+      if (value.interceptor != null) {
+        def interceptor = (Interceptor) value.interceptor
+        def args = interceptor.getArgs(construction, this)
+        if (args != null) {
+          return args
+        }
+      }
+    }
+    
     constructions[construction]
   }
 
@@ -147,10 +157,21 @@ class ParsingState {
   }
 
   Function2<Map<Construction, Map<String, Object>>, ParsingState, ParsingState> getApplier() {
-    for (Map value in this.constructions.values()) {
-      if (value.interceptor != null) {
-        def interceptor = (Interceptor) value.interceptor
-        return { c, s -> interceptor.intercept(c, s) { contr, state -> state.baseApply(contr) } }
+    return nextApplier(null)
+  }
+
+  private Function2<Map<Construction, Map<String, Object>>, ParsingState, ParsingState> nextApplier(Construction start) {
+    def cs = constructions.keyList()
+    def index = cs.indexOf(start)
+    if (index >= 0 || !start) {
+      def tail = cs.subList(index + 1, cs.size())
+      for (cxt in tail) {
+        if (constructions[cxt].interceptor != null) {
+          def interceptor = (Interceptor) constructions[cxt].interceptor
+          return { c, s -> interceptor.intercept(c, s, { c1, s1 ->
+            s1.nextApplier(cxt).call(c1, s1)
+          }) }
+        }
       }
     }
     return { c, s -> s.baseApply(c) }

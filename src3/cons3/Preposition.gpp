@@ -1,0 +1,64 @@
+package cons3
+
+import static cons3.RussianConstructions.*
+
+/**
+ * @author peter
+ */
+class Preposition implements Interceptor {
+
+  static final ArrayList<Construction> cases = [nom, acc, gen, dat, instr, prep]
+  ParsingState prevState
+
+  Preposition(ParsingState prev) {
+    prevState = prev
+  }
+
+  private Construction transformCase(ParsingState state, Construction caze) {
+    if (state.constructions[preposition]?.hasNoun) {
+      return caze
+    }
+
+    def p = state.constructions[preposition]?.prep
+
+    if (p == 'posle' && caze == gen) return posleGen
+    if (p == 'ranshe' && caze == gen) return ransheGen
+    if (p == 'по' && caze == dat) return poDat
+    if (p == 'в' && caze == prep) return vPrep
+    if (p == 'в' && caze == acc) return vAcc
+    if (p == 'с' && caze == gen) return sGen
+    if (p == 'с' && caze == instr) return sInstr
+    if (p == 'до' && caze == gen) return doGen
+    if (p == 'к' && caze == dat) return kDat
+    if (p == 'о' && caze == prep) return oPrep
+    if (p == 'из' && caze == gen) return izGen
+    if (p == 'на' && caze == prep) return naPrep
+    return caze
+  }
+
+  ParsingState intercept(Map<Construction, Map<String, Object>> contribution, ParsingState state, Function2<Map<Construction, Map<String, Object>>, ParsingState, ParsingState> base) {
+    Update update = new Update([:])
+    for (c in contribution.keySet()) {
+      def replace = c in cases && !contribution[c].head
+      def newC = replace ? transformCase(state, c) : c
+      update = update.addCxt(contribution[c], newC)
+      if (replace && newC != c && contribution[c].hasNoun) {
+        update = update.addCxt(preposition, hasNoun:true)
+      }
+    }
+    return base(update.map.reverse(), state)
+  }
+
+
+  Map<String, Object> getArgs(Construction construction, ParsingState state) {
+    if (construction in cases) {
+      def caze = transformCase(state, construction)
+      if (caze != construction) {
+        return state.constructions[caze]
+      }
+    }
+    
+    return null
+  }
+}
+

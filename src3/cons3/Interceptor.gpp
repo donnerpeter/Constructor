@@ -7,4 +7,6 @@ public interface Interceptor {
   ParsingState intercept(Map<Construction, Map<String, Object>> contribution,
                          ParsingState state,
                          Function2<Map<Construction, Map<String, Object>>, ParsingState, ParsingState> base)
+
+  Map<String, Object> getArgs(Construction construction, ParsingState state)
 }

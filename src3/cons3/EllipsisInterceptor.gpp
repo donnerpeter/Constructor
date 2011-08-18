@@ -55,4 +55,9 @@ class EllipsisInterceptor implements Interceptor, RussianConstructions {
     }
     return base(constructions, state)
   }
+
+  Map<String, Object> getArgs(Construction construction, ParsingState state) {
+    null
+  }
+
 }

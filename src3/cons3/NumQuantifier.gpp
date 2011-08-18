@@ -16,5 +16,10 @@ class NumQuantifier implements Interceptor, RussianConstructions {
     }
     return base(contribution, state)
   }
+
+  Map<String, Object> getArgs(Construction construction, ParsingState state) {
+    null
+  }
+
 }
 

@@ -123,10 +123,10 @@ class ParsingState {
    return (freed ? state.apply(freed) : state).clone(history: history + new Contribution(this, FLinkedMap.emptyMap, FList.fromList(cxts as List)))
   }
 
-  Map<Construction, Map<String, Object>> freedByInhibition(Set<Construction> toRemove) {
+  Map<Construction, Map> freedByInhibition(Set<Construction> toRemove) {
     LinkedHashSet<Construction> remaining = (constructions.keySet() as LinkedHashSet) - toRemove
 
-    Map<Construction, Map<String, Object>> freed = [:]
+    Map<Construction, Map> freed = [:]
     for (removed in remaining) {
       for (c in toRemove) {
         if (contradict(this[removed], this[c])) {

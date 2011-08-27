@@ -36,7 +36,7 @@ class Preposition implements Interceptor {
     return caze
   }
 
-  ParsingState intercept(Map<Construction, Map<String, Object>> contribution, ParsingState state, Function2<Map<Construction, Map<String, Object>>, ParsingState, ParsingState> base) {
+  ParsingState intercept(Map<Construction, Map> contribution, ParsingState state, Function2<Map<Construction, Map>, ParsingState, ParsingState> base) {
     Update update = new Update([:])
     for (c in contribution.keySet()) {
       def replace = c in cases && !contribution[c].head

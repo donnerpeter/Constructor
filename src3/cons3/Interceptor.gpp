@@ -4,9 +4,9 @@ package cons3
  * @author peter
  */
 public interface Interceptor {
-  ParsingState intercept(Map<Construction, Map<String, Object>> contribution,
+  ParsingState intercept(Map<Construction, Map> contribution,
                          ParsingState state,
-                         Function2<Map<Construction, Map<String, Object>>, ParsingState, ParsingState> base)
+                         Function2<Map<Construction, Map>, ParsingState, ParsingState> base)
 
   Map<String, Object> getArgs(Construction construction, ParsingState state)
 }

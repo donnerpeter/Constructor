@@ -113,7 +113,7 @@ class ParsingState {
     Set<Construction> toRemove = cxts as LinkedHashSet
     toRemove.retainAll(constructions.keySet())
 
-    Map<Construction, Map<String, Object>> freed = freedByInhibition(toRemove)
+    Map<Construction, Map> freed = freedByInhibition(toRemove)
 
     def state = this
     for (c in toRemove) {
@@ -156,11 +156,11 @@ class ParsingState {
     return new LinkedHashSet<Construction>(among).findAll { contradict(constructions[it], constructions[c]) }
   }
 
-  Function2<Map<Construction, Map<String, Object>>, ParsingState, ParsingState> getApplier() {
+  Function2<Map<Construction, Map>, ParsingState, ParsingState> getApplier() {
     return nextApplier(null)
   }
 
-  private Function2<Map<Construction, Map<String, Object>>, ParsingState, ParsingState> nextApplier(Construction start) {
+  private Function2<Map<Construction, Map>, ParsingState, ParsingState> nextApplier(Construction start) {
     def cs = constructions.keyList()
     def index = cs.indexOf(start)
     if (index >= 0 || !start) {
@@ -177,11 +177,11 @@ class ParsingState {
     return { c, s -> s.baseApply(c) }
   }
 
-  ParsingState apply(Map<Construction, Map<String, Object>> constructions) {
+  ParsingState apply(Map<Construction, Map> constructions) {
     applier(constructions, this)
   }
 
-  private ParsingState baseApply(Map<Construction, Map<String, Object>> constructions) {
+  private ParsingState baseApply(Map<Construction, Map> constructions) {
     LinkedHashSet<Construction> fresh = []
     LinkedHashSet<Construction> old = []
     LinkedHashSet<Construction> replaced = []
@@ -255,7 +255,7 @@ class ParsingState {
 
     hanging = Util.intersect(hanging, result.active) + hanging
     result = result.clone(active: result.active.withoutAll(hanging))
-    Map<Construction, Map<String, Object>> plausible = [:]
+    Map<Construction, Map> plausible = [:]
     for (cxt1 in hanging) {
       def alt1 = result.doApply(cxt1)
       if (result.findContradictors(cxt1, result.constructions.keySet()).every { alt1.morePlausible(result.doApply(it)) }) {

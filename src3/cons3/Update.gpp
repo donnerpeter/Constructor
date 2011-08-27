@@ -4,9 +4,9 @@ package cons3
  * @author peter
  */
 class Update {
-  FLinkedMap<Construction, Map<String, Object>> map
+  FLinkedMap<Construction, Map> map
 
-  Update(Map<Construction, Map<String, Object>> map) {
+  Update(Map<Construction, Map> map) {
     this.map = map instanceof FLinkedMap ? map : FLinkedMap.fromMap(map)
   }
 

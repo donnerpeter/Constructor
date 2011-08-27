@@ -5,7 +5,7 @@ package cons3
  */
 class NumQuantifier implements Interceptor, RussianConstructions {
 
-  ParsingState intercept(Map<Construction, Map<String, Object>> contribution, ParsingState state, Function2<Map<Construction, Map<String, Object>>, ParsingState, ParsingState> base) {
+  ParsingState intercept(Map<Construction, Map> contribution, ParsingState state, Function2<Map<Construction, Map>, ParsingState, ParsingState> base) {
     def prev = ((ParsingState) state.constructions[numQuantifier].prev).applier
     if (!state.constructions[numQuantifier]?.noun && state.constructions[numQuantifier].num && gen in contribution.keySet()) {
       Update update = new Update([:])

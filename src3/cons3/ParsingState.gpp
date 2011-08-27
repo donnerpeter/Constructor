@@ -298,8 +298,8 @@ class ParsingState {
     return clone(constructions: FLinkedMap.emptyMap)
   }
 
-  ParsingState restore(FLinkedMap saved) {
-    clone(constructions: saved + this.constructions)
+  ParsingState restore(ParsingState saved) {
+    clone(constructions: saved.constructions + this.constructions)
   }
 
   private static boolean contradict(Map args1, Map args2) {

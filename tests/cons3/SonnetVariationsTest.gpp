@@ -462,6 +462,10 @@ F.number=true
     doTranslateTest 'Ребенок сломал себе 3 челюсти и 2 пальца',
                     'The child broke 3 jaws and 2 fingers'
   }
+  public void test13_2FingersAndAJaw() throws Exception {
+    doTranslateTest 'Ребенок сломал себе 2 пальца и челюсть',
+                    'The child broke 2 fingers and his jaw'
+  }
   public void ______test13_() throws Exception {
     doTranslateTest 'Ребенок сломал себе обе челюсти и один палец',
                     ''

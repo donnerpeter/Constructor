@@ -91,7 +91,7 @@ class Frame {
         return 'true'
       }
 
-      if (type in ['THING', 'HAMMER', 'BENCH']) return 'false'
+      if (type in ['THING', 'HAMMER', 'BENCH', 'FINGER']) return 'false'
       if (type == 'CASHIER') {
         def shop = chart.frames(situation).find { it.type == 'SHOP' }
         return shop && chart.earlier(shop, 'type', this, 'type') ? 'false' : 'true'

@@ -270,6 +270,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "носом": return noun(state, instr, 'NOSE')
       case "пальцев": return noun(state, gen, 'FINGERS')
       case "пальца": return noun(state, gen, 'FINGERS')
+      case "палец": return noun(state, acc, 'FINGER')
       case "челюсти":
         Variable noun = state[gen]?.noun && !state[gen].hasNoun ? state[gen].noun : new Variable()
         return conjWrap(state, (gen):[noun: noun, hasNoun:true], (acc):[noun:noun, hasNoun:true], (dativePart):[acc: noun], (typeCxt(noun, 'JAWS')):[var:noun], (numQuantifier):[noun:noun])
@@ -277,26 +278,12 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "челюсть":
         def noun = new Variable()
         return conjWrap(state, (acc):[noun: noun, hasNoun:true], (dativePart):[acc: noun], (typeCxt(noun, 'JAW')):[var:noun])
-      case "семь":
-        def noun = new Variable()
-        def num = new Variable()
-        return state.inhibit(numQuantifier).
-                apply((nom):[noun: noun, xor:t.ac], (acc):[noun: noun, xor:t.ac], (typeCxt(noun, '7')):[xor:t.bd, var:noun],
-                      (numQuantifier):[num: num, xor:t.b, interceptor:new NumQuantifier(), prev:state], (typeCxt(num, '7')):[xor:t.cd, var:num])
+      case "семь": return numeral(state, t, '7')
       case "семи": return noun(state, gen, '7')
-      case "восемь":
-        def noun = new Variable()
-        def num = new Variable()
-        return state.inhibit(numQuantifier).
-                apply((nom):[noun: noun, xor:t.ae], (acc):[noun: noun, xor:t.ae], (typeCxt(noun, '8')):[xor:t.bd, var:noun],
-                      (numQuantifier):[num: num, xor:t.be, interceptor:new NumQuantifier(), prev:state], (typeCxt(num, '8')):[xor:t.d, var:num])
+      case "восемь": return numeral(state, t, '8')
       case "восьми": return noun(state, gen, '8')
-      case "два":
-        def noun = new Variable()
-        def num = new Variable()
-        return state.inhibit(numQuantifier).
-                apply((nom):[noun: noun, xor:t.ae], (acc):[noun: noun, xor:t.ae], (typeCxt(noun, '2')):[xor:t.bd, var:noun],
-                      (numQuantifier):[num: num, xor:t.be, interceptor:new NumQuantifier(), prev:state], (typeCxt(num, '2')):[xor:t.d, var:num])
+      case "два": return numeral(state, t, '2')
+      case "один": return numeral(state, t, '1')
       case "порядок":
         def noun = state.newVariable()
         state = state.apply(acc, noun: noun, hasNoun:true) { ParsingState it ->it.assign(noun, 'type', 'ORDER') }
@@ -627,6 +614,14 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return noun(state, gen, '5')
     }
     return state
+  }
+
+  ParsingState numeral(ParsingState state, Tokens t, String number) {
+    def noun = new Variable()
+    def num = new Variable()
+    return state.inhibit(numQuantifier).
+            apply((nom): [noun: noun, xor: t.ae], (acc): [noun: noun, xor: t.ae], (typeCxt(noun, number)): [xor: t.bd, var: noun],
+                  (numQuantifier): [num: num, xor: t.be, interceptor: new NumQuantifier(), prev: state, one:(number == '1')], (typeCxt(num, number)): [xor: t.d, var: num])
   }
 
   private Construction numberTypeCxt(Variable var, String word) {

@@ -721,16 +721,9 @@ class EnglishGenerator {
       if (n.f('quantifier')?.type == 'BOTH') {
         out 'both of'
       }
-      else if (n.f('quantifier')?.type == '8') {
-        out(n.f('quantifier').s('number') == 'true' ? '8' : 'eight')
-        return
-      }
-      else if (n.f('quantifier')?.type == '2') {
-        out(n.f('quantifier').s('number') == 'true' ? '2' : 'two')
-        return
-      }
-      else if (n.f('quantifier')?.type == '3') {
-        out(n.f('quantifier').s('number') == 'true' ? '3' : 'three')
+      else if (n.f('quantifier')?.type) {
+        def quantifier = n.f('quantifier')
+        out(quantifier.s('number') == 'true' ? quantifier.type : noun(quantifier))
         return
       }
 
@@ -808,10 +801,15 @@ class EnglishGenerator {
       case 'NOSE': return 'nose'
       case 'JAW': return 'jaw'
       case 'JAWS': return 'jaws'
+      case '1': return 'one'
+      case '2': return 'two'
+      case '3': return 'three'
+      case '4': return 'four'
       case '5': return 'five'
       case '6': return 'six'
       case '7': return 'seven'
       case '8': return 'eight'
+      case '9': return 'nine'
       case 'JOY': return 'joy'
       case 'RELIEF': return 'relief'
       case 'WORDS': return 'words'
@@ -825,6 +823,7 @@ class EnglishGenerator {
       case 'CHILD': return 'child'
       case 'BENCH': return 'bench'
       case 'FINGERS': return 'fingers'
+      case 'FINGER': return 'finger'
       default: return type
     }
 

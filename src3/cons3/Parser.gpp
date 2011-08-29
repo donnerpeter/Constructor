@@ -636,9 +636,14 @@ class Parser { //todo alex implements cons3.RussianConstructions
   static boolean areSimilar(Map<Construction, Map> c1, Map<Construction, Map> c2) {
     def common = Util.intersect(c1.keySet(), c2.keySet())
     common = Util.intersect(common, importantForSimilarity)
-    common = common.findAll { (c1[it].keySet() - 'init' - 'xor') == (c2[it].keySet() - 'init' - 'xor') }
+    def condition = { Construction cxt -> (c1[cxt].keySet() - 'init' - 'xor') == (c2[cxt].keySet() - 'init' - 'xor') }
+    common = common.findAll(condition)
 
     if (common.size() == 1 && possessive in common && c1[possessive].head) {
+      return false
+    }
+
+    if (numQuantifier in c1 && numQuantifier in c2 && !condition(numQuantifier)) {
       return false
     }
 

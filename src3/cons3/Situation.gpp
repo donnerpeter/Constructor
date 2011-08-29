@@ -46,6 +46,10 @@ class Variable {
     id = ((this instanceof Situation) ? 'Sit' : 'Var') + counter++
   }
 
+  Variable(String comment) {
+    id = "Var${counter++}[$comment]"
+  }
+
   String toString() {
     return "$id"
   }

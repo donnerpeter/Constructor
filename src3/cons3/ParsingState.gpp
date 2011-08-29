@@ -213,7 +213,7 @@ class ParsingState {
     for (cxt in replaced) {
       result = result.removeConstruction(cxt)
     }
-    for (cxt in constructions.keySet()) {
+    for (cxt in (constructions.keySet() as List<Construction>).reverse()) {
       result = result.addCtx(constructions[cxt], cxt)
     }
 

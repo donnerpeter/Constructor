@@ -70,16 +70,6 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
     return update.addCxt(newArgs, cxt)
   }
 
-  Construction seqStart = cxt('seqStart') { ParsingState st, Map args ->
-    st = st.assign(args.multi, 'member', args.first)
-    if (args.conj) {
-      st = st.assign(args.multi, 'conj', args.conj)
-    }
-    if (args.distinguish) {
-      st = st.assign(args.second, 'distinguished_in', args.multi)
-    }
-    st.assign(args.multi, 'member', args.second).satisfied(seqStart)
-  }
 
   private Update doMerge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, String prop, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
     Variable first = (Variable) oldArgs[prop]
@@ -88,25 +78,39 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
     }
 
     def second = newArgs[prop]
-    Variable multi = seqs[new Pair(first, second)] ?: new Variable()
+    Variable multi = seqs[new Pair(first, second)] ?: new Variable("$first&$second")
     seqs[new Pair(first, second)] = multi
+
+    Reference<Construction> seqStart = []
+    seqStart.set(Construction.cxt('seqStart') { ParsingState st, Map args ->
+      st = st.assign(args.multi, 'member', args.first)
+      if (args.conj) {
+        st = st.assign(args.multi, 'conj', args.conj)
+      }
+      if (args.distinguish) {
+        st = st.assign(args.second, 'distinguished_in', args.multi)
+      }
+      st.assign(args.multi, 'member', args.second).satisfied(seqStart.get())
+    })
+    
     return update.
-            addCxt(seqStart, multi:multi, first:first, second:second, conj:conj, distinguish:state[cxt]?.repeated).
+            addCxt(seqStart.get(), multi:multi, first:first, second:second, conj:conj, distinguish:state[cxt]?.repeated).
             addCxt(oldArgs + [(prop): multi, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt, ParsingState.mergeInits((Closure)oldArgs.init, (Closure)newArgs.init))
   }
 
-  static Construction seqNext = cxt('seqNext') { ParsingState st, Map args ->
-    if (args.conj) {
-      st = st.assign(args.multi, 'conj', args.conj)
-    }
-    st.assign(args.multi, 'member', args.next).satisfied(seqNext)
-  }
 
   static Update joinSeq(Map newArgs, ParsingState state, Construction cxt, Variable seqVar, Map oldArgs, String property, Update update) {
+    Reference<Construction> seqNext = []
+    seqNext.set(Construction.cxt('seqNext') { ParsingState st, Map args ->
+      if (args.conj) {
+        st = st.assign(args.multi, 'conj', args.conj)
+      }
+      st.assign(args.multi, 'member', args.next).satisfied(seqNext.get())
+    })
     def newMember = newArgs[property]
     return update.
             addCxt(oldArgs + [(property): seqVar, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt, ParsingState.mergeInits((Closure)oldArgs.init, (Closure)newArgs.init)).
-            addCxt(seqNext, multi:seqVar, next:newMember, conj:state[seq]?.conj)
+            addCxt(seqNext.get(), multi:seqVar, next:newMember, conj:state[seq]?.conj)
   }
 
 }

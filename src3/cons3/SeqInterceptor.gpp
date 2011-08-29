@@ -32,7 +32,9 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       }
 
       def modernHistory = state.history
-      state = state.clearConstructions().restore(history[similar].before)
+      ParsingState rollback = history[similar].before
+      rollback = rollback[numQuantifier]?.prev ?: rollback //todo a more generic way of finding a phrase start
+      state = state.clearConstructions().restore(rollback)
 
       def lastConj = modernHistory.findIndexOf { Contribution it -> it.apps[seq] != null }
       if (lastConj) {

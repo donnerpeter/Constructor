@@ -482,9 +482,9 @@ F.number=true
     doTranslateTest 'Кассирша сломала себе 8 пальцев',
                     ''
   }
-  public void __________test13_() throws Exception {
+  public void test13_CashierFingers() throws Exception {
     doTranslateTest 'Кассир сломал себе 2 пальца',
-                    ''
+                    'The cashier broke 2 of his fingers'
   }
 
 

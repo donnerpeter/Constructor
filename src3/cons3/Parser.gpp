@@ -219,7 +219,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = state.assign(situation, 'elaboration', elaboration)
         return state.withSituation(elaboration)
       case "я": return noun(state, nom, 'ME')
-      case "мне": return noun(state, dat, 'ME')
       case "мы": return noun(state, nom, 'WE')
       case "нам": return noun(state, dat, 'WE')
       case "мое":
@@ -283,6 +282,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "восемь": return numeral(state, t, '8')
       case "восьми": return noun(state, gen, '8')
       case "два": return numeral(state, t, '2')
+      case "три": return numeral(state, t, '3')
       case "один": return numeral(state, t, '1')
       case "порядок":
         def noun = state.newVariable()
@@ -585,6 +585,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case 'себе':
         def noun = state[nom]?.noun ?: new Variable()
         return state.apply((nom):[noun:noun], (dat):[noun:noun], (dativePart):[dat:noun])
+      case 'мне':
+        def noun = new Variable()
+        return state.assign(noun, 'type', 'ME').apply((dat):[noun:noun], (dativePart):[dat:noun])
       case 'по-моему':
         def opinion = new Variable()
         def me = new Variable()

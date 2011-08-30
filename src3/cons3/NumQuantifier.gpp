@@ -13,6 +13,9 @@ class NumQuantifier implements Interceptor, RussianConstructions {
       Update update = new Update([:])
       for (c in contribution.keySet()) {
         update = update.addCxt(contribution[c], c == gen ? acc : c)
+        if (c == gen) {
+          update = update.addCxt(dativePart, acc:contribution[c].noun)
+        }
       }
       return prev(update.map.reverse(), state)
     }

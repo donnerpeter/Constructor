@@ -718,19 +718,28 @@ class EnglishGenerator {
         return
       }
 
+      boolean hasQuantifier = false
       if (n.f('quantifier')?.type == 'BOTH') {
-        out 'both of'
+        out 'both'
+        hasQuantifier = true
       }
       else if (n.f('quantifier')?.type) {
         def quantifier = n.f('quantifier')
         out(quantifier.s('number') == 'true' ? quantifier.type : noun(quantifier))
-        return
+        hasQuantifier = true
       }
 
-      if (n.type in ['AMAZE', 'PREDICAMENT', 'NEIGHBOURS', 'MOUTH', 'NOSE', 'JAW', 'JAWS'] && n.f('arg1')) {
+      if (n.type in ['AMAZE', 'PREDICAMENT', 'NEIGHBOURS', 'MOUTH', 'NOSE', 'JAW', 'JAWS', 'FINGERS'] && n.f('arg1') && !skipAlreadyDefinedPossessive(n, n.f('arg1'))) {
+        if (hasQuantifier) {
+          out 'of'
+        }
         possessive(n.f('arg1'), n)
         return
       }
+      if (hasQuantifier) {
+        return
+      }
+
       if (n.type in ['OPINION'] && n.f('arg1')?.type in ['ME', 'THEY']) {
         possessive(n.f('arg1'), n)
         return
@@ -779,6 +788,19 @@ class EnglishGenerator {
       else {
         np(poss, false, false)
         out "'s"
+      }
+    }
+
+    boolean skipAlreadyDefinedPossessive(Frame noun, Frame poss) {
+      return noun.chart.frames(noun.situation).any {
+        def i = it.flatten().indexOf(noun)
+        if (i > 0) {
+          List<Frame> frames = it.flatten()[0..<i] //todo alex infer
+          if (frames.any { it.f('arg1') == poss }) {
+            return true
+          }
+        }
+        return false
       }
     }
 

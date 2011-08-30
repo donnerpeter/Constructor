@@ -432,11 +432,11 @@ F.number=true
   }
   public void test13_EightFingers() throws Exception {
     doTranslateTest 'Ребенок сломал себе восемь пальцев',
-                    'The child broke eight fingers'
+                    'The child broke eight of his fingers'
   }
   public void test13_8Fingers() throws Exception {
     doTranslateTest 'Ребенок сломал себе 8 пальцев',
-                    'The child broke 8 fingers'
+                    'The child broke 8 of his fingers'
   }
   public void test13_BothJawsAndEightFingers() throws Exception {
     doTranslateTest 'Ребенок сломал себе обе челюсти и восемь пальцев',
@@ -452,31 +452,31 @@ F.number=true
   }
   public void test13_ThreeJaws() throws Exception {
     doTranslateTest 'Ребенок сломал себе 3 челюсти',
-                    'The child broke 3 jaws'
+                    'The child broke 3 of his jaws'
   }
   public void test13_2Fingers() throws Exception {
     doTranslateTest 'Ребенок сломал себе 2 пальца',
-                    'The child broke 2 fingers'
+                    'The child broke 2 of his fingers'
   }
   public void test13_ThreeJawsAnd2Fingers() throws Exception {
     doTranslateTest 'Ребенок сломал себе 3 челюсти и 2 пальца',
-                    'The child broke 3 jaws and 2 fingers'
+                    'The child broke 3 of his jaws and 2 fingers'
   }
   public void test13_2FingersAndAJaw() throws Exception {
     doTranslateTest 'Ребенок сломал себе 2 пальца и челюсть',
-                    'The child broke 2 fingers and his jaw'
+                    'The child broke 2 of his fingers and a jaw'
   }
-  public void test13__BothJawsAndOneFinger() throws Exception {
+  public void test13_BothJawsAndOneFinger() throws Exception {
     doTranslateTest 'Ребенок сломал себе обе челюсти и один палец',
                     'The child broke both of his jaws and one finger'
   }
-  public void test13__BothJawsAndFinger() throws Exception {
+  public void test13_BothJawsAndFinger() throws Exception {
     doTranslateTest 'Ребенок сломал себе обе челюсти и палец',
                     'The child broke both of his jaws and a finger'
   }
-  public void ________test13_() throws Exception {
+  public void test13_MeFingers() throws Exception {
     doTranslateTest 'Ребенок сломал мне три пальца',
-                    ''
+                    'The child broke three of my fingers'
   }
   public void _________test13_() throws Exception {
     doTranslateTest 'Кассирша сломала себе 8 пальцев',

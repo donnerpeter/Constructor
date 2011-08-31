@@ -139,10 +139,9 @@ F.number=true
                     "Moving her nose slightly back and forth, the cashier said:"
   }
 
-  //todo
-  public void _test6_Jaw() throws Exception {
+  public void test6_MaleCashier() throws Exception {
     doTranslateTest 'Кассир, слегка подвигав носом, сказал:',
-                    "Moving his jaw slightly back and forth, the cashier said:"
+                    "Moving his nose slightly back and forth, the cashier said:"
   }
   public void test6_Jaw() throws Exception {
     doTranslateTest 'Кассирша, слегка подвигав челюстью, сказала:',

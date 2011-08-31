@@ -775,17 +775,16 @@ class EnglishGenerator {
         return
       }
 
-      Frame verb = noun.chart.frames(noun.situation).find { noun in (it.f('arg2')?.flatten() ?: []) }
-      if (verb && poss == verb.f('arg1')) {
-        out(poss.s('sex') == 'female' ? 'her' : 'his')
-        return
-      }
-
       if (poss.type == 'ME') out 'my'
       else if (poss.type == 'WE') out 'our'
       else if (poss.type == 'THEY') out 'their'
       else if (poss.type == 'SHE') out 'her'
       else {
+        if (noun.chart.frames(noun.situation).find { poss == it.f('arg1') }) {
+          out(poss.s('sex') == 'female' ? 'her' : 'his')
+          return
+        }
+
         np(poss, false, false)
         out "'s"
       }

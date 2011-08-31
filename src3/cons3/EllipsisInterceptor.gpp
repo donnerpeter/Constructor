@@ -13,70 +13,70 @@ class EllipsisInterceptor implements Interceptor, RussianConstructions {
   }
 
   ParsingState intercept(Map<Construction, Map> constructions, ParsingState state, Function2<Map<Construction, Map>, ParsingState, ParsingState> base) {
-    Update update = new Update(FLinkedMap.emptyMap)
-    for (cxt in constructions.keySet()) {
-      update = update.addCxt(constructions[cxt], cxt)
-    }
+    Update update = new Update(constructions)
 
     FList<Contribution> old = prevHistory.history
-    def modern = beforeDash.history[0..beforeDash.history.size - old.size]
-    def lcs = Util.lcs(old, modern, { Contribution a, Contribution b -> Parser.areSimilar(a.apps, b.apps) } as Function2)
-    if (lcs) {
-      Map<Variable, Variable> mapping = [:]
-      lcs.each { Contribution contribution ->
-        contribution.apps.values().each { val ->
-          if (val instanceof Variable && !mapping[(Variable)val]) { //todo alex cast
-            mapping[(Variable)val] = new Variable()
-          }
+    def endPrecedent = old.findIndexOf { Contribution it -> Parser.areSimilar(it.apps, update.map) }
+    if (endPrecedent) {
+      List<Contribution> beforeGap = beforeDash.history[0..beforeDash.history.size - old.size]
+      def lcs = Util.lcs(old.subList(endPrecedent + 1), beforeGap) { a, b -> Parser.areSimilar(a.apps, b.apps) }
+      if (lcs) {
+        def startPrecedent = old.indexOf(lcs[0])
+        FList<Contribution> precedent = FList.fromList(old[0..startPrecedent-1])
+
+        Map<Variable, Variable> mapping = buildMapping(lcs, precedent, update)
+
+        def ellipsis = new Variable()
+        state = state.satisfied(clauseEllipsis).assign(ellipsis, 'type', 'ellipsis').startMeta(ellipsis)
+
+        for (i in 0..<precedent.size()) {
+          if (i == precedent.size() - endPrecedent - 1) continue
+
+          Contribution oldContribution = precedent[i]
+          //todo a normal condition for ellipsis participation
+          if (!oldContribution.apps.keySet().intersect(Parser.importantForSimilarity - [parenthetical])) continue
+
+          state = base(applyMapping(oldContribution, mapping), state)
         }
-      }
-      def commonStart = old.indexOf(lcs[0])
-      if (commonStart) {
-        List<Contribution> prevConstructions = FList.fromList(old[0..commonStart-1])
-        def index = prevConstructions.findIndexOf { Contribution it -> Parser.areSimilar(it.apps, update.map) }
-        if (index >= 0) {
-          state = state.satisfied(clauseEllipsis)
-          prevConstructions.each { Contribution oldContribution ->
-            oldContribution.apps.each { cxt, upd ->
-              upd.each { k, v ->
-                if (v instanceof Variable) {
-                  def nv = update.map[cxt]?.get(k) ?: mapping.get(v)
-                  if (!nv) {
-                    nv = new Variable()
-                  }
-                  mapping[v] = nv
-                }
-              }
-            }
-          }
 
-          def ellipsis = new Variable()
-          state = state.assign(ellipsis, 'type', 'ellipsis').startMeta(ellipsis)
-
-          for (i in 0..<prevConstructions.size()) {
-            if (i == index) continue
-
-            Contribution oldContribution = prevConstructions[i]
-            //todo a normal condition for ellipsis participation
-            if (!oldContribution.apps.keySet().intersect(Parser.importantForSimilarity - [parenthetical])) continue
-
-            FLinkedMap<Construction, Map> newContribution = FLinkedMap.emptyMap
-            for (cxt in oldContribution.apps.keySet()) {
-              def newArgs = [:]
-              oldContribution.apps[cxt].each { k, v ->
-                newArgs[k] = v instanceof Variable ? mapping[(Variable) v] : v
-              }
-              newContribution = newContribution.putValue(cxt, newArgs)
-            }
-            state = base(newContribution.reverse(), state)
-          }
-
-          state = state.finishMeta(ellipsis)
-        }
+        state = state.finishMeta(ellipsis)
       }
     }
 
     return base(constructions, state)
+  }
+
+  FLinkedMap<Construction, Map> applyMapping(Contribution oldContribution, Map<Variable, Variable> mapping) {
+    FLinkedMap<Construction, Map> newContribution = FLinkedMap.emptyMap
+    for (cxt in oldContribution.apps.keySet()) {
+      def newArgs = [:]
+      oldContribution.apps[cxt].each { k, v ->
+        newArgs[k] = v instanceof Variable ? mapping[(Variable) v] : v
+      }
+      newContribution = newContribution.putValue(cxt, newArgs)
+    }
+    return newContribution.reverse()
+  }
+
+  Map<Variable, Variable> buildMapping(List<Contribution> lcs, FList<Contribution> template, Update update) {
+    Map<Variable, Variable> mapping = [:]
+    lcs.each { contribution ->
+      contribution.apps.values().each { val ->
+        if (val instanceof Variable && !mapping[(Variable) val]) { //todo alex cast
+          mapping[(Variable) val] = new Variable()
+        }
+      }
+    }
+    template.each { Contribution oldContribution ->
+      oldContribution.apps.each { cxt, upd ->
+        upd.each { k, v ->
+          if (v instanceof Variable) {
+            mapping[v] = update.map[cxt]?.get(k) ?: mapping[v] ?: new Variable()
+          }
+        }
+      }
+    }
+    return mapping
   }
 
   Map<String, Object> getArgs(Construction construction, ParsingState state) {

@@ -22,15 +22,22 @@ interface RussianConstructions {
     return state
   }
   Construction gen = cxt('gen') { ParsingState state, Map args ->
-    def type = ((Variable) args.head)?.frame(state.chart)?.type
-    if (type && args.noun) {
+    if (args.head && args.noun) {
       if (((Variable) args.head)?.frame(state.chart)?.type == 'BOTH') {
         state = state.assign(args.noun, 'quantifier', args.head)
       } else {
-        state = state.assign(args.head,
-                             type == 'LACK' ? 'arg2' :
-                               'arg1', args.noun)
-
+        Frame head = ((Variable) args.head).frame(state.chart)
+        List<Variable> heads = head.flatten().collect {it.var}
+        int i = 0
+        for (h in heads) {
+          def hf = h.frame(state.chart)
+          def hType = hf.type
+          def attr = hType == 'LACK' ? 'arg2' : hType == 'WORDS' ? 'author' : hType in ['OPINION', 'CORNER'] ? 'arg1' : 'criterion'
+          if (i == heads.size() - 1 || !hf.f(attr)) {
+            state = state.assign(h, attr, args.noun)
+          }
+          i++
+        }
       }
     }
     return state
@@ -89,23 +96,6 @@ interface RussianConstructions {
   }
   Construction oPrep = cxt('oPrep') { ParsingState state, Map args ->
     args.noun ? state.assign(args.head, 'topic', args.noun) : state
-  }
-  Construction nounGen = cxt('nounGen') { ParsingState state, Map args -> //todo nounGen -> gen
-    if (args.noun && args.head) {
-      Frame head = ((Variable) args.head).frame(state.chart)
-      List<Variable> heads = head.flatten().collect {it.var}
-      int i = 0
-      for (h in heads) {
-        def hf = h.frame(state.chart)
-        def hType = hf.type
-        def attr = hType == 'WORDS' ? 'author' : hType == 'OPINION' ? 'arg1' : 'criterion'
-        if (i == heads.size() - 1 || !hf.f(attr)) {
-          state = state.assign(h, attr, args.noun)
-        }
-        i++
-      }
-    }
-    return state
   }
   Construction kDat = cxt('kDat') { ParsingState state, Map args ->
     args.noun && args.head ? state.assign(args.head, 'goal', args.noun) : state

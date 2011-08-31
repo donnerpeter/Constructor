@@ -7,7 +7,7 @@ import static cons3.RussianConstructions.*
  * @author peter
  */
 class Parser { //todo alex implements cons3.RussianConstructions
-  public static final ArrayList<Construction> importantForSimilarity = [nom, acc, gen, dat, instr, prep, possessive, parenthetical, nounGen, comeScalarly, poDat]
+  public static final ArrayList<Construction> importantForSimilarity = [nom, acc, gen, dat, instr, prep, possessive, parenthetical, gen, comeScalarly, poDat]
   String log = ""
 
   Chart parse(String text) {
@@ -176,13 +176,13 @@ class Parser { //todo alex implements cons3.RussianConstructions
         }
         def noun = state[poDat]?.noun && !state[poDat]?.hasNoun ? state[poDat].noun : state.newVariable()
         state = state.assign(noun, 'type', 'OPINION')
-        return conjWrap(state, (nounGen):[head:noun], (possessive):[head:noun], (poDat):[noun:noun, hasNoun:true],
+        return conjWrap(state, (gen):[head:noun], (possessive):[head:noun], (poDat):[noun:noun, hasNoun:true],
                            (parenthetical):[:]) // todo common constructions in по-моему & по моему мнению
       case "словам":
         def noun = state[poDat]?.noun ?: state.newVariable()
         def init = {ParsingState it -> it.assign(noun, 'type', 'WORDS') }
         state = state.apply((poDat):[noun:noun, hasNoun:true, init:init],
-                            (nounGen):[head:noun, init:init],
+                            (gen):[head:noun, init:init],
                             (possessive):[head:noun, init:init])
         return state
       case "счастию":
@@ -197,7 +197,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def noun = state.newVariable()
         return state.apply((preposition):[prep:'с', interceptor:new Preposition(state)], (sInstr):[noun:noun, xor:t.b], (sGen):[noun:noun, xor:t.b])
       case 'по':
-        return state.inhibit(nounGen).apply((preposition):[prep:'по', interceptor:new Preposition(state)], (poDat):[noun:new Variable(), repeated:(state[seq] != null)])
+        return state.inhibit(gen).apply((preposition):[prep:'по', interceptor:new Preposition(state)], (poDat):[noun:new Variable(), repeated:(state[seq] != null)])
       case 'о': return state.apply((preposition):[prep:'о', interceptor:new Preposition(state)], (oPrep):[noun:new Variable()])
       case 'к': return state.apply((preposition):[prep:'к', interceptor:new Preposition(state)], (kDat):[noun:new Variable()])
       case 'до':
@@ -257,9 +257,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "кассир": return noun(state, nom) { ParsingState st, Variable n -> st.assign(n, 'type', 'CASHIER').assign(n, 'sex', 'male') }
       case "кассиршу": return noun(state, acc, 'CASHIER')
       case "кассирша": return noun(state, nom) { ParsingState st, Variable n -> st.assign(n, 'type', 'CASHIER').assign(n, 'sex', 'female') }
-      case "кассирши": return noun(state, nounGen, 'CASHIER')
-      case "одних": return noun(state, nounGen, 'SOME')
-      case "других": return noun(state, nounGen, 'OTHERS')
+      case "кассирши": return noun(state, gen, 'CASHIER')
+      case "одних": return noun(state, gen, 'SOME')
+      case "других": return noun(state, gen, 'OTHERS')
       case "деревья": return noun(state, acc, 'TREES')
       case "деньги": return noun(state, acc, 'MONEY')
       case "ее":
@@ -288,19 +288,19 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "порядок":
         def noun = state.newVariable()
         state = state.apply(acc, noun: noun, hasNoun:true) { ParsingState it ->it.assign(noun, 'type', 'ORDER') }
-        return state.apply(nounGen, head:noun) //todo one noun frame - several cases
+        return state.apply(gen, head:noun) //todo one noun frame - several cases
       case "слова":
         def noun = state[acc]?.hasNoun ? state.newVariable() : state[acc]?.noun ?: state.newVariable()
         def init = {ParsingState it -> it.assign(noun, 'type', 'WORDS') }
         Update update = new Update((acc):[noun:noun, hasNoun:true, init:init, xor:t.a],
-                                   (nounGen):[head:noun, init:init],
+                                   (gen):[head:noun, init:init],
                                    (possessive):[head:noun, init:init])
         if (!state[preposition]) {
           update = update.addCxt(nom, noun:noun, hasNoun:true, init:init, xor:t.a)
         }
         state = update.apply(state)
         return state
-      case "счета": return noun(state, nounGen, 'COUNTING')
+      case "счета": return noun(state, gen, 'COUNTING')
       case "счете": return noun(state, prep, 'COUNTING')
       case "работы":
         state = noun(state, gen, 'WORK')

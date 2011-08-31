@@ -545,24 +545,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
           state = state.clearConstructions().apply(questionVariants, questioned:state[question].questioned)
         }
         if (state[prevHistory]) {
-          def mapping = [:]
-          FList<Contribution> old = ((ParsingState) state[prevHistory].history).history
-          def modern = state.history[0..state.history.size - old.size]
-          def lcs = Util.lcs(old, modern, { Contribution a, Contribution b -> areSimilar(a.apps, b.apps) } as Function2)
-          if (lcs) {
-            lcs.each { Contribution contribution ->
-              contribution.apps.values().each { val ->
-                if (val instanceof Variable && !mapping[val]) {
-                  mapping[val] = new Variable()
-                }
-              }
-            }
-            def commonStart = old.indexOf(lcs[0])
-            if (commonStart) {
-              FList<Contribution> remaining = FList.fromList(old[0..commonStart-1])
-              state = state.clearConstructions().apply(clauseEllipsis, remaining:remaining, mapping: mapping, interceptor:new EllipsisInterceptor())
-            }
-          }
+          state = state.clearConstructions().apply(clauseEllipsis, interceptor:new EllipsisInterceptor((ParsingState) state[prevHistory].history, state))
         }
         return state
       case ".":

@@ -225,6 +225,7 @@ E.name=бассейная
   public void testParse6() throws Exception {
     doParseTest "Кассирша грустно улыбнулась, вынула изо рта маленький молоточек и, слегка подвигав носом, сказала:", """
 A.type=CASHIER
+A.sex=female
 B.type=SMILE
 #1.time=PAST
 B.arg1=A
@@ -279,6 +280,7 @@ B.anchor=C
     doParseTest """Кассирша грустно улыбнулась, вынула изо рта маленький молоточек и, слегка подвигав носом, сказала:
 - По-моему, семь идет после восьми в том случае, когда восемь идет после семи""", """
 A.type=CASHIER
+A.sex=female
 B.type=SMILE
 #1.time=PAST
 B.arg1=A

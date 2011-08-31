@@ -777,7 +777,7 @@ class EnglishGenerator {
 
       Frame verb = noun.chart.frames(noun.situation).find { noun in (it.f('arg2')?.flatten() ?: []) }
       if (verb && poss == verb.f('arg1')) {
-        out 'his'
+        out(poss.s('sex') == 'female' ? 'her' : 'his')
         return
       }
 

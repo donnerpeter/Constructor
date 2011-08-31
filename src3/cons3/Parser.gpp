@@ -254,9 +254,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return conjWrap(state, (possessive):[possessor:they, init:init, xor:t.a], (acc):[noun:they, hasNoun:true, init:init, xor:t.a])
       case "они": return pronoun(state, nom, 'THEY')
       case "соседям": return noun(state, dat, 'NEIGHBOURS')
-      case "кассир": return noun(state, nom, 'CASHIER')
+      case "кассир": return noun(state, nom) { ParsingState st, Variable n -> st.assign(n, 'type', 'CASHIER').assign(n, 'sex', 'male') }
       case "кассиршу": return noun(state, acc, 'CASHIER')
-      case "кассирша": return noun(state, nom, 'CASHIER')
+      case "кассирша": return noun(state, nom) { ParsingState st, Variable n -> st.assign(n, 'type', 'CASHIER').assign(n, 'sex', 'female') }
       case "кассирши": return noun(state, nounGen, 'CASHIER')
       case "одних": return noun(state, nounGen, 'SOME')
       case "других": return noun(state, nounGen, 'OTHERS')
@@ -375,6 +375,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = state.assign(verb, 'type', 'FALL').assign(situation, 'time', 'PAST')
         return conjWrap(state, (nom):[head:verb], (sGen):[head:verb], (poDat):[head:verb])
       case 'сломал':
+      case 'сломала':
         def verb = state.newVariable()
         state = state.assign(verb, 'type', 'BREAK').assign(situation, 'time', 'PAST')
         return conjWrap(state, (nom):[head:verb], (acc):[head:verb], (dat):[head:verb], (dativePart):[head:verb])

@@ -23,6 +23,12 @@ class SonnetVariationsTest extends TestCase {
                     "Great was their amazement"
   }
 
+  public void _test1_Question() throws Exception {
+    doTranslateTest "Что идёт раньше - 7 или 8?",
+                    "What comes first - 7 or 8?"
+
+  }
+
   public void test1_789() throws Exception {
     doParseTest "Я забыл, что идёт раньше - 7, 8 или 9", """
 A.type=ME

@@ -325,26 +325,26 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "не":
         return state.apply(negation)
       case "забыл":
-        if (state[nom]) {
-          Variable verb = state[nom].head ?: state.newVariable()
-          state = state.assign(verb, 'type', 'FORGET').assign(situation, 'time', 'PAST')
-          return state.apply(question, head:verb).apply(nom, head:verb).apply(adverb, head:verb)
-        }
-        return state
+      case "забыла":
       case "забыли":
-        Variable verb = state.newVariable()
+        Variable verb = state[nom]?.head ?: state.newVariable()
         state = state.assign(verb, 'type', 'FORGET').assign(situation, 'time', 'PAST')
-        def subj = state.newVariable()
-        return state.apply(advObj, head:verb).apply(acc, head:verb).apply(nom, noun:subj, head:verb) { ParsingState it ->it.assign(subj, 'type', 'THEY') }
-      case "помнят":
-        Variable verb = state.newVariable()
-        state = state.assign(verb, 'type', 'REMEMBER').assign(situation, 'time', 'PRESENT')
-        state = state.apply(acc, head:verb)
+        state = state.apply((advObj):[head:verb], (acc):[head:verb]) //todo the order shouldn't matter for verb arguments
         if (!state[nom]) {
           def subj = state.newVariable()
-          state = state.apply(nom, noun:subj) { ParsingState it ->it.assign(subj, 'type', 'THEY') }
+          state = state.apply(nom, noun:subj) { ParsingState it ->it.assign(subj, 'type', word == 'забыли' ? 'THEY' : 'HE') }
         }
-        return state.apply(nom, head:verb)
+        return state.apply((nom):[head:verb], (adverb):[head:verb], (question):[head:verb])
+      case "помнят":
+      case "помнит":
+        Variable verb = state.newVariable()
+        state = state.assign(verb, 'type', 'REMEMBER').assign(situation, 'time', 'PRESENT')
+        state = state.apply((acc):[head:verb])
+        if (!state[nom]) {
+          def subj = state.newVariable()
+          state = state.apply(nom, noun:subj) { ParsingState it ->it.assign(subj, 'type', word == 'помнят' ? 'THEY' : 'HE') }
+        }
+        return state.apply((nom):[head:verb])
       case "могут":
         def verb = state.newVariable()
         def also = state[also]

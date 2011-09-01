@@ -57,6 +57,12 @@ F.number=true
   public void test4_123TheyRemember() throws Exception {
     doTranslateTest "1, 2 и 3 они помнят", "They remember 1, 2 and 3"
   }
+  public void test4_HeRemembers() throws Exception {
+    doTranslateTest "1, 2 и 3 помнит, а дальше забыл", "He remembers 1, 2 and 3, but forgot what comes next"
+  }
+  public void _test4_SheRemembers() throws Exception {
+    doTranslateTest "1, 2 и 3 помнит, а дальше забыла", "She remembers 1, 2 and 3, but forgot what comes next"
+  }
 
   public void test4_TheyRemember123() throws Exception {
     doTranslateTest "Они помнят 1, 2 и 3", "They remember 1, 2 and 3"

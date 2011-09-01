@@ -520,7 +520,7 @@ class EnglishGenerator {
       def verbs = [HAPPEN: 'happened', FORGET: 'forgot', GO_OFF: 'went',
               ASK: (verb.f('topic')?.type == 'PREDICAMENT' ? 'consulted' : (past ? 'asked' : 'ask')),
               DISCOVER: 'discovered', CAN: "couldn't", RECALL: 'recall', TAKE_OUT: "took", SAY: 'said',
-              REMEMBER: (past ? 'remembered' : 'remember'), GO: (past ? 'went' : 'goes'),
+              REMEMBER: (past ? 'remembered' : verb.f('arg1')?.type in ['HE', 'SHE'] ? 'remembers' : 'remember'), GO: (past ? 'went' : 'goes'),
               RUN_OUT: 'ran', THANK: 'thanked',
               GET_SAD: 'got sad', DO: 'do', NEED:'need',
               BEGIN:'started', STOP:'stopped',
@@ -590,6 +590,10 @@ class EnglishGenerator {
 
       if (n.type == 'ME') {
         out (nom ? 'I' : "me")
+        return
+      }
+      if (n.type == 'HE') {
+        out (nom ? 'he' : "him")
         return
       }
       if (n.type == 'SHE') {

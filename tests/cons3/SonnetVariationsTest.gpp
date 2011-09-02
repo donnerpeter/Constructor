@@ -29,6 +29,12 @@ class SonnetVariationsTest extends TestCase {
 
   }
 
+  public void _test2_Question() throws Exception {
+    doTranslateTest "Что они думают по этому поводу?",
+                    "What do they think on this matter?"
+
+  }
+
   public void test1_789() throws Exception {
     doParseTest "Я забыл, что идёт раньше - 7, 8 или 9", """
 A.type=ME

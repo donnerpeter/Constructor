@@ -164,4 +164,8 @@ class Frame {
 
     return []
   }
+
+  List<Frame> usages(String attrName) {
+    chart.frames(situation).findAll { it.f(attrName) == (Frame) this }
+  }
 }

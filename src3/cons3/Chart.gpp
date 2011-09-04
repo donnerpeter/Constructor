@@ -80,6 +80,10 @@ class Chart {
 
     Map<Variable, Situation> newVars = [:] + __vars
     newVars[var] = situation
+    if (value instanceof Variable && !newVars[value]) {
+      newVars[value] = situation
+    }
+    
     return new Chart(newAsss, newVars, currentMetas, __metas + [(assignment):currentMetas])
   }
 

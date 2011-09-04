@@ -517,7 +517,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = state.apply(declComp, complementizer:'that')
         if (state[relativeClause]?.hasComma) {
           def wh = new Variable()
-          state = state.apply(relativeClause, wh:wh).apply(naPrep, head:wh) //todo pp copula
+          state = state.apply(relativeClause, wh:wh).apply(naPrep, head:wh, copula:new Variable()) //todo pp copula
         }
         return state
       case "идет":
@@ -559,7 +559,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case 'был':
         def subj = state[nom]?.noun ?: state.newVariable()
         state = state.assign(situation, 'time', 'PAST').assign(situation, 'copulaTopic', subj)
-        return state.apply(naPrep, head: subj).apply(nom, noun:subj)
+        return state.apply((naPrep):[head: subj, copula:new Variable()], (nom):[noun:subj])
       case 'было':
         state = state.assign(situation, 'time', 'PAST')
         return state.apply(conditionComp, head:situation)

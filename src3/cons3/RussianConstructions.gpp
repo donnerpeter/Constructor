@@ -223,7 +223,15 @@ interface RussianConstructions {
     return state
   }
   Construction naPrep = cxt('naPrep') { ParsingState state, Map args ->
-    args.head && args.noun ? state.assign(args.head, 'location', args.noun) : state
+    if (args.head && args.noun) {
+      if (args.copula) {
+        def location = args.copula
+        state = state.assign(location, 'type', 'location').assign(location, 'arg1', args.head).assign(location, 'arg2', args.noun)
+      } else {
+        state = state.assign(args.head, 'location', args.noun)
+      }
+    }
+    return state
   }
   Construction izGen = cxt('izGen') { ParsingState state, Map args ->
     args.head && args.noun ? state.assign(args.head, 'source', args.noun) : state

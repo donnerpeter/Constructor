@@ -119,7 +119,9 @@ class EnglishGenerator {
             out 'was'
           }
           out 'on'
-          def location = subj.f('location')
+
+          List<Frame> usages = subj.usages('arg1').findAll { it.type == 'location' } //todo alex def
+          def location = usages[0].f('arg2')
           np(location, false)
         }
 

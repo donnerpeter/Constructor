@@ -190,8 +190,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.assign(noun, 'type', 'LUCK').apply((poDat):[noun:noun, hasNoun:true])
       case "случился":
         Variable verb = state.newVariable()
-        state = state.assign(verb, 'type', 'HAPPEN').assign(situation, 'time', 'PAST')
-        return state.apply(sInstr, head:verb).apply(nom, head:verb)
+        return finiteVerb(state, verb, 'HAPPEN', 'PAST', (sInstr):[head:verb], (nom):[head:verb])
       case 'со':
       case 'с':
         def noun = state.newVariable()
@@ -328,8 +327,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "забыла":
       case "забыли":
         Variable verb = state[nom]?.head ?: state.newVariable()
-        state = state.assign(verb, 'type', 'FORGET').assign(situation, 'time', 'PAST')
-        state = state.apply((advObj):[head:verb], (acc):[head:verb]) //todo the order shouldn't matter for verb arguments
+        state = finiteVerb(state, verb, 'FORGET', 'PAST', (advObj):[head:verb], (acc):[head:verb]) //todo the order shouldn't matter for verb arguments
         if (!state[nom]) {
           def subj = state.newVariable()
           state = state.apply(nom, noun:subj) { ParsingState it ->it.assign(subj, 'type', word == 'забыли' ? 'THEY' : 'HE') }
@@ -338,8 +336,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "помнят":
       case "помнит":
         Variable verb = state.newVariable()
-        state = state.assign(verb, 'type', 'REMEMBER').assign(situation, 'time', 'PRESENT')
-        state = state.apply((acc):[head:verb])
+        state = finiteVerb(state, verb, 'REMEMBER', 'PRESENT', (acc):[head:verb])
         if (!state[nom]) {
           def subj = state.newVariable()
           state = state.apply(nom, noun:subj) { ParsingState it ->it.assign(subj, 'type', word == 'помнят' ? 'THEY' : 'HE') }
@@ -359,67 +356,50 @@ class Parser { //todo alex implements cons3.RussianConstructions
         if (!subj) {
           subj = state.newVariable()
         }
-        state = state.assign(verb, 'type', 'CAN').assign(situation, 'time', 'PRESENT')
-        state = state.assign(subj, 'type', 'THEY')
-        return state.apply(control, subj:subj, head:verb)
+        return finiteVerb(state, verb, 'CAN', 'PRESENT', (control):[subj:subj, head:verb]).assign(subj, 'type', 'THEY')
       case 'стали':
-        def verb = state.newVariable()
-        state = state.assign(verb, 'type', 'BEGIN').assign(situation, 'time', 'PAST')
-        return conjWrap(state.inhibit(preposition), (control):[subj:state[nom], head:verb], (nom):[head:verb])
       case 'начали':
         def verb = state.newVariable()
-        state = state.assign(verb, 'type', 'BEGIN').assign(situation, 'time', 'PAST')
-        return conjWrap(state.inhibit(preposition), (control):[subj:state[nom], head:verb], (nom):[head:verb])
+        return finiteVerb(state.inhibit(preposition), verb, 'BEGIN', 'PAST', (control):[subj:state[nom], head:verb], (nom):[head:verb])
       case 'свалился':
         def verb = state.newVariable()
-        state = state.assign(verb, 'type', 'FALL').assign(situation, 'time', 'PAST')
-        return conjWrap(state, (nom):[head:verb], (sGen):[head:verb], (poDat):[head:verb])
+        return finiteVerb(state, verb, 'FALL', 'PAST', (nom):[head:verb], (sGen):[head:verb], (poDat):[head:verb])
       case 'сломал':
       case 'сломала':
         def verb = state.newVariable()
-        state = state.assign(verb, 'type', 'BREAK').assign(situation, 'time', 'PAST')
-        return conjWrap(state, (nom):[head:verb], (acc):[head:verb], (dat):[head:verb], (dativePart):[head:verb])
+        return finiteVerb(state, verb, 'BREAK', 'PAST', (nom):[head:verb], (acc):[head:verb], (dat):[head:verb], (dativePart):[head:verb])
       case "отправился":
         def verb = state.newVariable()
-        state = state.assign(verb, 'type', 'GO_OFF').assign(situation, 'time', 'PAST')
-        return conjWrap(state, (kDat):[head:verb], (nom):[head:verb])
+        return finiteVerb(state, verb, 'GO_OFF', 'PAST', (kDat):[head:verb], (nom):[head:verb])
       case "пошли":
         def verb = state.newVariable()
-        state = state.assign(verb, 'type', 'GO').assign(situation, 'time', 'PAST')
-        return conjWrap(state, (nom):[head:verb], (vAcc):[head:verb])
+        return finiteVerb(state, verb, 'GO', 'PAST', (nom):[head:verb], (vAcc):[head:verb])
       case "спорили":
         def verb = state.newVariable()
-        state = state.assign(verb, 'type', 'ARGUE').assign(situation, 'time', 'PAST')
-        return conjWrap(state, (nom):[head:verb], (adverb):[head:verb])
+        return finiteVerb(state, verb, 'ARGUE', 'PAST', (nom):[head:verb], (adverb):[head:verb])
       case "обнаружили":
         def verb = new Variable()
-        state = state.assign(verb, 'type', 'DISCOVER').assign(situation, 'time', 'PAST').inhibit(relativeClause) //todo generic suppress for context-freeness
-        return state.satisfied(declComp).apply(declComp, head:verb).apply(nom, head:verb).apply(adverb, head:verb)
+        return finiteVerb(state, verb, 'DISCOVER', 'PAST', (declComp):[head:verb], (nom):[head:verb], (adverb):[head:verb])
       case "улыбнулась":
         def verb = state.newVariable()
-        state = state.assign(verb, 'type', 'SMILE').assign(situation, 'time', 'PAST')
-        return conjWrap(state, (nom):[head:verb], (adverb):[head:verb])
+        return finiteVerb(state, verb, 'SMILE', 'PAST', (nom):[head:verb], (adverb):[head:verb])
       case "сказал":
       case "сказала":
         def verb = state.newVariable()
-        state = state.assign(verb, 'type', 'SAY').assign(situation, 'time', 'PAST')
-        return conjWrap(state, (nom):[head:verb], (directSpeech):[head:verb])
+        return finiteVerb(state, verb, 'SAY', 'PAST', (nom):[head:verb], (directSpeech):[head:verb])
       case "вынула":
         def verb = state.newVariable()
-        state = state.assign(verb, 'type', 'TAKE_OUT').assign(situation, 'time', 'PAST')
-        return conjWrap(state, (nom):[head:verb], (acc):[head:verb], (izGen):[head:verb])
+        return finiteVerb(state, verb, 'TAKE_OUT', 'PAST', (nom):[head:verb], (acc):[head:verb], (izGen):[head:verb])
       case "показались":
         def verb = state.newVariable()
-        state = state.assign(verb, 'type', 'SEEM').assign(situation, 'time', 'PAST')
-        return conjWrap(state, (nom):[head:verb], (dat):[head:verb], (participleArg):[head:verb])
+        return finiteVerb(state, verb, 'SEEM', 'PAST', (nom):[head:verb], (dat):[head:verb], (participleArg):[head:verb])
       case "подвигав":
         def verb = state.newVariable()
         state = state.assign(verb, 'type', 'MOVE').assign(verb, 'background', 'perfect')
         return conjWrap(state, (instr):[head:verb], (adverb):[head:verb])
       case "подвигала":
         def verb = state.newVariable()
-        state = state.assign(verb, 'type', 'MOVE')
-        return conjWrap(state, (instr):[head:verb], (adverb):[head:verb])
+        return finiteVerb(state, verb, 'MOVE', 'PAST', (instr):[head:verb], (adverb):[head:verb])
       case "дойдя":
         def verb = state[instr]?.head ?: state.newVariable()
         state = state.assign(verb, 'type', 'COME_TO').assign(verb, 'background', 'perfect')
@@ -453,38 +433,28 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def verb = state.newVariable()
         return infinitive(state, verb, 'ASK', [(acc):[head:verb]])
       case "думают":
-        if (state[nom]) {
-          def verb = state.newVariable()
-          state = state.assign(verb, 'type', 'THINK').assign(situation, 'time', 'PRESENT')
-          return state.apply(poDat, head:verb).apply(nom, head:verb).apply(acc, head:verb)
-        }
-        return state
+        def verb = state.newVariable()
+        return finiteVerb(state, verb, 'THINK', 'PRESENT', (poDat):[head:verb], (nom):[head:verb], (acc):[head:verb])
       case "спросил":
       case "спросили":
         def verb = state.newVariable()
-        state = state.assign(verb, 'type', 'ASK').assign(situation, 'time', 'PAST')
-        return conjWrap(state.inhibit(preposition), (acc):[head:verb], (nom):[head:verb], (question):[head:verb], (oPrep):[head:verb])
+        return finiteVerb(state, verb, 'ASK', 'PAST', (acc):[head:verb], (nom):[head:verb], (question):[head:verb], (oPrep):[head:verb])
       case "делал":
       case "делали":
         def verb = state.newVariable()
-        state = state.assign(verb, 'type', 'DO').assign(situation, 'time', 'PAST')
-        return conjWrap(state, (acc):[head:verb], (nom):[head:verb])
+        return finiteVerb(state, verb, 'DO', 'PAST', (acc):[head:verb], (nom):[head:verb])
       case "поблагодарили":
         def verb = state.newVariable()
-        state = state.assign(verb, 'type', 'THANK').assign(situation, 'time', 'PAST')
-        return conjWrap(state, (acc):[head:verb], (nom):[head:verb])
+        return finiteVerb(state, verb, 'THANK', 'PAST', (acc):[head:verb], (nom):[head:verb])
       case "выбежали":
         def verb = state.newVariable()
-        state = state.assign(verb, 'type', 'RUN_OUT').assign(situation, 'time', 'PAST')
-        return conjWrap(state, (izGen):[head:verb], (nom):[head:verb], (sInstr):[head:verb])
+        return finiteVerb(state, verb, 'RUN_OUT', 'PAST', (izGen):[head:verb], (nom):[head:verb], (sInstr):[head:verb])
       case "приуныли":
-        def verb = state[nom]?.head ?: state.newVariable()
-        state = state.assign(verb, 'type', 'GET_SAD').assign(situation, 'time', 'PAST')
-        return conjWrap(state, (nom):[head:verb], (reasonComp):[head:situation], (relTime):[head:state.situation])
+        Variable verb = state[nom]?.head ?: state.newVariable()
+        return finiteVerb(state, verb, 'GET_SAD', 'PAST', (nom):[head:verb], (reasonComp):[head:situation], (relTime):[head:state.situation])
       case "остановились":
-        def verb = state[nom]?.head ?: state.newVariable()
-        state = state.assign(verb, 'type', 'STOP').assign(situation, 'time', 'PAST')
-        return conjWrap(state, (nom):[head:verb])
+        Variable verb = state[nom]?.head ?: state.newVariable()
+        return finiteVerb(state, verb, 'STOP', 'PAST', (nom):[head:verb])
       case ",":
         if (state[nestedClause]) {
           return state.withSituation((Situation)state[nestedClause].parent).clearConstructions().restore((ParsingState) state[nestedClause].save).satisfied(nestedClause)
@@ -634,11 +604,15 @@ class Parser { //todo alex implements cons3.RussianConstructions
     return common.size() > 0
   }
 
-  private ParsingState infinitive(ParsingState state, Variable verb, String type, LinkedHashMap<Construction, LinkedHashMap<String, Object>> args) {
+  private ParsingState infinitive(ParsingState state, Variable verb, String type, Map<Construction, Map> args) {
     if (state[question]) {
       state = state.apply((question): [mainVerb: verb, imperative: true])
     }
     return state.assign(verb, 'type', type).apply(args + [(dat): [head: verb, infinitive: true], (control): [slave: verb]])
+  }
+
+  private ParsingState finiteVerb(Map<Construction, Map> args, ParsingState state, Variable verb, String type, String tense) {
+    return state.inhibit(preposition, declComp, relativeClause, numQuantifier).assign(verb, 'type', type).assign(state.situation, 'time', tense).apply(args)
   }
 
   private ParsingState noun(ParsingState state, Construction caze, String type) {

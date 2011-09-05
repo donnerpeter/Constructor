@@ -187,7 +187,7 @@ class EnglishGenerator {
       def butFrame = sitFrame.f('but')
       if (butFrame) {
         out(butFrame.f('opinion_of') ? ';' : ',')
-        out( sitFrame.s('mood') == 'subjunctive' ? 'when' : 'but')
+        out(conjuncts[0]?.frame?.s('irrealis') == 'true' ? 'when' : 'but')
         def butSit = (Situation) butFrame.var
         def generator = new SituationGenerator(chart, butSit, false)
         if (conjuncts.size() == 1 && conjuncts[0].frame) {

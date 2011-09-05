@@ -525,7 +525,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = state.assign(situation, 'exclamation', degree)
         return state.apply(shortAdjCopula, pred:degree, situation:state.situation)
       case 'бы':
-        return state.assign(situation, 'mood', 'subjunctive')
+        return state.apply((subjunctive):[subjunctive:true])
       case 'был':
         def subj = state[nom]?.noun ?: state.newVariable()
         state = state.assign(situation, 'time', 'PAST').assign(situation, 'copulaTopic', subj)
@@ -612,7 +612,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
   }
 
   private ParsingState finiteVerb(Map<Construction, Map> args, ParsingState state, Variable verb, String type, String tense) {
-    return state.inhibit(preposition, declComp, relativeClause, numQuantifier).assign(verb, 'type', type).assign(verb, 'time', tense).apply(args)
+    return state.inhibit(preposition, declComp, relativeClause, numQuantifier).
+            assign(verb, 'type', type).assign(verb, 'time', tense).
+            apply(args + [(subjunctive):[head:verb]])
   }
 
   private ParsingState noun(ParsingState state, Construction caze, String type) {

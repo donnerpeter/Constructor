@@ -547,7 +547,7 @@ A.type=WE
 B.type=ARGUE
 B.time=PAST
 B.arg1=A
-#1.mood=subjunctive
+B.irrealis=true
 B.duration=LONG
 #1.but=#2
 --

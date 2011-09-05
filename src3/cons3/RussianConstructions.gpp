@@ -299,4 +299,10 @@ interface RussianConstructions {
     }
     return state
   }
+  Construction subjunctive = cxt('subjunctive') { ParsingState state, Map args ->
+    if (args.head && args.subjunctive) {
+      state = state.assign(args.head, 'irrealis', 'true')
+    }
+    return state
+  }
 }

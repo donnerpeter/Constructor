@@ -132,10 +132,6 @@ class EnglishGenerator {
     private def sentence(boolean topLevel) {
       handled << situation
 
-      if (sitFrame.s('time') == 'PAST') {
-        past = true //todo maintain a tense for the whole discourse
-      }
-
       if (chart.frames(situation).find { it.type == 'LUCK' }) {
         out 'by some sheer luck,'
       }
@@ -297,15 +293,16 @@ class EnglishGenerator {
     }
 
     private String aux(Frame verb, Frame subj, boolean imperative) {
+      def sitPast = sitFrame.s('time') == 'PAST' || past
       if (imperative && subj) {
         if (subj.type == 'WE') {
-          return past ? 'were': 'are'
+          return sitPast ? 'were': 'are'
         }
-        return past ? 'was': 'am'
+        return sitPast ? 'was': 'am'
       }
       def questioned = sitFrame.f('questioned')
       if (questioned) {
-        return past ? 'did' : 'do'
+        return sitPast ? 'did' : 'do'
       }
 
       return null
@@ -313,6 +310,11 @@ class EnglishGenerator {
 
     private Frame clauseInner(Frame verb, boolean shouldHaveSubject, boolean topLevel) {
       assert verb
+      if (verb.s('time') == 'PAST') {
+        past = true //todo maintain a tense for the whole discourse
+      }
+
+
       def subj = verb.f('arg1')
 
       def questioned = sitFrame.f('questioned')
@@ -361,7 +363,7 @@ class EnglishGenerator {
         out 'smile'
       }
       else if (type == 'COME_SCALARLY') {
-        out(sitFrame.s('time') == 'PAST' ? 'went' : 'comes')
+        out(verb.s('time') == 'PAST' ? 'went' : 'comes')
         def anchor = verb.f('anchor')
         if (verb.s('order') == 'EARLIER') {
           if (anchor) {

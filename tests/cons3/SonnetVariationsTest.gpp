@@ -39,12 +39,12 @@ class SonnetVariationsTest extends TestCase {
     doParseTest "Я забыл, что идёт раньше - 7, 8 или 9", """
 A.type=ME
 B.type=FORGET
-#1.time=PAST
+B.time=PAST
 B.arg1=A
 B.theme=#2
 --
 #2.questioned=A
-#2.time=PRESENT
+B.time=PRESENT
 B.arg1=A
 B.type=COME_SCALARLY
 B.order=EARLIER

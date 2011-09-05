@@ -493,7 +493,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "идет":
       case "идёт":
         def verb = new Variable()
-        state = state.assign(situation, 'time', 'PRESENT')
+        state = state.assign(verb, 'time', 'PRESENT')
         def goes = cxt('идёт') { ParsingState st, Map args -> st.assign(args.verb, 'type', 'GO') }
         return state.inhibit(preposition, numQuantifier).apply((comeScalarly):[verb:verb, xor:t.ab], (goes):[verb:verb, xor:t.a],
                                                 (vAcc):[head:verb, xor:t.b], (vPrep):[head:verb], (nom):[head:verb],
@@ -501,7 +501,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                                                 (conditionComp):[head:situation], (absTime):[head:situation])
       case "следовало":
         Variable verb = state.newVariable()
-        state = state.assign(situation, 'time', 'PAST')
+        state = state.assign(verb, 'time', 'PAST')
         return state.inhibit(preposition, numQuantifier).apply((nom):[head:verb], (comeScalarly):[verb:verb], (posleGen):[head:verb], (relTime):[head:situation])
       case "раньше":
         return state.apply((comeScalarly):[order:'EARLIER', xor:t.a], (preposition):[prep:'ranshe', interceptor:new Preposition(state)], (relTime):[relTime:'BEFORE', xor:t.a])
@@ -612,7 +612,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
   }
 
   private ParsingState finiteVerb(Map<Construction, Map> args, ParsingState state, Variable verb, String type, String tense) {
-    return state.inhibit(preposition, declComp, relativeClause, numQuantifier).assign(verb, 'type', type).assign(state.situation, 'time', tense).apply(args)
+    return state.inhibit(preposition, declComp, relativeClause, numQuantifier).assign(verb, 'type', type).assign(verb, 'time', tense).apply(args)
   }
 
   private ParsingState noun(ParsingState state, Construction caze, String type) {

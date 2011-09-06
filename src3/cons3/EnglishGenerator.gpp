@@ -106,23 +106,31 @@ class EnglishGenerator {
         }
 
         if (!frame && !bg) {
-          def wh = sitFrame.f('wh')
-          def subj
-          if (wh) {
-            subj = wh
-            out "that's"
-          } else {
-            def copulaTopic = sitFrame.f('copulaTopic')
-            assert copulaTopic: situation.presentable(chart)
-            subj = copulaTopic
-            np(copulaTopic, true)
-            out 'was'
-          }
-          out 'on'
+          def copula = chart.frames(situation).find { it.type in ['location', 'degree'] }
+          if (copula?.type == 'location') {
+            def wh = sitFrame.f('wh')
+            def subj
+            if (wh) {
+              subj = wh
+              out "that's"
+            } else {
+              def copulaTopic = sitFrame.f('copulaTopic')
+              assert copulaTopic: situation.presentable(chart)
+              subj = copulaTopic
+              np(copulaTopic, true)
+              out 'was'
+            }
+            out 'on'
 
-          List<Frame> usages = subj.usages('arg1').findAll { it.type == 'location' } //todo alex def
-          def location = usages[0].f('arg2')
-          np(location, false)
+            List<Frame> usages = subj.usages('arg1').findAll { it.type == 'location' } //todo alex def
+            def location = usages[0].f('arg2')
+            np(location, false)
+          } else if (copula?.type == 'degree') {
+            out 'great'
+            out 'was'
+            np(copula.f('arg1'), true)
+            clauseEnd()
+          }
         }
 
       }
@@ -154,19 +162,6 @@ class EnglishGenerator {
         if (!hasClauseEllipsis(situation)) {
           out ','
         }
-      }
-
-
-      def excl = sitFrame.f('exclamation')
-      if (excl) {
-        out 'great'
-        out 'was'
-        def a = chart.allAssignments(situation).find { it.frame != sitFrame && it.value == excl }
-        if (a) {
-          np(a.frame, true)
-        }
-        clauseEnd()
-        return
       }
 
       List<ClauseGenerator> conjuncts = planConjuncts(topLevel)

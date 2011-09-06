@@ -79,16 +79,18 @@ C.topic=D
 
   public void testParse3() throws Exception {
     doParseTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета.", """
-#1.exclamation=A
-#1.time=PAST
+A.wh=true
 B.type=THEY
 C.member=B
 C.conj=and
 C.member=D
 D.type=ME
-E.degree=A
-E.type=AMAZE
-E.arg1=C
+E.type=degree
+E.arg1=F
+E.arg2=A
+E.time=PAST
+F.type=AMAZE
+F.arg1=C
 #1.whenCondition=#2
 --
 A.type=THEY
@@ -117,16 +119,18 @@ E.criterion=F
 
   public void testParse3_4() throws Exception {
     doParseTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета. 1, 2, 3, 4, 5 и 6 помнят, а дальше забыли.", """
-#1.exclamation=A
-#1.time=PAST
+A.wh=true
 B.type=THEY
 C.member=B
 C.conj=and
 C.member=D
 D.type=ME
-E.degree=A
-E.type=AMAZE
-E.arg1=C
+E.type=degree
+E.arg1=F
+E.arg2=A
+E.time=PAST
+F.type=AMAZE
+F.arg1=C
 #1.whenCondition=#2
 --
 A.type=THEY

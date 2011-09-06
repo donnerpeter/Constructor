@@ -128,9 +128,12 @@ interface RussianConstructions {
   Construction questionVariants = cxt('questionVariants') { ParsingState state, Map args ->
     args.seq && args.questioned ? state.assign(args.questioned, 'variants', args.seq).satisfied(questionVariants) : state
   }
-  Construction shortAdjCopula = cxt('shortAdjCopula') { ParsingState state, Map args ->
-    if (args.noun && args.pred) {
-      state = state.assign(args.noun, 'degree', args.pred)
+  Construction shortAdj = cxt('shortAdj') { ParsingState state, Map args ->
+    if (args.noun && args.value && args.copula) {
+      state = state.assign(args.copula, 'type', 'degree').assign(args.copula, 'arg1', args.noun).assign(args.copula, 'arg2', args.value)
+      if (args.time) {
+        state = state.assign(args.copula, 'time', args.time)
+      }
     }
     return state
   }

@@ -521,9 +521,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case ".":
         return state.assign(state.situation, 'dot', 'true').withSituation(new Situation())
       case 'каково':
-        def degree = state.newVariable()
-        state = state.assign(situation, 'exclamation', degree)
-        return state.apply(shortAdjCopula, pred:degree, situation:state.situation)
+        def degree = new Variable()
+        return state.assign(degree, 'wh', 'true').apply(shortAdj, copula: new Variable(), value:degree)
       case 'бы':
         return state.apply((subjunctive):[subjunctive:true])
       case 'был':
@@ -531,8 +530,10 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = state.assign(situation, 'time', 'PAST').assign(situation, 'copulaTopic', subj)
         return state.apply((naPrep):[head: subj, copula:new Variable()], (nom):[noun:subj])
       case 'было':
-        state = state.assign(situation, 'time', 'PAST')
-        return state.apply(conditionComp, head:situation)
+        if (!state[shortAdj]?.copula) {
+          state = state.assign(situation, 'time', 'PAST')
+        }
+        return state.apply((conditionComp):[head:situation], (shortAdj):[time:'PAST'])
       case 'так':
         return state.apply(reasonComp, active:true)
       case 'обе':
@@ -652,7 +653,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     Update update = new Update([:])
 
     if (caze == nom) {
-      update = update.addCxt(shortAdjCopula, noun:noun)
+      update = update.addCxt(shortAdj, noun:noun)
     }
 
     update = update.addCxt(caze, noun:noun, hasNoun:true, init:{ init(it, noun) })

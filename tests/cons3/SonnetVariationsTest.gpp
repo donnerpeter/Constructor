@@ -43,7 +43,7 @@ B.time=PAST
 B.arg1=A
 B.theme=#2
 --
-#2.questioned=A
+A.type=wh
 B.time=PRESENT
 B.arg1=A
 B.type=COME_SCALARLY

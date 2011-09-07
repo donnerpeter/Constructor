@@ -114,14 +114,10 @@ interface RussianConstructions {
       Situation next = args.comp ?: new Situation()
       state = state.assign(args.head, ((Variable) args.head).frame(state.chart).type == 'FORGET' ? 'theme' : 'question', next).withSituation(next).apply((question):[comp:next])
     }
-    if (args.questioned && args.comp) {
-      if (args.modality) {
-        state = state.assign(args.modality, 'type', 'modality').assign(args.modality, 'arg1', args.mainVerb)
-        if (args.time) {
-          state = state.assign(args.modality, 'time', 'PAST')
-        }
-      } else {
-        state = state.assign(args.comp, 'questioned', args.questioned)
+    if (args.questioned && args.comp && args.modality) {
+      state = state.assign(args.modality, 'type', 'modality').assign(args.modality, 'arg1', args.mainVerb)
+      if (args.time) {
+        state = state.assign(args.modality, 'time', 'PAST')
       }
     }
     return state

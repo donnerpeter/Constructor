@@ -196,9 +196,13 @@ class EnglishGenerator {
 
       if (sitFrame.s('dot') == 'true') {
         out '.'
-      } else if ((conjuncts[0]?.frame?.type == 'modality' || sitFrame.f('questioned')) && topLevel) {
+      } else if ((conjuncts[0]?.frame?.type == 'modality' || findQuestioned() && !isExclamation()) && topLevel) {
         out '?'
       }
+    }
+
+    Frame isExclamation() {
+      return chart.frames(situation).find { it.type == 'degree' }
     }
 
     private List<ClauseGenerator> planConjuncts(boolean topLevel) {
@@ -299,12 +303,15 @@ class EnglishGenerator {
         }
         return sitPast ? 'was': 'am'
       }
-      def questioned = sitFrame.f('questioned')
-      if (questioned) {
+      if (findQuestioned()) {
         return sitPast ? 'did' : 'do'
       }
 
       return null
+    }
+
+    Frame findQuestioned(Situation sit = situation) {
+      return chart.frames(sit).find { it.type == 'wh' }
     }
 
     private Frame clauseInner(Frame verb, boolean shouldHaveSubject, boolean topLevel) {
@@ -313,18 +320,16 @@ class EnglishGenerator {
         past = true //todo maintain a tense for the whole discourse
       }
 
-      def questioned = sitFrame.f('questioned')
       def imperative = verb.type == 'modality'
       if (imperative) {
         verb = verb.f('arg1')
-        questioned = verb.f('arg2')
         shouldHaveSubject = verb.f('arg1') != null
       }
 
 
       def subj = verb.f('arg1')
 
-      if (questioned) {
+      if (findQuestioned()) {
         out 'what'
       }
 
@@ -342,7 +347,7 @@ class EnglishGenerator {
         }
         if (hasSubject) {
           out 'she' //todo infer
-        } else if (subj != questioned) {
+        } else if (subj.type != 'wh') {
           np(subj, true)
         }
         hasSubject = true
@@ -408,7 +413,7 @@ class EnglishGenerator {
       }
 
       def dobj = verb.f('arg2')
-      if (dobj && dobj != questioned) {
+      if (dobj && dobj.type != 'wh') {
         np(dobj, false, dobj.s('number') == null)
       }
 
@@ -480,7 +485,7 @@ class EnglishGenerator {
 
       def theme = verb.f('theme')
       if (theme?.var instanceof Situation) {
-        if (!theme.f('questioned')) {
+        if (!findQuestioned((Situation)theme.var)) {
           out ","
           out "that"
         }
@@ -620,7 +625,7 @@ class EnglishGenerator {
         return
       }
 
-      if (n == sitFrame.f('questioned')) {
+      if (n.type == 'wh') {
         out 'what'
         return
       }

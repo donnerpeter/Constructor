@@ -482,7 +482,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = state.apply((question):[questioned:noun])
         if (!state[declComp]) {
           //todo generic noun treatment for что
-          state = state.apply((nom):[noun:noun, hasNoun:true, xor:t.a], (acc):[noun:noun, hasNoun:true, xor:t.a])
+          state = state.apply((nom):[noun:noun, hasNoun:true, xor:t.a], (acc):[noun:noun, hasNoun:true, xor:t.a]).assign(noun, 'type', 'wh')
         }
         state = state.apply(declComp, complementizer:'that')
         if (state[relativeClause]?.hasComma) {
@@ -522,7 +522,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.assign(state.situation, 'dot', 'true').withSituation(new Situation())
       case 'каково':
         def degree = new Variable()
-        return state.assign(degree, 'wh', 'true').apply(shortAdj, copula: new Variable(), value:degree)
+        return state.assign(degree, 'type', 'wh').apply(shortAdj, copula: new Variable(), value:degree)
       case 'бы':
         return state.apply((subjunctive):[subjunctive:true])
       case 'был':

@@ -25,7 +25,7 @@ B.arg1=A
 B.manner=SUDDENLY
 B.theme=#3
 --
-#3.questioned=A
+A.type=wh
 B.time=PRESENT
 B.arg1=A
 B.type=COME_SCALARLY
@@ -65,7 +65,7 @@ E.type=THEY
 D.arg2=E
 D.question=#2
 --
-#2.questioned=A
+A.type=wh
 B.type=THEY
 C.type=THINK
 C.time=PRESENT
@@ -79,7 +79,7 @@ C.topic=D
 
   public void testParse3() throws Exception {
     doParseTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета.", """
-A.wh=true
+A.type=wh
 B.type=THEY
 C.member=B
 C.conj=and
@@ -119,7 +119,7 @@ E.criterion=F
 
   public void testParse3_4() throws Exception {
     doParseTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета. 1, 2, 3, 4, 5 и 6 помнят, а дальше забыли.", """
-A.wh=true
+A.type=wh
 B.type=THEY
 C.member=B
 C.conj=and
@@ -453,12 +453,13 @@ F.type=MEANING
 
   public void testParse10() throws Exception {
     doParseTest 'Что нам было делать?', '''
-A.type=WE
-B.type=DO
-B.arg2=C
-B.arg1=A
+A.type=wh
+B.type=WE
+C.type=DO
+C.arg2=A
+C.arg1=B
 D.type=modality
-D.arg1=B
+D.arg1=C
 D.time=PAST
 '''
   }

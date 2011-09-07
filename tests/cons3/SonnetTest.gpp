@@ -454,12 +454,12 @@ F.type=MEANING
   public void testParse10() throws Exception {
     doParseTest 'Что нам было делать?', '''
 A.type=WE
-#1.time=PAST
 B.type=DO
 B.arg2=C
 B.arg1=A
-#1.imperative=true
-#1.questioned=C
+D.type=modality
+D.arg1=B
+D.time=PAST
 '''
   }
 

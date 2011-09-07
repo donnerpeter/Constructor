@@ -112,13 +112,17 @@ interface RussianConstructions {
   Construction question = cxt('question') { ParsingState state, Map args ->
     if (args.hasComma && !args.comp && args.head) {
       Situation next = args.comp ?: new Situation()
-      state = state.assign(args.head, ((Variable) args.head).frame(state.chart).type == 'FORGET' ? 'theme' : 'question', next).withSituation(next).apply(question, comp:next)
+      state = state.assign(args.head, ((Variable) args.head).frame(state.chart).type == 'FORGET' ? 'theme' : 'question', next).withSituation(next).apply((question):[comp:next])
     }
     if (args.questioned && args.comp) {
-      if (args.imperative) {
-        state = state.assign(state.situation, 'imperative', 'true')
+      if (args.modality) {
+        state = state.assign(args.modality, 'type', 'modality').assign(args.modality, 'arg1', args.mainVerb)
+        if (args.time) {
+          state = state.assign(args.modality, 'time', 'PAST')
+        }
+      } else {
+        state = state.assign(args.comp, 'questioned', args.questioned)
       }
-      state = state.assign(args.comp, 'questioned', args.questioned)
     }
     return state
   }
@@ -305,6 +309,12 @@ interface RussianConstructions {
   Construction subjunctive = cxt('subjunctive') { ParsingState state, Map args ->
     if (args.head && args.subjunctive) {
       state = state.assign(args.head, 'irrealis', 'true')
+    }
+    return state
+  }
+  Construction adverbPred = cxt('adverbPred') { ParsingState state, Map args ->
+    if (args.adverb && args.time) {
+      state = state.assign(args.adverb, 'time', args.time)
     }
     return state
   }

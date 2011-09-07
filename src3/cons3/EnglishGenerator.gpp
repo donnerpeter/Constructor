@@ -89,7 +89,7 @@ class EnglishGenerator {
         }
 
         if (frame) {
-          def shouldHaveSubject = sitFrame.s('imperative') ? frame.f('arg1') != null : !hasSubject || bg != null
+          def shouldHaveSubject = !hasSubject || bg != null
           if (last) {
             clause(frame, shouldHaveSubject, topLevel)
           } else {
@@ -196,7 +196,7 @@ class EnglishGenerator {
 
       if (sitFrame.s('dot') == 'true') {
         out '.'
-      } else if (sitFrame.f('questioned') && topLevel) {
+      } else if ((conjuncts[0]?.frame?.type == 'modality' || sitFrame.f('questioned')) && topLevel) {
         out '?'
       }
     }
@@ -209,7 +209,7 @@ class EnglishGenerator {
                 'GO', 'SMILE', 'TAKE_OUT', 'SAY', 'MOVE',
                 'THANK', 'RUN_OUT',
                 'GET_SAD', 'SEEM', 'THINK',
-                'DO', 'NEED',
+                'modality', 'DO', 'NEED',
                 'BEGIN', 'STOP', 'COME_TO',
                 'ARGUE', 'FALL', 'BREAK'
         ]
@@ -232,6 +232,10 @@ class EnglishGenerator {
             if (cur.type == 'BEGIN') {
               mainVerbs++
               i++
+            }
+            if (allVerbs[i]?.type == 'modality') {
+              cur = allVerbs[i++]
+              mainVerbs++
             }
           }
           Frame comp = null
@@ -288,7 +292,7 @@ class EnglishGenerator {
     }
 
     private String aux(Frame verb, Frame subj, boolean imperative) {
-      def sitPast = sitFrame.s('time') == 'PAST' || past
+      def sitPast = past
       if (imperative && subj) {
         if (subj.type == 'WE') {
           return sitPast ? 'were': 'are'
@@ -309,11 +313,16 @@ class EnglishGenerator {
         past = true //todo maintain a tense for the whole discourse
       }
 
+      def questioned = sitFrame.f('questioned')
+      def imperative = verb.type == 'modality'
+      if (imperative) {
+        verb = verb.f('arg1')
+        questioned = verb.f('arg2')
+        shouldHaveSubject = verb.f('arg1') != null
+      }
+
 
       def subj = verb.f('arg1')
-
-      def questioned = sitFrame.f('questioned')
-      boolean imperative = sitFrame.s('imperative') == 'true'
 
       if (questioned) {
         out 'what'

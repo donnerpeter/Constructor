@@ -179,7 +179,7 @@ H.time=PRESENT
 H.arg2=B
 I.type=THEY
 H.arg1=I
-#4.but=#5
+H.but=#5
 --
 A.type=FORGET
 A.time=PAST
@@ -414,7 +414,7 @@ F.type=SHOP
 
   public void testParse9() throws Exception {
     doParseTest 'Но тут, вдумываясь в слова кассирши, мы опять приуныли, так как ее слова показались нам лишенными всякого смысла.', '''
-#1.but=#2
+A.but=#2
 --
 #2.emphasis=true
 A.type=THINK
@@ -495,7 +495,7 @@ E.arg2=F
 
   public void testParse12() throws Exception {
     doParseTest 'Но дойдя в счете до 6-ти, мы остановились и начали спорить: по мнению одних дальше следовало 7, по мнению других - 8', '''
-#1.but=#2
+A.but=#2
 --
 A.type=COME_TO
 A.background=perfect
@@ -524,7 +524,7 @@ C.opinion_of=A
 C.arg1=D
 D.type=7
 D.number=true
-#3.but=#4
+C.but=#4
 --
 A.type=OPINION
 B.type=OTHERS
@@ -554,7 +554,7 @@ B.time=PAST
 B.arg1=A
 B.irrealis=true
 B.duration=LONG
-#1.but=#2
+B.but=#2
 --
 A.type=LUCK
 #2.emphasis=true

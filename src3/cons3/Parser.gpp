@@ -172,7 +172,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "мнению":
         if (state.chart.frames(situation).find { it.f('opinion_of') } && !state[seq]?.conj) {
           def next = new Situation()
-          state = state.assign(situation, 'but', next).withSituation(next).apply(prevHistory, history:state)
+          state = state.assign(state[verbHolder].head, 'but', next).withSituation(next).apply(prevHistory, history:state)
         }
         def noun = state[poDat]?.noun && !state[poDat]?.hasNoun ? state[poDat].noun : state.newVariable()
         state = state.assign(noun, 'type', 'OPINION')
@@ -231,7 +231,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "а":
       case "но":
         def next = new Situation()
-        return state.assign(situation, 'but', next).withSituation(next).apply(prevHistory, history:state)
+        return state.assign(state[verbHolder]?.head ?: new Variable(), 'but', next).withSituation(next).apply(prevHistory, history:state)
       case "тут":
         return state.assign(situation, 'emphasis', 'true')
       case "потом":
@@ -341,7 +341,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
           def subj = state.newVariable()
           state = state.apply(nom, noun:subj) { ParsingState it ->it.assign(subj, 'type', word == 'помнят' ? 'THEY' : 'HE') }
         }
-        return state.apply((nom):[head:verb])
+        return state.apply((nom):[head:verb], (verbHolder):[head:verb])
       case "могут":
         def verb = state.newVariable()
         def also = state[also]
@@ -503,7 +503,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "следовало":
         Variable verb = state.newVariable()
         state = state.assign(verb, 'time', 'PAST')
-        return state.inhibit(preposition, numQuantifier).apply((nom):[head:verb], (comeScalarly):[verb:verb], (posleGen):[head:verb], (relTime):[head:situation], (poDat):[head:verb])
+        return state.inhibit(preposition, numQuantifier).apply((nom):[head:verb],
+                (comeScalarly):[verb:verb],
+                (posleGen):[head:verb], (relTime):[head:situation], (poDat):[head:verb], (verbHolder):[head:verb])
       case "раньше":
         return state.apply((comeScalarly):[order:'EARLIER', xor:t.a], (preposition):[prep:'ranshe', interceptor:new Preposition(state)], (relTime):[relTime:'BEFORE', xor:t.a])
       case "после":
@@ -612,7 +614,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
   private ParsingState finiteVerb(Map<Construction, Map> args, ParsingState state, Variable verb, String type, String tense) {
     return state.inhibit(preposition, declComp, relativeClause, numQuantifier).
             assign(verb, 'type', type).assign(verb, 'time', tense).
-            apply(args + [(subjunctive):[head:verb]])
+            apply(args + [(subjunctive):[head:verb], (verbHolder):[head:verb]])
   }
 
   private ParsingState noun(ParsingState state, Construction caze, String type) {

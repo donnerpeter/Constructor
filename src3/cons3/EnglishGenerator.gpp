@@ -106,7 +106,12 @@ class EnglishGenerator {
         }
 
         if (!frame && !bg) {
-          def copula = chart.frames(situation).find { it.type in ['location', 'degree'] }
+          def frames = chart.frames(situation)
+          if (frames.size() == 1 && frames[0].f('but')) {
+            generateBut(frames[0], null)
+          }
+
+          def copula = frames.find { it.type in ['location', 'degree'] }
           if (copula?.type == 'location') {
             def wh = sitFrame.f('wh')
             def subj
@@ -169,21 +174,6 @@ class EnglishGenerator {
           }
         }
         conjuncts[j].generate(last)
-      }
-
-      def butFrame = sitFrame.f('but')
-      if (butFrame) {
-        def butSit = (Situation) butFrame.var
-        out(chart.frames(butSit).find { it.f('opinion_of') } ? ';' : ',')
-        out(conjuncts[0]?.frame?.s('irrealis') == 'true' ? 'when' : 'but')
-        def generator = new SituationGenerator(chart, butSit, false)
-        if (conjuncts.size() == 1 && conjuncts[0].frame) {
-          def butConjuncts = generator.planConjuncts(false)
-          if (butConjuncts.size() == 1 && conjuncts[0]?.frame?.f('arg1')?.type == butConjuncts[0]?.frame?.f('arg1')?.type && !hasClauseEllipsis(butSit)) {
-            generator.hasSubject = true
-          }
-        }
-        generator.sentence(false)
       }
 
       if (sitFrame.s('dot') == 'true') {
@@ -526,6 +516,7 @@ class EnglishGenerator {
         new SituationGenerator(chart, (Situation) content.var, false).sentence(false)
       }
 
+      generateBut(verb, subj)
 
       def variants = subj?.f('variants')
       if (variants) {
@@ -540,6 +531,21 @@ class EnglishGenerator {
           out '\n-'
           new SituationGenerator(chart, message, true).sentence(true)
         }
+      }
+    }
+
+    private def generateBut(Frame verb, Frame subj) {
+      def butFrame = verb.f('but')
+      if (butFrame) {
+        def butSit = (Situation) butFrame.var
+        out(chart.frames(butSit).find { it.f('opinion_of') } ? ';' : ',')
+        out(verb.s('irrealis') == 'true' ? 'when' : 'but')
+        def generator = new SituationGenerator(chart, butSit, false)
+        def butConjuncts = generator.planConjuncts(false)
+        if (butConjuncts.size() == 1 && subj?.type == butConjuncts[0]?.frame?.f('arg1')?.type && !hasClauseEllipsis(butSit)) {
+          generator.hasSubject = true
+        }
+        generator.sentence(false)
       }
     }
 

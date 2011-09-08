@@ -135,6 +135,7 @@ class EnglishGenerator {
             out 'was'
             np(copula.f('arg1'), true)
             clauseEnd()
+            generateCondition(copula)
           }
         }
 
@@ -502,19 +503,7 @@ class EnglishGenerator {
 
       clauseEnd()
 
-      def condition = verb.f('condition')
-      if (condition) {
-        out ','
-        out 'only'
-        out 'if'
-        def content = condition.f('whenCondition') ?: condition.f('ifCondition')
-        if (!content) {
-          println "No condition: " + chart.presentable()
-          return
-        }
-
-        new SituationGenerator(chart, (Situation) content.var, false).sentence(false)
-      }
+      generateCondition(verb)
 
       generateElaboration(verb)
 
@@ -533,6 +522,29 @@ class EnglishGenerator {
           out '\n-'
           new SituationGenerator(chart, message, true).sentence(true)
         }
+      }
+    }
+
+    private def generateCondition(Frame verb) {
+      def condition = verb.f('condition')
+      if (condition) {
+        out ','
+        out 'only'
+        out 'if'
+        def content = condition.f('whenCondition') ?: condition.f('ifCondition')
+        if (!content) {
+          println "No condition: " + chart.presentable()
+          return
+        }
+
+        new SituationGenerator(chart, (Situation) content.var, false).sentence(false)
+      }
+
+      def condComp = verb.f('ifCondition') ?: verb.f('whenCondition')
+      if (condComp) {
+        out ','
+        out(verb.f('ifCondition') ? 'if' : 'when')
+        new SituationGenerator(chart, (Situation) condComp.var, false).sentence(false)
       }
     }
 
@@ -581,13 +593,6 @@ class EnglishGenerator {
     }
 
     def clauseEnd() {
-      def condComp = sitFrame.f('ifCondition') ?: sitFrame.f('whenCondition')
-      if (condComp) {
-        out ','
-        out(sitFrame.f('ifCondition') ? 'if' : 'when')
-        new SituationGenerator(chart, (Situation) condComp.var, false).sentence(false)
-      }
-
       def reason = sitFrame.f('reason')
       if (reason) {
         out 'because'

@@ -499,7 +499,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                                                 (vAcc):[head:verb, xor:t.b], (vPrep):[head:verb], (nom):[head:verb],
                 (poDat):[head:verb], (verbHolder): [head:verb],
                                                 (posleGen):[head:verb], (ransheGen):[head:verb],
-                                                (conditionComp):[head:situation], (absTime):[head:situation])
+                                                (conditionComp):[head:verb], (absTime):[head:situation])
       case "следовало":
         Variable verb = state.newVariable()
         state = state.assign(verb, 'time', 'PAST')
@@ -533,7 +533,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = state.assign(situation, 'time', 'PAST').assign(situation, 'copulaTopic', subj)
         return state.apply((naPrep):[head: subj, copula:new Variable()], (nom):[noun:subj])
       case 'было':
-        return state.apply((conditionComp):[head:situation], (shortAdj):[time:'PAST'], (question):[time:'PAST'], (adverbPred):[time:'PAST'])
+        return state.apply((conditionComp):[head:state[shortAdj]?.copula], (shortAdj):[time:'PAST'], (question):[time:'PAST'], (adverbPred):[time:'PAST'])
       case 'так':
         return state.apply(reasonComp, active:true)
       case 'обе':

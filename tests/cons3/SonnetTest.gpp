@@ -91,7 +91,7 @@ E.arg2=A
 E.time=PAST
 F.type=AMAZE
 F.arg1=C
-#1.whenCondition=#2
+E.whenCondition=#2
 --
 A.type=THEY
 B.type=DISCOVER
@@ -131,7 +131,7 @@ E.arg2=A
 E.time=PAST
 F.type=AMAZE
 F.arg1=C
-#1.whenCondition=#2
+E.whenCondition=#2
 --
 A.type=THEY
 B.type=DISCOVER

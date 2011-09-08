@@ -156,14 +156,6 @@ class EnglishGenerator {
         out ','
       }
 
-      def opinion = sitFrame.f('opinion_of')
-      if (opinion) {
-        opinionOf(opinion, null, null)
-        if (!hasClauseEllipsis(situation)) {
-          out ','
-        }
-      }
-
       List<ClauseGenerator> conjuncts = planConjuncts(topLevel)
 
       for (int j in 0..<conjuncts.size()) {
@@ -181,13 +173,13 @@ class EnglishGenerator {
 
       def butFrame = sitFrame.f('but')
       if (butFrame) {
-        out(butFrame.f('opinion_of') ? ';' : ',')
-        out(conjuncts[0]?.frame?.s('irrealis') == 'true' ? 'when' : 'but')
         def butSit = (Situation) butFrame.var
+        out(chart.frames(butSit).find { it.f('opinion_of') } ? ';' : ',')
+        out(conjuncts[0]?.frame?.s('irrealis') == 'true' ? 'when' : 'but')
         def generator = new SituationGenerator(chart, butSit, false)
         if (conjuncts.size() == 1 && conjuncts[0].frame) {
           def butConjuncts = generator.planConjuncts(false)
-          if (butConjuncts.size() == 1 && conjuncts[0].frame.f('arg1')?.type == butConjuncts[0].frame.f('arg1')?.type && !hasClauseEllipsis(butSit)) {
+          if (butConjuncts.size() == 1 && conjuncts[0]?.frame?.f('arg1')?.type == butConjuncts[0]?.frame?.f('arg1')?.type && !hasClauseEllipsis(butSit)) {
             generator.hasSubject = true
           }
         }
@@ -318,6 +310,14 @@ class EnglishGenerator {
       assert verb
       if (verb.s('time') == 'PAST') {
         past = true //todo maintain a tense for the whole discourse
+      }
+
+      def opinion = verb.f('opinion_of')
+      if (opinion) {
+        opinionOf(opinion, null, null)
+        if (!hasClauseEllipsis(situation)) {
+          out ','
+        }
       }
 
       def imperative = verb.type == 'modality'

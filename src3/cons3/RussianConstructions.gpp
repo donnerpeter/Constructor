@@ -80,9 +80,9 @@ interface RussianConstructions {
       lastNoun = member.var
     }
     def nType = lastNoun?.frame(state.chart)?.type
-    if (nType) {
+    if (nType && args.head) {
       if (nType in ['OPINION', 'WORDS']) {
-        state = state.assign(state.situation, 'opinion_of', args.noun)
+        state = state.assign(args.head, 'opinion_of', args.noun)
       } else if (args.head) {
         if (nType == 'LUCK') {
           state = state.assign(args.noun, 'topic', args.head)
@@ -314,4 +314,5 @@ interface RussianConstructions {
     }
     return state
   }
+  Construction verbHolder = cxt('verbHolder') { ParsingState state, Map args -> state }
 }

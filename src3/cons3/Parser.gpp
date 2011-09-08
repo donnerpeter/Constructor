@@ -215,7 +215,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         }
 
         def elaboration = new Situation()
-        state = state.assign(situation, 'elaboration', elaboration)
+        state = state.assign(state[verbHolder].head, 'elaboration', elaboration)
         return state.withSituation(elaboration)
       case "я": return noun(state, nom, 'ME')
       case "мы": return noun(state, nom, 'WE')
@@ -608,7 +608,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
   }
 
   private ParsingState infinitive(ParsingState state, Variable verb, String type, Map<Construction, Map> args) {
-    return state.assign(verb, 'type', type).apply(args + [(dat): [head: verb, infinitive: true], (control): [slave: verb], (question): [modality: new Variable(), mainVerb:verb]])
+    return state.assign(verb, 'type', type).apply(args +
+            [(dat): [head: verb, infinitive: true], (control): [slave: verb], (question): [modality: new Variable(), mainVerb:verb], (verbHolder):[head:verb]])
   }
 
   private ParsingState finiteVerb(Map<Construction, Map> args, ParsingState state, Variable verb, String type, String tense) {

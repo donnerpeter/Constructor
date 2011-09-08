@@ -516,6 +516,8 @@ class EnglishGenerator {
         new SituationGenerator(chart, (Situation) content.var, false).sentence(false)
       }
 
+      generateElaboration(verb)
+
       generateBut(verb, subj)
 
       def variants = subj?.f('variants')
@@ -531,6 +533,20 @@ class EnglishGenerator {
           out '\n-'
           new SituationGenerator(chart, message, true).sentence(true)
         }
+      }
+    }
+
+    private def generateElaboration(Frame verb) {
+      def elaboration = verb.f('elaboration')
+      if (!elaboration && verb.type == 'BEGIN') {
+        elaboration = verb.f('theme').f('elaboration')
+      }
+      
+      if (elaboration?.var instanceof Situation) {
+        def commaStyle = chart.frames(situation).find { it.type == 'HAPPEN'}
+        out(commaStyle ? ',' : ":")
+        def sameSentence = commaStyle || chart.frames(situation).find { it.type == 'ARGUE' }
+        new SituationGenerator(chart, (Situation) elaboration.var, !sameSentence).sentence(false)
       }
     }
 
@@ -565,14 +581,6 @@ class EnglishGenerator {
     }
 
     def clauseEnd() {
-      def elaboration = sitFrame.f('elaboration')
-      if (elaboration?.var instanceof Situation) {
-        def commaStyle = chart.frames(situation).find { it.type == 'HAPPEN'}
-        out(commaStyle ? ',' : ":")
-        def sameSentence = commaStyle || chart.frames(situation).find { it.type == 'ARGUE' }
-        new SituationGenerator(chart, (Situation)elaboration.var, !sameSentence).sentence(false)
-      }
-
       def condComp = sitFrame.f('ifCondition') ?: sitFrame.f('whenCondition')
       if (condComp) {
         out ','

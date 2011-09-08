@@ -16,7 +16,7 @@ B.time=PAST
 B.arg1=A
 B.experiencer=C
 C.type=ME
-#1.elaboration=#2
+B.elaboration=#2
 --
 A.type=ME
 B.type=FORGET
@@ -512,7 +512,7 @@ F.time=PAST
 F.arg1=D
 G.type=ARGUE
 F.theme=G
-#2.elaboration=#3
+G.elaboration=#3
 --
 A.type=OPINION
 B.type=SOME

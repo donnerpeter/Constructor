@@ -207,7 +207,7 @@ interface RussianConstructions {
       if (((Variable) args.head).frame(state.chart).type == 'COME_TO') {
         state = state.assign(args.head, 'domain', args.noun)
       } else if (((Variable) args.noun).frame(state.chart).type == 'CASE') {
-        state = state.assign(state.situation, 'condition', args.noun)
+        state = state.assign(args.head, 'condition', args.noun)
       }
     }
     state

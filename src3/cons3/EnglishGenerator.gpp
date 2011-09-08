@@ -512,6 +512,21 @@ class EnglishGenerator {
 
       clauseEnd()
 
+      def condition = verb.f('condition')
+      if (condition) {
+        out ','
+        out 'only'
+        out 'if'
+        def content = condition.f('whenCondition') ?: condition.f('ifCondition')
+        if (!content) {
+          println "No condition: " + chart.presentable()
+          return
+        }
+
+        new SituationGenerator(chart, (Situation) content.var, false).sentence(false)
+      }
+
+
       def variants = subj?.f('variants')
       if (variants) {
         out '-'
@@ -550,20 +565,6 @@ class EnglishGenerator {
         out(commaStyle ? ',' : ":")
         def sameSentence = commaStyle || chart.frames(situation).find { it.type == 'ARGUE' }
         new SituationGenerator(chart, (Situation)elaboration.var, !sameSentence).sentence(false)
-      }
-
-      def condition = sitFrame.f('condition')
-      if (condition) {
-        out ','
-        out 'only'
-        out 'if'
-        def content = condition.f('whenCondition') ?: condition.f('ifCondition')
-        if (!content) {
-          println "No condition: " + chart.presentable()
-          return
-        }
-
-        new SituationGenerator(chart, (Situation) content.var, false).sentence(false)
       }
 
       def condComp = sitFrame.f('ifCondition') ?: sitFrame.f('whenCondition')

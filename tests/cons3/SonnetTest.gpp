@@ -273,7 +273,7 @@ E.type=8
 D.anchor=E
 F.determiner=THAT
 F.type=CASE
-#1.condition=F
+D.condition=F
 F.whenCondition=#2
 --
 A.type=8
@@ -326,7 +326,7 @@ E.type=8
 D.anchor=E
 F.determiner=THAT
 F.type=CASE
-#2.condition=F
+D.condition=F
 F.whenCondition=#3
 --
 A.type=8

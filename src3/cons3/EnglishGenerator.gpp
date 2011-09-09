@@ -138,7 +138,6 @@ class EnglishGenerator {
             out 'great'
             out 'was'
             np(copula.f('arg1'), true)
-            clauseEnd()
             generateCondition(copula)
           }
         }
@@ -515,13 +514,13 @@ class EnglishGenerator {
     private void clause(Frame verb, boolean shouldHaveSubject, boolean topLevel) {
       Frame subj = clauseInner(verb, shouldHaveSubject, topLevel)
 
-      clauseEnd()
-
       generateCondition(verb)
 
       generateElaboration(verb)
 
       generateBut(verb, subj)
+
+      generateReason(verb)
 
       def variants = subj?.f('variants')
       if (variants) {
@@ -536,6 +535,14 @@ class EnglishGenerator {
           out '\n-'
           new SituationGenerator(chart, message, true).sentence(true)
         }
+      }
+    }
+
+    private def generateReason(Frame verb) {
+      def reason = verb.f('reason')
+      if (reason) {
+        out 'because'
+        new SituationGenerator(chart, (Situation) reason.var, false).sentence(false)
       }
     }
 
@@ -607,11 +614,6 @@ class EnglishGenerator {
     }
 
     def clauseEnd() {
-      def reason = sitFrame.f('reason')
-      if (reason) {
-        out 'because'
-        new SituationGenerator(chart, (Situation) reason.var, false).sentence(false)
-      }
     }
 
 

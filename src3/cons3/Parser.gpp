@@ -452,7 +452,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return finiteVerb(state, verb, 'RUN_OUT', 'PAST', (izGen):[head:verb], (nom):[head:verb], (sInstr):[head:verb])
       case "приуныли":
         Variable verb = state[nom]?.head ?: state.newVariable()
-        return finiteVerb(state, verb, 'GET_SAD', 'PAST', (nom):[head:verb], (reasonComp):[head:situation], (relTime):[head:state.situation])
+        return finiteVerb(state, verb, 'GET_SAD', 'PAST', (nom):[head:verb], (reasonComp):[head:verb], (relTime):[head:state.situation])
       case "остановились":
         Variable verb = state[nom]?.head ?: state.newVariable()
         return finiteVerb(state, verb, 'STOP', 'PAST', (nom):[head:verb])

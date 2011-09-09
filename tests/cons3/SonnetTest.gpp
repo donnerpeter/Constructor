@@ -428,7 +428,7 @@ A.anchor=AGAIN
 A.arg1=E
 A.type=GET_SAD
 A.time=PAST
-#2.reason=#3
+A.reason=#3
 --
 A.type=SHE
 B.type=WORDS

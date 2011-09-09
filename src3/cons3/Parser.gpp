@@ -233,7 +233,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def next = new Situation()
         return state.assign(state[verbHolder]?.head ?: new Variable(), 'but', next).withSituation(next).apply(prevHistory, history:state)
       case "тут":
-        return state.assign(situation, 'emphasis', 'true')
+        def verb = state[verbHolder]?.head ?: new Variable()
+        return state.assign(verb, 'emphasis', 'true').apply((verbHolder):[head:verb])
       case "потом":
         Update update = new Update((comeScalarly):[order:'AFTER', xor: t.a], (nom):[:])
         if (state[comeScalarly]?.order) {
@@ -308,7 +309,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "вдруг": return state.apply(adverb, adv:'SUDDENLY')
       case "опять":
         if (state[nom]) {
-          def verb = state.newVariable()
+          def verb = state[verbHolder]?.head ?: state.newVariable()
           return state.assign(verb, 'anchor', 'AGAIN').apply(nom, head:verb)
         }
         return state

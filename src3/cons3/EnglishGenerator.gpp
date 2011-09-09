@@ -66,6 +66,10 @@ class EnglishGenerator {
       }
 
       def generate(boolean last) {
+        if (frame?.s('emphasis')) {
+          out 'there'
+        }
+
         if (bg) {
           if (bg.type == 'MOVE') {
             out 'moving'
@@ -149,9 +153,7 @@ class EnglishGenerator {
       if (chart.frames(situation).find { it.type == 'LUCK' }) {
         out 'by some sheer luck,'
       }
-      else if (sitFrame.s('emphasis')) {
-        out 'there'
-      } else if (sitFrame.s('relTime') == 'AFTER') { //todo a generic situation time frame
+      else if (sitFrame.s('relTime') == 'AFTER') { //todo a generic situation time frame
         out 'then'
       } else if (sitFrame.s('relTime') == 'BEFORE') {
         out 'before'
@@ -201,6 +203,18 @@ class EnglishGenerator {
                 'ARGUE', 'FALL', 'BREAK'
         ]
       }
+
+      if (allVerbs.size() > 1) {
+        for (i in 1..<allVerbs.size()) {
+          def prev = allVerbs[i-1]
+          def cur = allVerbs[i]
+          if (chart.earlier(cur, 'type', prev, 'type')) {
+            allVerbs[i-1] = cur
+            allVerbs[i] = prev
+          }
+        }
+      }
+
       List<ClauseGenerator> conjuncts = []
       if (!allVerbs && !sitFrame.f('but')) {
         conjuncts << new ClauseGenerator(null, null, topLevel, null)

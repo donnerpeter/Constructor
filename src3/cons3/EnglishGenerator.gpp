@@ -32,7 +32,6 @@ class EnglishGenerator {
   private class SituationGenerator {
     final Chart chart
     final Situation situation
-    final Frame sitFrame
     boolean hasSubject
     boolean capitalize
 
@@ -40,7 +39,6 @@ class EnglishGenerator {
       this.chart = chart
       this.situation = situation
       this.capitalize = capitalize
-      sitFrame = situation.frame(chart)
     }
     
     private void out(String word) {
@@ -223,7 +221,7 @@ class EnglishGenerator {
       }
 
       List<ClauseGenerator> conjuncts = []
-      if (!allVerbs && !sitFrame.f('but')) {
+      if (!allVerbs) {
         conjuncts << new ClauseGenerator(null, null, topLevel, null)
       } else {
         int i = 0

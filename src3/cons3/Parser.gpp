@@ -429,7 +429,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return infinitive(state, verb, 'DANCE', [:])
       case "нужно":
         def verb = new Variable()
-        return state.assign(verb, 'type', 'NEED').apply((acc):[head:verb], (dat):[head:verb, infinitive:true], (adverbPred):[adverb:verb])
+        return state.assign(verb, 'type', 'NEED').apply((acc):[head:verb], (dat):[head:verb, infinitive:true], (adverbPred):[adverb:verb], (verbHolder):[head:verb])
       case "спросить":
         def verb = state.newVariable()
         return infinitive(state, verb, 'ASK', [(acc):[head:verb]])
@@ -452,7 +452,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return finiteVerb(state, verb, 'RUN_OUT', 'PAST', (izGen):[head:verb], (nom):[head:verb], (sInstr):[head:verb])
       case "приуныли":
         Variable verb = state[nom]?.head ?: state.newVariable()
-        return finiteVerb(state, verb, 'GET_SAD', 'PAST', (nom):[head:verb], (reasonComp):[head:verb], (relTime):[head:state.situation])
+        return finiteVerb(state, verb, 'GET_SAD', 'PAST', (nom):[head:verb], (reasonComp):[head:verb], (relTime):[head:verb])
       case "остановились":
         Variable verb = state[nom]?.head ?: state.newVariable()
         return finiteVerb(state, verb, 'STOP', 'PAST', (nom):[head:verb])
@@ -500,13 +500,13 @@ class Parser { //todo alex implements cons3.RussianConstructions
                                                 (vAcc):[head:verb, xor:t.b], (vPrep):[head:verb], (nom):[head:verb],
                 (poDat):[head:verb], (verbHolder): [head:verb],
                                                 (posleGen):[head:verb], (ransheGen):[head:verb],
-                                                (conditionComp):[head:verb], (absTime):[head:situation])
+                                                (conditionComp):[head:verb], (absTime):[head:verb])
       case "следовало":
         Variable verb = state.newVariable()
         state = state.assign(verb, 'time', 'PAST')
         return state.inhibit(preposition, numQuantifier).apply((nom):[head:verb],
                 (comeScalarly):[verb:verb],
-                (posleGen):[head:verb], (relTime):[head:situation], (poDat):[head:verb], (verbHolder):[head:verb])
+                (posleGen):[head:verb], (relTime):[head:verb], (poDat):[head:verb], (verbHolder):[head:verb])
       case "раньше":
         return state.apply((comeScalarly):[order:'EARLIER', xor:t.a], (preposition):[prep:'ranshe', interceptor:new Preposition(state)], (relTime):[relTime:'BEFORE', xor:t.a])
       case "после":
@@ -531,8 +531,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply((subjunctive):[subjunctive:true])
       case 'был':
         def subj = state[nom]?.noun ?: state.newVariable()
-        state = state.assign(situation, 'time', 'PAST')
         def copula = new Variable()
+        state = state.assign(copula, 'time', 'PAST')
         return state.apply((naPrep):[head: subj, copula: copula], (nom):[noun:subj], (verbHolder):[head:copula])
       case 'было':
         return state.apply((conditionComp):[head:state[shortAdj]?.copula], (shortAdj):[time:'PAST'], (question):[time:'PAST'], (adverbPred):[time:'PAST'])
@@ -553,7 +553,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def verb = state[verbHolder]?.head ?: new Variable()
         return state.assign(verb, 'opinion_of', opinion).assign(opinion, 'type', 'OPINION').assign(opinion, 'arg1', me).assign(me, 'type', 'ME').
                 apply((verbHolder):[head:verb], (parenthetical):[:])
-      case '?': return state.apply((question):[comp:situation])
+      case '?': return state.apply((question):[comp:state[verbHolder].head])
       case '"':
         if (state[quotedName]) {
           if (state[quotedName].started) {

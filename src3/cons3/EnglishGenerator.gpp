@@ -57,12 +57,16 @@ class EnglishGenerator {
       Frame bg
       boolean topLevel
       Frame comp
+      Frame copula
 
       ClauseGenerator(Frame frame, Frame bg, boolean topLevel, Frame comp) {
         this.frame = frame
         this.bg = bg
         this.topLevel = topLevel
         this.comp = comp
+
+        copula = chart.frames(situation).find { it.type in ['location', 'degree'] }
+
       }
 
       def generate(boolean last) {
@@ -115,7 +119,6 @@ class EnglishGenerator {
             generateBut(frames[0], null)
           }
 
-          Frame copula = frames.find { it.type in ['location', 'degree'] }
           if (copula?.type == 'location') {
             def subj = copula.f('arg1')
             if (subj.s('relativized') == 'true') {
@@ -170,9 +173,23 @@ class EnglishGenerator {
         conjuncts[j].generate(last)
       }
 
-      if (sitFrame.s('dot') == 'true') {
-        out '.'
-      } else if ((conjuncts[0]?.frame?.type == 'modality' || findQuestioned() && !isExclamation()) && topLevel) {
+      if (conjuncts) {
+        def last = conjuncts[-1].frame ?: conjuncts[-1].copula
+        if (last?.type == 'ALSO') {
+          last = last.f('theme')
+        }
+        if (last?.type == 'CAN') {
+          last = last.f('theme')
+        }
+        if (last?.type == 'modality') {
+          last = last.f('arg1')
+        }
+        if (last?.s('dot') == 'true') {
+          out '.'
+          return
+        }
+      }
+      if ((conjuncts[0]?.frame?.type == 'modality' || findQuestioned() && !isExclamation()) && topLevel) {
         out '?'
       }
     }

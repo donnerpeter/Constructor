@@ -113,7 +113,7 @@ E.type=ORDER
 D.arg2=E
 F.type=COUNTING
 E.criterion=F
-#3.dot=true
+D.dot=true
 """
   }
 
@@ -153,7 +153,7 @@ E.type=ORDER
 D.arg2=E
 F.type=COUNTING
 E.criterion=F
-#3.dot=true
+D.dot=true
 --
 A.type=1
 A.number=true
@@ -187,7 +187,7 @@ B.type=NEXT
 A.arg2=B
 C.type=THEY
 A.arg1=C
-#5.dot=true
+A.dot=true
 """
   }
 
@@ -442,7 +442,7 @@ C.theme=E
 F.determiner=ANY
 E.arg2=F
 F.type=MEANING
-#3.dot=true
+C.dot=true
 '''
   }
 

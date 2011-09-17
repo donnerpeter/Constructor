@@ -516,14 +516,14 @@ class Parser { //todo alex implements cons3.RussianConstructions
           return state.apply(directSpeech, hasDash:true)
         }
         if (state[question]?.questioned) {
-          state = state.clearConstructions().apply(questionVariants, questioned:state[question].questioned)
+          state = state.clearConstructions().apply((questionVariants):[questioned:state[question].questioned], (verbHolder):[head:state[verbHolder]?.head])
         }
         if (state[prevHistory]) {
           state = state.apply(clauseEllipsis, interceptor:new EllipsisInterceptor((ParsingState) state[prevHistory].history, state))
         }
         return state
       case ".":
-        return state.assign(state.situation, 'dot', 'true').withSituation(new Situation())
+        return state.assign(state[verbHolder]?.head ?: new Variable(), 'dot', 'true').withSituation(new Situation())
       case 'каково':
         def degree = new Variable()
         return state.assign(degree, 'type', 'wh').apply(shortAdj, copula: new Variable(), value:degree)
@@ -532,7 +532,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case 'был':
         def subj = state[nom]?.noun ?: state.newVariable()
         state = state.assign(situation, 'time', 'PAST')
-        return state.apply((naPrep):[head: subj, copula:new Variable()], (nom):[noun:subj])
+        def copula = new Variable()
+        return state.apply((naPrep):[head: subj, copula: copula], (nom):[noun:subj], (verbHolder):[head:copula])
       case 'было':
         return state.apply((conditionComp):[head:state[shortAdj]?.copula], (shortAdj):[time:'PAST'], (question):[time:'PAST'], (adverbPred):[time:'PAST'])
       case 'так':

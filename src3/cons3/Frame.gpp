@@ -94,9 +94,6 @@ class Frame {
     }
 
     if (attr == 'given') {
-      if (this == situation.frame(chart).f('copulaTopic')) {
-        return 'true'
-      }
 
       if (type in ['THING', 'HAMMER', 'BENCH', 'FINGER', 'JAW']) return 'false'
       if (type == 'CASHIER') {
@@ -104,6 +101,9 @@ class Frame {
         return shop && chart.earlier(shop, 'type', this, 'type') ? 'false' : 'true'
       }
       if (type == 'SHOP') {
+        if (usages('arg1')) {
+          return 'true'
+        }
         def cashier = chart.frames(situation).find { it.type == 'CASHIER' }
         if (cashier && chart.earlier(cashier, 'type', this, 'type')) {
           return 'true'

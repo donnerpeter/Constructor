@@ -531,7 +531,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply((subjunctive):[subjunctive:true])
       case 'был':
         def subj = state[nom]?.noun ?: state.newVariable()
-        state = state.assign(situation, 'time', 'PAST').assign(situation, 'copulaTopic', subj)
+        state = state.assign(situation, 'time', 'PAST')
         return state.apply((naPrep):[head: subj, copula:new Variable()], (nom):[noun:subj])
       case 'было':
         return state.apply((conditionComp):[head:state[shortAdj]?.copula], (shortAdj):[time:'PAST'], (question):[time:'PAST'], (adverbPred):[time:'PAST'])

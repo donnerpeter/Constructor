@@ -115,25 +115,17 @@ class EnglishGenerator {
             generateBut(frames[0], null)
           }
 
-          def copula = frames.find { it.type in ['location', 'degree'] }
+          Frame copula = frames.find { it.type in ['location', 'degree'] }
           if (copula?.type == 'location') {
-            def wh = sitFrame.f('wh')
-            def subj
-            if (wh) {
-              subj = wh
-              out "that's"
+            def subj = copula.f('arg1')
+            if (subj.s('relativized') == 'true') {
+              out(copula.s('time') == 'PAST' ? 'that was' : "that's")
             } else {
-              def copulaTopic = sitFrame.f('copulaTopic')
-              assert copulaTopic: situation.presentable(chart)
-              subj = copulaTopic
-              np(copulaTopic, true)
+              np(subj, true)
               out 'was'
             }
             out 'on'
-
-            List<Frame> usages = subj.usages('arg1').findAll { it.type == 'location' } //todo alex def
-            def location = usages[0].f('arg2')
-            np(location, false)
+            np(copula.f('arg2'), false)
           } else if (copula?.type == 'degree') {
             out 'great'
             out 'was'
@@ -725,7 +717,7 @@ class EnglishGenerator {
       }
 
       def location = n.f('location')
-      if (location && n != sitFrame.f('copulaTopic')) {
+      if (location) {
         out 'on'
         np(location, false)
       }

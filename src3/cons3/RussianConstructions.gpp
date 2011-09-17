@@ -281,7 +281,7 @@ interface RussianConstructions {
   Construction relativeClause = cxt('relativeClause') { ParsingState state, Map args ->
     if (args.noun && args.hasComma && args.wh) {
       def next = new Situation()
-      return state.assign(args.noun, 'relative', next).withSituation(next).assign(next, 'wh', args.wh).apply(nestedClause, save: args.save, parent:args.parentSituation)
+      return state.assign(args.noun, 'relative', next).withSituation(next).assign(args.wh, 'relativized', 'true').apply(nestedClause, save: args.save, parent:args.parentSituation)
     }
     return state
   }

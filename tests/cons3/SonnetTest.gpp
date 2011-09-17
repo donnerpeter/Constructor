@@ -213,7 +213,7 @@ G.type=WE
 F.type=PREDICAMENT
 F.arg1=G
 --
-#2.wh=A
+A.relativized=true
 B.type=location
 B.arg1=A
 B.arg2=C

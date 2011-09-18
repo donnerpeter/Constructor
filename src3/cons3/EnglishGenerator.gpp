@@ -582,9 +582,9 @@ class EnglishGenerator {
       }
       
       if (elaboration?.var instanceof Situation) {
-        def commaStyle = chart.frames(situation).find { it.type == 'HAPPEN'}
+        def commaStyle = verb.type == 'HAPPEN'
         out(commaStyle ? ',' : ":")
-        def sameSentence = commaStyle || chart.frames(situation).find { it.type == 'ARGUE' }
+        def sameSentence = commaStyle || verb.type == 'BEGIN'
         new SituationGenerator(chart, (Situation) elaboration.var, !sameSentence).sentence(false)
       }
     }

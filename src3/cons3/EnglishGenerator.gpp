@@ -441,10 +441,10 @@ class EnglishGenerator {
 
       def io = verb.type == 'HAPPEN' ? verb.f('experiencer') :
         verb.type in ['GO_OFF', 'GO'] ? verb.f('goal') :
-          verb.type == 'ASK' ? verb.f('topic') :
+          verb.type in ['ASK', 'THINK'] ? verb.f('topic') :
             verb.type == 'FALL' ? verb.f('source') : null
       if (io) {
-        out(verb.type == 'FALL' ? 'off' : verb.type == 'ASK' ? 'on' : "to")
+        out(verb.type == 'FALL' ? 'off' : verb.type in ['ASK', 'THINK'] ? 'on' : "to")
         np(io, false)
       }
 
@@ -615,7 +615,8 @@ class EnglishGenerator {
               GET_SAD: 'got sad', DO: 'do', NEED:'need',
               BEGIN:'started', STOP:'stopped',
               MOVE:'moved',
-              ARGUE:'were arguing', 'FALL':'fell', BREAK:'broke'
+              ARGUE:'were arguing', 'FALL':'fell', BREAK:'broke',
+              THINK:'think'
       ]
       return verbs[type]
     }

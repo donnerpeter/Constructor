@@ -29,7 +29,7 @@ class SonnetVariationsTest extends TestCase {
 
   }
 
-  public void _test2_Question() throws Exception {
+  public void test2_Question() throws Exception {
     doTranslateTest "Что они думают по этому поводу?",
                     "What do they think on this matter?"
 

@@ -305,7 +305,8 @@ class EnglishGenerator {
         }
         return sitPast ? 'was': 'am'
       }
-      if (findQuestioned()) {
+      def questioned = findQuestioned()
+      if (questioned && questioned != subj) {
         return sitPast ? 'did' : 'do'
       }
 

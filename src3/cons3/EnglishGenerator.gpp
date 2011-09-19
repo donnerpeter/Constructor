@@ -839,7 +839,7 @@ class EnglishGenerator {
       else if (poss.type == 'THEY') out 'their'
       else if (poss.type == 'SHE') out 'her'
       else {
-        if (noun.chart.frames(noun.situation).find { poss == it.f('arg1') }) {
+        if (poss.usages('arg1')) {
           out(poss.s('sex') == 'female' ? 'her' : 'his')
           return
         }

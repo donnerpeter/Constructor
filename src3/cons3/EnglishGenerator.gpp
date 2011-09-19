@@ -850,16 +850,15 @@ class EnglishGenerator {
     }
 
     boolean skipAlreadyDefinedPossessive(Frame noun, Frame poss) {
-      return noun.chart.frames(noun.situation).any {
-        def i = it.flatten().indexOf(noun)
-        if (i > 0) {
-          List<Frame> frames = it.flatten()[0..<i] //todo alex infer
-          if (frames.any { it.f('arg1') == poss }) {
-            return true
-          }
+      def base = (noun.usages('member')[0] ?: noun).flatten()
+      def i = base.indexOf(noun)
+      if (i > 0) {
+        List<Frame> frames = base[0..<i] //todo alex infer
+        if (frames.any { it.f('arg1') == poss }) {
+          return true
         }
-        return false
       }
+      return false
     }
 
   }

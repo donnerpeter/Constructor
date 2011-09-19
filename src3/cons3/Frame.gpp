@@ -166,6 +166,10 @@ class Frame {
   }
 
   List<Frame> usages(String attrName) {
+    if (attrName == 'member') {
+      return chart.frames(situation).findAll { ((Frame) this) in it.allAssignments('member').collect { it.value } }
+    }
+
     chart.frames(situation).findAll { it.f(attrName) == (Frame) this }
   }
 }

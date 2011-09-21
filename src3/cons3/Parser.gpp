@@ -388,6 +388,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "сказала":
         def verb = state.newVariable()
         return finiteVerb(state, verb, 'SAY', 'PAST', (nom):[head:verb], (directSpeech):[head:verb])
+      case "вынул":
       case "вынула":
         def verb = state.newVariable()
         return finiteVerb(state, verb, 'TAKE_OUT', 'PAST', (nom):[head:verb], (acc):[head:verb], (izGen):[head:verb])

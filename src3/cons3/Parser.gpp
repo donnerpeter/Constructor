@@ -327,7 +327,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "забыл":
       case "забыла":
       case "забыли":
-        Variable verb = state[nom]?.head ?: state.newVariable()
+        Variable verb = state.newVariable()
         state = finiteVerb(state, verb, 'FORGET', 'PAST', (advObj):[head:verb], (acc):[head:verb]) //todo the order shouldn't matter for verb arguments
         if (!state[nom]) {
           def subj = state.newVariable()

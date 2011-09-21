@@ -146,6 +146,10 @@ F.number=true
     doTranslateTest 'Кассирша вынула изо рта молоточек и, подвигав носом, сказала:',
                     "The cashier took a hammer out of her mouth, and moving her nose back and forth, she said:"
   }
+  public void _test6_2and3Clauses_He() throws Exception {
+    doTranslateTest 'Кассир вынул изо рта молоточек и, подвигав носом, сказал:',
+                    "The cashier took a hammer out of her mouth, and moving her nose back and forth, he said:"
+  }
 
   public void test6_WithoutBackgrounded() throws Exception {
     doTranslateTest 'Кассирша грустно улыбнулась, слегка подвигала носом и сказала:',

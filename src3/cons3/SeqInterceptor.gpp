@@ -59,7 +59,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
         return doMerge(state, cxt, oldArgs, newArgs, 'noun', update, seqs)
       }
       if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun && state[cxt]?.head) {
-        return update.addCxt((state[cxt] ?: oldArgs) + [head:newArgs.head], cxt, (Closure)newArgs.init)
+        return doMerge(state, cxt, state[cxt] ?: oldArgs, newArgs, 'head', update, seqs)
       }
       if (cxt in [gen] && oldArgs.head && newArgs.head && !newArgs.noun) {
         return doMerge(state, cxt, oldArgs, newArgs, 'head', update, seqs)
@@ -111,8 +111,9 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
     })
     def newMember = newArgs[property]
     return update.
-            addCxt(oldArgs + [(property): seqVar, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt, ParsingState.mergeInits((Closure)oldArgs.init, (Closure)newArgs.init)).
-            addCxt(seqNext.get(), multi:seqVar, next:newMember, conj:state[seq]?.conj)
+            addCxt(seqNext.get(), multi:seqVar, next:newMember, conj:state[seq]?.conj).
+            addCxt(oldArgs + [(property): seqVar, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt, ParsingState.mergeInits((Closure)oldArgs.init, (Closure)newArgs.init))
+
   }
 
 }

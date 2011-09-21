@@ -598,6 +598,10 @@ class Parser { //todo alex implements cons3.RussianConstructions
     def condition = { Construction cxt -> (c1[cxt].keySet() - 'init' - 'xor') == (c2[cxt].keySet() - 'init' - 'xor') }
     common = common.findAll(condition)
 
+    if (!common) {
+      return false
+    }
+
     if (common.size() == 1 && possessive in common && c1[possessive].head) {
       return false
     }
@@ -606,7 +610,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
       return false
     }
 
-    return common.size() > 0
+    if (common.size() == 1 && parenthetical in common && 'hasComma' in c1[parenthetical]) {
+      return false
+    }
+
+    return true
   }
 
   private ParsingState infinitive(ParsingState state, Variable verb, String type, Map<Construction, Map> args) {

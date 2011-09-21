@@ -11,7 +11,9 @@ interface RussianConstructions {
     state.assign(args.nounFrame, (String)args.rel, args.val) }
   Construction nom = cxt('nom') { ParsingState state, Map args ->
     if (args.head && args.noun) {
-      state = state.assign(args.head, 'arg1', args.noun)
+      for (subj in ((Variable) args.head).frame(state.chart).flatten()) {
+        state = state.assign(subj.var, 'arg1', args.noun)
+      }
     }
     return state
   }

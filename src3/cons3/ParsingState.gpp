@@ -208,13 +208,23 @@ class ParsingState {
       }
     }
 
+    LinkedHashSet<Construction> silent = []
+    for (c in replaced.intersect(active)) {
+      if (constructions.keySet().any { contradict(constructions[it], constructions[c]) }) {
+        silent << c
+        replaced.remove(c)
+      }
+    }
+
     def freed = result.freedByInhibition(replaced)
 
     for (cxt in replaced) {
       result = result.removeConstruction(cxt)
     }
     for (cxt in (constructions.keySet() as List<Construction>).reverse()) {
-      result = result.addCtx(constructions[cxt], cxt)
+      if (!(cxt in silent)) {
+        result = result.addCtx(constructions[cxt], cxt)
+      }
     }
 
     LinkedHashSet<Construction> all = result.constructions.keySet() as LinkedHashSet

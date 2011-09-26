@@ -58,8 +58,8 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       if (cxt in [nom, acc, gen, poDat] && oldArgs.noun && newArgs.noun) {
         return doMerge(state, cxt, oldArgs, newArgs, 'noun', update, seqs)
       }
-      if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun && state[cxt]?.head) {
-        return doMerge(state, cxt, state[cxt] ?: oldArgs, newArgs, 'head', update, seqs)
+      if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun && before[cxt]?.head) {
+        return doMerge(state, cxt, before[cxt] ?: oldArgs, newArgs, 'head', update, seqs)
       }
       if (cxt in [gen] && oldArgs.head && newArgs.head && !newArgs.noun) {
         return doMerge(state, cxt, oldArgs, newArgs, 'head', update, seqs)

@@ -226,8 +226,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "моему":
         def me = state.newVariable()
         return conjWrap(state, (possessive):[possessor:me, init:{ ParsingState it ->it.assign(me, 'type', 'ME') }])
-      case "и": return state.apply(seq, conj:'and', interceptor:new SeqInterceptor(state, 'and'))
-      case "или": return state.apply(seq, conj:'or', interceptor:new SeqInterceptor(state, 'or'))
+      case "и": return state.clearConstructions().apply(seq, conj:'and', interceptor:new SeqInterceptor(state, 'and'))
+      case "или": return state.clearConstructions().apply(seq, conj:'or', interceptor:new SeqInterceptor(state, 'or'))
       case "а":
       case "но":
         def next = new Situation()
@@ -466,12 +466,14 @@ class Parser { //todo alex implements cons3.RussianConstructions
                                    (reasonComp):[hasComma:true],
                                    (question):[hasComma:true],
                                    (relativeClause):[hasComma:true, parentSituation:situation],
-                                   (prevHistory):[history:state],
-                                   (seq):[interceptor:new SeqInterceptor(state, null)])
+                                   (prevHistory):[history:state])
         if (state[parenthetical]?.hasComma) {
           state = state.satisfied(parenthetical)
         } else {
           update = update.addCxt(parenthetical, hasComma:true)
+        }
+        if (!state[seq]?.conj) {
+          update = update.addCxt(seq, interceptor:new SeqInterceptor(state, null))
         }
         return update.apply(state)
       case "если":

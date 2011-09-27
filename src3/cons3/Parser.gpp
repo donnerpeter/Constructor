@@ -190,19 +190,19 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case 'со':
       case 'с':
         def noun = state.newVariable()
-        return state.apply((preposition):[prep:'с', interceptor:new Preposition(state)], (sInstr):[noun:noun, xor:t.b], (sGen):[noun:noun, xor:t.b])
+        return state.apply((preposition):[prep:'с'], (sInstr):[noun:noun, xor:t.b], (sGen):[noun:noun, xor:t.b])
       case 'по':
-        return state.inhibit(gen, numQuantifier).apply((preposition):[prep:'по', interceptor:new Preposition(state)], (poDat):[noun:new Variable(), repeated:(state[seq] != null)])
-      case 'о': return state.apply((preposition):[prep:'о', interceptor:new Preposition(state)], (oPrep):[noun:new Variable()])
-      case 'к': return state.apply((preposition):[prep:'к', interceptor:new Preposition(state)], (kDat):[noun:new Variable()])
+        return state.inhibit(gen, numQuantifier).apply((preposition):[prep:'по'], (poDat):[noun:new Variable(), repeated:(state[seq] != null)])
+      case 'о': return state.apply((preposition):[prep:'о'], (oPrep):[noun:new Variable()])
+      case 'к': return state.apply((preposition):[prep:'к'], (kDat):[noun:new Variable()])
       case 'до':
-        return state.apply((preposition):[prep:'до', interceptor:new Preposition(state)], (doGen):[noun:new Variable()])
+        return state.apply((preposition):[prep:'до'], (doGen):[noun:new Variable()])
       case 'в':
         def noun = state.newVariable()
-        return state.apply((preposition):[prep:'в', interceptor:new Preposition(state)], (vAcc):[noun:noun, xor:t.b], (vPrep):[noun:noun, xor:t.b])
+        return state.apply((preposition):[prep:'в'], (vAcc):[noun:noun, xor:t.b], (vPrep):[noun:noun, xor:t.b])
       case 'из':
-      case 'изо': return state.apply((preposition):[prep:'из', interceptor:new Preposition(state)], (izGen):[noun:new Variable()])
-      case 'на': return state.apply((preposition):[prep:'на', interceptor:new Preposition(state)], (naPrep):[noun:new Variable()])
+      case 'изо': return state.apply((preposition):[prep:'из'], (izGen):[noun:new Variable()])
+      case 'на': return state.apply((preposition):[prep:'на'], (naPrep):[noun:new Variable()])
       case "мной": return noun(state, instr, 'ME')
       case ":":
         if (state[directSpeech]) {
@@ -499,9 +499,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (comeScalarly):[verb:verb],
                 (posleGen):[head:verb], (relTime):[head:verb], (poDat):[head:verb], (verbHolder):[head:verb])
       case "раньше":
-        return state.apply((comeScalarly):[order:'EARLIER', xor:t.a], (preposition):[prep:'ranshe', interceptor:new Preposition(state)], (relTime):[relTime:'BEFORE', xor:t.a])
+        return state.apply((comeScalarly):[order:'EARLIER', xor:t.a], (preposition):[prep:'ranshe'], (relTime):[relTime:'BEFORE', xor:t.a])
       case "после":
-        return state.apply((comeScalarly):[order:'AFTER', xor:t.a], (preposition):[prep:'posle', interceptor:new Preposition(state)], (absTime):[rel:'AFTER', xor:t.a])
+        return state.apply((comeScalarly):[order:'AFTER', xor:t.a], (preposition):[prep:'posle'], (absTime):[rel:'AFTER', xor:t.a])
       case "-":
         if (state[directSpeech]) {
           return state.apply(directSpeech, hasDash:true)

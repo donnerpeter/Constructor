@@ -8,11 +8,6 @@ import static cons3.RussianConstructions.*
 class Preposition implements Interceptor {
 
   static final ArrayList<Construction> cases = [nom, acc, gen, dat, instr, prep]
-  ParsingState prevState
-
-  Preposition(ParsingState prev) {
-    prevState = prev
-  }
 
   private Construction transformCase(ParsingState state, Construction caze) {
     if (state.constructions[preposition]?.hasNoun) {

@@ -14,6 +14,20 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
     this.conj = conj
   }
 
+  int findSimilar(List<Contribution> history, Map<Construction, Map> constructions) {
+    int i = 0
+    for (old in history) {
+      if (Parser.areSimilar(old.apps, constructions)) {
+        return i
+      }
+      if (old.apps[nom]?.head && !old.apps[nom].noun && (constructions[poDat]?.hasNoun || constructions[gen]?.hasNoun)) {
+        return -1
+      }
+      i++
+    }
+    return -1
+  }
+
   ParsingState intercept(Map<Construction, Map> constructions, ParsingState state, Function2<Map<Construction, Map>, ParsingState, ParsingState> base) {
     List<Contribution> history = before.history
 
@@ -22,27 +36,45 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
     if (limit > 0) {
       history = history.subList(0, history.size() - limit)
     }
-    def similar = history.findIndexOf { Contribution it -> Parser.areSimilar(it.apps, constructions) }
+    def similar = findSimilar(history, constructions)
     //todo exclude prepositions in a generic way
     if (similar >= 0 && !(poDat in constructions && preposition in constructions)) {
       Update update = new Update(FLinkedMap.emptyMap)
       def seqs = [:]
-      for (cxt in constructions.keySet()) {
-        update = merge(state, cxt, history[similar], constructions[cxt], update, seqs)
-      }
+      boolean merged = false
 
-      def modernHistory = state.history
-      ParsingState rollback = history[similar].before
-      rollback = rollback[numQuantifier]?.prev ?: rollback //todo a more generic way of finding a phrase start
-      state = state.clearConstructions().restore(rollback)
-
-      def lastConj = modernHistory.findIndexOf { Contribution it -> it.apps[seq] != null }
-      if (lastConj) {
-        for (contribution in modernHistory.subList(0, lastConj).reverse()) {
-          state = base(contribution.apps, state)
+      def oldApps = history[similar].apps
+      if (conj == 'but' && oldApps[nom]?.head && constructions[nom]?.head) {
+        def seqVar = new Variable()
+        state = state.assign(seqVar, 'member', oldApps[nom].head).assign(seqVar, 'conj', 'but').assign(seqVar, 'member', constructions[nom].head).
+                inhibit(seq, comeScalarly)
+        if (before[nom]?.noun && !constructions[nom].noun && oldApps[nom].agr == constructions[nom].agr) {
+          state = state.apply((nom):[noun:before[nom].noun])
         }
+        return base(constructions, state)
       }
-      return base(update.map.reverse(), state)
+
+      for (cxt in constructions.keySet()) {
+        def oldArgs = oldApps[cxt]
+        def newUpdate = merge(state, cxt, oldArgs, constructions[cxt], update, seqs)
+        merged |= newUpdate != null
+        update = newUpdate ?: update.addCxt(constructions[cxt], cxt)
+      }
+
+      if (merged) {
+        def modernHistory = state.history
+        ParsingState rollback = history[similar].before
+        rollback = rollback[numQuantifier]?.prev ?: rollback //todo a more generic way of finding a phrase start
+        state = state.clearConstructions().restore(rollback)
+
+        def lastConj = modernHistory.findIndexOf { Contribution it -> it.apps[seq] != null }
+        if (lastConj) {
+          for (contribution in modernHistory.subList(0, lastConj).reverse()) {
+            state = base(contribution.apps, state)
+          }
+        }
+        return base(update.map.reverse(), state)
+      }
     }
     return base(constructions, state)
   }
@@ -52,9 +84,12 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
   }
 
 
-  private Update merge(ParsingState state, Construction cxt, Contribution prev, Map newArgs, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
-    Map oldArgs = prev.apps[cxt]
+  private Update merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
     if (oldArgs != null) {
+      if (conj == 'but') {
+        return null
+      }
+
       if (cxt in [nom, acc, gen, poDat] && oldArgs.noun && newArgs.noun) {
         return doMerge(state, cxt, oldArgs, newArgs, 'noun', update, seqs)
       }
@@ -69,7 +104,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       }
     }
 
-    return update.addCxt(newArgs, cxt)
+    return null
   }
 
 
@@ -94,7 +129,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       }
       st.assign(args.multi, 'member', args.second).satisfied(seqStart.get())
     })
-    
+
     return update.
             addCxt(seqStart.get(), multi:multi, first:first, second:second, conj:conj, distinguish:state[cxt]?.repeated).
             addCxt(oldArgs + [(prop): multi, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt, ParsingState.mergeInits((Closure)oldArgs.init, (Closure)newArgs.init))

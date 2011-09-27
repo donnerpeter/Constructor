@@ -68,6 +68,14 @@ class EnglishGenerator {
       }
 
       def generate(boolean last) {
+        if (frame?.s('butEmphasis')) {
+          out 'but'
+        }
+
+        if (frame && frame.usages('topic').find { it.type == 'LUCK' }) {
+          out 'by some sheer luck,'
+        }
+
         if (frame?.s('emphasis')) {
           out 'there'
         } else if (frame?.s('relTime') == 'AFTER') { //todo a generic situation time frame
@@ -122,10 +130,6 @@ class EnglishGenerator {
 
         if (!frame && !bg) {
           def frames = chart.frames(situation)
-          if (frames.size() == 1 && frames[0].f('but')) {
-            generateBut(frames[0], null)
-          }
-
           if (copula?.type == 'location') {
             def subj = copula.f('arg1')
             if (subj.s('relativized') == 'true') {
@@ -151,18 +155,28 @@ class EnglishGenerator {
     private def sentence(boolean topLevel) {
       handled << situation
 
-      if (chart.frames(situation).find { it.type == 'LUCK' }) {
-        out 'by some sheer luck,'
-      }
-
       List<ClauseGenerator> conjuncts = planConjuncts(topLevel)
+
+      boolean wasBut = false
 
       for (int j in 0..<conjuncts.size()) {
         def last = j == conjuncts.size() - 1
         if (j > 0) {
-          if (last && (!conjuncts[j].bg || conjuncts[j].frame)) {
-            if (j > 1 || conjuncts[j].bg) out ","
-            out "and"
+          def prev = conjuncts[j - 1]
+          def cur = conjuncts[j]
+          List<Frame> seqs = prev.frame?.usages('member') ?: [] //todo infer
+          def but = seqs.any { conj -> conj.s('conj') == 'but' && conj.allAssignments('member')[-1].value == cur.frame }
+          wasBut |= but
+          if (last && (!cur.bg || cur.frame) || but) {
+            if (but) {
+              out(prev.frame?.f('opinion_of') ? ';' : ',')
+              if (prev.frame?.f('arg1') != cur.frame?.f('arg1')) {
+                hasSubject = false
+              }
+            }
+            else if (!wasBut && j > 1 || cur.bg) out ","
+
+            out(but ? (prev.frame?.s('irrealis') == 'true' ? 'when' : 'but') : "and")
           } else {
             out ","
           }
@@ -326,7 +340,7 @@ class EnglishGenerator {
       def opinion = verb.f('opinion_of')
       if (opinion) {
         opinionOf(opinion, null, null)
-        if (!hasClauseEllipsis(situation)) {
+        if (!verb.findMeta('type', 'ellipsis')) {
           out ','
         }
       }
@@ -525,8 +539,6 @@ class EnglishGenerator {
 
       generateElaboration(verb)
 
-      generateBut(verb, subj)
-
       generateReason(verb)
 
       def variants = subj?.f('variants')
@@ -587,21 +599,6 @@ class EnglishGenerator {
         out(commaStyle ? ',' : ":")
         def sameSentence = commaStyle || verb.type == 'BEGIN'
         new SituationGenerator(chart, (Situation) elaboration.var, !sameSentence).sentence(false)
-      }
-    }
-
-    private def generateBut(Frame verb, Frame subj) {
-      def butFrame = verb.f('but')
-      if (butFrame) {
-        def butSit = (Situation) butFrame.var
-        out(chart.frames(butSit).find { it.f('opinion_of') } ? ';' : ',')
-        out(verb.s('irrealis') == 'true' ? 'when' : 'but')
-        def generator = new SituationGenerator(chart, butSit, false)
-        def butConjuncts = generator.planConjuncts(false)
-        if (butConjuncts.size() == 1 && subj?.type == butConjuncts[0]?.frame?.f('arg1')?.type && !hasClauseEllipsis(butSit)) {
-          generator.hasSubject = true
-        }
-        generator.sentence(false)
       }
     }
 

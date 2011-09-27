@@ -17,7 +17,7 @@ class EllipsisInterceptor implements Interceptor, RussianConstructions {
 
     FList<Contribution> old = prevHistory.history
     def endPrecedent = old.findIndexOf { Contribution it -> Parser.areSimilar(it.apps, update.map) }
-    if (endPrecedent) {
+    if (endPrecedent >= 0) {
       List<Contribution> beforeGap = beforeDash.history[0..beforeDash.history.size - old.size]
       def lcs = Util.lcs(old.subList(endPrecedent + 1), beforeGap) { a, b -> Parser.areSimilar(a.apps, b.apps) }
       if (lcs) {
@@ -27,7 +27,7 @@ class EllipsisInterceptor implements Interceptor, RussianConstructions {
         Map<Variable, Variable> mapping = buildMapping(lcs, precedent, update)
 
         def ellipsis = new Variable()
-        state = state.satisfied(clauseEllipsis).assign(ellipsis, 'type', 'ellipsis').startMeta(ellipsis)
+        state = state.satisfied(clauseEllipsis).inhibit(comeScalarly).assign(ellipsis, 'type', 'ellipsis').startMeta(ellipsis)
 
         for (i in 0..<precedent.size()) {
           if (i == precedent.size() - endPrecedent - 1) continue
@@ -36,7 +36,13 @@ class EllipsisInterceptor implements Interceptor, RussianConstructions {
           //todo a normal condition for ellipsis participation
           if (!oldContribution.apps.keySet().intersect(Parser.importantForSimilarity - [parenthetical])) continue
 
-          state = base(applyMapping(oldContribution, mapping), state)
+          def mapped = applyMapping(oldContribution, mapping)
+          state = base(mapped, state)
+          //todo a generic conjunctless 'but'
+          if (mapped[comeScalarly]?.verb && prevHistory[comeScalarly]?.verb) {
+            def seq = new Variable()
+            state = state.assign(seq, 'member', prevHistory[comeScalarly].verb).assign(seq, 'conj', 'but').assign(seq, 'member', mapped[comeScalarly].verb)
+          }
         }
 
         state = state.finishMeta(ellipsis)

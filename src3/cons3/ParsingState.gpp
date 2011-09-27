@@ -74,7 +74,7 @@ class ParsingState {
     return false
   }
 
-  private ParsingState addCtx(Map newArgs, Construction name) {
+  ParsingState addCxt(Map newArgs, Construction name) {
     return clone(constructions: constructions + [(name): unify(constructions[name], newArgs)])
   }
 
@@ -203,7 +203,7 @@ class ParsingState {
       def prev = history.find { it.before[c] != result[c] }
       if (prev && !overwrites(prev.before.constructions[c], constructions[c])) {
         replaced.remove(c)
-        result = result.removeConstruction(c).addCtx(prev.before[c], c)
+        result = result.removeConstruction(c).addCxt(prev.before[c], c)
         old << c
       }
     }
@@ -223,7 +223,7 @@ class ParsingState {
     }
     for (cxt in (constructions.keySet() as List<Construction>).reverse()) {
       if (!(cxt in silent)) {
-        result = result.addCtx(constructions[cxt], cxt)
+        result = result.addCxt(constructions[cxt], cxt)
       }
     }
 
@@ -305,7 +305,7 @@ class ParsingState {
 
 
   ParsingState clearConstructions() {
-    return clone(constructions: FLinkedMap.emptyMap)
+    return clone(constructions: FLinkedMap.emptyMap, active:FList.emptyList)
   }
 
   ParsingState restore(ParsingState saved) {

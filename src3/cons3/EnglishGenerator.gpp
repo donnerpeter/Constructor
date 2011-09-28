@@ -371,7 +371,7 @@ class EnglishGenerator {
           return
         }
         if (hasSubject) {
-          out(subj.s('sex') == 'female' ? 'she' : 'he')
+          out(subj.s('gender') == 'fem' ? 'she' : 'he')
         } else if (subj.type != 'wh') {
           np(subj, true)
         }
@@ -839,7 +839,7 @@ class EnglishGenerator {
       else if (poss.type == 'SHE') out 'her'
       else {
         if (poss.usages('arg1')) {
-          out(poss.s('sex') == 'female' ? 'her' : 'his')
+          out(poss.s('gender') == 'fem' ? 'her' : 'his')
           return
         }
 

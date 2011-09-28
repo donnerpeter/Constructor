@@ -28,6 +28,21 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
     return -1
   }
 
+  boolean agree(Map nom1, Map nom2) {
+    String agr1 = nom1.agr
+    String agr2 = nom2.agr
+    if (agr1 == null) return agr2 == null
+
+    return agrUnifiable(agrGender(agr1), agrGender(agr2)) &&
+           agrUnifiable(agrNumber(agr1), agrNumber(agr2)) &&
+           agrUnifiable(agrPerson(agr1), agrPerson(agr2))
+  }
+
+  static String agrGender(String agr) { return agr == 'masc' ? 'masc' : agr == 'fem' ? 'fem' : null }
+  static String agrNumber(String agr) { return agr.endsWith('pl') ? 'pl' : agr.endsWith('sg') || agr in ['masc', 'fem'] ? 'sg' : null }
+  static String agrPerson(String agr) { return agr.startsWith('3') ? '3' : null }
+  boolean agrUnifiable(String a1, String a2) { return a1 == null || a2 == null || a1 == a2 }
+
   ParsingState intercept(Map<Construction, Map> constructions, ParsingState state, Function2<Map<Construction, Map>, ParsingState, ParsingState> base) {
     List<Contribution> history = before.history
 
@@ -48,8 +63,8 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
         def seqVar = new Variable()
         state = state.assign(seqVar, 'member', oldApps[nom].head).assign(seqVar, 'conj', 'but').assign(seqVar, 'member', constructions[nom].head).
                 inhibit(seq, comeScalarly)
-        if (before[nom]?.noun && !constructions[nom].noun && oldApps[nom].agr == constructions[nom].agr) {
-          state = state.apply((nom):[noun:before[nom].noun])
+        if (before[nom]?.noun && !constructions[nom].noun && agree(oldApps[nom], constructions[nom])) {
+          state = state.inhibit(nom).apply((nom):[noun:before[nom].noun])
         }
         return base(constructions, state)
       }

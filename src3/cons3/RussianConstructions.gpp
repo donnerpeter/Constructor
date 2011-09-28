@@ -10,14 +10,18 @@ interface RussianConstructions {
   Construction adjective = cxt('adjective') { ParsingState state, Map args ->
     state.assign(args.nounFrame, (String)args.rel, args.val) }
   Construction nom = cxt('nom') { ParsingState state, Map args ->
-    if (args.agr && args.head && !args.noun) {
-      def noun = new Variable()
+    if (args.agr && args.head && !args.hasNoun) {
+      Variable noun = args.noun ?: new Variable()
       state = state.addCxt(nom, noun: noun)
-      //todo separate from type gender markers
-      if (args.agr == 'pl') {
-        state = state.assign(noun, 'type', 'THEY')
-      } else if (args.agr == '3sg') {
-        state = state.assign(noun, 'type', 'HE')
+      String agr = args.agr
+      if (SeqInterceptor.agrNumber(agr)) {
+        state = state.assign(noun, 'number', SeqInterceptor.agrNumber(agr))
+      }
+      if (SeqInterceptor.agrPerson(agr)) {
+        state = state.assign(noun, 'person', SeqInterceptor.agrPerson(agr))
+      }
+      if (SeqInterceptor.agrGender(agr)) {
+        state = state.assign(noun, 'gender', SeqInterceptor.agrGender(agr))
       }
       args = state[nom]
     }

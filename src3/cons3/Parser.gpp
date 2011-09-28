@@ -250,9 +250,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return conjWrap(state, (possessive):[possessor:they, init:init, xor:t.a], (acc):[noun:they, hasNoun:true, init:init, xor:t.a])
       case "они": return pronoun(state, nom, 'THEY')
       case "соседям": return noun(state, dat, 'NEIGHBOURS')
-      case "кассир": return noun(state, nom) { ParsingState st, Variable n -> st.assign(n, 'type', 'CASHIER').assign(n, 'sex', 'male') }
+      case "кассир": return noun(state, nom) { ParsingState st, Variable n -> st.assign(n, 'type', 'CASHIER').assign(n, 'gender', 'masc') }
       case "кассиршу": return noun(state, acc, 'CASHIER')
-      case "кассирша": return noun(state, nom) { ParsingState st, Variable n -> st.assign(n, 'type', 'CASHIER').assign(n, 'sex', 'female') }
+      case "кассирша": return noun(state, nom) { ParsingState st, Variable n -> st.assign(n, 'type', 'CASHIER').assign(n, 'gender', 'fem') }
       case "кассирши": return noun(state, gen, 'CASHIER')
       case "одних": return noun(state, gen, 'SOME')
       case "других": return noun(state, gen, 'OTHERS')
@@ -325,12 +325,12 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "забыли":
         Variable verb = state.newVariable()
         state = finiteVerb(state, verb, 'FORGET', 'PAST', (advObj):[head:verb, xor:t.a], (acc):[head:verb, xor:t.a]) //todo the order shouldn't matter for verb arguments
-        return state.inhibit(question).apply((nom):[head:verb, agr:(word == 'забыли' ? 'pl' : '3sg')], (adverb):[head:verb], (question):[head:verb])
+        return state.inhibit(question).apply((nom):[head:verb, agr:(word == 'забыли' ? 'pl' : word == 'забыла' ? 'fem' : 'masc')], (adverb):[head:verb], (question):[head:verb])
       case "помнят":
       case "помнит":
         Variable verb = state.newVariable()
         state = finiteVerb(state, verb, 'REMEMBER', 'PRESENT', (acc):[head:verb])
-        return state.apply((nom):[head:verb, agr:(word == 'помнят' ? 'pl' : '3sg')], (verbHolder):[head:verb])
+        return state.apply((nom):[head:verb, agr:(word == 'помнят' ? '3pl' : '3sg')], (verbHolder):[head:verb])
       case "могут":
         def verb = state.newVariable()
         def also = state[also]
@@ -352,11 +352,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return finiteVerb(state.inhibit(preposition), verb, 'BEGIN', 'PAST', (control):[head:verb], (nom):[head:verb])
       case 'свалился':
         def verb = state.newVariable()
-        return finiteVerb(state, verb, 'FALL', 'PAST', (nom):[head:verb, agr:'3sg'], (sGen):[head:verb], (poDat):[head:verb])
+        return finiteVerb(state, verb, 'FALL', 'PAST', (nom):[head:verb, agr:'masc'], (sGen):[head:verb], (poDat):[head:verb])
       case 'сломал':
       case 'сломала':
         def verb = state.newVariable()
-        return finiteVerb(state, verb, 'BREAK', 'PAST', (nom):[head:verb, agr:'3sg'], (acc):[head:verb], (dat):[head:verb], (dativePart):[head:verb])
+        return finiteVerb(state, verb, 'BREAK', 'PAST', (nom):[head:verb, agr: (word == 'сломал' ? 'masc' : 'fem')], (acc):[head:verb], (dat):[head:verb], (dativePart):[head:verb])
       case "отправился":
         def verb = state.newVariable()
         return finiteVerb(state, verb, 'GO_OFF', 'PAST', (kDat):[head:verb], (nom):[head:verb])

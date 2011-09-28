@@ -180,7 +180,8 @@ G.number=true
 H.type=REMEMBER
 H.time=PRESENT
 H.arg2=B
-I.type=THEY
+I.number=pl
+I.person=3
 H.arg1=I
 J.butEmphasis=true
 K.type=FORGET
@@ -240,7 +241,7 @@ F.name=бассейная
   public void testParse6() throws Exception {
     doParseTest "Кассирша грустно улыбнулась, вынула изо рта маленький молоточек и, слегка подвигав носом, сказала:", """
 A.type=CASHIER
-A.sex=female
+A.gender=fem
 B.type=SMILE
 B.time=PAST
 B.arg1=A
@@ -301,7 +302,7 @@ B.anchor=C
     doParseTest """Кассирша грустно улыбнулась, вынула изо рта маленький молоточек и, слегка подвигав носом, сказала:
 - По-моему, семь идет после восьми в том случае, когда восемь идет после семи""", """
 A.type=CASHIER
-A.sex=female
+A.gender=fem
 B.type=SMILE
 B.time=PAST
 B.arg1=A
@@ -586,7 +587,8 @@ F.time=PAST
 G.member=B
 G.conj=but
 G.member=F
-H.type=HE
+H.number=sg
+H.gender=masc
 F.arg1=H
 F.source=E
 D.topic=F

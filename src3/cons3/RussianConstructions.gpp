@@ -167,7 +167,7 @@ interface RussianConstructions {
     if (args.possessor) {
       def type = ((Variable) args.head)?.frame(state.chart)?.type
       if (type) {
-        state = state.assign(args.head, type in ['AMAZE', 'PREDICAMENT', 'OPINION'] ? 'arg1' : 'author', args.possessor)
+        state = state.assign(args.head, type in ['AMAZE', 'PREDICAMENT', 'OPINION', 'ARGUE'] ? 'arg1' : 'author', args.possessor)
       }
     }
     return state
@@ -261,6 +261,9 @@ interface RussianConstructions {
   }
   Construction doGen = cxt('doGen') { ParsingState state, Map args ->
     args.head && args.noun ? state.assign(args.head, 'goal', args.noun) : state
+  }
+  Construction otGen = cxt('otGen') { ParsingState state, Map args ->
+    args.head && args.noun ? state.assign(args.head, 'theme', args.noun) : state
   }
   Construction participleArg = cxt('participleArg') { ParsingState state, Map args ->
     args.head && args.participle ? state.assign(args.head, 'theme', args.participle) : state

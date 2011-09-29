@@ -613,6 +613,21 @@ L.quantifier=K
                     'We were arguing for a long time, when by some sheer luck, a child fell off a bench and broke both of his jaws'
   }
 
+  public void testParse14() throws Exception {
+    doParseTest 'Это отвлекло нас от нашего спора', '''
+A.type=THAT
+B.type=DISTRACT
+B.time=PAST
+B.arg1=A
+C.type=WE
+B.arg2=C
+B.theme=D
+E.type=WE
+D.type=ARGUE
+D.arg1=E
+'''
+  }
+
   static void doTranslateTest(String input, String expected) {
     def parser = new Parser()
     def chart = parser.parse(input)

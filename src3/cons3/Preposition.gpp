@@ -28,6 +28,7 @@ class Preposition implements Interceptor {
     if (p == 'о' && caze == prep) return oPrep
     if (p == 'из' && caze == gen) return izGen
     if (p == 'на' && caze == prep) return naPrep
+    if (p == 'от' && caze == gen) return otGen
     return caze
   }
 

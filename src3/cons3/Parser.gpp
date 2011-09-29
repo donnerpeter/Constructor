@@ -197,6 +197,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case 'к': return state.apply((preposition):[prep:'к'], (kDat):[noun:new Variable()])
       case 'до':
         return state.apply((preposition):[prep:'до'], (doGen):[noun:new Variable()])
+      case 'от':
+        return state.apply((preposition):[prep:'от'], (otGen):[noun:new Variable()])
       case 'в':
         def noun = state.newVariable()
         return state.apply((preposition):[prep:'в'], (vAcc):[noun:noun, xor:t.b], (vPrep):[noun:noun, xor:t.b])
@@ -216,12 +218,16 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "я": return noun(state, nom, 'ME')
       case "мы": return noun(state, nom, 'WE')
       case "нам": return noun(state, dat, 'WE')
+      case "нас": return noun(state, acc, 'WE')
       case "мое":
         def me = state.newVariable()
         return conjWrap(state, (possessive):[possessor:me, init:{ ParsingState it ->it.assign(me, 'type', 'ME') }])
       case "моему":
         def me = state.newVariable()
         return conjWrap(state, (possessive):[possessor:me, init:{ ParsingState it ->it.assign(me, 'type', 'ME') }])
+      case "нашего":
+        def me = state.newVariable()
+        return conjWrap(state, (possessive):[possessor:me, init:{ ParsingState it ->it.assign(me, 'type', 'WE') }])
       case "и": return state.clearConstructions().apply(seq, conj:'and', interceptor:new SeqInterceptor(state, 'and'))
       case "или": return state.clearConstructions().apply(seq, conj:'or', interceptor:new SeqInterceptor(state, 'or'))
       case "а":
@@ -258,6 +264,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "других": return noun(state, gen, 'OTHERS')
       case "деревья": return noun(state, acc, 'TREES')
       case "деньги": return noun(state, acc, 'MONEY')
+      case "спора": return noun(state, gen, 'ARGUE')
       case "ее":
       case "её":
         def she = state.newVariable()
@@ -357,6 +364,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case 'сломала':
         def verb = state.newVariable()
         return finiteVerb(state, verb, 'BREAK', 'PAST', (nom):[head:verb, agr: (word == 'сломал' ? 'masc' : 'fem')], (acc):[head:verb], (dat):[head:verb], (dativePart):[head:verb])
+      case "отвлекло":
+        def verb = state.newVariable()
+        return finiteVerb(state, verb, 'DISTRACT', 'PAST', (otGen):[head:verb], (nom):[head:verb], (acc):[head:verb])
       case "отправился":
         def verb = state.newVariable()
         return finiteVerb(state, verb, 'GO_OFF', 'PAST', (kDat):[head:verb], (nom):[head:verb])
@@ -468,7 +478,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply((conditionComp):[wh:'if'])
       case "когда":
         return state.apply((conditionComp):[wh:'when'])
-      case "Что":
+      case "это": return noun(state, nom, 'THAT')
       case "что":
         def noun = state.newVariable()
         state = state.apply((question):[questioned:noun])

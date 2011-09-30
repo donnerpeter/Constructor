@@ -219,7 +219,8 @@ class EnglishGenerator {
                 'GET_SAD', 'SEEM', 'THINK',
                 'modality', 'DO', 'NEED',
                 'BEGIN', 'STOP', 'COME_TO',
-                'ARGUE', 'FALL', 'BREAK'
+                'ARGUE', 'FALL', 'BREAK',
+                'DISTRACT'
         ]
       }
 
@@ -262,6 +263,9 @@ class EnglishGenerator {
           def next = allVerbs[i]
           if (cur?.type == 'GO' && next?.type == 'ASK') {
             comp = next
+            i++
+          }
+          else if (next && next == cur.f('theme')) {
             i++
           }
           conjuncts << new ClauseGenerator(cur, bg, topLevel, comp)
@@ -456,9 +460,10 @@ class EnglishGenerator {
       def io = verb.type == 'HAPPEN' ? verb.f('experiencer') :
         verb.type in ['GO_OFF', 'GO'] ? verb.f('goal') :
           verb.type in ['ASK', 'THINK'] ? verb.f('topic') :
+          verb.type in ['DISTRACT'] ? verb.f('theme') :
             verb.type == 'FALL' ? verb.f('source') : null
       if (io) {
-        out(verb.type == 'FALL' ? 'off' : verb.type in ['ASK', 'THINK'] ? 'on' : "to")
+        out(verb.type == 'DISTRACT' ? 'from' : verb.type == 'FALL' ? 'off' : verb.type in ['ASK', 'THINK'] ? 'on' : "to")
         np(io, false)
       }
 
@@ -613,7 +618,8 @@ class EnglishGenerator {
               BEGIN:'started', STOP:'stopped',
               MOVE:'moved',
               ARGUE:'were arguing', 'FALL':'fell', BREAK:'broke',
-              THINK:'think'
+              THINK:'think',
+              DISTRACT:'distracted'
       ]
       return verbs[type]
     }
@@ -668,6 +674,10 @@ class EnglishGenerator {
 
       if (n.type == 'wh') {
         out 'what'
+        return
+      }
+      if (n.type == 'THAT') {
+        out 'that'
         return
       }
 
@@ -787,7 +797,7 @@ class EnglishGenerator {
         hasQuantifier = true
       }
 
-      if (n.type in ['AMAZE', 'PREDICAMENT', 'NEIGHBOURS', 'MOUTH', 'NOSE', 'JAW', 'JAWS', 'FINGERS'] && n.f('arg1') && !skipAlreadyDefinedPossessive(n, n.f('arg1'))) {
+      if (n.type in ['AMAZE', 'PREDICAMENT', 'NEIGHBOURS', 'MOUTH', 'NOSE', 'JAW', 'JAWS', 'FINGERS', 'ARGUE'] && n.f('arg1') && !skipAlreadyDefinedPossessive(n, n.f('arg1'))) {
         if (hasQuantifier) {
           out 'of'
         }
@@ -902,6 +912,7 @@ class EnglishGenerator {
       case 'BENCH': return 'bench'
       case 'FINGERS': return 'fingers'
       case 'FINGER': return 'finger'
+      case 'ARGUE': return 'argument'
       default: return type
     }
 

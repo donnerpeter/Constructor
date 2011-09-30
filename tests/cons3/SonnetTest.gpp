@@ -628,6 +628,11 @@ D.arg1=E
 '''
   }
 
+  public void testTranslate14() throws Exception {
+    doTranslateTest 'Это отвлекло нас от нашего спора',
+            'That distracted us from our argument'
+  }
+
   static void doTranslateTest(String input, String expected) {
     def parser = new Parser()
     def chart = parser.parse(input)

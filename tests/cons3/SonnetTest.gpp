@@ -637,13 +637,18 @@ D.arg1=E
     doParseTest 'А потом мы разошлись по домам', '''
 A.andEmphasis=true
 B.type=WE
-C.type=DISPERSE
-C.time=PAST
-C.arg1=B
-C.relTime=AFTER
-D.type=HOMES
-C.direction=D
+A.type=DISPERSE
+A.time=PAST
+A.arg1=B
+A.relTime=AFTER
+C.type=HOMES
+A.goal=C
 '''
+  }
+
+  public void testTranslate15() throws Exception {
+    doTranslateTest 'А потом мы разошлись по домам.',
+            'And then we all went home.'
   }
 
   static void doTranslateTest(String input, String expected) {

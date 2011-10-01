@@ -71,6 +71,9 @@ class EnglishGenerator {
         if (frame?.s('butEmphasis')) {
           out 'but'
         }
+        else if (frame?.s('andEmphasis')) {
+          out 'and'
+        }
 
         if (frame && frame.usages('topic').find { it.type == 'LUCK' }) {
           out 'by some sheer luck,'
@@ -220,7 +223,7 @@ class EnglishGenerator {
                 'modality', 'DO', 'NEED',
                 'BEGIN', 'STOP', 'COME_TO',
                 'ARGUE', 'FALL', 'BREAK',
-                'DISTRACT'
+                'DISTRACT', 'DISPERSE'
         ]
       }
 
@@ -457,6 +460,10 @@ class EnglishGenerator {
         emitMoveTail(verb)
       }
 
+      if (verb.type == 'DISPERSE') {
+        out 'home' //todo variate
+      }
+
       def io = verb.type == 'HAPPEN' ? verb.f('experiencer') :
         verb.type in ['GO_OFF', 'GO'] ? verb.f('goal') :
           verb.type in ['ASK', 'THINK'] ? verb.f('topic') :
@@ -619,7 +626,8 @@ class EnglishGenerator {
               MOVE:'moved',
               ARGUE:'were arguing', 'FALL':'fell', BREAK:'broke',
               THINK:'think',
-              DISTRACT:'distracted'
+              DISTRACT:'distracted',
+              DISPERSE:'went'
       ]
       return verbs[type]
     }

@@ -120,7 +120,7 @@ class Frame {
       if (s('person') == '3') return s('gender') == 'fem' ? 'SHE' : 'HE'
     }
 
-    if (attr == 'quantifier' && type == 'WE' && usages('arg1')[0]?.type == 'DISPERSE') {
+    if (attr == 'quantifier' && type in ['WE', 'THEY'] && usages('arg1')[0]?.type == 'DISPERSE') {
       return 'ALL'
     }
 

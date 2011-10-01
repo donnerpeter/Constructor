@@ -508,6 +508,21 @@ F.number=true
                     'The cashier broke 2 of his fingers'
   }
 
+  public void test15_They() throws Exception {
+    doTranslateTest 'А потом они разошлись по домам.',
+            'And then they all went home.'
+  }
+
+  public void test15_ThenThey() throws Exception {
+    doTranslateTest 'Потом они разошлись по домам.',
+            'Then they all went home.'
+  }
+  public void test15_AndThey() throws Exception {
+    doTranslateTest 'А они разошлись по домам.',
+            'And they all went home.'
+  }
+
+
 
 
 }

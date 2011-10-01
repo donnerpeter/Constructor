@@ -677,6 +677,9 @@ class EnglishGenerator {
       }
       if (n.type == 'THEY') {
         out (nom ? 'they' : "them")
+        if (n.s('quantifier') == 'ALL') {
+          out 'all'
+        }
         return
       }
 

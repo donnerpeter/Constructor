@@ -103,6 +103,8 @@ interface RussianConstructions {
       } else if (args.head) {
         if (nType == 'LUCK') {
           state = state.assign(args.noun, 'topic', args.head)
+        } else if (((Variable) args.head).frame(state.chart)?.type == 'DISPERSE') {
+          state = state.assign(args.head, 'direction', args.noun)
         } else {
           state = state.assign(args.head, 'topic', args.noun)
         }

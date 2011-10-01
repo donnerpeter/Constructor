@@ -183,7 +183,7 @@ H.arg2=B
 I.number=pl
 I.person=3
 H.arg1=I
-J.butEmphasis=true
+J.andEmphasis=true
 K.type=FORGET
 K.time=PAST
 L.type=NEXT
@@ -631,6 +631,19 @@ D.arg1=E
   public void testTranslate14() throws Exception {
     doTranslateTest 'Это отвлекло нас от нашего спора',
             'That distracted us from our argument'
+  }
+
+  public void testParse15() throws Exception {
+    doParseTest 'А потом мы разошлись по домам', '''
+A.andEmphasis=true
+B.type=WE
+C.type=DISPERSE
+C.time=PAST
+C.arg1=B
+C.relTime=AFTER
+D.type=HOMES
+C.direction=D
+'''
   }
 
   static void doTranslateTest(String input, String expected) {

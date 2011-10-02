@@ -507,6 +507,14 @@ F.number=true
     doTranslateTest 'Кассир сломал себе 2 пальца',
                     'The cashier broke 2 of his fingers'
   }
+  public void test14_Argument() throws Exception {
+    doTranslateTest 'Это отвлекло нас от спора',
+            'That distracted us from the argument'
+  }
+  public void test14_TheirArgument() throws Exception {
+    doTranslateTest 'Это отвлекло их от их спора',
+            'That distracted them from their argument'
+  }
 
   public void test15_They() throws Exception {
     doTranslateTest 'А потом они разошлись по домам.',

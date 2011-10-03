@@ -169,7 +169,7 @@ interface RussianConstructions {
     if (args.possessor) {
       def type = ((Variable) args.head)?.frame(state.chart)?.type
       if (type) {
-        state = state.assign(args.head, type in ['AMAZE', 'PREDICAMENT', 'OPINION', 'ARGUE'] ? 'arg1' : 'author', args.possessor)
+        state = state.assign(args.head, type in ['AMAZE', 'PREDICAMENT', 'OPINION', 'ARGUE'] ? 'arg1' : type in ['ROOMS', 'APARTMENTS', 'OFFICES'] ? 'owner' : 'author', args.possessor)
       }
     }
     return state

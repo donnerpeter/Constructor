@@ -108,9 +108,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply((adjective):[nounFrame:noun, rel:'size', val:'BIG'], (instr):[noun:noun], (acc):[noun:noun])
       case "нашем":
         def we = state.newVariable()
-        def possHead = state[oPrep]?.noun ?: state.newVariable()
         state = state.assign(we, 'type', 'WE')
-        return state.apply(possessive, possessor:we, head:possHead)
+        return state.apply((possessive):[possessor:we])
+      case "своим":
+        def self = state[nom]?.noun ?: state.newVariable()
+        return state.apply((nom):[noun:self], (possessive):[possessor:self])
       case "этому":
         def noun = state[poDat]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'determiner', val:'THIS').apply(poDat, noun:noun)
@@ -276,6 +278,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "пальца": return noun(state, gen, 'FINGERS')
       case "палец": return noun(state, acc, 'FINGER')
       case "домам": return noun(state, dat, 'HOMES')
+      case "комнатам": return noun(state, dat, 'ROOMS')
+      case "квартирам": return noun(state, dat, 'APARTMENTS')
+      case "офисам": return noun(state, dat, 'OFFICES')
       case "челюсти":
         Variable noun = state[gen]?.noun && !state[gen].hasNoun ? state[gen].noun : new Variable()
         return conjWrap(state, (gen):[noun: noun, hasNoun:true], (acc):[noun:noun, hasNoun:true], (dativePart):[acc: noun], (typeCxt(noun, 'JAWS')):[var:noun], (numQuantifier):[noun:noun])

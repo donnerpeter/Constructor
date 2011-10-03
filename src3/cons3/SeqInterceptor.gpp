@@ -91,6 +91,10 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
         return base(update.map.reverse(), state)
       }
     }
+    if (constructions[nom]?.head) {
+      state = state.inhibit(seq)
+    }
+
     return base(constructions, state)
   }
 

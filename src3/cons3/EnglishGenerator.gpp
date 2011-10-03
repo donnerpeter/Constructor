@@ -132,7 +132,6 @@ class EnglishGenerator {
         }
 
         if (!frame && !bg) {
-          def frames = chart.frames(situation)
           if (copula?.type == 'location') {
             def subj = copula.f('arg1')
             if (subj.s('relativized') == 'true') {
@@ -460,19 +459,20 @@ class EnglishGenerator {
         emitMoveTail(verb)
       }
 
-      if (verb.type == 'DISPERSE') {
-        out 'home' //todo variate
+      if (verb.type == 'DISPERSE' && verb.f('goal')?.type == 'HOMES') {
+        out 'home'
+      } else {
+        def io = verb.type == 'HAPPEN' ? verb.f('experiencer') :
+          verb.type in ['GO_OFF', 'GO', 'DISPERSE'] ? verb.f('goal') :
+            verb.type in ['ASK', 'THINK'] ? verb.f('topic') :
+              verb.type in ['DISTRACT'] ? verb.f('theme') :
+                verb.type == 'FALL' ? verb.f('source') : null
+        if (io) {
+          out(verb.type == 'DISTRACT' ? 'from' : verb.type == 'FALL' ? 'off' : verb.type in ['ASK', 'THINK'] ? 'on' : "to")
+          np(io, false)
+        }
       }
 
-      def io = verb.type == 'HAPPEN' ? verb.f('experiencer') :
-        verb.type in ['GO_OFF', 'GO'] ? verb.f('goal') :
-          verb.type in ['ASK', 'THINK'] ? verb.f('topic') :
-          verb.type in ['DISTRACT'] ? verb.f('theme') :
-            verb.type == 'FALL' ? verb.f('source') : null
-      if (io) {
-        out(verb.type == 'DISTRACT' ? 'from' : verb.type == 'FALL' ? 'off' : verb.type in ['ASK', 'THINK'] ? 'on' : "to")
-        np(io, false)
-      }
 
       if (verb.type in ['TAKE_OUT', 'RUN_OUT']) {
         out 'out'
@@ -827,6 +827,10 @@ class EnglishGenerator {
         possessive(n.f('author'), n)
         return
       }
+      if (n.type in ['ROOMS', 'APARTMENTS', 'OFFICES'] && n.f('owner')) {
+        possessive(n.f('owner'), n)
+        return
+      }
 
 
       if (n.type in ['JOY', 'RELIEF', 'MEANING', 'MONEY', 'TREES', 'SOME', 'OTHERS']) { //abstract
@@ -924,6 +928,9 @@ class EnglishGenerator {
       case 'FINGERS': return 'fingers'
       case 'FINGER': return 'finger'
       case 'ARGUE': return 'argument'
+      case 'ROOMS': return 'rooms'
+      case 'APARTMENTS': return 'apartments'
+      case 'OFFICES': return 'offices'
       default: return type
     }
 

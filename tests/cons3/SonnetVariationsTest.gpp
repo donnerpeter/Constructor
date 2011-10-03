@@ -529,8 +529,17 @@ F.number=true
     doTranslateTest 'А они разошлись по домам.',
             'And they all went home.'
   }
-
-
-
+  public void test15_Rooms() throws Exception {
+    doTranslateTest 'А они разошлись по своим комнатам.',
+            'And they all went to their rooms.'
+  }
+  public void __test15_RoomsEtc() throws Exception {
+    doTranslateTest 'А они разошлись по своим комнатам, квартирам и офисам.',
+            'And they all went to their rooms, apartments and offices.'
+  }
+  public void _test15_RoomsEtc() throws Exception {
+    doTranslateTest 'Мы разошлись по их офисам.',
+            'We all went to their offices.'
+  }
 
 }

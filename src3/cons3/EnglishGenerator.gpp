@@ -540,10 +540,6 @@ class EnglishGenerator {
       return subj
     }
 
-    private Frame hasClauseEllipsis(Situation sit) {
-      return chart.frames(sit).find { it.type == 'ellipsis' }
-    }
-
     private void clause(Frame verb, boolean shouldHaveSubject, boolean topLevel) {
       Frame subj = clauseInner(verb, shouldHaveSubject, topLevel)
 

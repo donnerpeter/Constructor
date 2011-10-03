@@ -45,7 +45,7 @@ class Frame {
         return mockFrame(type:'ME')
       }
       if (type in ['MOUTH', 'NOSE', 'JAW', 'JAWS']) {
-        def verb = chart.frames(situation).find { it.definedAttributeValue('arg1') }
+        def verb = chart.frames.find { it.definedAttributeValue('arg1') }
         if (verb) {
           return verb.definedAttributeValue('arg1')
         }
@@ -97,19 +97,19 @@ class Frame {
 
       if (type in ['THING', 'HAMMER', 'BENCH', 'FINGER', 'JAW']) return 'false'
       if (type == 'CASHIER') {
-        def shop = chart.frames(situation).find { it.type == 'SHOP' }
+        def shop = chart.frames.find { it.type == 'SHOP' }
         return shop && chart.earlier(shop, 'type', this, 'type') ? 'false' : 'true'
       }
       if (type == 'SHOP') {
         if (usages('arg1')) {
           return 'true'
         }
-        def cashier = chart.frames(situation).find { it.type == 'CASHIER' }
+        def cashier = chart.frames.find { it.type == 'CASHIER' }
         if (cashier && chart.earlier(cashier, 'type', this, 'type')) {
           return 'true'
         }
 
-        def verb = chart.frames(situation).find { it.f('source') == (Frame) this }
+        def verb = chart.frames.find { it.f('source') == (Frame) this }
         return verb ? 'true' : 'false'
       }
       return 'true'
@@ -176,9 +176,9 @@ class Frame {
 
   List<Frame> usages(String attrName) {
     if (attrName == 'member') {
-      return chart.frames(situation).findAll { ((Frame) this) in it.allAssignments('member').collect { it.value } }
+      return chart.frames.findAll { ((Frame) this) in it.allAssignments('member').collect { it.value } }
     }
 
-    chart.frames(situation).findAll { it.f(attrName) == (Frame) this }
+    chart.frames.findAll { it.f(attrName) == (Frame) this }
   }
 }

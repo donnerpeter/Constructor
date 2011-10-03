@@ -36,6 +36,11 @@ class Chart {
     vars(situation).collect { it.frame(this) }
   }
 
+  List<Frame> getFrames() {
+    situations.collect { frames(it) }.flatten() as List
+  }
+
+
   boolean earlier(Frame f1, String a1, Frame f2, String a2) {
     assert f1.situation == f2.situation
     List<Assignment<Variable>> assignments = __assignments[f1.situation] as List

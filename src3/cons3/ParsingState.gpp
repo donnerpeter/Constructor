@@ -293,7 +293,7 @@ class ParsingState {
     return false
   }
 
-  ParsingState doApply(Construction cxt) {
+  private ParsingState doApply(Construction cxt) {
     def args = constructions[cxt]
     def next = clone(active: active - cxt + cxt)
     

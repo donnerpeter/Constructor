@@ -483,7 +483,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         if (!state[seq]?.conj) {
           update = update.addCxt(seq, interceptor:new SeqInterceptor(state, null))
         }
-        return update.apply(state)
+        return update.apply(state.inhibit(numQuantifier))
       case "если":
         return state.apply((conditionComp):[wh:'if'])
       case "когда":

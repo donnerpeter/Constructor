@@ -97,10 +97,10 @@ interface RussianConstructions {
       lastNoun = member.var
     }
     def nType = lastNoun?.frame(state.chart)?.type
-    if (nType && args.head) {
+    if (args.head && lastNoun) {
       if (nType in ['OPINION', 'WORDS']) {
         state = state.assign(args.head, 'opinion_of', args.noun)
-      } else if (args.head) {
+      } else {
         if (nType == 'LUCK') {
           state = state.assign(args.noun, 'topic', args.head)
         } else if (((Variable) args.head).frame(state.chart)?.type == 'DISPERSE') {

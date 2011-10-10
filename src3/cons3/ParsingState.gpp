@@ -209,7 +209,7 @@ class ParsingState {
     }
 
     LinkedHashSet<Construction> silent = []
-    for (c in replaced.intersect(active)) {
+    for (c in Util.intersect(replaced, active)) {
       if (constructions.keySet().any { contradict(constructions[it], constructions[c]) }) {
         silent << c
         replaced.remove(c)

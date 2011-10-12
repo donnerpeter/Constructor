@@ -156,10 +156,6 @@ class ParsingState {
     return new LinkedHashSet<Construction>(among).findAll { contradict(constructions[it], constructions[c]) }
   }
 
-  Function2<Map<Construction, Map>, ParsingState, ParsingState> getApplier() {
-    return nextApplier(null)
-  }
-
   private Function2<Map<Construction, Map>, ParsingState, ParsingState> nextApplier(Construction start) {
     def cs = constructions.keyList()
     def index = cs.indexOf(start)
@@ -178,7 +174,8 @@ class ParsingState {
   }
 
   ParsingState apply(Map<Construction, Map> constructions) {
-    applier(constructions, this)
+    def applier = nextApplier(null)
+    applier(constructions, this).clone(history: history + new Contribution(this, FLinkedMap.fromMap(constructions).reverse(), FList.emptyList))
   }
 
   private ParsingState baseApply(Map<Construction, Map> constructions) {
@@ -286,7 +283,7 @@ class ParsingState {
       stillHanging = Util.intersect(stillHanging - next - contradictors, result.constructions.keySet())
     }
 
-    return result.clone(history: history + new Contribution(this, FLinkedMap.fromMap(constructions).reverse(), FList.emptyList))
+    return result
   }
 
   boolean morePlausible(ParsingState than) {

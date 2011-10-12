@@ -199,10 +199,6 @@ interface RussianConstructions {
     return state
   }
   Construction numQuantifier = cxt('numQuantifier') { ParsingState state, Map args ->
-    if (args.noun && !args.num) {
-      return state.satisfied(numQuantifier) //todo inverted quantification
-    }
-    
     return args.num && args.noun ? state.assign(args.noun, 'quantifier', args.num) : state
   }
   Construction negation = cxt('negation') { ParsingState state, Map args ->

@@ -445,7 +445,7 @@ class EnglishGenerator {
 
       def dobj = verb.f('arg2')
       if (dobj && dobj.type != 'wh') {
-        np(dobj, false, dobj.s('number') == null)
+        np(dobj, false, !isNumber(dobj))
       }
 
       def mood = verb.f('mood')
@@ -633,7 +633,7 @@ class EnglishGenerator {
 
 
     def npseq(Frame _seq) {
-      seq(_seq) { np(it, true, it.s('number') == null) }
+      seq(_seq) { np(it, true, !isNumber(it)) }
     }
 
     def seq(Frame seq, Function1<Frame, Void> action) {
@@ -698,7 +698,7 @@ class EnglishGenerator {
         return
       }
 
-      if (n.s('number') == 'true' && !mayHaveDeterminer) {
+      if (!mayHaveDeterminer && isNumber(n)) {
         out n.type
         return
       }
@@ -739,7 +739,7 @@ class EnglishGenerator {
       } else if (n.type == 'GARDEN') {
         out(n.s('name') == 'Летний сад' ? 'Summer Garden' : 'garden')
       }
-      else if (n.s('number') == 'true') {
+      else if (isNumber(n)) {
         out n.type
       }
       else {
@@ -776,6 +776,10 @@ class EnglishGenerator {
         new SituationGenerator(chart, (Situation) rel.var, false).sentence(false)
 
       }
+    }
+
+    private boolean isNumber(Frame n) {
+      return n.s('number') == 'true' && Util.parseNumber(n.type)
     }
 
     private void determiner(Frame n, boolean an) {

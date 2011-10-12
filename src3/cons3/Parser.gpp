@@ -63,11 +63,12 @@ class Parser { //todo alex implements cons3.RussianConstructions
         }
         state = update.apply(state)
       } else {
-        state = conjWrap(cases.collectEntries { [it, [noun:noun, hasNoun:true, xor:t.ace]] } +
-                                 [(sem):[var:noun, xor:t.bd]] +
-                                 [(numQuantifier):[num: num, xor:t.bc, interceptor:new NumQuantifier(), prev:state],
-                                         (numberTypeCxt(num, word)):[xor:t.de, var:num]],
-                         state)
+        state = conjWrap(cases.collectEntries { [it, [noun:noun, hasNoun:true, xor:t.a]] } +
+                         [(sem):[var:noun, xor:t.bd],
+                                 (numQuantifier):[num: num, xor:t.b, noun:noun, interceptor:new NumQuantifier(), prev:state, innerCase:(word == '1' ? acc : gen)],
+                                 (numberTypeCxt(num, word)):[xor:t.d, var:num],
+                                 (dativePart):[acc:noun]],
+                state)
       }
 
       return state
@@ -551,7 +552,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply(reasonComp, active:true)
       case 'обе':
         def num = new Variable()
-        return state.inhibit(numQuantifier).assign(num, 'type', 'BOTH').apply((numQuantifier):[num:num, interceptor:new NumQuantifier(), prev:state])
+        def noun = new Variable()
+        return state.inhibit(numQuantifier).assign(num, 'type', 'BOTH').apply((acc):[noun:noun, hasNoun:true], (numQuantifier):[num:num, interceptor:new NumQuantifier(), prev:state, noun:noun, innerCase:gen])
       case 'себе':
         def noun = state[nom]?.noun ?: new Variable()
         return state.apply((nom):[noun:noun], (dat):[noun:noun], (dativePart):[dat:noun])
@@ -595,8 +597,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
     def noun = new Variable()
     def num = new Variable()
     return state.inhibit(numQuantifier).
-            apply((nom): [noun: noun, xor: t.ae], (acc): [noun: noun, xor: t.ae], (typeCxt(noun, number)): [xor: t.bd, var: noun],
-                  (numQuantifier): [num: num, xor: t.be, interceptor: new NumQuantifier(), prev: state, one:(number == '1')], (typeCxt(num, number)): [xor: t.d, var: num])
+            apply((nom): [noun: noun, hasNoun:true, xor: t.ae], (acc): [noun: noun, hasNoun:true, xor: t.ae], (typeCxt(noun, number)): [xor: t.bd, var: noun], (dativePart):[acc:noun],
+                  (numQuantifier): [num: num, xor: t.b, noun:noun, interceptor: new NumQuantifier(), prev: state, innerCase:(number == '1' ? acc : gen)], (typeCxt(num, number)): [xor: t.d, var: num])
   }
 
   private Construction numberTypeCxt(Variable var, String word) {

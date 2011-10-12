@@ -82,6 +82,10 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
         rollback = rollback[numQuantifier]?.prev ?: rollback //todo a more generic way of finding a phrase start
         state = state.clearConstructions().restore(rollback)
 
+        if (seqs.isEmpty()) { // continuing a sequence
+          state = state.inhibit(seq)
+        }
+
         def lastConj = modernHistory.findIndexOf { Contribution it -> it.apps[seq] != null }
         if (lastConj) {
           for (contribution in modernHistory.subList(0, lastConj).reverse()) {
@@ -129,8 +133,12 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
 
   private Update doMerge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, String prop, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
     Variable first = (Variable) oldArgs[prop]
-    if (first.frame(state.chart).f('member')) {
-      return joinSeq(newArgs, state, cxt, first, oldArgs, prop, update)
+    Variable existingSeq = first.frame(state.chart).f('member') ? first : first.frame(state.chart).usages('member')[0]?.var
+    if (existingSeq) {
+      def oldConj = existingSeq.frame(state.chart).s('conj')
+      if (!oldConj || oldConj == conj) {
+        return joinSeq(newArgs, state, cxt, existingSeq, oldArgs, prop, update)
+      }
     }
 
     def second = newArgs[prop]

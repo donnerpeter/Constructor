@@ -808,7 +808,7 @@ class EnglishGenerator {
         hasQuantifier = true
       }
 
-      if (n.type in ['AMAZE', 'PREDICAMENT', 'NEIGHBOURS', 'MOUTH', 'NOSE', 'JAW', 'JAWS', 'FINGERS', 'ARGUE'] && n.f('arg1') && !skipAlreadyDefinedPossessive(n, n.f('arg1'))) {
+      if (n.type in ['AMAZE', 'PREDICAMENT', 'NEIGHBOURS', 'MOUTH', 'NOSE', 'JAW', 'JAWS', 'FINGERS', 'ARGUE'] && n.f('arg1') && !skipAlreadyDefinedPossessive(n, 'arg1')) {
         if (hasQuantifier) {
           out 'of'
         }
@@ -828,7 +828,9 @@ class EnglishGenerator {
         return
       }
       if (n.type in ['ROOMS', 'APARTMENTS', 'OFFICES'] && n.f('owner')) {
-        possessive(n.f('owner'), n)
+        if (!skipAlreadyDefinedPossessive(n, 'owner')) {
+          possessive(n.f('owner'), n)
+        }
         return
       }
 
@@ -873,12 +875,13 @@ class EnglishGenerator {
       }
     }
 
-    boolean skipAlreadyDefinedPossessive(Frame noun, Frame poss) {
+    boolean skipAlreadyDefinedPossessive(Frame noun, String attr) {
+      Frame poss = noun.f(attr)
       def base = (noun.usages('member')[0] ?: noun).flatten()
       def i = base.indexOf(noun)
       if (i > 0) {
         List<Frame> frames = base[0..<i] //todo alex infer
-        if (frames.any { it.f('arg1') == poss }) {
+        if (frames.any { it.f(attr) == poss }) {
           return true
         }
       }

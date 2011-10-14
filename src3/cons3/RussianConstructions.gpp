@@ -166,11 +166,21 @@ interface RussianConstructions {
     return state
   }
   Construction possessive = cxt('possessive') { ParsingState state, Map args ->
+    if (args.head && !args.possessor) {
+      state = state.inhibit(possessive)
+    }
+
     if (args.possessor) {
-      def type = ((Variable) args.head)?.frame(state.chart)?.type
-      if (type) {
-        state = state.assign(args.head, type in ['AMAZE', 'PREDICAMENT', 'OPINION', 'ARGUE'] ? 'arg1' : type in ['ROOMS', 'APARTMENTS', 'OFFICES'] ? 'owner' : 'author', args.possessor)
+      def head = ((Variable) args.head)?.frame(state.chart)
+      if (head) {
+        for (h in head.flatten()) {
+          def type = h.type
+          if (type) {
+            state = state.assign(h.var, type in ['AMAZE', 'PREDICAMENT', 'OPINION', 'ARGUE'] ? 'arg1' : type in ['ROOMS', 'APARTMENTS', 'OFFICES'] ? 'owner' : 'author', args.possessor)
+          }
+        }
       }
+      
     }
     return state
   }

@@ -637,9 +637,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     Update update = _nounBase(state, caze, init)
 
     def noun = update.map[caze].noun
-    if (state[possessive]) {
-      update = update.addCxt(possessive, head: noun)
-    }
+    update = update.addCxt(possessive, head: noun)
 
     update = update.addCxt(quotedName, noun:noun).addCxt(numQuantifier, noun:noun)
 

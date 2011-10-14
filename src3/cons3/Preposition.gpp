@@ -35,9 +35,15 @@ class Preposition implements Interceptor {
   ParsingState intercept(Map<Construction, Map> contribution, ParsingState state, Function2<Map<Construction, Map>, ParsingState, ParsingState> base) {
     Update update = new Update([:])
     for (c in contribution.keySet()) {
+      if (c == nom && !state[preposition].hasNoun) continue
+
       def replace = c in cases && !contribution[c].head
       def newC = replace ? transformCase(state, c) : c
-      update = update.addCxt(contribution[c], newC)
+      if (newC == c) {
+        update = update.addCxt(contribution[c], newC)
+      } else {
+        update = update.addCxt(contribution[c] + [noun:state.constructions[newC]?.noun ?: contribution[c].noun], newC)
+      }
       if (replace && newC != c && contribution[c].hasNoun) {
         update = update.addCxt(preposition, hasNoun:true)
       }
@@ -50,7 +56,10 @@ class Preposition implements Interceptor {
     if (construction in cases) {
       def caze = transformCase(state, construction)
       if (caze != construction) {
-        return state.constructions[caze]
+        def map = state.constructions[caze]
+        if (map?.noun) {
+          return map + [noun:map.unmergedNoun ?: map.noun]
+        }
       }
     }
     

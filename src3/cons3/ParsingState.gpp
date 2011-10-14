@@ -67,7 +67,7 @@ class ParsingState {
       return true
     }
     for (arg in before.keySet().intersect(newArgs.keySet())) {
-      if (arg != 'init' && arg != 'xor' && before[arg] != newArgs[arg] && before[arg]) {
+      if (arg != 'init' && arg != 'xor' && before[arg] != newArgs[arg] && before[arg] != null) {
         return true
       }
     }

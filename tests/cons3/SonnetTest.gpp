@@ -74,8 +74,8 @@ C.type=THINK
 C.time=PRESENT
 C.arg1=B
 C.arg2=A
-C.topic=D
 D.determiner=THIS
+C.topic=D
 D.type=MATTER
 """
   }
@@ -641,8 +641,8 @@ A.type=DISPERSE
 A.time=PAST
 A.arg1=B
 A.relTime=AFTER
-A.goal=C
 C.type=HOMES
+A.goal=C
 '''
   }
 

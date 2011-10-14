@@ -1,17 +1,17 @@
 package cons3
 
-import static cons3.Construction.cxt
-
 /**
  * @author peter
  */
 class SeqInterceptor implements Interceptor, RussianConstructions {
   ParsingState before
   String conj
+  List<Contribution> precedent
 
-  SeqInterceptor(ParsingState before, String conj) {
+  SeqInterceptor(ParsingState before, String conj, List<Contribution> precedent = []) {
     this.before = before
     this.conj = conj
+    this.precedent = precedent
   }
 
   int findSimilar(List<Contribution> history, Map<Construction, Map> constructions) {
@@ -20,7 +20,8 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       if (Parser.areSimilar(old.apps, constructions)) {
         return i
       }
-      if (old.apps[nom]?.head && !old.apps[nom].noun && (constructions[poDat]?.hasNoun || constructions[gen]?.hasNoun)) {
+      if (old.apps[nom]?.head && !old.apps[nom].noun &&
+          (constructions[dat]?.hasNoun || constructions[preposition] || constructions[gen]?.hasNoun)) {
         return -1
       }
       i++
@@ -44,16 +45,26 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
   boolean agrUnifiable(String a1, String a2) { return a1 == null || a2 == null || a1 == a2 }
 
   ParsingState intercept(Map<Construction, Map> constructions, ParsingState state, Function2<Map<Construction, Map>, ParsingState, ParsingState> base) {
-    List<Contribution> history = before.history
+    List<Contribution> history
+    int similar
 
-    //todo a wiser conj limit
-    def limit = history.reverse().findIndexOf { Contribution it -> it.before.situation == state.situation }
-    if (limit > 0) {
-      history = history.subList(0, history.size() - limit)
+    if (precedent) {
+      similar = findSimilar(precedent, constructions)
+      if (similar >= 0) {
+        history = precedent.reverse()
+        similar = history.size() - 1 - similar
+      }
+    } else {
+      history = before.history
+      //todo a wiser conj limit
+      def limit = history.reverse().findIndexOf { Contribution it -> it.before.situation == state.situation }
+      if (limit > 0) {
+        history = history.subList(0, history.size() - limit)
+      }
+      similar = findSimilar(history, constructions)
     }
-    def similar = findSimilar(history, constructions)
-    //todo exclude prepositions in a generic way
-    if (similar >= 0 && !(poDat in constructions && preposition in constructions)) {
+
+    if (similar >= 0) {
       Update update = new Update(FLinkedMap.emptyMap)
       def seqs = [:]
       boolean merged = false
@@ -78,9 +89,11 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
 
       if (merged) {
         def modernHistory = state.history
-        ParsingState rollback = history[similar].before
-        rollback = rollback[numQuantifier]?.prev ?: rollback //todo a more generic way of finding a phrase start
-        state = state.clearConstructions().restore(rollback)
+        if (!precedent) {
+          ParsingState rollback = history[similar].before
+          rollback = rollback[numQuantifier]?.prev ?: rollback //todo a more generic way of finding a phrase start
+          state = state.clearConstructions().restore(rollback)
+        }
 
         if (seqs.isEmpty()) { // continuing a sequence
           state = state.inhibit(seq)
@@ -89,14 +102,20 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
         def lastConj = modernHistory.findIndexOf { Contribution it -> it.apps[seq] != null }
         if (lastConj) {
           for (contribution in modernHistory.subList(0, lastConj).reverse()) {
-            state = base(contribution.apps, state)
+            state = state.apply(contribution.apps)
           }
         }
-        return base(update.map.reverse(), state)
+        if (similar > 0) {
+          List<Contribution> remainingPrecedent = history[0..<similar].reverse() //todo alex infer
+          if (poDat in history[similar].apps) { //todo a generic way of finding sequence precedents
+            def nounContribution = remainingPrecedent.find { it.apps[dat]?.hasNoun }
+            if (nounContribution) {
+              update = update.addCxt(seq, interceptor:new SeqInterceptor(state, conj, [nounContribution]))
+            }
+          }
+        }
+        return update.apply(state)
       }
-    }
-    if (constructions[nom]?.head) {
-      state = state.inhibit(seq)
     }
 
     return base(constructions, state)
@@ -113,8 +132,12 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
         return null
       }
 
-      if (cxt in [nom, acc, gen, poDat] && oldArgs.noun && newArgs.noun) {
+      if (cxt in [nom, acc, gen, dat] && oldArgs.noun && newArgs.noun) {
         return doMerge(state, cxt, oldArgs, newArgs, 'noun', update, seqs)
+      }
+      if (cxt in [poDat] && !oldArgs.noun && !newArgs.noun && before[cxt]?.noun && !newArgs.head) {
+        def newNoun = new Variable()
+        return doMerge(state, cxt, oldArgs + [unmergedNoun: newNoun, noun:before[cxt].noun], newArgs + [noun: newNoun], 'noun', update, seqs)
       }
       if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun && before[cxt]?.head) {
         return doMerge(state, cxt, before[cxt] ?: oldArgs, newArgs, 'head', update, seqs)
@@ -158,7 +181,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
     })
 
     return update.
-            addCxt(seqStart.get(), multi:multi, first:first, second:second, conj:conj, distinguish:state[cxt]?.repeated).
+            addCxt(seqStart.get(), multi:multi, first:first, second:second, conj:conj, distinguish:newArgs.repeated).
             addCxt(oldArgs + [(prop): multi, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt, ParsingState.mergeInits((Closure)oldArgs.init, (Closure)newArgs.init))
   }
 

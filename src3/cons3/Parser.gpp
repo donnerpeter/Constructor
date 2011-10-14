@@ -33,25 +33,12 @@ class Parser { //todo alex implements cons3.RussianConstructions
   ParsingState handleWord(String word, ParsingState state) {
     Tokens t = new Tokens()
     if (Util.parseNumber(word) != null) { //todo generic noun treatment for numbers
-      Variable noun = !state[doGen]?.hasNoun && state[doGen]?.noun ? state[doGen].noun : state.newVariable()
+      Variable noun = !state[gen]?.hasNoun && state[gen]?.noun ? state[gen].noun : state.newVariable()
       def num = new Variable()
 
       def sem = numberTypeCxt(noun, word)
 
-      List<Construction> cases = []
-      if (!(state[preposition]?.prep in ['posle', 'ranshe', 'до'])) {
-        cases << nom
-      }
-      if (state[preposition]?.prep == 'posle') {
-        cases << posleGen
-      } else if (state[preposition]?.prep == 'ranshe') {
-        cases << ransheGen
-      } else if (state[preposition]?.prep == 'до') {
-        cases << doGen
-      } else {
-        cases << gen
-      }
-      cases << acc
+      List<Construction> cases = [nom, acc, gen]
 
       def qv = state[questionVariants]
       if (qv) {
@@ -115,14 +102,14 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def self = state[nom]?.noun ?: state.newVariable()
         return state.apply((nom):[noun:self], (possessive):[possessor:self])
       case "этому":
-        def noun = state[poDat]?.noun ?: state.newVariable()
-        return state.apply(adjective, nounFrame:noun, rel:'determiner', val:'THIS').apply(poDat, noun:noun)
+        def noun = state[dat]?.noun ?: state.newVariable()
+        return state.apply(adjective, nounFrame:noun, rel:'determiner', val:'THIS').apply(dat, noun:noun)
       case "всякого":
         def noun = state[gen]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'determiner', val:'ANY').apply(gen, noun:noun)
       case "скромному":
-        def noun = state[poDat]?.noun ?: state.newVariable()
-        return state.apply(adjective, nounFrame:noun, rel:'quality', val:'HUMBLE').apply(poDat, noun:noun)
+        def noun = state[dat]?.noun ?: state.newVariable()
+        return state.apply(adjective, nounFrame:noun, rel:'quality', val:'HUMBLE').apply(dat, noun:noun)
       case "том":
         def noun = state[prep]?.noun ?: state.newVariable()
         return state.apply(adjective, nounFrame:noun, rel:'determiner', val:'THAT').apply(prep, noun:noun)
@@ -173,20 +160,20 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = state.apply(quotedName, noun:noun).satisfied(relativeClause).apply(relativeClause, noun:noun, save:state)
         return state //todo one noun frame - several cases
       case "мнению":
-        def noun = state[poDat]?.noun && !state[poDat]?.hasNoun ? state[poDat].noun : state.newVariable()
+        def noun = state[dat]?.noun && !state[dat]?.hasNoun ? state[dat].noun : state.newVariable()
         state = state.assign(noun, 'type', 'OPINION')
-        return conjWrap(state, (gen):[head:noun], (possessive):[head:noun], (poDat):[noun:noun, hasNoun:true],
+        return conjWrap(state, (gen):[head:noun], (possessive):[head:noun], (dat):[noun:noun, hasNoun:true],
                            (parenthetical):[:]) // todo common constructions in по-моему & по моему мнению
       case "словам":
-        def noun = state[poDat]?.noun ?: state.newVariable()
+        def noun = state[dat]?.noun ?: state.newVariable()
         def init = {ParsingState it -> it.assign(noun, 'type', 'WORDS') }
-        state = state.apply((poDat):[noun:noun, hasNoun:true, init:init],
+        state = state.apply((dat):[noun:noun, hasNoun:true, init:init],
                             (gen):[head:noun, init:init],
                             (possessive):[head:noun, init:init])
         return state
       case "счастию":
-        def noun = state[poDat]?.noun ?: state.newVariable()
-        return state.assign(noun, 'type', 'LUCK').apply((poDat):[noun:noun, hasNoun:true])
+        def noun = state[dat]?.noun ?: state.newVariable()
+        return state.assign(noun, 'type', 'LUCK').apply((dat):[noun:noun, hasNoun:true])
       case "случился":
         Variable verb = state.newVariable()
         return finiteVerb(state, verb, 'HAPPEN', 'PAST', (sInstr):[head:verb], (nom):[head:verb])
@@ -195,7 +182,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def noun = state.newVariable()
         return state.apply((preposition):[prep:'с'], (sInstr):[noun:noun, xor:t.b], (sGen):[noun:noun, xor:t.b])
       case 'по':
-        return state.inhibit(gen, numQuantifier).apply((preposition):[prep:'по'], (poDat):[noun:new Variable(), repeated:(state[seq] != null)])
+        return state.inhibit(gen, numQuantifier).apply((preposition):[prep:'по'], (poDat):[repeated:(state[seq] != null)])
       case 'о': return state.apply((preposition):[prep:'о'], (oPrep):[noun:new Variable()])
       case 'к': return state.apply((preposition):[prep:'к'], (kDat):[noun:new Variable()])
       case 'до':

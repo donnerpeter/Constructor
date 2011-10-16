@@ -463,11 +463,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
                                    (question):[hasComma:true],
                                    (relativeClause):[hasComma:true, parentSituation:situation],
                                    (prevHistory):[history:state])
-        if (state[parenthetical]?.hasComma) {
-          state = state.satisfied(parenthetical)
-        } else {
-          update = update.addCxt(parenthetical, hasComma:true)
-        }
         if (!state[seq]?.conj) {
           update = update.addCxt(seq, interceptor:new SeqInterceptor(state, null))
         }

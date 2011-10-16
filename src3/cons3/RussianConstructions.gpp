@@ -277,6 +277,9 @@ interface RussianConstructions {
     args.head && args.participle ? state.assign(args.head, 'theme', args.participle) : state
   }
   Construction seq = cxt('seq') { ParsingState state, Map args ->
+    if (args.conj == 'but' && !((SeqInterceptor) args.interceptor).before.history) {
+      state = state.inhibit(seq)
+    }
     return state
   }
   Construction advObj = cxt('advObj') { ParsingState state, Map args ->

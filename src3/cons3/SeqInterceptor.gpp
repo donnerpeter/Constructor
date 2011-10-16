@@ -1,18 +1,15 @@
 package cons3
 
+import groovy.transform.TupleConstructor
+
 /**
  * @author peter
  */
+@TupleConstructor
 class SeqInterceptor implements Interceptor, RussianConstructions {
   ParsingState before
   String conj
-  List<Contribution> precedent
-
-  SeqInterceptor(ParsingState before, String conj, List<Contribution> precedent = []) {
-    this.before = before
-    this.conj = conj
-    this.precedent = precedent
-  }
+  List<Contribution> precedent = []
 
   int findSimilar(List<Contribution> history, Map<Construction, Map> constructions) {
     int i = 0

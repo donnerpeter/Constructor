@@ -537,7 +537,7 @@ F.number=true
     doTranslateTest 'А они разошлись по своим комнатам и квартирам',
             'And they all went to their rooms and apartments'
   }
-  public void _test15_RoomsApartmentsOffices() throws Exception {
+  public void test15_RoomsApartmentsOffices() throws Exception {
     doTranslateTest 'А они разошлись по своим комнатам, квартирам и офисам.',
             'And they all went to their rooms, apartments and offices.'
   }

@@ -90,18 +90,17 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
           ParsingState rollback = history[similar].before
           rollback = rollback[numQuantifier]?.prev ?: rollback //todo a more generic way of finding a phrase start
           state = state.clearConstructions().restore(rollback)
-        }
 
-        if (seqs.isEmpty()) { // continuing a sequence
+          def lastConj = modernHistory.findIndexOf { Contribution it -> it.apps[seq] != null }
+          if (lastConj) {
+            for (contribution in modernHistory.subList(0, lastConj).reverse()) {
+              state = state.apply(contribution.apps)
+            }
+          }
+        } else {
           state = state.inhibit(seq)
         }
 
-        def lastConj = modernHistory.findIndexOf { Contribution it -> it.apps[seq] != null }
-        if (lastConj) {
-          for (contribution in modernHistory.subList(0, lastConj).reverse()) {
-            state = state.apply(contribution.apps)
-          }
-        }
         if (similar > 0) {
           List<Contribution> remainingPrecedent = history[0..<similar].reverse() //todo alex infer
           if (poDat in history[similar].apps) { //todo a generic way of finding sequence precedents
@@ -192,7 +191,10 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       if (args.conj) {
         st = st.assign(args.multi, 'conj', args.conj)
       }
-      st.assign(args.multi, 'member', args.next).satisfied(seqNext.get())
+      if (args.multi != args.next) { //todo long seqs assembling
+        st = st.assign(args.multi, 'member', args.next)
+      }
+      st.satisfied(seqNext.get())
     })
     def newMember = newArgs[property]
     return update.

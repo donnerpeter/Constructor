@@ -32,7 +32,6 @@ class EnglishGenerator {
   private class SituationGenerator {
     final Chart chart
     final Situation situation
-    boolean hasSubject
     boolean capitalize
 
     SituationGenerator(Chart chart, Situation situation, boolean capitalize) {
@@ -115,11 +114,13 @@ class EnglishGenerator {
         }
 
         if (frame) {
-          def shouldHaveSubject = !hasSubject || bg != null
+          Frame subj = clauseInner(frame, true, bg != null, topLevel)
           if (last) {
-            clause(frame, shouldHaveSubject, topLevel)
-          } else {
-            clauseInner(frame, shouldHaveSubject, topLevel)
+            generateCondition(frame)
+            generateElaboration(frame)
+            generateReason(frame)
+            generateQuestionVariants(subj)
+            generateDirectSpeech(frame)
           }
         }
 
@@ -172,9 +173,6 @@ class EnglishGenerator {
           if (last && (!cur.bg || cur.frame) || but) {
             if (but) {
               out(prev.frame?.f('opinion_of') ? ';' : ',')
-              if (prev.frame?.f('arg1') != cur.frame?.f('arg1')) {
-                hasSubject = false
-              }
             }
             else if (!wasBut && j > 1 || cur.bg) out ","
 
@@ -337,7 +335,7 @@ class EnglishGenerator {
       return chart.frames(sit).find { it.type == 'wh' }
     }
 
-    private Frame clauseInner(Frame verb, boolean shouldHaveSubject, boolean topLevel) {
+    private Frame clauseInner(Frame verb, boolean shouldHaveSubject, boolean forceSubject, boolean topLevel) {
       assert verb
       if (verb.s('time') == 'PAST') {
         past = true //todo maintain a tense for the whole discourse
@@ -371,18 +369,7 @@ class EnglishGenerator {
         }
       }
 
-      if (shouldHaveSubject) {
-        if (!subj) {
-          println "No subject: $verb"
-          return
-        }
-        if (hasSubject) {
-          out(subj.s('gender') == 'fem' ? 'she' : 'he')
-        } else if (subj.type != 'wh') {
-          np(subj, true)
-        }
-        hasSubject = true
-      }
+      generateSubject(shouldHaveSubject, forceSubject, verb, subj)
 
       if (verb.findMeta('type', 'ellipsis')) {
         out(past ? 'did' : 'does')
@@ -529,7 +516,7 @@ class EnglishGenerator {
 
         new SituationGenerator(chart, (Situation) theme.var, false).sentence(false)
       } else if (theme && verb.type in ['CAN', 'ALSO']) {
-        clause(theme, false, false)
+        clauseInner(theme, false, false, false)
       } else if (theme && verb.type == 'BEGIN') {
         out(theme.type == 'TO_WATER' ? 'watering' : theme.type == 'DANCE' ? 'dancing' : theme.type == 'ARGUE' ? 'arguing' : 'counting')
         def dObj = theme.f('arg2')
@@ -540,21 +527,37 @@ class EnglishGenerator {
       return subj
     }
 
-    private void clause(Frame verb, boolean shouldHaveSubject, boolean topLevel) {
-      Frame subj = clauseInner(verb, shouldHaveSubject, topLevel)
+    private def generateSubject(boolean shouldHaveSubject, boolean forceSubject, Frame verb, Frame subj) {
+      if (skipAlreadyMentionedArgument(verb, 'arg1')) {
+        if (forceSubject) {
+          out(subj.s('gender') == 'fem' ? 'she' : 'he')
+        }
+        return
+      }
 
-      generateCondition(verb)
+      if (!shouldHaveSubject) {
+        return
+      }
 
-      generateElaboration(verb)
+      if (!subj) {
+        println "No subject: $verb"
+        return
+      }
+      if (subj.type != 'wh') {
+        np(subj, true)
+      }
+    }
 
-      generateReason(verb)
 
+    private def generateQuestionVariants(Frame subj) {
       def variants = subj?.f('variants')
       if (variants) {
         out '-'
         npseq(variants)
       }
+    }
 
+    private def generateDirectSpeech(Frame verb) {
       if (verb.type == 'SAY') {
         out ':'
         def message = (Situation) verb.f('message').var
@@ -627,10 +630,6 @@ class EnglishGenerator {
       ]
       return verbs[type]
     }
-
-    def clauseEnd() {
-    }
-
 
     def npseq(Frame _seq) {
       seq(_seq) { np(it, true, !isNumber(it)) }
@@ -808,7 +807,7 @@ class EnglishGenerator {
         hasQuantifier = true
       }
 
-      if (n.type in ['AMAZE', 'PREDICAMENT', 'NEIGHBOURS', 'MOUTH', 'NOSE', 'JAW', 'JAWS', 'FINGERS', 'ARGUE'] && n.f('arg1') && !skipAlreadyDefinedPossessive(n, 'arg1')) {
+      if (n.type in ['AMAZE', 'PREDICAMENT', 'NEIGHBOURS', 'MOUTH', 'NOSE', 'JAW', 'JAWS', 'FINGERS', 'ARGUE'] && n.f('arg1') && !skipAlreadyMentionedArgument(n, 'arg1')) {
         if (hasQuantifier) {
           out 'of'
         }
@@ -828,7 +827,7 @@ class EnglishGenerator {
         return
       }
       if (n.type in ['ROOMS', 'APARTMENTS', 'OFFICES'] && n.f('owner')) {
-        if (!skipAlreadyDefinedPossessive(n, 'owner')) {
+        if (!skipAlreadyMentionedArgument(n, 'owner')) {
           possessive(n.f('owner'), n)
         }
         return
@@ -875,13 +874,13 @@ class EnglishGenerator {
       }
     }
 
-    boolean skipAlreadyDefinedPossessive(Frame noun, String attr) {
-      Frame poss = noun.f(attr)
-      def base = (noun.usages('member')[0] ?: noun).flatten()
-      def i = base.indexOf(noun)
+    boolean skipAlreadyMentionedArgument(Frame frame, String attr) {
+      Frame arg = frame.f(attr)
+      def base = (frame.usages('member')[0] ?: frame).flatten()
+      def i = base.indexOf(frame)
       if (i > 0) {
         List<Frame> frames = base[0..<i] //todo alex infer
-        if (frames.any { it.f(attr) == poss }) {
+        if (frames.any { it.f(attr) == arg }) {
           return true
         }
       }

@@ -7,7 +7,7 @@ import static cons3.RussianConstructions.*
  * @author peter
  */
 class Parser { //todo alex implements cons3.RussianConstructions
-  public static final ArrayList<Construction> importantForSimilarity = [nom, acc, gen, dat, instr, prep, possessive, parenthetical, gen, comeScalarly, poDat]
+  public static final ArrayList<Construction> importantForSimilarity = [nom, acc, gen, dat, instr, prep, possessive, parenthetical, gen, comeScalarly, poDat, elaboration]
   String log = ""
 
   Chart parse(String text) {
@@ -202,9 +202,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
           return state.apply(directSpeech, hasColon:true)
         }
 
-        def elaboration = new Situation()
-        state = state.assign(state[verbHolder].head, 'elaboration', elaboration)
-        return state.withSituation(elaboration)
+        return state.clearConstructions().apply((elaboration):[head:state[verbHolder].head])
       case "я": return noun(state, nom, 'ME')
       case "мы": return noun(state, nom, 'WE')
       case "нам": return noun(state, dat, 'WE')
@@ -325,9 +323,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "забыл":
       case "забыла":
       case "забыли":
-        Variable verb = state.newVariable()
+        Variable verb = new Variable()
         state = finiteVerb(state, verb, 'FORGET', 'PAST', (advObj):[head:verb, xor:t.a], (acc):[head:verb, xor:t.a]) //todo the order shouldn't matter for verb arguments
-        return state.inhibit(question).apply((nom):[head:verb, agr:(word == 'забыли' ? 'pl' : word == 'забыла' ? 'fem' : 'masc')], (adverb):[head:verb], (question):[head:verb])
+        return state.inhibit(question).apply((nom):[head:verb, agr:(word == 'забыли' ? 'pl' : word == 'забыла' ? 'fem' : 'masc')], (adverb):[head:verb], (question):[head:verb], (elaboration):[elaboration:verb])
       case "помнят":
       case "помнит":
         Variable verb = state.newVariable()
@@ -496,11 +494,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
                                                 (posleGen):[head:verb], (ransheGen):[head:verb],
                                                 (conditionComp):[head:verb], (absTime):[head:verb])
       case "следовало":
-        Variable verb = state.newVariable()
+        Variable verb = new Variable()
         state = state.assign(verb, 'time', 'PAST')
         return state.inhibit(preposition, numQuantifier).apply((nom):[head:verb],
                 (comeScalarly):[verb:verb],
-                (posleGen):[head:verb], (relTime):[head:verb], (poDat):[head:verb], (verbHolder):[head:verb])
+                (posleGen):[head:verb], (relTime):[head:verb], (poDat):[head:verb], (verbHolder):[head:verb], (elaboration):[elaboration:verb])
       case "раньше":
         return state.apply((comeScalarly):[order:'EARLIER', xor:t.a], (preposition):[prep:'ranshe'], (relTime):[relTime:'BEFORE', xor:t.a])
       case "после":

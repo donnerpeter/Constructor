@@ -349,4 +349,10 @@ interface RussianConstructions {
     return state
   }
   Construction verbHolder = cxt('verbHolder') { ParsingState state, Map args -> state }
+  Construction elaboration = cxt('elaborationHolder') { ParsingState state, Map args ->
+    if (args.head && args.elaboration) {
+      state = state.assign(args.head, 'elaboration', args.elaboration)
+    }
+    return state
+  }
 }

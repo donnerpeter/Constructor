@@ -42,6 +42,9 @@ class EllipsisInterceptor implements Interceptor, RussianConstructions {
           if (mapped[comeScalarly]?.verb && prevHistory[comeScalarly]?.verb) {
             def seq = new Variable()
             state = state.assign(seq, 'member', prevHistory[comeScalarly].verb).assign(seq, 'conj', 'but').assign(seq, 'member', mapped[comeScalarly].verb)
+            if (prevHistory[elaboration]?.head) {
+              state = state.assign(prevHistory[elaboration].head, 'elaboration', seq)
+            }
           }
         }
 

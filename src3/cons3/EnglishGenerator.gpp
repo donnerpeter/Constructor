@@ -160,6 +160,30 @@ class EnglishGenerator {
 
       List<ClauseGenerator> conjuncts = planConjuncts(topLevel)
 
+      generateConjuncts(conjuncts)
+
+      if (conjuncts) {
+        def last = conjuncts[-1].frame ?: conjuncts[-1].copula
+        if (last?.type == 'ALSO') {
+          last = last.f('theme')
+        }
+        if (last?.type == 'CAN') {
+          last = last.f('theme')
+        }
+        if (last?.type == 'modality') {
+          last = last.f('arg1')
+        }
+        if (last?.s('dot') == 'true') {
+          out '.'
+          return
+        }
+      }
+      if ((conjuncts[0]?.frame?.type == 'modality' || findQuestioned() && !isExclamation()) && topLevel) {
+        out '?'
+      }
+    }
+
+    private boolean generateConjuncts(List<EnglishGenerator.SituationGenerator.ClauseGenerator> conjuncts) {
       boolean wasBut = false
 
       for (int j in 0..<conjuncts.size()) {
@@ -183,26 +207,7 @@ class EnglishGenerator {
         }
         conjuncts[j].generate(last)
       }
-
-      if (conjuncts) {
-        def last = conjuncts[-1].frame ?: conjuncts[-1].copula
-        if (last?.type == 'ALSO') {
-          last = last.f('theme')
-        }
-        if (last?.type == 'CAN') {
-          last = last.f('theme')
-        }
-        if (last?.type == 'modality') {
-          last = last.f('arg1')
-        }
-        if (last?.s('dot') == 'true') {
-          out '.'
-          return
-        }
-      }
-      if ((conjuncts[0]?.frame?.type == 'modality' || findQuestioned() && !isExclamation()) && topLevel) {
-        out '?'
-      }
+      return wasBut
     }
 
     Frame isExclamation() {
@@ -248,11 +253,12 @@ class EnglishGenerator {
           }
 
           def cur = allVerbs[i++]
+          def lastCur = cur
           if (cur) {
             mainVerbs++
             if (cur.type == 'BEGIN') {
               mainVerbs++
-              i++
+              lastCur = allVerbs[i++]
             }
             if (allVerbs[i]?.type == 'modality') {
               cur = allVerbs[i++]
@@ -265,8 +271,8 @@ class EnglishGenerator {
             comp = next
             i++
           }
-          else if (next && next == cur.f('theme')) {
-            i++
+          while (next && (next == lastCur.f('theme') || next in (lastCur.f('elaboration')?.flatten() ?: []))) {
+            next = allVerbs[++i]
           }
           conjuncts << new ClauseGenerator(cur, bg, topLevel, comp)
         }
@@ -605,11 +611,12 @@ class EnglishGenerator {
         elaboration = verb.f('theme').f('elaboration')
       }
       
-      if (elaboration?.var instanceof Situation) {
+      if (elaboration) {
         def commaStyle = verb.type == 'HAPPEN'
         out(commaStyle ? ',' : ":")
         def sameSentence = commaStyle || verb.type == 'BEGIN'
-        new SituationGenerator(chart, (Situation) elaboration.var, !sameSentence).sentence(false)
+        List<ClauseGenerator> clauses = elaboration.flatten().collect { new ClauseGenerator(it, null, !sameSentence, null) }
+        generateConjuncts(clauses)
       }
     }
 

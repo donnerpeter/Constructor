@@ -32,10 +32,6 @@ class ParsingState {
 
   ParsingState withSituation(Situation situation) { clearConstructions().clone(situation:situation) }
 
-  Variable newVariable() {
-    new Variable()
-  }
-
   ParsingState assign(def var, String property, def value) {
     clone(chart: chart.assign((Variable)var, situation, property, value))
   }

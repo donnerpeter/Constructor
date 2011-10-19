@@ -65,7 +65,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
       state = state.apply(quotedName, name:word)
     }
 
-    def situation = state.situation
     switch (word) {
       case "удивительный":
         def noun = state.newVariable()
@@ -459,7 +458,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                                    (conditionComp):[hasComma:true],
                                    (reasonComp):[hasComma:true],
                                    (question):[hasComma:true],
-                                   (relativeClause):[hasComma:true, parentSituation:situation],
+                                   (relativeClause):[hasComma:true, parentSituation: state.situation],
                                    (prevHistory):[history:state])
         if (!state[seq]?.conj) {
           update = update.addCxt(seq, interceptor:new SeqInterceptor(state, null))

@@ -53,11 +53,6 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       }
     } else {
       history = before.history
-      //todo a wiser conj limit
-      def limit = history.reverse().findIndexOf { Contribution it -> it.before.situation == state.situation }
-      if (limit > 0) {
-        history = history.subList(0, history.size() - limit)
-      }
       similar = findSimilar(history, constructions)
     }
 

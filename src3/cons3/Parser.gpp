@@ -404,7 +404,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def verb = state.newVariable()
         return infinitive(state, verb, 'RECALL', [(acc):[head:verb]])
       case "делать":
-        def verb = state.newVariable()
+        Variable verb = state[verbHolder]?.head ?: new Variable()
         return infinitive(state, verb, 'DO', [(acc):[head:verb]])
       case "спорить":
         def verb = state.newVariable()
@@ -425,7 +425,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def verb = state.newVariable()
         return infinitive(state, verb, 'ASK', [(acc):[head:verb]])
       case "думают":
-        def verb = state.newVariable()
+        Variable verb = state[verbHolder]?.head ?: new Variable()
         return finiteVerb(state, verb, 'THINK', 'PRESENT', (poDat):[head:verb], (nom):[head:verb], (acc):[head:verb])
       case "спросил":
       case "спросили":
@@ -470,8 +470,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply((conditionComp):[wh:'when'])
       case "это": return noun(state, nom, 'THAT')
       case "что":
-        def noun = state.newVariable()
-        state = state.apply((question):[questioned:noun])
+        def noun = new Variable()
+        def verb = new Variable()
+        state = state.apply((question):[questioned:noun, comp: verb], (verbHolder):[head:verb])
         if (!state[declComp]) {
           //todo generic noun treatment for что
           state = state.apply((nom):[noun:noun, hasNoun:true, xor:t.a], (acc):[noun:noun, hasNoun:true, xor:t.a]).assign(noun, 'type', 'wh')

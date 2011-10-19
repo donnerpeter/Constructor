@@ -164,21 +164,24 @@ class EnglishGenerator {
 
       if (conjuncts) {
         def last = conjuncts[-1].frame ?: conjuncts[-1].copula
-        if (last?.type == 'ALSO') {
-          last = last.f('theme')
-        }
-        if (last?.type == 'CAN') {
-          last = last.f('theme')
-        }
-        if (last?.type == 'modality') {
-          last = last.f('arg1')
+        while (true) {
+          if (last?.type in ['ALSO', 'CAN', 'FORGET'] && last.f('theme')) {
+            last = last.f('theme')
+          }
+          else if (last?.type in ['ASK']) {
+            last = last.f('question')
+          }
+          else if (last?.type == 'modality') {
+            last = last.f('arg1')
+          }
+          else break
         }
         if (last?.s('dot') == 'true') {
           out '.'
           return
         }
       }
-      if ((conjuncts[0]?.frame?.type == 'modality' || findQuestioned() && !isExclamation()) && topLevel) {
+      if ((conjuncts[0]?.frame?.type == 'modality' || findQuestioned(conjuncts[0]?.frame) && !isExclamation()) && topLevel) {
         out '?'
       }
     }
@@ -233,7 +236,7 @@ class EnglishGenerator {
         for (i in 1..<allVerbs.size()) {
           def prev = allVerbs[i-1]
           def cur = allVerbs[i]
-          if (chart.earlier(cur, 'type', prev, 'type')) {
+          if (chart.earlier(cur, 'type', prev, 'type') || cur.type == 'modality' && prev == cur.f('arg1')) {
             allVerbs[i-1] = cur
             allVerbs[i] = prev
           }
@@ -260,10 +263,6 @@ class EnglishGenerator {
               mainVerbs++
               lastCur = allVerbs[i++]
             }
-            if (allVerbs[i]?.type == 'modality') {
-              cur = allVerbs[i++]
-              mainVerbs++
-            }
           }
           Frame comp = null
           def next = allVerbs[i]
@@ -271,7 +270,12 @@ class EnglishGenerator {
             comp = next
             i++
           }
-          while (next && (next == lastCur.f('theme') || next in (lastCur.f('elaboration')?.flatten() ?: []))) {
+          while (next &&
+                 (next == lastCur.f('theme') ||
+                  next in (lastCur.f('elaboration')?.flatten() ?: []) ||
+                  next.usages('theme') ||
+                  next.usages('arg1')[0]?.type == 'modality' ||
+                  next.usages('question'))) {
             next = allVerbs[++i]
           }
           conjuncts << new ClauseGenerator(cur, bg, topLevel, comp)
@@ -329,7 +333,7 @@ class EnglishGenerator {
         }
         return sitPast ? 'was': 'am'
       }
-      def questioned = findQuestioned()
+      def questioned = findQuestioned(verb)
       if (questioned && questioned != subj) {
         return sitPast ? 'did' : 'do'
       }
@@ -337,8 +341,11 @@ class EnglishGenerator {
       return null
     }
 
-    Frame findQuestioned(Situation sit = situation) {
-      return chart.frames(sit).find { it.type == 'wh' }
+    Frame findQuestioned(Frame verb) {
+      if (!verb) return null
+      if (verb.f('arg1')?.type == 'wh') return verb.f('arg1')
+      if (verb.f('arg2')?.type == 'wh') return verb.f('arg2')
+      return null
     }
 
     private Frame clauseInner(Frame verb, boolean shouldHaveSubject, boolean forceSubject, boolean topLevel) {
@@ -364,7 +371,7 @@ class EnglishGenerator {
 
       def subj = verb.f('arg1')
 
-      if (findQuestioned()) {
+      if (findQuestioned(verb)) {
         out 'what'
       }
 
@@ -495,32 +502,32 @@ class EnglishGenerator {
       }
 
       def question = verb.f('question')
-      if (question?.var instanceof Situation) {
-        def questSituation = (Situation) question.var
-        def think = chart.frames(questSituation).find { it.type == 'THINK' }
-        if (think) {
-          handled << questSituation
+      if (question) {
+        if (question.type == 'THINK') {
           out 'about'
-          def exp = think.f('arg1')
+          def exp = question.f('arg1')
           if (exp?.type == 'THEY') {
             out 'their'
           }
           out 'opinion'
           out 'on'
-          np(think.f('topic'), false)
+          np(question.f('topic'), false)
         } else {
-          new SituationGenerator(chart, questSituation, false).sentence(false)
+          new ClauseGenerator(question, null, false, null).generate(true)
         }
       }
 
       def theme = verb.f('theme')
       if (theme?.var instanceof Situation) {
-        if (!findQuestioned((Situation)theme.var)) {
+        out ","
+        out "that"
+        new SituationGenerator(chart, (Situation) theme.var, false).sentence(false)
+      } else if (theme && verb.type in ['FORGET']) {
+        if (!findQuestioned(theme)) {
           out ","
           out "that"
         }
-
-        new SituationGenerator(chart, (Situation) theme.var, false).sentence(false)
+        new ClauseGenerator(theme, null, false, null).generate(true)
       } else if (theme && verb.type in ['CAN', 'ALSO']) {
         clauseInner(theme, false, false, false)
       } else if (theme && verb.type == 'BEGIN') {

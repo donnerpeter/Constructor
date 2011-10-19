@@ -129,10 +129,13 @@ interface RussianConstructions {
     return state
   }
   Construction question = cxt('question') { ParsingState state, Map args ->
-    if (args.hasComma && !args.comp && args.head) {
-      Situation next = new Situation()
+    Variable comp = args.modality ?: args.comp
+    if (comp && args.head && args.questioned) {
       def attr = ((Variable) args.head).frame(state.chart).type == 'FORGET' ? 'theme' : 'question'
-      state = state.assign(args.head, attr, next).withSituation(next)
+      state = state.assign(args.head, attr, comp)
+      if (!args.modality) {
+        state = state.inhibit(declComp, seq, nom, acc, possessive)
+      }
     }
     if (args.questioned && args.modality) {
       state = state.assign(args.modality, 'type', 'modality').assign(args.modality, 'arg1', args.mainVerb)

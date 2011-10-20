@@ -178,6 +178,14 @@ H.number=true
     doTranslateTest 'Кассирша, слегка подвигав челюстью, сказала:',
                     "Moving her jaw slightly back and forth, the cashier said:"
   }
+  public void _test6_7_IndirectShe() throws Exception {
+    doTranslateTest 'Кассирша сказала, что, по ее мнению, семь идет после восьми в том случае, когда восемь идет после семи',
+                    ""
+  }
+  public void _test6_7_IndirectHe() throws Exception {
+    doTranslateTest 'Кассир сказал, что, по его мнению, семь идет после восьми в том случае, когда восемь идет после семи',
+                    ""
+  }
 
   public void test7_IMO_AfterSubject() throws Exception {
     doTranslateTest 'Семь, по-моему, идет после восьми в том случае, когда восемь идет после семи',

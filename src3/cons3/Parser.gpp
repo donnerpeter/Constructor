@@ -379,7 +379,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return conjWrap(state, (instr):[head:verb], (adverb):[head:verb])
       case "подвигала":
         def verb = new Variable()
-        return finiteVerb(state, verb, 'MOVE', 'PAST', (instr):[head:verb], (adverb):[head:verb])
+        return finiteVerb(state, verb, 'MOVE', 'PAST', (instr):[head:verb], (adverb):[head:verb], (nom):[head: verb])
       case "дойдя":
         def verb = state[instr]?.head ?: new Variable()
         state = state.assign(verb, 'type', 'COME_TO').assign(verb, 'background', 'perfect')

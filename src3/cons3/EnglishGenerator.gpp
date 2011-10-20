@@ -165,7 +165,7 @@ class EnglishGenerator {
       if (conjuncts) {
         def last = conjuncts[-1].frame ?: conjuncts[-1].copula
         while (true) {
-          if (last?.type in ['ALSO', 'CAN', 'FORGET'] && last.f('theme')) {
+          if (last?.type in ['CAN', 'FORGET', 'DISCOVER'] && last.f('theme')) {
             last = last.f('theme')
           }
           else if (last?.type in ['ASK']) {
@@ -221,7 +221,7 @@ class EnglishGenerator {
       List<Frame> allVerbs = chart.frames(situation).findAll {
         it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY',
                 'GO_OFF', 'ASK',
-                'DISCOVER', 'ALSO', 'REMEMBER',
+                'DISCOVER', 'REMEMBER',
                 'GO', 'SMILE', 'TAKE_OUT', 'SAY', 'MOVE',
                 'THANK', 'RUN_OUT',
                 'GET_SAD', 'SEEM', 'THINK',
@@ -432,7 +432,7 @@ class EnglishGenerator {
           out 'meaningless'
         }
       }
-      else if (type != 'ALSO') {
+      else {
         if (imperative) {
           if (subj) {
             out 'supposed'
@@ -518,17 +518,13 @@ class EnglishGenerator {
       }
 
       def theme = verb.f('theme')
-      if (theme?.var instanceof Situation) {
-        out ","
-        out "that"
-        new SituationGenerator(chart, (Situation) theme.var, false).sentence(false)
-      } else if (theme && verb.type in ['FORGET']) {
+      if (theme && verb.type in ['FORGET', 'DISCOVER']) {
         if (!findQuestioned(theme)) {
           out ","
           out "that"
         }
         new ClauseGenerator(theme, null, false, null).generate(true)
-      } else if (theme && verb.type in ['CAN', 'ALSO']) {
+      } else if (theme && verb.type in ['CAN']) {
         clauseInner(theme, false, false, false)
       } else if (theme && verb.type == 'BEGIN') {
         out(theme.type == 'TO_WATER' ? 'watering' : theme.type == 'DANCE' ? 'dancing' : theme.type == 'ARGUE' ? 'arguing' : 'counting')

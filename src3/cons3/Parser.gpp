@@ -312,11 +312,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "долго": return state.apply(adverb, adv:'LONG')
       case "грустно": return state.apply(adverb, adv:'SADLY')
       case "тоже":
-        def alsoVar = new Variable()
-        def subj = new Variable()
-        state = state.assign(alsoVar, 'type', 'ALSO')
-        state = state.assign(alsoVar, 'arg1', subj)
-        return state.apply(also, also:alsoVar, subj:subj)
+        return state.apply(also, hasAlso:true)
       case "не":
         return state.apply(negation)
       case "забыл":
@@ -331,20 +327,12 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = finiteVerb(state, verb, 'REMEMBER', 'PRESENT', (acc):[head:verb])
         return state.apply((nom):[head:verb, agr:(word == 'помнят' ? '3pl' : '3sg')], (verbHolder):[head:verb])
       case "могут":
-        def verb = new Variable()
-        def also = state[also]
-        def subj = null
-        if (also) {
-          subj = also.subj
-          state = state.assign(also.also, 'theme', verb)
-        }
+        Variable verb = state[verbHolder]?.head ?: new Variable()
+        def subj = state[nom]?.noun ?: new Variable()
         if (state[negation] != null) {
           state = state.assign(verb, 'negated', 'true')
         }
-        if (!subj) {
-          subj = new Variable()
-        }
-        return finiteVerb(state, verb, 'CAN', 'PRESENT', (control):[subj:subj, head:verb]).assign(subj, 'type', 'THEY')
+        return finiteVerb(state, verb, 'CAN', 'PRESENT', (control):[subj:subj, head:verb], (nom):[noun:subj, agr:'pl', head:verb])
       case 'стали':
       case 'начали':
         Variable verb = state[verbHolder]?.head ?: new Variable()
@@ -477,7 +465,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
           //todo generic noun treatment for что
           state = state.apply((nom):[noun:noun, hasNoun:true, xor:t.a], (acc):[noun:noun, hasNoun:true, xor:t.a]).assign(noun, 'type', 'wh')
         }
-        state = state.apply(declComp, complementizer:'that')
+        state = state.apply((declComp):[complementizer:'that', comp:verb])
         if (state[relativeClause]?.hasComma) {
           def wh = new Variable()
           state = state.apply(relativeClause, wh:wh).apply(naPrep, head:wh, copula:new Variable()) //todo pp copula
@@ -618,7 +606,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
   private ParsingState finiteVerb(Map<Construction, Map> args, ParsingState state, Variable verb, String type, String tense) {
     return state.inhibit(preposition, declComp, relativeClause, numQuantifier).
             assign(verb, 'type', type).assign(verb, 'time', tense).
-            apply(args + [(subjunctive):[head:verb], (verbHolder):[head:verb], (relTime):[head:verb]])
+            apply(args + [(subjunctive):[head:verb], (verbHolder):[head:verb], (relTime):[head:verb], (also):[head: verb]])
   }
 
   private ParsingState noun(ParsingState state, Construction caze, String type) {

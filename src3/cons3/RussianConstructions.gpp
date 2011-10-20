@@ -192,9 +192,8 @@ interface RussianConstructions {
     return args.head && args.slave ? state.assign(args.head, 'theme', args.slave) : state
   }
   Construction declComp = cxt('declComp') { ParsingState state, Map args ->
-    if (args.hasComma && !args.comp && args.head && args.complementizer) {
-      def next = new Situation()
-      state = state.assign(args.head, 'theme', next).withSituation(next).apply(declComp, comp:next)
+    if (args.hasComma && args.comp && args.head && args.complementizer) {
+      state = state.assign(args.head, 'theme', args.comp).inhibit(question, seq, nom)
     }
     return state
   }
@@ -219,6 +218,12 @@ interface RussianConstructions {
     return state
   }
   Construction also = cxt('also') { ParsingState state, Map args ->
+    if (args.head && !args.hasAlso) {
+      state = state.inhibit(also)
+    }
+    if (args.hasAlso && args.head) {
+      state = state.assign(args.head, 'also', 'true')
+    }
     return state
   }
   Construction vAcc = cxt('vAcc') { ParsingState state, Map args ->

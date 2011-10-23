@@ -190,34 +190,14 @@ class ParsingState {
       }
     }
 
+    def freed = freedByInhibition(replaced)
+
     def result = this
-    LinkedHashSet<Construction> toRestore = replaced.findAll { findContradictors(it, old) }
-    for (c in toRestore) {
-      def prev = history.find { it.before[c] != result[c] }
-      if (prev && !overwrites(prev.before.constructions[c], constructions[c])) {
-        replaced.remove(c)
-        result = result.removeConstruction(c).addCxt(prev.before[c], c)
-        old << c
-      }
-    }
-
-    LinkedHashSet<Construction> silent = []
-    for (c in Util.intersect(replaced, active)) {
-      if (constructions.keySet().any { contradict(constructions[it], constructions[c]) }) {
-        silent << c
-        replaced.remove(c)
-      }
-    }
-
-    def freed = result.freedByInhibition(replaced)
-
     for (cxt in replaced) {
       result = result.removeConstruction(cxt)
     }
     for (cxt in (constructions.keySet() as List<Construction>).reverse()) {
-      if (!(cxt in silent)) {
-        result = result.addCxt(constructions[cxt], cxt)
-      }
+      result = result.addCxt(constructions[cxt], cxt)
     }
 
     LinkedHashSet<Construction> all = result.constructions.keySet() as LinkedHashSet

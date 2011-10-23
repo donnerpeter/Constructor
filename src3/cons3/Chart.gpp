@@ -50,7 +50,7 @@ class Chart {
   }
 
   List<Variable> vars(Situation situation) {
-    Set<Variable> set = []
+    Set<Variable> set = [] as LinkedHashSet
     for (assignment in __assignments[situation]) {
       if (assignment.frame != situation) {
         set << assignment.frame

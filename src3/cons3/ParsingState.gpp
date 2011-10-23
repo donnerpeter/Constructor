@@ -238,19 +238,8 @@ class ParsingState {
 
     hanging = Util.intersect(hanging, result.active) + hanging
     result = result.clone(active: result.active.withoutAll(hanging))
-    Map<Construction, Map> plausible = [:]
-    for (cxt1 in hanging) {
-      def alt1 = result.doApply(cxt1)
-      if (result.findContradictors(cxt1, result.constructions.keySet()).every { alt1.morePlausible(result.doApply(it)) }) {
-        plausible[cxt1] = result[cxt1]
-      }
-    }
 
-    if (plausible) {
-      result = result.apply(plausible)
-    }
-
-    LinkedHashSet<Construction> stillHanging = Util.intersect(hanging, result.constructions.keySet()) as LinkedHashSet
+    LinkedHashSet<Construction> stillHanging = hanging
     stillHanging = stillHanging.findAll { result.findContradictors(it, stillHanging) }
     while (stillHanging) {
       def next = stillHanging.iterator().next()
@@ -260,10 +249,6 @@ class ParsingState {
     }
 
     return result
-  }
-
-  boolean morePlausible(ParsingState than) {
-    return false
   }
 
   private ParsingState doApply(Construction cxt) {

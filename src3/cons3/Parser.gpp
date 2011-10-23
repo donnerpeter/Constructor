@@ -8,7 +8,8 @@ import static cons3.RussianConstructions.*
  */
 class Parser { //todo alex implements cons3.RussianConstructions
   public static final ArrayList<Construction> importantForSimilarity =
-    [nom, acc, gen, dat, instr, prep, possessive, parenthetical, comeScalarly, poDat, elaboration, declOrQuestionComp, complementizer]
+    [nom, acc, gen, dat, instr, prep, poDat,
+            possessive, parenthetical, comeScalarly, elaboration, declOrQuestionComp, complementizer]
   String log = ""
 
   Chart parse(String text) {
@@ -587,10 +588,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
     }
 
     if (numQuantifier in c1 && numQuantifier in c2 && !condition(numQuantifier)) {
-      return false
-    }
-
-    if (common.size() == 1 && parenthetical in common && 'hasComma' in c1[parenthetical]) {
       return false
     }
 

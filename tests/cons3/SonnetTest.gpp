@@ -592,15 +592,18 @@ H.determiner=SOME
 H.type=CHILD
 I.type=BREAK
 I.time=PAST
-J.member=F
-J.conj=and
-J.member=I
+J.member=B
+J.conj=but
+J.member=K
+K.member=F
+K.conj=and
+K.member=I
 I.arg1=H
-K.type=BOTH
-I.arg2=L
-L.quantifier=K
-L.arg1=H
-L.type=JAWS
+L.type=BOTH
+I.arg2=M
+M.quantifier=L
+M.arg1=H
+M.type=JAWS
 """
   }
 

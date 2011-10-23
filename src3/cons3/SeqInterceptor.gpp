@@ -16,7 +16,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       if (Parser.areSimilar(old.apps, constructions)) {
         return i
       }
-      if (old.apps[nom]?.head && !old.apps[nom].noun &&
+      if (old.apps[nom]?.head && !old.apps[nom].noun && !constructions[complementizer] &&
           (constructions[dat]?.hasNoun || constructions[preposition] || constructions[gen]?.hasNoun || constructions[nom]?.hasNoun || constructions[acc]?.hasNoun)) {
         return -1
       }
@@ -70,7 +70,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
 
       for (cxt in constructions.keySet()) {
         def oldArgs = oldApps[cxt]
-        def newUpdate = merge(state, cxt, oldArgs, constructions[cxt], update, seqs)
+        def newUpdate = merge(state, cxt, oldArgs, constructions[cxt], update, seqs, declOrQuestionComp in constructions)
         merged |= newUpdate != null
         update = newUpdate ?: update.addCxt(constructions[cxt], cxt)
       }
@@ -113,11 +113,23 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
   }
 
 
-  private Update merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
+  private Update merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, Update update, Map<Pair<Variable, Variable>, Variable> seqs, boolean clauseLevel) {
     if (oldArgs != null) {
       if (conj == 'but') {
         return null
       }
+
+      if (cxt == elaboration && before[cxt]?.head && oldArgs.elaboration && newArgs.elaboration) {
+        return doMerge(state, cxt, oldArgs, newArgs, 'elaboration', update, seqs)
+      }
+      if (cxt == declOrQuestionComp && before[cxt]?.head && oldArgs.comp && newArgs.comp) {
+        return doMerge(state, cxt, oldArgs, newArgs, 'comp', update, seqs)
+      }
+      if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun && before[cxt]?.head) {
+        return doMerge(state, cxt, before[cxt] ?: oldArgs, newArgs, 'head', update, seqs)
+      }
+
+      if (clauseLevel) return null
 
       if (cxt in [nom, acc, gen, dat] && oldArgs.noun && newArgs.noun) {
         return doMerge(state, cxt, oldArgs, newArgs, 'noun', update, seqs)
@@ -125,9 +137,6 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       if (cxt in [poDat] && !oldArgs.noun && !newArgs.noun && before[cxt]?.noun && !newArgs.head) {
         def newNoun = new Variable()
         return doMerge(state, cxt, oldArgs + [unmergedNoun: newNoun, noun:before[cxt].noun], newArgs + [noun: newNoun], 'noun', update, seqs)
-      }
-      if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun && before[cxt]?.head) {
-        return doMerge(state, cxt, before[cxt] ?: oldArgs, newArgs, 'head', update, seqs)
       }
       if (cxt in [gen] && oldArgs.head && newArgs.head && !newArgs.noun) {
         return doMerge(state, cxt, oldArgs, newArgs, 'head', update, seqs)
@@ -137,9 +146,6 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       }
       if (cxt == possessive && oldArgs.head && newArgs.head) {
         return doMerge(state, cxt, oldArgs, newArgs, 'head', update, seqs)
-      }
-      if (cxt == elaboration && before[cxt]?.head && oldArgs.elaboration && newArgs.elaboration) {
-        return doMerge(state, cxt, oldArgs, newArgs, 'elaboration', update, seqs)
       }
     }
 

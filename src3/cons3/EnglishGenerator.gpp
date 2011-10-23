@@ -160,7 +160,7 @@ class EnglishGenerator {
 
       List<ClauseGenerator> conjuncts = planConjuncts(topLevel)
 
-      generateConjuncts(conjuncts)
+      generateConjuncts(conjuncts) { conj, last -> conj.generate(last) }
 
       if (conjuncts) {
         def last = conjuncts[-1].frame ?: conjuncts[-1].copula
@@ -174,6 +174,9 @@ class EnglishGenerator {
           else if (last?.type == 'modality') {
             last = last.f('arg1')
           }
+          else if (last?.f('member')) {
+            last = last.f('member')
+          }
           else break
         }
         if (last?.s('dot') == 'true') {
@@ -186,7 +189,7 @@ class EnglishGenerator {
       }
     }
 
-    private boolean generateConjuncts(List<EnglishGenerator.SituationGenerator.ClauseGenerator> conjuncts) {
+    private boolean generateConjuncts(List<ClauseGenerator> conjuncts, Function2<ClauseGenerator,Boolean,Void> generator) {
       boolean wasBut = false
 
       for (int j in 0..<conjuncts.size()) {
@@ -208,7 +211,7 @@ class EnglishGenerator {
             out ","
           }
         }
-        conjuncts[j].generate(last)
+        generator(conjuncts[j], last)
       }
       return wasBut
     }
@@ -273,6 +276,7 @@ class EnglishGenerator {
           while (next &&
                  (next == lastCur.f('theme') ||
                   next in (lastCur.f('elaboration')?.flatten() ?: []) ||
+                  next in (lastCur.f('theme')?.flatten() ?: []) ||
                   next.usages('theme') ||
                   next.usages('arg1')[0]?.type == 'modality' ||
                   next.usages('question'))) {
@@ -519,11 +523,17 @@ class EnglishGenerator {
 
       def theme = verb.f('theme')
       if (theme && verb.type in ['FORGET', 'DISCOVER']) {
-        if (!findQuestioned(theme)) {
+        def that = !findQuestioned(theme)
+        if (that) {
           out ","
-          out "that"
         }
-        new ClauseGenerator(theme, null, false, null).generate(true)
+        List<ClauseGenerator> clauses = theme.flatten().collect { new ClauseGenerator(it, null, false, null) }
+        generateConjuncts(clauses)  { conj, last ->
+          if (that) {
+            out 'that'
+          }
+          conj.generate(last)
+        }
       } else if (theme && verb.type in ['CAN']) {
         clauseInner(theme, false, false, false)
       } else if (theme && verb.type == 'BEGIN') {
@@ -619,7 +629,7 @@ class EnglishGenerator {
         out(commaStyle ? ',' : ":")
         def sameSentence = commaStyle || verb.type == 'BEGIN'
         List<ClauseGenerator> clauses = elaboration.flatten().collect { new ClauseGenerator(it, null, !sameSentence, null) }
-        generateConjuncts(clauses)
+        generateConjuncts(clauses) { conj, last -> conj.generate(last) }
       }
     }
 
@@ -852,7 +862,7 @@ class EnglishGenerator {
         return //a hack
       }
 
-      if (n.type in ['5', '6', '7']) { out 'a'; return }
+      if (n.type in ['1', '2', '3', '4', '5', '6', '7']) { out 'a'; return }
       if (n.type == '8') { out 'an'; return }
 
       if (n.s('given') != 'false') {

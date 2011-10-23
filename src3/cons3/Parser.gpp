@@ -7,7 +7,8 @@ import static cons3.RussianConstructions.*
  * @author peter
  */
 class Parser { //todo alex implements cons3.RussianConstructions
-  public static final ArrayList<Construction> importantForSimilarity = [nom, acc, gen, dat, instr, prep, possessive, parenthetical, gen, comeScalarly, poDat, elaboration]
+  public static final ArrayList<Construction> importantForSimilarity =
+    [nom, acc, gen, dat, instr, prep, possessive, parenthetical, comeScalarly, poDat, elaboration, declOrQuestionComp, complementizer]
   String log = ""
 
   Chart parse(String text) {
@@ -462,7 +463,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = state.inhibit(nom, acc, complementizer).
                 apply((declOrQuestionComp):[comp: verb, questioned: noun], (verbHolder):[head:verb],
                         (acc):[noun:noun, hasNoun:true, xor:t.a], (nom):[noun:noun, hasNoun:true, xor:t.a, agr:'3sg'], (typeCxt(noun, 'wh')):[var:noun],
-                        (complementizer):[xor:t.a, noun:noun]
+                        (complementizer):[xor:t.a, hasComplementizer:true]
                 )
         if (state[relativeClause]?.hasComma) {
           def wh = new Variable()
@@ -593,7 +594,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       return false
     }
 
-    if (complementizer in c1 || complementizer in c2) {
+    if ((complementizer in c1 || complementizer in c2) && !(complementizer in common)) {
       return false
     }
 

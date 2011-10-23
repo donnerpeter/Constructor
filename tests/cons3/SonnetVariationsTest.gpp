@@ -82,7 +82,7 @@ H.number=true
   public void test1_ForgetFact() throws Exception {
     doTranslateTest "Я забыл, что 7 идёт раньше 8.", "I forgot, that a 7 comes before an 8."
   }
-  public void _test1_Forget2Facts() throws Exception {
+  public void test1_Forget2Facts() throws Exception {
     doTranslateTest "Я забыл, что 7 идёт раньше 8 и что 4 идёт после 3.", "I forgot, that a 7 comes before an 8 and that a 4 comes after a 3."
   }
   public void _test1_ForgetRecursive() throws Exception {

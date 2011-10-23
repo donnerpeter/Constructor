@@ -128,16 +128,16 @@ interface RussianConstructions {
   Construction clauseEllipsis = cxt('clauseEllipsis') { ParsingState state, Map args ->
     return state
   }
-  Construction question = cxt('question') { ParsingState state, Map args ->
+  Construction declOrQuestionComp = cxt('question') { ParsingState state, Map args ->
     Variable comp = args.modality ?: args.comp
-    if (comp && args.head && args.questioned) {
-      def attr = ((Variable) args.head).frame(state.chart).type == 'FORGET' ? 'theme' : 'question'
+    if (comp && args.head) {
+      def attr = ((Variable) args.head).frame(state.chart).type in ['FORGET', 'DISCOVER'] ? 'theme' : 'question'
       state = state.assign(args.head, attr, comp)
       if (!args.modality) {
-        state = state.inhibit(declComp, seq, nom, acc, possessive)
+        state = state.inhibit(seq, possessive)
       }
     }
-    if (args.questioned && args.modality) {
+    if (args.comp && args.modality) {
       state = state.assign(args.modality, 'type', 'modality').assign(args.modality, 'arg1', args.mainVerb)
       if (args.time) {
         state = state.assign(args.modality, 'time', 'PAST')
@@ -190,12 +190,6 @@ interface RussianConstructions {
   }
   Construction control = cxt('control') { ParsingState state, Map args ->
     return args.head && args.slave ? state.assign(args.head, 'theme', args.slave) : state
-  }
-  Construction declComp = cxt('declComp') { ParsingState state, Map args ->
-    if (args.hasComma && args.comp && args.head && args.complementizer) {
-      state = state.assign(args.head, 'theme', args.comp).inhibit(question, seq, nom)
-    }
-    return state
   }
   Construction conditionComp = cxt('conditionComp') { ParsingState state, Map args ->
     if (args.hasComma && !args.comp && args.head && args.wh) {
@@ -329,6 +323,9 @@ interface RussianConstructions {
     return state
   }
   Construction nestedClause = cxt('nestedClause') { ParsingState state, Map args ->
+    return state
+  }
+  Construction complementizer = cxt('complementizer') { ParsingState state, Map args ->
     return state
   }
   Construction directSpeech = cxt('directSpeech') { ParsingState state, Map args ->

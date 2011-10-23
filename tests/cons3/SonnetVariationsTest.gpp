@@ -23,16 +23,30 @@ class SonnetVariationsTest extends TestCase {
                     "Great was their amazement"
   }
 
+  public void _test3_He() throws Exception {
+    doTranslateTest "Он вдруг обнаружил, что тоже не может вспомнить порядок счета",
+            "He suddenly discovered, that he couldn't recall the counting order"
+  }
+  public void _test3_She() throws Exception {
+    doTranslateTest "Она вдруг обнаружила, что тоже не может вспомнить порядок счета",
+            "She suddenly discovered, that she couldn't recall the counting order"
+  }
+
   public void test1_Question() throws Exception {
     doTranslateTest "Что идёт раньше - 7 или 8?",
                     "What comes first - 7 or 8?"
-
   }
-
+  public void _test1_AfterVasya() throws Exception {
+    doTranslateTest "Он забыл, что идет после Васи.",
+                    "He forgot, that he goes after Vasya."
+  }
   public void test2_Question() throws Exception {
     doTranslateTest "Что они думают по этому поводу?",
                     "What do they think on this matter?"
-
+  }
+  public void _test2_ThinkingNotSitting() throws Exception {
+    doTranslateTest "Я забыл, что они думают, а не просто сидят.",
+                    "I forgot, that they were thinking and not just sitting."
   }
 
   public void test1_789() throws Exception {
@@ -65,20 +79,20 @@ H.number=true
     doTranslateTest "Я забыл, что идёт раньше - 7, 8 или 9.", "I forgot what comes first - 7, 8 or 9."
   }
 
-  public void _test1_ForgetFact() throws Exception {
-    doTranslateTest "Я забыл, что 7 идёт раньше 8.", "I forgot that a 7 comes before an 8."
+  public void test1_ForgetFact() throws Exception {
+    doTranslateTest "Я забыл, что 7 идёт раньше 8.", "I forgot, that a 7 comes before an 8."
   }
   public void _test1_Forget2Facts() throws Exception {
-    doTranslateTest "Я забыл, что 7 идёт раньше 8 и что 4 идёт после 3.", "I forgot that a 7 comes before an 8 and that a 4 comes after a 3."
+    doTranslateTest "Я забыл, что 7 идёт раньше 8 и что 4 идёт после 3.", "I forgot, that a 7 comes before an 8 and that a 4 comes after a 3."
   }
   public void _test1_ForgetRecursive() throws Exception {
-    doTranslateTest "Я забыл, что я это забыл", "I forgot that I forgot that"
+    doTranslateTest "Я забыл, что я это забыл", "I forgot, that I forgot that"
   }
   public void _test1_ForgetRecursive2() throws Exception {
     doTranslateTest "Я забыл, что я забыл", "I forgot what I forgot"
   }
   public void _test1_ForgetRecursive3Fact() throws Exception {
-    doTranslateTest "Я забыл, что я забыл, что 7 идет раньше 8", "I forgot that I forgot that a 7 comes before an 8"
+    doTranslateTest "Я забыл, что я забыл, что 7 идет раньше 8", "I forgot, that I forgot, that a 7 comes before an 8"
   }
   public void _test1_ForgetRecursive3Question() throws Exception {
     doTranslateTest "Я забыл, что я забыл, что идет после 8", "I forgot that I forgot what comes before an 8"

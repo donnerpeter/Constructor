@@ -88,7 +88,7 @@ H.number=true
   public void _test1_ForgetRecursive() throws Exception {
     doTranslateTest "Я забыл, что я это забыл", "I forgot, that I forgot that"
   }
-  public void _test1_ForgetRecursive2() throws Exception {
+  public void test1_ForgetRecursive2() throws Exception {
     doTranslateTest "Я забыл, что я забыл", "I forgot what I forgot"
   }
   public void _test1_ForgetRecursive3Fact() throws Exception {

@@ -67,13 +67,6 @@ class EnglishGenerator {
       }
 
       def generate(boolean last) {
-        if (frame?.s('butEmphasis')) {
-          out 'but'
-        }
-        else if (frame?.s('andEmphasis')) {
-          out 'and'
-        }
-
         if (frame && frame.usages('topic').find { it.type == 'LUCK' }) {
           out 'by some sheer luck,'
         }
@@ -159,6 +152,13 @@ class EnglishGenerator {
       handled << situation
 
       List<ClauseGenerator> conjuncts = planConjuncts(topLevel)
+
+      if (conjuncts[0]?.frame?.s('butEmphasis')) {
+        out 'but'
+      }
+      else if (conjuncts[0]?.frame?.s('andEmphasis')) {
+        out 'and'
+      }
 
       generateConjuncts(conjuncts) { conj, last -> conj.generate(last) }
 

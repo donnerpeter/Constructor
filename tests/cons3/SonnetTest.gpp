@@ -179,15 +179,15 @@ I.number=pl
 I.person=3
 H.arg1=I
 J.andEmphasis=true
-K.type=FORGET
-K.time=PAST
-L.type=NEXT
-K.arg2=L
-M.member=H
-M.conj=but
-M.member=K
-K.arg1=I
-K.dot=true
+J.type=FORGET
+J.time=PAST
+K.type=NEXT
+J.arg2=K
+L.member=H
+L.conj=but
+L.member=J
+J.arg1=I
+J.dot=true
 """
   }
 

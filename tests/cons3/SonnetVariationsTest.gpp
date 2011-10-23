@@ -95,10 +95,10 @@ H.number=true
     doTranslateTest "Я забыл, что я забыл, что 7 идет раньше 8", "I forgot, that I forgot, that a 7 comes before an 8"
   }
   public void _test1_ForgetRecursive3Question() throws Exception {
-    doTranslateTest "Я забыл, что я забыл, что идет после 8", "I forgot that I forgot what comes before an 8"
+    doTranslateTest "Я забыл, что я забыл, что идет после 8", "I forgot that I forgot what comes after an 8"
   }
-  public void _test1_Forget2Questions() throws Exception {
-    doTranslateTest "Я забыл, что идёт после 7 и что идёт перед 8.", "I forgot what comes after a 7 and what comes before an 8."
+  public void test1_Forget2Questions() throws Exception {
+    doTranslateTest "Я забыл, что идёт после 7 и что идёт раньше 8.", "I forgot what comes after a 7 and what comes before an 8."
   }
 
   public void test4_123TheyRemember() throws Exception {

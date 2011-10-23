@@ -523,7 +523,7 @@ class EnglishGenerator {
 
       def theme = verb.f('theme')
       if (theme && verb.type in ['FORGET', 'DISCOVER']) {
-        def that = !findQuestioned(theme)
+        def that = theme.flatten().every { !findQuestioned(it) }
         if (that) {
           out ","
         }

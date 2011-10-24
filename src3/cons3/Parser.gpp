@@ -457,7 +457,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply((conditionComp):[wh:'if'])
       case "когда":
         return state.apply((conditionComp):[wh:'when'])
-      case "это": return noun(state, nom, 'THAT')
+      case "это":
+        def noun = new Variable()
+        return state.apply((nom):[noun:noun, hasNoun:true, xor:t.a], (acc):[noun:noun, hasNoun:true, xor:t.a], (typeCxt(noun, 'THAT')):[var:noun])
       case "что":
         def noun = new Variable()
         def verb = new Variable()

@@ -190,6 +190,13 @@ class ParsingState {
       }
     }
 
+    for (c in old - active) {
+      if (findContradictors(c, Util.intersect(old, active))) {
+        replaced << c
+        old.remove(c)
+      }
+    }
+
     def freed = freedByInhibition(replaced)
 
     def result = this

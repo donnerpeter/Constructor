@@ -148,8 +148,8 @@ class ParsingState {
     return clone(chart: chart.finishMeta(meta))
   }
 
-  LinkedHashSet<Construction> findContradictors(Construction c, Set<Construction> among) {
-    return new LinkedHashSet<Construction>(among).findAll { contradict(constructions[it], constructions[c]) }
+  LinkedHashSet<Construction> findContradictors(Construction c, Set<Construction> among, Map<Construction, Map> values = constructions) {
+    return new LinkedHashSet<Construction>(among).findAll { contradict(values[it], values[c]) }
   }
 
   private Function2<Map<Construction, Map>, ParsingState, ParsingState> nextApplier(Construction start) {
@@ -197,14 +197,25 @@ class ParsingState {
       }
     }
 
+    def result = this
+    LinkedHashSet<Construction> silent = []
+    for (c in Util.intersect(replaced, active)) {
+      if (!findContradictors(c, this.constructions.keySet() - active) &&
+          findContradictors(c, constructions.keySet(), constructions)) {
+        silent << c
+        replaced.remove(c)
+      }
+    }
+
     def freed = freedByInhibition(replaced)
 
-    def result = this
     for (cxt in replaced) {
       result = result.removeConstruction(cxt)
     }
     for (cxt in (constructions.keySet() as List<Construction>).reverse()) {
-      result = result.addCxt(constructions[cxt], cxt)
+      if (!(cxt in silent)) {
+        result = result.addCxt(constructions[cxt], cxt)
+      }
     }
 
     LinkedHashSet<Construction> all = result.constructions.keySet() as LinkedHashSet

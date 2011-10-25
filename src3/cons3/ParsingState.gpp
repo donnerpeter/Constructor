@@ -1,5 +1,7 @@
 package cons3
 
+import groovy.transform.TupleConstructor
+
 /**
  * @author peter
  */
@@ -8,6 +10,7 @@ class ParsingState {
 
   final Chart chart
   final Situation situation
+  final FLinkedMap<Construction, List<Map>> _constructions
   final FLinkedMap<Construction, Map> constructions
   final FList<Contribution> history
   final FList<Construction> active
@@ -19,13 +22,24 @@ class ParsingState {
   ParsingState(Map map) {
     chart = map.chart
     situation = map.situation
-    constructions = map.constructions
+    _constructions = map.constructions
     history = map.history
     active = map.active
+
+    FLinkedMap<Construction, Map> merged = FLinkedMap.emptyMap
+    for (c in _constructions.keySet()) {
+      Map value = [:]
+      for (part in _constructions[c]) {
+        value = unify(value, part)
+      }
+      merged = merged.putValue(c, value)
+    }
+    
+    constructions = merged
   }
 
   private ParsingState clone(Map update) {
-    Map current = [chart:chart, situation:situation, constructions:constructions, history:history, active:active]
+    Map current = [chart:chart, situation:situation, constructions:_constructions, history:history, active:active]
     current.putAll(update)
     return new ParsingState(current)
   }
@@ -71,7 +85,7 @@ class ParsingState {
   }
 
   ParsingState addCxt(Map newArgs, Construction name) {
-    return clone(constructions: constructions + [(name): unify(constructions[name], newArgs)])
+    return clone(constructions: _constructions + [(name): (_constructions[name] ?: []) + [newArgs]])
   }
 
   static Map unify(Map oldArgs, Map newArgs) {
@@ -107,7 +121,7 @@ class ParsingState {
     if (!cxts) return this
 
     Set<Construction> toRemove = cxts as LinkedHashSet
-    toRemove.retainAll(constructions.keySet())
+    toRemove.retainAll(_constructions.keySet())
 
     Map<Construction, Map> freed = freedByInhibition(toRemove)
 
@@ -120,7 +134,7 @@ class ParsingState {
   }
 
   Map<Construction, Map> freedByInhibition(Set<Construction> toRemove) {
-    LinkedHashSet<Construction> remaining = (constructions.keySet() as LinkedHashSet) - toRemove
+    LinkedHashSet<Construction> remaining = (_constructions.keySet() as LinkedHashSet) - toRemove
 
     Map<Construction, Map> freed = [:]
     for (removed in remaining) {
@@ -138,7 +152,7 @@ class ParsingState {
   }
 
   private ParsingState removeConstruction(Construction name) {
-    return clone(constructions: constructions.removeKey(name), active: active - name)
+    return clone(constructions: _constructions.removeKey(name), active: active - name)
   }
 
   ParsingState startMeta(Variable meta) {
@@ -153,7 +167,7 @@ class ParsingState {
   }
 
   private Function2<Map<Construction, Map>, ParsingState, ParsingState> nextApplier(Construction start) {
-    def cs = constructions.keyList()
+    def cs = _constructions.keyList()
     def index = cs.indexOf(start)
     if (index >= 0 || !start) {
       def tail = cs.subList(index + 1, cs.size())
@@ -200,11 +214,19 @@ class ParsingState {
     def result = this
     LinkedHashSet<Construction> silent = []
     for (c in Util.intersect(replaced, active)) {
-      if (!findContradictors(c, this.constructions.keySet() - active) &&
-          findContradictors(c, constructions.keySet(), constructions)) {
+      def alternatives = findContradictors(c, _constructions.keySet() - active)
+      if (!alternatives && findContradictors(c, constructions.keySet(), constructions)) {
         silent << c
         replaced.remove(c)
-      }
+      } /*else if (alternatives) {
+        def xors = alternatives.collect { this.constructions[it].xor ?: Collections.emptySet() }.flatten() as Set
+        def toUndo = _constructions[c].find { it.xor && Util.intersect(xors, (Set) it.xor) }
+        if (toUndo) {
+          result = result.clone(constructions: _constructions + [(c):_constructions[c] - toUndo])
+          replaced.remove(c)
+          old << c
+        }
+      }*/
     }
 
     def freed = freedByInhibition(replaced)
@@ -218,7 +240,7 @@ class ParsingState {
       }
     }
 
-    LinkedHashSet<Construction> all = result.constructions.keySet() as LinkedHashSet
+    LinkedHashSet<Construction> all = result._constructions.keySet() as LinkedHashSet
     LinkedHashSet<Construction> toRemove = ((all - constructions.keySet()).findAll { result.findContradictors(it, old) } as LinkedHashSet)
     LinkedHashSet<Construction> runCandidates = ((constructions.keySet() as LinkedHashSet) + freed.keySet() as LinkedHashSet) - toRemove
 
@@ -263,7 +285,7 @@ class ParsingState {
       def next = stillHanging.iterator().next()
       def contradictors = result.findContradictors(next, stillHanging)
       result = result.doApply(next)
-      stillHanging = Util.intersect(stillHanging - next - contradictors, result.constructions.keySet())
+      stillHanging = Util.intersect(stillHanging - next - contradictors, result._constructions.keySet())
     }
 
     return result
@@ -285,7 +307,7 @@ class ParsingState {
   }
 
   ParsingState restore(ParsingState saved) {
-    clone(constructions: saved.constructions + this.constructions)
+    clone(constructions: saved._constructions + this._constructions, active:saved.active.prependAll(active))
   }
 
   private static boolean contradict(Map args1, Map args2) {
@@ -296,3 +318,4 @@ class ParsingState {
     return xor1 && xor2 && Util.intersect(xor1, xor2)
   }
 }
+

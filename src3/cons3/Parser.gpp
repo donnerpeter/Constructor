@@ -637,9 +637,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
   private Update _nounBase(ParsingState state, Construction caze, Closure init) {
     Variable noun = state[caze]?.noun && !state[caze].hasNoun ? state[caze]?.noun : new Variable()
 
-    if (noun.frame(state.chart).f('member')) { //todo number agreement
-      noun = noun.frame(state.chart).f('member').var
-    }
+    def typeNoun = noun.frame(state.chart).f('member') ? noun.frame(state.chart).f('member').var : noun
 
     Update update = new Update([:])
 
@@ -647,7 +645,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       update = update.addCxt(shortAdj, noun:noun)
     }
 
-    update = update.addCxt(caze, noun:noun, hasNoun:true, init:{ init(it, noun) })
+    update = update.addCxt(caze, noun:noun, hasNoun:true, init:{ init(it, typeNoun) })
 
     update = update.addCxt(relativeClause, noun:noun, save:state)
     return update

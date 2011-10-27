@@ -1,7 +1,5 @@
 package cons3
 
-import groovy.transform.TupleConstructor
-
 /**
  * @author peter
  */
@@ -10,7 +8,7 @@ class ParsingState {
 
   final Chart chart
   final Situation situation
-  final FLinkedMap<Construction, List<Map>> _constructions
+  final FLinkedMap<Construction, List<Mite>> _constructions
   final FLinkedMap<Construction, Map> constructions
   final FList<Contribution> history
   final FList<Construction> active
@@ -30,7 +28,7 @@ class ParsingState {
     for (c in _constructions.keySet()) {
       Map value = [:]
       for (part in _constructions[c]) {
-        value = unify(value, part)
+        value = unify(value, part.contents)
       }
       merged = merged.putValue(c, value)
     }
@@ -85,7 +83,7 @@ class ParsingState {
   }
 
   ParsingState addCxt(Map newArgs, Construction name) {
-    return clone(constructions: _constructions + [(name): (_constructions[name] ?: []) + [newArgs]])
+    return clone(constructions: _constructions + [(name): (_constructions[name] ?: []) + new Mite(newArgs)])
   }
 
   static Map unify(Map oldArgs, Map newArgs) {

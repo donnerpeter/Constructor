@@ -1,0 +1,14 @@
+package cons3
+
+/**
+ * @author peter
+ */
+class Mite {
+  final FLinkedMap contents
+
+  Mite(Map contents) {
+    this.contents = contents instanceof FLinkedMap ? contents : FLinkedMap.fromMap(contents)
+  }
+
+
+}

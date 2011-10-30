@@ -20,7 +20,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = handleWord(w.toLowerCase(), state)
         log += w + "\n"
         for (k in state.constructions.keySet()) {
-          log += "  ${k in state.active ? '*' : ' '}$k -> ${state.constructions[k]}\n"
+          log += "  $k: " + state._constructions[k].collect { (it in state.active ? '*' : '') + new LinkedHashMap(it.contents.reverse()) }.join(" ") + "\n"
         }
       }
     }

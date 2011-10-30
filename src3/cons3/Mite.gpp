@@ -4,10 +4,32 @@ package cons3
  * @author peter
  */
 class Mite {
+  final Construction cxt
   final FLinkedMap contents
 
-  Mite(Map contents) {
+  Mite(Map contents, Construction cxt) {
+    this.cxt = cxt
     this.contents = contents instanceof FLinkedMap ? contents : FLinkedMap.fromMap(contents)
+  }
+
+  boolean contradicts(Mite another) {
+    if (another == this) return false
+
+    if (another.cxt == cxt) {
+      return ParsingState.overwrites(another.contents, contents)
+    }
+    
+    Set<Object> xor1 = contents.xor ?: [] as Set
+    Set<Object> xor2 = another.contents.xor ?: [] as Set
+    return !Util.intersect(xor1, xor2).empty
+  }
+
+  @Override
+  public String toString() {
+    return "Mite{" +
+           "cxt=" + cxt +
+           ", contents=" + contents +
+           '}';
   }
 
 

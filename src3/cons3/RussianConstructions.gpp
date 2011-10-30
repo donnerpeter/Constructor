@@ -12,7 +12,7 @@ interface RussianConstructions {
   Construction nom = cxt('nom') { ParsingState state, Map args ->
     if (args.agr && args.head && !args.hasNoun) {
       Variable noun = args.noun ?: new Variable()
-      state = state.addCxt(nom, noun: noun)
+      state = state.addCxt(new Mite(nom, noun: noun))
       String agr = args.agr
       if (SeqInterceptor.agrNumber(agr)) {
         state = state.assign(noun, 'number', SeqInterceptor.agrNumber(agr))
@@ -165,7 +165,7 @@ interface RussianConstructions {
   }
   Construction preposition = cxt('preposition') { ParsingState state, Map args ->
     if (!args.interceptor) {
-      state = state.addCxt(preposition, interceptor:new Preposition())
+      state = state.addCxt(new Mite(preposition, interceptor:new Preposition()))
     }
     return state
   }

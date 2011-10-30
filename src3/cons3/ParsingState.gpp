@@ -82,8 +82,8 @@ class ParsingState {
     return false
   }
 
-  ParsingState addCxt(Map newArgs, Construction name) {
-    return clone(constructions: _constructions + [(name): (_constructions[name] ?: []) + new Mite(newArgs)])
+  ParsingState addCxt(Mite mite) {
+    return clone(constructions: _constructions + [(mite.cxt): (_constructions[mite.cxt] ?: []) + mite])
   }
 
   static Map unify(Map oldArgs, Map newArgs) {
@@ -234,7 +234,7 @@ class ParsingState {
     }
     for (cxt in (constructions.keySet() as List<Construction>).reverse()) {
       if (!(cxt in silent)) {
-        result = result.addCxt(constructions[cxt], cxt)
+        result = result.addCxt(new Mite(constructions[cxt], cxt))
       }
     }
 

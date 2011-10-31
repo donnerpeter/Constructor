@@ -47,16 +47,16 @@ class ParsingState {
   ParsingState assign(def var, String property, def value) {
     clone(chart: chart.assign((Variable)var, situation, property, value))
   }
-
+  
   Map getAt(Construction construction) {
-    for (Map value in this.constructions.values()) {
-      if (value.interceptor != null) {
-        def interceptor = (Interceptor) value.interceptor
-        def args = interceptor.getArgs(construction, this)
-        if (args != null) {
-          return args
-        }
+    def mite = nextInterceptor(null)
+    if (mite) {
+      def interceptor = (Interceptor) mite.contents.interceptor
+      def args = interceptor.getArgs(construction, this)
+      if (args != null) {
+        return args
       }
+      
     }
     
     constructions[construction]
@@ -160,23 +160,31 @@ class ParsingState {
     return clone(chart: chart.finishMeta(meta))
   }
 
-  LinkedHashSet<Construction> findContradictors(Construction c, Set<Construction> among, Map<Construction, Map> values = constructions) {
+  private LinkedHashSet<Construction> findContradictors(Construction c, Set<Construction> among, Map<Construction, Map> values = constructions) {
     return new LinkedHashSet<Construction>(among).findAll { contradict(values[it], values[c]) }
   }
 
-  private Function2<Map<Construction, Map>, ParsingState, ParsingState> nextApplier(Construction start) {
+  private Mite nextInterceptor(Construction start) {
     def cs = _constructions.keyList()
     def index = cs.indexOf(start)
     if (index >= 0 || !start) {
       def tail = cs.subList(index + 1, cs.size())
       for (cxt in tail) {
-        if (constructions[cxt].interceptor != null) {
-          def interceptor = (Interceptor) constructions[cxt].interceptor
-          return { c, s -> interceptor.intercept(c, s, { c1, s1 ->
-            s1.nextApplier(cxt).call(c1, s1)
-          }) }
+        def mite = _constructions[cxt].find { it.contents.interceptor }
+        if (mite) {
+          return mite
         }
       }
+    }
+    return null
+  }
+
+  private Function2<Map<Construction, Map>, ParsingState, ParsingState> nextApplier(Construction start) {
+    def interceptor = nextInterceptor(start)
+    if (interceptor) {
+      return { c, s -> ((Interceptor) interceptor.contents.interceptor).intercept(c, s, { c1, s1 ->
+        s1.nextApplier(interceptor.cxt).call(c1, s1)
+      }) }
     }
     return { c, s -> s.baseApply(c) }
   }
@@ -191,8 +199,8 @@ class ParsingState {
     LinkedHashSet<Construction> old = []
     LinkedHashSet<Construction> replaced = []
     for (cxt in update.keySet()) {
-      if (this.constructions[cxt] != null) {
-        if (overwrites(this.constructions[cxt], update[cxt])) {
+      if (this._constructions[cxt] != null) {
+        if (this._constructions[cxt].any { it.contradicts(new Mite(update[cxt], cxt)) }) {
           replaced << cxt
         } else {
           old << cxt

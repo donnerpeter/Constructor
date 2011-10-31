@@ -20,7 +20,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = handleWord(w.toLowerCase(), state)
         log += w + "\n"
         for (k in state.constructions.keySet()) {
-          log += "  $k: " + state._constructions[k].collect { (it in state.active ? '*' : '') + new LinkedHashMap(it.contents.reverse()) }.join(" ") + "\n"
+          log += "  ${k in state.active ? '*' : ' '}$k -> ${state.constructions[k]}\n"
         }
       }
     }
@@ -463,7 +463,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "что":
         def noun = new Variable()
         def verb = new Variable()
-        state = state.inhibit(nom, acc, complementizer).
+        state = state.inhibit(nom, acc, complementizer, advObj).
                 apply((declOrQuestionComp):[comp: verb, questioned: noun], (verbHolder):[head:verb],
                         (acc):[noun:noun, hasNoun:true, xor:t.a], (nom):[noun:noun, hasNoun:true, xor:t.a, agr:'3sg'], (typeCxt(noun, 'wh')):[var:noun],
                         (complementizer):[xor:t.a, hasComplementizer:true]

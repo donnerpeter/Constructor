@@ -6,10 +6,12 @@ package cons3
 class Mite {
   final Construction cxt
   final FLinkedMap contents
+  final Map<Construction, Map> update
 
-  Mite(Map contents, Construction cxt) {
+  Mite(Map contents, Construction cxt, Map<Construction, Map> update = [:]) {
     this.cxt = cxt
     this.contents = contents instanceof FLinkedMap ? contents : FLinkedMap.fromMap(contents)
+    this.update = update
   }
 
   boolean contradicts(Mite another) {
@@ -22,6 +24,11 @@ class Mite {
     Set<Object> xor1 = contents.xor ?: [] as Set
     Set<Object> xor2 = another.contents.xor ?: [] as Set
     return !Util.intersect(xor1, xor2).empty
+  }
+
+  Mite undo(ParsingState state) {
+    Construction alternative = update.keySet().find { contradicts(new Mite(update[it], it)) && !ParsingState.overwrites(state.constructions[it], update[it]) }
+    return alternative ? new Mite(update[alternative], alternative) : null
   }
 
   @Override

@@ -186,13 +186,13 @@ class ParsingState {
     applier(constructions, this).clone(history: history + new Contribution(this, FLinkedMap.fromMap(constructions).reverse(), FList.emptyList))
   }
 
-  private ParsingState baseApply(Map<Construction, Map> constructions) {
+  private ParsingState baseApply(Map<Construction, Map> update) {
     LinkedHashSet<Construction> fresh = []
     LinkedHashSet<Construction> old = []
     LinkedHashSet<Construction> replaced = []
-    for (cxt in constructions.keySet()) {
+    for (cxt in update.keySet()) {
       if (this.constructions[cxt] != null) {
-        if (overwrites(this.constructions[cxt], constructions[cxt])) {
+        if (overwrites(this.constructions[cxt], update[cxt])) {
           replaced << cxt
         } else {
           old << cxt
@@ -211,20 +211,22 @@ class ParsingState {
 
     def result = this
     LinkedHashSet<Construction> silent = []
-    for (c in Util.intersect(replaced, active)) {
-      def alternatives = findContradictors(c, _constructions.keySet() - active)
-      if (!alternatives && findContradictors(c, constructions.keySet(), constructions)) {
-        silent << c
-        replaced.remove(c)
-      } /*else if (alternatives) {
-        def xors = alternatives.collect { this.constructions[it].xor ?: Collections.emptySet() }.flatten() as Set
-        def toUndo = _constructions[c].find { it.xor && Util.intersect(xors, (Set) it.xor) }
-        if (toUndo) {
-          result = result.clone(constructions: _constructions + [(c):_constructions[c] - toUndo])
+    shutUpOrUndo: for (c in Util.intersect(replaced, active)) {
+      for (mite in _constructions[c]) {
+        def undo = mite.undo(this)
+        if (undo) {
+          result = result.clone(constructions: _constructions + [(c): _constructions[c] - mite]).addCxt(undo)
           replaced.remove(c)
           old << c
+          old << undo.cxt
+          continue shutUpOrUndo
         }
-      }*/
+      }
+
+      if (!findContradictors(c, _constructions.keySet() - active) && findContradictors(c, update.keySet(), update)) {
+        silent << c
+        replaced.remove(c)
+      }
     }
 
     def freed = freedByInhibition(replaced)
@@ -232,15 +234,15 @@ class ParsingState {
     for (cxt in replaced) {
       result = result.removeConstruction(cxt)
     }
-    for (cxt in (constructions.keySet() as List<Construction>).reverse()) {
+    for (cxt in (update.keySet() as List<Construction>).reverse()) {
       if (!(cxt in silent)) {
-        result = result.addCxt(new Mite(constructions[cxt], cxt))
+        result = result.addCxt(new Mite(update[cxt], cxt, update))
       }
     }
 
     LinkedHashSet<Construction> all = result._constructions.keySet() as LinkedHashSet
-    LinkedHashSet<Construction> toRemove = ((all - constructions.keySet()).findAll { result.findContradictors(it, old) } as LinkedHashSet)
-    LinkedHashSet<Construction> runCandidates = ((constructions.keySet() as LinkedHashSet) + freed.keySet() as LinkedHashSet) - toRemove
+    LinkedHashSet<Construction> toRemove = ((all - update.keySet()).findAll { result.findContradictors(it, old) } as LinkedHashSet)
+    LinkedHashSet<Construction> runCandidates = ((update.keySet() as LinkedHashSet) + freed.keySet() as LinkedHashSet) - toRemove
 
     old.each {
       LinkedHashSet<Construction> unlucky = result.findContradictors(it, runCandidates - old)

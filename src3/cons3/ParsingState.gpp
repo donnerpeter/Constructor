@@ -8,37 +8,44 @@ class ParsingState {
 
   final Chart chart
   final Situation situation
-  final FLinkedMap<Construction, List<Mite>> _constructions
+  final FLinkedMap<Construction, List<Mite>> mites
   final FLinkedMap<Construction, Map> constructions
   final FList<Contribution> history
   final FList<Construction> active
 
   ParsingState() {
-    this(chart: new Chart(), situation: new Situation(), constructions: FLinkedMap.emptyMap, history: FList.emptyList, active: FList.emptyList)
+    this(chart: new Chart(), situation: new Situation(), mites: FLinkedMap.emptyMap, history: FList.emptyList, active: FList.emptyList)
   }
 
   ParsingState(Map map) {
     chart = map.chart
     situation = map.situation
-    _constructions = map.constructions
+    mites = map.mites
     history = map.history
     active = map.active
 
-    FLinkedMap<Construction, Map> merged = FLinkedMap.emptyMap
-    for (c in _constructions.keySet()) {
-      Map value = [:]
-      for (part in _constructions[c]) {
-        value = unify(value, part.contents)
+    if (map.constructions != null) {
+      constructions = map.constructions
+    } else {
+      FLinkedMap<Construction, Map> merged = FLinkedMap.emptyMap
+      for (c in mites.keySet()) {
+        Map value = [:]
+        for (part in mites[c]) {
+          value = unify(value, part.contents)
+        }
+        merged = merged.putValue(c, value)
       }
-      merged = merged.putValue(c, value)
+
+      constructions = merged
     }
-    
-    constructions = merged
   }
 
   private ParsingState clone(Map update) {
-    Map current = [chart:chart, situation:situation, constructions:_constructions, history:history, active:active]
+    Map current = [chart:chart, situation:situation, mites:mites, history:history, active:active]
     current.putAll(update)
+    if (update.mites == null) {
+      current.constructions = constructions
+    }
     return new ParsingState(current)
   }
 
@@ -83,7 +90,7 @@ class ParsingState {
   }
 
   ParsingState addCxt(Mite mite) {
-    return clone(constructions: _constructions + [(mite.cxt): (_constructions[mite.cxt] ?: []) + mite])
+    return clone(mites: mites + [(mite.cxt): (mites[mite.cxt] ?: []) + mite])
   }
 
   static Map unify(Map oldArgs, Map newArgs) {
@@ -119,7 +126,7 @@ class ParsingState {
     if (!cxts) return this
 
     Set<Construction> toRemove = cxts as LinkedHashSet
-    toRemove.retainAll(_constructions.keySet())
+    toRemove.retainAll(mites.keySet())
 
     Map<Construction, Map> freed = freedByInhibition(toRemove)
 
@@ -132,7 +139,7 @@ class ParsingState {
   }
 
   Map<Construction, Map> freedByInhibition(Set<Construction> toRemove) {
-    LinkedHashSet<Construction> remaining = (_constructions.keySet() as LinkedHashSet) - toRemove
+    LinkedHashSet<Construction> remaining = (mites.keySet() as LinkedHashSet) - toRemove
 
     Map<Construction, Map> freed = [:]
     for (removed in remaining) {
@@ -150,7 +157,7 @@ class ParsingState {
   }
 
   private ParsingState removeConstruction(Construction name) {
-    return clone(constructions: _constructions.removeKey(name), active: active - name)
+    return clone(mites: mites.removeKey(name), active: active - name)
   }
 
   ParsingState startMeta(Variable meta) {
@@ -165,12 +172,12 @@ class ParsingState {
   }
 
   private Mite nextInterceptor(Construction start) {
-    def cs = _constructions.keyList()
+    def cs = mites.keyList()
     def index = cs.indexOf(start)
     if (index >= 0 || !start) {
       def tail = cs.subList(index + 1, cs.size())
       for (cxt in tail) {
-        def mite = _constructions[cxt].find { it.contents.interceptor }
+        def mite = mites[cxt].find { it.contents.interceptor }
         if (mite) {
           return mite
         }
@@ -199,8 +206,8 @@ class ParsingState {
     LinkedHashSet<Construction> old = []
     LinkedHashSet<Construction> replaced = []
     for (cxt in update.keySet()) {
-      if (this._constructions[cxt] != null) {
-        if (this._constructions[cxt].any { it.contradicts(new Mite(update[cxt], cxt)) }) {
+      if (this.mites[cxt] != null) {
+        if (this.mites[cxt].any { it.contradicts(new Mite(update[cxt], cxt)) }) {
           replaced << cxt
         } else {
           old << cxt
@@ -220,10 +227,10 @@ class ParsingState {
     def result = this
     LinkedHashSet<Construction> silent = []
     shutUpOrUndo: for (c in Util.intersect(replaced, active)) {
-      for (mite in _constructions[c]) {
+      for (mite in mites[c]) {
         def undo = mite.undo(this)
         if (undo) {
-          result = result.clone(constructions: _constructions + [(c): _constructions[c] - mite]).addCxt(undo)
+          result = result.clone(mites: mites + [(c): mites[c] - mite]).addCxt(undo)
           replaced.remove(c)
           old << c
           old << undo.cxt
@@ -231,7 +238,7 @@ class ParsingState {
         }
       }
 
-      if (!findContradictors(c, _constructions.keySet() - active) && findContradictors(c, update.keySet(), update)) {
+      if (!findContradictors(c, mites.keySet() - active) && findContradictors(c, update.keySet(), update)) {
         silent << c
         replaced.remove(c)
       }
@@ -248,7 +255,7 @@ class ParsingState {
       }
     }
 
-    LinkedHashSet<Construction> all = result._constructions.keySet() as LinkedHashSet
+    LinkedHashSet<Construction> all = result.mites.keySet() as LinkedHashSet
     LinkedHashSet<Construction> toRemove = ((all - update.keySet()).findAll { result.findContradictors(it, old) } as LinkedHashSet)
     LinkedHashSet<Construction> runCandidates = ((update.keySet() as LinkedHashSet) + freed.keySet() as LinkedHashSet) - toRemove
 
@@ -293,7 +300,7 @@ class ParsingState {
       def next = stillHanging.iterator().next()
       def contradictors = result.findContradictors(next, stillHanging)
       result = result.doApply(next)
-      stillHanging = Util.intersect(stillHanging - next - contradictors, result._constructions.keySet())
+      stillHanging = Util.intersect(stillHanging - next - contradictors, result.mites.keySet())
     }
 
     return result
@@ -311,11 +318,11 @@ class ParsingState {
 
 
   ParsingState clearConstructions() {
-    return clone(constructions: FLinkedMap.emptyMap, active:FList.emptyList)
+    return clone(mites: FLinkedMap.emptyMap, active:FList.emptyList)
   }
 
   ParsingState restore(ParsingState saved) {
-    clone(constructions: saved._constructions + this._constructions, active:saved.active.prependAll(active))
+    clone(mites: saved.mites + this.mites, active:saved.active.prependAll(active))
   }
 
   private static boolean contradict(Map args1, Map args2) {

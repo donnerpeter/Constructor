@@ -113,7 +113,7 @@ final class FLinkedMap<K,V> implements Map<K,V> {
   }
 
   Set<K> keySet() {
-    Collections.unmodifiableSet(new LinkedHashSet<K>(list.collect {it.key})) //todo 'as LinkedHashSet' slow: Class.forName
+    Collections.unmodifiableSet(new LinkedHashSet<K>(list.collect {it.key})) //todo 'as LinkedHashSet' slow: asType
   }
 
   Collection<V> values() {
@@ -121,7 +121,7 @@ final class FLinkedMap<K,V> implements Map<K,V> {
   }
 
   Set<Map.Entry<K, V>> entrySet() {
-    Collections.unmodifiableSet(list.collect { it } as LinkedHashSet)
+    Collections.unmodifiableSet(new LinkedHashSet<Map.Entry<K, V>>(list))
   }
 
   V put(K k, V v) {

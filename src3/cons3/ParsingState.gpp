@@ -128,7 +128,7 @@ class ParsingState {
       state = state.removeConstruction(c)
     }
 
-   return (freed ? state.apply(freed) : state).clone(history: history + new Contribution(this, FLinkedMap.emptyMap, FList.fromList(cxts as List)))
+    return (freed ? state.apply(freed) : state).clone(history: history + new Contribution(this, FLinkedMap.emptyMap, FList.fromList(cxts as List)))
   }
 
   Map<Construction, Map> freedByInhibition(Set<Construction> toRemove) {
@@ -326,4 +326,3 @@ class ParsingState {
     return xor1 && xor2 && Util.intersect(xor1, xor2)
   }
 }
-

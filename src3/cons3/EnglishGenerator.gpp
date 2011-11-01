@@ -165,8 +165,11 @@ class EnglishGenerator {
       if (conjuncts) {
         def last = conjuncts[-1].frame ?: conjuncts[-1].copula
         while (true) {
-          if (last?.type in ['CAN', 'FORGET', 'DISCOVER'] && last.f('theme')) {
+          if (last?.type in ['CAN', 'DISCOVER'] && last.f('theme')) {
             last = last.f('theme')
+          }
+          else if (last?.type in ['FORGET'] && last.f('arg2') && last.f('arg2').flatten().any { isVerb(it)}) {
+            last = last.f('arg2')
           }
           else if (last?.type in ['ASK']) {
             last = last.f('question')
@@ -221,19 +224,7 @@ class EnglishGenerator {
     }
 
     private List<ClauseGenerator> planConjuncts(boolean topLevel) {
-      List<Frame> allVerbs = chart.frames(situation).findAll {
-        it.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY',
-                'GO_OFF', 'ASK',
-                'DISCOVER', 'REMEMBER',
-                'GO', 'SMILE', 'TAKE_OUT', 'SAY', 'MOVE',
-                'THANK', 'RUN_OUT',
-                'GET_SAD', 'SEEM', 'THINK',
-                'modality', 'DO', 'NEED',
-                'BEGIN', 'STOP', 'COME_TO',
-                'ARGUE', 'FALL', 'BREAK',
-                'DISTRACT', 'DISPERSE'
-        ]
-      }
+      List<Frame> allVerbs = chart.frames(situation).findAll { isVerb(it) }
 
       if (allVerbs.size() > 1) {
         for (i in 1..<allVerbs.size()) {
@@ -277,7 +268,9 @@ class EnglishGenerator {
                  (next == lastCur.f('theme') ||
                   next in (lastCur.f('elaboration')?.flatten() ?: []) ||
                   next in (lastCur.f('theme')?.flatten() ?: []) ||
+                  next in (lastCur.f('arg2')?.flatten() ?: []) ||
                   next.usages('theme') ||
+                  next.usages('arg2') ||
                   next.usages('arg1')[0]?.type == 'modality' ||
                   next.usages('question'))) {
             next = allVerbs[++i]
@@ -286,6 +279,20 @@ class EnglishGenerator {
         }
       }
       return conjuncts
+    }
+
+    private def isVerb(Frame f) {
+      f.type in ['HAPPEN', 'FORGET', 'COME_SCALARLY',
+              'GO_OFF', 'ASK',
+              'DISCOVER', 'REMEMBER',
+              'GO', 'SMILE', 'TAKE_OUT', 'SAY', 'MOVE',
+              'THANK', 'RUN_OUT',
+              'GET_SAD', 'SEEM', 'THINK',
+              'modality', 'DO', 'NEED',
+              'BEGIN', 'STOP', 'COME_TO',
+              'ARGUE', 'FALL', 'BREAK',
+              'DISTRACT', 'DISPERSE'
+      ]
     }
 
     private def emitMoveTail(Frame verb) {
@@ -448,7 +455,8 @@ class EnglishGenerator {
       }
 
       def dobj = verb.f('arg2')
-      if (dobj && dobj.type != 'wh') {
+      def nounDObj = dobj && dobj.flatten().any { !isVerb(it) }
+      if (nounDObj && dobj.type != 'wh') {
         np(dobj, false, !isNumber(dobj))
       }
 
@@ -521,7 +529,7 @@ class EnglishGenerator {
         }
       }
 
-      def theme = verb.f('theme')
+      def theme = verb.type == 'FORGET' && !nounDObj ? verb.f('arg2') : verb.f('theme')
       if (theme && verb.type in ['FORGET', 'DISCOVER']) {
         def that = theme.flatten().every { !findQuestioned(it) }
         if (that) {

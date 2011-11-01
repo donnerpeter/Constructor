@@ -128,10 +128,11 @@ interface RussianConstructions {
   Construction clauseEllipsis = cxt('clauseEllipsis') { ParsingState state, Map args ->
     return state
   }
-  Construction declOrQuestionComp = cxt('question') { ParsingState state, Map args ->
+  Construction declOrQuestionComp = cxt('declOrQuestionComp') { ParsingState state, Map args ->
     Variable comp = args.modality ?: args.comp
     if (comp && args.head) {
-      def attr = ((Variable) args.head).frame(state.chart).type in ['FORGET', 'DISCOVER'] ? 'theme' : 'question'
+      def type = ((Variable) args.head).frame(state.chart).type
+      def attr = type == 'FORGET' ? 'arg2' : type == 'DISCOVER' ? 'theme' : 'question'
       state = state.assign(args.head, attr, comp)
       if (!args.modality) {
         state = state.inhibit(seq, possessive)

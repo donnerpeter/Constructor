@@ -71,7 +71,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "удивительный":
         def noun = new Variable()
         return state.apply(adjective, nounFrame:noun, rel:'property', val:'AMAZING').apply(nom, noun:noun)
-      case "васи": return noun(state, gen) { ParsingState st, Variable n -> st.assign(n, 'name', 'Вася') }
+      case "васи":
+        state = noun(state, gen) { ParsingState st, Variable n -> st.assign(n, 'name', 'Вася') }
+        return state.apply(absTime, noun:state[posleGen].noun)
       case "знаменской": // todo a unified treatment for street names
       case "бассейной":
         def noun = new Variable()
@@ -304,8 +306,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "счете": return noun(state, prep, 'COUNTING')
       case "работы":
         state = noun(state, gen, 'WORK')
-        state = state.apply(absTime, noun:state[posleGen].noun)
-        return state
+        return state.apply(absTime, noun:state[posleGen].noun)
       case "вдруг": return state.apply(adverb, adv:'SUDDENLY')
       case "опять":
         if (state[nom]) {
@@ -483,10 +484,10 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = state.assign(verb, 'time', 'PRESENT')
         def goes = cxt('идёт') { ParsingState st, Map args -> st.assign(args.verb, 'type', 'GO') }
         return state.inhibit(preposition, numQuantifier).apply((comeScalarly):[verb:verb, xor:t.ab], (goes):[verb:verb, xor:t.a],
-                                                (vAcc):[head:verb, xor:t.b], (vPrep):[head:verb], (nom):[head:verb],
+                (vAcc):[head:verb, xor:t.b], (vPrep):[head:verb], (nom):[head:verb],
                 (poDat):[head:verb], (verbHolder): [head:verb],
-                                                (posleGen):[head:verb], (ransheGen):[head:verb],
-                                                (conditionComp):[head:verb], (absTime):[head:verb])
+                (posleGen):[head:verb], (ransheGen):[head:verb],
+                (conditionComp):[head:verb], (absTime):[head:verb], (complementizer):[:])
       case "следовало":
         Variable verb = new Variable()
         state = state.assign(verb, 'time', 'PAST')

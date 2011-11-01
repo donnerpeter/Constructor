@@ -61,9 +61,6 @@ class EnglishGenerator {
         this.bg = bg
         this.topLevel = topLevel
         this.comp = comp
-
-        copula = chart.frames(situation).find { it.type in ['location', 'degree'] }
-
       }
 
       def generate(boolean last) {
@@ -125,25 +122,6 @@ class EnglishGenerator {
           np(comp.f('topic'), false)
         }
 
-        if (!frame && !bg) {
-          if (copula?.type == 'location') {
-            def subj = copula.f('arg1')
-            if (subj.s('relativized') == 'true') {
-              out(copula.s('time') == 'PAST' ? 'that was' : "that's")
-            } else {
-              np(subj, true)
-              out 'was'
-            }
-            out 'on'
-            np(copula.f('arg2'), false)
-          } else if (copula?.type == 'degree') {
-            out 'great'
-            out 'was'
-            np(copula.f('arg1'), true)
-            generateCondition(copula)
-          }
-        }
-
       }
 
     }
@@ -163,7 +141,7 @@ class EnglishGenerator {
       generateConjuncts(conjuncts) { conj, last -> conj.generate(last) }
 
       if (conjuncts) {
-        def last = conjuncts[-1].frame ?: conjuncts[-1].copula
+        def last = conjuncts[-1].frame
         while (true) {
           if (last?.type in ['CAN', 'DISCOVER'] && last.f('theme')) {
             last = last.f('theme')
@@ -238,45 +216,41 @@ class EnglishGenerator {
       }
 
       List<ClauseGenerator> conjuncts = []
-      if (!allVerbs) {
-        conjuncts << new ClauseGenerator(null, null, topLevel, null)
-      } else {
-        int i = 0
-        int mainVerbs = 0
-        while (i < allVerbs.size()) {
-          Frame bg = null
-          if (allVerbs[i].s('background')) {
-            bg = allVerbs[i++]
-          }
-
-          def cur = allVerbs[i++]
-          def lastCur = cur
-          if (cur) {
-            mainVerbs++
-            if (cur.type == 'BEGIN') {
-              mainVerbs++
-              lastCur = allVerbs[i++]
-            }
-          }
-          Frame comp = null
-          def next = allVerbs[i]
-          if (cur?.type == 'GO' && next?.type == 'ASK') {
-            comp = next
-            i++
-          }
-          while (next &&
-                 (next == lastCur.f('theme') ||
-                  next in (lastCur.f('elaboration')?.flatten() ?: []) ||
-                  next in (lastCur.f('theme')?.flatten() ?: []) ||
-                  next in (lastCur.f('arg2')?.flatten() ?: []) ||
-                  next.usages('theme') ||
-                  next.usages('arg2') ||
-                  next.usages('arg1')[0]?.type == 'modality' ||
-                  next.usages('question'))) {
-            next = allVerbs[++i]
-          }
-          conjuncts << new ClauseGenerator(cur, bg, topLevel, comp)
+      int i = 0
+      int mainVerbs = 0
+      while (i < allVerbs.size()) {
+        Frame bg = null
+        if (allVerbs[i].s('background')) {
+          bg = allVerbs[i++]
         }
+
+        def cur = allVerbs[i++]
+        def lastCur = cur
+        if (cur) {
+          mainVerbs++
+          if (cur.type == 'BEGIN') {
+            mainVerbs++
+            lastCur = allVerbs[i++]
+          }
+        }
+        Frame comp = null
+        def next = allVerbs[i]
+        if (cur?.type == 'GO' && next?.type == 'ASK') {
+          comp = next
+          i++
+        }
+        while (next &&
+               (next == lastCur.f('theme') ||
+                next in (lastCur.f('elaboration')?.flatten() ?: []) ||
+                next in (lastCur.f('theme')?.flatten() ?: []) ||
+                next in (lastCur.f('arg2')?.flatten() ?: []) ||
+                next.usages('theme') ||
+                next.usages('arg2') ||
+                next.usages('arg1')[0]?.type == 'modality' ||
+                next.usages('question'))) {
+          next = allVerbs[++i]
+        }
+        conjuncts << new ClauseGenerator(cur, bg, topLevel, comp)
       }
       return conjuncts
     }
@@ -291,7 +265,7 @@ class EnglishGenerator {
               'modality', 'DO', 'NEED',
               'BEGIN', 'STOP', 'COME_TO',
               'ARGUE', 'FALL', 'BREAK',
-              'DISTRACT', 'DISPERSE'
+              'DISTRACT', 'DISPERSE', 'degree', 'location'
       ]
     }
 
@@ -379,8 +353,25 @@ class EnglishGenerator {
         shouldHaveSubject = verb.f('arg1') != null
       }
 
-
       def subj = verb.f('arg1')
+      if (verb.type == 'location') {
+        if (subj.s('relativized') == 'true') {
+          out(verb.s('time') == 'PAST' ? 'that was' : "that's")
+        } else {
+          np(subj, true)
+          out 'was'
+        }
+        out 'on'
+        np(verb.f('arg2'), false)
+        return subj
+      }
+
+      if (verb.type == 'degree') {
+        out 'great'
+        out 'was'
+        np(subj, true)
+        return subj
+      }
 
       if (findQuestioned(verb)) {
         out 'what'

@@ -103,4 +103,25 @@ class Chart {
   Chart finishMeta(Variable meta) {
     return new Chart(__assignments, __vars, currentMetas - meta, __metas)
   }
+
+  Chart removeDifference(Pair<Chart, Chart> diff) {
+    def before = diff.first
+    def after = diff.second
+
+    final def newAssignments = new LinkedHashMap<Situation, LinkedHashSet<Assignment<Variable>>>(__assignments)
+    for (sit in after.__assignments.keySet()) {
+      if (!(sit in before.__assignments)) {
+        newAssignments.remove(sit)
+      } else if (newAssignments[sit]) {
+        def delta = after.__assignments[sit] - before.__assignments[sit]
+        if (delta) {
+          newAssignments[sit] = newAssignments[sit] - delta
+        }
+      }
+    }
+    if (newAssignments == __assignments) {
+      return this
+    }
+    return new Chart(newAssignments, __vars, currentMetas, __metas)
+  }
 }

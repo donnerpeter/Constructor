@@ -224,13 +224,6 @@ interface RussianConstructions {
   Construction vAcc = cxt('vAcc') { ParsingState state, Map args ->
     if (args.head && args.noun) {
       state = state.assign(args.head, ((Variable) args.head).frame(state.chart).type == 'THINK' ? 'theme' : 'goal', args.noun)
-      //todo apply everything on every change
-      if (state[nom]) {
-        state = state.apply(nom)
-      }
-      if (state[posleGen]) {
-        state = state.apply(posleGen)
-      }
     }
     state
   }

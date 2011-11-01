@@ -79,7 +79,7 @@ class ParsingState {
 
   static boolean overwrites(Map before, Map newArgs) {
     if (before == null) {
-      return true
+      return false
     }
     for (arg in before.keySet().intersect(newArgs.keySet())) {
       if (arg != 'init' && arg != 'xor' && before[arg] != newArgs[arg] && before[arg] != null) {
@@ -255,7 +255,7 @@ class ParsingState {
     }
 
     LinkedHashSet<Construction> all = state.mites.keySet() as LinkedHashSet
-    LinkedHashSet<Construction> toRemove = ((all - update.keySet()).findAll { state.findContradictors(it, old) } as LinkedHashSet)
+    LinkedHashSet<Construction> toRemove = []//(all - update.keySet()).findAll { state.findContradictors(it, old) } as LinkedHashSet
     LinkedHashSet<Construction> runCandidates = ((update.keySet() as LinkedHashSet) + freed.keySet() as LinkedHashSet) - toRemove
 
     old.each {
@@ -302,7 +302,32 @@ class ParsingState {
       stillHanging = Util.intersect(stillHanging - next - contradictors, state.mites.keySet())
     }
 
+    LinkedHashSet<Construction> dominators = []
+    for (cxt in (state.mites.keySet() - state.active)) {
+      def contradictors = state.findContradictors(cxt, state.mites.keySet())
+      if (contradictors) {
+        def candidate = state.doApply(cxt)
+        if (contradictors.every { candidate.dominates(state.doApply(it)) }) {
+          dominators << cxt
+        }
+      }
+    }
+    for (c in dominators) {
+      state = baseApply(state, [(c):[:]])
+    }
+
     return state
+  }
+
+  private boolean dominates(ParsingState other) {
+    def go = chart.frames.find { it.type == 'GO' }
+    if (go) {
+      def alternative = go.var.frame(other.chart)
+      if (alternative?.type == 'COME_SCALARLY' && alternative.f('anchor')?.s('name')) {
+        return true
+      }
+    }
+    return false
   }
 
   private ParsingState doApply(Construction cxt) {

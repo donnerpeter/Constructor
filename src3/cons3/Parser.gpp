@@ -71,6 +71,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "удивительный":
         def noun = new Variable()
         return state.apply(adjective, nounFrame:noun, rel:'property', val:'AMAZING').apply(nom, noun:noun)
+      case "васи": return noun(state, gen) { ParsingState st, Variable n -> st.assign(n, 'name', 'Вася') }
       case "знаменской": // todo a unified treatment for street names
       case "бассейной":
         def noun = new Variable()
@@ -244,6 +245,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def they = new Variable()
         def init = {ParsingState st -> st.assign(they, 'type', 'THEY') }
         return conjWrap(state, (possessive):[possessor:they, init:init, xor:t.a], (acc):[noun:they, hasNoun:true, init:init, xor:t.a])
+      case "он": return pronoun(state, nom, 'HE')
+      case "она": return pronoun(state, nom, 'SHE')
       case "они": return pronoun(state, nom, 'THEY')
       case "соседям": return noun(state, dat, 'NEIGHBOURS')
       case "кассир": return noun(state, nom) { ParsingState st, Variable n -> st.assign(n, 'type', 'CASHIER').assign(n, 'gender', 'masc') }

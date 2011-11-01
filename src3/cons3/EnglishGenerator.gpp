@@ -760,6 +760,9 @@ class EnglishGenerator {
       else if (isNumber(n)) {
         out n.type
       }
+      else if (n.s('name') == 'Вася') {
+        out 'Vasya'
+      }
       else {
         out noun(n)
       }
@@ -834,6 +837,10 @@ class EnglishGenerator {
         return
       }
       if (hasQuantifier) {
+        return
+      }
+
+      if (n.s('name') && !n.type) {
         return
       }
 

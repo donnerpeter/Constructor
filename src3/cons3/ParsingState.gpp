@@ -10,15 +10,17 @@ class ParsingState {
   final Situation situation
   final FLinkedMap<Construction, List<Mite>> mites
   final FLinkedMap<Construction, Map> constructions
+  private final FLinkedMap<Construction, List<Pair<Chart, Chart>>> changes
   final FList<Contribution> history
   final FList<Construction> active
 
   ParsingState() {
-    this(chart: new Chart(), situation: new Situation(), mites: FLinkedMap.emptyMap, history: FList.emptyList, active: FList.emptyList)
+    this(chart: new Chart(), situation: new Situation(), mites: FLinkedMap.emptyMap, changes: FLinkedMap.emptyMap, history: FList.emptyList, active: FList.emptyList)
   }
 
   ParsingState(Map map) {
     chart = map.chart
+    changes = map.changes
     situation = map.situation
     mites = map.mites
     history = map.history
@@ -41,7 +43,7 @@ class ParsingState {
   }
 
   private ParsingState clone(Map update) {
-    Map current = [chart:chart, situation:situation, mites:mites, history:history, active:active]
+    Map current = [chart:chart, situation:situation, mites:mites, history:history, active:active, changes:changes]
     current.putAll(update)
     if (update.mites == null) {
       current.constructions = constructions
@@ -157,7 +159,7 @@ class ParsingState {
   }
 
   private ParsingState removeConstruction(Construction name) {
-    return clone(mites: mites.removeKey(name), active: active - name)
+    return clone(mites: mites.removeKey(name), active: active - name, changes:changes.removeKey(name))
   }
 
   ParsingState startMeta(Variable meta) {
@@ -167,7 +169,7 @@ class ParsingState {
     return clone(chart: chart.finishMeta(meta))
   }
 
-  private LinkedHashSet<Construction> findContradictors(Construction c, Set<Construction> among, Map<Construction, Map> values = constructions) {
+  private LinkedHashSet<Construction> findContradictors(Construction c, Collection<Construction> among, Map<Construction, Map> values = constructions) {
     return new LinkedHashSet<Construction>(among).findAll { contradict(values[it], values[c]) }
   }
 
@@ -193,7 +195,7 @@ class ParsingState {
         s1.nextApplier(interceptor.cxt).call(c1, s1)
       }) }
     }
-    return { c, s -> baseApply(s, c) }
+    return { c, s -> baseApply(s, c, true) }
   }
 
   ParsingState apply(Map<Construction, Map> constructions) {
@@ -201,7 +203,7 @@ class ParsingState {
     applier(constructions, this).clone(history: history + new Contribution(this, FLinkedMap.fromMap(constructions).reverse(), FList.emptyList))
   }
 
-  private static ParsingState baseApply(ParsingState state, Map<Construction, Map> update) {
+  private static ParsingState baseApply(ParsingState state, Map<Construction, Map> update, boolean tryAlternatives) {
     LinkedHashSet<Construction> fresh = []
     LinkedHashSet<Construction> old = []
     LinkedHashSet<Construction> replaced = []
@@ -224,16 +226,19 @@ class ParsingState {
       }
     }
 
+    def nonReplaced = old + fresh
     LinkedHashSet<Construction> silent = []
     shutUpOrUndo: for (c in Util.intersect(replaced, state.active)) {
-      for (mite in state.mites[c]) {
-        def undo = mite.undo(state)
-        if (undo) {
-          state = state.clone(mites: state.mites + [(c): state.mites[c] - mite]).addCxt(undo)
-          replaced.remove(c)
-          old << c
-          old << undo.cxt
-          continue shutUpOrUndo
+      if (!state.findContradictors(c, nonReplaced, update)) {
+        for (mite in state.mites[c]) {
+          def undo = mite.undo(state)
+          if (undo && !(undo.cxt in replaced)) {
+            state = state.clone(mites: state.mites + [(c): state.mites[c] - mite]).addCxt(undo).undoChanges(mite.cxt)
+            replaced.remove(c)
+            old << c
+            old << undo.cxt
+            continue shutUpOrUndo
+          }
         }
       }
 
@@ -258,12 +263,6 @@ class ParsingState {
     LinkedHashSet<Construction> toRemove = []//(all - update.keySet()).findAll { state.findContradictors(it, old) } as LinkedHashSet
     LinkedHashSet<Construction> runCandidates = ((update.keySet() as LinkedHashSet) + freed.keySet() as LinkedHashSet) - toRemove
 
-    old.each {
-      LinkedHashSet<Construction> unlucky = state.findContradictors(it, runCandidates - old)
-      runCandidates.removeAll(unlucky)
-      runCandidates.addAll(unlucky)
-    }
-
     LinkedHashSet<Construction> hanging
     LinkedHashSet<Construction> toApply
 
@@ -280,7 +279,7 @@ class ParsingState {
     }
 
     for (cxt in toRemove) {
-      state = state.removeConstruction(cxt)
+      state = state.undoChanges(cxt).removeConstruction(cxt)
     }
 
     for (cxt in toApply) {
@@ -302,21 +301,30 @@ class ParsingState {
       stillHanging = Util.intersect(stillHanging - next - contradictors, state.mites.keySet())
     }
 
-    LinkedHashSet<Construction> dominators = []
-    for (cxt in (state.mites.keySet() - state.active)) {
-      def contradictors = state.findContradictors(cxt, state.mites.keySet())
-      if (contradictors) {
-        def candidate = state.doApply(cxt)
-        if (contradictors.every { candidate.dominates(state.doApply(it)) }) {
-          dominators << cxt
+    if (tryAlternatives) {
+      LinkedHashSet<Construction> dominators = []
+      for (cxt in (state.mites.keySet() - state.active)) {
+        def contradictors = state.findContradictors(cxt, state.mites.keySet())
+        if (contradictors) {
+          def candidate = baseApply(state, [(cxt):[:]], false)
+          if (contradictors.any { candidate.dominates(baseApply(state, [(it):[:]], false)) } &&
+              contradictors.every { !baseApply(state, [(it):[:]], false).dominates(candidate) }) {
+            dominators << cxt
+          }
         }
       }
-    }
-    for (c in dominators) {
-      state = baseApply(state, [(c):[:]])
+      for (c in dominators) {
+        state = baseApply(state, [(c):[:]], true)
+      }
     }
 
     return state
+  }
+
+  private ParsingState undoChanges(Construction cxt) {
+    List<Pair<Chart, Chart>> diffList = changes[cxt] ?: []
+    def newChart = diffList.foldLeft(chart) { Pair<Chart, Chart> diff, Chart ch -> ch.removeDifference(diff) }
+    return clone(changes: changes.removeKey(cxt), chart: newChart)
   }
 
   private boolean dominates(ParsingState other) {
@@ -326,6 +334,12 @@ class ParsingState {
       if (alternative?.type == 'COME_SCALARLY' && alternative.f('anchor')?.s('name')) {
         return true
       }
+      if (alternative?.type == 'GO' && alternative.f('relTime_after')?.s('name') && alternative.f('arg1')?.type == 'wh') {
+        if (go.f('arg1')?.type != 'wh') {
+          return true
+        }
+      }
+      
     }
     return false
   }
@@ -333,20 +347,26 @@ class ParsingState {
   private ParsingState doApply(Construction cxt) {
     def args = constructions[cxt]
     def next = clone(active: active - cxt + cxt)
+
+    def before = chart
     
     Closure init = args.init ?: noInit
     args = args - [init:args.init]
     next = (ParsingState)init(next)
-    return cxt.action.call(next, args)
+    next = cxt.action.call(next, args)
+    if (before != next.chart) {
+      next = next.clone(changes: changes + [(cxt):(changes[cxt] ?: []) + new Pair(before, next.chart)])
+    }
+    return next
   }
 
 
   ParsingState clearConstructions() {
-    return clone(mites: FLinkedMap.emptyMap, active:FList.emptyList)
+    return clone(mites: FLinkedMap.emptyMap, active:FList.emptyList, changes:FLinkedMap.emptyMap)
   }
 
   ParsingState restore(ParsingState saved) {
-    clone(mites: saved.mites + this.mites, active:saved.active.prependAll(active))
+    clone(mites: saved.mites + this.mites, active:saved.active.prependAll(active), changes:saved.changes + this.changes)
   }
 
   private static boolean contradict(Map args1, Map args2) {

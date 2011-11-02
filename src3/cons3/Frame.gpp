@@ -50,6 +50,10 @@ class Frame {
           return verb.definedAttributeValue('arg1')
         }
       }
+      if (type == 'GO') {
+        def forget = usages('arg2').find { it.type == 'FORGET' }
+        return forget?.f('arg1')
+      }
     }
 
     return null

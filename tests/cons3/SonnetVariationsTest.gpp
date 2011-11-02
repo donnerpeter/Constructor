@@ -36,9 +36,13 @@ class SonnetVariationsTest extends TestCase {
     doTranslateTest "Что идёт раньше - 7 или 8?",
                     "What comes first - 7 or 8?"
   }
-  public void _test1_AfterVasya() throws Exception {
+  public void testHeForgotThatGoesAfterVasya() throws Exception {
     doTranslateTest "Он забыл, что идет после Васи.",
-                    "He forgot, that he goes after Vasya."
+                    "He forgot, that he went after Vasya."
+  }
+  public void testSheForgotThatGoesAfterVasya() throws Exception {
+    doTranslateTest "Она забыла, что идет после Васи.",
+                    "She forgot, that she went after Vasya."
   }
   public void test2_Question() throws Exception {
     doTranslateTest "Что они думают по этому поводу?",

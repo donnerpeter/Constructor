@@ -320,6 +320,12 @@ interface RussianConstructions {
     return state
   }
   Construction complementizer = cxt('complementizer') { ParsingState state, Map args ->
+    /*if (args.hasComplementizer && state[nom]?.head && !state[nom].hasNoun) {
+      ParsingState parent = args.beforeState
+      if (parent && parent[nom]?.noun) {
+        state = nom.action(state, parent[nom] + state[nom])
+      }
+    }*/
     return state
   }
   Construction directSpeech = cxt('directSpeech') { ParsingState state, Map args ->

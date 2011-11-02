@@ -471,7 +471,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = state.inhibit(nom, acc, complementizer, advObj).
                 apply((declOrQuestionComp):[comp: verb, questioned: noun], (verbHolder):[head:verb],
                         (acc):[noun:noun, hasNoun:true, xor:t.a], (nom):[noun:noun, hasNoun:true, xor:t.a, agr:'3sg'], (typeCxt(noun, 'wh')):[var:noun],
-                        (complementizer):[xor:t.a, hasComplementizer:true]
+                        (complementizer):[xor:t.a, hasComplementizer:true, beforeState:state]
                 )
         if (state[relativeClause]?.hasComma) {
           def wh = new Variable()

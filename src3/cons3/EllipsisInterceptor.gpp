@@ -35,9 +35,6 @@ class EllipsisInterceptor implements Interceptor, RussianConstructions {
           if (i == precedent.size() - endPrecedent - 1) continue
 
           Contribution oldContribution = precedent[i]
-          //todo a normal condition for ellipsis participation
-          if (!oldContribution.apps.keySet().intersect(Parser.importantForSimilarity - [parenthetical])) continue
-
           def mapped = applyMapping(oldContribution, mapping)
           state = base(mapped, state)
           //todo a generic conjunctless 'but'

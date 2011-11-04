@@ -44,6 +44,18 @@ class SonnetVariationsTest extends TestCase {
     doTranslateTest "Она забыла, что идет после Васи.",
                     "She forgot, that she went after Vasya."
   }
+  public void testHeForgotThatBrokeHisJaw() throws Exception {
+    doTranslateTest "Он забыл, что сломал себе челюсть.",
+                    "He forgot, that he broke his jaw."
+  }
+  public void testHeForgotThatSheBrokeHisJaw() throws Exception {
+    doTranslateTest "Он забыл, что она сломала ему челюсть.",
+                    "He forgot, that she broke his jaw."
+  }
+  public void testSheForgotThatBrokeHerJaw() throws Exception {
+    doTranslateTest "Она забыла, что сломала себе челюсть.",
+                    "She forgot, that she broke her jaw."
+  }
   public void test2_Question() throws Exception {
     doTranslateTest "Что они думают по этому поводу?",
                     "What do they think on this matter?"

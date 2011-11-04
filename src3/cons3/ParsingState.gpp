@@ -328,19 +328,19 @@ class ParsingState {
   }
 
   private boolean dominates(ParsingState other) {
-    def go = chart.frames.find { it.type == 'GO' }
-    if (go) {
-      def alternative = go.var.frame(other.chart)
-      if (alternative?.type == 'COME_SCALARLY' && alternative.f('anchor')?.s('name')) {
+    for (verb in chart.frames.findAll { it.type in ['GO', 'BREAK'] }) {
+      def alternative = verb.var.frame(other.chart)
+      if (!alternative) continue
+
+      if (!alternative.f('arg1')?.canBeHuman() && verb.f('arg1')?.canBeHuman()) {
         return true
       }
-      if (alternative?.type == 'GO' && alternative.f('relTime_after')?.s('name') && alternative.f('arg1')?.type == 'wh') {
-        if (go.f('arg1')?.type != 'wh') {
-          return true
-        }
+
+      if (verb.type == 'GO' && alternative.type == 'COME_SCALARLY' && alternative.f('anchor')?.canBeHuman()) {
+        return true
       }
-      
     }
+    
     return false
   }
 

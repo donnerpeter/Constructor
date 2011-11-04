@@ -33,6 +33,13 @@ class Frame {
   Frame f(String attr) {
     def v = definedAttributeValue(attr)
     if (v instanceof Frame) {
+      if (attr == 'arg1' && !v.type) {
+        def forget = usages('arg2').find { it.type == 'FORGET' }
+        if (forget) {
+          return forget.f('arg1')
+        }
+      }
+
       return (Frame) v
     }
 
@@ -47,16 +54,21 @@ class Frame {
       if (type in ['MOUTH', 'NOSE', 'JAW', 'JAWS']) {
         def verb = chart.frames.find { it.definedAttributeValue('arg1') }
         if (verb) {
-          return verb.definedAttributeValue('arg1')
+          return (Frame) verb.definedAttributeValue('arg1')
         }
       }
-      if (type == 'GO') {
-        def forget = usages('arg2').find { it.type == 'FORGET' }
-        return forget?.f('arg1')
-      }
+      def forget = usages('arg2').find { it.type == 'FORGET' }
+      return forget?.f('arg1')
     }
 
     return null
+  }
+
+  boolean canBeHuman() {
+    if (type == 'wh') return false
+    if (s('number') || Util.parseNumber(type) != null) return false
+    if (!type && s('name')) return true
+    return true
   }
 
   def definedAttributeValue(String attr) {

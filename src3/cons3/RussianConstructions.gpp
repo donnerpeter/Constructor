@@ -165,8 +165,8 @@ interface RussianConstructions {
     return state
   }
   Construction preposition = cxt('preposition') { ParsingState state, Map args ->
-    if (!args.interceptor) {
-      state = state.addCxt(new Mite(preposition, interceptor:new Preposition()))
+    if (!args.interceptor && args.prep) {
+      state = state.inhibit(preposition).addCxt(new Mite(preposition, prep:args.prep, interceptor:new Preposition()))
     }
     return state
   }
@@ -181,7 +181,8 @@ interface RussianConstructions {
         for (h in head.flatten()) {
           def type = h.type
           if (type) {
-            state = state.assign(h.var, type in ['AMAZE', 'PREDICAMENT', 'OPINION', 'ARGUE'] ? 'arg1' : type in ['ROOMS', 'APARTMENTS', 'OFFICES'] ? 'owner' : 'author', args.possessor)
+            String attr = type in ['AMAZE', 'PREDICAMENT', 'OPINION', 'ARGUE'] ? 'arg1' : type in ['ROOMS', 'APARTMENTS', 'OFFICES'] ? 'owner' : 'author'
+            state = state.assign(h.var, attr, args.possessor).satisfied(possessive)
           }
         }
       }
@@ -299,7 +300,7 @@ interface RussianConstructions {
   }
   Construction adverb = cxt('adverb') { ParsingState state, Map args ->
     if (args.head && args.adv) {
-      state = state.assign(args.head, args.adv == 'LONG' ? 'duration' : 'manner', args.adv)
+      state = state.assign(args.head, args.adv == 'LONG' ? 'duration' : 'manner', args.adv).inhibit(adverb)
     }
     return state
   }

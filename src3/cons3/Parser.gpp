@@ -20,7 +20,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = handleWord(w.toLowerCase(), state)
         log += w + "\n"
         for (k in state.constructions.keySet()) {
-          log += "  ${k in state.active ? '*' : ' '}$k -> ${state.constructions[k]}\n"
+          log += "  $k: " + state.mites[k].collect { (it in state.active ? '*' : '') + new LinkedHashMap(it.contents.reverse()) }.join(" ") + "\n"
         }
       }
     }
@@ -456,6 +456,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
                                    (prevHistory):[history:state])
         if (!state[seq]?.conj) {
           update = update.addCxt(seq, interceptor:new SeqInterceptor(state, null))
+        }
+        if (state[poDat]?.head && state[poDat]?.hasNoun) {
+          state = state.inhibit(poDat)
         }
         return update.apply(state.inhibit(numQuantifier))
       case "если":

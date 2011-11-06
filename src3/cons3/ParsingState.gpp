@@ -12,7 +12,7 @@ class ParsingState {
   final FLinkedMap<Construction, Map> constructions
   private final FLinkedMap<Construction, List<Pair<Chart, Chart>>> changes
   final FList<Contribution> history
-  final FList<Construction> active
+  final FList<Mite> active
 
   ParsingState() {
     this(chart: new Chart(), situation: new Situation(), mites: FLinkedMap.emptyMap, changes: FLinkedMap.emptyMap, history: FList.emptyList, active: FList.emptyList)
@@ -30,10 +30,16 @@ class ParsingState {
       constructions = map.constructions
     } else {
       FLinkedMap<Construction, Map> merged = FLinkedMap.emptyMap
+
       for (c in mites.keySet()) {
         Map value = [:]
-        for (part in mites[c]) {
-          value = unify(value, part.contents)
+        for (Mite mite in Util.intersect(active as Set, mites[c])) {
+          value = unify(value, mite.contents)
+        }
+        for (part in mites[c].reverse()) {
+          if (!overwrites(value, part.contents)) {
+            value = unify(value, part.contents)
+          }
         }
         merged = merged.putValue(c, value)
       }
@@ -45,7 +51,7 @@ class ParsingState {
   private ParsingState clone(Map update) {
     Map current = [chart:chart, situation:situation, mites:mites, history:history, active:active, changes:changes]
     current.putAll(update)
-    if (update.mites == null) {
+    if (update.mites == null && update.active == null) {
       current.constructions = constructions
     }
     return new ParsingState(current)
@@ -159,7 +165,7 @@ class ParsingState {
   }
 
   private ParsingState removeConstruction(Construction name) {
-    return clone(mites: mites.removeKey(name), active: active - name, changes:changes.removeKey(name))
+    return clone(mites: mites.removeKey(name), active: active.withoutAll(mites[name] ?: []), changes:changes.removeKey(name))
   }
 
   ParsingState startMeta(Variable meta) {
@@ -179,7 +185,7 @@ class ParsingState {
     if (index >= 0 || !start) {
       def tail = cs.subList(index + 1, cs.size())
       for (cxt in tail) {
-        def mite = mites[cxt].find { it.contents.interceptor }
+        def mite = mites[cxt].reverse().find { it.contents.interceptor }
         if (mite) {
           return mite
         }
@@ -204,121 +210,144 @@ class ParsingState {
   }
 
   private static ParsingState baseApply(ParsingState state, Map<Construction, Map> update, boolean tryAlternatives) {
-    LinkedHashSet<Construction> fresh = []
-    LinkedHashSet<Construction> old = []
-    LinkedHashSet<Construction> replaced = []
-    for (cxt in update.keySet()) {
-      if (state.mites[cxt] != null) {
-        if (state.mites[cxt].any { it.contradicts(new Mite(update[cxt], cxt)) }) {
-          replaced << cxt
-        } else {
-          old << cxt
+    List<Mite> newMites = update.collect { c, v -> new Mite(v, c) } as List
+    for (c in newMites.reverse()) {
+      state = state.addCxt(c)
+    }
+    
+    Map<Mite, LinkedHashSet<ParsingState.Group>> groups = state.buildGroups()
+    for (mite in newMites) {
+      groups[mite].each { it.isNew = true }
+    }
+
+    def newActive = state.balance(groups, allGroups(newMites, groups) as List, state.active as LinkedHashSet, [])
+    assert newActive != null : 'cannot balance'
+    state = state.activate(newActive)
+
+    for (cxt in state.mites.keySet()) {
+      def currentActive = Util.intersect(state.active as LinkedHashSet, state.mites[cxt])
+      List<Mite> toAdd = []
+      for (mite in state.mites[cxt].reverse()) {
+        if (!(mite in currentActive) && !mite.findContradictors(currentActive)) {
+          currentActive << mite
+          toAdd << mite
         }
-      } else {
-        fresh << cxt
+      }
+      if (toAdd) {
+        newActive = state.active as LinkedHashSet
+        def cxtContradictors = toAdd.collect { it.findContradictors(newActive) }.flatten().collect { Mite m -> m.cxt } as LinkedHashSet<Construction>
+        def contradictors = cxtContradictors.collect { state.mites[it].reverse() }.flatten() as LinkedHashSet<Mite>
+        newActive = state.balance(groups, allGroups(contradictors, groups) as List, newActive - contradictors + toAdd as LinkedHashSet, [])
+        if (newActive) {
+          def alternative = state.activate(newActive)
+          def act1 = (alternative.active.collect { it.cxt } as Set).size()
+          int act2 = (state.active.collect { it.cxt } as Set).size()
+          if (act1 < act2 ||
+              act1 == act2 && state.active.size() < alternative.active.size() ||
+              alternative.dominates(state)) {
+            state = alternative
+          }
+        }
       }
     }
 
-    for (c in old - state.active) {
-      if (state.findContradictors(c, Util.intersect(old, state.active))) {
-        replaced << c
-        old.remove(c)
+    state
+  }
+
+  private Map<Mite, LinkedHashSet<ParsingState.Group>> buildGroups() {
+    Map<Mite, LinkedHashSet<Group>> groups = [:]
+    Map<Object, Group> members = [:]
+    for (Mite mite in mites.values().flatten()) {
+      Collection<Object> _xor = mite.contents.xor ?: [new Object()] //todo alex inline
+      LinkedHashSet<Object> xor = new LinkedHashSet<Object>(_xor)
+      for (x in xor) {
+        if (!members[x]) members[x] = new Group()
+        members[x].members << mite
+      }
+      groups[mite] = xor.collect { members[it] } as LinkedHashSet
+    }
+    return groups
+  }
+
+  private static LinkedHashSet<Group> allGroups(Collection<Mite> newMites, Map<Mite, LinkedHashSet<Group>> groups) {
+    return newMites.collect { groups[it] }.flatten() as LinkedHashSet
+  }
+
+  private ParsingState activate(LinkedHashSet<Mite> newActive) {
+    def toRemove = active - newActive
+    def toApply = newActive - active
+    
+    def state = clone(active: FList.fromList(newActive as List))
+    for (mite in toRemove) {
+      if (mite.findContradictors(toApply).find { mite.cxt != it.cxt }) {
+        state = state.undoChanges(mite.cxt).doApply(mite.cxt)
       }
     }
+    for (mite in toApply) {
+      state = state.doApply(mite.cxt)
+    }
+    state
+  }
+  
+  private static class Group {
+    List<Mite> members = []
+    boolean isNew
 
-    def nonReplaced = old + fresh
-    LinkedHashSet<Construction> silent = []
-    shutUpOrUndo: for (c in Util.intersect(replaced, state.active)) {
-      if (!state.findContradictors(c, nonReplaced, update)) {
-        for (mite in state.mites[c]) {
-          def undo = mite.undo(state)
-          if (undo && !(undo.cxt in replaced)) {
-            state = state.clone(mites: state.mites + [(c): state.mites[c] - mite]).addCxt(undo).undoChanges(mite.cxt)
-            replaced.remove(c)
-            old << c
-            old << undo.cxt
-            continue shutUpOrUndo
+    @Override
+    String toString() {
+      return members.toString()
+    }
+
+  }
+
+  private LinkedHashSet<Mite> balance(Map<Mite, LinkedHashSet<Group>> groups, List<Group> changed, LinkedHashSet<Mite> result, Set<Group> visited) {
+    for (i in 0..<changed.size()) {
+      def g = changed[i]
+      if (Util.intersect(result, g.members)) {
+        continue
+      }
+
+      List<Group> rest = i == changed.size() - 1 ? [] : changed[i + 1..<changed.size()]
+      LinkedHashSet<Mite> sortedMembers = []
+      sortedMembers.addAll g.members.findAll { Mite mite -> result.find { it.cxt == mite.cxt } }
+      sortedMembers.addAll g.members
+
+      for (mite in sortedMembers) {
+        if (!mite.findContradictors(result)) {
+          LinkedHashSet bigger = result + mite as LinkedHashSet
+          def inner = balance(groups, rest, bigger, visited + changed[0..i] as Set)
+          if (inner != null) {
+            return inner
           }
         }
       }
 
-      if (!state.findContradictors(c, state.mites.keySet() - state.active) && state.findContradictors(c, update.keySet(), update)) {
-        silent << c
-        replaced.remove(c)
-      }
-    }
-
-    def freed = state.freedByInhibition(replaced)
-
-    for (cxt in replaced) {
-      state = state.removeConstruction(cxt)
-    }
-    for (cxt in (update.keySet() as List<Construction>).reverse()) {
-      if (!(cxt in silent)) {
-        state = state.addCxt(new Mite(update[cxt], cxt, update))
-      }
-    }
-
-    LinkedHashSet<Construction> all = state.mites.keySet() as LinkedHashSet
-    LinkedHashSet<Construction> toRemove = []//(all - update.keySet()).findAll { state.findContradictors(it, old) } as LinkedHashSet
-    LinkedHashSet<Construction> runCandidates = ((update.keySet() as LinkedHashSet) + freed.keySet() as LinkedHashSet) - toRemove
-
-    LinkedHashSet<Construction> hanging
-    LinkedHashSet<Construction> toApply
-
-    while (true) {
-      runCandidates += (all - toRemove - runCandidates).findAll { state.findContradictors(it, toRemove) } as LinkedHashSet
-      hanging = runCandidates.findAll { state.findContradictors(it, runCandidates) }
-      toApply = runCandidates - hanging
-      LinkedHashSet<Construction> newToRemove = (all - toApply).findAll { state.findContradictors(it, toApply) } as LinkedHashSet
-      if (toRemove.containsAll(newToRemove)) {
-        break
-      }
-
-      toRemove += newToRemove
-    }
-
-    for (cxt in toRemove) {
-      state = state.undoChanges(cxt).removeConstruction(cxt)
-    }
-
-    for (cxt in toApply) {
-      if (state[cxt] != null) {
-        state = state.doApply(cxt)
-      }
-    }
-
-
-    hanging = Util.intersect(hanging, state.active) + hanging
-    state = state.clone(active: state.active.withoutAll(hanging))
-
-    LinkedHashSet<Construction> stillHanging = hanging
-    stillHanging = stillHanging.findAll { state.findContradictors(it, stillHanging) }
-    while (stillHanging) {
-      def next = stillHanging.iterator().next()
-      def contradictors = state.findContradictors(next, stillHanging)
-      state = state.doApply(next)
-      stillHanging = Util.intersect(stillHanging - next - contradictors, state.mites.keySet())
-    }
-
-    if (tryAlternatives) {
-      LinkedHashSet<Construction> dominators = []
-      for (cxt in (state.mites.keySet() - state.active)) {
-        def contradictors = state.findContradictors(cxt, state.mites.keySet())
-        if (contradictors) {
-          def candidate = baseApply(state, [(cxt):[:]], false)
-          if (contradictors.any { candidate.dominates(baseApply(state, [(it):[:]], false)) } &&
-              contradictors.every { !baseApply(state, [(it):[:]], false).dominates(candidate) }) {
-            dominators << cxt
+      for (mite in sortedMembers) {
+        List<Mite> contradictors = mite.findContradictors(result)
+        LinkedHashSet<Group> touchedGroups = allGroups(contradictors, groups)
+        if (!Util.intersect(visited, touchedGroups)) {
+          LinkedHashSet modified = result - contradictors + mite as LinkedHashSet
+          def inner = balance(groups, rest + touchedGroups as List, modified, visited + changed[0..i] as Set)
+          if (inner != null) {
+            return inner
           }
         }
       }
-      for (c in dominators) {
-        state = baseApply(state, [(c):[:]], true)
-      }
-    }
 
-    return state
+      if (g.isNew && g.members.size() == 1) {
+        def mite = g.members[0]
+        List<Mite> contradictors = mite.findContradictors(result)
+        LinkedHashSet bigger = result - contradictors + mite as LinkedHashSet
+        def inner = balance(groups, rest, bigger, visited + changed[0..i] as Set)
+        if (inner != null) {
+          return inner
+        }
+      }
+
+      return null
+    }
+    
+    return result
   }
 
   private ParsingState undoChanges(Construction cxt) {
@@ -345,14 +374,21 @@ class ParsingState {
   }
 
   private ParsingState doApply(Construction cxt) {
-    def args = constructions[cxt]
-    def next = clone(active: active - cxt + cxt)
+    List<Mite> mites = mites[cxt]
+    Map args = [:]
+    for (Mite mite in Util.intersect(active as Set, mites)) {
+      args = unify(args, mite.contents)
+    }
+
+    Closure init = args.init ?: noInit
+    args = args - [init:args.init]
+    if (!args) {
+      return this
+    }
 
     def before = chart
     
-    Closure init = args.init ?: noInit
-    args = args - [init:args.init]
-    next = (ParsingState)init(next)
+    def next = (ParsingState)init(this)
     next = cxt.action.call(next, args)
     if (before != next.chart) {
       next = next.clone(changes: changes + [(cxt):(changes[cxt] ?: []) + new Pair(before, next.chart)])
@@ -366,7 +402,7 @@ class ParsingState {
   }
 
   ParsingState restore(ParsingState saved) {
-    clone(mites: saved.mites + this.mites, active:saved.active.prependAll(active), changes:saved.changes + this.changes)
+    clone(mites: saved.mites + this.mites, active:saved.active.withoutAll(active).prependAll(active), changes:saved.changes + this.changes)
   }
 
   private static boolean contradict(Map args1, Map args2) {

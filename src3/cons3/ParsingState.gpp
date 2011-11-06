@@ -145,16 +145,14 @@ class ParsingState {
     return (freed ? state.apply(freed) : state).clone(history: history + new Contribution(this, FLinkedMap.emptyMap, FList.fromList(cxts as List)))
   }
 
-  Map<Construction, Map> freedByInhibition(Set<Construction> toRemove) {
-    LinkedHashSet<Construction> remaining = (mites.keySet() as LinkedHashSet) - toRemove
+  private Map<Construction, Map> freedByInhibition(Set<Construction> toRemove) {
+    LinkedHashSet<Mite> mitesToRemove = toRemove.collect { mites[it] }.flatten() as LinkedHashSet
+    LinkedHashSet<Mite> mitesRemaining = ((mites.keySet() as LinkedHashSet) - toRemove).collect { Construction it -> mites[it] }.flatten() as LinkedHashSet
+    LinkedHashSet<Mite> contradictors = mitesToRemove.collect { it.findContradictors(mitesRemaining) }.flatten() as LinkedHashSet
 
     Map<Construction, Map> freed = [:]
-    for (removed in remaining) {
-      for (c in toRemove) {
-        if (contradict(this[removed], this[c])) {
-          freed[removed] = [:]
-        }
-      }
+    for (c in contradictors) {
+      freed[c.cxt] = [:]
     }
     return freed
   }
@@ -408,11 +406,4 @@ class ParsingState {
     clone(mites: saved.mites + this.mites, active:saved.active.withoutAll(active).prependAll(active), changes:saved.changes + this.changes)
   }
 
-  private static boolean contradict(Map args1, Map args2) {
-    if (args1.is(args2)) return false
-
-    Set xor1 = args1.xor
-    Set xor2 = args2.xor
-    return xor1 && xor2 && Util.intersect(xor1, xor2)
-  }
 }

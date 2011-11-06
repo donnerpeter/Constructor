@@ -59,10 +59,12 @@ final class FLinkedMap<K,V> implements Map<K,V> {
 
   V get(Object key) {
     //todo find { it.key == key } slow: DefaultTypeTranformation.castToBoolean
-    for (it in list) {
-      if (it.key == key) {
-        return it.value
+    FList<MyEntry<K,V>> cur = list
+    while (!cur.empty) {
+      if (cur.head.key == key) {
+        return cur.head.value
       }
+      cur = cur.tail
     }
     return null
   }

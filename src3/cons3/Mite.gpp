@@ -31,6 +31,10 @@ class Mite {
     return alternative ? new Mite(update[alternative], alternative) : null
   }
 
+  List<Mite> findContradictors(Collection<Mite> mites) {
+    mites.findAll { contradicts(it) } as List
+  }
+
   @Override
   public String toString() {
     return "Mite{" +

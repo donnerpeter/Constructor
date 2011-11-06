@@ -205,7 +205,13 @@ class ParsingState {
   }
 
   private static ParsingState baseApply(ParsingState state, Map<Construction, Map> update, boolean tryAlternatives) {
-    List<Mite> newMites = update.collect { c, v -> new Mite(v, c) } as List
+    List<Mite> newMites = []
+    for (c in update.keySet()) {
+      if (update[c]) {
+        newMites << new Mite(update[c], c)
+      }
+    }
+    
     for (c in newMites.reverse()) {
       state = state.addCxt(c)
     }

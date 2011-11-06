@@ -274,8 +274,10 @@ class ParsingState {
   }
 
   private ParsingState activate(LinkedHashSet<Mite> newActive) {
-    def toRemove = active - newActive
-    def toApply = newActive - active
+    def toRemove = new LinkedHashSet<Mite>(active)
+    toRemove.removeAll(newActive)
+    def toApply = new LinkedHashSet<Mite>(newActive)
+    toApply.removeAll(active)
     
     def state = clone(active: FList.fromList(newActive as List))
     for (mite in toRemove) {

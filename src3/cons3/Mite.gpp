@@ -6,12 +6,10 @@ package cons3
 class Mite {
   final Construction cxt
   final FLinkedMap contents
-  final Map<Construction, Map> update
 
-  Mite(Map contents, Construction cxt, Map<Construction, Map> update = [:]) {
+  Mite(Map contents, Construction cxt) {
     this.cxt = cxt
     this.contents = contents instanceof FLinkedMap ? contents : FLinkedMap.fromMap(contents)
-    this.update = update
   }
 
   boolean contradicts(Mite another) {

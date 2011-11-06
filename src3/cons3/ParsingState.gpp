@@ -224,26 +224,12 @@ class ParsingState {
     state = state.activate(newActive)
 
     for (cxt in state.mites.keySet()) {
-      def currentActive = Util.intersect(state.active as LinkedHashSet, state.mites[cxt])
-      List<Mite> toAdd = []
-      for (mite in state.mites[cxt].reverse()) {
-        if (!(mite in currentActive) && !mite.findContradictors(currentActive)) {
-          currentActive << mite
-          toAdd << mite
-        }
-      }
+      List<Mite> toAdd = collectNonContradicting(state, cxt)
       if (toAdd) {
-        newActive = state.active as LinkedHashSet
-        def cxtContradictors = toAdd.collect { it.findContradictors(newActive) }.flatten().collect { Mite m -> m.cxt } as LinkedHashSet<Construction>
-        def contradictors = cxtContradictors.collect { state.mites[it].reverse() }.flatten() as LinkedHashSet<Mite>
-        newActive = state.balance(groups, allGroups(contradictors, groups) as List, newActive - contradictors + toAdd as LinkedHashSet, [])
+        newActive = calcAlternative(state, toAdd, groups)
         if (newActive) {
           def alternative = state.activate(newActive)
-          def act1 = (alternative.active.collect { it.cxt } as Set).size()
-          int act2 = (state.active.collect { it.cxt } as Set).size()
-          if (act1 < act2 ||
-              act1 == act2 && state.active.size() < alternative.active.size() ||
-              alternative.dominates(state)) {
+          if (alternative.dominates(state)) {
             state = alternative
           }
         }
@@ -251,6 +237,25 @@ class ParsingState {
     }
 
     state
+  }
+
+  private static LinkedHashSet<Mite> calcAlternative(ParsingState state, List<Mite> toAdd, Map<Mite, LinkedHashSet<ParsingState.Group>> groups) {
+    LinkedHashSet<Mite> newActive = state.active as LinkedHashSet
+    def cxtContradictors = toAdd.collect { it.findContradictors(newActive) }.flatten().collect { Mite m -> m.cxt } as LinkedHashSet<Construction>
+    def contradictors = cxtContradictors.collect { state.mites[it].reverse() }.flatten() as LinkedHashSet<Mite>
+    return state.balance(groups, allGroups(contradictors, groups) as List, newActive - contradictors + toAdd as LinkedHashSet, [])
+  }
+
+  private static List<Mite> collectNonContradicting(ParsingState state, Construction cxt) {
+    def currentActive = Util.intersect(state.active as LinkedHashSet, state.mites[cxt])
+    List<Mite> toAdd = []
+    for (mite in state.mites[cxt].reverse()) {
+      if (!(mite in currentActive) && !mite.findContradictors(currentActive)) {
+        currentActive << mite
+        toAdd << mite
+      }
+    }
+    return toAdd
   }
 
   private Map<Mite, LinkedHashSet<ParsingState.Group>> buildGroups() {
@@ -358,6 +363,12 @@ class ParsingState {
   }
 
   private boolean dominates(ParsingState other) {
+    def theirActiveCxts = (other.active.collect { it.cxt } as Set).size()
+    int myActiveCxts = (active.collect { it.cxt } as Set).size()
+    if (theirActiveCxts > myActiveCxts || theirActiveCxts == myActiveCxts && other.active.size() < active.size()) {
+      return true
+    }
+
     for (verb in chart.frames.findAll { it.type in ['GO', 'BREAK'] }) {
       def alternative = verb.var.frame(other.chart)
       if (!alternative) continue
@@ -374,12 +385,8 @@ class ParsingState {
     return false
   }
 
-  private ParsingState doApply(Construction cxt) {
-    List<Mite> mites = mites[cxt]
-    Map args = [:]
-    for (Mite mite in Util.intersect(active as Set, mites)) {
-      args = unify(args, mite.contents)
-    }
+  private ParsingState doApply(Construction cxt, LinkedHashSet<Mite> mites = Util.intersect(active as Set, mites[cxt])) {
+    Map args = mites.foldLeft([:]) { Mite mite, Map merge -> unify(merge, mite.contents) }
 
     Closure init = args.init ?: noInit
     args = args - [init:args.init]

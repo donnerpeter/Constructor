@@ -6,6 +6,7 @@ package cons3
 class Mite {
   final Construction cxt
   final FLinkedMap contents
+  private final Map<Mite, Boolean> _contradictors = [:]
 
   Mite(Map contents, Construction cxt) {
     this.cxt = cxt
@@ -15,13 +16,18 @@ class Mite {
   boolean contradicts(Mite another) {
     if (another == this) return false
 
-    if (another.cxt == cxt) {
-      return ParsingState.overwrites(another.contents, contents)
+    if (!_contradictors.containsKey(another)) {
+      boolean result
+      if (another.cxt == cxt) {
+        result = ParsingState.overwrites(another.contents, contents)
+      } else {
+        Set<Object> xor1 = contents.xor ?: [] as Set
+        Set<Object> xor2 = another.contents.xor ?: [] as Set
+        result = !Util.intersect(xor1, xor2).empty
+      }
+      _contradictors[another] = result
     }
-    
-    Set<Object> xor1 = contents.xor ?: [] as Set
-    Set<Object> xor2 = another.contents.xor ?: [] as Set
-    return !Util.intersect(xor1, xor2).empty
+    return _contradictors[another]
   }
 
   List<Mite> findContradictors(Collection<Mite> mites) {

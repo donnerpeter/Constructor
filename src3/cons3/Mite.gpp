@@ -26,11 +26,6 @@ class Mite {
     return !Util.intersect(xor1, xor2).empty
   }
 
-  Mite undo(ParsingState state) {
-    Construction alternative = update.keySet().find { contradicts(new Mite(update[it], it)) && !ParsingState.overwrites(state.constructions[it], update[it]) }
-    return alternative ? new Mite(update[alternative], alternative) : null
-  }
-
   List<Mite> findContradictors(Collection<Mite> mites) {
     mites.findAll { contradicts(it) } as List
   }

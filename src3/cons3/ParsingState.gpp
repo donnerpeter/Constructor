@@ -9,7 +9,7 @@ class ParsingState {
   final Chart chart
   final Situation situation
   final FLinkedMap<Construction, List<Mite>> mites
-  final FLinkedMap<Construction, Map> constructions
+  final Merger constructions = new Merger()
   private final FLinkedMap<Construction, List<Pair<Chart, Chart>>> changes
   final FList<Contribution> history
   final FList<Mite> active
@@ -25,35 +25,31 @@ class ParsingState {
     mites = map.mites
     history = map.history
     active = map.active
-
-    if (map.constructions != null) {
-      constructions = map.constructions
-    } else {
-      FLinkedMap<Construction, Map> merged = FLinkedMap.emptyMap
-
-      for (c in mites.keySet()) {
-        Map value = [:]
-        for (Mite mite in Util.intersect(active as Set, mites[c])) {
-          value = unify(value, mite.contents)
-        }
-        for (part in mites[c].reverse()) {
-          if (!overwrites(value, part.contents)) {
-            value = unify(value, part.contents)
-          }
-        }
-        merged = merged.putValue(c, value)
+  }
+  
+  class Merger {
+    Map getAt(Construction c) {
+      Map value = [:]
+      def allMites = mites[c]
+      if (!allMites) {
+        return value
       }
 
-      constructions = merged
+      for (Mite mite in Util.intersect(active as Set, allMites)) {
+        value = unify(value, mite.contents)
+      }
+      for (part in allMites.reverse()) {
+        if (!overwrites(value, part.contents)) {
+          value = unify(value, part.contents)
+        }
+      }
+      value
     }
   }
 
   private ParsingState clone(Map update) {
     Map current = [chart:chart, situation:situation, mites:mites, history:history, active:active, changes:changes]
     current.putAll(update)
-    if (update.mites == null && update.active == null) {
-      current.constructions = constructions
-    }
     return new ParsingState(current)
   }
 
@@ -101,16 +97,19 @@ class ParsingState {
     return clone(mites: mites + [(mite.cxt): (mites[mite.cxt] ?: []) + mite])
   }
 
-  static Map unify(Map oldArgs, Map newArgs) {
-    def args = oldArgs ? oldArgs + newArgs : newArgs
+  private static Map unify(Map oldArgs, Map newArgs) {
+    def args = new HashMap()
+    if (oldArgs) args.putAll(oldArgs)
+    if (newArgs) args.putAll(newArgs)
+
     def merged = mergeInits((Closure) oldArgs?.init, (Closure) newArgs.init)
     if (merged) {
-      args += [init:merged]
+      args.init = merged
     }
 
     Collection xor = mergeXor(oldArgs, newArgs)
     if (xor) {
-      args += [xor:xor]
+      args.xor = xor
     }
 
     return Collections.unmodifiableMap(args)
@@ -173,10 +172,6 @@ class ParsingState {
   }
   ParsingState finishMeta(Variable meta) {
     return clone(chart: chart.finishMeta(meta))
-  }
-
-  private LinkedHashSet<Construction> findContradictors(Construction c, Collection<Construction> among, Map<Construction, Map> values = constructions) {
-    return new LinkedHashSet<Construction>(among).findAll { contradict(values[it], values[c]) }
   }
 
   private Mite nextInterceptor(Construction start) {

@@ -19,7 +19,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       if (w != ' ') {
         state = handleWord(w.toLowerCase(), state)
         log += w + "\n"
-        for (k in state.constructions.keySet()) {
+        for (k in state.mites.keySet()) {
           log += "  $k: " + state.mites[k].collect { (it in state.active ? '*' : '') + new LinkedHashMap(it.contents.reverse()) }.join(" ") + "\n"
         }
       }

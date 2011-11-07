@@ -23,12 +23,12 @@ class SonnetVariationsTest extends TestCase {
                     "Great was their amazement"
   }
 
-  public void _test3_He() throws Exception {
-    doTranslateTest "Он вдруг обнаружил, что тоже не может вспомнить порядок счета",
+  public void test3_He() throws Exception {
+    doTranslateTest "Он вдруг обнаружил, что не может вспомнить порядок счета",
             "He suddenly discovered, that he couldn't recall the counting order"
   }
-  public void _test3_She() throws Exception {
-    doTranslateTest "Она вдруг обнаружила, что тоже не может вспомнить порядок счета",
+  public void test3_She() throws Exception {
+    doTranslateTest "Она вдруг обнаружила, что не может вспомнить порядок счета",
             "She suddenly discovered, that she couldn't recall the counting order"
   }
 

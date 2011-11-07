@@ -58,7 +58,13 @@ class Frame {
         }
       }
       def forget = usages('arg2').find { it.type == 'FORGET' }
-      return forget?.f('arg1')
+      if (forget?.f('arg1')) {
+        return forget?.f('arg1')
+      }
+      def discover = usages('theme').find { it.type == 'DISCOVER' }
+      if (discover?.f('arg1')) {
+        return discover?.f('arg1')
+      }
     }
 
     return null

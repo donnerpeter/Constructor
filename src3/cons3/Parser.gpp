@@ -333,13 +333,16 @@ class Parser { //todo alex implements cons3.RussianConstructions
         Variable verb = new Variable()
         state = finiteVerb(state, verb, 'REMEMBER', 'PRESENT', (acc):[head:verb])
         return state.apply((nom):[head:verb, agr:(word == 'помнят' ? '3pl' : '3sg')], (verbHolder):[head:verb])
+      case "может":
       case "могут":
         Variable verb = state[verbHolder]?.head ?: new Variable()
-        def subj = state[nom]?.noun && SeqInterceptor.agree(state[nom].agr, 'pl') ? state[nom].noun : new Variable()
+        def agr = word == 'могут' ? '3pl' : '3sg'
+        boolean hasSubj = state[nom]?.noun && SeqInterceptor.agree(state[nom].agr, agr)
+        def subj = hasSubj ? state[nom].noun : new Variable()
         if (state[negation] != null) {
           state = state.assign(verb, 'negated', 'true')
         }
-        return finiteVerb(state, verb, 'CAN', 'PRESENT', (control):[subj:subj, head:verb], (nom):[noun:subj, agr:'pl', head:verb])
+        return finiteVerb(state, verb, 'CAN', 'PRESENT', (control):[subj:subj, head:verb], (nom):[noun:subj, agr:'pl', head:verb, xor: (hasSubj ? state[nom]?.xor : null)])
       case 'стали':
       case 'начали':
         Variable verb = state[verbHolder]?.head ?: new Variable()
@@ -363,6 +366,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "спорили":
         def verb = new Variable()
         return finiteVerb(state, verb, 'ARGUE', 'PAST', (nom):[head:verb, agr:'pl'], (adverb):[head:verb])
+      case "обнаружил":
+      case "обнаружила":
       case "обнаружили":
         def verb = new Variable()
         return finiteVerb(state, verb, 'DISCOVER', 'PAST', (declOrQuestionComp):[head:verb], (nom):[head:verb], (adverb):[head:verb])

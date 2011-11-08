@@ -55,9 +55,24 @@ class Util {
     return result
   }
 
-  static <T> LinkedHashSet<T> intersect(Set<T> set1, Collection<T> set2) {
+  static <T> boolean intersects(Collection<T> set1, Collection<T> set2) {
+    if (set2.size() < set1.size()) {
+      def temp = set1; set1 = set2; set2 = temp;
+    }
+    if (!(set2 instanceof Set)) {
+      set2 = new HashSet<T>(set2)
+    }
+    for (x in set1) {
+      if (x in set2) {
+        return true
+      }
+    }
+    return false
+  }
+
+  static <T> LinkedHashSet<T> intersect(Collection<T> set1, Collection<T> set2) {
     def ts = new LinkedHashSet<T>(set1)
-    ts.retainAll(set2)
+    ts.retainAll(new HashSet<T>(set2))
     return ts
   }
 }

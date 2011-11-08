@@ -35,7 +35,7 @@ class ParsingState {
         return value
       }
 
-      for (Mite mite in Util.intersect(active as Set, allMites)) {
+      for (Mite mite in Util.intersect(active, allMites)) {
         value = unify(value, mite.contents)
       }
       for (part in allMites.reverse()) {
@@ -247,7 +247,7 @@ class ParsingState {
   }
 
   private static List<Mite> collectNonContradicting(ParsingState state, Construction cxt) {
-    def currentActive = Util.intersect(state.active as LinkedHashSet, state.mites[cxt])
+    def currentActive = Util.intersect(state.active, state.mites[cxt])
     List<Mite> toAdd = []
     for (mite in state.mites[cxt].reverse()) {
       if (!(mite in currentActive) && !mite.findContradictors(currentActive)) {
@@ -317,7 +317,7 @@ class ParsingState {
   private LinkedHashSet<Mite> balance(Map<Mite, LinkedHashSet<Group>> groups, List<Group> changed, LinkedHashSet<Mite> result, Set<Group> visited) {
     for (i in 0..<changed.size()) {
       def g = changed[i]
-      if (Util.intersect(result, g.members)) {
+      if (Util.intersects(result, g.members)) {
         continue
       }
 
@@ -339,7 +339,7 @@ class ParsingState {
       for (mite in sortedMembers) {
         List<Mite> contradictors = mite.findContradictors(result)
         LinkedHashSet<Group> touchedGroups = allGroups(contradictors, groups)
-        if (!Util.intersect(visited, touchedGroups)) {
+        if (!Util.intersects(visited, touchedGroups)) {
           LinkedHashSet modified = result - contradictors + mite as LinkedHashSet
           def inner = balance(groups, rest + touchedGroups as List, modified, visited + changed[0..i] as Set)
           if (inner != null) {
@@ -393,7 +393,8 @@ class ParsingState {
     return false
   }
 
-  private ParsingState doApply(Construction cxt, LinkedHashSet<Mite> mites = Util.intersect(active as Set, mites[cxt])) {
+  private ParsingState doApply(Construction cxt) {
+    LinkedHashSet<Mite> mites = Util.intersect(active, mites[cxt])
     Map args = mites.foldLeft([:]) { Mite mite, Map merge -> unify(merge, mite.contents) }
 
     Closure init = args.init ?: noInit

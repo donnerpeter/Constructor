@@ -23,7 +23,7 @@ class Mite {
       } else {
         Set<Object> xor1 = contents.xor ?: [] as Set
         Set<Object> xor2 = another.contents.xor ?: [] as Set
-        result = !Util.intersect(xor1, xor2).empty
+        result = Util.intersects(xor1, xor2)
       }
       _contradictors[another] = result
     }

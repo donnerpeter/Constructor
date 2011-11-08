@@ -248,6 +248,7 @@ class EnglishGenerator {
                (next == lastCur.f('theme') ||
                 next in (lastCur.f('elaboration')?.flatten() ?: []) ||
                 next in (lastCur.f('theme')?.flatten() ?: []) ||
+                next in (lastCur.f('message')?.flatten() ?: []) ||
                 next in (lastCur.f('arg2')?.flatten() ?: []) ||
                 next.usages('theme') ||
                 next.usages('arg2') ||
@@ -582,11 +583,16 @@ class EnglishGenerator {
 
     private def generateDirectSpeech(Frame verb) {
       if (verb.type == 'SAY') {
-        out ':'
-        def message = (Situation) verb.f('message').var
-        if (chart.__assignments[message]) {
-          out '\n-'
-          new SituationGenerator(chart, message, true).sentence(true)
+        def message = verb.f('message')
+        if (message?.var instanceof Situation) {
+          out ':'
+          if (chart.__assignments[(Situation)message.var]) {
+            out '\n-'
+            new SituationGenerator(chart, (Situation)message.var, true).sentence(true)
+          }
+        } else if (message) {
+          out 'that'
+          new ClauseGenerator(message, null, false, null).generate(true)
         }
       }
     }

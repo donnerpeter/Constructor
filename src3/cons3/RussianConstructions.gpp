@@ -132,7 +132,7 @@ interface RussianConstructions {
     Variable comp = args.modality ?: args.comp
     if (comp && args.head) {
       def type = ((Variable) args.head).frame(state.chart).type
-      def attr = type == 'FORGET' ? 'arg2' : type == 'DISCOVER' ? 'theme' : 'question'
+      def attr = type == 'FORGET' ? 'arg2' : type == 'DISCOVER' ? 'theme' : type == 'SAY' ? 'message' :'question'
       state = state.assign(args.head, attr, comp)
       if (!args.modality) {
         state = state.inhibit(seq, possessive)

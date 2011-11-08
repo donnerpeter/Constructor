@@ -247,6 +247,10 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def they = new Variable()
         def init = {ParsingState st -> st.assign(they, 'type', 'THEY') }
         return conjWrap(state, (possessive):[possessor:they, init:init, xor:t.a], (acc):[noun:they, hasNoun:true, init:init, xor:t.a])
+      case "его":
+        def he = new Variable()
+        def init = {ParsingState st -> st.assign(he, 'type', 'HE') }
+        return conjWrap(state, (possessive):[possessor:he, init:init, xor:t.a], (acc):[noun:he, hasNoun:true, init:init, xor:t.a])
       case "он": return pronoun(state, nom, 'HE')
       case "она": return pronoun(state, nom, 'SHE')
       case "они": return pronoun(state, nom, 'THEY')
@@ -377,7 +381,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "сказал":
       case "сказала":
         def verb = new Variable()
-        return finiteVerb(state, verb, 'SAY', 'PAST', (nom):[head:verb], (directSpeech):[head:verb])
+        return finiteVerb(state, verb, 'SAY', 'PAST', (nom):[head:verb], (directSpeech):[head:verb], (declOrQuestionComp):[head:verb])
       case "вынул":
       case "вынула":
         def verb = new Variable()

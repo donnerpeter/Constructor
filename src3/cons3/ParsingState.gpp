@@ -112,16 +112,19 @@ class ParsingState {
       args.xor = xor
     }
 
-    return Collections.unmodifiableMap(args)
+    return args
   }
 
   static Collection mergeXor(Map oldArgs, Map newArgs) {
-    Set xor1 = oldArgs?.xor
-    Set xor2 = newArgs?.xor
-    def xor = (xor1 ?: Collections.emptySet()) + (xor2 ?: Collections.emptySet())
-    if (!xor) {
-      xor = null
+    Set xor1 = oldArgs?.xor ?: Collections.emptySet()
+    Set xor2 = newArgs?.xor ?: Collections.emptySet()
+    if (!xor1 && !xor2) {
+      return null
     }
+
+    def xor = new HashSet()
+    xor.addAll xor1
+    xor.addAll xor2
     return xor
   }
 
@@ -396,15 +399,15 @@ class ParsingState {
     LinkedHashSet<Mite> mites = Util.intersect(active, mites[cxt])
     Map args = mites.foldLeft([:]) { Mite mite, Map merge -> unify(merge, mite.contents) }
 
-    Closure init = args.init ?: noInit
-    args = args - [init:args.init]
+    Closure init = args.init
+    args.remove('init')
     if (!args) {
       return this
     }
 
     def before = chart
     
-    def next = (ParsingState)init(this)
+    def next = init ? (ParsingState)init(this) : this
     next = cxt.action.call(next, args)
     if (before != next.chart) {
       next = next.clone(changes: changes + [(cxt):(changes[cxt] ?: []) + new Pair(before, next.chart)])

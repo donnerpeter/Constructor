@@ -113,9 +113,13 @@ class Chart {
       if (!(sit in before.__assignments)) {
         newAssignments.remove(sit)
       } else if (newAssignments[sit]) {
-        def delta = after.__assignments[sit] - before.__assignments[sit]
-        if (delta) {
-          newAssignments[sit] = newAssignments[sit] - delta
+        LinkedHashSet<Assignment<Variable>> af = after.__assignments[sit]
+        def bef = before.__assignments[sit]
+        if (af.size() > bef.size()) {
+          def delta = new LinkedHashSet<Assignment<Variable>>(af)
+          delta.removeAll(bef)
+          newAssignments[sit] = new LinkedHashSet<Assignment<Variable>>(newAssignments[sit])
+          newAssignments[sit].removeAll(delta)
         }
       }
     }

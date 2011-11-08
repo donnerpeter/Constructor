@@ -35,8 +35,10 @@ class ParsingState {
         return value
       }
 
-      for (Mite mite in Util.intersect(active, allMites)) {
-        value = unify(value, mite.contents)
+      for (Mite mite in allMites) {
+        if (mite in active) {
+          value = unify(value, mite.contents)
+        }
       }
       for (part in allMites.reverse()) {
         if (!overwrites(value, part.contents)) {
@@ -250,7 +252,7 @@ class ParsingState {
   }
 
   private static List<Mite> collectNonContradicting(ParsingState state, Construction cxt) {
-    def currentActive = Util.intersect(state.active, state.mites[cxt])
+    def currentActive = new LinkedHashSet<Mite>(state.mites[cxt].findAll { it in state.active })
     List<Mite> toAdd = []
     for (mite in state.mites[cxt].reverse()) {
       if (!(mite in currentActive) && !mite.findContradictors(currentActive)) {
@@ -414,8 +416,7 @@ class ParsingState {
   }
 
   private ParsingState doApply(Construction cxt) {
-    LinkedHashSet<Mite> mites = Util.intersect(active, mites[cxt])
-    Map args = mites.foldLeft([:]) { Mite mite, Map merge -> unify(merge, mite.contents) }
+    Map args = mites[cxt].foldLeft([:]) { Mite mite, Map merge -> mite in active ? unify(merge, mite.contents) : merge }
 
     Closure init = args.init
     args.remove('init')

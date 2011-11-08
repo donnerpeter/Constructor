@@ -262,13 +262,12 @@ class ParsingState {
     Map<Mite, LinkedHashSet<Group>> groups = [:]
     Map<Object, Group> members = [:]
     for (Mite mite in mites.values().flatten()) {
-      Collection<Object> _xor = mite.contents.xor ?: [new Object()] //todo alex inline
-      LinkedHashSet<Object> xor = new LinkedHashSet<Object>(_xor)
+      Collection<Object> xor = mite.contents.xor ?: [new Object()] //todo alex inline
       for (x in xor) {
         if (!members[x]) members[x] = new Group()
         members[x].members << mite
       }
-      groups[mite] = xor.collect { members[it] } as LinkedHashSet
+      groups[mite] = new LinkedHashSet(xor.collect { members[it] })
     }
     return groups
   }

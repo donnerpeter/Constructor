@@ -12,10 +12,10 @@ class ParsingState {
   final Merger constructions = new Merger()
   private final FLinkedMap<Construction, List<Pair<Chart, Chart>>> changes
   final FList<Contribution> history
-  final FList<Mite> active
+  final Set<Mite> active
 
   ParsingState() {
-    this(chart: new Chart(), situation: new Situation(), mites: FLinkedMap.emptyMap, changes: FLinkedMap.emptyMap, history: FList.emptyList, active: FList.emptyList)
+    this(chart: new Chart(), situation: new Situation(), mites: FLinkedMap.emptyMap, changes: FLinkedMap.emptyMap, history: FList.emptyList, active: Collections.emptySet())
   }
 
   ParsingState(Map map) {
@@ -24,7 +24,7 @@ class ParsingState {
     situation = map.situation
     mites = map.mites
     history = map.history
-    active = map.active
+    active = Collections.unmodifiableSet((Set)map.active)
   }
   
   class Merger {
@@ -165,7 +165,7 @@ class ParsingState {
   }
 
   private ParsingState removeConstruction(Construction name) {
-    return clone(mites: mites.removeKey(name), active: active.withoutAll(mites[name] ?: []), changes:changes.removeKey(name))
+    return clone(mites: mites.removeKey(name), active: active - (mites[name] ?: []), changes:changes.removeKey(name))
   }
 
   ParsingState startMeta(Variable meta) {
@@ -293,7 +293,7 @@ class ParsingState {
     def toApply = new LinkedHashSet<Mite>(newActive)
     toApply.removeAll(active)
     
-    def state = clone(active: FList.fromList(newActive as List))
+    def state = clone(active: newActive)
     for (mite in toRemove) {
       if (mite.findContradictors(toApply).find { mite.cxt != it.cxt }) {
         state = state.undoChanges(mite.cxt).doApply(mite.cxt)
@@ -435,11 +435,11 @@ class ParsingState {
 
 
   ParsingState clearConstructions() {
-    return clone(mites: FLinkedMap.emptyMap, active:FList.emptyList, changes:FLinkedMap.emptyMap)
+    return clone(mites: FLinkedMap.emptyMap, active:Collections.emptySet(), changes:FLinkedMap.emptyMap)
   }
 
   ParsingState restore(ParsingState saved) {
-    clone(mites: saved.mites + this.mites, active:saved.active.withoutAll(active).prependAll(active), changes:saved.changes + this.changes)
+    clone(mites: saved.mites + this.mites, active:saved.active + active, changes:saved.changes + this.changes)
   }
 
 }

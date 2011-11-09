@@ -399,7 +399,7 @@ class ParsingState {
       return true
     }
 
-    for (verb in chart.frames.findAll { it.type in ['GO', 'BREAK', 'CAN'] }) {
+    for (verb in chart.frames.findAll { it.type in ['GO', 'BREAK', 'CAN', 'REMEMBER', 'FORGET'] }) {
       def alternative = verb.var.frame(other.chart)
       if (!alternative) continue
 

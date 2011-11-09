@@ -331,7 +331,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         Variable verb = state[verbHolder]?.head ?: new Variable()
         return finiteVerb(state.inhibit(declOrQuestionComp), verb, 'FORGET', 'PAST',
                 (nom):[head:verb, agr:(word == 'забыли' ? 'pl' : word == 'забыла' ? 'fem' : 'masc')], (adverb):[head:verb], (elaboration):[elaboration:verb],
-                (advObj):[head:verb, xor:t.a], (acc):[head:verb, xor:t.a], (declOrQuestionComp):[head:verb, xor:t.a]) //todo the order shouldn't matter for verb arguments
+                (advObj):[head:verb, xor:t.a], (acc):[head:verb, xor:t.a], (declOrQuestionComp):[head:verb, xor:t.a])
       case "помнят":
       case "помнит":
         Variable verb = new Variable()

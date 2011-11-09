@@ -75,7 +75,7 @@ class EnglishGenerator {
         } else if (frame?.s('relTime') == 'BEFORE') {
           out 'before'
           out ','
-        } else if (frame?.f('relTime_after') && chart.earlier(frame, 'relTime_after', frame, 'type')) {
+        } else if (frame?.f('relTime_after') && chart.earlier(frame?.f('relTime_after'), 'type', frame, 'time')) {
           out 'after'
           np(frame?.f('relTime_after'), false)
           out ','
@@ -122,7 +122,7 @@ class EnglishGenerator {
           np(comp.f('topic'), false)
         }
 
-        if (frame?.f('relTime_after') && chart.earlier(frame, 'type', frame, 'relTime_after')) {
+        if (frame?.f('relTime_after') && !chart.earlier(frame?.f('relTime_after'), 'type', frame, 'time')) {
           out 'after'
           np(frame?.f('relTime_after'), false)
         }

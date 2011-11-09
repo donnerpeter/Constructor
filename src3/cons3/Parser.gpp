@@ -329,14 +329,14 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "забыла":
       case "забыли":
         Variable verb = state[verbHolder]?.head ?: new Variable()
-        state = finiteVerb(state.inhibit(declOrQuestionComp), verb, 'FORGET', 'PAST',
+        return finiteVerb(state.inhibit(declOrQuestionComp), verb, 'FORGET', 'PAST',
+                (nom):[head:verb, agr:(word == 'забыли' ? 'pl' : word == 'забыла' ? 'fem' : 'masc')], (adverb):[head:verb], (elaboration):[elaboration:verb],
                 (advObj):[head:verb, xor:t.a], (acc):[head:verb, xor:t.a], (declOrQuestionComp):[head:verb, xor:t.a]) //todo the order shouldn't matter for verb arguments
-        return state.apply((nom):[head:verb, agr:(word == 'забыли' ? 'pl' : word == 'забыла' ? 'fem' : 'masc')], (adverb):[head:verb], (elaboration):[elaboration:verb])
       case "помнят":
       case "помнит":
         Variable verb = new Variable()
-        state = finiteVerb(state, verb, 'REMEMBER', 'PRESENT', (acc):[head:verb])
-        return state.apply((nom):[head:verb, agr:(word == 'помнят' ? '3pl' : '3sg')], (verbHolder):[head:verb])
+        return finiteVerb(state, verb, 'REMEMBER', 'PRESENT',
+                (nom):[head:verb, agr:(word == 'помнят' ? '3pl' : '3sg')], (verbHolder):[head:verb], (acc):[head:verb])
       case "может":
       case "могут":
         Variable verb = state[verbHolder]?.head ?: new Variable()
@@ -509,7 +509,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "раньше":
         return state.apply((comeScalarly):[order:'EARLIER', xor:t.a], (preposition):[prep:'ranshe'], (relTime):[relTime:'BEFORE', xor:t.a])
       case "после":
-        return state.apply((comeScalarly):[order:'AFTER', xor:t.a], (preposition):[prep:'posle'], (absTime):[rel:'AFTER', xor:t.a])
+        return state.apply((absTime):[rel:'AFTER', xor:t.a], (comeScalarly):[order:'AFTER', xor:t.a], (preposition):[prep:'posle'])
       case "-":
         if (state[directSpeech]) {
           return state.apply(directSpeech, hasDash:true)

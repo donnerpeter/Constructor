@@ -46,6 +46,7 @@ class Chart {
     List<Assignment<Variable>> assignments = __assignments[f1.situation] as List
     def i1 = assignments.findIndexOf { Assignment it -> it.frame == f1.var && it.property == a1 }
     def i2 = assignments.findIndexOf { Assignment it -> it.frame == f2.var && it.property == a2 }
+    if (i1 < 0 || i2 < 0) return false
     return i1 < i2
   }
 

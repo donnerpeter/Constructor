@@ -18,7 +18,7 @@ interface RussianConstructions {
       }
       String agr = args.agr
       if (SeqInterceptor.agrNumber(agr)) {
-        state = state.assign(noun, 'number', SeqInterceptor.agrNumber(agr))
+        state = state.assign(noun, 'rusNumber', SeqInterceptor.agrNumber(agr))
       }
       if (SeqInterceptor.agrPerson(agr)) {
         state = state.assign(noun, 'person', SeqInterceptor.agrPerson(agr))

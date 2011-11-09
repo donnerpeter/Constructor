@@ -71,6 +71,9 @@ class Frame {
   }
 
   boolean canBeHuman() {
+    if (f('member')) {
+      return !flatten().every { !it.canBeHuman() }
+    }
     if (type == 'wh') return false
     if (s('number') || Util.parseNumber(type) != null) return false
     if (!type && s('name')) return true
@@ -138,7 +141,7 @@ class Frame {
     }
 
     if (attr == 'type') {
-      if (s('number') == 'pl') return 'THEY'
+      if (s('rusNumber') == 'pl') return 'THEY'
       if (s('person') == '3') return s('gender') == 'fem' ? 'SHE' : 'HE'
     }
 

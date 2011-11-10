@@ -499,6 +499,14 @@ H.number=true
     doTranslateTest 'Кассир идет в сад после работы',
                     'The cashier goes to the garden after the work'
   }
+  public void testAfterVasyaGoesCashier() throws Exception {
+    doTranslateTest 'После Васи идет кассир',
+                    'After Vasya, the cashier goes'
+  }
+  public void testCashierGoesAfterVasya() throws Exception {
+    doTranslateTest 'Кассир идет после Васи',
+                    'The cashier goes after Vasya'
+  }
   public void test12_7Before8() throws Exception {
     doTranslateTest '7 идет раньше 8',
                     'A 7 comes before an 8'

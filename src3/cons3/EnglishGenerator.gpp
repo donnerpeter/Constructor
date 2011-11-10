@@ -55,12 +55,20 @@ class EnglishGenerator {
       boolean topLevel
       Frame comp
       Frame copula
+      Map<String, Frame> preAdjuncts = [:]
+      Map<String, Frame> postAdjuncts = [:]
 
       ClauseGenerator(Frame frame, Frame bg, boolean topLevel, Frame comp) {
         this.frame = frame
         this.bg = bg
         this.topLevel = topLevel
         this.comp = comp
+
+        if (frame?.f('relTime_after')) {
+          def anchor = frame.f('relTime_after')
+          Map<String, Frame> toAdd = chart.earlier(anchor, 'type', frame, 'type') || chart.earlier(anchor, 'name', frame, 'type') ? preAdjuncts : postAdjuncts
+          toAdd.relTime_after = anchor
+        }
       }
 
       def generate(boolean last) {
@@ -75,10 +83,14 @@ class EnglishGenerator {
         } else if (frame?.s('relTime') == 'BEFORE') {
           out 'before'
           out ','
-        } else if (frame?.f('relTime_after') && chart.earlier(frame?.f('relTime_after'), 'type', frame, 'time')) {
-          out 'after'
-          np(frame?.f('relTime_after'), false)
-          out ','
+        }
+
+        for (k in preAdjuncts.keySet()) {
+          if (k == 'relTime_after') {
+            out 'after'
+            np(preAdjuncts[k], false)
+            out ','
+          }
         }
 
         if (bg) {
@@ -122,9 +134,11 @@ class EnglishGenerator {
           np(comp.f('topic'), false)
         }
 
-        if (frame?.f('relTime_after') && !chart.earlier(frame?.f('relTime_after'), 'type', frame, 'time')) {
-          out 'after'
-          np(frame?.f('relTime_after'), false)
+        for (k in postAdjuncts.keySet()) {
+          if (k == 'relTime_after') {
+            out 'after'
+            np(postAdjuncts[k], false)
+          }
         }
 
       }

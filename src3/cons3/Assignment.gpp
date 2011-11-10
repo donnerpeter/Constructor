@@ -1,20 +1,16 @@
 package cons3
 
+import groovy.transform.TupleConstructor
+
 /**
  * @author peter
  */
+@TupleConstructor
 class Assignment<T> {
   final T frame
   final String property
   final Object value
-
-  Assignment(T frame, String property, def value) {
-    assert frame
-    assert property
-    this.frame = frame
-    this.property = property
-    this.value = value
-  }
+  final int generation
 
   @Override
   String toString() {

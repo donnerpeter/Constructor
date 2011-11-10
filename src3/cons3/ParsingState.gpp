@@ -13,9 +13,12 @@ class ParsingState {
   private final FLinkedMap<Construction, List<Pair<Chart, Chart>>> changes
   final FList<Contribution> history
   final Set<Mite> active
+  final int currentGeneration
 
   ParsingState() {
-    this(chart: new Chart(), situation: new Situation(), mites: FLinkedMap.emptyMap, changes: FLinkedMap.emptyMap, history: FList.emptyList, active: Collections.emptySet())
+    this(chart: new Chart(), situation: new Situation(), 
+            mites: FLinkedMap.emptyMap, changes: FLinkedMap.emptyMap, 
+            history: FList.emptyList, active: Collections.emptySet(), currentGeneration:0)
   }
 
   ParsingState(Map map) {
@@ -24,6 +27,7 @@ class ParsingState {
     situation = map.situation
     mites = map.mites
     history = map.history
+    currentGeneration = map.currentGeneration
     active = Collections.unmodifiableSet((Set)map.active)
   }
   
@@ -50,7 +54,7 @@ class ParsingState {
   }
 
   private ParsingState clone(Map update) {
-    Map current = [chart:chart, situation:situation, mites:mites, history:history, active:active, changes:changes]
+    Map current = [chart:chart, situation:situation, mites:mites, history:history, active:active, changes:changes, currentGeneration:currentGeneration]
     current.putAll(update)
     return new ParsingState(current)
   }
@@ -58,7 +62,7 @@ class ParsingState {
   ParsingState withSituation(Situation situation) { clearConstructions().clone(situation:situation) }
 
   ParsingState assign(def var, String property, def value) {
-    clone(chart: chart.assign((Variable)var, situation, property, value))
+    clone(chart: chart.assign((Variable)var, situation, property, value, currentGeneration))
   }
   
   Map getAt(Construction construction) {
@@ -211,7 +215,7 @@ class ParsingState {
     List<Mite> newMites = []
     for (c in update.keySet()) {
       if (update[c] && !state.mites[c]?.find { unify(it.contents, update[c]) == it.contents }) {
-        newMites << new Mite(update[c], c)
+        newMites << new Mite(update[c], c, state)
       }
     }
     
@@ -241,7 +245,7 @@ class ParsingState {
       }
     }
 
-    state
+    return state.clone(currentGeneration: state.currentGeneration + 1)
   }
 
   private static LinkedHashSet<Mite> calcAlternative(ParsingState state, List<Mite> toAdd, Map<Mite, LinkedHashSet<ParsingState.Group>> groups) {
@@ -396,9 +400,15 @@ class ParsingState {
     def theirActiveCxts = (other.active.collect { it.cxt } as Set).size()
     int myActiveCxts = (active.collect { it.cxt } as Set).size()
     if (theirActiveCxts > myActiveCxts || theirActiveCxts == myActiveCxts && other.active.size() < active.size()) {
-      return true
+      if (!other.dominatesSemantically(this)) {
+        return true
+      }
     }
 
+    return dominatesSemantically(other)
+  }
+
+  private boolean dominatesSemantically(ParsingState other) {
     for (verb in chart.frames.findAll { it.type in ['GO', 'BREAK', 'CAN', 'REMEMBER', 'FORGET'] }) {
       def alternative = verb.var.frame(other.chart)
       if (!alternative) continue
@@ -411,12 +421,19 @@ class ParsingState {
         return true
       }
     }
-    
+
     return false
   }
 
   private ParsingState doApply(Construction cxt) {
-    Map args = mites[cxt].foldLeft([:]) { Mite mite, Map merge -> mite in active ? unify(merge, mite.contents) : merge }
+    Map args = [:]
+    int newestGeneration = 0
+    for (mite in mites[cxt]) {
+      if (mite in active) {
+        args = unify(args, mite.contents)
+        newestGeneration = mite.generation
+      }
+    }
 
     Closure init = args.init
     args.remove('init')
@@ -425,13 +442,16 @@ class ParsingState {
     }
 
     def before = chart
-    
-    def next = init ? (ParsingState)init(this) : this
+
+    ParsingState next = clone(currentGeneration:newestGeneration)
+    if (init) {
+      next = init(next)
+    }
     next = cxt.action.call(next, args)
     if (before != next.chart) {
-      next = next.clone(changes: changes + [(cxt):(changes[cxt] ?: []) + new Pair(before, next.chart)])
+      next = next.clone(changes:changes + [(cxt):(changes[cxt] ?: []) + new Pair(before, next.chart)])
     }
-    return next
+    return next.clone(currentGeneration:currentGeneration)
   }
 
 

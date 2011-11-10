@@ -44,10 +44,10 @@ class Chart {
   boolean earlier(Frame f1, String a1, Frame f2, String a2) {
     assert f1.situation == f2.situation
     List<Assignment<Variable>> assignments = __assignments[f1.situation] as List
-    def i1 = assignments.findIndexOf { Assignment it -> it.frame == f1.var && it.property == a1 }
-    def i2 = assignments.findIndexOf { Assignment it -> it.frame == f2.var && it.property == a2 }
-    if (i1 < 0 || i2 < 0) return false
-    return i1 < i2
+    Assignment<Variable> i1 = assignments.find { Assignment it -> it.frame == f1.var && it.property == a1 }
+    Assignment<Variable> i2 = assignments.find { Assignment it -> it.frame == f2.var && it.property == a2 }
+    if (!i1 || !i2) return false
+    return i1.generation < i2.generation
   }
 
   List<Variable> vars(Situation situation) {
@@ -68,15 +68,15 @@ class Chart {
       def oldValue = it.value
       def newValue = oldValue instanceof String ? oldValue : ((Variable) (Object)oldValue).frame(this) //todo alex
       Frame newFrame = it.frame.frame(this)
-      new Assignment<Frame>(newFrame, it.property, newValue)
+      new Assignment<Frame>(newFrame, it.property, newValue, it.generation)
     }
   }
 
-  Chart assign(Variable var, Situation situation, String property, def value) {
+  Chart assign(Variable var, Situation situation, String property, def value, int generation) {
     assert value instanceof String || value instanceof Variable
     assert var
 
-    def assignment = new Assignment(var, property, value)
+    def assignment = new Assignment(var, property, value, generation)
     if (__assignments[situation]?.contains(assignment)) {
       return this
     }

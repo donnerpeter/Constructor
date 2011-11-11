@@ -6,10 +6,12 @@ package cons3
 class Construction {
   final Function2<ParsingState, Map, ParsingState> action
   final String name
+  final List<String> requiredAttrs
 
-  Construction(String name, Function2<ParsingState, Map, ParsingState> action) {
+  private Construction(String name, Function2<ParsingState, Map, ParsingState> action, List<String> requiredAttrs) {
     this.action = action
     this.name = name
+    this.requiredAttrs = requiredAttrs
   }
 
   @Override
@@ -17,11 +19,28 @@ class Construction {
     return name
   }
 
-  static Construction cxt(String name, Function2<ParsingState, Map, ParsingState> cl) {
-    new Construction(name, cl)
+  boolean isExecutable(Collection<Mite> mites) {
+    if (!requiredAttrs) return true
+    
+    Set<String> absent = requiredAttrs as Set
+    for (mite in mites) {
+      if (mite.contents.init) {
+        return true
+      }
+      absent.removeAll(Util.intersect(absent, mite.contents.keyList()))
+      if (!absent) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  static Construction cxt(String name, List<String> requiredAttrs = [], Function2<ParsingState, Map, ParsingState> cl) {
+    new Construction(name, cl, requiredAttrs)
   }
   static Construction cxt(String name, Closure cl) {
-    new Construction(name, cl as Function2)
+    new Construction(name, cl as Function2, [])
   }
 
 }

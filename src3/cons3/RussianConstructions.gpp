@@ -9,8 +9,8 @@ interface RussianConstructions {
 
   Construction adjective = cxt('adjective') { ParsingState state, Map args ->
     state.assign(args.nounFrame, (String)args.rel, args.val) }
-  Construction nom = cxt('nom') { ParsingState state, Map args ->
-    if (args.agr && args.head && !args.hasNoun) {
+  Construction nom = cxt('nom', ['head']) { ParsingState state, Map args ->
+    if (args.agr && !args.hasNoun) {
       Variable noun = args.noun
       if (!args.noun) {
         noun = new Variable()
@@ -35,13 +35,13 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction acc = cxt('acc') { ParsingState state, Map args ->
+  Construction acc = cxt('acc', ['head', 'noun']) { ParsingState state, Map args ->
     if (args.head && args.noun) {
       state = state.assign(args.head, 'arg2', args.noun)
     }
     return state
   }
-  Construction gen = cxt('gen') { ParsingState state, Map args ->
+  Construction gen = cxt('gen', ['head', 'noun']) { ParsingState state, Map args ->
     if (args.head && args.noun) {
       if (((Variable) args.head)?.frame(state.chart)?.type == 'BOTH') {
         state = state.assign(args.noun, 'quantifier', args.head)
@@ -62,22 +62,22 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction instr = cxt('instr') { ParsingState state, Map args ->
+  Construction instr = cxt('instr', ['head', 'noun']) { ParsingState state, Map args ->
     if (((Variable) args.head)?.frame(state.chart)?.type && args.noun) {
       state = state.assign(args.head, 'arg2', args.noun)
     }
     state
   }
-  Construction dat = cxt('dat') { ParsingState state, Map args ->
+  Construction dat = cxt('dat', ['head', 'noun', 'infinitive']) { ParsingState state, Map args ->
     if (args.head && args.noun && args.infinitive) {
       state = state.assign(args.head, 'arg1', args.noun)
     }
     state
   }
-  Construction prep = cxt('prep') { ParsingState state, Map args -> state }
-  Construction sInstr = cxt('sInstr') { ParsingState state, Map args ->
+  Construction prep = cxt('prep', ['X']) { ParsingState state, Map args -> state }
+  Construction sInstr = cxt('sInstr', ['head', 'noun']) { ParsingState state, Map args ->
     if (args.head && args.noun) {
-      if ( ((Variable) args.noun).frame(state.chart)?.type in ['JOY', 'RELIEF']) {
+      if (((Variable) args.noun).frame(state.chart)?.type in ['JOY', 'RELIEF']) {
         state = state.assign(args.head, 'mood', args.noun)
       } else {
         state = state.assign(args.head, 'experiencer', args.noun)
@@ -86,14 +86,14 @@ interface RussianConstructions {
 
     return state
   }
-  Construction sGen = cxt('sGen') { ParsingState state, Map args ->
+  Construction sGen = cxt('sGen', ['head', 'noun']) { ParsingState state, Map args ->
     if (args.head && args.noun) {
       state = state.assign(args.head, 'source', args.noun)
     }
 
     return state
   }
-  Construction poDat = cxt('poDat') { ParsingState state, Map args ->
+  Construction poDat = cxt('poDat', ['head', 'noun']) { ParsingState state, Map args ->
     Variable lastNoun = args.noun
     def member = lastNoun?.frame(state.chart)?.f('member')
     if (member) {
@@ -116,19 +116,19 @@ interface RussianConstructions {
 
     return state
   }
-  Construction oPrep = cxt('oPrep') { ParsingState state, Map args ->
+  Construction oPrep = cxt('oPrep', ['head', 'noun']) { ParsingState state, Map args ->
     args.noun ? state.assign(args.head, 'topic', args.noun) : state
   }
-  Construction kDat = cxt('kDat') { ParsingState state, Map args ->
+  Construction kDat = cxt('kDat', ['head', 'noun']) { ParsingState state, Map args ->
     args.noun && args.head ? state.assign(args.head, 'goal', args.noun) : state
   }
-  Construction dativePart = cxt('dativePart') { state, args ->
+  Construction dativePart = cxt('dativePart', ['head', 'dat', 'acc']) { state, args ->
     args.dat && args.head && args.acc ? state.assign(args.acc, 'arg1', args.dat) : state
   }
-  Construction prevHistory = cxt('prevHistory') { ParsingState state, Map args ->
+  Construction prevHistory = cxt('prevHistory', ['X']) { ParsingState state, Map args ->
     return state
   }
-  Construction clauseEllipsis = cxt('clauseEllipsis') { ParsingState state, Map args ->
+  Construction clauseEllipsis = cxt('clauseEllipsis', ['X']) { ParsingState state, Map args ->
     return state
   }
   Construction declOrQuestionComp = cxt('declOrQuestionComp') { ParsingState state, Map args ->
@@ -149,13 +149,13 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction comeScalarly = cxt('comeScalarly') { ParsingState state, Map args ->
+  Construction comeScalarly = cxt('comeScalarly', ['verb', 'order']) { ParsingState state, Map args ->
     args.verb && args.order ? state.assign(args.verb, 'type', 'COME_SCALARLY').assign(args.verb, 'order', args.order) : state
   }
-  Construction questionVariants = cxt('questionVariants') { ParsingState state, Map args ->
+  Construction questionVariants = cxt('questionVariants', ['seq', 'questioned']) { ParsingState state, Map args ->
     args.seq && args.questioned ? state.assign(args.questioned, 'variants', args.seq).satisfied(questionVariants) : state
   }
-  Construction shortAdj = cxt('shortAdj') { ParsingState state, Map args ->
+  Construction shortAdj = cxt('shortAdj', ['noun', 'value', 'copula']) { ParsingState state, Map args ->
     if (args.noun && args.value && args.copula) {
       state = state.assign(args.copula, 'type', 'degree').assign(args.copula, 'arg1', args.noun).assign(args.copula, 'arg2', args.value)
       if (args.time) {
@@ -164,10 +164,10 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction parenthetical = cxt('parenthetical') { ParsingState state, Map args ->
+  Construction parenthetical = cxt('parenthetical', ['X']) { ParsingState state, Map args ->
     return state
   }
-  Construction preposition = cxt('preposition') { ParsingState state, Map args ->
+  Construction preposition = cxt('preposition', ['prep']) { ParsingState state, Map args ->
     if (!args.interceptor && args.prep) {
       state = state.inhibit(preposition).addCxt(new Mite(preposition, prep:args.prep, interceptor:new Preposition(), state))
     }
@@ -189,28 +189,28 @@ interface RussianConstructions {
           }
         }
       }
-      
+
     }
     return state
   }
-  Construction control = cxt('control') { ParsingState state, Map args ->
+  Construction control = cxt('control', ['head', 'slave']) { ParsingState state, Map args ->
     return args.head && args.slave ? state.assign(args.head, 'theme', args.slave) : state
   }
-  Construction conditionComp = cxt('conditionComp') { ParsingState state, Map args ->
+  Construction conditionComp = cxt('conditionComp', ['hasComma', 'head', 'wh']) { ParsingState state, Map args ->
     if (args.hasComma && !args.comp && args.head && args.wh) {
       def next = new Situation()
       state = state.assign(args.head, "${args.wh}Condition", next).withSituation(next).apply(conditionComp, comp:next)
     }
     return state
   }
-  Construction reasonComp = cxt('reasonComp') { ParsingState state, Map args ->
+  Construction reasonComp = cxt('reasonComp', ['hasComma', 'head', 'active']) { ParsingState state, Map args ->
     if (args.hasComma && !args.comp && args.head && args.active) {
       def next = new Situation()
       state = state.assign(args.head, "reason", next).withSituation(next)
     }
     return state
   }
-  Construction numQuantifier = cxt('numQuantifier') { ParsingState state, Map args ->
+  Construction numQuantifier = cxt('numQuantifier', ['num', 'noun']) { ParsingState state, Map args ->
     return args.num && args.noun ? state.assign(args.noun, 'quantifier', args.num) : state
   }
   Construction negation = cxt('negation') { ParsingState state, Map args ->
@@ -225,13 +225,13 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction vAcc = cxt('vAcc') { ParsingState state, Map args ->
+  Construction vAcc = cxt('vAcc', ['noun', 'head']) { ParsingState state, Map args ->
     if (args.head && args.noun) {
       state = state.assign(args.head, ((Variable) args.head).frame(state.chart).type == 'THINK' ? 'theme' : 'goal', args.noun)
     }
     state
   }
-  Construction vPrep = cxt('vPrep') { ParsingState state, Map args ->
+  Construction vPrep = cxt('vPrep', ['noun', 'head']) { ParsingState state, Map args ->
     if (args.head && args.noun) {
       if (((Variable) args.head).frame(state.chart).type == 'COME_TO') {
         state = state.assign(args.head, 'domain', args.noun)
@@ -241,20 +241,20 @@ interface RussianConstructions {
     }
     state
   }
-  Construction posleGen = cxt('posleGen') { ParsingState state, Map args ->
+  Construction posleGen = cxt('posleGen', ['noun', 'head']) { ParsingState state, Map args ->
     if (args.head && args.noun) {
       state = state.assign(args.head,'anchor', args.noun)
     }
     return state
   }
-  Construction ransheGen = cxt('ransheGen') { ParsingState state, Map args ->
+  Construction ransheGen = cxt('ransheGen', ['noun', 'head']) { ParsingState state, Map args ->
     def type = ((Variable) args.head)?.frame(state.chart)?.type
     if (type && args.noun) {
       state = state.assign(args.head,'anchor', args.noun)
     }
     return state
   }
-  Construction naPrep = cxt('naPrep') { ParsingState state, Map args ->
+  Construction naPrep = cxt('naPrep', ['noun', 'head']) { ParsingState state, Map args ->
     if (args.head && args.noun) {
       if (args.copula) {
         def location = args.copula
@@ -265,16 +265,16 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction izGen = cxt('izGen') { ParsingState state, Map args ->
+  Construction izGen = cxt('izGen', ['noun', 'head']) { ParsingState state, Map args ->
     args.head && args.noun ? state.assign(args.head, 'source', args.noun) : state
   }
-  Construction doGen = cxt('doGen') { ParsingState state, Map args ->
+  Construction doGen = cxt('doGen', ['noun', 'head']) { ParsingState state, Map args ->
     args.head && args.noun ? state.assign(args.head, 'goal', args.noun) : state
   }
-  Construction otGen = cxt('otGen') { ParsingState state, Map args ->
+  Construction otGen = cxt('otGen', ['noun', 'head']) { ParsingState state, Map args ->
     args.head && args.noun ? state.assign(args.head, 'theme', args.noun) : state
   }
-  Construction participleArg = cxt('participleArg') { ParsingState state, Map args ->
+  Construction participleArg = cxt('participleArg', ['participle', 'head']) { ParsingState state, Map args ->
     args.head && args.participle ? state.assign(args.head, 'theme', args.participle) : state
   }
   Construction seq = cxt('seq') { ParsingState state, Map args ->
@@ -283,44 +283,32 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction advObj = cxt('advObj') { ParsingState state, Map args ->
+  Construction advObj = cxt('advObj', ['adv', 'head']) { ParsingState state, Map args ->
     if (args.head && args.adv) {
       state = state.assign(args.head, 'arg2', args.adv)
     }
     return state
   }
-  Construction relTime = cxt('relTime') { ParsingState state, Map args ->
-    if (args.head && args.relTime) {
-      state = state.assign(args.head, 'relTime', args.relTime)
-    }
-    return state
+  Construction relTime = cxt('relTime', ['relTime', 'head']) { ParsingState state, Map args ->
+    state.assign(args.head, 'relTime', args.relTime)
   }
-  Construction absTime = cxt('absTime') { ParsingState state, Map args ->
-    if (args.head && args.rel && args.noun) {
-      state = state.assign(args.head, 'relTime_after', args.noun)
-    }
-    return state
+  Construction absTime = cxt('absTime', ['rel', 'head', 'noun']) { ParsingState state, Map args ->
+    state.assign(args.head, 'relTime_after', args.noun)
   }
-  Construction adverb = cxt('adverb') { ParsingState state, Map args ->
-    if (args.head && args.adv) {
-      state = state.assign(args.head, args.adv == 'LONG' ? 'duration' : 'manner', args.adv).inhibit(adverb)
-    }
-    return state
+  Construction adverb = cxt('adverb', ['head', 'adv']) { ParsingState state, Map args ->
+    state.assign(args.head, args.adv == 'LONG' ? 'duration' : 'manner', args.adv).inhibit(adverb)
   }
-  Construction quotedName = cxt('quotedName') { ParsingState state, Map args ->
-    if (args.finished) {
-      state = state.assign(args.noun, 'name', args.name).satisfied(quotedName)
-    }
-    return state
+  Construction quotedName = cxt('quotedName', ['finished']) { ParsingState state, Map args ->
+    state.assign(args.noun, 'name', args.name).satisfied(quotedName)
   }
-  Construction relativeClause = cxt('relativeClause') { ParsingState state, Map args ->
+  Construction relativeClause = cxt('relativeClause', ['noun', 'hasComma', 'wh']) { ParsingState state, Map args ->
     if (args.noun && args.hasComma && args.wh) {
       def next = new Situation()
-      return state.assign(args.noun, 'relative', next).withSituation(next).assign(args.wh, 'relativized', 'true').apply(nestedClause, save: args.save, parent:args.parentSituation)
+      return state.assign(args.noun, 'relative', next).withSituation(next).assign(args.wh, 'relativized', 'true').apply(nestedClause, save:args.save, parent:args.parentSituation)
     }
     return state
   }
-  Construction nestedClause = cxt('nestedClause') { ParsingState state, Map args ->
+  Construction nestedClause = cxt('nestedClause', ['X']) { ParsingState state, Map args ->
     return state
   }
   Construction complementizer = cxt('complementizer') { ParsingState state, Map args ->
@@ -340,29 +328,17 @@ interface RussianConstructions {
 
     return state
   }
-  Construction summerGarden = cxt('summerGarden') { ParsingState state, Map args ->
-    if (args.summer && args.garden) {
-      state = state.assign(args.garden, 'name', 'Летний сад')
-    }
-    return state
+  Construction summerGarden = cxt('summerGarden', ['summer', 'garden']) { ParsingState state, Map args ->
+    state.assign(args.garden, 'name', 'Летний сад')
   }
-  Construction subjunctive = cxt('subjunctive') { ParsingState state, Map args ->
-    if (args.head && args.subjunctive) {
-      state = state.assign(args.head, 'irrealis', 'true')
-    }
-    return state
+  Construction subjunctive = cxt('subjunctive', ['head', 'subjunctive']) { ParsingState state, Map args ->
+    state.assign(args.head, 'irrealis', 'true')
   }
-  Construction adverbPred = cxt('adverbPred') { ParsingState state, Map args ->
-    if (args.adverb && args.time) {
-      state = state.assign(args.adverb, 'time', args.time)
-    }
-    return state
+  Construction adverbPred = cxt('adverbPred', ['adverb', 'time']) { ParsingState state, Map args ->
+    state.assign(args.adverb, 'time', args.time)
   }
-  Construction verbHolder = cxt('verbHolder') { ParsingState state, Map args -> state }
-  Construction elaboration = cxt('elaborationHolder') { ParsingState state, Map args ->
-    if (args.head && args.elaboration) {
-      state = state.assign(args.head, 'elaboration', args.elaboration)
-    }
-    return state
+  Construction verbHolder = cxt('verbHolder', ['X']) { ParsingState state, Map args -> state }
+  Construction elaboration = cxt('elaboration', ['head', 'elaboration']) { ParsingState state, Map args ->
+    state.assign(args.head, 'elaboration', args.elaboration)
   }
 }

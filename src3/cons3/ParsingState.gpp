@@ -264,6 +264,9 @@ class ParsingState {
         toAdd << mite
       }
     }
+    if (!cxt.isExecutable(currentActive)) {
+      return null
+    }
     return toAdd
   }
 
@@ -426,13 +429,14 @@ class ParsingState {
   }
 
   private ParsingState doApply(Construction cxt) {
+    List<Mite> mites = mites[cxt].findAll { it in active }
+    if (!cxt.isExecutable(mites)) return this
+
     Map args = [:]
     int newestGeneration = 0
-    for (mite in mites[cxt]) {
-      if (mite in active) {
-        args = unify(args, mite.contents)
-        newestGeneration = mite.generation
-      }
+    for (mite in mites) {
+      args = unify(args, mite.contents)
+      newestGeneration = mite.generation
     }
 
     Closure init = args.init

@@ -359,14 +359,6 @@ class EnglishGenerator {
         past = true //todo maintain a tense for the whole discourse
       }
 
-      def opinion = verb.f('opinion_of')
-      if (opinion) {
-        opinionOf(opinion, null, null)
-        if (!verb.findMeta('type', 'ellipsis')) {
-          out ','
-        }
-      }
-
       def imperative = verb.type == 'modality'
       if (imperative) {
         verb = verb.f('arg1')
@@ -374,6 +366,28 @@ class EnglishGenerator {
       }
 
       def subj = verb.f('arg1')
+      if (verb.type == 'degree') {
+        out 'great'
+        out 'was'
+        np(subj, true)
+        return subj
+      }
+
+      if (findQuestioned(verb)) {
+        out 'what'
+      }
+
+      def opinion = verb.f('opinion_of')
+      if (opinion) {
+        if (findQuestioned(verb)) {
+          out ','
+        }
+        opinionOf(opinion, null, null)
+        if (!verb.findMeta('type', 'ellipsis')) {
+          out ','
+        }
+      }
+
       if (verb.type == 'location') {
         if (subj.s('relativized') == 'true') {
           out(verb.s('time') == 'PAST' ? 'that was' : "that's")
@@ -384,17 +398,6 @@ class EnglishGenerator {
         out 'on'
         np(verb.f('arg2'), false)
         return subj
-      }
-
-      if (verb.type == 'degree') {
-        out 'great'
-        out 'was'
-        np(subj, true)
-        return subj
-      }
-
-      if (findQuestioned(verb)) {
-        out 'what'
       }
 
       if (topLevel && subj) {
@@ -463,6 +466,11 @@ class EnglishGenerator {
         }
 
         out(mainVerb(verb))
+      }
+
+      Frame addressee = verb.f('addressee')
+      if (addressee) {
+        np(addressee, false, true)
       }
 
       def dobj = verb.f('arg2')
@@ -542,7 +550,7 @@ class EnglishGenerator {
 
       def theme = verb.type == 'FORGET' && !nounDObj ? verb.f('arg2') : verb.f('theme')
       if (theme && verb.type in ['FORGET', 'DISCOVER']) {
-        def that = theme.flatten().every { !findQuestioned(it) }
+        def that = !isQuestion(theme)
         if (that) {
           out ","
         }
@@ -563,6 +571,10 @@ class EnglishGenerator {
         }
       }
       return subj
+    }
+
+    private boolean isQuestion(Frame verb) {
+      return verb.flatten().any { findQuestioned(it) }
     }
 
     private def generateSubject(boolean shouldHaveSubject, boolean forceSubject, Frame verb, Frame subj) {
@@ -605,7 +617,11 @@ class EnglishGenerator {
             new SituationGenerator(chart, (Situation)message.var, true).sentence(true)
           }
         } else if (message) {
-          out 'that'
+          if (!isQuestion(message)) {
+            out 'that'
+          } else if (message.f('opinion_of')) {
+            out ','
+          }
           new ClauseGenerator(message, null, false, null).generate(true)
         }
       }
@@ -661,7 +677,8 @@ class EnglishGenerator {
       def type = verb.type
       def verbs = [HAPPEN: 'happened', FORGET: 'forgot', GO_OFF: 'went',
               ASK: (verb.f('topic')?.type == 'PREDICAMENT' ? 'consulted' : (past ? 'asked' : 'ask')),
-              DISCOVER: 'discovered', CAN: "couldn't", RECALL: 'recall', TAKE_OUT: "took", SAY: 'said',
+              DISCOVER: 'discovered', CAN: "couldn't", RECALL: 'recall', TAKE_OUT: "took", 
+              SAY:(verb.f('addressee') ? 'told' : 'said'),
               REMEMBER: (past ? 'remembered' : verb.f('arg1')?.type in ['HE', 'SHE'] ? 'remembers' : 'remember'), GO: (past ? 'went' : 'goes'),
               RUN_OUT: 'ran', THANK: 'thanked',
               GET_SAD: 'got sad', DO: 'do', NEED:'need',
@@ -808,7 +825,7 @@ class EnglishGenerator {
       }
       if (n.type == 'OPINION') {
         def arg1 = n.f('arg1')
-        if (arg1 && arg1.type != 'ME' && arg1.type != 'THEY') {
+        if (arg1 && !isShortPronoun(arg1)) {
           out 'of'
           np(arg1, false)
         }
@@ -822,6 +839,10 @@ class EnglishGenerator {
         new SituationGenerator(chart, (Situation) rel.var, false).sentence(false)
 
       }
+    }
+
+    private boolean isShortPronoun(Frame noun) {
+      return noun?.type in ['ME', 'THEY', 'HE', 'SHE', 'WE']
     }
 
     private boolean isNumber(Frame n) {
@@ -869,7 +890,7 @@ class EnglishGenerator {
         return
       }
 
-      if (n.type in ['OPINION'] && n.f('arg1')?.type in ['ME', 'THEY']) {
+      if (n.type in ['OPINION'] && isShortPronoun(n.f('arg1'))) {
         possessive(n.f('arg1'), n)
         return
       }
@@ -913,6 +934,7 @@ class EnglishGenerator {
       if (poss.type == 'ME') out 'my'
       else if (poss.type == 'WE') out 'our'
       else if (poss.type == 'THEY') out 'their'
+      else if (poss.type == 'HE') out 'his'
       else if (poss.type == 'SHE') out 'her'
       else {
         if (poss.usages('arg1')) {

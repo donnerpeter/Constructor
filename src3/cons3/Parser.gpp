@@ -207,10 +207,10 @@ class Parser { //todo alex implements cons3.RussianConstructions
         }
 
         return state.clearConstructions().apply((elaboration):[head:state[verbHolder].head])
-      case "я": return noun(state, nom, 'ME')
-      case "мы": return noun(state, nom, 'WE')
-      case "нам": return noun(state, dat, 'WE')
-      case "нас": return noun(state, acc, 'WE')
+      case "я": return pronoun(state, nom, 'ME')
+      case "мы": return noun(state, nom, 'WE') // todo we pronoun
+      case "нам": return pronoun(state, dat, 'WE')
+      case "нас": return pronoun(state, acc, 'WE')
       case "мое":
         def me = new Variable()
         return conjWrap(state, (possessive):[possessor:me, init:{ ParsingState it ->it.assign(me, 'type', 'ME') }])
@@ -381,7 +381,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "сказал":
       case "сказала":
         def verb = new Variable()
-        return finiteVerb(state, verb, 'SAY', 'PAST', (nom):[head:verb], (directSpeech):[head:verb], (declOrQuestionComp):[head:verb])
+        return finiteVerb(state, verb, 'SAY', 'PAST', (nom):[head:verb], (dat):[head:verb], (directSpeech):[head:verb], (declOrQuestionComp):[head:verb])
       case "вынул":
       case "вынула":
         def verb = new Variable()
@@ -640,6 +640,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     update = update.addCxt(possessive, head: noun)
 
     update = update.addCxt(quotedName, noun:noun).addCxt(numQuantifier, noun:noun)
+    update = update.addCxt(relativeClause, noun:noun, save:state)
 
     return conjWrap(update.map.reverse(), state)
   }
@@ -664,7 +665,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
 
     update = update.addCxt(caze, noun:noun, hasNoun:true, init:{ init(it, typeNoun) })
 
-    update = update.addCxt(relativeClause, noun:noun, save:state)
     return update
   }
 

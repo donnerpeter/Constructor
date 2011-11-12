@@ -68,9 +68,11 @@ interface RussianConstructions {
     }
     state
   }
-  Construction dat = cxt('dat', ['head', 'noun', 'infinitive']) { ParsingState state, Map args ->
-    if (args.head && args.noun && args.infinitive) {
+  Construction dat = cxt('dat', ['head', 'noun']) { ParsingState state, Map args ->
+    if (args.infinitive) {
       state = state.assign(args.head, 'arg1', args.noun)
+    } else if (((Variable) args.head)?.frame(state.chart)?.type == 'SAY') {
+      state = state.assign(args.head, 'addressee', args.noun)
     }
     state
   }

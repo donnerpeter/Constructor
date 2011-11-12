@@ -309,7 +309,9 @@ class ParsingState {
       }
     }
     for (mite in toApply) {
-      state = state.doApply(mite.cxt)
+      if (mites[mite.cxt]) {
+        state = state.doApply(mite.cxt)
+      }
     }
     state
   }

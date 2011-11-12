@@ -233,9 +233,13 @@ H.number=true
     doTranslateTest 'Кассир сказал, что, по его мнению, семь идет после восьми в том случае, когда восемь идет после семи',
                     ""
   }
-  public void _test6_7_IndirectHeWhat() throws Exception {
+  public void test6_7_IndirectHeWhatOpinion() throws Exception {
     doTranslateTest 'Кассир сказал нам, что, по его мнению, идет после восьми',
-                    ""
+                    "The cashier told us, what, in his opinion, comes after an eight"
+  }
+  public void test6_7_IndirectHeWhat() throws Exception {
+    doTranslateTest 'Кассир сказал нам, что идет после восьми',
+                    "The cashier told us what comes after an eight"
   }
   public void test6_7_IndirectHeShort() throws Exception {
     doTranslateTest 'Кассир сказал, что семь идет после восьми',

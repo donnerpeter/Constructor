@@ -289,12 +289,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply(gen, head:noun) //todo one noun frame - several cases
       case "слова":
         def noun = state[acc]?.hasNoun ? new Variable() : state[acc]?.noun ?: new Variable()
-        def init = {ParsingState it -> it.assign(noun, 'type', 'WORDS') }
         Update update = new Update((typeCxt('WORDS')):[var:noun], (acc):[noun:noun, hasNoun:true, xor:t.a],
                                    (gen):[head:noun],
                                    (possessive):[head:noun])
         if (!state[preposition]) {
-          update = update.addCxt(nom, noun:noun, hasNoun:true, init:init, xor:t.a)
+          update = update.addCxt(nom, noun:noun, hasNoun:true, xor:t.a)
         }
         state = update.apply(state)
         return state

@@ -225,12 +225,12 @@ C.type=CORNER
 D.type=STREET
 C.arg1=D
 D.name=знаменская
-E.member=D
-E.conj=and
-E.member=F
-F.type=STREET
-C.arg1=E
-F.name=бассейная
+E.type=STREET
+F.member=D
+F.conj=and
+F.member=E
+C.arg1=F
+E.name=бассейная
 """
   }
 

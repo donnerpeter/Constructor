@@ -184,8 +184,8 @@ K.member=H
 K.conj=but
 K.member=J
 J.arg1=I
-L.type=NEXT
 J.arg2=L
+L.type=NEXT
 J.dot=true
 """
   }

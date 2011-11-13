@@ -237,7 +237,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.assign(state[nom].noun, 'quantifier', 'ALL')
       case "дальше":
         def adv = new Variable()
-        return state.apply((comeScalarly):[order:'AFTER', xor: t.a],  (advObj):[adv: adv, xor:t.a, init:{ ParsingState it ->it.assign(adv, 'type', 'NEXT') }])
+        return state.apply((comeScalarly):[order:'AFTER', xor: t.ab], (typeCxt('NEXT')):[var:adv, xor:t.b], (advObj):[adv: adv, xor:t.a])
       case "их":
         def they = new Variable()
         return conjWrap(state, (typeCxt('THEY')):[var:they], (possessive):[possessor:they, xor:t.a], (acc):[noun:they, hasNoun:true, xor:t.a])

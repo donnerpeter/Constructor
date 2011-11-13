@@ -61,7 +61,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       if (conj == 'but' && oldApps[nom]?.head && constructions[nom]?.head) {
         def seqVar = new Variable()
         state = state.assign(seqVar, 'member', oldApps[nom].head).assign(seqVar, 'conj', 'but').assign(seqVar, 'member', constructions[nom].head).
-                inhibit(seq, comeScalarly)
+                inhibit(seq)
         if (before[nom]?.noun && !constructions[nom].noun && agree(oldApps[nom].agr, constructions[nom].agr)) {
           state = state.inhibit(nom).apply((nom):[noun:before[nom].noun])
         }

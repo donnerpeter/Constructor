@@ -24,9 +24,6 @@ class Construction {
     
     Set<String> absent = requiredAttrs as Set
     for (mite in mites) {
-      if (mite.contents.init) {
-        return true
-      }
       absent.removeAll(Util.intersect(absent, mite.contents.keyList()))
       if (!absent) {
         return true

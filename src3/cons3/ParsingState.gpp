@@ -79,12 +79,8 @@ class ParsingState {
     constructions[construction]
   }
 
-  ParsingState apply(Map newArgs = [:], Construction name, Closure init = null) {
-    def args = newArgs
-    if (!args.init && init) {
-      args.init = init
-    }
-    return apply((name): args)
+  ParsingState apply(Map newArgs = [:], Construction name) {
+    return apply((name): newArgs)
   }
 
   static boolean overwrites(Map before, Map newArgs) {
@@ -92,7 +88,7 @@ class ParsingState {
       return false
     }
     for (arg in before.keySet().intersect(newArgs.keySet())) {
-      if (arg != 'init' && arg != 'xor' && before[arg] != newArgs[arg] && before[arg] != null) {
+      if (arg != 'xor' && before[arg] != newArgs[arg] && before[arg] != null) {
         return true
       }
     }
@@ -107,11 +103,6 @@ class ParsingState {
     def args = new HashMap()
     if (oldArgs) args.putAll(oldArgs)
     if (newArgs) args.putAll(newArgs)
-
-    def merged = mergeInits((Closure) oldArgs?.init, (Closure) newArgs.init)
-    if (merged) {
-      args.init = merged
-    }
 
     Collection xor = mergeXor(oldArgs, newArgs)
     if (xor) {
@@ -132,10 +123,6 @@ class ParsingState {
     xor.addAll xor1
     xor.addAll xor2
     return xor
-  }
-
-  static Closure mergeInits(Closure oldInit, Closure newInit) {
-    return newInit && oldInit ? { ParsingState state -> newInit(oldInit(state)) } : newInit ?: oldInit
   }
 
   ParsingState inhibit(Construction... cxts) {
@@ -442,8 +429,6 @@ class ParsingState {
       newestGeneration = mite.generation
     }
 
-    Closure init = args.init
-    args.remove('init')
     if (!args) {
       return this
     }
@@ -451,9 +436,6 @@ class ParsingState {
     def before = chart
 
     ParsingState next = clone(currentGeneration:newestGeneration)
-    if (init) {
-      next = init(next)
-    }
     next = cxt.action.call(next, args)
     if (before != next.chart) {
       next = next.clone(changes:changes + [(cxt):(changes[cxt] ?: []) + new Pair(before, next.chart)])

@@ -181,7 +181,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
 
     return update.
             addCxt(seqStart.get(), multi:multi, first:first, second:second, conj:conj, distinguish:newArgs.repeated).
-            addCxt(oldArgs + [(prop): multi, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt, ParsingState.mergeInits((Closure)oldArgs.init, (Closure)newArgs.init))
+            addCxt(oldArgs + [(prop):multi, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt)
   }
 
 
@@ -199,7 +199,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
     def newMember = newArgs[property]
     return update.
             addCxt(seqNext.get(), multi:seqVar, next:newMember, conj:state[seq]?.conj).
-            addCxt(oldArgs + [(property): seqVar, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt, ParsingState.mergeInits((Closure)oldArgs.init, (Closure)newArgs.init))
+            addCxt(oldArgs + [(property):seqVar, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt)
 
   }
 

@@ -119,8 +119,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "случай": return noun(state, nom, 'THING') //todo случай=CASE or THING
       case "случае":
         def noun = state[prep]?.noun ?: new Variable()
-        state = state.apply(prep, noun: noun, hasNoun:true) { ParsingState it ->it.assign(noun, 'type', 'CASE') }
-        return state.apply(conditionComp, head:noun) //todo one noun frame - several cases
+        return state.apply((typeCxt('CASE')):[var:noun], (prep):[noun: noun, hasNoun:true], (conditionComp):[head:noun]) //todo one noun frame - several cases
       case "удивление": return noun(state, nom, 'AMAZE')
       case "поводу": return noun(state, dat, 'MATTER')
       case "недоумении": return noun(state, prep, 'PREDICAMENT')
@@ -134,8 +133,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "ребенок": return noun(state, nom, 'CHILD')
       case "углу":  //todo plain noun
         def noun = state[prep]?.noun ?: new Variable()
-        state = state.apply(prep, noun: noun, hasNoun:true) {ParsingState it -> it.assign(noun, 'type', 'CORNER') }
-        return state.apply(gen, head:noun) //todo one noun frame - several cases
+        return state.apply((typeCxt('CORNER')):[var:noun], (prep):[noun: noun, hasNoun:true], (gen):[head:noun]) //todo one noun frame - several cases
       case "магазин":
         def noun = state[acc]?.noun ?: new Variable()
         Update update = new Update([:])
@@ -285,8 +283,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "один": return numeral(state, t, '1')
       case "порядок":
         def noun = new Variable()
-        state = state.apply(acc, noun: noun, hasNoun:true) { ParsingState it ->it.assign(noun, 'type', 'ORDER') }
-        return state.apply(gen, head:noun) //todo one noun frame - several cases
+        return state.apply((typeCxt('ORDER')):[var:noun], (acc):[noun: noun, hasNoun:true], (gen):[head:noun])
       case "слова":
         def noun = state[acc]?.hasNoun ? new Variable() : state[acc]?.noun ?: new Variable()
         Update update = new Update((typeCxt('WORDS')):[var:noun], (acc):[noun:noun, hasNoun:true, xor:t.a],
@@ -586,7 +583,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
   static boolean areSimilar(Map<Construction, Map> c1, Map<Construction, Map> c2) {
     def common = Util.intersect(c1.keySet(), c2.keySet())
     common = Util.intersect(common, importantForSimilarity)
-    def condition = { Construction cxt -> (c1[cxt].keySet() - 'init' - 'xor') == (c2[cxt].keySet() - 'init' - 'xor') }
+    def condition = { Construction cxt -> (c1[cxt].keySet() - 'xor') == (c2[cxt].keySet() - 'xor') }
     common = common.findAll(condition)
 
     if (!common) {
@@ -628,7 +625,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     Update update = _nounBase(state, caze, init)
 
     def noun = update.map[caze].noun
-    update = update.addCxt(possessive, head: noun)
+    update = update.addCxt(possessive, head:noun)
 
     update = update.addCxt(quotedName, noun:noun).addCxt(numQuantifier, noun:noun)
     update = update.addCxt(relativeClause, noun:noun, save:state)

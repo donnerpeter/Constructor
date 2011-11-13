@@ -150,8 +150,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return update.apply(state.satisfied(relativeClause))
       case "сад":
         def noun = state[acc]?.noun ?: new Variable()
-        state = state.apply((typeCxt('GARDEN')):[var:noun], (nom):[noun:noun, hasNoun:true, xor:t.a], (acc):[noun:noun, hasNoun:true, xor:t.a], (summerGarden):[garden:noun])
-        state = state.apply(naPrep, head:noun)
+        state = state.apply((typeCxt('GARDEN')):[var:noun],
+                (nom):[noun:noun, hasNoun:true, xor:t.a], (acc):[noun:noun, hasNoun:true, xor:t.a],
+                (summerGarden):[garden:noun], (naPrep):[head:noun])
         state = state.satisfied(relativeClause).apply(relativeClause, noun:noun, save:state)
         return state //todo one noun frame - several cases
       case "сада": return noun(state, gen, 'GARDEN')
@@ -167,11 +168,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
                            (parenthetical):[:]) // todo common constructions in по-моему & по моему мнению
       case "словам":
         def noun = state[dat]?.noun ?: new Variable()
-        def init = {ParsingState it -> it.assign(noun, 'type', 'WORDS') }
-        state = state.apply((dat):[noun:noun, hasNoun:true, init:init],
-                            (gen):[head:noun, init:init],
-                            (possessive):[head:noun, init:init])
-        return state
+        return state.apply((typeCxt('WORDS')):[var:noun], (dat):[noun:noun, hasNoun:true],
+                            (gen):[head:noun], (possessive):[head:noun])
       case "счастию":
         def noun = state[dat]?.noun ?: new Variable()
         return state.assign(noun, 'type', 'LUCK').apply((dat):[noun:noun, hasNoun:true])
@@ -210,13 +208,13 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "нас": return pronoun(state, acc, 'WE')
       case "мое":
         def me = new Variable()
-        return conjWrap(state, (possessive):[possessor:me, init:{ ParsingState it ->it.assign(me, 'type', 'ME') }])
+        return conjWrap(state, (typeCxt('ME')):[var:me], (possessive):[possessor:me])
       case "моему":
         def me = new Variable()
-        return conjWrap(state, (possessive):[possessor:me, init:{ ParsingState it ->it.assign(me, 'type', 'ME') }])
+        return conjWrap(state, (typeCxt('ME')):[var:me], (possessive):[possessor:me])
       case "нашего":
-        def me = new Variable()
-        return conjWrap(state, (possessive):[possessor:me, init:{ ParsingState it ->it.assign(me, 'type', 'WE') }])
+        def we = new Variable()
+        return conjWrap(state, (typeCxt('WE')):[var:we], (possessive):[possessor:we])
       case "и": return state.clearConstructions().apply(seq, conj:'and', interceptor:new SeqInterceptor(state, 'and'))
       case "или": return state.clearConstructions().apply(seq, conj:'or', interceptor:new SeqInterceptor(state, 'or'))
       case "а":
@@ -242,12 +240,10 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply((comeScalarly):[order:'AFTER', xor: t.a],  (advObj):[adv: adv, xor:t.a, init:{ ParsingState it ->it.assign(adv, 'type', 'NEXT') }])
       case "их":
         def they = new Variable()
-        def init = {ParsingState st -> st.assign(they, 'type', 'THEY') }
-        return conjWrap(state, (possessive):[possessor:they, init:init, xor:t.a], (acc):[noun:they, hasNoun:true, init:init, xor:t.a])
+        return conjWrap(state, (typeCxt('THEY')):[var:they], (possessive):[possessor:they, xor:t.a], (acc):[noun:they, hasNoun:true, xor:t.a])
       case "его":
         def he = new Variable()
-        def init = {ParsingState st -> st.assign(he, 'type', 'HE') }
-        return conjWrap(state, (possessive):[possessor:he, init:init, xor:t.a], (acc):[noun:he, hasNoun:true, init:init, xor:t.a])
+        return conjWrap(state, (typeCxt('HE')):[var:he], (possessive):[possessor:he, xor:t.a], (acc):[noun:he, hasNoun:true, xor:t.a])
       case "он": return pronoun(state, nom, 'HE')
       case "она": return pronoun(state, nom, 'SHE')
       case "они": return pronoun(state, nom, 'THEY')
@@ -264,8 +260,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "ее":
       case "её":
         def she = new Variable()
-        def init = {ParsingState st -> st.assign(she, 'type', 'SHE') }
-        return conjWrap(state, (possessive):[possessor:she, init:init], (acc):[noun:she, hasNoun:true, init:init])
+        return conjWrap(state, (typeCxt('SHE')):[var:she], (possessive):[possessor:she], (acc):[noun:she, hasNoun:true])
       case "носом": return noun(state, instr, 'NOSE')
       case "пальцев": return noun(state, gen, 'FINGERS')
       case "пальца": return noun(state, gen, 'FINGERS')
@@ -295,9 +290,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "слова":
         def noun = state[acc]?.hasNoun ? new Variable() : state[acc]?.noun ?: new Variable()
         def init = {ParsingState it -> it.assign(noun, 'type', 'WORDS') }
-        Update update = new Update((acc):[noun:noun, hasNoun:true, init:init, xor:t.a],
-                                   (gen):[head:noun, init:init],
-                                   (possessive):[head:noun, init:init])
+        Update update = new Update((typeCxt('WORDS')):[var:noun], (acc):[noun:noun, hasNoun:true, xor:t.a],
+                                   (gen):[head:noun],
+                                   (possessive):[head:noun])
         if (!state[preposition]) {
           update = update.addCxt(nom, noun:noun, hasNoun:true, init:init, xor:t.a)
         }

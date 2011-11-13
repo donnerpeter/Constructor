@@ -81,16 +81,16 @@ J.type=MATTER
     doParseTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета.", """
 A.type=wh
 B.type=THEY
-C.member=B
-C.conj=and
-C.member=D
-D.type=ME
+C.type=ME
+D.member=B
+D.conj=and
+D.member=C
 E.type=degree
 E.arg1=F
 E.arg2=A
 E.time=PAST
 F.type=AMAZE
-F.arg1=C
+F.arg1=D
 E.whenCondition=#2
 --
 A.type=THEY
@@ -117,19 +117,18 @@ F.dot=true
   }
 
   public void testParse3_4() throws Exception {
-    doParseTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета. 1, 2, 3, 4, 5 и 6 помнят, а дальше забыли.", """
-A.type=wh
+    doParseTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета. 1, 2, 3, 4, 5 и 6 помнят, а дальше забыли.", """A.type=wh
 B.type=THEY
-C.member=B
-C.conj=and
-C.member=D
-D.type=ME
+C.type=ME
+D.member=B
+D.conj=and
+D.member=C
 E.type=degree
 E.arg1=F
 E.arg2=A
 E.time=PAST
 F.type=AMAZE
-F.arg1=C
+F.arg1=D
 E.whenCondition=#2
 --
 A.type=THEY

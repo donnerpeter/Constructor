@@ -83,7 +83,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
           state = state.clearConstructions().restore(rollback)
 
           def lastConj = modernHistory.findIndexOf { Contribution it -> it.apps[seq] != null }
-          if (lastConj) {
+          if (lastConj > 0) {
             for (contribution in modernHistory.subList(0, lastConj).reverse()) {
               state = state.apply(contribution.apps)
             }

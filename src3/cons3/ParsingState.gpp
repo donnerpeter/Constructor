@@ -33,12 +33,12 @@ class ParsingState {
   
   class Merger {
     Map getAt(Construction c) {
-      Map value = [:]
       def allMites = mites[c]
-      if (!allMites) {
-        return value
+      if (allMites == null) {
+        return null
       }
 
+      Map value = [:]
       for (Mite mite in allMites) {
         if (mite in active) {
           value = unify(value, mite.contents)
@@ -202,7 +202,8 @@ class ParsingState {
     List<Mite> newMites = []
     for (c in update.keySet()) {
       def mite = new Mite(update[c], c, state)
-      if (update[c] && !state.mites[c]?.find { !it.contradicts(mite) && unify(it.contents, update[c]) == it.contents }) {
+      if (update[c] && !state.mites[c]?.find { !it.contradicts(mite) && unify(it.contents, update[c]) == it.contents }
+              || !state.mites[c]) {
         newMites << mite
       }
     }
@@ -217,7 +218,9 @@ class ParsingState {
     }
 
     def newActive = state.balance(groups, allGroups(newMites, groups) as List, state.active as LinkedHashSet, [])
-    assert newActive != null : 'cannot balance'
+    if (newActive == null) {
+      throw new AssertionError('cannot balance')
+    }
     state = state.activate(newActive)
 
     for (cxt in state.mites.keySet()) {

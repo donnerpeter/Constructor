@@ -483,7 +483,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def verb = state[verbHolder]?.head ?: new Variable()
         state = state.assign(verb, 'time', 'PRESENT')
         def goes = cxt('идёт') { ParsingState st, Map args -> st.assign(args.verb, 'type', 'GO') }
-        return state.inhibit(preposition, numQuantifier).apply((comeScalarly):[verb:verb, xor:t.ab], (goes):[verb:verb, xor:t.a],
+        return state.inhibit(preposition, numQuantifier, acc).apply((comeScalarly):[verb:verb, xor:t.ab], (goes):[verb:verb, xor:t.a],
                 (vAcc):[head:verb, xor:t.b], (vPrep):[head:verb], (nom):[head:verb],
                 (poDat):[head:verb], (verbHolder): [head:verb],
                 (posleGen):[head:verb], (ransheGen):[head:verb],

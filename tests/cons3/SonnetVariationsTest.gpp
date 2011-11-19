@@ -233,6 +233,10 @@ H.number=true
     doTranslateTest 'Кассир сказал, что, по его мнению, семь идет после восьми в том случае, когда восемь идет после семи',
                     "The cashier said, that, in his opinion, a seven comes after an eight, only if an eight comes after a seven"
   }
+  public void _test6_7_IndirectHeSevenOpinion() throws Exception {
+    doTranslateTest 'Кассир сказал, что семь, по его мнению, идет после восьми в том случае, когда восемь идет после семи',
+                    "The cashier said, that a seven, in his opinion, comes after an eight, only if an eight comes after a seven"
+  }
   public void test6_7_IndirectHe() throws Exception {
     doTranslateTest 'Кассир сказал, что семь идет после восьми в том случае, когда восемь идет после семи',
                     "The cashier said that a seven comes after an eight, only if an eight comes after a seven"

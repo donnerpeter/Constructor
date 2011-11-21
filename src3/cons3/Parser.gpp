@@ -309,6 +309,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "слегка": return state.apply(adverb, adv:'SLIGHTLY')
       case "долго": return state.apply(adverb, adv:'LONG')
       case "грустно": return state.apply(adverb, adv:'SADLY')
+      case "просто": return state.apply(adverb, adv:'JUST')
       case "тоже":
         return state.apply(also, hasAlso:true)
       case "не":
@@ -331,9 +332,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def agr = word == 'могут' ? '3pl' : '3sg'
         boolean hasSubj = state[nom]?.noun && SeqInterceptor.agree(state[nom].agr, agr)
         def subj = hasSubj ? state[nom].noun : new Variable()
-        if (state[negation] != null) {
-          state = state.assign(verb, 'negated', 'true')
-        }
         return finiteVerb(state, verb, 'CAN', 'PRESENT', (control):[subj:subj, head:verb], (nom):[noun:subj, agr:'pl', head:verb, xor: (hasSubj ? state[nom]?.xor : null)])
       case 'стали':
       case 'начали':
@@ -419,6 +417,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "думают":
         Variable verb = state[verbHolder]?.head ?: new Variable()
         return finiteVerb(state, verb, 'THINK', 'PRESENT', (poDat):[head:verb], (nom):[head:verb], (acc):[head:verb])
+      case "сидят":
+        Variable verb = state[verbHolder]?.head ?: new Variable()
+        return finiteVerb(state, verb, 'SIT', 'PRESENT', (nom):[head:verb])
       case "спросил":
       case "спросили":
         def verb = new Variable()
@@ -611,6 +612,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
   }
 
   private ParsingState finiteVerb(Map<Construction, Map> args, ParsingState state, Variable verb, String type, String tense) {
+    if (state[negation] != null) {
+      state = state.assign(verb, 'negated', 'true')
+    }
     return state.inhibit(preposition, declOrQuestionComp, relativeClause, numQuantifier).
             assign(verb, 'type', type).assign(verb, 'time', tense).
             apply(args + [(subjunctive):[head:verb], (verbHolder):[head:verb], (relTime):[head:verb], (also):[head: verb], (complementizer):[:]])

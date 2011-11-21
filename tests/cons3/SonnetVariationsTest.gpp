@@ -66,6 +66,14 @@ class SonnetVariationsTest extends TestCase {
     doTranslateTest "Я забыл, что они думают, а не просто сидят.",
                     "I forgot, that they were thinking and not just sitting."
   }
+  public void _test2_NotSittingThinking() throws Exception {
+    doTranslateTest "Я забыл, что они не просто сидят, а думают.",
+                    "I forgot, that they were not just sitting but thinking."
+  }
+  public void _test2_NotThinkingSitting() throws Exception {
+    doTranslateTest "Я забыл, что они не думают, а просто сидят.",
+                    "I forgot, that they were not thinking and just sitting."
+  }
 
   public void test1_789() throws Exception {
     doParseTest "Я забыл, что идёт раньше - 7, 8 или 9", """

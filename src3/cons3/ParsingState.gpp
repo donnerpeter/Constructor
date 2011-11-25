@@ -28,6 +28,7 @@ class ParsingState {
     mites = map.mites
     history = map.history
     currentGeneration = map.currentGeneration
+    assert (map.active instanceof LinkedHashSet) || !(map.active instanceof HashSet)
     active = Collections.unmodifiableSet((Set)map.active)
   }
   
@@ -128,7 +129,7 @@ class ParsingState {
   ParsingState inhibit(Construction... cxts) {
     if (!cxts) return this
 
-    Set<Construction> toRemove = cxts as LinkedHashSet
+    LinkedHashSet<Construction> toRemove = cxts as LinkedHashSet
     toRemove.retainAll(mites.keySet())
 
     Map<Construction, Map> freed = freedByInhibition(toRemove)
@@ -141,7 +142,7 @@ class ParsingState {
     return (freed ? state.apply(freed) : state).clone(history: history + new Contribution(this, FLinkedMap.emptyMap, FList.fromList(cxts as List)))
   }
 
-  private Map<Construction, Map> freedByInhibition(Set<Construction> toRemove) {
+  private Map<Construction, Map> freedByInhibition(LinkedHashSet<Construction> toRemove) {
     LinkedHashSet<Mite> mitesToRemove = toRemove.collect { mites[it] }.flatten() as LinkedHashSet
     LinkedHashSet<Mite> mitesRemaining = ((mites.keySet() as LinkedHashSet) - toRemove).collect { Construction it -> mites[it] }.flatten() as LinkedHashSet
     LinkedHashSet<Mite> contradictors = mitesToRemove.collect { it.findContradictors(mitesRemaining) }.flatten() as LinkedHashSet
@@ -158,7 +159,9 @@ class ParsingState {
   }
 
   private ParsingState removeConstruction(Construction name) {
-    return clone(mites: mites.removeKey(name), active: active - (mites[name] ?: []), changes:changes.removeKey(name))
+    LinkedHashSet<Mite> newActive = new LinkedHashSet<Mite>(active)
+    newActive.removeAll(mites[name] ?: [])
+    return clone(mites: mites.removeKey(name), active:newActive, changes:changes.removeKey(name))
   }
 
   ParsingState startMeta(Variable meta) {
@@ -212,7 +215,7 @@ class ParsingState {
       state = state.addCxt(c)
     }
     
-    Map<Mite, LinkedHashSet<ParsingState.Group>> groups = state.buildGroups()
+    LinkedHashMap<Mite, LinkedHashSet<ParsingState.Group>> groups = state.buildGroups()
     for (mite in newMites) {
       groups[mite].each { it.isNew = true }
     }
@@ -224,6 +227,8 @@ class ParsingState {
     state = state.activate(newActive)
 
     for (cxt in state.mites.keySet()) {
+      if (!(cxt in state.mites)) continue
+      
       List<Mite> toAdd = collectNonContradicting(state, cxt)
       if (toAdd) {
         newActive = calcAlternative(state, toAdd, groups)
@@ -247,9 +252,13 @@ class ParsingState {
   }
 
   private static List<Mite> collectNonContradicting(ParsingState state, Construction cxt) {
-    def currentActive = new LinkedHashSet<Mite>(state.mites[cxt].findAll { it in state.active })
+    def mites = state.mites[cxt]
+    if (!mites) {
+      throw new AssertionError(cxt)
+    }
+    def currentActive = new LinkedHashSet<Mite>(mites.findAll { it in state.active })
     List<Mite> toAdd = []
-    for (mite in state.mites[cxt].reverse()) {
+    for (mite in mites.reverse()) {
       if (!(mite in currentActive) && !mite.findContradictors(currentActive)) {
         currentActive << mite
         toAdd << mite
@@ -261,7 +270,7 @@ class ParsingState {
     return toAdd
   }
 
-  private Map<Mite, LinkedHashSet<ParsingState.Group>> buildGroups() {
+  private LinkedHashMap<Mite, LinkedHashSet<ParsingState.Group>> buildGroups() {
     Map<Mite, LinkedHashSet<Group>> groups = [:]
     Map<Object, Group> members = [:]
     for (Mite mite in mites.values().flatten()) {
@@ -300,7 +309,7 @@ class ParsingState {
       }
     }
     for (mite in toApply) {
-      if (mites[mite.cxt]) {
+      if (state.mites[mite.cxt]) {
         state = state.doApply(mite.cxt)
       }
     }
@@ -366,7 +375,7 @@ class ParsingState {
   }
 
   private Set<Group> easyBalance(List<ParsingState.Group> changed, LinkedHashSet<Mite> result) {
-    Set<Group> easy = []
+    LinkedHashSet<Group> easy = []
     for (g in changed) {
       if (Util.intersects(result, g.members)) {
         easy << g
@@ -405,17 +414,32 @@ class ParsingState {
   }
 
   private boolean dominatesSemantically(ParsingState other) {
-    for (verb in chart.frames.findAll { it.type in ['GO', 'BREAK', 'CAN', 'REMEMBER', 'FORGET'] }) {
+    def humanActions = ['GO', 'BREAK', 'CAN', 'REMEMBER', 'FORGET']
+    def verbs = humanActions + ['COME_SCALARLY']
+    for (verb in chart.frames.findAll { it.type in verbs }) {
       def alternative = verb.var.frame(other.chart)
       if (!alternative) continue
 
-      if (!alternative.f('arg1')?.canBeHuman() && verb.f('arg1')?.canBeHuman()) {
-        return true
+      if (verb.type in humanActions) {
+        boolean meHuman = verb.f('arg1')?.canBeHuman()
+        if (meHuman != alternative.f('arg1')?.canBeHuman()) {
+          return meHuman
+        }
       }
 
       if (verb.type == 'GO' && alternative.type == 'COME_SCALARLY' && alternative.f('anchor')?.canBeHuman()) {
         return true
       }
+
+      if (((Frame) verb?.definedAttributeValue('arg1'))?.definedAttributeValue('type') &&
+          !((Frame) alternative?.definedAttributeValue('arg1'))?.definedAttributeValue('type')) {
+        return true
+      }
+
+      if (verb.type == 'FORGET' && verb.f('arg2') && !alternative.f('arg2')) {
+        return true
+      }
+
     }
 
     return false
@@ -452,7 +476,9 @@ class ParsingState {
   }
 
   ParsingState restore(ParsingState saved) {
-    clone(mites: saved.mites + this.mites, active:saved.active + active, changes:saved.changes + this.changes)
+    LinkedHashSet<Mite> newActive = new LinkedHashSet<Mite>(saved.active)
+    newActive.addAll(active)
+    clone(mites: saved.mites + this.mites, active:newActive, changes:saved.changes + this.changes)
   }
 
 }

@@ -10,6 +10,10 @@ class Update {
     this.map = map instanceof FLinkedMap ? map : FLinkedMap.fromMap(map)
   }
 
+  Update plus(Map constructions) {
+    return new Update(map + constructions)
+  }
+
   Update addCxt(Map newArgs, Construction name) {
     return new Update(map.putValue(name, newArgs))
   }

@@ -38,7 +38,7 @@ class Situation extends Variable {
 }
 
 class Variable {
-  private static int counter = 0
+  static int counter = 0
 
   final String id
 

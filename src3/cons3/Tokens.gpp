@@ -6,12 +6,12 @@ import groovy.transform.TupleConstructor
  * @author peter
  */
 class Tokens {
-  private static int counter = 0
+  static int counter = 0
   private final Map<String, Token> allocated = [:]
   private final int id = counter++
 
   public Set<Token> getProperty(String name) {
-    Set<Token> result = []
+    LinkedHashSet<Token> result = []
     for (i in 0..<name.length()) {
       String s = name[i]
       result << allocated.get(s, new Token(s + id))

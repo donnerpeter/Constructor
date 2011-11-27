@@ -132,26 +132,12 @@ class ParsingState {
     LinkedHashSet<Construction> toRemove = cxts as LinkedHashSet
     toRemove.retainAll(mites.keySet())
 
-    LinkedHashMap<Construction, Map> freed = freedByInhibition(toRemove)
-
     def state = this
     for (c in toRemove) {
       state = state.removeConstruction(c)
     }
 
-    return (freed ? state.apply(freed) : state).clone(history: history + new Contribution(this, FLinkedMap.emptyMap, FList.fromList(cxts as List)))
-  }
-
-  private LinkedHashMap<Construction, Map> freedByInhibition(LinkedHashSet<Construction> toRemove) {
-    LinkedHashSet<Mite> mitesToRemove = toRemove.collect { mites[it] }.flatten() as LinkedHashSet
-    LinkedHashSet<Mite> mitesRemaining = ((mites.keySet() as LinkedHashSet) - toRemove).collect { Construction it -> mites[it] }.flatten() as LinkedHashSet
-    LinkedHashSet<Mite> contradictors = mitesToRemove.collect { it.findContradictors(mitesRemaining) }.flatten() as LinkedHashSet
-
-    LinkedHashMap<Construction, Map> freed = [:]
-    for (c in contradictors) {
-      freed[c.cxt] = [:]
-    }
-    return freed
+    return state.clone(history: history + new Contribution(this, FLinkedMap.emptyMap, FList.fromList(cxts as List)))
   }
 
   ParsingState satisfied(Construction name) {

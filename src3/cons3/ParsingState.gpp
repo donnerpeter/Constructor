@@ -344,6 +344,11 @@ class ParsingState {
         continue
       }
 
+      if (g.members.size() == 1 && groups[g.members[0]].find { it.members.size() > 1 }) {
+        continue
+      }
+
+
       List<Group> rest = i == changed.size() - 1 ? [] : changed[i + 1..<changed.size()]
       LinkedHashSet<Mite> sortedMembers = []
       sortedMembers.addAll g.members.findAll { Mite mite -> result.find { it.cxt == mite.cxt } }

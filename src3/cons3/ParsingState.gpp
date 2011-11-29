@@ -202,11 +202,8 @@ class ParsingState {
     }
     
     LinkedHashMap<Mite, LinkedHashSet<ParsingState.Group>> groups = state.buildGroups()
-    for (mite in newMites) {
-      groups[mite].each { it.isNew = true }
-    }
 
-    def newActive = state.balance(groups, allGroups(newMites, groups) as List, state.active as LinkedHashSet, [])
+    def newActive = state.optimizedBalance(groups, allGroups(newMites, groups), state.active as LinkedHashSet, [])
     if (newActive == null) {
       throw new AssertionError('cannot balance')
     }
@@ -237,7 +234,7 @@ class ParsingState {
     LinkedHashSet modified = new LinkedHashSet(newActive)
     modified.removeAll(contradictors)
     modified.addAll(toAdd)
-    return state.balance(groups, allGroups(contradictors, groups) as List, modified, [])
+    return state.optimizedBalance(groups, allGroups(contradictors, groups), modified, [])
   }
 
   private static List<Mite> collectNonContradicting(ParsingState state, Construction cxt) {
@@ -307,13 +304,33 @@ class ParsingState {
   
   private static class Group {
     List<Mite> members = []
-    boolean isNew
 
     @Override
     String toString() {
       return members.toString()
     }
 
+    LinkedHashSet<Mite> sortedMembers(LinkedHashSet<Mite> preferred) {
+      LinkedHashSet<Mite> sortedMembers = []
+      sortedMembers.addAll members.findAll { Mite mite -> preferred.find { it.cxt == mite.cxt } }
+      sortedMembers.addAll members
+      return sortedMembers
+    }
+
+  }
+
+  private LinkedHashSet<Mite> optimizedBalance(Map<Mite, LinkedHashSet<Group>> groups, LinkedHashSet<Group> changed, LinkedHashSet<Mite> result, Set<Group> visited) {
+    for (g in changed.findAll { it.members.size() == 1 }) {
+      def mite = g.members[0]
+      if (!groups[mite].find { it.members.size() > 1 }) {
+        result.removeAll(mite.findContradictors(result))
+        result << mite
+        visited << g
+        changed.remove(g)
+      }
+    }
+
+    return balance(groups, changed as List, result, visited)
   }
 
   private LinkedHashSet<Mite> balance(Map<Mite, LinkedHashSet<Group>> groups, List<Group> changed, LinkedHashSet<Mite> result, Set<Group> visited) {
@@ -336,11 +353,8 @@ class ParsingState {
 
 
       List<Group> rest = i == changed.size() - 1 ? [] : changed[i + 1..<changed.size()]
-      LinkedHashSet<Mite> sortedMembers = []
-      sortedMembers.addAll g.members.findAll { Mite mite -> result.find { it.cxt == mite.cxt } }
-      sortedMembers.addAll g.members
 
-      for (mite in sortedMembers) {
+      for (mite in g.sortedMembers(result)) {
         List<Mite> contradictors = mite.findContradictors(result)
         LinkedHashSet<Group> touchedGroups = allGroups(contradictors, groups)
         if (!Util.intersects(visited, touchedGroups)) {
@@ -351,18 +365,6 @@ class ParsingState {
           if (inner != null) {
             return inner
           }
-        }
-      }
-
-      if (g.isNew && g.members.size() == 1) {
-        def mite = g.members[0]
-        List<Mite> contradictors = mite.findContradictors(result)
-        LinkedHashSet modified = new LinkedHashSet(result)
-        modified.removeAll(contradictors)
-        modified.add(mite)
-        def inner = balance(groups, rest, modified, visited + changed[0..i] as Set)
-        if (inner != null) {
-          return inner
         }
       }
 
@@ -378,10 +380,7 @@ class ParsingState {
       if (Util.intersects(result, g.members)) {
         easy << g
       } else {
-        LinkedHashSet<Mite> sortedMembers = []
-        sortedMembers.addAll g.members.findAll { Mite _mite -> result.find { it.cxt == _mite.cxt } }
-        sortedMembers.addAll g.members
-        for (mite in sortedMembers) {
+        for (mite in g.sortedMembers(result)) {
           if (!mite.findContradictors(result)) {
             easy << g
             result << mite

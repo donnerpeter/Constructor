@@ -10,14 +10,15 @@ class ParsingState {
   final Situation situation
   final FLinkedMap<Construction, List<Mite>> mites
   final Merger constructions = new Merger()
-  private final FLinkedMap<Construction, List<Pair<Chart, Chart>>> changes
+  final FLinkedMap<Construction, List<Pair<Chart, Chart>>> changes
   final FList<Contribution> history
   final Set<Mite> active
+  final Set<Group> groups
   final int currentGeneration
 
   ParsingState() {
     this(chart: new Chart(), situation: new Situation(), 
-            mites: FLinkedMap.emptyMap, changes: FLinkedMap.emptyMap, 
+            mites: FLinkedMap.emptyMap, changes: FLinkedMap.emptyMap, groups: Collections.emptySet(),
             history: FList.emptyList, active: Collections.emptySet(), currentGeneration:0)
   }
 
@@ -29,7 +30,9 @@ class ParsingState {
     history = map.history
     currentGeneration = map.currentGeneration
     assert (map.active instanceof LinkedHashSet) || !(map.active instanceof HashSet)
+    assert (map.groups instanceof LinkedHashSet) || !(map.groups instanceof HashSet)
     active = Collections.unmodifiableSet((Set)map.active)
+    groups = Collections.unmodifiableSet((Set)map.groups)
   }
   
   class Merger {
@@ -55,7 +58,7 @@ class ParsingState {
   }
 
   private ParsingState clone(Map update) {
-    Map current = [chart:chart, situation:situation, mites:mites, history:history, active:active, changes:changes, currentGeneration:currentGeneration]
+    Map current = [chart:chart, situation:situation, mites:mites, history:history, active:active, changes:changes, currentGeneration:currentGeneration, groups:groups]
     current.putAll(update)
     return new ParsingState(current)
   }
@@ -96,8 +99,28 @@ class ParsingState {
     return false
   }
 
-  ParsingState addCxt(Mite mite) {
-    return clone(mites: mites + [(mite.cxt): (mites[mite.cxt] ?: []) + mite])
+  ParsingState addCxt(Mite... mites) {
+    LinkedHashMap<Object, Group> members = [:]
+    for (mite in mites) {
+      Collection<Object> xor = mite.contents.xor ?: [] //todo alex inline
+      for (x in xor) {
+        if (!members[x]) members[x] = new Group(mite)
+        else members[x].members << mite
+      }
+    }
+    def newGroups = new LinkedHashSet<Group>(groups)
+    for (g in members.values()) {
+      if (g.members.size() > 1) {
+        newGroups << g
+      }
+    }
+
+    FLinkedMap<Construction, List<Mite>> newMites = this.mites
+    for (mite in mites.reverse()) {
+      newMites = newMites + [(mite.cxt):(newMites[mite.cxt] ?: []) + mite]
+    }
+
+    return clone(mites:newMites, groups:newGroups)
   }
 
   private static Map unify(Map oldArgs, Map newArgs) {
@@ -146,8 +169,9 @@ class ParsingState {
 
   private ParsingState removeConstruction(Construction name) {
     LinkedHashSet<Mite> newActive = new LinkedHashSet<Mite>(active)
-    newActive.removeAll(mites[name] ?: [])
-    return clone(mites: mites.removeKey(name), active:newActive, changes:changes.removeKey(name))
+    def toRemove = mites[name] ?: []
+    newActive.removeAll(toRemove)
+    return clone(mites: mites.removeKey(name), active:newActive, changes:changes.removeKey(name), groups:(groups as LinkedHashSet) - allGroups(toRemove))
   }
 
   ParsingState startMeta(Variable meta) {
@@ -196,14 +220,10 @@ class ParsingState {
         newMites << mite
       }
     }
-    
-    for (c in newMites.reverse()) {
-      state = state.addCxt(c)
-    }
-    
-    LinkedHashMap<Mite, LinkedHashSet<ParsingState.Group>> groups = state.buildGroups()
 
-    def newActive = state.optimizedBalance(groups, allGroups(newMites, groups), state.active as LinkedHashSet, [])
+    state = state.addCxt(newMites as Mite[])
+    
+    def newActive = state.optimizedBalance(state.allGroups(newMites), state.active as LinkedHashSet, [])
     if (newActive == null) {
       throw new AssertionError('cannot balance')
     }
@@ -211,10 +231,10 @@ class ParsingState {
 
     for (cxt in state.mites.keySet()) {
       if (!(cxt in state.mites)) continue
-      
+
       List<Mite> toAdd = collectNonContradicting(state, cxt)
       if (toAdd) {
-        newActive = calcAlternative(state, toAdd, groups)
+        newActive = state.calcAlternative(toAdd)
         if (newActive) {
           def alternative = state.activate(newActive)
           if (alternative.dominates(state)) {
@@ -227,14 +247,14 @@ class ParsingState {
     return state.clone(currentGeneration: state.currentGeneration + 1)
   }
 
-  private static LinkedHashSet<Mite> calcAlternative(ParsingState state, List<Mite> toAdd, Map<Mite, LinkedHashSet<ParsingState.Group>> groups) {
-    LinkedHashSet<Mite> newActive = state.active as LinkedHashSet
+  private LinkedHashSet<Mite> calcAlternative(List<Mite> toAdd) {
+    LinkedHashSet<Mite> newActive = active as LinkedHashSet
     def cxtContradictors = toAdd.collect { it.findContradictors(newActive) }.flatten().collect { Mite m -> m.cxt } as LinkedHashSet<Construction>
-    def contradictors = cxtContradictors.collect { state.mites[it].reverse() }.flatten() as LinkedHashSet<Mite>
+    def contradictors = cxtContradictors.collect { mites[it].reverse() }.flatten() as LinkedHashSet<Mite>
     LinkedHashSet modified = new LinkedHashSet(newActive)
     modified.removeAll(contradictors)
     modified.addAll(toAdd)
-    return state.optimizedBalance(groups, allGroups(contradictors, groups), modified, [])
+    return optimizedBalance(allGroups(contradictors), modified, [])
   }
 
   private static List<Mite> collectNonContradicting(ParsingState state, Construction cxt) {
@@ -256,30 +276,14 @@ class ParsingState {
     return toAdd
   }
 
-  private LinkedHashMap<Mite, LinkedHashSet<ParsingState.Group>> buildGroups() {
-    LinkedHashMap<Mite, LinkedHashSet<Group>> groups = [:]
-    Map<Object, Group> members = [:]
-    for (Mite mite in mites.values().flatten()) {
-      Collection<Object> xor = mite.contents.xor ?: [new Object()] //todo alex inline
-      for (x in xor) {
-        if (!members[x]) members[x] = new Group()
-        members[x].members << mite
+  private LinkedHashSet<Group> allGroups(Collection<Mite> mites) {
+    return mites.collect { m -> 
+      Collection<ParsingState.Group> containingGroups = (groups as LinkedHashSet<Group>).findAll { g -> m in g.members }
+      if (!containingGroups) {
+        return [new Group(m)]
       }
-      groups[mite] = new LinkedHashSet(xor.collect { members[it] })
-    }
-    return groups
-  }
-
-  private static LinkedHashSet<Group> allGroups(Collection<Mite> newMites, Map<Mite, LinkedHashSet<Group>> groups) {
-    return newMites.collect {
-      LinkedHashSet<ParsingState.Group> g = groups[it]
-      if (!g) {
-        Group group = new Group()
-        group.members << it
-        g = groups[it] = [group] as LinkedHashSet
-      }
-      g
-    }.flatten() as LinkedHashSet
+      return containingGroups
+    }.flatten() as LinkedHashSet<Group>
   }
 
   private ParsingState activate(LinkedHashSet<Mite> newActive) {
@@ -303,7 +307,11 @@ class ParsingState {
   }
   
   private static class Group {
-    List<Mite> members = []
+    final LinkedHashSet<Mite> members = []
+
+    Group(Mite first) {
+      this.members << first
+    }
 
     @Override
     String toString() {
@@ -319,21 +327,26 @@ class ParsingState {
 
   }
 
-  private LinkedHashSet<Mite> optimizedBalance(Map<Mite, LinkedHashSet<Group>> groups, LinkedHashSet<Group> changed, LinkedHashSet<Mite> result, Set<Group> visited) {
+  private LinkedHashSet<Mite> optimizedBalance(LinkedHashSet<Group> changed, LinkedHashSet<Mite> result, Set<Group> visited) {
     for (g in changed.findAll { it.members.size() == 1 }) {
-      def mite = g.members[0]
-      if (!groups[mite].find { it.members.size() > 1 }) {
-        result.removeAll(mite.findContradictors(result))
-        result << mite
-        visited << g
-        changed.remove(g)
+      def mite = g.members.iterator().next()
+      def contradictors = mite.findContradictors(result)
+      result.removeAll(contradictors)
+      result << mite
+      visited << g
+      changed.remove(g)
+
+      for (gc in allGroups(contradictors)) {
+        if (gc.members.size() > 1) {
+          changed.add(gc)
+        }
       }
     }
 
-    return balance(groups, changed as List, result, visited)
+    return balance(changed as List, result, visited)
   }
 
-  private LinkedHashSet<Mite> balance(Map<Mite, LinkedHashSet<Group>> groups, List<Group> changed, LinkedHashSet<Mite> result, Set<Group> visited) {
+  private LinkedHashSet<Mite> balance(List<Group> changed, LinkedHashSet<Mite> result, Set<Group> visited) {
     LinkedHashSet<Group> easy = easyBalance(changed, result)
 
     if (easy) {
@@ -347,21 +360,16 @@ class ParsingState {
         continue
       }
 
-      if (g.members.size() == 1 && groups[g.members[0]].find { it.members.size() > 1 }) {
-        continue
-      }
-
-
       List<Group> rest = i == changed.size() - 1 ? [] : changed[i + 1..<changed.size()]
 
       for (mite in g.sortedMembers(result)) {
         List<Mite> contradictors = mite.findContradictors(result)
-        LinkedHashSet<Group> touchedGroups = allGroups(contradictors, groups)
+        LinkedHashSet<Group> touchedGroups = allGroups(contradictors)
         if (!Util.intersects(visited, touchedGroups)) {
           LinkedHashSet modified = new LinkedHashSet(result)
           modified.removeAll(contradictors)
           modified.add(mite)
-          def inner = balance(groups, rest + touchedGroups as List, modified, visited + changed[0..i] as Set)
+          def inner = balance(rest + touchedGroups as List, modified, visited + changed[0..i] as Set)
           if (inner != null) {
             return inner
           }
@@ -424,6 +432,10 @@ class ParsingState {
         }
       }
 
+      if (verb.type && !alternative.type) {
+        return true
+      }
+
       if (verb.type == 'GO' && alternative.type == 'COME_SCALARLY' && alternative.f('anchor')?.canBeHuman()) {
         return true
       }
@@ -462,20 +474,28 @@ class ParsingState {
     ParsingState next = clone(currentGeneration:newestGeneration)
     next = cxt.action.call(next, args)
     if (before != next.chart) {
-      next = next.clone(changes:changes + [(cxt):(changes[cxt] ?: []) + new Pair(before, next.chart)])
+      next = next.clone(changes:next.changes + [(cxt):(changes[cxt] ?: []) + new Pair(before, next.chart)])
     }
     return next.clone(currentGeneration:currentGeneration)
   }
 
 
   ParsingState clearConstructions() {
-    return clone(mites: FLinkedMap.emptyMap, active:Collections.emptySet(), changes:FLinkedMap.emptyMap)
+    return clone(mites: FLinkedMap.emptyMap, active:Collections.emptySet(), changes:FLinkedMap.emptyMap, groups:Collections.emptySet())
   }
 
   ParsingState restore(ParsingState saved) {
     LinkedHashSet<Mite> newActive = new LinkedHashSet<Mite>(saved.active)
     newActive.addAll(active)
-    clone(mites: saved.mites + this.mites, active:newActive, changes:saved.changes + this.changes)
+    LinkedHashSet<Group> newGroups = new LinkedHashSet<ParsingState.Group>(saved.groups)
+    newGroups.addAll(groups)
+    for (c in saved.mites.keyList()) {
+      if (c in this.mites) {
+        newActive.removeAll(saved.mites[c])
+        newGroups.removeAll(allGroups(saved.mites[c]))
+      }
+    }
+    clone(mites: saved.mites + this.mites, active:newActive, changes:saved.changes + this.changes, groups:newGroups)
   }
 
 }

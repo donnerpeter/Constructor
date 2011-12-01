@@ -33,8 +33,8 @@ class Frame {
   Frame f(String attr) {
     def v = definedAttributeValue(attr)
     if (v instanceof Frame) {
-      if (attr == 'arg1' && !v.type) {
-        def forget = usages('arg2').find { it.type == 'FORGET' }
+      if (attr == 'arg1' && !v.definedAttributeValue('type')) {
+        def forget = usages('arg2').find { it.type == 'FORGET' } ?: usages('theme').find { it.type == 'DISCOVER' }
         if (forget) {
           return forget.f('arg1')
         }

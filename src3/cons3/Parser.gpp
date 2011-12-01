@@ -332,7 +332,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def agr = word == 'могут' ? '3pl' : '3sg'
         boolean hasSubj = state[nom]?.noun && SeqInterceptor.agree(state[nom].agr, agr)
         def subj = hasSubj ? state[nom].noun : new Variable()
-        return finiteVerb(state, verb, 'CAN', 'PRESENT', (control):[subj:subj, head:verb], (nom):[noun:subj, agr:'pl', head:verb, xor: (hasSubj ? state[nom]?.xor : null)])
+        return finiteVerb(state, verb, 'CAN', 'PRESENT', (control):[subj:subj, head:verb], (nom):[noun:subj, agr:agr, head:verb])
       case 'стали':
       case 'начали':
         Variable verb = state[verbHolder]?.head ?: new Variable()
@@ -471,8 +471,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def verb = new Variable()
         state = state.inhibit(nom, acc, complementizer, advObj).
                 apply((declOrQuestionComp):[comp: verb, questioned: noun], (verbHolder):[head:verb],
-                        (acc):[noun:noun, hasNoun:true, xor:t.a], (nom):[noun:noun, hasNoun:true, xor:t.a, agr:'3sg'], (typeCxt('wh')):[var:noun],
-                        (complementizer):[xor:t.a, hasComplementizer:true, beforeState:state]
+                        (acc):[noun:noun, hasNoun:true, xor:t.a], (nom):[noun:noun, hasNoun:true, xor:t.a, agr:'3sg'], (typeCxt('wh')):[var:noun, xor:t.b],
+                        (complementizer):[xor:t.ab, hasComplementizer:true, beforeState:state]
                 )
         if (state[relativeClause]?.hasComma) {
           def wh = new Variable()
@@ -484,7 +484,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def verb = state[verbHolder]?.head ?: new Variable()
         state = state.assign(verb, 'time', 'PRESENT')
         def goes = cxt('идёт') { ParsingState st, Map args -> st.assign(args.verb, 'type', 'GO') }
-        return state.inhibit(preposition, numQuantifier, acc).apply((comeScalarly):[verb:verb, xor:t.ab], (goes):[verb:verb, xor:t.a],
+        return state.inhibit(preposition, numQuantifier).apply((comeScalarly):[verb:verb, xor:t.ab], (goes):[verb:verb, xor:t.a],
                 (vAcc):[head:verb, xor:t.b], (vPrep):[head:verb], (nom):[head:verb],
                 (poDat):[head:verb], (verbHolder): [head:verb],
                 (posleGen):[head:verb], (ransheGen):[head:verb],

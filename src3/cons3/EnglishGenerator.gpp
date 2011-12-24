@@ -165,7 +165,7 @@ class EnglishGenerator {
           if (last?.type in ['CAN', 'DISCOVER'] && last.f('theme')) {
             last = last.f('theme')
           }
-          else if (last?.type in ['FORGET'] && last.f('arg2') && last.f('arg2').flatten().any { isVerb(it)}) {
+          else if (last?.type in ['FORGET'] && last.f('arg2') && last.f('arg2').flatten().any { it.type in ['fact', 'question']}) {
             last = last.f('arg2')
           }
           else if (last?.type in ['ASK']) {
@@ -173,6 +173,9 @@ class EnglishGenerator {
           }
           else if (last?.type == 'modality') {
             last = last.f('arg1')
+          }
+          else if (last?.type in ['fact', 'question']) {
+            last = last.f('content')
           }
           else if (last?.f('member')) {
             last = last.f('member')
@@ -184,7 +187,7 @@ class EnglishGenerator {
           return
         }
       }
-      if ((conjuncts[0]?.frame?.type == 'modality' || findQuestioned(conjuncts[0]?.frame) && !isExclamation()) && topLevel) {
+      if ((conjuncts[0]?.frame?.type == 'question' || findQuestioned(conjuncts[0]?.frame) && !isExclamation()) && topLevel) {
         out '?'
       }
     }
@@ -221,18 +224,26 @@ class EnglishGenerator {
     }
 
     private List<ClauseGenerator> planConjuncts(boolean topLevel) {
-      List<Frame> allVerbs = chart.frames(situation).findAll { isVerb(it) }
+      List<Frame> allVerbs = chart.frames(situation).findAll { isVerb(it) || it.type in ['fact', 'question'] }
 
-      if (allVerbs.size() > 1) {
-        for (i in 1..<allVerbs.size()) {
-          def prev = allVerbs[i-1]
-          def cur = allVerbs[i]
-          if (chart.earlier(cur, 'type', prev, 'type') || cur.type == 'modality' && prev == cur.f('arg1')) {
-            allVerbs[i-1] = cur
-            allVerbs[i] = prev
-          }
+      def subordinates = allVerbs.findAll { candidate ->
+        Frame master = allVerbs.find { head ->
+          candidate in (head.f('elaboration')?.flatten() ?: []) ||
+          candidate in (head.f('theme')?.flatten() ?: []) ||
+          candidate in (head.f('message')?.flatten() ?: []) ||
+          candidate in (head.f('arg2')?.flatten() ?: []) ||
+          candidate in (head.f('question')?.flatten() ?: []) ||
+          head.type in ['question', 'fact'] && candidate in (head.f('content')?.flatten() ?: []) ||
+          head.type == 'modality' && candidate == head.f('arg1') ||
+          head.type == 'BEGIN' && candidate == head.f('arg1')
         }
+        return master != null
       }
+      allVerbs.removeAll(subordinates)
+
+      allVerbs.sort({ Frame f1, Frame f2 ->
+        chart.earlier(f1, 'type', f2, 'type') ? -1 : f1 == f2 ? 0 : 1
+      } as Comparator)
 
       List<ClauseGenerator> conjuncts = []
       int i = 0
@@ -244,31 +255,14 @@ class EnglishGenerator {
         }
 
         def cur = allVerbs[i++]
-        def lastCur = cur
         if (cur) {
           mainVerbs++
-          if (cur.type == 'BEGIN') {
-            mainVerbs++
-            lastCur = allVerbs[i++]
-          }
         }
         Frame comp = null
         def next = allVerbs[i]
         if (cur?.type == 'GO' && next?.type == 'ASK') {
           comp = next
           i++
-        }
-        while (next &&
-               (next == lastCur.f('theme') ||
-                next in (lastCur.f('elaboration')?.flatten() ?: []) ||
-                next in (lastCur.f('theme')?.flatten() ?: []) ||
-                next in (lastCur.f('message')?.flatten() ?: []) ||
-                next in (lastCur.f('arg2')?.flatten() ?: []) ||
-                next.usages('theme') ||
-                next.usages('arg2') ||
-                next.usages('arg1')[0]?.type == 'modality' ||
-                next.usages('question'))) {
-          next = allVerbs[++i]
         }
         conjuncts << new ClauseGenerator(cur, bg, topLevel, comp)
       }
@@ -355,10 +349,13 @@ class EnglishGenerator {
 
     private Frame clauseInner(Frame verb, boolean shouldHaveSubject, boolean forceSubject, boolean topLevel) {
       assert verb
+
+      if (verb.type == 'question') {
+        verb = verb.f('content')
+      }
       if (verb.s('time') == 'PAST') {
         past = true //todo maintain a tense for the whole discourse
       }
-
       def imperative = verb.type == 'modality'
       if (imperative) {
         verb = verb.f('arg1')
@@ -474,7 +471,7 @@ class EnglishGenerator {
       }
 
       def dobj = verb.f('arg2')
-      def nounDObj = dobj && dobj.flatten().any { !isVerb(it) }
+      def nounDObj = dobj && dobj.flatten().every { !isVerb(it) && !(it.type in ['fact', 'question']) }
       if (nounDObj && dobj.type != 'wh') {
         np(dobj, false, !isNumber(dobj))
       }
@@ -532,7 +529,7 @@ class EnglishGenerator {
         out 'for a long time'
       }
 
-      def question = verb.f('question')
+      def question = verb.f('question')?.f('content')
       if (question) {
         if (question.type == 'THINK') {
           out 'about'
@@ -550,11 +547,11 @@ class EnglishGenerator {
 
       def theme = verb.type == 'FORGET' && !nounDObj ? verb.f('arg2') : verb.f('theme')
       if (theme && verb.type in ['FORGET', 'DISCOVER']) {
-        def that = !isQuestion(theme)
+        def that = theme.flatten().find { it.type == 'fact' }
         if (that) {
           out ","
         }
-        List<ClauseGenerator> clauses = theme.flatten().collect { new ClauseGenerator(it, null, false, null) }
+        List<ClauseGenerator> clauses = theme.flatten().collect { new ClauseGenerator(it.f('content'), null, false, null) }
         generateConjuncts(clauses)  { conj, last ->
           if (that) {
             out 'that'
@@ -617,6 +614,7 @@ class EnglishGenerator {
             new SituationGenerator(chart, (Situation)message.var, true).sentence(true)
           }
         } else if (message) {
+          message = message.f('content')
           if (!isQuestion(message)) {
             out 'that'
           } else if (message.f('opinion_of')) {

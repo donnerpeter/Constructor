@@ -30,13 +30,23 @@ class Frame {
     return [value]
   }
 
+  private Frame findController() {
+    def clause = usages('content')[0]
+    if (!clause || !(clause.type in ['fact', 'question'])) {
+      return null
+    }
+    
+    def forget = clause.usages('arg2').find { it.type == 'FORGET' }
+    return forget ?: clause.usages('theme').find { it.type == 'DISCOVER' }
+  }
+
   Frame f(String attr) {
     def v = definedAttributeValue(attr)
     if (v instanceof Frame) {
       if (attr == 'arg1' && !v.definedAttributeValue('type')) {
-        def forget = usages('arg2').find { it.type == 'FORGET' } ?: usages('theme').find { it.type == 'DISCOVER' }
-        if (forget) {
-          return forget.f('arg1')
+        def fromController = findController()?.f('arg1')
+        if (fromController && mayReference(v, fromController)) {
+          return fromController
         }
       }
 
@@ -57,17 +67,23 @@ class Frame {
           return (Frame) verb.definedAttributeValue('arg1')
         }
       }
-      def forget = usages('arg2').find { it.type == 'FORGET' }
-      if (forget?.f('arg1')) {
-        return forget?.f('arg1')
-      }
-      def discover = usages('theme').find { it.type == 'DISCOVER' }
-      if (discover?.f('arg1')) {
-        return discover?.f('arg1')
+
+      def controller = findController()
+      if (controller) {
+        return controller.f('arg1')
       }
     }
 
     return null
+  }
+
+  private boolean mayReference(Frame ref, Frame target) {
+    if (ref.s('person') == '3' && target.type == 'ME') return false
+    return true
+  }
+
+  boolean definitelyNonHuman() {
+    !canBeHuman()
   }
 
   boolean canBeHuman() {
@@ -141,6 +157,7 @@ class Frame {
     }
 
     if (attr == 'type') {
+      if (f('member')) return null
       if (s('rusNumber') == 'pl') return 'THEY'
       if (s('person') == '3') return s('gender') == 'fem' ? 'SHE' : 'HE'
     }

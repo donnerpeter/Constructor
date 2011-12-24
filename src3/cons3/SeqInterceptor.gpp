@@ -62,8 +62,8 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
         def seqVar = new Variable()
         state = state.assign(seqVar, 'member', oldApps[nom].head).assign(seqVar, 'conj', 'but').assign(seqVar, 'member', constructions[nom].head).
                 inhibit(seq)
-        if (before[nom]?.noun && !constructions[nom].noun && agree(oldApps[nom].agr, constructions[nom].agr)) {
-          state = state.inhibit(nom).apply((nom):[noun:before[nom].noun])
+        if ((before[nom]?.noun || before[nom].pro) && !constructions[nom].noun && agree(oldApps[nom].agr, constructions[nom].agr)) {
+          state = state.inhibit(nom).apply((nom):[noun:before[nom].noun, pro:before[nom].pro])
         }
         return base(constructions, state)
       }
@@ -85,7 +85,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
           def lastConj = modernHistory.findIndexOf { Contribution it -> it.apps[seq] != null }
           if (lastConj > 0) {
             for (contribution in modernHistory.subList(0, lastConj).reverse()) {
-              state = state.apply(contribution.apps)
+              state = state.inhibit(contribution.inhibited as Construction[]).apply(contribution.apps)
             }
           }
         } else {
@@ -122,7 +122,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       if (cxt == elaboration && before[cxt]?.head && oldArgs.elaboration && newArgs.elaboration) {
         return doMerge(state, cxt, oldArgs, newArgs, 'elaboration', update, seqs)
       }
-      if (cxt == declOrQuestionComp && before[cxt]?.head && oldArgs.comp && newArgs.comp && oldArgs.comp != state[cxt]?.head) {
+      if (cxt == declOrQuestionComp && !before[cxt]?.head && oldArgs.comp && newArgs.comp && oldArgs.comp != state[cxt]?.head) {
         return doMerge(state, cxt, oldArgs, newArgs, 'comp', update, seqs)
       }
       if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun && before[cxt]?.head) {

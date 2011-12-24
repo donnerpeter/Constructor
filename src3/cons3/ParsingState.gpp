@@ -48,9 +48,11 @@ class ParsingState {
           value = unify(value, mite.contents)
         }
       }
-      for (part in allMites.reverse()) {
-        if (!overwrites(value, part.contents)) {
-          value = unify(value, part.contents)
+      if (!value) {
+        for (part in allMites.reverse()) {
+          if (!overwrites(value, part.contents)) {
+            value = unify(value, part.contents)
+          }
         }
       }
       value
@@ -99,7 +101,7 @@ class ParsingState {
     return false
   }
 
-  ParsingState addCxt(Mite... mites) {
+  ParsingState addCxt(boolean activate, Mite... mites) {
     LinkedHashMap<Object, Group> members = [:]
     for (mite in mites) {
       Collection<Object> xor = mite.contents.xor ?: [] //todo alex inline
@@ -120,7 +122,11 @@ class ParsingState {
       newMites = newMites + [(mite.cxt):(newMites[mite.cxt] ?: []) + mite]
     }
 
-    return clone(mites:newMites, groups:newGroups)
+    def newActive = active
+    if (activate) {
+      newActive = (active as LinkedHashSet) + (mites as Set)
+    }
+    return clone(mites:newMites, groups:newGroups, active:newActive)
   }
 
   private static Map unify(Map oldArgs, Map newArgs) {
@@ -221,11 +227,12 @@ class ParsingState {
       }
     }
 
-    state = state.addCxt(newMites as Mite[])
+    state = state.addCxt(false, newMites as Mite[])
     
     def newActive = state.optimizedBalance(state.allGroups(newMites), state.active as LinkedHashSet, [])
     if (newActive == null) {
-      throw new AssertionError('cannot balance')
+      println "cannot balance: $update"
+      return state
     }
     state = state.activate(newActive)
 
@@ -420,19 +427,19 @@ class ParsingState {
 
   private boolean dominatesSemantically(ParsingState other) {
     def humanActions = ['GO', 'BREAK', 'CAN', 'REMEMBER', 'FORGET']
-    def verbs = humanActions + ['COME_SCALARLY']
+    def verbs = humanActions + ['COME_SCALARLY', 'fact', 'question']
     for (verb in chart.frames.findAll { it.type in verbs }) {
       def alternative = verb.var.frame(other.chart)
       if (!alternative) continue
 
       if (verb.type in humanActions) {
-        boolean meHuman = verb.f('arg1')?.canBeHuman()
-        if (meHuman != alternative.f('arg1')?.canBeHuman()) {
+        boolean meHuman = !verb.f('arg1')?.definitelyNonHuman()
+        if (meHuman != !alternative.f('arg1')?.definitelyNonHuman()) {
           return meHuman
         }
       }
 
-      if (verb.type && !alternative.type) {
+      if (verb.type && verb.type != 'fact' && !alternative.type) {
         return true
       }
 
@@ -446,6 +453,10 @@ class ParsingState {
       }
 
       if (verb.type == 'FORGET' && verb.f('arg2') && !alternative.f('arg2')) {
+        return true
+      }
+
+      if (verb.type == 'question' && alternative.type == 'fact' && !alternative.usages('arg2') && !alternative.usages('theme')) {
         return true
       }
 

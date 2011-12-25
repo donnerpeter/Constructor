@@ -48,7 +48,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = state.apply((questionVariants):[seq:seqVar], (nom):[:])
         def update = new Update((sem):[var:noun])
         for (caze in cases) {
-          update = SeqInterceptor.joinSeq(state, caze, seqVar, noun: noun, [hasNoun: true, xor: t.a], 'noun', update)
+          update = SeqInterceptor.joinSeq([noun:noun, hasNoun:true, xor:t.a], state, caze, seqVar, [:], 'noun', update)
         }
         state = update.apply(state)
       } else {

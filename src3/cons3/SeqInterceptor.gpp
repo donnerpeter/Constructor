@@ -136,7 +136,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
           Variable first = oldArgs.head
           return update.addCxt(seqStart, multi:joinedVar(seqs, first, second), first:first, second:second, conj:conj).addCxt(newArgs, nom)
         }*/
-        return doMerge(state, cxt, before[cxt] + [agr:newArgs.agr], newArgs, 'head', update, seqs)
+        return doMerge(state, cxt, oldArgs, newArgs + [noun:before[cxt].noun], 'head', update, seqs)
       }
 
       if (clauseLevel) return null
@@ -146,7 +146,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       }
       if (cxt in [poDat] && !oldArgs.noun && !newArgs.noun && before[cxt]?.noun && !newArgs.head) {
         def newNoun = new Variable()
-        return doMerge(state, cxt, oldArgs + [unmergedNoun: newNoun, noun:before[cxt].noun], newArgs + [noun: newNoun], 'noun', update, seqs)
+        return doMerge(state, cxt, oldArgs + [noun:before[cxt].noun], newArgs + [noun:newNoun, unmergedNoun:newNoun], 'noun', update, seqs)
       }
       if (cxt in [gen] && oldArgs.head && newArgs.head && !newArgs.noun) {
         return doMerge(state, cxt, oldArgs, newArgs, 'head', update, seqs)
@@ -191,7 +191,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
 
     return update.
             addCxt(seqStart.get(), multi:multi, first:first, second:second, conj:conj, distinguish:newArgs.repeated).
-            addCxt(oldArgs + [(prop):multi, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt)
+            addCxt(newArgs + [(prop):multi, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt)
   }
 
 
@@ -209,7 +209,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
     def newMember = newArgs[property]
     return update.
             addCxt(seqNext.get(), multi:seqVar, next:newMember, conj:state[seq]?.conj).
-            addCxt(oldArgs + [(property):seqVar, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt) //todo newArgs
+            addCxt(newArgs + [(property):seqVar, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt)
 
   }
 

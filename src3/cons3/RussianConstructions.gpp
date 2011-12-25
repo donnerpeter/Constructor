@@ -11,10 +11,10 @@ interface RussianConstructions {
     state.assign(args.nounFrame, (String)args.rel, args.val) }
   Construction nom = cxt('nom', ['head']) { ParsingState state, Map args ->
     if (args.agr && !args.hasNoun) {
-      Variable noun = args.noun ?: args.pro
+      Variable noun = args.noun
       if (!noun) {
         noun = new Variable()
-        state = state.addCxt(true, new Mite(nom, pro: noun, state))
+        state = state.addCxt(true, new Mite(nom, noun: noun, state))
       }
       String agr = args.agr
       if (SeqInterceptor.agrNumber(agr)) {
@@ -28,7 +28,7 @@ interface RussianConstructions {
       }
       args = state[nom]
     }
-    Variable noun = args.noun ?: args.pro
+    Variable noun = args.noun
     if (args.head && noun) {
       for (subj in ((Variable) args.head).frame(state.chart).flatten()) {
         state = state.assign(subj.var, 'arg1', noun)

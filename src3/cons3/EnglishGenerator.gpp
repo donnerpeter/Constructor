@@ -72,6 +72,12 @@ class EnglishGenerator {
       }
 
       def generate(boolean last) {
+        if (frame?.f('member')) {
+          List<ClauseGenerator> conjuncts = frame.flatten().collect { new ClauseGenerator(it, null, false, null) }
+          generateConjuncts(conjuncts) { gen, lst -> gen.generate(lst) }
+          return
+        }
+
         if (frame && frame.usages('topic').find { it.type == 'LUCK' }) {
           out 'by some sheer luck,'
         }
@@ -192,31 +198,31 @@ class EnglishGenerator {
       }
     }
 
-    private boolean generateConjuncts(List<ClauseGenerator> conjuncts, Function2<ClauseGenerator,Boolean,Void> generator) {
+    private void generateConjuncts(List<ClauseGenerator> conjuncts, Function2<ClauseGenerator,Boolean,Void> generator) {
       boolean wasBut = false
 
       for (int j in 0..<conjuncts.size()) {
+        def cur = conjuncts[j]
         def last = j == conjuncts.size() - 1
         if (j > 0) {
           def prev = conjuncts[j - 1]
-          def cur = conjuncts[j]
           List<Frame> seqs = prev.frame?.usages('member') ?: [] //todo infer
           def but = seqs.any { conj -> conj.s('conj') == 'but' && conj.allAssignments('member')[-1].value == cur.frame }
           wasBut |= but
           if (last && (!cur.bg || cur.frame) || but) {
-            if (but) {
+            def negated = cur.frame?.s('negated')
+            if (but && !negated) {
               out(prev.frame?.f('opinion_of') ? ';' : ',')
             }
             else if (!wasBut && j > 1 || cur.bg) out ","
 
-            out(but ? (prev.frame?.s('irrealis') == 'true' ? 'when' : 'but') : "and")
+            out(but ? negated ? 'and not' : prev.frame?.s('irrealis') == 'true' ? 'when' : 'but' : "and")
           } else {
             out ","
           }
         }
-        generator(conjuncts[j], last)
+        generator(cur, last)
       }
-      return wasBut
     }
 
     Frame isExclamation() {
@@ -275,7 +281,7 @@ class EnglishGenerator {
               'DISCOVER', 'REMEMBER',
               'GO', 'SMILE', 'TAKE_OUT', 'SAY', 'MOVE',
               'THANK', 'RUN_OUT',
-              'GET_SAD', 'SEEM', 'THINK',
+              'GET_SAD', 'SEEM', 'THINK', 'SIT',
               'modality', 'DO', 'NEED',
               'BEGIN', 'STOP', 'COME_TO',
               'ARGUE', 'FALL', 'BREAK',
@@ -335,6 +341,9 @@ class EnglishGenerator {
       def questioned = findQuestioned(verb)
       if (questioned && questioned != subj) {
         return sitPast ? 'did' : 'do'
+      }
+      if (verb.s('progressive') && !skipAlreadyMentionedArgument(verb, 'progressive')) {
+        return 'were'
       }
 
       return null
@@ -397,14 +406,16 @@ class EnglishGenerator {
         return subj
       }
 
-      if (topLevel && subj) {
-        def aux = aux(verb, subj, imperative)
-        if (aux) {
-          out aux
-        }
+      def aux = subj ? aux(verb, subj, imperative) : null
+      if (topLevel && aux) {
+        out aux
       }
 
       generateSubject(shouldHaveSubject, forceSubject, verb, subj)
+
+      if (aux && !topLevel && aux != 'did') {
+        out aux
+      }
 
       if (verb.findMeta('type', 'ellipsis')) {
         out(past ? 'did' : 'does')
@@ -413,6 +424,9 @@ class EnglishGenerator {
 
       if (verb.s('manner') == 'SUDDENLY') {
         out 'suddenly'
+      }
+      if (verb.s('manner') == 'JUST') {
+        out 'just'
       }
       def type = verb.type
       if (type == 'SMILE') {
@@ -683,7 +697,7 @@ class EnglishGenerator {
               BEGIN:'started', STOP:'stopped',
               MOVE:'moved',
               ARGUE:'were arguing', 'FALL':'fell', BREAK:'broke',
-              THINK:'think',
+              THINK:(verb.s('progressive') ? 'thinking' : 'think'), SIT:(verb.s('progressive') ? 'sitting' : 'sit'),
               DISTRACT:'distracted',
               DISPERSE:'went'
       ]

@@ -31,7 +31,8 @@ class Frame {
   }
 
   private Frame findController() {
-    def clause = usages('content')[0]
+    def group = usages('member')[0] ?: this
+    def clause = group.usages('content')[0]
     if (!clause || !(clause.type in ['fact', 'question'])) {
       return null
     }
@@ -88,7 +89,7 @@ class Frame {
 
   boolean canBeHuman() {
     if (f('member')) {
-      return !flatten().every { !it.canBeHuman() }
+      return flatten().any { !it.canBeHuman() }
     }
     if (type == 'wh') return false
     if (s('number') || Util.parseNumber(type) != null) return false
@@ -164,6 +165,12 @@ class Frame {
 
     if (attr == 'quantifier' && type in ['WE', 'THEY'] && usages('arg1')[0]?.type == 'DISPERSE') {
       return 'ALL'
+    }
+
+    if (attr == 'progressive' && type in ['THINK', 'SIT']) {
+      if (findController()?.s('time') == 'PAST') {
+        return 'true'
+      }
     }
 
     return null

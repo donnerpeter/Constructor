@@ -78,11 +78,14 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       if (merged) {
         def modernHistory = state.history
         if (precedent == null) {
-          ParsingState rollback = history[similar].before
+          ParsingState rollback = before[commaList]?.rollback ?: history[similar].before
           rollback = rollback[numQuantifier]?.prev ?: rollback //todo a more generic way of finding a phrase start
+          if (conj == null) {
+            update = update.addCxt(commaList, rollback:rollback)
+          }
           state = state.clearConstructions().restore(rollback)
 
-          def lastConj = modernHistory.findIndexOf { Contribution it -> it.apps[seq] != null }
+          def lastConj = modernHistory.findIndexOf { Contribution it -> it.apps[seq]?.interceptor == (SeqInterceptor)this }
           if (lastConj > 0) {
             for (contribution in modernHistory.subList(0, lastConj).reverse()) {
               state = state.inhibit(contribution.inhibited as Construction[]).apply(contribution.apps)
@@ -194,6 +197,10 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
             addCxt(newArgs + [(prop):multi, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt)
   }
 
+  static Construction commaList = Construction.cxt('commaList') { state, args ->
+    state
+  }
+
 
   static Update joinSeq(Map newArgs, ParsingState state, Construction cxt, Variable seqVar, Map oldArgs, String property, Update update) {
     Reference<Construction> seqNext = []
@@ -201,9 +208,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       if (args.conj) {
         st = st.assign(args.multi, 'conj', args.conj)
       }
-      if (args.multi != args.next) { //todo long seqs assembling
-        st = st.assign(args.multi, 'member', args.next)
-      }
+      st = st.assign(args.multi, 'member', args.next)
       st.satisfied(seqNext.get())
     })
     def newMember = newArgs[property]

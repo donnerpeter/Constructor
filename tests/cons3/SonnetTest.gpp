@@ -666,7 +666,14 @@ A.goal=C
     Tokens.counter = 0
     def parser = new Parser()
     def chart = parser.parse(input)
-    def actual = new EnglishGenerator().generate(chart)
+    String actual
+    try {
+      actual = new EnglishGenerator().generate(chart)
+    } catch (Throwable e) {
+      println "\nChart:\n\n${chart.presentable()}"
+      println "\nLog:\n\n$parser.log\n"
+      throw e
+    }
     if (actual != expected) {
       println "\nChart:\n\n${chart.presentable()}"
       println "\nLog:\n\n$parser.log"

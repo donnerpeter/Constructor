@@ -9,7 +9,7 @@ import static cons3.RussianConstructions.*
 class Parser { //todo alex implements cons3.RussianConstructions
   public static final ArrayList<Construction> importantForSimilarity =
     [nom, acc, gen, dat, instr, prep, poDat,
-            possessive, parenthetical, comeScalarly, elaboration, declOrQuestionComp, question]
+            possessive, parenthetical, comeScalarly, elaboration, declOrQuestionComp, question, complementizer]
   String log = ""
 
   Chart parse(String text) {
@@ -627,7 +627,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     Tokens t = new Tokens()
     return state.inhibit(preposition, relativeClause, numQuantifier).
             assign(verb, 'type', type).assign(verb, 'time', tense).
-            apply(args + [(subjunctive):[head:verb], (verbHolder):[head:verb], (relTime):[head:verb], (also):[head: verb], 
+            apply(args + [(subjunctive):[head:verb], (verbHolder):[head:verb], (relTime):[head:verb], (also):[head: verb],
                     (complementizer):[mainVerb:verb, xor:t.a], (question):[mainVerb:verb, xor:t.a]])
   }
 
@@ -685,8 +685,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
       st
     }
   }
-  
-  
+
+
 
 }
 

@@ -59,6 +59,17 @@ class ParsingState {
     }
   }
 
+  ParsingState getBeforeThisChange() {
+    if (history.empty) {
+      return new ParsingState()
+    }
+    return history[0].before.apply(history[0])
+  }
+
+  ParsingState apply(Contribution contribution) {
+    return inhibit(contribution.inhibited as Construction[]).apply(contribution.apps)
+  }
+
   private ParsingState clone(Map update) {
     Map current = [chart:chart, situation:situation, mites:mites, history:history, active:active, changes:changes, currentGeneration:currentGeneration, groups:groups]
     current.putAll(update)

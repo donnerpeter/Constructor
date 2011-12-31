@@ -16,6 +16,14 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       if (Parser.areSimilar(old.apps, constructions)) {
         return i
       }
+      if (constructions[nom]?.head) {
+        if (old.apps[complementizer]?.frame) {
+          return -1
+        }
+        if (old.apps[directSpeech]?.hasColon) {
+          return -1
+        }
+      }
       if (old.apps[nom]?.head && !old.apps[nom].noun && !constructions[complementizer] &&
           (constructions[dat]?.hasNoun || constructions[preposition] || constructions[gen]?.hasNoun || constructions[nom]?.hasNoun || constructions[acc]?.hasNoun)) {
         return -1
@@ -79,10 +87,10 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
             state = state.inhibit(nom, acc)
           }
 
-          def lastConj = modernHistory.findIndexOf { Contribution it -> it.apps[seq]?.interceptor == (SeqInterceptor)this }
-          if (lastConj > 0) {
-            for (contribution in modernHistory.subList(0, lastConj).reverse()) {
-              state = state.inhibit(contribution.inhibited as Construction[]).apply(contribution.apps)
+          def lastConj = modernHistory.findLastIndexOf { Contribution it -> it.before[seq]?.interceptor == (SeqInterceptor)this }
+          if (lastConj >= 0) {
+            for (contribution in modernHistory.subList(0, lastConj + 1).reverse()) {
+              state = state.apply(contribution)
             }
           }
         } else {
@@ -121,13 +129,16 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       if (cxt == declOrQuestionComp && !before[cxt]?.head && oldArgs.comp && newArgs.comp && oldArgs.comp != state[cxt]?.head) {
         return doMerge(state, cxt, oldArgs, newArgs, 'comp', update, seqs)
       }
-      if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun && before[cxt]?.head) {
-        if (conj == 'but' && !agree(before[cxt].agr, newArgs.agr)) {
+      if (cxt in [nom] && oldArgs.head && newArgs.head && !newArgs.noun) {
+        if (conj == 'but' && !agree(before[cxt]?.agr, newArgs.agr)) {
           Variable second = newArgs.head
           Variable first = oldArgs.head
           return update.addCxt(aSeqStart(), multi: joinedVar(seqs, first, second), first:first, second:second, conj:conj).addCxt(newArgs, nom)
         }
-        return doMerge(state, cxt, oldArgs, newArgs + [noun:before[cxt].noun], 'head', update, seqs)
+        if (before[cxt]?.noun) {
+          newArgs += [noun:before[cxt]?.noun]
+        }
+        return doMerge(state, cxt, oldArgs, newArgs, 'head', update, seqs)
       }
 
       if (clauseLevel) return null

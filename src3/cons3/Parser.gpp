@@ -213,13 +213,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "нашего":
         def we = new Variable()
         return conjWrap(state, (typeCxt('WE')):[var:we], (possessive):[possessor:we])
-      case "и": return state.clearConstructions().apply(seq, conj:'and', interceptor:new SeqInterceptor(state, 'and'))
-      case "или": return state.clearConstructions().apply(seq, conj:'or', interceptor:new SeqInterceptor(state, 'or'))
+      case "и": return state.apply((seq):[conj:'and'])
+      case "или": return state.apply((seq):[conj:'or'])
       case "а":
       case "но":
-        def verb = new Variable()
-        return state.clearConstructions().apply((seq):[conj:'but', interceptor:new SeqInterceptor(state, 'but')], (verbHolder):[head: verb], (prevHistory):[history:state]).
-                assign(verb, word == 'а' ? 'andEmphasis' : 'butEmphasis', 'true')
+        return state.apply((seq):[conj:'but', butWord:word])
       case "тут":
         def verb = state[verbHolder]?.head ?: new Variable()
         return state.assign(verb, 'emphasis', 'true').apply((verbHolder):[head:verb])
@@ -455,7 +453,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
                                    (relativeClause):[hasComma:true, parentSituation: state.situation],
                                    (prevHistory):[history:state])
         if (!state[seq]?.conj) {
-          update = update.addCxt(seq, interceptor:new SeqInterceptor(state, null))
+          state = state.inhibit(seq)
+          update = update.addCxt(seq, conj:null)
         }
         if (state[poDat]?.head && state[poDat]?.hasNoun) {
           state = state.inhibit(poDat)

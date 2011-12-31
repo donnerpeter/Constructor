@@ -277,8 +277,29 @@ interface RussianConstructions {
     args.head && args.participle ? state.assign(args.head, 'theme', args.participle) : state
   }
   Construction seq = cxt('seq') { ParsingState state, Map args ->
-    if (args.conj == 'but' && !((SeqInterceptor) args.interceptor).before.history) {
-      state = state.inhibit(seq)
+    SeqInterceptor interceptor = args.interceptor
+    String conj = args.conj
+    def before = state.beforeThisChange
+    if (conj && !before[seq]?.conj && before[seq]?.interceptor) {
+      interceptor = null
+    }
+
+    if (!interceptor) {
+      interceptor = new SeqInterceptor(before, conj)
+      if (conj) {
+        state = state.clearConstructions()
+      }
+      state = state.addCxt(true, new Mite(seq, conj:conj, interceptor:interceptor, state))
+    }
+    if (args.conj == 'but') {
+      if (!interceptor.before.history) {
+        state = state.inhibit(seq)
+      }
+      if (args.butWord && !args.butWordHandled) {
+        def verb = new Variable()
+        state = state.apply((seq):[butWordHandled:true], (verbHolder):[head: verb], (prevHistory):[history:before]).
+                assign(verb, args.butWord == 'а' ? 'andEmphasis' : 'butEmphasis', 'true')
+      }
     }
     return state
   }

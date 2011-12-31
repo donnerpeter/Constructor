@@ -224,6 +224,8 @@ class ParsingState {
   }
 
   ParsingState apply(Map<Construction, Map> constructions) {
+    if (!constructions) return this
+
     def applier = nextApplier(null)
     applier(constructions, this).clone(history: history + new Contribution(this, FLinkedMap.fromMap(constructions).reverse(), FList.emptyList))
   }

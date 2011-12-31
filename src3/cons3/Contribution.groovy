@@ -13,7 +13,7 @@ class Contribution {
 
   @Override
   String toString() {
-    return "$apps"
+    return "$apps - $inhibited"
   }
 
 

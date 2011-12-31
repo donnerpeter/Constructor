@@ -216,7 +216,7 @@ class EnglishGenerator {
             }
             else if (!wasBut && j > 1 || cur.bg) out ","
 
-            out(but ? negated ? 'and not' : prev.frame?.s('irrealis') == 'true' ? 'when' : 'but' : "and")
+            out(but ? negated ? 'and' : prev.frame?.s('irrealis') == 'true' ? 'when' : 'but' : "and")
           } else {
             out ","
           }
@@ -420,6 +420,10 @@ class EnglishGenerator {
       if (verb.findMeta('type', 'ellipsis')) {
         out(past ? 'did' : 'does')
         return
+      }
+
+      if (verb.s('negated') && verb.type != 'CAN') {
+        out 'not'
       }
 
       if (verb.s('manner') == 'SUDDENLY') {

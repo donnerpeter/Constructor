@@ -445,7 +445,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return finiteVerb(state, verb, 'STOP', 'PAST', (nom):[head:verb])
       case ",":
         if (state[nestedClause]) {
-          return state.withSituation((Situation)state[nestedClause].parent).clearConstructions().restore((ParsingState) state[nestedClause].save).satisfied(nestedClause)
+          return state.withSituation((Situation)state[nestedClause].parent).clearConstructions().restore((ParsingState) state[nestedClause].save)
         }
         Update update = new Update((conditionComp):[hasComma:true],
                                    (reasonComp):[hasComma:true],

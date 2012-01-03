@@ -12,9 +12,12 @@ class NumQuantifier implements Interceptor, RussianConstructions {
         if (c == numQuantifier) continue
 
         def modify = c == state.constructions[numQuantifier].innerCase
-        update = update.addCxt(contribution[c], modify ? acc : c)
         if (modify) {
-          update = update.addCxt(dativePart, acc:contribution[c].noun).addCxt(numQuantifier, hasNoun:contribution[c].hasNoun)
+          def hasNoun = contribution[c].hasNoun
+          update = update.addCxt(contribution[c] - [hasNoun:hasNoun], acc)
+          update = update.addCxt(dativePart, acc:contribution[c].noun).addCxt(numQuantifier, hasNoun:hasNoun)
+        } else {
+          update = update.addCxt(contribution[c], c)
         }
       }
       return base(update.map.reverse(), state)

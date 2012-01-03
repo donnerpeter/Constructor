@@ -8,16 +8,26 @@ class Chart {
   final Map<Variable, Situation> __vars
   private final FList<Variable> currentMetas
   final FLinkedMap<Assignment<Variable>, FList<Variable>> __metas
+  private final FLinkedMap<Set<Variable>, Integer> __unifications
+  private final FLinkedMap<Variable, Variable> __baseVars
 
-  Chart() {
-    this([:], [:], FList.emptyList, FLinkedMap.emptyMap)
+  private Chart(Map args) {
+    __assignments = args.assignments
+    __vars = args.vars
+    currentMetas = args.currentMetas
+    __metas = args.metas
+    __unifications = args.unifications
+    __baseVars = args.baseVars
   }
 
-  private Chart(Map<Situation, LinkedHashSet<Assignment<Variable>>> __assignments, Map<Variable, Situation> __vars, FList<Variable> currentMetas, FLinkedMap<Assignment<Variable>, FList<Variable>> metas) {
-    this.__assignments = __assignments
-    this.__vars = __vars
-    this.currentMetas = currentMetas
-    this.__metas = metas
+  Chart() {
+    this(assignments:[:], vars:[:], currentMetas:FList.emptyList, metas:FLinkedMap.emptyMap, unifications:FLinkedMap.emptyMap, baseVars:FLinkedMap.emptyMap)
+  }
+
+  Chart clone(Map update) {
+    Map current = [assignments:__assignments, vars:__vars, currentMetas:currentMetas, metas:__metas, unifications:__unifications, baseVars:__baseVars]
+    current.putAll(update)
+    return new Chart(current)
   }
 
   List<Situation> getSituations() {
@@ -90,7 +100,7 @@ class Chart {
       newVars[value] = situation
     }
     
-    return new Chart(newAsss, newVars, currentMetas, __metas + [(assignment):currentMetas])
+    return clone(assignments:newAsss, vars:newVars, metas:__metas + [(assignment):currentMetas])
   }
 
   String presentable() {
@@ -98,11 +108,11 @@ class Chart {
   }
 
   Chart startMeta(Variable meta) {
-    return new Chart(__assignments, __vars, currentMetas + meta, __metas)
+    return clone(currentMetas: currentMetas + meta)
   }
 
   Chart finishMeta(Variable meta) {
-    return new Chart(__assignments, __vars, currentMetas - meta, __metas)
+    return clone(currentMetas: currentMetas - meta)
   }
 
   Chart removeDifference(Pair<Chart, Chart> diff) {
@@ -127,6 +137,10 @@ class Chart {
     if (newAssignments == __assignments) {
       return this
     }
-    return new Chart(newAssignments, __vars, currentMetas, __metas)
+    return clone(assignments:newAssignments)
+  }
+
+  Chart addUnificationConstraint(Variable var1, Variable var2) {
+    this
   }
 }

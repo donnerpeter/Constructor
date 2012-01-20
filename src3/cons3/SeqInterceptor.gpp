@@ -82,9 +82,16 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
           if (conj == null) {
             update = update.addCxt(commaList, rollback:rollback)
           }
+          def oldVerb = state[verbHolder]?.head
           state = state.clearConstructions().restore(rollback)
-          if (conj == 'but' && oldApps[nom]?.head && constructions[nom]?.head) {
-            state = state.inhibit(nom, acc)
+          if (oldApps[nom]?.head && constructions[nom]?.head) {
+            if (conj == 'but') {
+              state = state.inhibit(nom, acc)
+            }
+            state = state.inhibit(verbHolder)
+            if (oldVerb) {
+              state = state.apply((verbHolder):[head:oldVerb])
+            }
           }
 
           def lastConj = modernHistory.findLastIndexOf { Contribution it -> it.before[seq]?.interceptor == (SeqInterceptor)this }

@@ -43,7 +43,7 @@ class Chart {
   }
 
   List<Frame> frames(Situation situation) {
-    vars(situation).collect { it.frame(this) }
+    (vars(situation).collect { it.frame(this) } as LinkedHashSet<Frame>) as List<Frame>
   }
 
   List<Frame> getFrames() {

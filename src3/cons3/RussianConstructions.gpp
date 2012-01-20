@@ -296,7 +296,7 @@ interface RussianConstructions {
         state = state.inhibit(seq)
       }
       if (args.butWord && !args.butWordHandled) {
-        def verb = new Variable()
+        def verb = new Variable().lightVar
         state = state.apply((seq):[butWordHandled:true], (verbHolder):[head: verb], (prevHistory):[history:before]).
                 assign(verb, args.butWord == 'а' ? 'andEmphasis' : 'butEmphasis', 'true')
       }

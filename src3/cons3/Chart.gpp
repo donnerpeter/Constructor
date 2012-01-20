@@ -53,9 +53,9 @@ class Chart {
 
   boolean earlier(Frame f1, String a1, Frame f2, String a2) {
     assert f1.situation == f2.situation
-    List<Assignment<Variable>> assignments = __assignments[f1.situation] as List
-    Assignment<Variable> i1 = assignments.find { Assignment it -> it.frame == f1.var && it.property == a1 }
-    Assignment<Variable> i2 = assignments.find { Assignment it -> it.frame == f2.var && it.property == a2 }
+    List<Assignment<Frame>> assignments = allAssignments(f1.situation)
+    Assignment<Frame> i1 = assignments.find { Assignment it -> it.frame == f1 && it.property == a1 }
+    Assignment<Frame> i2 = assignments.find { Assignment it -> it.frame == f2 && it.property == a2 }
     if (!i1 || !i2) return false
     return i1.generation < i2.generation
   }
@@ -140,7 +140,57 @@ class Chart {
     return clone(assignments:newAssignments)
   }
 
-  Chart addUnificationConstraint(Variable var1, Variable var2) {
-    this
+  private void fillGroup(List<Set<Variable>> pairs, Variable current, LinkedHashSet<Variable> result) {
+    if (!result.add(current)) {
+      return
+    }
+
+    for (p in pairs) {
+      if (current in p) {
+        for (var in p) {
+          fillGroup(pairs, var, result)
+        }
+      }
+    }
   }
+
+  private FLinkedMap<Variable, Variable> updateGroup(FLinkedMap<Set<Variable>, Integer> newUnifications, Variable var1, FLinkedMap<Variable, Variable> newBaseVars) {
+    LinkedHashSet<Variable> group = []
+    fillGroup(newUnifications.keyList(), var1, group)
+    Variable base = group.iterator().next()
+    for (var in group) {
+      assert !var.light
+      newBaseVars = newBaseVars.putValue(var, base)
+    }
+    return newBaseVars
+  }
+
+  Chart addUnificationConstraint(Variable var1, Variable var2) {
+    def pair = [var1, var2] as LinkedHashSet<Variable>
+    def oldCount = __unifications[pair] ?: 0
+    def newUnifications = __unifications.putValue(pair, oldCount + 1)
+    FLinkedMap<Variable, Variable> newBaseVars = __baseVars
+    if (oldCount == 0) {
+      newBaseVars = updateGroup(newUnifications, var1, newBaseVars)
+    }
+    clone(unifications:newUnifications, baseVars:newBaseVars)
+  }
+
+  Chart removeUnificationConstraint(Variable var1, Variable var2) {
+    def pair = [var1, var2] as LinkedHashSet<Variable>
+    def oldCount = __unifications[pair]
+    assert oldCount
+    def newUnifications = oldCount > 1 ? __unifications.putValue(pair, oldCount - 1) : __unifications.removeKey(pair)
+    FLinkedMap<Variable, Variable> newBaseVars = __baseVars
+    if (oldCount == 1) {
+      newBaseVars = updateGroup(newUnifications, var1, newBaseVars)
+      newBaseVars = updateGroup(newUnifications, var2, newBaseVars)
+    }
+    clone(unifications:newUnifications, baseVars:newBaseVars)
+  }
+
+  Variable getUnifiedVar(Variable var) {
+    return __baseVars[var] ?: var
+  }
+
 }

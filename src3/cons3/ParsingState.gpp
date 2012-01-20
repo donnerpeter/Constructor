@@ -4,8 +4,6 @@ package cons3
  * @author peter
  */
 class ParsingState {
-  static final Closure noInit = { it }
-
   final Chart chart
   final Situation situation
   final FLinkedMap<Construction, List<Mite>> mites
@@ -76,10 +74,50 @@ class ParsingState {
     return new ParsingState(current)
   }
 
+  private Chart updateUnification(Chart chart, Set<Mite> oldActive, Set<Mite> newActive) {
+    if (oldActive == newActive) {
+      return chart
+    }
+
+    LinkedHashSet<Mite> added = (newActive as LinkedHashSet) - oldActive
+    LinkedHashSet<Mite> removed = (oldActive as LinkedHashSet) - newActive
+    List<Pair<Variable, Variable>> toRemove = findChangedUnificationPairs(removed, oldActive)
+    List<Pair<Variable, Variable>> toAdd = findChangedUnificationPairs(added, newActive)
+    for (s in toRemove) {
+      chart = chart.removeUnificationConstraint(s.first, s.second)
+    }
+    for (s in toAdd) {
+      chart = chart.addUnificationConstraint(s.first, s.second)
+    }
+    return chart
+  }
+
+  private List<Pair<Variable, Variable>> findChangedUnificationPairs(LinkedHashSet<Mite> part, Set<Mite> whole) {
+    List<Pair<Variable, Variable>> result = []
+    for (mite1 in part) {
+      for (mite2 in whole) {
+        if (mite1.cxt == mite2.cxt && !mite1.contradicts(mite2)) {
+          for (key in mite1.contents.keyList()) {
+            def val1 = mite1.contents[key]
+            def val2 = mite2.contents[key]
+            if (areUnifiableVars(val1, val2)) {
+              result << new Pair(((Variable) val1).base, ((Variable) val2).base)
+            }
+          }
+        }
+      }
+    }
+    return result
+  }
+
+  private static boolean areUnifiableVars(val1, val2) {
+    return val1 != val2 && val1 instanceof Variable && val2 instanceof Variable && (val1.light || val2.light)
+  }
+
   ParsingState withSituation(Situation situation) { clearConstructions().clone(situation:situation) }
 
   ParsingState assign(def var, String property, def value) {
-    clone(chart: chart.assign((Variable)var, situation, property, value, currentGeneration))
+    clone(chart: chart.assign(((Variable)var).base, situation, property, value instanceof Variable ? value.base : value, currentGeneration))
   }
   
   Map getAt(Construction construction) {
@@ -105,7 +143,11 @@ class ParsingState {
       return false
     }
     for (arg in before.keySet().intersect(newArgs.keySet())) {
-      if (arg != 'xor' && before[arg] != newArgs[arg] && before[arg] != null) {
+      if (arg == 'xor') continue
+
+      def val1 = before[arg]
+      def val2 = newArgs[arg]
+      if (val1 != val2 && val1 != null && !areUnifiableVars(val1, val2)) {
         return true
       }
     }
@@ -133,11 +175,11 @@ class ParsingState {
       newMites = newMites + [(mite.cxt):(newMites[mite.cxt] ?: []) + mite]
     }
 
-    def newActive = active
+    Set<Mite> newActive = active
     if (activate) {
       newActive = (active as LinkedHashSet) + (mites as Set)
     }
-    return clone(mites:newMites, groups:newGroups, active:newActive)
+    return clone(mites:newMites, groups:newGroups, active:newActive, chart:updateUnification(chart, active, newActive))
   }
 
   private static Map unify(Map oldArgs, Map newArgs) {
@@ -312,7 +354,7 @@ class ParsingState {
     def toApply = new LinkedHashSet<Mite>(newActive)
     toApply.removeAll(active)
     
-    def state = clone(active: newActive)
+    def state = clone(active: newActive, chart:updateUnification(chart, active, newActive))
     for (mite in toRemove) {
       if (mite.findContradictors(toApply).find { mite.cxt != it.cxt }) {
         state = state.undoChanges(mite.cxt).doApply(mite.cxt)
@@ -519,7 +561,7 @@ class ParsingState {
         newGroups.removeAll(allGroups(saved.mites[c]))
       }
     }
-    clone(mites: saved.mites + this.mites, active:newActive, changes:saved.changes + this.changes, groups:newGroups)
+    clone(mites: saved.mites + this.mites, active:newActive, changes:saved.changes + this.changes, groups:newGroups, chart:updateUnification(chart, active, newActive))
   }
 
 }

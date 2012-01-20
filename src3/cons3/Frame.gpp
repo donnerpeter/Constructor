@@ -9,7 +9,7 @@ class Frame {
   final Chart chart
 
   Frame(Variable var, Situation situation, Chart chart) {
-    this.var = var
+    this.var = chart.getUnifiedVar(var)
     this.situation = situation
     this.chart = chart
   }

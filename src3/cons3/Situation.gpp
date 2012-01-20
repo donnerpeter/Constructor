@@ -9,8 +9,11 @@ class Situation extends Variable {
   String presentable(Chart chart) {
     Map<Variable, String> naming = [:]
 
-    chart.vars(this).eachWithIndex { Variable var, int i ->
+    (chart.vars(this).collect { chart.getUnifiedVar(it) } as LinkedHashSet<Variable>).eachWithIndex { Variable var, int i ->
       naming[var] = String.valueOf((char)(i + (int)'A'.charAt(0)))
+    }
+    chart.vars(this).each {
+      naming[it] = naming[chart.getUnifiedVar(it)]
     }
     chart.situations.eachWithIndex { Situation sit, int i ->
       naming[sit] = "#${i + 1}"
@@ -41,13 +44,34 @@ class Variable {
   static int counter = 0
 
   final String id
+  final Variable base
+  private final Variable lightVar
 
   Variable() {
     id = ((this instanceof Situation) ? 'Sit' : 'Var') + counter++
+    base = this
+    lightVar = new Variable(this)
   }
 
   Variable(String comment) {
     id = "Var${counter++}[$comment]"
+    base = this
+    lightVar = new Variable(this)
+  }
+
+  private Variable(Variable base) {
+    id = base.id + "_light"
+    this.base = base
+    lightVar = null
+  }
+
+  Variable getLightVar() {
+    assert !light
+    lightVar
+  }
+
+  boolean isLight() {
+    return base != this
   }
 
   String toString() {

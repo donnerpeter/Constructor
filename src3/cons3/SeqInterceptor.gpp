@@ -10,24 +10,23 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
   ParsingState before
   String conj
 
-  int findSimilar(List<Contribution> history, Map<Construction, Map> constructions) {
+  int findSimilar(List<Contribution> history, List<Mite> constructions) {
     int i = 0
     for (old in history) {
       if (Parser.areSimilar(old.apps, constructions)) {
         return i
       }
-      if (constructions[nom]?.head) {
-        if (old.apps[complementizer]?.frame) {
-          return -1
-        }
-        if (old.apps[directSpeech]?.hasColon) {
+      if (constructions.find { it.cxt == nom && it.contents.head }) {
+        if (old.apps.find { it.cxt == complementizer && it.contents.frame || it.cxt == directSpeech && it.contents.hasColon }) {
           return -1
         }
       }
-      if (old.apps[nom]?.head && !old.apps[nom].noun && !constructions[complementizer] &&
-          (constructions[dat]?.hasNoun || constructions[preposition] || constructions[gen]?.hasNoun || constructions[nom]?.hasNoun || constructions[acc]?.hasNoun)) {
+      
+      if (old.apps.find { it.cxt == nom && it.contents.head && !it.contents.noun} && !constructions.find { it.cxt == complementizer } &&
+        (constructions.find { it.cxt in [dat, gen, nom, acc] && it.contents.hasNoun || it.cxt == preposition })) {
         return -1
       }
+      
       i++
     }
     return -1
@@ -44,7 +43,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
   static String agrPerson(String agr) { return agr?.startsWith('3') ? '3' : null }
   static boolean agrUnifiable(String a1, String a2) { return a1 == null || a2 == null || a1 == a2 }
 
-  ParsingState intercept(Map<Construction, Map> constructions, ParsingState state, Function2<Map<Construction, Map>, ParsingState, ParsingState> base) {
+  ParsingState intercept(List<Mite> constructions, ParsingState state, Function2<List<Mite>, ParsingState, ParsingState> base) {
     List<Contribution> history
     int similar
 
@@ -61,17 +60,18 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
     }
 
     if (similar >= 0) {
-      Update update = new Update(FLinkedMap.emptyMap)
+      Update update = new Update()
       def seqs = [:]
       boolean merged = false
 
       def oldApps = history[similar].apps
 
-      for (cxt in constructions.keySet()) {
-        def oldArgs = oldApps[cxt]
-        def newUpdate = merge(state, cxt, oldArgs, constructions[cxt], update, seqs, declOrQuestionComp in constructions)
+      for (mite in constructions) {
+        def cxt = mite.cxt
+        def oldArgs = oldApps.find { it.cxt == cxt }
+        def newUpdate = merge(state, cxt, oldArgs?.contents, mite.contents, update, seqs, declOrQuestionComp in constructions)
         merged |= newUpdate != null
-        update = newUpdate ?: update.addCxt(constructions[cxt], cxt)
+        update = newUpdate ?: update.addMites(mite)
       }
 
       if (merged) {
@@ -84,7 +84,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
           }
           def oldVerb = state[verbHolder]?.head
           state = state.clearConstructions().restore(rollback)
-          if (oldApps[nom]?.head && constructions[nom]?.head) {
+          if (oldApps.find { it.cxt == nom && it.contents.head } && constructions.find { it.cxt == nom && it.contents.head }) {
             if (conj == 'but') {
               state = state.inhibit(nom, acc)
             }
@@ -112,8 +112,8 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
 
         if (similar > 0) {
           List<Contribution> remainingPrecedent = history[0..<similar].reverse() //todo alex infer
-          if (poDat in history[similar].apps) { //todo a generic way of finding sequence precedents
-            def nounContribution = remainingPrecedent.find { it.apps[dat]?.hasNoun }
+          if (history[similar].apps.find { it.cxt == poDat }) { //todo a generic way of finding sequence precedents
+            def nounContribution = remainingPrecedent.find { it.apps.any { it.cxt == dat && it.contents.hasNoun } }
             if (nounContribution) {
               update = update.addCxt(seq, precedent:[nounContribution], interceptor:new SeqInterceptor(state, conj))
             }
@@ -128,7 +128,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
 
   private ParsingState maybeReuseSubject(List<Contribution> prefix, int i, Contribution contribution, ParsingState state) {
     def after = prefix[i + 1].before
-    if (contribution.apps[nom]?.head && !contribution.apps[nom]?.noun && after[nom]?.noun) {
+    if (contribution.apps.find { it.cxt == nom && it.contents.head && !it.contents.noun } && after[nom]?.noun) {
       state = state.addCxt(true, nom(noun:after[nom].noun))
     }
     return state

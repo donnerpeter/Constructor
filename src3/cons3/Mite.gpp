@@ -1,8 +1,11 @@
 package cons3
 
+import groovy.transform.EqualsAndHashCode
+
 /**
  * @author peter
  */
+@EqualsAndHashCode
 class Mite {
   final Construction cxt
   final FLinkedMap contents
@@ -40,6 +43,14 @@ class Mite {
            "cxt=" + cxt +
            ", contents=" + contents +
            '}';
+  }
+
+  boolean isSimilarTo(Mite another) {
+    return cxt == another.cxt && contents.keySet() - 'xor' == another.contents.keySet() - 'xor'
+  }
+
+  Mite findSimilar(List<Mite> mites) {
+    mites.find { isSimilarTo(it) }
   }
 
 

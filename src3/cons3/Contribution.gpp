@@ -8,7 +8,7 @@ import groovy.transform.TupleConstructor
 @TupleConstructor
 class Contribution {
   final ParsingState before
-  final FLinkedMap<Construction, Map> apps
+  final FList<Mite> apps
   final FList<Construction> inhibited
 
   @Override

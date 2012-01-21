@@ -12,11 +12,11 @@ class EllipsisInterceptor implements Interceptor, RussianConstructions {
     this.beforeDash = beforeDash
   }
 
-  ParsingState intercept(Map<Construction, Map> constructions, ParsingState state, Function2<Map<Construction, Map>, ParsingState, ParsingState> base) {
+  ParsingState intercept(List<Mite> constructions, ParsingState state, Function2<List<Mite>, ParsingState, ParsingState> base) {
     Update update = new Update(constructions)
 
     FList<Contribution> old = prevHistory.history
-    def endPrecedent = old.findIndexOf { Contribution it -> Parser.areSimilar(it.apps, update.map) }
+    def endPrecedent = old.findIndexOf { Contribution it -> Parser.areSimilar(it.apps, update.mites) }
     if (endPrecedent >= 0) {
       List<Contribution> beforeGap = beforeDash.history[0..beforeDash.history.size - old.size]
       def lcs = Util.lcs(old.subList(endPrecedent + 1), beforeGap) { a, b -> Parser.areSimilar(a.apps, b.apps) }
@@ -38,9 +38,10 @@ class EllipsisInterceptor implements Interceptor, RussianConstructions {
           def mapped = applyMapping(oldContribution, mapping)
           state = base(mapped, state)
           //todo a generic conjunctless 'but'
-          if (mapped[comeScalarly]?.verb && prevHistory[comeScalarly]?.verb) {
+          def cs = mapped.find { it.cxt == comeScalarly && it.contents.verb }
+          if (cs && prevHistory[comeScalarly]?.verb) {
             def seq = new Variable()
-            state = state.assign(seq, 'member', prevHistory[comeScalarly].verb).assign(seq, 'conj', 'but').assign(seq, 'member', mapped[comeScalarly].verb)
+            state = state.assign(seq, 'member', prevHistory[comeScalarly].verb).assign(seq, 'conj', 'but').assign(seq, 'member', cs.contents.verb)
             if (prevHistory[elaboration]?.head) {
               state = state.assign(prevHistory[elaboration].head, 'elaboration', seq)
             }
@@ -54,32 +55,36 @@ class EllipsisInterceptor implements Interceptor, RussianConstructions {
     return base(constructions, state)
   }
 
-  FLinkedMap<Construction, Map> applyMapping(Contribution oldContribution, Map<Variable, Variable> mapping) {
-    FLinkedMap<Construction, Map> newContribution = FLinkedMap.emptyMap
-    for (cxt in oldContribution.apps.keySet()) {
+  List<Mite> applyMapping(Contribution oldContribution, Map<Variable, Variable> mapping) {
+    List<Mite> newContribution = []
+    for (mite in oldContribution.apps) {
       def newArgs = [:]
-      oldContribution.apps[cxt].each { k, v ->
+      mite.contents.each { k, v ->
         newArgs[k] = v instanceof Variable ? mapping[(Variable) v] : v
       }
-      newContribution = newContribution.putValue(cxt, newArgs)
+      newContribution = newContribution + mite.cxt(newArgs)
     }
-    return newContribution.reverse()
+    return newContribution
   }
 
   Map<Variable, Variable> buildMapping(List<Contribution> lcs, FList<Contribution> template, Update update) {
     Map<Variable, Variable> mapping = [:]
     lcs.each { contribution ->
-      contribution.apps.values().each { val ->
-        if (val instanceof Variable && !mapping[(Variable) val]) { //todo alex cast
-          mapping[(Variable) val] = new Variable()
+      contribution.apps.each { mite ->
+        mite.contents.each { val ->
+          if (val instanceof Variable && !mapping[(Variable) val]) { //todo alex cast
+            mapping[(Variable) val] = new Variable()
+          }
         }
       }
     }
     template.each { Contribution oldContribution ->
-      oldContribution.apps.each { cxt, upd ->
-        upd.each { k, v ->
+      oldContribution.apps.each { mite ->
+        mite.contents.each { k, v ->
           if (v instanceof Variable) {
-            mapping[v] = update.map[cxt]?.get(k) ?: mapping[v] ?: new Variable()
+            List<Mite> candidateMites = update.mites.findAll { it.cxt == mite.cxt }
+            List values = candidateMites.collect { it.contents[k] }
+            mapping[v] = values[0] ?: mapping[v] ?: new Variable()
           }
         }
       }

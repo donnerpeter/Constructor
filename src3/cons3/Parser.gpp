@@ -46,7 +46,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       if (qv) {
         def seqVar = new Variable()
         state = state.apply((questionVariants):[seq:seqVar], (nom):[:])
-        def update = new Update((sem):[var:noun])
+        def update = new Update(sem(var:noun))
         for (caze in cases) {
           update = SeqInterceptor.joinSeq([noun:noun, hasNoun:new Object(), xor:t.a], state, caze, seqVar, [:], 'noun', update)
         }
@@ -136,7 +136,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply((typeCxt('CORNER')):[var:noun], (prep):[noun: noun, hasNoun:new Object()], (gen):[head:noun]) //todo one noun frame - several cases
       case "магазин":
         def noun = state[acc]?.noun ?: new Variable()
-        Update update = new Update([:])
+        Update update = new Update()
         update = update.addCxt(typeCxt('SHOP'), var:noun)
         if (!state[preposition]?.hasNoun) {
           update = update.addCxt(nom, noun:noun, hasNoun:new Object(), xor:t.a)
@@ -222,13 +222,13 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def verb = new Variable().lightVar
         return state.assign(verb, 'emphasis', 'true').apply((verbHolder):[head:verb])
       case "потом":
-        Update update = new Update((comeScalarly):[order:'AFTER', xor: t.a], (nom):[:])
+        Update update = new Update(comeScalarly(order:'AFTER', xor: t.a), nom([:]))
         if (state[comeScalarly]?.order) {
           state = state.inhibit(comeScalarly)
         } else {
           update = update.addCxt(relTime, relTime:'AFTER', xor:t.a)
         }
-        return conjWrap(update.map.reverse(), state)
+        return update.apply(state)
       case "все":
         return state.assign(state[nom].noun, 'quantifier', 'ALL')
       case "дальше":
@@ -284,9 +284,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply((typeCxt('ORDER')):[var:noun], (acc):[noun: noun, hasNoun:new Object()], (gen):[head:noun])
       case "слова":
         def noun = state[acc]?.hasNoun ? new Variable() : state[acc]?.noun ?: new Variable()
-        Update update = new Update((typeCxt('WORDS')):[var:noun], (acc):[noun:noun, hasNoun:new Object(), xor:t.a],
-                                   (gen):[head:noun],
-                                   (possessive):[head:noun])
+        Update update = new Update((typeCxt('WORDS'))(var:noun), acc(noun:noun, hasNoun:new Object(), xor:t.a),
+                                   gen(head:noun),
+                                   possessive(head:noun))
         if (!state[preposition]) {
           update = update.addCxt(nom, noun:noun, hasNoun:new Object(), xor:t.a)
         }
@@ -444,11 +444,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
         if (state[nestedClause]) {
           return state.withSituation((Situation)state[nestedClause].parent).clearConstructions().restore((ParsingState) state[nestedClause].save)
         }
-        Update update = new Update((conditionComp):[hasComma:true],
-                                   (reasonComp):[hasComma:true],
-                                   (declOrQuestionComp):[hasComma:true],
-                                   (relativeClause):[hasComma:true, parentSituation: state.situation],
-                                   (prevHistory):[history:state])
+        Update update = new Update(conditionComp(hasComma:true),
+                reasonComp(hasComma:true),
+                declOrQuestionComp(hasComma:true),
+                relativeClause(hasComma:true, parentSituation:state.situation),
+                prevHistory(history:state))
         if (!state[seq]?.conj) {
           state = state.inhibit(seq)
           update = update.addCxt(seq, conj:null)
@@ -474,7 +474,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def comp = new Variable()
         state = state.apply((declOrQuestionComp):[comp:comp])
 
-        Update update = new Update((acc):[noun:noun, hasNoun:new Object(), xor:t.a], (nom):[noun:noun, hasNoun:new Object(), xor:t.a, agr:'3sg'])
+        Update update = new Update(acc(noun:noun, hasNoun:new Object(), xor:t.a), nom(noun:noun, hasNoun:new Object(), xor:t.a, agr:'3sg'))
         update = update + [
                 (typeCxt('wh')):[var:noun, xor:t.fg], (question):[questioned:noun, frame:comp, xor:t.ce]]
         update = update + [(complementizer):[xor:t.adef, frame:comp]]
@@ -586,25 +586,24 @@ class Parser { //todo alex implements cons3.RussianConstructions
     return cxt("sem_number_${var}_$word") { ParsingState st, Map args -> st.assign(args.var, 'type', word).assign(args.var, 'number', 'true') }
   }
 
-  static boolean areSimilar(Map<Construction, Map> c1, Map<Construction, Map> c2) {
-    def common = Util.intersect(c1.keySet(), c2.keySet())
-    common = Util.intersect(common, importantForSimilarity)
-    def condition = { Construction cxt -> (c1[cxt].keySet() - 'xor') == (c2[cxt].keySet() - 'xor') }
-    common = common.findAll(condition)
-
+  static boolean areSimilar(List<Mite> c1, List<Mite> c2) {
+    def common = c1.findAll { m1 -> m1.cxt in importantForSimilarity && m1.findSimilar(c2) } as List<Mite>
+    
     if (!common) {
       return false
     }
 
-    if (common.size() == 1 && possessive in common && c1[possessive].head) {
+    if (common.size() == 1 && common[0].cxt == possessive && common[0].contents.head) {
       return false
     }
 
-    if (numQuantifier in c1 && numQuantifier in c2 && !condition(numQuantifier)) {
+    def nq1 = c1.findAll { it.cxt == numQuantifier }
+    def nq2 = c2.findAll { it.cxt == numQuantifier }
+    if (nq1 && nq2 && nq1.every { m1 -> nq2.every { m2 -> !m1.isSimilarTo(m2) } }) {
       return false
     }
 
-    if ((question in c1 || question in c2) && !(question in common)) {
+    if ((c1.any { it.cxt == question } || c2.any { it.cxt == question }) && !common.any { it.cxt == question }) {
       return false
     }
 
@@ -637,20 +636,20 @@ class Parser { //todo alex implements cons3.RussianConstructions
 
     Update update = _nounBase(state, caze, init)
 
-    def noun = update.map[caze].noun
+    Variable noun = update.mites.find { it.cxt == caze }.contents.noun
     update = update.addCxt(possessive, head:noun)
 
     update = update.addCxt(quotedName, noun:noun).addCxt(numQuantifier, noun:noun)
     update = update.addCxt(relativeClause, noun:noun, save:state)
 
-    return conjWrap(update.map.reverse(), state)
+    return update.apply(state)
   }
   private ParsingState pronoun(ParsingState state, Construction caze, String type) {
     state = state.satisfied(relativeClause)
 
     Update update = _nounBase(state, caze, typeCxt(type))
 
-    return conjWrap(update.map.reverse(), state)
+    return update.apply(state)
   }
 
   private Update _nounBase(ParsingState state, Construction caze, Construction init) {
@@ -658,7 +657,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
 
     def typeNoun = noun.frame(state.chart).f('member') ? noun.frame(state.chart).f('member').var : noun
 
-    Update update = new Update([:])
+    Update update = new Update()
 
     if (caze == nom) {
       update = update.addCxt(shortAdj, noun:noun)

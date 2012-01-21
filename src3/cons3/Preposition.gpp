@@ -32,23 +32,24 @@ class Preposition implements Interceptor {
     return caze
   }
 
-  ParsingState intercept(Map<Construction, Map> contribution, ParsingState state, Function2<Map<Construction, Map>, ParsingState, ParsingState> base) {
-    Update update = new Update([:])
-    for (c in contribution.keySet()) {
+  ParsingState intercept(List<Mite> contribution, ParsingState state, Function2<List<Mite>, ParsingState, ParsingState> base) {
+    Update update = new Update()
+    for (mite in contribution) {
+      def c = mite.cxt
       if (c == nom && !state[preposition].hasNoun) continue
 
-      def replace = c in cases && !contribution[c].head
+      def replace = c in cases && !mite.contents.head
       def newC = replace ? transformCase(state, c) : c
       if (newC == c) {
-        update = update.addCxt(contribution[c], newC)
+        update = update.addCxt(mite.contents, newC)
       } else {
-        update = update.addCxt(contribution[c] + [noun:state.constructions[newC]?.noun ?: contribution[c].noun], newC)
+        update = update.addCxt(mite.contents + [noun:state.constructions[newC]?.noun ?: mite.contents.noun], newC)
       }
-      if (replace && newC != c && contribution[c].hasNoun) {
+      if (replace && newC != c && mite.contents.hasNoun) {
         update = update.addCxt(preposition, hasNoun:true)
       }
     }
-    return base(update.map.reverse(), state)
+    return base(update.mites.reverse(), state)
   }
 
 

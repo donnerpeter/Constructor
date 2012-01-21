@@ -5,22 +5,23 @@ package cons3
  */
 class NumQuantifier implements Interceptor, RussianConstructions {
 
-  ParsingState intercept(Map<Construction, Map> contribution, ParsingState state, Function2<Map<Construction, Map>, ParsingState, ParsingState> base) {
+  ParsingState intercept(List<Mite> contribution, ParsingState state, Function2<List<Mite>, ParsingState, ParsingState> base) {
     if (!state.constructions[numQuantifier]?.hasNoun && state.constructions[numQuantifier].num) {
-      Update update = new Update([:])
-      for (c in contribution.keySet()) {
+      Update update = new Update()
+      for (mite in contribution) {
+        def c = mite.cxt
         if (c == numQuantifier) continue
 
         def modify = c == state.constructions[numQuantifier].innerCase
         if (modify) {
-          def hasNoun = contribution[c].hasNoun
-          update = update.addCxt(contribution[c] - [hasNoun:hasNoun], acc)
-          update = update.addCxt(dativePart, acc:contribution[c].noun).addCxt(numQuantifier, hasNoun:hasNoun)
+          def hasNoun = mite.contents.hasNoun
+          update = update.addCxt(mite.contents - [hasNoun:hasNoun], acc)
+          update = update.addCxt(dativePart, acc:mite.contents.noun).addCxt(numQuantifier, hasNoun:hasNoun)
         } else {
-          update = update.addCxt(contribution[c], c)
+          update = update.addMites(mite)
         }
       }
-      return base(update.map.reverse(), state)
+      return base(update.mites.reverse(), state)
     }
     return base(contribution, state)
   }

@@ -4,21 +4,28 @@ package cons3
  * @author peter
  */
 class Update {
-  FLinkedMap<Construction, Map> map
+  FList<Mite> mites
 
-  Update(Map<Construction, Map> map) {
-    this.map = map instanceof FLinkedMap ? map : FLinkedMap.fromMap(map)
+  Update(Mite... mites) {
+    this(mites as List)
+  }
+  Update(List<Mite> mites) {
+    this.mites = mites instanceof FList ? mites : FList.fromList(mites)
   }
 
-  Update plus(Map constructions) {
-    return new Update(map + constructions)
+  Update plus(Map<Construction, Map> constructions) {
+    return addMites((constructions.keySet() as List<Construction>).collect { it(constructions[it]) } as Mite[])
   }
 
   Update addCxt(Map newArgs, Construction name) {
-    return new Update(map.putValue(name, newArgs))
+    return addMites(name(newArgs))
+  }
+
+  Update addMites(Mite... mites) {
+    return new Update(this.mites.prependAll(mites.findAll { !(it in this.mites) }))
   }
 
   ParsingState apply(ParsingState state) {
-    return state.apply(map.reverse())
+    return state.apply(mites.reverse())
   }
 }

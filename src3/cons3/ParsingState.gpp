@@ -224,7 +224,7 @@ class ParsingState {
       state = state.removeConstruction(c)
     }
 
-    return state.clone(history: history + new Contribution(this, FLinkedMap.emptyMap, FList.fromList(cxts as List)))
+    return state.clone(history: history + new Contribution(this, FList.emptyList, FList.fromList(cxts as List)))
   }
 
   ParsingState satisfied(Construction name) {
@@ -260,7 +260,7 @@ class ParsingState {
     return null
   }
 
-  private Function2<Map<Construction, Map>, ParsingState, ParsingState> nextApplier(Construction start) {
+  private Function2<List<Mite>, ParsingState, ParsingState> nextApplier(Construction start) {
     def interceptor = nextInterceptor(start)
     if (interceptor) {
       return { c, s -> ((Interceptor) interceptor.contents.interceptor).intercept(c, s, { c1, s1 ->
@@ -271,17 +271,23 @@ class ParsingState {
   }
 
   ParsingState apply(Map<Construction, Map> constructions) {
+    apply((constructions.keySet() as List<Construction>).collect { it(constructions[it]) } as List)
+  }
+  ParsingState apply(Mite[] constructions) {
+    apply(constructions as List<Mite>)
+  }
+  ParsingState apply(List<Mite> constructions) {
     if (!constructions) return this
 
     def applier = nextApplier(null)
-    applier(constructions, this).clone(history: history + new Contribution(this, FLinkedMap.fromMap(constructions).reverse(), FList.emptyList))
+    applier(constructions as List<Mite>, this).clone(history: history + new Contribution(this, FList.fromList(constructions).reverse(), FList.emptyList))
   }
 
-  private static ParsingState baseApply(ParsingState state, Map<Construction, Map> update, boolean tryAlternatives) {
+  private static ParsingState baseApply(ParsingState state, Collection<Mite> update, boolean tryAlternatives) {
     List<Mite> newMites = []
-    for (c in update.keySet()) {
-      def mite = c(update[c])
-      if (update[c] && !state.mites[c]?.find { !it.contradicts(mite) && unify(it.contents, update[c]) == it.contents }
+    for (mite in update) {
+      def c = mite.cxt
+      if (mite.contents && !state.mites[c]?.find { !it.contradicts(mite) && unify(it.contents, mite.contents) == it.contents }
               || !state.mites[c]) {
         newMites << mite
       }

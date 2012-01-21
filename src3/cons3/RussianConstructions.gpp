@@ -14,7 +14,7 @@ interface RussianConstructions {
       Variable noun = args.noun
       if (!noun) {
         noun = new Variable()
-        state = state.addCxt(true, new Mite(nom, noun: noun, state))
+        state = state.addCxt(true, new Mite(nom, noun:noun))
       }
       String agr = args.agr
       if (SeqInterceptor.agrNumber(agr)) {
@@ -168,7 +168,7 @@ interface RussianConstructions {
   }
   Construction preposition = cxt('preposition', ['prep']) { ParsingState state, Map args ->
     if (!args.interceptor && args.prep) {
-      state = state.inhibit(preposition).addCxt(true, new Mite(preposition, prep:args.prep, interceptor:new Preposition(), state))
+      state = state.inhibit(preposition).addCxt(true, new Mite(preposition, prep:args.prep, interceptor:new Preposition()))
     }
     return state
   }
@@ -289,7 +289,7 @@ interface RussianConstructions {
       if (conj) {
         state = state.clearConstructions()
       }
-      state = state.addCxt(true, new Mite(seq, conj:conj, interceptor:interceptor, state))
+      state = state.addCxt(true, new Mite(seq, conj:conj, interceptor:interceptor))
     }
     if (args.conj == 'but') {
       if (!interceptor.before.history) {

@@ -9,6 +9,7 @@ class ParsingState {
   final FLinkedMap<Construction, List<Mite>> mites
   final Merger constructions = new Merger()
   final FLinkedMap<Construction, List<Pair<Chart, Chart>>> changes
+  final FLinkedMap<Mite, Integer> miteGenerations
   final FList<Contribution> history
   final Set<Mite> active
   final Set<Group> groups
@@ -17,7 +18,7 @@ class ParsingState {
   ParsingState() {
     this(chart: new Chart(), situation: new Situation(), 
             mites: FLinkedMap.emptyMap, changes: FLinkedMap.emptyMap, groups: Collections.emptySet(),
-            history: FList.emptyList, active: Collections.emptySet(), currentGeneration:0)
+            history: FList.emptyList, active: Collections.emptySet(), currentGeneration:0, miteGenerations:FLinkedMap.emptyMap)
   }
 
   ParsingState(Map map) {
@@ -31,6 +32,7 @@ class ParsingState {
     assert (map.groups instanceof LinkedHashSet) || !(map.groups instanceof HashSet)
     active = Collections.unmodifiableSet((Set)map.active)
     groups = Collections.unmodifiableSet((Set)map.groups)
+    miteGenerations = map.miteGenerations
   }
   
   class Merger {
@@ -69,7 +71,7 @@ class ParsingState {
   }
 
   private ParsingState clone(Map update) {
-    Map current = [chart:chart, situation:situation, mites:mites, history:history, active:active, changes:changes, currentGeneration:currentGeneration, groups:groups]
+    Map current = [chart:chart, situation:situation, mites:mites, history:history, active:active, changes:changes, currentGeneration:currentGeneration, groups:groups, miteGenerations:miteGenerations]
     current.putAll(update)
     return new ParsingState(current)
   }
@@ -155,8 +157,11 @@ class ParsingState {
   }
 
   ParsingState addCxt(boolean activate, Mite... mites) {
+    def newMiteGenerations = miteGenerations
     LinkedHashMap<Object, Group> members = [:]
     for (mite in mites) {
+      newMiteGenerations = newMiteGenerations.putValue(mite, currentGeneration)
+      
       Collection<Object> xor = mite.contents.xor ?: [] //todo alex inline
       for (x in xor) {
         if (!members[x]) members[x] = new Group(mite)
@@ -179,7 +184,7 @@ class ParsingState {
     if (activate) {
       newActive = (active as LinkedHashSet) + (mites as Set)
     }
-    return clone(mites:newMites, groups:newGroups, active:newActive, chart:updateUnification(chart, active, newActive))
+    return clone(mites:newMites, groups:newGroups, active:newActive, chart:updateUnification(chart, active, newActive), miteGenerations:newMiteGenerations)
   }
 
   private static Map unify(Map oldArgs, Map newArgs) {
@@ -275,7 +280,7 @@ class ParsingState {
   private static ParsingState baseApply(ParsingState state, Map<Construction, Map> update, boolean tryAlternatives) {
     List<Mite> newMites = []
     for (c in update.keySet()) {
-      def mite = new Mite(update[c], c, state)
+      def mite = new Mite(update[c], c)
       if (update[c] && !state.mites[c]?.find { !it.contradicts(mite) && unify(it.contents, update[c]) == it.contents }
               || !state.mites[c]) {
         newMites << mite
@@ -528,7 +533,7 @@ class ParsingState {
     int newestGeneration = 0
     for (mite in mites) {
       args = unify(args, mite.contents)
-      newestGeneration = mite.generation
+      newestGeneration = Math.max(newestGeneration, miteGenerations[mite])
     }
 
     if (!args) {

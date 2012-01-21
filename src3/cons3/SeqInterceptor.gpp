@@ -129,7 +129,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
   private ParsingState maybeReuseSubject(List<Contribution> prefix, int i, Contribution contribution, ParsingState state) {
     def after = prefix[i + 1].before
     if (contribution.apps[nom]?.head && !contribution.apps[nom]?.noun && after[nom]?.noun) {
-      state = state.addCxt(true, new Mite(nom, noun:after[nom].noun, state))
+      state = state.addCxt(true, new Mite(nom, noun:after[nom].noun))
     }
     return state
   }

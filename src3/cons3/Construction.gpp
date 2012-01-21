@@ -14,6 +14,10 @@ class Construction {
     this.requiredAttrs = requiredAttrs
   }
 
+  Mite call(Map miteContents) {
+    return new Mite(miteContents, this)
+  }
+
   @Override
   String toString() {
     return name
@@ -36,8 +40,8 @@ class Construction {
   static Construction cxt(String name, List<String> requiredAttrs = [], Function2<ParsingState, Map, ParsingState> cl) {
     new Construction(name, cl, requiredAttrs)
   }
-  static Construction cxt(String name, Closure cl) {
-    new Construction(name, cl as Function2, [])
+  static Construction cxt(String name, List<String> requiredAttrs = [], Closure cl) {
+    new Construction(name, cl as Function2, requiredAttrs)
   }
 
 }

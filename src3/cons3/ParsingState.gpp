@@ -280,7 +280,7 @@ class ParsingState {
   private static ParsingState baseApply(ParsingState state, Map<Construction, Map> update, boolean tryAlternatives) {
     List<Mite> newMites = []
     for (c in update.keySet()) {
-      def mite = new Mite(update[c], c)
+      def mite = c(update[c])
       if (update[c] && !state.mites[c]?.find { !it.contradicts(mite) && unify(it.contents, update[c]) == it.contents }
               || !state.mites[c]) {
         newMites << mite

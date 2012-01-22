@@ -514,6 +514,10 @@ I.number=true
     doTranslateTest 'Кассирша идет в магазин',
                     'The cashier goes to the store'
   }
+  public void _testFemaleCashierGoesToTheShopMaleToGarden() throws Exception {
+    doTranslateTest 'Кассирша идет в магазин, а кассир - в сад',
+                    'The female cashier goes to the store, and the male cashier - to the garden'
+  }
   public void testAfterWorkCashierGoesToTheGarden() throws Exception {
     doTranslateTest 'После работы кассирша идет в сад',
                     'After the work, the cashier goes to the garden'
@@ -545,6 +549,10 @@ I.number=true
   public void test12_OpinionantCoordination() throws Exception {
     doTranslateTest 'По мнению кассирши и других, 7 идет раньше 8',
                     'In the opinion of the cashier and others, a 7 comes before an 8'
+  }
+  public void _test12_StoreCashier() throws Exception {
+    doTranslateTest 'По мнению кассирши магазина и других, 7 идет раньше 8',
+                    'In the opinion of the store cashier, a 7 comes before an 8'
   }
   public void test12_OpinionCoordinationWithWords_SamePerson() throws Exception {
     doTranslateTest 'По словам и мнению кассирши, 7 идет раньше 8',

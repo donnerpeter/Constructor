@@ -10,6 +10,7 @@ class Chart {
   final FLinkedMap<Assignment<Variable>, FList<Object>> __metas
   private final FLinkedMap<Set<Variable>, Integer> __unifications
   private final FLinkedMap<Variable, Variable> __baseVars
+  private final Set<Object> excludedMetas
 
   private Chart(Map args) {
     __assignments = args.assignments
@@ -18,16 +19,26 @@ class Chart {
     __metas = args.metas
     __unifications = args.unifications
     __baseVars = args.baseVars
+    excludedMetas = args.excludedMetas
   }
 
   Chart() {
-    this(assignments:[:], vars:[:], currentMetas:FList.emptyList, metas:FLinkedMap.emptyMap, unifications:FLinkedMap.emptyMap, baseVars:FLinkedMap.emptyMap)
+    this(assignments:[:], vars:[:], 
+            currentMetas:FList.emptyList, metas:FLinkedMap.emptyMap, excludedMetas:Collections.emptySet(), 
+            unifications:FLinkedMap.emptyMap, baseVars:FLinkedMap.emptyMap)
   }
 
   Chart clone(Map update) {
-    Map current = [assignments:__assignments, vars:__vars, currentMetas:currentMetas, metas:__metas, unifications:__unifications, baseVars:__baseVars]
+    Map current = [assignments:__assignments, vars:__vars, 
+            currentMetas:currentMetas, metas:__metas, excludedMetas:excludedMetas,
+            unifications:__unifications, baseVars:__baseVars]
     current.putAll(update)
     return new Chart(current)
+  }
+
+  List<Assignment<Variable>> getVariableAssignments(Situation situation) {
+    def all = (__assignments[situation] ?: []) as List<Situation>
+    return all.findAll { !Util.intersects(__metas[it], excludedMetas) } as List
   }
 
   List<Situation> getSituations() {
@@ -62,7 +73,7 @@ class Chart {
 
   List<Variable> vars(Situation situation) {
     Set<Variable> set = [] as LinkedHashSet
-    for (assignment in __assignments[situation]) {
+    for (assignment in getVariableAssignments(situation)) {
       if (assignment.frame != situation) {
         set << assignment.frame
       }
@@ -74,7 +85,7 @@ class Chart {
   }
 
   List<Assignment<Frame>> allAssignments(Situation situation) {
-    __assignments[situation].collect {
+    getVariableAssignments(situation).collect {
       def oldValue = it.value
       def newValue = oldValue instanceof String ? oldValue : ((Variable) (Object)oldValue).frame(this) //todo alex
       Frame newFrame = it.frame.frame(this)
@@ -87,12 +98,12 @@ class Chart {
     assert var
 
     def assignment = new Assignment(var, property, value, generation)
-    if (__assignments[situation]?.contains(assignment)) {
+    if (getVariableAssignments(situation).contains(assignment)) {
       return this
     }
 
     Map<Situation, LinkedHashSet<Assignment<Variable>>> newAsss = [:] + __assignments
-    newAsss[situation] = newAsss.get(situation, [] as LinkedHashSet) + [assignment]
+    newAsss[situation] = newAsss.get(situation, [] as LinkedHashSet) - [assignment] + [assignment]
 
     Map<Variable, Situation> newVars = [:] + __vars
     newVars[var] = situation
@@ -116,18 +127,7 @@ class Chart {
   }
 
   Chart removeDifference(diffMeta) {
-    final def newAssignments = new LinkedHashMap<Situation, LinkedHashSet<Assignment<Variable>>>()
-    for (sit in __assignments.keySet()) {
-      List<Assignment<Variable>> assignments = __assignments[sit] as List
-      def filtered = assignments.findAll { !(diffMeta in __metas[it]) }
-      if (filtered) {
-        newAssignments[sit] = filtered as LinkedHashSet
-      }
-    }
-    if (newAssignments == __assignments) {
-      return this
-    }
-    return clone(assignments:newAssignments)
+    return clone(excludedMetas:excludedMetas + diffMeta)
   }
 
   private void fillGroup(List<Set<Variable>> pairs, Variable current, LinkedHashSet<Variable> result) {

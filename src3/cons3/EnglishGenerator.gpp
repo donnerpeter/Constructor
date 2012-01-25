@@ -10,7 +10,7 @@ class EnglishGenerator {
 
   String generate(Chart chart) {
     chart.situations.each {
-      if (!(it in handled) && chart.__assignments[it]) {
+      if (!(it in handled) && chart.getVariableAssignments(it)) {
         new SituationGenerator(chart, it, true).sentence(true)
       }
     }
@@ -626,7 +626,7 @@ class EnglishGenerator {
         def message = verb.f('message')
         if (message?.var instanceof Situation) {
           out ':'
-          if (chart.__assignments[(Situation)message.var]) {
+          if (chart.getVariableAssignments((Situation)message.var)) {
             out '\n-'
             new SituationGenerator(chart, (Situation)message.var, true).sentence(true)
           }

@@ -44,7 +44,8 @@ K.number=true
 
   static void doParseTest(String input, String expected) {
     def parser = new Parser()
-    def result = parser.parse(input).presentable()
+    def chart = parser.parse(input)
+    def result = chart.presentable()
     if (expected.trim() != result) {
       println parser.log
       assertEquals expected.trim() + "\n", result + "\n"
@@ -293,13 +294,13 @@ F.type=CASE
 A.condition=F
 F.whenCondition=#2
 --
-A.type=8
-B.time=PRESENT
-B.arg1=A
-B.type=COME_SCALARLY
-B.order=AFTER
+A.time=PRESENT
+A.arg1=B
+A.type=COME_SCALARLY
+A.order=AFTER
+B.type=8
 C.type=7
-B.anchor=C
+A.anchor=C
 """
   }
 
@@ -350,13 +351,13 @@ F.type=CASE
 A.condition=F
 F.whenCondition=#3
 --
-A.type=8
-B.time=PRESENT
-B.arg1=A
-B.type=COME_SCALARLY
-B.order=AFTER
+A.time=PRESENT
+A.arg1=B
+A.type=COME_SCALARLY
+A.order=AFTER
+B.type=8
 C.type=7
-B.anchor=C
+A.anchor=C
 """
   }
 

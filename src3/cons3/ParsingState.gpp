@@ -8,7 +8,7 @@ class ParsingState {
   final Situation situation
   final FLinkedMap<Construction, List<Mite>> mites
   final Merger constructions = new Merger()
-  final FLinkedMap<Construction, List<Pair<Chart, Chart>>> changes
+  final FLinkedMap<Construction, List<Object>> changes
   final FLinkedMap<Mite, Integer> miteGenerations
   final FList<Contribution> history
   final Set<Mite> active
@@ -474,8 +474,8 @@ class ParsingState {
   }
 
   private ParsingState undoChanges(Construction cxt) {
-    List<Pair<Chart, Chart>> diffList = changes[cxt] ?: []
-    def newChart = diffList.foldLeft(chart) { Pair<Chart, Chart> diff, Chart ch -> ch.removeDifference(diff) }
+    List<Object> diffList = changes[cxt] ?: []
+    def newChart = diffList.foldLeft(chart) { diff, Chart ch -> ch.removeDifference(diff) }
     return clone(changes: changes.removeKey(cxt), chart: newChart)
   }
 
@@ -546,14 +546,15 @@ class ParsingState {
       return this
     }
 
+    def meta = new Object()
     def before = chart
 
-    ParsingState next = clone(currentGeneration:newestGeneration)
+    ParsingState next = clone(currentGeneration:newestGeneration, chart:chart.startMeta(meta))
     next = cxt.action.call(next, args)
     if (before != next.chart) {
-      next = next.clone(changes:next.changes + [(cxt):(changes[cxt] ?: []) + new Pair(before, next.chart)])
+      next = next.clone(changes:next.changes + [(cxt):(changes[cxt] ?: []) + meta])
     }
-    return next.clone(currentGeneration:currentGeneration)
+    return next.clone(currentGeneration:currentGeneration, chart:next.chart.finishMeta(meta))
   }
 
 

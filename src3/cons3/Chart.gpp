@@ -115,23 +115,13 @@ class Chart {
     return clone(currentMetas: currentMetas - meta)
   }
 
-  Chart removeDifference(Pair<Chart, Chart> diff) {
-    def before = diff.first
-    def after = diff.second
-
-    final def newAssignments = new LinkedHashMap<Situation, LinkedHashSet<Assignment<Variable>>>(__assignments)
-    for (sit in after.__assignments.keySet()) {
-      if (!(sit in before.__assignments)) {
-        newAssignments.remove(sit)
-      } else if (newAssignments[sit]) {
-        LinkedHashSet<Assignment<Variable>> af = after.__assignments[sit]
-        def bef = before.__assignments[sit]
-        if (af.size() > bef.size()) {
-          def delta = new LinkedHashSet<Assignment<Variable>>(af)
-          delta.removeAll(bef)
-          newAssignments[sit] = new LinkedHashSet<Assignment<Variable>>(newAssignments[sit])
-          newAssignments[sit].removeAll(delta)
-        }
+  Chart removeDifference(diffMeta) {
+    final def newAssignments = new LinkedHashMap<Situation, LinkedHashSet<Assignment<Variable>>>()
+    for (sit in __assignments.keySet()) {
+      List<Assignment<Variable>> assignments = __assignments[sit] as List
+      def filtered = assignments.findAll { !(diffMeta in __metas[it]) }
+      if (filtered) {
+        newAssignments[sit] = filtered as LinkedHashSet
       }
     }
     if (newAssignments == __assignments) {

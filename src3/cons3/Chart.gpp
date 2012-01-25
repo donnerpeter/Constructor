@@ -4,10 +4,10 @@ package cons3
  * @author peter
  */
 class Chart {
-  final Map<Situation, LinkedHashSet<Assignment<Variable>>> __assignments
+  final Map<Situation, List<Assignment<Variable>>> __assignments
   final Map<Variable, Situation> __vars
   private final FList<Object> currentMetas
-  final FLinkedMap<Assignment<Variable>, FList<Object>> __metas
+  final IdentityHashMap<Assignment<Variable>, FList<Object>> __metas
   private final FLinkedMap<Set<Variable>, Integer> __unifications
   private final FLinkedMap<Variable, Variable> __baseVars
   private final Set<Object> excludedMetas
@@ -24,7 +24,7 @@ class Chart {
 
   Chart() {
     this(assignments:[:], vars:[:], 
-            currentMetas:FList.emptyList, metas:FLinkedMap.emptyMap, excludedMetas:Collections.emptySet(), 
+            currentMetas:FList.emptyList, metas:new IdentityHashMap(), excludedMetas:Collections.emptySet(),
             unifications:FLinkedMap.emptyMap, baseVars:FLinkedMap.emptyMap)
   }
 
@@ -102,16 +102,18 @@ class Chart {
       return this
     }
 
-    Map<Situation, LinkedHashSet<Assignment<Variable>>> newAsss = [:] + __assignments
-    newAsss[situation] = newAsss.get(situation, [] as LinkedHashSet) - [assignment] + [assignment]
+    Map<Situation, List<Assignment<Variable>>> newAsss = [:] + __assignments
+    newAsss[situation] = newAsss.get(situation, []) + assignment
 
     Map<Variable, Situation> newVars = [:] + __vars
     newVars[var] = situation
     if (value instanceof Variable && !newVars[value]) {
       newVars[value] = situation
     }
-    
-    return clone(assignments:newAsss, vars:newVars, metas:__metas + [(assignment):currentMetas])
+
+    def newMetas = new IdentityHashMap<Assignment<Variable>, FList<Object>>(__metas)
+    newMetas[assignment] = currentMetas
+    return clone(assignments:newAsss, vars:newVars, metas:newMetas)
   }
 
   String presentable() {

@@ -217,7 +217,7 @@ class Frame {
     def a = chart.__assignments[situation].findAll { it.frame == var && it.property == attr } as List
     Assignment<Variable> last = a.reverse()[0]
     if (last) {
-      return chart.__metas[last].collect { it.frame(chart) }
+      return chart.__metas[last].findAll { it instanceof Variable }.collect { ((Variable) it).frame(chart) }
     }
 
     return []

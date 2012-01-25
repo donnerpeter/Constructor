@@ -6,8 +6,8 @@ package cons3
 class Chart {
   final Map<Situation, LinkedHashSet<Assignment<Variable>>> __assignments
   final Map<Variable, Situation> __vars
-  private final FList<Variable> currentMetas
-  final FLinkedMap<Assignment<Variable>, FList<Variable>> __metas
+  private final FList<Object> currentMetas
+  final FLinkedMap<Assignment<Variable>, FList<Object>> __metas
   private final FLinkedMap<Set<Variable>, Integer> __unifications
   private final FLinkedMap<Variable, Variable> __baseVars
 
@@ -107,11 +107,11 @@ class Chart {
     situations.collect { it.presentable(this) }.findAll { it.trim().size() > 0 }.join("\n--\n")
   }
 
-  Chart startMeta(Variable meta) {
+  Chart startMeta(meta) {
     return clone(currentMetas: currentMetas + meta)
   }
 
-  Chart finishMeta(Variable meta) {
+  Chart finishMeta(meta) {
     return clone(currentMetas: currentMetas - meta)
   }
 

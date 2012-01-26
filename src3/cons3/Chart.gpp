@@ -36,7 +36,7 @@ class Chart {
     return new Chart(current)
   }
 
-  List<Assignment<Variable>> getVariableAssignments(Situation situation) {
+  List<Assignment<Variable>> getActiveAssignments(Situation situation) {
     def all = (__assignments[situation] ?: []) as List<Situation>
     return all.findAll { !Util.intersects(__metas[it], excludedMetas) } as List
   }
@@ -73,7 +73,7 @@ class Chart {
 
   List<Variable> vars(Situation situation) {
     Set<Variable> set = [] as LinkedHashSet
-    for (assignment in getVariableAssignments(situation)) {
+    for (assignment in getActiveAssignments(situation)) {
       if (assignment.frame != situation) {
         set << assignment.frame
       }
@@ -85,7 +85,7 @@ class Chart {
   }
 
   List<Assignment<Frame>> allAssignments(Situation situation) {
-    getVariableAssignments(situation).collect {
+    getActiveAssignments(situation).collect {
       def oldValue = it.value
       def newValue = oldValue instanceof String ? oldValue : ((Variable) (Object)oldValue).frame(this) //todo alex
       Frame newFrame = it.frame.frame(this)
@@ -98,7 +98,7 @@ class Chart {
     assert var
 
     def assignment = new Assignment(var, property, value, generation)
-    if (getVariableAssignments(situation).contains(assignment)) {
+    if (getActiveAssignments(situation).contains(assignment)) {
       return this
     }
 

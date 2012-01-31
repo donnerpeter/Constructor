@@ -10,7 +10,7 @@ class Chart {
   final IdentityHashMap<Assignment<Variable>, FList<Object>> __metas
   private final FLinkedMap<Set<Variable>, Integer> __unifications
   private final FLinkedMap<Variable, Variable> __baseVars
-  private final Set<Object> excludedMetas
+  private final FLinkedMap<Object, List<Set<Variable>>> metaUnifications
 
   private Chart(Map args) {
     __assignments = args.assignments
@@ -19,26 +19,28 @@ class Chart {
     __metas = args.metas
     __unifications = args.unifications
     __baseVars = args.baseVars
-    excludedMetas = args.excludedMetas
+    metaUnifications = args.metaUnifications
   }
 
   Chart() {
     this(assignments:[:], vars:[:], 
-            currentMetas:FList.emptyList, metas:new IdentityHashMap(), excludedMetas:Collections.emptySet(),
+            currentMetas:FList.emptyList, metas:new IdentityHashMap(),
+            metaUnifications:FLinkedMap.emptyMap,
             unifications:FLinkedMap.emptyMap, baseVars:FLinkedMap.emptyMap)
   }
 
   Chart clone(Map update) {
     Map current = [assignments:__assignments, vars:__vars, 
-            currentMetas:currentMetas, metas:__metas, excludedMetas:excludedMetas,
+            currentMetas:currentMetas, metas:__metas,
+            metaUnifications:metaUnifications,
             unifications:__unifications, baseVars:__baseVars]
     current.putAll(update)
     return new Chart(current)
   }
 
   List<Assignment<Variable>> getActiveAssignments(Situation situation) {
-    def all = (__assignments[situation] ?: []) as List<Situation>
-    return all.findAll { !Util.intersects(__metas[it], excludedMetas) } as List
+    def all = (__assignments[situation] ?: []) as List
+    return all
   }
 
   List<Situation> getSituations() {
@@ -129,7 +131,26 @@ class Chart {
   }
 
   Chart removeDifference(diffMeta) {
-    return clone(excludedMetas:excludedMetas + diffMeta)
+    final def newAssignments = new LinkedHashMap<Situation, List<Assignment<Variable>>>()
+    for (sit in __assignments.keySet()) {
+      List<Assignment<Variable>> assignments = __assignments[sit]
+      def filtered = assignments.findAll { !(diffMeta in __metas[it]) }
+      if (filtered) {
+        newAssignments[sit] = filtered
+      }
+    }
+    def result = this
+    def sets = metaUnifications[diffMeta]
+    if (sets) {
+      for (pair in sets) {
+        result = result.removeUnificationConstraint(pair.iterator().next(), (pair as List<Variable>)[1])
+      }
+    }
+    
+    if (newAssignments == __assignments) {
+      return result
+    }
+    return result.clone(assignments:newAssignments)
   }
 
   private void fillGroup(List<Set<Variable>> pairs, Variable current, LinkedHashSet<Variable> result) {
@@ -165,7 +186,13 @@ class Chart {
     if (oldCount == 0) {
       newBaseVars = updateGroup(newUnifications, var1, newBaseVars)
     }
-    clone(unifications:newUnifications, baseVars:newBaseVars)
+    
+    def newMetaUnifications = metaUnifications
+    for (meta in currentMetas) {
+      List<Set<Variable>> newValue = (newMetaUnifications[meta] ?: []) + pair
+      newMetaUnifications = newMetaUnifications.putValue(meta, newValue)
+    }
+    clone(unifications:newUnifications, baseVars:newBaseVars, metaUnifications:newMetaUnifications)
   }
 
   Chart removeUnificationConstraint(Variable var1, Variable var2) {

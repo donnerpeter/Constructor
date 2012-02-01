@@ -8,7 +8,6 @@ class ParsingState {
   final Situation situation
   final FLinkedMap<Construction, List<Mite>> mites
   final Merger constructions = new Merger()
-  final FLinkedMap<Construction, List<Object>> changes
   final FLinkedMap<Mite, Integer> miteGenerations
   final FList<Contribution> history
   final Set<Mite> active
@@ -16,13 +15,12 @@ class ParsingState {
 
   ParsingState() {
     this(chart: new Chart(), situation: new Situation(), 
-            mites: FLinkedMap.emptyMap, changes: FLinkedMap.emptyMap,
+            mites: FLinkedMap.emptyMap,
             history: FList.emptyList, active: Collections.emptySet(), currentGeneration:0, miteGenerations:FLinkedMap.emptyMap)
   }
 
   ParsingState(Map map) {
     chart = map.chart
-    changes = map.changes
     situation = map.situation
     mites = map.mites
     history = map.history
@@ -69,7 +67,7 @@ class ParsingState {
   }
 
   private ParsingState clone(Map update) {
-    Map current = [chart:chart, situation:situation, mites:mites, history:history, active:active, changes:changes, currentGeneration:currentGeneration, miteGenerations:miteGenerations]
+    Map current = [chart:chart, situation:situation, mites:mites, history:history, active:active, currentGeneration:currentGeneration, miteGenerations:miteGenerations]
     current.putAll(update)
     return new ParsingState(current)
   }
@@ -193,7 +191,7 @@ class ParsingState {
     LinkedHashSet<Mite> newActive = new LinkedHashSet<Mite>(active)
     def toRemove = mites[name] ?: []
     newActive.removeAll(toRemove)
-    return clone(mites: mites.removeKey(name), active:newActive, changes:changes.removeKey(name))
+    return clone(mites: mites.removeKey(name), active:newActive)
   }
 
   ParsingState startMeta(Variable meta) {
@@ -344,7 +342,7 @@ class ParsingState {
     def state = clone(active: newActive)
     for (mite in toRemove) {
       if (mite.findContradictors(toApply).find { mite.cxt != it.cxt }) {
-        state = state.undoChanges(mite.cxt).doApply(mite.cxt)
+        state = state.clone(chart:state.chart.removeDifference(mite)).doApply(mite.cxt)
       }
     }
     for (mite in toApply) {
@@ -355,12 +353,6 @@ class ParsingState {
     state
   }
   
-  private ParsingState undoChanges(Construction cxt) {
-    List<Object> diffList = changes[cxt] ?: []
-    //noinspection GroovyAssignabilityCheck
-    def newChart = diffList.foldLeft(chart) { diff, Chart ch -> ch.removeDifference(diff) }
-    return clone(changes: changes.removeKey(cxt), chart: newChart)
-  }
 
   private boolean dominates(ParsingState other) {
     if (active.size() < other.active.size() && !other.dominatesSemantically(this)) {
@@ -417,8 +409,6 @@ class ParsingState {
     Mite mite = mites[cxt].find { it in active }
     if (!mite) return this
 
-    def before = chart
-
     def ch = chart.startMeta(mite)
     for (pair in mite.unifications) {
       ch = ch.addUnificationConstraint(pair.first.base, pair.second.base)
@@ -426,9 +416,6 @@ class ParsingState {
     ParsingState next = clone(currentGeneration:miteGenerations[mite], chart:ch)
     if (mite.contents && cxt.isExecutable([mite])) {
       next = cxt.action.call(next, mite.contents)
-      if (before != next.chart) {
-        next = next.clone(changes:next.changes + [(cxt):(changes[cxt] ?: []) + mite])
-      }
     }
     return next.clone(currentGeneration:currentGeneration, chart:next.chart.finishMeta(mite))
   }
@@ -446,7 +433,7 @@ class ParsingState {
         newActive.removeAll(saved.mites[c])
       }
     }
-    clone(mites: saved.mites + this.mites, active:newActive, changes:saved.changes + this.changes)
+    clone(mites: saved.mites + this.mites, active:newActive)
   }
 
 }

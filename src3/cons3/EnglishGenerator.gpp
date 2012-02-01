@@ -388,7 +388,7 @@ class EnglishGenerator {
           out ','
         }
         opinionOf(opinion, null, null)
-        if (!verb.findMeta('type', 'ellipsis')) {
+        if (!isCompleteСlauseEllipsis(verb)) {
           out ','
         }
       }
@@ -416,7 +416,7 @@ class EnglishGenerator {
         out aux
       }
 
-      if (verb.findMeta('type', 'ellipsis')) {
+      if (isCompleteСlauseEllipsis(verb)) {
         out(past ? 'did' : 'does')
         return
       }
@@ -585,6 +585,14 @@ class EnglishGenerator {
         }
       }
       return subj
+    }
+
+    boolean isCompleteСlauseEllipsis(Frame verb) {
+      return verb.findMeta('type', 'ellipsis') && !hasNonEllidedArguments(verb)
+    }
+
+    boolean hasNonEllidedArguments(Frame verb) {
+      return verb.type == 'COME_SCALARLY' && !verb.findMeta('order', 'ellipsis')
     }
 
     private boolean isQuestion(Frame verb) {

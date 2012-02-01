@@ -1,0 +1,161 @@
+package cons3;
+
+import junit.framework.TestCase
+
+/**
+ * @author peter
+ */
+public class ParsingStateTest extends TestCase {
+  Construction ac1 = attrCxt('ac1')
+  Construction ac2 = attrCxt('ac2')
+  Construction ec2 = emptyCxt('ec2')
+  Construction ec3 = emptyCxt('ec3')
+  Construction myAcc = Construction.cxt('myAcc', ['head', 'noun']) { state, args -> state.assign(args.head, 'arg2', args.noun) }
+  Tokens t = new Tokens()
+
+  Construction emptyCxt(String name) {
+    return Construction.cxt(name, ['head']) { state, args -> state }
+  }
+
+  Construction attrCxt(String name) {
+    return Construction.cxt(name, ['head']) { state, args ->
+      for (String key in args.keySet() - 'head' - 'xor') {
+        state = state.assign(args.head, key, args[key])
+      }
+      state
+    }
+  }
+
+  public void testUnify() {
+    def state = new ParsingState().apply((ac1):[head:new Variable(), a1:'v1']).apply((ac1):[head:new Variable().lightVar, a2:'v2'])
+    def frame = state.chart.frames[0]
+    assert 'v1' == frame.s('a1')
+    assert 'v2' == frame.s('a2')
+  }
+
+  public void testPreferJustSupportedConstructions() {
+    def state = new ParsingState().
+            apply((ec2):[head:'z', xor:t.a], (ac1):[head:new Variable(), xor:t.a, a1:'v1']).
+            apply((ec3):[head:'z', xor:t.b], (ac1):[xor:t.b])
+    def frame = state.chart.frames[0]
+    assert 'v1' == frame.s('a1')
+  }
+
+  public void testDontAbandonActiveMitesWhenNotMergingWithThem() {
+    Construction c3 = Construction.cxt('ec3', ['head']) { state, args -> state }
+    def state = new ParsingState().
+            apply((ec2):[head:'z', xor:t.a], (ac1):[head:new Variable(), xor:t.a, a1:'v1']).
+            apply((ac1):[a2:'xxx']).
+            apply((c3):[head:'z'])
+    def frame = state.chart.frames[0]
+    assert 'v1' == frame.s('a1')
+    assert 'xxx' == frame.s('a2')
+  }
+
+  public void testDontAbandonActiveMitesWhenAddingExistingMite() {
+    def state = new ParsingState().
+            apply((ec2):[head:'z', xor:t.a], (ac1):[head:new Variable(), xor:t.a, a1:'v1']).
+            apply((ac1):[a2:'xxx']).
+            apply((ac1):[a1:'v1'])
+    def frame = state.chart.frames[0]
+    assert 'v1' == frame.s('a1')
+    assert 'xxx' == frame.s('a2')
+  }
+
+  public void testReviveEarlierCompetitorsWhenChoosingABetterMite() {
+    def head = new Variable()
+    def state = new ParsingState().
+            apply((myAcc):[noun:new Variable(), xor:t.a], (ec2):[head:head, xor:t.b], (ac1):[head:head, xor:t.ab, a1:'v1']).
+            apply((myAcc):[head:head]).
+            apply((myAcc):[noun:new Variable()])
+    def frame = state.chart.frames[0]
+    assert frame.f('arg2')
+    assert 'v1' == frame.s('a1')
+  }
+
+  public void testChooseLatterAlternativeForRevival() {
+    def head = new Variable()
+    def state = new ParsingState().
+            apply((myAcc):[noun:new Variable(), xor:t.a], (ec2):[head:head, xor:t.b], (ac1):[head:head, xor:t.ab, a1:'v1']).
+            apply((myAcc):[head:head], (ac1):[a2:'zzz']).
+            apply((myAcc):[noun:new Variable()])
+    def frame = state.chart.frames[0]
+    assert frame.f('arg2')
+    assert 'v1' == frame.s('a1')
+    assert 'zzz' == frame.s('a2')
+  }
+
+  public void testPreferInactiveConstructionsWhenDisplacing() {
+    def head = new Variable()
+    def state = new ParsingState().
+            apply((myAcc):[noun:new Variable(), xor:t.a], (ec2):[head:head, xor:t.a], (ac1):[head:head, xor:t.a, a1:'42']).
+            apply((myAcc):[head:head], (ec2):[head:new Variable()]).
+            apply((myAcc):[noun:new Variable()])
+    def frame = state.chart.frames[0]
+    assert frame.f('arg2')
+    assert '42' == frame.s('a1')
+  }
+
+  public void testPreferMoreUnifiableConstructionsWhenDisplacing() {
+    def head = new Variable()
+    def state = new ParsingState().
+            apply((myAcc):[noun:new Variable(), xor:t.a], (ec2):[head:head, xor:t.a], (ac1):[head:head, xor:t.a, a1:'42']).
+            apply((myAcc):[head:head], (ec2):[head:new Variable()], (ac1):[x:'y']).
+            apply((myAcc):[noun:new Variable()])
+    def frame = state.chart.frames[0]
+    assert frame.f('arg2')
+    assert 'y' == frame.s('x')
+    assert '42' == frame.s('a1')
+  }
+
+  public void testPreferFirst() {
+    def head = new Variable()
+    def state = new ParsingState().
+            apply((ac1):[head:head, a1:'42'], (ec2):[head:head]).
+            apply((ac1):[a2:'239', xor:t.b], (ec2):[xor:t.b])
+    def frame = state.chart.frames[0]
+    assert frame.s('a1') == '42'
+    assert frame.s('a2') == '239'
+  }
+
+  public void testPreferRecentMites() {
+    def state = new ParsingState().
+            apply((ac1):[head:new Variable(), a1:'42']).
+            apply((ac1):[head:new Variable(), a1:'239'])
+    assert state.chart.frames.find { it.s('a1') == '239' }
+  }
+
+  public void testDontPreferOldMitesJustBecauseTheirConstructionUpdated() {
+    def head = new Variable()
+
+    def state = new ParsingState().
+            apply((ec2):[xor:t.ab], (ac1):[head:head, xor:t.a], (ac2):[head:head]).
+            apply((ac1):[xtype:'byAc1']).
+            apply((ac2):[rel:'AFTER', xor:t.d], (ec2):[xor:t.d])
+
+    def frame = state.chart.frames[0]
+    assert frame.s('xtype') == 'byAc1'
+    assert frame.s('rel') == 'AFTER'
+  }
+
+  public void testOldActivePriorityMatters() {
+    def head = new Variable()
+
+    def state = new ParsingState().
+            apply((ac1):[head:head], (ac2):[head:head]).
+            apply((ac2):[rel:'2', xor:t.d], (ac1):[rel:'1', xor:t.d])
+    def frame = state.chart.frames[0]
+    assert frame.s('rel') == '1'
+  }
+
+  public void testPreferLessActiveMites() {
+    def head = new Variable()
+
+    def state = new ParsingState().
+            apply((ac1):[head:head], (ac2):[head:head]).
+            apply((ac1):[rel:'1', xor:t.d], (ac2):[rel:'2', xor:t.ad], (ec2):[xor:t.a])
+    def frame = state.chart.frames[0]
+    assert frame.s('rel') == '2'
+  }
+
+}

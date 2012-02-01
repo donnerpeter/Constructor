@@ -28,7 +28,7 @@ class EllipsisInterceptor implements Interceptor, RussianConstructions {
 
         def ellipsis = new Variable()
         state = state.satisfied(clauseEllipsis).
-                inhibit(comeScalarly, nom, advObj, elaboration). //todo inhibit/satisfy should also be replicated
+                inhibit(comeScalarly, nom, advObj, elaboration, gen). //todo inhibit/satisfy should also be replicated
                 assign(ellipsis, 'type', 'ellipsis').startMeta(ellipsis)
 
         for (i in 0..<precedent.size()) {

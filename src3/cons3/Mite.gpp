@@ -9,24 +9,24 @@ import groovy.transform.EqualsAndHashCode
 class Mite {
   final Construction cxt
   final FLinkedMap contents
+  final FList<Pair<Variable, Variable>> unifications
   private final Map<Mite, Boolean> _contradictors = [:]
 
-  Mite(Map contents, Construction cxt) {
+  Mite(Map contents, Construction cxt, FList<Pair<Variable, Variable>> unifications = FList.emptyList) {
     this.cxt = cxt
     this.contents = contents instanceof FLinkedMap ? contents : FLinkedMap.fromMap(contents)
+    this.unifications = unifications
   }
 
   boolean contradicts(Mite another) {
     if (another == this) return false
 
     if (!_contradictors.containsKey(another)) {
-      boolean result
-      if (another.cxt == cxt) {
+      Set<Object> xor1 = contents.xor ?: [] as Set
+      Set<Object> xor2 = another.contents.xor ?: [] as Set
+      boolean result = Util.intersects(xor1, xor2)
+      if (!result && another.cxt == cxt) {
         result = ParsingState.overwrites(another.contents, contents)
-      } else {
-        Set<Object> xor1 = contents.xor ?: [] as Set
-        Set<Object> xor2 = another.contents.xor ?: [] as Set
-        result = Util.intersects(xor1, xor2)
       }
       _contradictors[another] = result
     }
@@ -34,7 +34,7 @@ class Mite {
   }
 
   List<Mite> findContradictors(Collection<Mite> mites) {
-    mites.findAll { contradicts(it) } as List
+    mites.findAll { it.cxt == cxt || contradicts(it) } as List
   }
 
   @Override
@@ -42,6 +42,7 @@ class Mite {
     return "Mite{" +
            "cxt=" + cxt +
            ", contents=" + contents +
+            (unifications ? ', uni=' + unifications : '') +
            '}';
   }
 
@@ -53,5 +54,22 @@ class Mite {
     mites.find { isSimilarTo(it) }
   }
 
+  Mite unify(Mite another) {
+    def before = contents
+    def newArgs = another.contents
+    def newUnifications = unifications.prependAll(another.unifications)
+    for (arg in before.keySet().intersect(newArgs.keySet())) {
+      def val1 = before[arg]
+      def val2 = newArgs[arg]
+      if (ParsingState.areUnifiableVars(val1, val2)) {
+        def pair = new Pair(val1, val2)
+        if (!(pair in newUnifications)) {
+          newUnifications = newUnifications.prepend(pair)
+        }
+      }
+    }
+
+    return new Mite(ParsingState.unify(before, newArgs), cxt, newUnifications)
+  }
 
 }

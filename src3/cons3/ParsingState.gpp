@@ -12,12 +12,11 @@ class ParsingState {
   final FLinkedMap<Mite, Integer> miteGenerations
   final FList<Contribution> history
   final Set<Mite> active
-  final Set<Group> groups
   final int currentGeneration
 
   ParsingState() {
     this(chart: new Chart(), situation: new Situation(), 
-            mites: FLinkedMap.emptyMap, changes: FLinkedMap.emptyMap, groups: Collections.emptySet(),
+            mites: FLinkedMap.emptyMap, changes: FLinkedMap.emptyMap,
             history: FList.emptyList, active: Collections.emptySet(), currentGeneration:0, miteGenerations:FLinkedMap.emptyMap)
   }
 
@@ -31,7 +30,6 @@ class ParsingState {
     assert (map.active instanceof LinkedHashSet) || !(map.active instanceof HashSet)
     assert (map.groups instanceof LinkedHashSet) || !(map.groups instanceof HashSet)
     active = Collections.unmodifiableSet((Set)map.active)
-    groups = Collections.unmodifiableSet((Set)map.groups)
     miteGenerations = map.miteGenerations
   }
   
@@ -71,48 +69,12 @@ class ParsingState {
   }
 
   private ParsingState clone(Map update) {
-    Map current = [chart:chart, situation:situation, mites:mites, history:history, active:active, changes:changes, currentGeneration:currentGeneration, groups:groups, miteGenerations:miteGenerations]
+    Map current = [chart:chart, situation:situation, mites:mites, history:history, active:active, changes:changes, currentGeneration:currentGeneration, miteGenerations:miteGenerations]
     current.putAll(update)
     return new ParsingState(current)
   }
 
-  private Chart updateUnification(Chart chart, Set<Mite> oldActive, Set<Mite> newActive) {
-    if (oldActive == newActive) {
-      return chart
-    }
-
-    LinkedHashSet<Mite> added = (newActive as LinkedHashSet) - oldActive
-    LinkedHashSet<Mite> removed = (oldActive as LinkedHashSet) - newActive
-    List<Pair<Variable, Variable>> toRemove = findChangedUnificationPairs(removed, oldActive)
-    List<Pair<Variable, Variable>> toAdd = findChangedUnificationPairs(added, newActive)
-    for (s in toRemove) {
-      chart = chart.removeUnificationConstraint(s.first, s.second)
-    }
-    for (s in toAdd) {
-      chart = chart.addUnificationConstraint(s.first, s.second)
-    }
-    return chart
-  }
-
-  private List<Pair<Variable, Variable>> findChangedUnificationPairs(LinkedHashSet<Mite> part, Set<Mite> whole) {
-    List<Pair<Variable, Variable>> result = []
-    for (mite1 in part) {
-      for (mite2 in whole) {
-        if (mite1.cxt == mite2.cxt && !mite1.contradicts(mite2)) {
-          for (key in mite1.contents.keyList()) {
-            def val1 = mite1.contents[key]
-            def val2 = mite2.contents[key]
-            if (areUnifiableVars(val1, val2)) {
-              result << new Pair(((Variable) val1).base, ((Variable) val2).base)
-            }
-          }
-        }
-      }
-    }
-    return result
-  }
-
-  private static boolean areUnifiableVars(val1, val2) {
+  static boolean areUnifiableVars(val1, val2) {
     return val1 != val2 && val1 instanceof Variable && val2 instanceof Variable && (val1.light || val2.light)
   }
 
@@ -149,34 +111,30 @@ class ParsingState {
 
       def val1 = before[arg]
       def val2 = newArgs[arg]
-      if (val1 != val2 && val1 != null && !areUnifiableVars(val1, val2)) {
+      if (val1 != val2 && val1 != null && val2 != null && !areUnifiableVars(val1, val2)) {
         return true
       }
     }
     return false
   }
 
+  ParsingState augmentWith(Mite mite) {
+    def victim = active.find { it.cxt == mite.cxt }
+
+    def fat = victim ? victim.unify(mite) : mite
+    return clone(mites:mites + [(mite.cxt):(mites[mite.cxt] ?: []) + fat],
+            active:(active as LinkedHashSet) - victim + fat,
+            miteGenerations:miteGenerations.putValue(fat, currentGeneration))
+  }
+
   ParsingState addCxt(boolean activate, Mite... mites) {
     def newMiteGenerations = miteGenerations
-    LinkedHashMap<Object, Group> members = [:]
     for (mite in mites) {
       newMiteGenerations = newMiteGenerations.putValue(mite, currentGeneration)
-      
-      Collection<Object> xor = mite.contents.xor ?: [] //todo alex inline
-      for (x in xor) {
-        if (!members[x]) members[x] = new Group(mite)
-        else members[x].members << mite
-      }
-    }
-    def newGroups = new LinkedHashSet<Group>(groups)
-    for (g in members.values()) {
-      if (g.members.size() > 1) {
-        newGroups << g
-      }
     }
 
     FLinkedMap<Construction, List<Mite>> newMites = this.mites
-    for (mite in mites.reverse()) {
+    for (mite in mites) {
       newMites = newMites + [(mite.cxt):(newMites[mite.cxt] ?: []) + mite]
     }
 
@@ -184,10 +142,10 @@ class ParsingState {
     if (activate) {
       newActive = (active as LinkedHashSet) + (mites as Set)
     }
-    return clone(mites:newMites, groups:newGroups, active:newActive, chart:updateUnification(chart, active, newActive), miteGenerations:newMiteGenerations)
+    return clone(mites:newMites, active:newActive, miteGenerations:newMiteGenerations)
   }
 
-  private static Map unify(Map oldArgs, Map newArgs) {
+  public static Map unify(Map oldArgs, Map newArgs) {
     def args = new HashMap()
     if (oldArgs) args.putAll(oldArgs)
     if (newArgs) args.putAll(newArgs)
@@ -235,7 +193,7 @@ class ParsingState {
     LinkedHashSet<Mite> newActive = new LinkedHashSet<Mite>(active)
     def toRemove = mites[name] ?: []
     newActive.removeAll(toRemove)
-    return clone(mites: mites.removeKey(name), active:newActive, changes:changes.removeKey(name), groups:(groups as LinkedHashSet) - allGroups(toRemove))
+    return clone(mites: mites.removeKey(name), active:newActive, changes:changes.removeKey(name))
   }
 
   ParsingState startMeta(Variable meta) {
@@ -273,9 +231,6 @@ class ParsingState {
   ParsingState apply(Map<Construction, Map> constructions) {
     apply((constructions.keySet() as List<Construction>).collect { it(constructions[it]) } as List)
   }
-  ParsingState apply(Mite[] constructions) {
-    apply(constructions as List<Mite>)
-  }
   ParsingState apply(List<Mite> constructions) {
     if (!constructions) return this
 
@@ -283,89 +238,110 @@ class ParsingState {
     applier(constructions as List<Mite>, this).clone(history: history + new Contribution(this, FList.fromList(constructions).reverse(), FList.emptyList))
   }
 
-  private static ParsingState baseApply(ParsingState state, Collection<Mite> update, boolean tryAlternatives) {
+  private static ParsingState baseApply(ParsingState state, List<Mite> update, boolean tryAlternatives) {
     List<Mite> newMites = []
-    for (mite in update) {
+    Map<Mite, Mite> inheritors = [:]
+    for (mite in update.reverse()) {
       def c = mite.cxt
-      if (mite.contents && !state.mites[c]?.find { !it.contradicts(mite) && unify(it.contents, mite.contents) == it.contents }
-              || !state.mites[c]) {
+      def existing = state.mites[c]
+      if (mite.contents && !existing?.find { !it.contradicts(mite) && it.unify(mite) == it } || !existing) {
         newMites << mite
+        existing?.each {
+          if (!it.contradicts(mite)) {
+            def union = it.unify(mite)
+            newMites << union
+            if (it in state.active) {
+              inheritors[it] = union
+            }
+          }
+        }
       }
     }
 
     state = state.addCxt(false, newMites as Mite[])
     
-    def newActive = state.optimizedBalance(state.allGroups(newMites), state.active as LinkedHashSet, [])
-    if (newActive == null) {
-      println "cannot balance: $update"
-      return state
+    LinkedHashSet<Mite> toConsider = [] 
+
+    for (mite in state.active) {
+      def next = inheritors[mite]
+      if (next) {
+        toConsider << next
+      }
     }
+
+    for (mite in update) {
+      toConsider += state.mites[mite.cxt].reverse()[0]
+    }
+
+    def newActive = suggestActive(state, toConsider)
     state = state.activate(newActive)
 
     for (cxt in state.mites.keySet()) {
       if (!(cxt in state.mites)) continue
 
-      List<Mite> toAdd = collectNonContradicting(state, cxt)
-      if (toAdd) {
-        newActive = state.calcAlternative(toAdd)
-        if (newActive) {
-          def alternative = state.activate(newActive)
-          if (alternative.dominates(state)) {
-            state = alternative
-          }
-        }
+      def toAdd = state.mites[cxt].reverse()[0]
+      if (toAdd && !(toAdd in state.active)) {
+        state = tryAlternative(state, toAdd)
       }
     }
 
     return state.clone(currentGeneration: state.currentGeneration + 1)
   }
 
-  private LinkedHashSet<Mite> calcAlternative(List<Mite> toAdd) {
-    LinkedHashSet<Mite> newActive = active as LinkedHashSet
-    def cxtContradictors = toAdd.collect { it.findContradictors(newActive) }.flatten().collect { Mite m -> m.cxt } as LinkedHashSet<Construction>
-    def contradictors = cxtContradictors.collect { mites[it].reverse() }.flatten() as LinkedHashSet<Mite>
-    LinkedHashSet modified = new LinkedHashSet(newActive)
-    modified.removeAll(contradictors)
-    modified.addAll(toAdd)
-    return optimizedBalance(allGroups(contradictors), modified, [])
+  private static ParsingState tryAlternative(ParsingState state, Mite toAdd) {
+    def anotherActive = suggestActive(state, [toAdd])
+    def alternative = state.activate(anotherActive)
+    if (alternative.dominates(state)) {
+      return alternative
+    }
+    return state
   }
 
-  private static List<Mite> collectNonContradicting(ParsingState state, Construction cxt) {
-    def mites = state.mites[cxt]
-    if (!mites) {
-      throw new AssertionError(cxt)
-    }
-    def currentActive = new LinkedHashSet<Mite>(mites.findAll { it in state.active })
-    List<Mite> toAdd = []
-    for (mite in mites.reverse()) {
-      if (!(mite in currentActive) && !mite.findContradictors(currentActive)) {
-        currentActive << mite
-        toAdd << mite
+  private static LinkedHashSet<Mite> suggestActive(ParsingState state, Collection<Mite> preferred) {
+    LinkedHashSet<Mite> newActive = []
+    for (mite in preferred) {
+      if (!mite.findContradictors(newActive)) {
+        newActive << mite
       }
     }
-    if (!cxt.isExecutable(currentActive)) {
-      return null
-    }
-    return toAdd
-  }
 
-  private LinkedHashSet<Group> allGroups(Collection<Mite> mites) {
-    return mites.collect { m -> 
-      Collection<ParsingState.Group> containingGroups = (groups as LinkedHashSet<Group>).findAll { g -> m in g.members }
-      if (!containingGroups) {
-        return [new Group(m)]
+    List<Mite> all = state.mites.values().collect { it.reverse() }.flatten()
+    LinkedHashSet<Mite> active = Util.intersect(all, state.active)
+    for (mite in active) {
+      if (mite.findContradictors(newActive)) {
+        List<Mite> candidates = all.findAll { cnd -> cnd.contradicts(mite) && !cnd.findContradictors(newActive) }
+        def best = candidates.find { b -> active.every { b.cxt != it.cxt } }
+        best = best ?: candidates.find { b -> active.any { b.cxt == it.cxt && !overwrites(it.contents, b.contents) } }
+        best = best ?: candidates[0]
+        if (best) {
+          newActive << best
+        }
       }
-      return containingGroups
-    }.flatten() as LinkedHashSet<Group>
+    }
+
+    for (mite in active) {
+      if (!mite.findContradictors(newActive)) {
+        newActive << mite
+      }
+    }
+
+    for (mite in all) {
+      if (!mite.findContradictors(newActive)) {
+        newActive << mite
+      }
+    }
+    return newActive
   }
 
   private ParsingState activate(LinkedHashSet<Mite> newActive) {
     def toRemove = new LinkedHashSet<Mite>(active)
     toRemove.removeAll(newActive)
-    def toApply = new LinkedHashSet<Mite>(newActive)
-    toApply.removeAll(active)
-    
-    def state = clone(active: newActive, chart:updateUnification(chart, active, newActive))
+    def toApply = new LinkedHashSet<Mite>()
+    mites.values().each {
+      toApply.addAll(it.findAll { it in newActive && !(it in active) })
+    }
+
+    def state = clone(active: newActive)
     for (mite in toRemove) {
       if (mite.findContradictors(toApply).find { mite.cxt != it.cxt }) {
         state = state.undoChanges(mite.cxt).doApply(mite.cxt)
@@ -379,113 +355,16 @@ class ParsingState {
     state
   }
   
-  private static class Group {
-    final LinkedHashSet<Mite> members = []
-
-    Group(Mite first) {
-      this.members << first
-    }
-
-    @Override
-    String toString() {
-      return members.toString()
-    }
-
-    LinkedHashSet<Mite> sortedMembers(LinkedHashSet<Mite> preferred) {
-      LinkedHashSet<Mite> sortedMembers = []
-      sortedMembers.addAll members.findAll { Mite mite -> preferred.find { it.cxt == mite.cxt } }
-      sortedMembers.addAll members
-      return sortedMembers
-    }
-
-  }
-
-  private LinkedHashSet<Mite> optimizedBalance(LinkedHashSet<Group> changed, LinkedHashSet<Mite> result, Set<Group> visited) {
-    for (g in changed.findAll { it.members.size() == 1 }) {
-      def mite = g.members.iterator().next()
-      def contradictors = mite.findContradictors(result)
-      result.removeAll(contradictors)
-      result << mite
-      visited << g
-      changed.remove(g)
-
-      for (gc in allGroups(contradictors)) {
-        if (gc.members.size() > 1) {
-          changed.add(gc)
-        }
-      }
-    }
-
-    return balance(changed as List, result, visited)
-  }
-
-  private LinkedHashSet<Mite> balance(List<Group> changed, LinkedHashSet<Mite> result, Set<Group> visited) {
-    LinkedHashSet<Group> easy = easyBalance(changed, result)
-
-    if (easy) {
-      changed = new ArrayList<Group>(changed)
-      changed.removeAll(easy)
-    }
-
-    for (i in 0..<changed.size()) {
-      def g = changed[i]
-      if (Util.intersects(result, g.members)) {
-        continue
-      }
-
-      List<Group> rest = i == changed.size() - 1 ? [] : changed[i + 1..<changed.size()]
-
-      for (mite in g.sortedMembers(result)) {
-        List<Mite> contradictors = mite.findContradictors(result)
-        LinkedHashSet<Group> touchedGroups = allGroups(contradictors)
-        if (!Util.intersects(visited, touchedGroups)) {
-          LinkedHashSet modified = new LinkedHashSet(result)
-          modified.removeAll(contradictors)
-          modified.add(mite)
-          def inner = balance(rest + touchedGroups as List, modified, visited + changed[0..i] as Set)
-          if (inner != null) {
-            return inner
-          }
-        }
-      }
-
-      return null
-    }
-
-    return result
-  }
-
-  private LinkedHashSet<Group> easyBalance(List<ParsingState.Group> changed, LinkedHashSet<Mite> result) {
-    LinkedHashSet<Group> easy = []
-    for (g in changed) {
-      if (Util.intersects(result, g.members)) {
-        easy << g
-      } else {
-        for (mite in g.sortedMembers(result)) {
-          if (!mite.findContradictors(result)) {
-            easy << g
-            result << mite
-            break
-          }
-        }
-      }
-    }
-    easy
-  }
-
   private ParsingState undoChanges(Construction cxt) {
     List<Object> diffList = changes[cxt] ?: []
+    //noinspection GroovyAssignabilityCheck
     def newChart = diffList.foldLeft(chart) { diff, Chart ch -> ch.removeDifference(diff) }
     return clone(changes: changes.removeKey(cxt), chart: newChart)
   }
 
   private boolean dominates(ParsingState other) {
-    def theirActiveCxts = (other.active.collect { it.cxt } as Set).size()
-    int myActiveCxts = (active.collect { it.cxt } as Set).size()
-    if (theirActiveCxts > myActiveCxts || theirActiveCxts == myActiveCxts && other.active.size() < active.size()) {
-      if (!other.dominatesSemantically(this)) {
-        return true
-      }
+    if (active.size() < other.active.size() && !other.dominatesSemantically(this)) {
+      return true
     }
 
     return dominatesSemantically(other)
@@ -522,8 +401,11 @@ class ParsingState {
         return true
       }
 
-      if (verb.type == 'question' && alternative.type == 'fact' && !alternative.usages('arg2') && !alternative.usages('theme')) {
-        return true
+      if (verb.type == 'question' && alternative.type == 'fact') {
+        def controller = alternative.findClauseController()
+        if (!controller || controller.type == 'ASK') {
+          return true
+        }
       }
 
     }
@@ -532,29 +414,23 @@ class ParsingState {
   }
 
   private ParsingState doApply(Construction cxt) {
-    List<Mite> mites = mites[cxt].findAll { it in active }
-    if (!cxt.isExecutable(mites)) return this
+    Mite mite = mites[cxt].find { it in active }
+    if (!mite) return this
 
-    Map args = [:]
-    int newestGeneration = 0
-    for (mite in mites) {
-      args = unify(args, mite.contents)
-      newestGeneration = Math.max(newestGeneration, miteGenerations[mite])
-    }
-
-    if (!args) {
-      return this
-    }
-
-    def meta = new Object()
     def before = chart
 
-    ParsingState next = clone(currentGeneration:newestGeneration, chart:chart.startMeta(meta))
-    next = cxt.action.call(next, args)
-    if (before != next.chart) {
-      next = next.clone(changes:next.changes + [(cxt):(changes[cxt] ?: []) + meta])
+    def ch = chart.startMeta(mite)
+    for (pair in mite.unifications) {
+      ch = ch.addUnificationConstraint(pair.first.base, pair.second.base)
     }
-    return next.clone(currentGeneration:currentGeneration, chart:next.chart.finishMeta(meta))
+    ParsingState next = clone(currentGeneration:miteGenerations[mite], chart:ch)
+    if (mite.contents && cxt.isExecutable([mite])) {
+      next = cxt.action.call(next, mite.contents)
+      if (before != next.chart) {
+        next = next.clone(changes:next.changes + [(cxt):(changes[cxt] ?: []) + mite])
+      }
+    }
+    return next.clone(currentGeneration:currentGeneration, chart:next.chart.finishMeta(mite))
   }
 
 
@@ -565,15 +441,12 @@ class ParsingState {
   ParsingState restore(ParsingState saved) {
     LinkedHashSet<Mite> newActive = new LinkedHashSet<Mite>(saved.active)
     newActive.addAll(active)
-    LinkedHashSet<Group> newGroups = new LinkedHashSet<ParsingState.Group>(saved.groups)
-    newGroups.addAll(groups)
     for (c in saved.mites.keyList()) {
       if (c in this.mites) {
         newActive.removeAll(saved.mites[c])
-        newGroups.removeAll(allGroups(saved.mites[c]))
       }
     }
-    clone(mites: saved.mites + this.mites, active:newActive, changes:saved.changes + this.changes, groups:newGroups, chart:updateUnification(chart, active, newActive))
+    clone(mites: saved.mites + this.mites, active:newActive, changes:saved.changes + this.changes)
   }
 
 }

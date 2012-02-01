@@ -14,7 +14,7 @@ interface RussianConstructions {
       Variable noun = args.noun
       if (!noun) {
         noun = new Variable()
-        state = state.addCxt(true, RussianConstructions.nom(noun:noun))
+        state = state.augmentWith(RussianConstructions.nom(noun:noun))
       }
       String agr = args.agr
       if (SeqInterceptor.agrNumber(agr)) {
@@ -148,8 +148,9 @@ interface RussianConstructions {
     state = state.assign(args.frame, 'type', 'question').assign(args.frame, 'questioned', args.questioned)
     return state
   }
-  Construction comeScalarly = cxt('comeScalarly', ['verb', 'order']) { ParsingState state, Map args ->
-    args.verb && args.order ? state.assign(args.verb, 'type', 'COME_SCALARLY').assign(args.verb, 'order', args.order) : state
+  Construction comeScalarly = cxt('comeScalarly', ['verb']) { ParsingState state, Map args ->
+    state = state.assign(args.verb, 'type', 'COME_SCALARLY')
+    args.order ? state.assign(args.verb, 'order', args.order) : state
   }
   Construction questionVariants = cxt('questionVariants', ['seq', 'questioned']) { ParsingState state, Map args ->
     args.seq && args.questioned ? state.assign(args.questioned, 'variants', args.seq).satisfied(questionVariants) : state
@@ -168,7 +169,7 @@ interface RussianConstructions {
   }
   Construction preposition = cxt('preposition', ['prep']) { ParsingState state, Map args ->
     if (!args.interceptor && args.prep) {
-      state = state.inhibit(preposition).addCxt(true, RussianConstructions.preposition(prep:args.prep, interceptor:new Preposition()))
+      state = state.inhibit(preposition).augmentWith(RussianConstructions.preposition(prep:args.prep, interceptor:new Preposition()))
     }
     return state
   }
@@ -289,7 +290,7 @@ interface RussianConstructions {
       if (conj) {
         state = state.clearConstructions()
       }
-      state = state.addCxt(true, RussianConstructions.seq(conj:conj, interceptor:interceptor))
+      state = state.augmentWith(RussianConstructions.seq(conj:conj, interceptor:interceptor))
     }
     if (args.conj == 'but') {
       if (!interceptor.before.history) {

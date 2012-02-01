@@ -36,9 +36,17 @@ class Frame {
     if (!clause || !(clause.type in ['fact', 'question'])) {
       return null
     }
-    
-    def forget = clause.usages('arg2').find { it.type == 'FORGET' }
-    return forget ?: clause.usages('theme').find { it.type == 'DISCOVER' }
+
+    return clause.findClauseController()
+  }
+
+  Frame findClauseController() {
+    def group = usages('member')[0] ?: this
+    def controller = group.usages('arg2')[0]
+    controller = controller ?: group.usages('theme')[0]
+    controller = controller ?: group.usages('message')[0]
+    controller = controller ?: group.usages('question')[0]
+    return controller
   }
 
   Frame f(String attr) {

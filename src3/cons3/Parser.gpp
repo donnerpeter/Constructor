@@ -20,7 +20,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = handleWord(w.toLowerCase(), state)
         log += w + "\n"
         for (k in state.mites.keySet()) {
-          log += "  $k: " + state.mites[k].collect { (it in state.active ? '*' : '') + new LinkedHashMap(it.contents.reverse()) }.join(" ") + "\n"
+          log += "    $k: " + state.mites[k].collect {
+            (it in state.active ? '*' : '') +
+            new LinkedHashMap(it.contents.reverse()) +
+            (it.unifications ? ';' + it.unifications.collect { "<$it.first=$it.second>" }.join("") : '')
+          }.join(" ") +"\n"
         }
       }
     }
@@ -71,7 +75,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "удивительный": return adj(state, nom, 'property', 'AMAZING')
       case "васи":
         state = noun(state, gen, varCxt(name:'Вася'))
-        return state.apply(absTime, noun:state[posleGen].noun)
+        return state.apply(absTime, noun:state[posleGen].noun) //todo posleGen should generate absTime automatically
       case "знаменской": // todo a unified treatment for street names
       case "бассейной":
         def noun = new Variable()
@@ -432,7 +436,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 relativeClause(hasComma:true, parentSituation:state.situation),
                 prevHistory(history:state))
         if (!state[seq]?.conj) {
-          state = state.inhibit(seq)
+          state = state.inhibit(seq, gen)
           update = update.addCxt(seq, conj:null)
         }
         if (state[poDat]?.head && state[poDat]?.hasNoun) {
@@ -469,8 +473,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "идёт":
         def verb = new Variable()
         state = state.assign(verb, 'time', 'PRESENT')
-        def goes = cxt('идёт') { ParsingState st, Map args -> st.assign(args.verb, 'type', 'GO') }
-        return state.inhibit(preposition, numQuantifier).apply((comeScalarly):[verb:verb, xor:t.ab], (goes):[verb:verb, xor:t.a],
+        return state.inhibit(preposition, numQuantifier).apply((comeScalarly):[verb:verb, xor:t.ab], (typeCxt('GO')):[var:verb, xor:t.a],
                 (vAcc):[head:verb, xor:t.b], (vPrep):[head:verb], (nom):[head:verb],
                 (poDat):[head:verb], (verbHolder): [head:verb],
                 (posleGen):[head:verb], (ransheGen):[head:verb],

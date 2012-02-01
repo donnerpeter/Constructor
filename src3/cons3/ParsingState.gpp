@@ -38,17 +38,16 @@ class ParsingState {
         return null
       }
 
-      Map value = [:]
       for (Mite mite in allMites) {
         if (mite in active) {
-          value = unify(value, mite.contents)
+          return mite.contents
         }
       }
-      if (!value) {
-        for (part in allMites.reverse()) {
-          if (!overwrites(value, part.contents)) {
-            value = unify(value, part.contents)
-          }
+
+      Map value = [:]
+      for (part in allMites.reverse()) {
+        if (!overwrites(value, part.contents)) {
+          value = unify(value, part.contents)
         }
       }
       value

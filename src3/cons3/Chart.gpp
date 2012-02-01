@@ -134,7 +134,7 @@ class Chart {
     final def newAssignments = new LinkedHashMap<Situation, List<Assignment<Variable>>>()
     for (sit in __assignments.keySet()) {
       List<Assignment<Variable>> assignments = __assignments[sit]
-      def filtered = assignments.findAll { !(diffMeta in __metas[it]) }
+      def filtered = assignments.findAll { __metas[it] != [diffMeta] }
       if (filtered) {
         newAssignments[sit] = filtered
       }

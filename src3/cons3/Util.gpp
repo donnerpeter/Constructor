@@ -1,7 +1,5 @@
 package cons3
 
-import groovypp.concurrent.FList
-
 /**
  * @author peter
  */
@@ -14,14 +12,11 @@ class Util {
 
     try {
       return Integer.parseInt(word)
-    } catch (NumberFormatException e) {
+    } catch (NumberFormatException ignore) {
       return null
     }
   }
 
-  static <T> List<T> lcs(FList<T> l1, FList<T> l2, Function2<T,T,Boolean> eq) {
-    return lcs(l1.collect {it} as List, l2.collect {it} as List, eq)
-  }
   static <T> List<T> lcs(List<T> l1, List<T> l2, Function2<T,T,Boolean> eq) {
     if (!l1 || !l2) return []
 

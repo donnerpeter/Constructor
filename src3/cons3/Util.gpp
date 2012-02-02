@@ -8,6 +8,10 @@ import groovypp.concurrent.FList
 class Util {
 
   static Integer parseNumber(String word) {
+    if (word == null || word.length() == 0 || !Character.isDigit(word.charAt(0))) {
+      return null
+    }
+
     try {
       return Integer.parseInt(word)
     } catch (NumberFormatException e) {

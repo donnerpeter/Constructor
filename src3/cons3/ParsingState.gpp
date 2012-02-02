@@ -242,7 +242,7 @@ class ParsingState {
       def c = mite.cxt
       List<Mite> existing = state.mites[c] ?: []
       def unifiable = existing.findAll { !overwrites(mite.contents, it.contents) }
-      if (mite.contents && !unifiable.find { it.unify(mite) == it } || !existing) {
+      if (mite.contents && !unifiable.find { def u = it.unify(mite); u.cxt == it.cxt && u.contents == it.contents } || !existing) {
         newMites << mite
         unifiable.each {
           def union = it.unify(mite)

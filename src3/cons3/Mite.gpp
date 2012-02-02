@@ -1,11 +1,8 @@
 package cons3
 
-import groovy.transform.EqualsAndHashCode
-
 /**
  * @author peter
  */
-@EqualsAndHashCode
 class Mite {
   final Construction cxt
   final FLinkedMap contents

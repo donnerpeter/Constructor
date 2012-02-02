@@ -158,4 +158,18 @@ public class ParsingStateTest extends TestCase {
     assert frame.s('rel') == '2'
   }
 
+  public void _testRestoreLatestPossibleMite() {
+    def head = new Variable()
+
+    def state = new ParsingState().
+            apply((ac1):[head:head, xor:t.e]).
+            apply((ac1):[rel:'1', xor:t.d]).
+            apply((ac1):[rel:'2', xor:t.a], (ac2):[head:head, xor:t.a])
+            state = state.apply((ac2):[attr:'val'])
+    def frame = state.chart.frames[0]
+    assert frame.s('attr') == 'val'
+    assert frame.s('rel') == '1'
+
+  }
+
 }

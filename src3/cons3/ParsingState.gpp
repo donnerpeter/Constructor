@@ -240,16 +240,15 @@ class ParsingState {
     Map<Mite, Mite> inheritors = [:]
     for (mite in update.reverse()) {
       def c = mite.cxt
-      def existing = state.mites[c]
-      if (mite.contents && !existing?.find { !it.contradicts(mite) && it.unify(mite) == it } || !existing) {
+      List<Mite> existing = state.mites[c] ?: []
+      def unifiable = existing.findAll { !overwrites(mite.contents, it.contents) }
+      if (mite.contents && !unifiable.find { it.unify(mite) == it } || !existing) {
         newMites << mite
-        existing?.each {
-          if (!it.contradicts(mite)) {
-            def union = it.unify(mite)
-            newMites << union
-            if (it in state.active) {
-              inheritors[it] = union
-            }
+        unifiable.each {
+          def union = it.unify(mite)
+          newMites << union
+          if (it in state.active) {
+            inheritors[it] = union
           }
         }
       }
@@ -340,9 +339,7 @@ class ParsingState {
 
     def state = clone(active: newActive)
     for (mite in toRemove) {
-      if (mite.findContradictors(toApply).find { mite.cxt != it.cxt }) {
-        state = state.clone(chart:state.chart.removeDifference(mite)).doApply(mite.cxt)
-      }
+      state = state.clone(chart:state.chart.removeDifference(mite))
     }
     for (mite in toApply) {
       if (state.mites[mite.cxt]) {

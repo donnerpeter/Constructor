@@ -177,7 +177,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply((preposition):[prep:'в'], (vAcc):[noun:noun, xor:t.b], (vPrep):[noun:noun, xor:t.b])
       case 'из':
       case 'изо': return state.apply((preposition):[prep:'из'], (izGen):[noun:new Variable()])
-      case 'на': return state.apply((preposition):[prep:'на'], (naPrep):[noun:new Variable()])
+      case 'на': return state.inhibit(adjective).apply((preposition):[prep:'на'], (naPrep):[noun:new Variable()])
       case "мной": return noun(state, instr, 'ME')
       case ":":
         if (state[directSpeech]) {

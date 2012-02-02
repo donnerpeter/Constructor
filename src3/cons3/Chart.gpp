@@ -147,6 +147,14 @@ class Chart {
       }
     }
     
+    final def newMetas = new IdentityHashMap<Assignment<Variable>, FList<Object>>()
+    for (a in __metas.keySet()) {
+      newMetas[a] = __metas[a] - diffMeta
+    }
+    if (newMetas != __metas) {
+      result = result.clone(metas:newMetas)
+    }
+    
     if (newAssignments == __assignments) {
       return result
     }
@@ -189,7 +197,8 @@ class Chart {
     
     def newMetaUnifications = metaUnifications
     for (meta in currentMetas) {
-      List<Set<Variable>> newValue = (newMetaUnifications[meta] ?: []) + pair
+      List<Set<Variable>> newValue = new ArrayList<Set<Variable>>(newMetaUnifications[meta] ?: [])
+      newValue.add(pair)
       newMetaUnifications = newMetaUnifications.putValue(meta, newValue)
     }
     clone(unifications:newUnifications, baseVars:newBaseVars, metaUnifications:newMetaUnifications)

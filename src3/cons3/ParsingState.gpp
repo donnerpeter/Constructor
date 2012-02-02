@@ -307,7 +307,6 @@ class ParsingState {
       if (mite.findContradictors(newActive)) {
         List<Mite> candidates = all.findAll { cnd -> cnd.contradicts(mite) && !cnd.findContradictors(newActive) }
         def best = candidates.find { b -> active.every { b.cxt != it.cxt } }
-        best = best ?: candidates.find { b -> active.any { b.cxt == it.cxt && !overwrites(it.contents, b.contents) } }
         best = best ?: candidates[0]
         if (best) {
           newActive << best

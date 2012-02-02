@@ -436,7 +436,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 relativeClause(hasComma:true, parentSituation:state.situation),
                 prevHistory(history:state))
         if (!state[seq]?.conj) {
-          state = state.inhibit(seq, gen)
+          state = state.inhibit(seq)
           update = update.addCxt(seq, conj:null)
         }
         if (state[poDat]?.head && state[poDat]?.hasNoun) {

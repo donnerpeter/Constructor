@@ -96,18 +96,6 @@ public class ParsingStateTest extends TestCase {
     assert '42' == frame.s('a1')
   }
 
-  public void testPreferMoreUnifiableConstructionsWhenDisplacing() {
-    def head = new Variable()
-    def state = new ParsingState().
-            apply((myAcc):[noun:new Variable(), xor:t.a], (ec2):[head:head, xor:t.a], (ac1):[head:head, xor:t.a, a1:'42']).
-            apply((myAcc):[head:head], (ec2):[head:new Variable()], (ac1):[x:'y']).
-            apply((myAcc):[noun:new Variable()])
-    def frame = state.chart.frames[0]
-    assert frame.f('arg2')
-    assert 'y' == frame.s('x')
-    assert '42' == frame.s('a1')
-  }
-
   public void testPreferFirst() {
     def head = new Variable()
     def state = new ParsingState().
@@ -158,7 +146,7 @@ public class ParsingStateTest extends TestCase {
     assert frame.s('rel') == '2'
   }
 
-  public void _testRestoreLatestPossibleMite() {
+  public void testRestoreLatestPossibleMite() {
     def head = new Variable()
 
     def state = new ParsingState().
@@ -169,7 +157,6 @@ public class ParsingStateTest extends TestCase {
     def frame = state.chart.frames[0]
     assert frame.s('attr') == 'val'
     assert frame.s('rel') == '1'
-
   }
 
 }

@@ -9,25 +9,17 @@ class Frame {
   final Chart chart
 
   Frame(Variable var, Situation situation, Chart chart) {
-    this.var = chart.getUnifiedVar(var)
+    this.var = var
     this.situation = situation
     this.chart = chart
   }
 
-  String toString() {
-    return "$var: ${chart.allAssignments(situation).findAll { it.frame == (Frame) this }}"
+  Variable getUnifiedVar() {
+    return chart.getUnifiedVar(var)
   }
 
-  List<Frame> conjArg(String attr) {
-    def value = f(attr)
-    if (!value) {
-      return []
-    }
-
-    if (value.f('member')) {
-      return value.allAssignments('member').collect { (Frame) it.value }
-    }
-    return [value]
+  String toString() {
+    return "$var: ${chart.allAssignments(situation).findAll { it.frame == (Frame) this }}"
   }
 
   private Frame findController() {
@@ -122,15 +114,15 @@ class Frame {
 
   }
 
-  FList<Frame> flatten() {
+  List<Frame> flatten() {
     if (f('member')) {
-      FList<Frame> heads = FList.emptyList
+      LinkedHashSet<Frame> heads = []
       for (member in allAssignments('member')) {
-        heads = heads + (Frame) member.value
+        heads << (Frame) member.value
       }
-      return heads.reverse()
+      return heads as List
     }
-    return FList.fromList([this])
+    return [this]
   }
 
   String s(String attr) {
@@ -190,7 +182,7 @@ class Frame {
     if (!situation) {
       return []
     }
-    return chart.allAssignments(situation).findAll { it.frame.var == var && it.property == attr }
+    return chart.allAssignments(situation).findAll { it.frame.unifiedVar == unifiedVar && it.property == attr }
   }
 
   boolean equals(o) {
@@ -200,15 +192,14 @@ class Frame {
     Frame frame = (Frame) o;
 
     if (chart != frame.chart) return false;
-    if (situation != frame.situation) return false;
-    if (var != frame.var) return false;
+    if (unifiedVar != frame.unifiedVar) return false;
 
     return true;
   }
 
   int hashCode() {
     int result;
-    result = var.hashCode();
+    result = unifiedVar.hashCode();
     result = 31 * result + situation?.hashCode();
     result = 31 * result + chart.hashCode();
     return result;
@@ -222,7 +213,7 @@ class Frame {
     if (!situation) {
       return []
     }
-    def a = chart.getActiveAssignments(situation).findAll { chart.getUnifiedVar(it.frame) == var && it.property == attr } as List
+    def a = chart.getActiveAssignments(situation).findAll { chart.getUnifiedVar(it.frame) == unifiedVar && it.property == attr } as List
     Assignment<Variable> last = a.reverse()[0]
     if (last) {
       return chart.__metas[last].findAll { it instanceof Variable }.collect { ((Variable) it).frame(chart) }

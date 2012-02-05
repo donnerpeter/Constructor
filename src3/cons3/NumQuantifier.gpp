@@ -7,16 +7,15 @@ class NumQuantifier implements Interceptor, RussianConstructions {
 
   ParsingState intercept(List<Mite> contribution, ParsingState state, Function2<List<Mite>, ParsingState, ParsingState> base) {
     if (!state.constructions[numQuantifier]?.hasNoun && state.constructions[numQuantifier].num) {
+      def args = state.constructions[numQuantifier]
       Update update = new Update()
       for (mite in contribution) {
         def c = mite.cxt
-        if (c == numQuantifier) continue
+        if (c == acc) continue
 
-        def modify = c == state.constructions[numQuantifier].innerCase
+        def modify = c == args.innerCase
         if (modify) {
-          def hasNoun = mite.contents.hasNoun
-          update = update.addCxt(mite.contents - [hasNoun:hasNoun], acc)
-          update = update.addCxt(dativePart, acc:mite.contents.noun).addCxt(numQuantifier, hasNoun:hasNoun)
+          update = update.addCxt(dativePart, acc:mite.contents.noun)
         } else {
           update = update.addMites(mite)
         }

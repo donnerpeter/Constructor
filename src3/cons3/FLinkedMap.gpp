@@ -42,7 +42,7 @@ final class FLinkedMap<K,V> implements Map<K,V> {
 
   FLinkedMap<K, V> removeAll(Iterable<K> key) {
     Reference<FLinkedMap<K, V>> result = [this]
-    key.each { result.set(result.get().removeKey(key)) }
+    key.each { result.set(result.get().removeKey(it)) }
     return result.get()
   }
 

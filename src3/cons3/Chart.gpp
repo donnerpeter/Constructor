@@ -139,8 +139,8 @@ class Chart {
         newAssignments[sit] = filtered
       }
     }
-    def result = this
     def sets = metaUnifications[diffMeta]
+    def result = clone(metaUnifications:metaUnifications.removeKey(diffMeta))
     if (sets) {
       for (pair in sets) {
         result = result.removeUnificationConstraint(pair.iterator().next(), (pair as List<Variable>)[1])
@@ -187,6 +187,7 @@ class Chart {
   }
 
   Chart addUnificationConstraint(Variable var1, Variable var2) {
+    assert var1 != var2
     def pair = [var1, var2] as LinkedHashSet<Variable>
     def oldCount = __unifications[pair] ?: 0
     def newUnifications = __unifications.putValue(pair, oldCount + 1)
@@ -207,7 +208,7 @@ class Chart {
   Chart removeUnificationConstraint(Variable var1, Variable var2) {
     def pair = [var1, var2] as LinkedHashSet<Variable>
     def oldCount = __unifications[pair]
-    assert oldCount
+    assert oldCount : "$pair $__unifications"
     def newUnifications = oldCount > 1 ? __unifications.putValue(pair, oldCount - 1) : __unifications.removeKey(pair)
     FLinkedMap<Variable, Variable> newBaseVars = __baseVars
     if (oldCount == 1) {
@@ -221,4 +222,21 @@ class Chart {
     return __baseVars[var] ?: var
   }
 
+  Chart separateUnifications(Set<Variable> oldVars, Set<Variable> withVariables) {
+    Chart result = this
+    Set<Set<Variable>> toRemove = []
+    for (pair in __unifications.keySet()) {
+      Variable fst = (pair as List)[0]
+      Variable snd = (pair as List)[1]
+      if (fst in withVariables && snd in oldVars || snd in withVariables && fst in oldVars) {
+        result = result.removeUnificationConstraint(fst, snd)
+        toRemove << pair
+      }
+    }
+    FLinkedMap<Object, List<Set<Variable>>> newMetaUnifications = FLinkedMap.emptyMap
+    for (meta in metaUnifications.keySet()) {
+      newMetaUnifications = newMetaUnifications + [(meta):metaUnifications[meta] - toRemove]
+    }
+    result.clone(metaUnifications:newMetaUnifications)
+  }
 }

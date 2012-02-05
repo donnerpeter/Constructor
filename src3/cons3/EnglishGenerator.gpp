@@ -720,13 +720,12 @@ class EnglishGenerator {
     }
 
     def seq(Frame seq, Function1<Frame, Void> action) {
-      def members = seq.allAssignments('member')
-      members.eachWithIndex { Assignment<Frame> var, int index ->
+      def members = seq.flatten()
+      members.eachWithIndex { Frame frame, int index ->
         if (index == members.size() - 1) out seq.s('conj')
         else if (index > 0) out ','
-        action((Frame) var.value)
+        action(frame)
       }
-
     }
 
     private def np(Frame n, boolean nom, boolean mayHaveDeterminer = true) {

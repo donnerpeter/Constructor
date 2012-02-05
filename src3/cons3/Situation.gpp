@@ -74,12 +74,18 @@ class Variable {
     return base != this
   }
 
+  boolean isHard() {
+    return !isLight()
+  }
+
   String toString() {
     return "$id"
   }
 
   Frame frame(Chart chart) {
-    new Frame(this, chart.__vars[this], chart)
+    def unifiedVar = chart.getUnifiedVar(this)
+    def vars = chart.__vars
+    new Frame(this, vars[vars.keySet().find { vars[it] && chart.getUnifiedVar(it) == unifiedVar }], chart)
   }
 
 }

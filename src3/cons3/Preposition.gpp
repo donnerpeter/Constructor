@@ -42,8 +42,10 @@ class Preposition implements Interceptor {
       def newC = replace ? transformCase(state, c) : c
       if (newC == c) {
         update = update.addCxt(mite.contents, newC)
+      } else if (((Variable) state.constructions[newC]?.noun)?.hard) {
+        update = update.addCxt(mite.contents - [noun:mite.contents.noun] + [innerNoun:mite.contents.noun], newC)
       } else {
-        update = update.addCxt(mite.contents + [noun:state.constructions[newC]?.noun ?: mite.contents.noun], newC)
+        update = update.addCxt(mite.contents, newC) //todo innerNoun/noun separation for all prepositions
       }
       if (replace && newC != c && mite.contents.hasNoun) {
         update = update.addCxt(preposition, hasNoun:true)

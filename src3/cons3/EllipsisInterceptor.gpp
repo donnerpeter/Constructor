@@ -28,7 +28,7 @@ class EllipsisInterceptor implements Interceptor, RussianConstructions {
 
         def ellipsis = new Variable()
         state = state.satisfied(clauseEllipsis).
-                inhibit(comeScalarly, nom, advObj, elaboration). //todo inhibit/satisfy should also be replicated
+                inhibit(comeScalarly, nom, advObj, elaboration, numQuantifier). //todo inhibit/satisfy should also be replicated
                 assign(ellipsis, 'type', 'ellipsis').startMeta(ellipsis)
 
         for (i in 0..<precedent.size()) {
@@ -72,8 +72,10 @@ class EllipsisInterceptor implements Interceptor, RussianConstructions {
     lcs.each { contribution ->
       contribution.apps.each { mite ->
         mite.contents.each { val ->
-          if (val instanceof Variable && !mapping[(Variable) val]) { //todo alex cast
-            mapping[(Variable) val] = new Variable()
+          if (val instanceof Variable && !mapping[val]) {
+            def newVar = new Variable()
+            mapping[val.base] = newVar
+            mapping[val.base.lightVar] = newVar.lightVar
           }
         }
       }
@@ -81,10 +83,12 @@ class EllipsisInterceptor implements Interceptor, RussianConstructions {
     template.each { Contribution oldContribution ->
       oldContribution.apps.each { mite ->
         mite.contents.each { k, v ->
-          if (v instanceof Variable) {
-            List<Mite> candidateMites = update.mites.findAll { it.cxt == mite.cxt }
+          if (v instanceof Variable && !mapping[v]) {
+            List<Mite> candidateMites = update.mites.findAll { it.isSimilarTo(mite) }
             List values = candidateMites.collect { it.contents[k] }
-            mapping[v] = values[0] ?: mapping[v] ?: new Variable()
+            Variable newVar = values[0] ?: mapping[v] ?: new Variable()
+            mapping[v.base] = newVar.base
+            mapping[v.base.lightVar] = newVar.base.lightVar
           }
         }
       }

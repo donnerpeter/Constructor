@@ -30,7 +30,21 @@ class ParsingState {
     active = Collections.unmodifiableSet((Set)map.active)
     miteGenerations = map.miteGenerations
   }
-  
+
+  ParsingState separateUnifications(ParsingState before, Set<Variable> withVariables) {
+    Set<Variable> oldVariables = []
+    for (c in before.mites.values()) {
+      for (mite in c) {
+        for (v in mite.contents.values()) {
+          if (v instanceof Variable) {
+            oldVariables << v.base
+          }
+        }
+      }
+    }
+    clone(chart:chart.separateUnifications(oldVariables, withVariables))
+  }
+
   class Merger {
     Map getAt(Construction c) {
       def allMites = mites[c]
@@ -72,7 +86,7 @@ class ParsingState {
   }
 
   static boolean areUnifiableVars(val1, val2) {
-    return val1 != val2 && val1 instanceof Variable && val2 instanceof Variable && (val1.light || val2.light)
+    return val1 != val2 && val1 instanceof Variable && val2 instanceof Variable && (val1.light || val2.light) && val1.base != val2.base
   }
 
   ParsingState withSituation(Situation situation) { clearConstructions().clone(situation:situation) }
@@ -145,7 +159,14 @@ class ParsingState {
   public static Map unify(Map oldArgs, Map newArgs) {
     def args = new HashMap()
     if (oldArgs) args.putAll(oldArgs)
-    if (newArgs) args.putAll(newArgs)
+    if (newArgs) {
+      for (key in newArgs.keySet()) {
+        if (oldArgs[key] instanceof Variable && !((Variable) oldArgs[key]).light) {
+          continue
+        }
+        args[key] = newArgs[key]
+      }
+    } 
 
     Collection xor = mergeXor(oldArgs, newArgs)
     if (xor) {
@@ -242,14 +263,12 @@ class ParsingState {
       def c = mite.cxt
       List<Mite> existing = state.mites[c] ?: []
       def unifiable = existing.findAll { !overwrites(mite.contents, it.contents) }
-      if (mite.contents && !unifiable.find { def u = it.unify(mite); u.cxt == it.cxt && u.contents == it.contents } || !existing) {
-        newMites << mite
-        unifiable.each {
-          def union = it.unify(mite)
-          newMites << union
-          if (it in state.active) {
-            inheritors[it] = union
-          }
+      newMites << mite
+      unifiable.each {
+        def union = it.unify(mite)
+        newMites << union
+        if (it in state.active) {
+          inheritors[it] = union
         }
       }
     }
@@ -337,9 +356,9 @@ class ParsingState {
     }
 
     def state = clone(active: newActive)
-    for (mite in toRemove) {
-      state = state.clone(chart:state.chart.removeDifference(mite))
-    }
+    state = state.undoChanges(toRemove)
+    state = state.clone(chart:addNewUnifications(state, toApply))
+
     for (mite in toApply) {
       if (state.mites[mite.cxt]) {
         state = state.doApply(mite.cxt)
@@ -347,7 +366,27 @@ class ParsingState {
     }
     state
   }
-  
+
+  private static Chart addNewUnifications(ParsingState state, LinkedHashSet<Mite> toApply) {
+    def ch = state.chart
+    for (mite in toApply) {
+      ch = ch.startMeta(mite)
+      for (pair in mite.unifications) {
+        ch = ch.addUnificationConstraint(pair.first.base, pair.second.base)
+      }
+      ch = ch.finishMeta(mite)
+    }
+    return ch
+  }
+
+  private ParsingState undoChanges(Collection<Mite> toRemove) {
+    ParsingState state = this
+    for (mite in toRemove) {
+      state = state.clone(chart:state.chart.removeDifference(mite))
+    }
+    return state
+  }
+
 
   private boolean dominates(ParsingState other) {
     if (active.size() < other.active.size() && !other.dominatesSemantically(this)) {
@@ -361,7 +400,7 @@ class ParsingState {
     def humanActions = ['GO', 'BREAK', 'CAN', 'REMEMBER', 'FORGET']
     def verbs = humanActions + ['COME_SCALARLY', 'fact', 'question']
     for (verb in chart.frames.findAll { it.type in verbs }) {
-      def alternative = verb.var.frame(other.chart)
+      def alternative = verb.unifiedVar.frame(other.chart)
       if (!alternative) continue
 
       if (verb.type in humanActions) {
@@ -404,11 +443,7 @@ class ParsingState {
     Mite mite = mites[cxt].find { it in active }
     if (!mite) return this
 
-    def ch = chart.startMeta(mite)
-    for (pair in mite.unifications) {
-      ch = ch.addUnificationConstraint(pair.first.base, pair.second.base)
-    }
-    ParsingState next = clone(currentGeneration:miteGenerations[mite], chart:ch)
+    ParsingState next = clone(currentGeneration:miteGenerations[mite], chart:chart.startMeta(mite))
     if (mite.contents && cxt.isExecutable([mite])) {
       next = cxt.action.call(next, mite.contents)
     }

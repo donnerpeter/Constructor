@@ -13,8 +13,8 @@ interface RussianConstructions {
     if (args.agr && !args.hasNoun) {
       Variable noun = args.noun
       if (!noun) {
-        noun = new Variable()
-        state = state.augmentWith(RussianConstructions.nom(noun:noun))
+        noun = new Variable().lightVar
+        state = state.augmentWith(RussianConstructions.nom(noun:noun)).augmentWith(RussianConstructions.reflexiveHolder(noun:noun))
       }
       String agr = args.agr
       if (SeqInterceptor.agrNumber(agr)) {
@@ -155,6 +155,7 @@ interface RussianConstructions {
   Construction questionVariants = cxt('questionVariants', ['seq', 'questioned']) { ParsingState state, Map args ->
     args.seq && args.questioned ? state.assign(args.questioned, 'variants', args.seq).satisfied(questionVariants) : state
   }
+  Construction reflexiveHolder = cxt('reflexiveHolder', ['X']) { ParsingState state, Map args -> state }
   Construction shortAdj = cxt('shortAdj', ['noun', 'value', 'copula']) { ParsingState state, Map args ->
     if (args.noun && args.value && args.copula) {
       state = state.assign(args.copula, 'type', 'degree').assign(args.copula, 'arg1', args.noun).assign(args.copula, 'arg2', args.value)
@@ -298,8 +299,9 @@ interface RussianConstructions {
       }
       if (args.butWord && !args.butWordHandled) {
         def verb = new Variable().lightVar
-        state = state.apply((seq):[butWordHandled:true], (verbHolder):[head: verb], (prevHistory):[history:before]).
-                assign(verb, args.butWord == 'а' ? 'andEmphasis' : 'butEmphasis', 'true')
+        state = state.apply((seq):[butWordHandled:true],
+                (prevHistory):[history:before],
+                (verbEmphasis):[emphasis:args.butWord == 'а' ? 'andEmphasis' : 'butEmphasis'])
       }
     }
     return state
@@ -309,6 +311,9 @@ interface RussianConstructions {
       state = state.assign(args.head, 'arg2', args.adv)
     }
     return state
+  }
+  Construction verbEmphasis = cxt('verbEmphasis', ['verb', 'emphasis']) { ParsingState state, Map args ->
+    state.assign(args.verb, (String)args.emphasis, 'true')
   }
   Construction relTime = cxt('relTime', ['relTime', 'head']) { ParsingState state, Map args ->
     state.assign(args.head, 'relTime', args.relTime)

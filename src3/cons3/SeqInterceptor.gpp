@@ -65,13 +65,16 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       boolean merged = false
 
       def oldApps = history[similar].apps
+      LinkedHashSet<Variable> toSeparate = []
 
       for (mite in constructions) {
-        def cxt = mite.cxt
-        def oldArgs = oldApps.find { it.cxt == cxt }
-        def newUpdate = merge(state, cxt, oldArgs?.contents, mite.contents, update, seqs, declOrQuestionComp in constructions)
+        Mite oldArgs = oldApps.find { it.cxt == mite.cxt }
+        def newUpdate = merge(state, mite.cxt, oldArgs?.contents, mite.contents, update, seqs, declOrQuestionComp in constructions)
         merged |= newUpdate != null
         update = newUpdate ?: update.addMites(mite)
+        if (newUpdate && oldArgs) {
+          oldArgs.contents.values().each { if (it instanceof Variable) toSeparate << it.base }
+        }
       }
 
       if (merged) {
@@ -83,12 +86,12 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
             update = update.addCxt(commaList, rollback:rollback)
           }
           def oldVerb = state[verbHolder]?.head
-          state = state.clearConstructions().restore(rollback)
+          state = state.clearConstructions().restore(rollback).separateUnifications(rollback, toSeparate)
           if (oldApps.find { it.cxt == nom && it.contents.head } && constructions.find { it.cxt == nom && it.contents.head }) {
             if (conj == 'but') {
               state = state.inhibit(nom, acc)
             }
-            state = state.inhibit(verbHolder)
+            state = state.inhibit(verbHolder, verbEmphasis)
             if (oldVerb) {
               state = state.apply((verbHolder):[head:oldVerb])
             }
@@ -109,6 +112,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
         } else {
           state = state.inhibit(seq)
         }
+
 
         if (similar > 0) {
           List<Contribution> remainingPrecedent = history[0..<similar].reverse() //todo alex infer
@@ -196,8 +200,11 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       }
     }
 
-    def second = newArgs[prop]
+    Variable second = newArgs[prop]
     Variable multi = joinedVar(seqs, first, second)
+    if (first.light && second.light) {
+      multi = multi.lightVar
+    }
 
     return update.
             addCxt(aSeqStart(), multi:multi, first:first, second:second, conj:conj, distinguish:newArgs.repeated).

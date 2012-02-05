@@ -43,6 +43,8 @@ K.number=true
   }
 
   static void doParseTest(String input, String expected) {
+    Variable.counter = 0
+    Tokens.counter = 0
     def parser = new Parser()
     def chart = parser.parse(input)
     def result = chart.presentable()
@@ -189,7 +191,6 @@ I.rusNumber=pl
 I.person=3
 H.arg1=I
 H.arg2=B
-J.andEmphasis=true
 J.type=FORGET
 J.time=PAST
 K.member=H
@@ -439,7 +440,6 @@ E.source=G
 
   public void testParse9() throws Exception {
     doParseTest 'Но тут, вдумываясь в слова кассирши, мы опять приуныли, так как ее слова показались нам лишенными всякого смысла.', '''
-A.butEmphasis=true
 A.emphasis=true
 B.type=THINK
 B.background=present
@@ -452,6 +452,7 @@ A.anchor=AGAIN
 A.type=GET_SAD
 A.time=PAST
 A.arg1=E
+A.butEmphasis=true
 A.reason=#2
 --
 A.type=SHE
@@ -524,23 +525,23 @@ F.arg2=G
 
   public void testParse12() throws Exception {
     doParseTest 'Но дойдя в счете до 6-ти, мы остановились и начали спорить: по мнению одних дальше следовало 7, по мнению других - 8', '''
-A.butEmphasis=true
-B.type=COME_TO
-B.background=perfect
-C.type=COUNTING
-B.domain=C
-D.type=6
-B.goal=D
-E.type=WE
-A.type=STOP
-A.time=PAST
-A.arg1=E
+A.type=COME_TO
+A.background=perfect
+B.type=COUNTING
+A.domain=B
+C.type=6
+A.goal=C
+D.type=WE
+E.type=STOP
+E.time=PAST
+E.arg1=D
+E.butEmphasis=true
 F.type=BEGIN
 F.time=PAST
-G.member=A
+G.member=E
 G.conj=and
 G.member=F
-F.arg1=E
+F.arg1=D
 H.type=ARGUE
 F.theme=H
 I.type=OPINION
@@ -586,25 +587,24 @@ B.time=PAST
 B.arg1=A
 B.irrealis=true
 B.duration=LONG
-C.butEmphasis=true
-D.type=LUCK
-C.emphasis=true
+C.type=LUCK
+D.emphasis=true
 E.type=BENCH
-C.type=FALL
-C.time=PAST
+D.type=FALL
+D.time=PAST
 F.member=B
 F.conj=but
-F.member=C
+F.member=D
 G.rusNumber=sg
 G.gender=masc
-C.arg1=G
-C.source=E
-D.topic=C
+D.arg1=G
+D.source=E
+C.topic=D
 G.determiner=SOME
 G.type=CHILD
 H.type=BREAK
 H.time=PAST
-I.member=C
+I.member=D
 I.conj=and
 I.member=H
 J.member=B
@@ -646,14 +646,14 @@ B.theme=E
 
   public void testParse15() throws Exception {
     doParseTest 'А потом мы разошлись по домам', '''
-A.andEmphasis=true
-B.type=WE
-A.type=DISPERSE
-A.time=PAST
-A.arg1=B
-A.relTime=AFTER
+A.type=WE
+B.type=DISPERSE
+B.time=PAST
+B.arg1=A
+B.relTime=AFTER
+B.andEmphasis=true
 C.type=HOMES
-A.goal=C
+B.goal=C
 '''
   }
 

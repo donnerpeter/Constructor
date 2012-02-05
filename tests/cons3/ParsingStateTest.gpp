@@ -159,4 +159,15 @@ public class ParsingStateTest extends TestCase {
     assert frame.s('rel') == '1'
   }
 
+  public void testOnlyOneHardVariable() {
+    def state = new ParsingState().
+            apply((ac1):[head:new Variable(), a:'b']).
+            apply((ac1):[rel:'1', head:new Variable().lightVar]).
+            apply((ac1):[attr:'2', head:new Variable()])
+    def frame = state.chart.frames[0]
+    assert frame.s('attr') == '2'
+    assert !frame.s('a')
+    assert frame.s('rel') == '1'
+  }
+
 }

@@ -99,14 +99,8 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
 
           def lastConj = modernHistory.findLastIndexOf { Contribution it -> it.before[seq]?.interceptor == (SeqInterceptor)this }
           if (lastConj >= 0) {
-            def prefix = modernHistory.subList(0, lastConj + 1).reverse()
-            int i = 0
-            for (contribution in prefix) {
-              if (i < prefix.size() - 1) {
-                state = maybeReuseSubject(prefix, i, contribution, state)
-              }
+            for (contribution in modernHistory.subList(0, lastConj + 1).reverse()) {
               state = state.apply(contribution)
-              i++
             }
           }
         } else {
@@ -128,14 +122,6 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
     }
 
     return base(constructions, state)
-  }
-
-  private ParsingState maybeReuseSubject(List<Contribution> prefix, int i, Contribution contribution, ParsingState state) {
-    def after = prefix[i + 1].before
-    if (contribution.apps.find { it.cxt == nom && it.contents.head && !it.contents.noun } && after[nom]?.noun) {
-      state = state.addCxt(true, nom(noun:after[nom].noun))
-    }
-    return state
   }
 
   private Update merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, Update update, Map<Pair<Variable, Variable>, Variable> seqs, boolean clauseLevel) {

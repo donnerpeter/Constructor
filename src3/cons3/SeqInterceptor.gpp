@@ -142,7 +142,8 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
           return update.addCxt(aSeqStart(), multi: joinedVar(seqs, first, second), first:first, second:second, conj:conj).addCxt(newArgs, nom)
         }
         if (before[cxt]?.noun) {
-          newArgs += [noun:before[cxt]?.noun]
+          newArgs += [noun:before[cxt].noun]
+          update = update.addCxt(reflexiveHolder, noun:before[cxt].noun)
         }
         return doMerge(state, cxt, oldArgs, newArgs, 'head', update, seqs)
       }

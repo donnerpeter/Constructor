@@ -525,7 +525,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (numQuantifier):[num:num, interceptor:new NumQuantifier(), prev:state, noun:noun.lightVar, innerCase:gen, outerNoun:noun])
       case 'себе':
         def noun = new Variable()
-        return state.apply((nom):[noun:noun.lightVar], (dat):[noun:noun], (dativePart):[dat:noun]) //todo себе reflexiveHolder
+        return state.apply((reflexiveHolder):[noun:noun.lightVar], (dat):[noun:noun], (dativePart):[dat:noun])
       case 'мне':
         def noun = new Variable()
         return state.assign(noun, 'type', 'ME').apply((dat):[noun:noun], (dativePart):[dat:noun])

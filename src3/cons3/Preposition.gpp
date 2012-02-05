@@ -54,19 +54,5 @@ class Preposition implements Interceptor {
     return base(update.mites.reverse(), state)
   }
 
-
-  Map<String, Object> getArgs(Construction construction, ParsingState state) {
-    if (construction in cases) {
-      def caze = transformCase(state, construction)
-      if (caze != construction) {
-        def map = state.constructions[caze]
-        if (map?.noun) {
-          return map + [noun:map.unmergedNoun ?: map.noun]
-        }
-      }
-    }
-    
-    return null
-  }
 }
 

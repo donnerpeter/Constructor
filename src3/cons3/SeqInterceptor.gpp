@@ -138,11 +138,6 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
     return state
   }
 
-  Map<String, Object> getArgs(Construction construction, ParsingState state) {
-    null
-  }
-
-
   private Update merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, Update update, Map<Pair<Variable, Variable>, Variable> seqs, boolean clauseLevel) {
     if (oldArgs != null) {
       if (cxt == elaboration && before[cxt]?.head && oldArgs.elaboration && newArgs.elaboration) {

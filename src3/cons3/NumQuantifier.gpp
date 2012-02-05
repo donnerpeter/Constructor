@@ -25,13 +25,5 @@ class NumQuantifier implements Interceptor, RussianConstructions {
     return base(contribution, state)
   }
 
-  Map<String, Object> getArgs(Construction c, ParsingState state) {
-    if (c == state.constructions[numQuantifier].innerCase && state.constructions[acc]) {
-      return state.constructions[acc] + [hasNoun:state.constructions[numQuantifier]?.hasNoun]
-    }
-
-    null
-  }
-
 }
 

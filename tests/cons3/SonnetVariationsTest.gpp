@@ -514,6 +514,18 @@ I.number=true
     doTranslateTest 'Кассирша идет в магазин',
                     'The cashier goes to the store'
   }
+  public void _testCashierFromBasseinayaGoesToTheShop() throws Exception {
+    doTranslateTest 'Кассирша с Бассейной идет в магазин',
+                    'The cashier from Basseinaya street goes to the store'
+  }
+  public void _testCashierFromBasseinayaStreetGoesToTheShop() throws Exception {
+    doTranslateTest 'Кассирша с Бассейной улицы идет в магазин',
+                    'The cashier from Basseinaya street goes to the store'
+  }
+  public void _testCashierFromStreetBasseinayaGoesToTheShop() throws Exception {
+    doTranslateTest 'Кассирша с улицы Бассейной идет в магазин',
+                    'The cashier from the street Basseinaya goes to the store'
+  }
   public void _testFemaleCashierGoesToTheShopMaleToGarden() throws Exception {
     doTranslateTest 'Кассирша идет в магазин, а кассир - в сад',
                     'The female cashier goes to the store, and the male cashier - to the garden'

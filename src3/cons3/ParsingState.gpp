@@ -303,9 +303,10 @@ class ParsingState {
   }
 
   private static LinkedHashSet<Mite> suggestActive(ParsingState state, Collection<Mite> preferred) {
+    Set<Mite> checked = []
     LinkedHashSet<Mite> newActive = []
     for (mite in preferred) {
-      if (!mite.findContradictors(newActive)) {
+      if (checked.add(mite) && !mite.findContradictors(newActive)) {
         newActive << mite
       }
     }
@@ -324,13 +325,13 @@ class ParsingState {
     }
 
     for (mite in active) {
-      if (!mite.findContradictors(newActive)) {
+      if (checked.add(mite) && !mite.findContradictors(newActive)) {
         newActive << mite
       }
     }
 
     for (mite in all) {
-      if (!mite.findContradictors(newActive)) {
+      if (checked.add(mite) && !mite.findContradictors(newActive)) {
         newActive << mite
       }
     }

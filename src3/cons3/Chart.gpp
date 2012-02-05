@@ -55,8 +55,8 @@ class Chart {
     return result as List
   }
 
-  List<Frame> frames(Situation situation) {
-    (vars(situation).collect { it.frame(this) } as LinkedHashSet<Frame>) as List<Frame>
+  LinkedHashSet<Frame> frames(Situation situation) {
+    new LinkedHashSet<Frame>(vars(situation).collect { it.frame(this) })
   }
 
   List<Frame> getFrames() {
@@ -90,7 +90,7 @@ class Chart {
     getActiveAssignments(situation).collect {
       def oldValue = it.value
       def newValue = oldValue instanceof String ? oldValue : ((Variable) (Object)oldValue).frame(this) //todo alex
-      Frame newFrame = it.frame.frame(this)
+      Frame newFrame = it.frame.frame(situation, this)
       new Assignment<Frame>(newFrame, it.property, newValue, it.generation)
     }
   }

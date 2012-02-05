@@ -229,7 +229,7 @@ class EnglishGenerator {
     }
 
     private List<ClauseGenerator> planConjuncts(boolean topLevel) {
-      List<Frame> allVerbs = chart.frames(situation).findAll { isVerb(it) || it.type in ['fact', 'question'] }
+      List<Frame> allVerbs = chart.frames(situation).findAll { isVerb(it) || it.type in ['fact', 'question'] } as List
 
       def subordinates = allVerbs.findAll { candidate ->
         Frame master = allVerbs.find { head ->

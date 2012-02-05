@@ -85,7 +85,12 @@ class Variable {
   Frame frame(Chart chart) {
     def unifiedVar = chart.getUnifiedVar(this)
     def vars = chart.__vars
-    new Frame(this, vars[vars.keySet().find { vars[it] && chart.getUnifiedVar(it) == unifiedVar }], chart)
+    def situation = vars[this] ?: vars[vars.keySet().find { vars[it] && chart.getUnifiedVar(it) == unifiedVar }]
+    frame(situation, chart)
+  }
+
+  Frame frame(Situation situation, Chart chart) {
+    new Frame(this, situation, chart)
   }
 
 }

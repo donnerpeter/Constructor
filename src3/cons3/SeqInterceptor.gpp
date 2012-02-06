@@ -10,7 +10,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
   ParsingState before
   String conj
 
-  int findSimilar(List<Contribution> history, List<Mite> constructions) {
+  private int findSimilar(List<Contribution> history, List<Mite> constructions) {
     int i = 0
     for (old in history) {
       if (Parser.areSimilar(old.apps, constructions)) {
@@ -27,7 +27,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
         return -1
       }
 
-      if (old.apps.find { it.cxt == dat && it.contents.hasNoun} && (constructions.find { it.cxt in [acc] && it.contents.hasNoun })) {
+      if (old.apps.find { it.cxt == dat && it.contents.hasNoun} && constructions.find { it.cxt in [acc] && it.contents.hasNoun }) {
         return -1
       }
 
@@ -60,7 +60,8 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       }
     } else {
       history = before.history
-      similar = findSimilar(history, constructions)
+      similar = before[preposition] == null && state[preposition] != null && !state[preposition].hasNoun ?
+        -1 : findSimilar(history, constructions) //todo honor hierarchy in conj processing
     }
 
     if (similar >= 0) {

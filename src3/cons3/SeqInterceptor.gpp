@@ -26,7 +26,11 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
         (constructions.find { it.cxt in [dat, gen, nom, acc] && it.contents.hasNoun || it.cxt == preposition })) {
         return -1
       }
-      
+
+      if (old.apps.find { it.cxt == dat && it.contents.hasNoun} && (constructions.find { it.cxt in [acc] && it.contents.hasNoun })) {
+        return -1
+      }
+
       i++
     }
     return -1

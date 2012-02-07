@@ -10,7 +10,7 @@ interface RussianConstructions {
   Construction adjective = cxt('adjective') { ParsingState state, Map args ->
     state.assign(args.nounFrame, (String)args.rel, args.val) }
   Construction nom = cxt('nom', ['head']) { ParsingState state, Map args ->
-    if (args.agr && !args.hasNoun) {
+    if (args.agr && !((Variable) args.noun)?.hard) {
       Variable noun = args.noun
       if (!noun) {
         noun = new Variable().lightVar

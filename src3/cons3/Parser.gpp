@@ -123,9 +123,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def noun = new Variable()
         Update update = new Update()
         update = update.addCxt(typeCxt('SHOP'), var:noun)
-        if (!state[preposition]?.hasNoun) {
-          update = update.addCxt(nom, noun:noun, hasNoun:true, xor:t.a)
-        }
+        update = update.addCxt(nom, noun:noun, hasNoun:true, xor:t.a)
         update = update.addCxt(acc, noun:noun, hasNoun:true, xor:t.a)
         update = update.addCxt(naPrep, head:noun)
         update = update.addCxt(quotedName, noun:noun)
@@ -441,7 +439,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
           state = state.inhibit(seq)
           update = update.addCxt(seq, conj:null)
         }
-        if (state[poDat]?.head && state[poDat]?.hasNoun) {
+        if (state[poDat]?.head && ((Variable) state[poDat]?.noun)?.hard) {
           state = state.inhibit(poDat)
         }
         return update.apply(state.inhibit(numQuantifier))

@@ -47,7 +47,7 @@ class Preposition implements Interceptor {
       } else {
         update = update.addCxt(mite.contents, newC) //todo innerNoun/noun separation for all prepositions
       }
-      if (replace && newC != c && mite.contents.hasNoun) {
+      if (replace && newC != c && ((Variable) mite.contents.noun)?.hard) {
         update = update.addCxt(preposition, hasNoun:true)
       }
     }

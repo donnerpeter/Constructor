@@ -8,11 +8,13 @@ class Mite {
   final FLinkedMap contents
   final FList<Pair<Variable, Variable>> unifications
   private final Map<Mite, Boolean> _contradictors = [:]
+  final LinkedHashSet<Mite> primaries
 
-  Mite(Map contents, Construction cxt, FList<Pair<Variable, Variable>> unifications = FList.emptyList) {
+  Mite(Map contents, Construction cxt, FList<Pair<Variable, Variable>> unifications = FList.emptyList, Collection<Mite> primaries = null) {
     this.cxt = cxt
     this.contents = contents instanceof FLinkedMap ? contents : FLinkedMap.fromMap(contents)
     this.unifications = unifications
+    this.primaries = (primaries == null ? [this] : primaries) as LinkedHashSet
   }
 
   boolean contradicts(Mite another) {
@@ -66,7 +68,7 @@ class Mite {
       }
     }
 
-    return new Mite(ParsingState.unify(before, newArgs), cxt, newUnifications)
+    return new Mite(ParsingState.unify(before, newArgs), cxt, newUnifications, primaries + another.primaries)
   }
 
 }

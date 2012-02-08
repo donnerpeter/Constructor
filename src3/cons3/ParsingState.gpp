@@ -345,6 +345,10 @@ class ParsingState {
     mites.values().each {
       toApply.addAll(it.findAll { it in newActive && !(it in active) })
     }
+    toRemove = toRemove.findAll { m1 ->
+      def m2 = toApply.find { m1.cxt == it.cxt }
+      return !m2 || Util.intersects(m1.primaries, m2.primaries)
+    }
 
     def state = clone(active: newActive)
     state = state.undoChanges(toRemove)

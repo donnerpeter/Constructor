@@ -170,4 +170,16 @@ public class ParsingStateTest extends TestCase {
     assert frame.s('rel') == '1'
   }
 
+  public void testChain() {
+    def vars = [new Variable(), new Variable(), new Variable()]
+    def state = new ParsingState().
+            apply((myAcc):[head:vars[0]]).
+            apply([myAcc(noun:vars[1]), myAcc(head:vars[1])]).
+            apply([myAcc(noun:vars[2]), myAcc(head:vars[2])])
+    def frame = state.chart.frames[0]
+    assert frame.var == vars[0]
+    assert frame.f('arg2')?.var == vars[1]
+    assert frame.f('arg2').f('arg2')?.var == vars[2]
+  }
+
 }

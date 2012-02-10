@@ -627,7 +627,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
     Update update = _nounBase(state, caze, init)
 
     Variable noun = update.mites.find { it.cxt == caze }.contents.noun
-    update = update.addCxt(possessive, head:noun)
+    def tokens = new Tokens()
+    update = update.addCxt(possessive, head:noun, xor:tokens.a)
+//    update = update.addCxt(gen, head:noun, xor:tokens.a)
 
     update = update.addCxt(quotedName, noun:noun).addCxt(numQuantifier, noun:noun)
     update = update.addCxt(relativeClause, noun:noun, save:state)

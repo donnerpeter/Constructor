@@ -53,7 +53,10 @@ interface RussianConstructions {
         for (h in heads) {
           def hf = h.frame(state.chart)
           def hType = hf.type
-          def attr = hType == 'LACK' ? 'arg2' : hType == 'WORDS' ? 'author' : hType in ['OPINION', 'CORNER'] ? 'arg1' : 'criterion'
+          def attr = hType == 'LACK' ? 'arg2' :
+            hType == 'WORDS' ? 'author' :
+              hType in ['OPINION', 'CORNER', 'CASHIER'] ? 'arg1' :
+                'criterion'
           if (i == heads.size() - 1 || !hf.f(attr)) {
             state = state.assign(h, attr, args.noun)
           }

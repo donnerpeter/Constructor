@@ -812,6 +812,9 @@ class EnglishGenerator {
       if (criterion) {
         out noun(criterion)
       }
+      if (n.type == 'CASHIER' && n.f('arg1')) {
+        np(n.f('arg1'), false, false)
+      }
 
       if (n.type == 'SHOP') {
         if (n.s('name') == 'гастроном') {

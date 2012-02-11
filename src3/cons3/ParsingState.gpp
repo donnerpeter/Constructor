@@ -355,8 +355,8 @@ class ParsingState {
     state = state.clone(chart:addNewUnifications(state, toApply))
 
     for (mite in toApply) {
-      if (state.mites[mite.cxt]) {
-        state = state.doApply(mite.cxt)
+      if (state.mites[mite.cxt]?.contains(mite)) {
+        state = state.doApply(mite)
       }
     }
     state
@@ -434,13 +434,10 @@ class ParsingState {
     return false
   }
 
-  private ParsingState doApply(Construction cxt) {
-    Mite mite = mites[cxt].find { it in active }
-    if (!mite) return this
-
+  private ParsingState doApply(Mite mite) {
     ParsingState next = clone(currentGeneration:miteGenerations[mite], chart:chart.startMeta(mite))
-    if (mite.contents && cxt.isExecutable([mite])) {
-      next = cxt.action.call(next, mite.contents)
+    if (mite.contents && mite.cxt.isExecutable([mite])) {
+      next = mite.cxt.action.call(next, mite.contents)
     }
     return next.clone(currentGeneration:currentGeneration, chart:next.chart.finishMeta(mite))
   }

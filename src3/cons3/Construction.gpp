@@ -7,11 +7,13 @@ class Construction {
   final Function2<ParsingState, Map, ParsingState> action
   final String name
   final List<String> requiredAttrs
+  final String headAttr
 
   private Construction(String name, Function2<ParsingState, Map, ParsingState> action, List<String> requiredAttrs) {
     this.action = action
     this.name = name
-    this.requiredAttrs = requiredAttrs
+    this.requiredAttrs = requiredAttrs.collect { it.startsWith('+') ? it.substring(1) : it }
+    headAttr = requiredAttrs.find { it.startsWith('+') }?.substring(1)
   }
 
   Mite call(Map miteContents) {

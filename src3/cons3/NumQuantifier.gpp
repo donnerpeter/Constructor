@@ -6,8 +6,8 @@ package cons3
 class NumQuantifier implements Interceptor, RussianConstructions {
 
   ParsingState intercept(List<Mite> contribution, ParsingState state, Function2<List<Mite>, ParsingState, ParsingState> base) {
-    if (state.constructions[numQuantifier].num) {
-      def args = state.constructions[numQuantifier]
+    if (state[numQuantifier].num) {
+      def args = state[numQuantifier]
       Update update = new Update()
       for (mite in contribution) {
         def c = mite.cxt

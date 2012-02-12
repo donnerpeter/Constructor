@@ -7,7 +7,6 @@ class ParsingState {
   final Chart chart
   final Situation situation
   final FLinkedMap<Construction, List<Mite>> mites
-  final Merger constructions = new Merger()
   final FLinkedMap<Mite, Integer> miteGenerations
   final FList<Contribution> history
   final Set<Mite> active
@@ -45,29 +44,6 @@ class ParsingState {
     clone(chart:chart.separateUnifications(oldVariables, withVariables))
   }
 
-  class Merger {
-    Map getAt(Construction c) {
-      def allMites = mites[c]
-      if (allMites == null) {
-        return null
-      }
-
-      for (Mite mite in allMites) {
-        if (mite in active) {
-          return mite.contents
-        }
-      }
-
-      Map value = [:]
-      for (part in allMites.reverse()) {
-        if (!overwrites(value, part.contents)) {
-          value = unify(value, part.contents)
-        }
-      }
-      value
-    }
-  }
-
   ParsingState getBeforeThisChange() {
     if (history.empty) {
       return new ParsingState()
@@ -95,8 +71,25 @@ class ParsingState {
     clone(chart: chart.assign(((Variable)var).base, situation, property, value instanceof Variable ? value.base : value, currentGeneration))
   }
   
-  Map getAt(Construction construction) {
-    constructions[construction]
+  Map getAt(Construction c) {
+    def allMites = mites[c]
+    if (allMites == null) {
+      return null
+    }
+
+    for (Mite mite in allMites) {
+      if (mite in active) {
+        return mite.contents
+      }
+    }
+
+    Map value = [:]
+    for (part in allMites.reverse()) {
+      if (!overwrites(value, part.contents)) {
+        value = unify(value, part.contents)
+      }
+    }
+    value
   }
 
   ParsingState apply(Map newArgs = [:], Construction name) {

@@ -10,11 +10,11 @@ class Preposition implements Interceptor {
   static final ArrayList<Construction> cases = [nom, acc, gen, dat, instr, prep]
 
   private Construction transformCase(ParsingState state, Construction caze) {
-    if (state.constructions[preposition]?.hasNoun) {
+    if (state[preposition]?.hasNoun) {
       return caze
     }
 
-    def p = state.constructions[preposition]?.prep
+    def p = state[preposition]?.prep
 
     if (p == 'posle' && caze == gen) return posleGen
     if (p == 'ranshe' && caze == gen) return ransheGen
@@ -42,7 +42,7 @@ class Preposition implements Interceptor {
       def newC = replace ? transformCase(state, c) : c
       if (newC == c) {
         update = update.addCxt(mite.contents, newC)
-      } else if (((Variable) state.constructions[newC]?.noun)?.hard) {
+      } else if (((Variable) state[newC]?.noun)?.hard) {
         update = update.addCxt(mite.contents - [noun:mite.contents.noun] + [innerNoun:mite.contents.noun], newC)
       } else {
         update = update.addCxt(mite.contents, newC) //todo innerNoun/noun separation for all prepositions

@@ -18,14 +18,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     for (String w in tokenizer) {
       if (w != ' ') {
         state = handleWord(w.toLowerCase(), state)
-        log += w + "\n"
-        for (k in state.mites.keySet()) {
-          log += "    $k: " + state.mites[k].collect {
-            (it in state.active ? '*' : '') +
-            new LinkedHashMap(it.contents.reverse()) +
-            (it.unifications ? ';' + it.unifications.collect { "<$it.first=$it.second>" }.join("") : '')
-          }.join(" ") +"\n"
-        }
+        log += w + "\n" + state.presentable()
       }
     }
     return state.chart

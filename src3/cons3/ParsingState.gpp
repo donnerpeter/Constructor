@@ -6,11 +6,11 @@ package cons3
 class ParsingState {
   final Chart chart
   final Situation situation
-  final FLinkedMap<Construction, List<Mite>> mites
-  final FLinkedMap<Mite, Integer> miteGenerations
+  private final FLinkedMap<Construction, List<Mite>> mites
+  private final FLinkedMap<Mite, Integer> miteGenerations
   final FList<Contribution> history
-  final Set<Mite> active
-  final int currentGeneration
+  private final Set<Mite> active
+  private final int currentGeneration
 
   ParsingState() {
     this(chart: new Chart(), situation: new Situation(), 
@@ -451,4 +451,15 @@ class ParsingState {
     clone(mites: saved.mites + this.mites, active:newActive)
   }
 
+  String presentable() {
+    def log = ""
+    for (k in mites.keySet()) {
+      log += "    $k: " + mites[k].collect {
+        (it in active ? '*' : '') +
+        new LinkedHashMap(it.contents.reverse()) +
+        (it.unifications ? ';' + it.unifications.collect { "<$it.first=$it.second>" }.join("") : '')
+      }.join(" ") +"\n"
+    }
+    return log
+  }
 }

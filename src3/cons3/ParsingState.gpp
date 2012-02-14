@@ -6,7 +6,7 @@ package cons3
 class ParsingState {
   final Chart chart
   final Situation situation
-  private final FLinkedMap<Construction, List<Mite>> mites
+  private final Node node
   private final FLinkedMap<Mite, Integer> miteGenerations
   final FList<Contribution> history
   private final Set<Mite> active
@@ -14,14 +14,14 @@ class ParsingState {
 
   ParsingState() {
     this(chart: new Chart(), situation: new Situation(), 
-            mites: FLinkedMap.emptyMap,
+            node: Node.EMPTY,
             history: FList.emptyList, active: Collections.emptySet(), currentGeneration:0, miteGenerations:FLinkedMap.emptyMap)
   }
 
   ParsingState(Map map) {
     chart = map.chart
     situation = map.situation
-    mites = map.mites
+    node = map.node
     history = map.history
     currentGeneration = map.currentGeneration
     assert (map.active instanceof LinkedHashSet) || !(map.active instanceof HashSet)
@@ -32,7 +32,7 @@ class ParsingState {
 
   ParsingState separateUnifications(ParsingState before, Set<Variable> withVariables) {
     Set<Variable> oldVariables = []
-    for (c in before.mites.values()) {
+    for (c in before.visibleMites.values()) {
       for (mite in c) {
         for (v in mite.contents.values()) {
           if (v instanceof Variable) {
@@ -42,6 +42,10 @@ class ParsingState {
       }
     }
     clone(chart:chart.separateUnifications(oldVariables, withVariables))
+  }
+
+  Map<Construction, List<Mite>> getVisibleMites() {
+    return node.getAllMites(true)
   }
 
   ParsingState getBeforeThisChange() {
@@ -56,7 +60,7 @@ class ParsingState {
   }
 
   private ParsingState clone(Map update) {
-    Map current = [chart:chart, situation:situation, mites:mites, history:history, active:active, currentGeneration:currentGeneration, miteGenerations:miteGenerations]
+    Map current = [chart:chart, situation:situation, node:node, history:history, active:active, currentGeneration:currentGeneration, miteGenerations:miteGenerations]
     current.putAll(update)
     return new ParsingState(current)
   }
@@ -72,7 +76,7 @@ class ParsingState {
   }
   
   Map getAt(Construction c) {
-    def allMites = mites[c]
+    def allMites = visibleMites[c]
     if (allMites == null) {
       return null
     }
@@ -116,27 +120,18 @@ class ParsingState {
     def victim = active.find { it.cxt == mite.cxt }
 
     def fat = victim ? victim.unify(mite) : mite
-    return clone(mites:mites + [(mite.cxt):(mites[mite.cxt] ?: []) + fat],
+    return clone(node:new Node(node.ownMites + [fat] as List, node._inhibited, node.before, node.sameLevel),
             active:(active as LinkedHashSet) - victim + fat,
             miteGenerations:miteGenerations.putValue(fat, currentGeneration))
   }
 
-  ParsingState addCxt(boolean activate, Mite... mites) {
+  private ParsingState addCxt(Node node) {
     def newMiteGenerations = miteGenerations
-    for (mite in mites) {
+    for (mite in node.ownMites) {
       newMiteGenerations = newMiteGenerations.putValue(mite, currentGeneration)
     }
 
-    FLinkedMap<Construction, List<Mite>> newMites = this.mites
-    for (mite in mites) {
-      newMites = newMites + [(mite.cxt):(newMites[mite.cxt] ?: []) + mite]
-    }
-
-    Set<Mite> newActive = active
-    if (activate) {
-      newActive = (active as LinkedHashSet) + (mites as Set)
-    }
-    return clone(mites:newMites, active:newActive, miteGenerations:newMiteGenerations)
+    return clone(node:node, miteGenerations:newMiteGenerations)
   }
 
   public static Map unify(Map oldArgs, Map newArgs) {
@@ -176,7 +171,7 @@ class ParsingState {
     if (!cxts) return this
 
     LinkedHashSet<Construction> toRemove = cxts as LinkedHashSet
-    toRemove.retainAll(mites.keySet())
+    toRemove.retainAll(visibleMites.keySet())
 
     def state = this
     for (c in toRemove) {
@@ -192,9 +187,9 @@ class ParsingState {
 
   private ParsingState removeConstruction(Construction name) {
     LinkedHashSet<Mite> newActive = new LinkedHashSet<Mite>(active)
-    def toRemove = mites[name] ?: []
+    Set<Mite> toRemove = new LinkedHashSet<Mite>(visibleMites[name] ?: [])
     newActive.removeAll(toRemove)
-    return clone(mites: mites.removeKey(name), active:newActive)
+    return clone(node: new Node(Collections.emptyList(), toRemove, node, true), active:newActive)
   }
 
   ParsingState startMeta(Variable meta) {
@@ -205,7 +200,8 @@ class ParsingState {
   }
 
   private Mite nextInterceptor(Construction start) {
-    def cs = mites.keyList()
+    def mites = visibleMites
+    List<Construction> cs = mites.keySet() as List
     def index = cs.indexOf(start)
     if (index >= 0 || !start) {
       def tail = cs.subList(index + 1, cs.size())
@@ -242,42 +238,58 @@ class ParsingState {
   private static ParsingState baseApply(ParsingState state, List<Mite> update, boolean tryAlternatives) {
     List<Mite> newMites = []
     Map<Mite, Mite> inheritors = [:]
-    for (mite in update.reverse()) {
+    Node prevUp = state.node
+    Node prevSame = state.node
+    boolean sameLevel = true
+    def vm = state.visibleMites
+    Map<Construction, List<Mite>> maximalUnions = [:]
+    for (mite in update) {
       def c = mite.cxt
-      List<Mite> existing = state.mites[c] ?: []
-      def unifiable = existing.findAll { !overwrites(mite.contents, it.contents) }
+      List<Mite> existing = vm[c] ?: []
       newMites << mite
-      unifiable.each {
-        def union = it.unify(mite)
+      Mite lastUnified = mite
+      for (older in existing.findAll { !overwrites(mite.contents, it.contents) }) {
+        def union = older.unify(mite)
         newMites << union
-        if (it in state.active) {
-          inheritors[it] = union
+        lastUnified = union
+        if (older in state.active) {
+          inheritors[older] = union
         }
+        if (older.hasHead) {
+          prevUp = state.node.findNode(older)
+          sameLevel = false
+        } else if (mite.hasHead) {
+          prevSame = prevSame?.before
+        }
+      }
+      if (lastUnified) {
+        maximalUnions[mite.cxt] = (maximalUnions[mite.cxt] ?: []) + lastUnified
       }
     }
 
-    state = state.addCxt(false, newMites as Mite[])
+    state = state.addCxt(new Node(newMites, Collections.emptySet(), sameLevel ? prevSame : prevUp, sameLevel))
     
     LinkedHashSet<Mite> toConsider = [] 
 
+    vm = state.visibleMites
     for (mite in state.active) {
       def next = inheritors[mite]
-      if (next) {
+      if (next && next in vm[next.cxt]) {
         toConsider << next
       }
     }
 
-    for (mite in update) {
-      toConsider += state.mites[mite.cxt].reverse()[0]
+    for (unions in maximalUnions.values()) {
+      toConsider += unions
     }
 
     def newActive = suggestActive(state, toConsider)
     state = state.activate(newActive)
 
-    for (cxt in state.mites.keySet()) {
-      if (!(cxt in state.mites)) continue
+    for (cxt in state.visibleMites.keySet()) {
+      if (!(cxt in state.visibleMites)) continue
 
-      def toAdd = state.mites[cxt].reverse()[0]
+      def toAdd = state.visibleMites[cxt].reverse()[0]
       if (toAdd && !(toAdd in state.active)) {
         state = tryAlternative(state, toAdd)
       }
@@ -304,7 +316,7 @@ class ParsingState {
       }
     }
 
-    List<Mite> all = state.mites.values().collect { it.reverse() }.flatten()
+    List<Mite> all = state.visibleMites.values().collect { it.reverse() }.flatten()
     LinkedHashSet<Mite> active = Util.intersect(all, state.active)
     for (mite in active) {
       if (mite.findContradictors(newActive)) {
@@ -335,7 +347,7 @@ class ParsingState {
     def toRemove = new LinkedHashSet<Mite>(active)
     toRemove.removeAll(newActive)
     def toApply = new LinkedHashSet<Mite>()
-    mites.values().each {
+    visibleMites.values().each {
       toApply.addAll(it.findAll { it in newActive && !(it in active) })
     }
     toRemove = toRemove.findAll { m1 ->
@@ -348,7 +360,7 @@ class ParsingState {
     state = state.clone(chart:addNewUnifications(state, toApply))
 
     for (mite in toApply) {
-      if (state.mites[mite.cxt]?.contains(mite)) {
+      if (state.visibleMites[mite.cxt]?.contains(mite)) {
         state = state.doApply(mite)
       }
     }
@@ -437,22 +449,16 @@ class ParsingState {
 
 
   ParsingState clearConstructions() {
-    return inhibit(mites.keyList() as Construction[])
+    return inhibit(visibleMites.keySet() as Construction[])
   }
 
   ParsingState restore(ParsingState saved) {
-    LinkedHashSet<Mite> newActive = new LinkedHashSet<Mite>(saved.active)
-    newActive.addAll(active)
-    for (c in saved.mites.keyList()) {
-      if (c in this.mites) {
-        newActive.removeAll(saved.mites[c])
-      }
-    }
-    clone(mites: saved.mites + this.mites, active:newActive)
+    clone(node: saved.node, active:saved.active)
   }
 
   String presentable() {
     def log = ""
+    def mites = visibleMites
     for (k in mites.keySet()) {
       log += "    $k: " + mites[k].collect {
         (it in active ? '*' : '') +

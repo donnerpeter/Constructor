@@ -71,4 +71,8 @@ class Mite {
     return new Mite(ParsingState.unify(before, newArgs), cxt, newUnifications, primaries + another.primaries)
   }
 
+  boolean isHasHead() {
+    return contents[cxt.headAttr] != null
+  }
+
 }

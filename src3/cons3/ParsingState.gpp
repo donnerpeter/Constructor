@@ -346,6 +346,7 @@ class ParsingState {
   private ParsingState activate(LinkedHashSet<Mite> newActive) {
     def toRemove = new LinkedHashSet<Mite>(active)
     toRemove.removeAll(newActive)
+    toRemove.retainAll(visibleMites.values().flatten())
     def toApply = new LinkedHashSet<Mite>()
     visibleMites.values().each {
       toApply.addAll(it.findAll { it in newActive && !(it in active) })

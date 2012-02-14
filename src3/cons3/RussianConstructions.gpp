@@ -66,7 +66,7 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction instr = cxt('instr', ['head', 'noun']) { ParsingState state, Map args ->
+  Construction instr = cxt('instr', ['+head', 'noun']) { ParsingState state, Map args ->
     if (((Variable) args.head)?.frame(state.chart)?.type && args.noun) {
       state = state.assign(args.head, 'arg2', args.noun)
     }
@@ -81,7 +81,7 @@ interface RussianConstructions {
     state
   }
   Construction prep = cxt('prep', ['X']) { ParsingState state, Map args -> state }
-  Construction sInstr = cxt('sInstr', ['head', 'noun']) { ParsingState state, Map args ->
+  Construction sInstr = cxt('sInstr', ['+head', 'noun']) { ParsingState state, Map args ->
     if (args.head && args.noun) {
       if (((Variable) args.noun).frame(state.chart)?.type in ['JOY', 'RELIEF']) {
         state = state.assign(args.head, 'mood', args.noun)
@@ -92,7 +92,7 @@ interface RussianConstructions {
 
     return state
   }
-  Construction sGen = cxt('sGen', ['head', 'noun']) { ParsingState state, Map args ->
+  Construction sGen = cxt('sGen', ['+head', 'noun']) { ParsingState state, Map args ->
     if (args.head && args.noun) {
       state = state.assign(args.head, 'source', args.noun)
     }
@@ -122,10 +122,10 @@ interface RussianConstructions {
 
     return state
   }
-  Construction oPrep = cxt('oPrep', ['head', 'noun']) { ParsingState state, Map args ->
+  Construction oPrep = cxt('oPrep', ['+head', 'noun']) { ParsingState state, Map args ->
     args.noun ? state.assign(args.head, 'topic', args.noun) : state
   }
-  Construction kDat = cxt('kDat', ['head', 'noun']) { ParsingState state, Map args ->
+  Construction kDat = cxt('kDat', ['+head', 'noun']) { ParsingState state, Map args ->
     args.noun && args.head ? state.assign(args.head, 'goal', args.noun) : state
   }
   Construction dativePart = cxt('dativePart', ['head', 'dat', 'acc']) { state, args ->

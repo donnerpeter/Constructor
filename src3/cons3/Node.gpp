@@ -22,8 +22,8 @@ class Node {
 
     result = [:]
     for (k in ownMites) {
-      if (!allowHeads && k.hasHead) {
-        return
+      if (!allowHeads && k.hasHead && k.primary) {
+        continue
       }
 
       result[k.cxt] = (result[k.cxt] ?: []) + [k]

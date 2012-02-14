@@ -72,7 +72,7 @@ interface RussianConstructions {
     }
     state
   }
-  Construction dat = cxt('dat', ['head', 'noun']) { ParsingState state, Map args ->
+  Construction dat = cxt('dat', ['+head', 'noun']) { ParsingState state, Map args ->
     if (args.infinitive) {
       state = state.assign(args.head, 'arg1', args.noun)
     } else if (((Variable) args.head)?.frame(state.chart)?.type == 'SAY') {
@@ -197,7 +197,7 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction control = cxt('control', ['head', 'slave']) { ParsingState state, Map args ->
+  Construction control = cxt('control', ['+head', 'slave']) { ParsingState state, Map args ->
     return args.head && args.slave ? state.assign(args.head, 'theme', args.slave) : state
   }
   Construction conditionComp = cxt('conditionComp', ['hasComma', 'head', 'wh']) { ParsingState state, Map args ->

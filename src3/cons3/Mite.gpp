@@ -75,4 +75,8 @@ class Mite {
     return contents[cxt.headAttr] != null
   }
 
+  boolean isPrimary() {
+    primaries == [this]
+  }
+
 }

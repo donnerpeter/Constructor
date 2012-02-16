@@ -72,7 +72,8 @@ class Mite {
   }
 
   boolean isHasHead() {
-    return contents[cxt.headAttr] != null
+    def headVal = contents[cxt.headAttr]
+    return headVal instanceof Variable && headVal.hard
   }
 
   boolean isPrimary() {

@@ -77,7 +77,7 @@ class Mite {
   }
 
   boolean isPrimary() {
-    primaries == [this]
+    primaries.size() == 1
   }
 
 }

@@ -29,7 +29,7 @@ class Node {
       result[k.cxt] = (result[k.cxt] ?: []) + [k]
     }
 
-    before?.getAllMites(!sameLevel || _inhibited)?.each { c, oldMites ->
+    before?.getAllMites(true)?.each { c, oldMites ->
       result[c] = oldMites + (result[c] ?: [])
     }
 

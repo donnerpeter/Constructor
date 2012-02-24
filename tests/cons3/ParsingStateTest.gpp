@@ -188,12 +188,14 @@ public class ParsingStateTest extends TestCase {
   }
 
   public void testHeadHidesPrecedingArguments() {
+    def var = new Variable()
     def state = new ParsingState().
-            apply((myAcc):[noun:new Variable()], (ac1):[hidden:'true']).
+            apply((myAcc):[noun:new Variable()], (ac1):[hidden:'true'], (myNom):[head:var]).
             apply((myAcc):[head:new Variable()]).
-            apply((ac1):[head:new Variable(), visible:'true'])
+            apply((ac1):[head:var, visible:'true'], (myNom):[noun:new Variable()])
     def frame = state.chart.frames.find { it.s('visible') == 'true' }
     assert !frame.s('hidden')
+    assert !frame.s('arg1')
 
   }
 

@@ -8,7 +8,7 @@ import static cons3.RussianConstructions.*
  */
 class Parser { //todo alex implements cons3.RussianConstructions
   public static final ArrayList<Construction> importantForSimilarity =
-    [nom, acc, gen, dat, instr, prep, poDat,
+    [nom, acc, gen, dat, instr, prep, poDat, datSubj, datAddressee,
             possessive, parenthetical, comeScalarly, elaboration, declOrQuestionComp, question, complementizer, numQuantifier]
   String log = ""
 
@@ -31,6 +31,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
 
   ParsingState handleWord(String word, ParsingState state) {
     Tokens t = new Tokens()
+    Variable var = new Variable()
     if (Util.parseNumber(word) != null) { //todo generic noun treatment for numbers
       Variable noun = new Variable()
       def num = new Variable()
@@ -180,17 +181,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.clearConstructions().apply((elaboration):[head:state[verbHolder].head])
       case "я": return pronoun(state, nom, 'ME')
       case "мы": return noun(state, nom, 'WE') // todo we pronoun
-      case "нам": return pronoun(state, dat, 'WE')
+      case "нам": return upronoun(dat, var, (typeCxt('WE')):[var:var]).apply(state)
       case "нас": return pronoun(state, acc, 'WE')
-      case "мое":
-        def me = new Variable()
-        return conjWrap(state, (typeCxt('ME')):[var:me], (possessive):[possessor:me])
-      case "моему":
-        def me = new Variable()
-        return conjWrap(state, (typeCxt('ME')):[var:me], (possessive):[possessor:me])
-      case "нашего":
-        def we = new Variable()
-        return conjWrap(state, (typeCxt('WE')):[var:we], (possessive):[possessor:we])
+      case "мое": return state.apply((typeCxt('ME')):[var:var], (possessive):[possessor:var])
+      case "моему": return state.apply((typeCxt('ME')):[var:var], (possessive):[possessor:var])
+      case "нашего": return state.apply((typeCxt('WE')):[var:var], (possessive):[possessor:var])
       case "и": return state.apply((seq):[conj:'and'])
       case "или": return state.apply((seq):[conj:'or'])
       case "а":
@@ -341,7 +336,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "сказал":
       case "сказала":
         def verb = new Variable()
-        return finiteVerb(state, verb, 'SAY', 'PAST', (nom):[head:verb], (dat):[head:verb],
+        return finiteVerb(state, verb, 'SAY', 'PAST', (nom):[head:verb], (datAddressee):[head:verb],
                 (directSpeech):[head:verb, xor:t.a], (declOrQuestionComp):[head:verb, xor:t.a])
       case "вынул":
       case "вынула":
@@ -385,7 +380,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return infinitive(state, verb, 'DANCE', [:])
       case "нужно":
         def verb = new Variable()
-        return state.assign(verb, 'type', 'NEED').apply((acc):[head:verb], (dat):[head:verb, infinitive:true], (adverbPred):[adverb:verb], (verbHolder):[head:verb])
+        return state.assign(verb, 'type', 'NEED').apply((acc):[head:verb], (datSubj):[head:verb], (adverbPred):[adverb:verb], (verbHolder):[head:verb])
       case "спросить":
         def verb = new Variable()
         return infinitive(state, verb, 'ASK', [(acc):[head:verb]])
@@ -515,11 +510,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.inhibit(numQuantifier).assign(num, 'type', 'BOTH').apply((acc):[noun:noun],
                 (numQuantifier):[num:num, interceptor:new NumQuantifier(), prev:state, noun:noun.lightVar, innerCase:gen, outerNoun:noun])
       case 'себе':
-        def noun = new Variable()
-        return state.apply((reflexiveHolder):[noun:noun.lightVar], (dat):[noun:noun], (dativePart):[dat:noun])
+        return upronoun(dat, var, (reflexiveHolder):[noun:var.lightVar]).apply(state)
       case 'мне':
-        def noun = new Variable()
-        return state.assign(noun, 'type', 'ME').apply((dat):[noun:noun], (dativePart):[dat:noun])
+        return upronoun(dat, var, (typeCxt('ME')):[var:var]).apply(state)
       case 'по-моему':
         def opinion = new Variable()
         def me = new Variable()
@@ -597,7 +590,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
 
   private ParsingState infinitive(ParsingState state, Variable verb, String type, Map<Construction, Map> args) {
     return state.inhibit(verbHolder).assign(verb, 'type', type).apply(args +
-            [(dat): [head: verb, infinitive: true], (control): [slave: verb], (question): [modality: new Variable(), mainVerb:verb], (verbHolder):[head:verb]])
+            [(datSubj):[head: verb], (control): [slave: verb], (question): [modality: new Variable(), mainVerb:verb], (verbHolder):[head:verb]])
   }
 
   private ParsingState finiteVerb(Map<Construction, Map> args, ParsingState state, Variable verb, String type, String tense) {
@@ -617,7 +610,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
   private ParsingState noun(ParsingState state, Construction caze, Construction init) {
     state = state.satisfied(relativeClause)
 
-    Update update = _nounBase(state, caze, init)
+    Update update = _nounBase(caze, init)
 
     Variable noun = update.mites.find { it.cxt == caze }.contents.noun
     def tokens = new Tokens()
@@ -629,15 +622,25 @@ class Parser { //todo alex implements cons3.RussianConstructions
 
     return update.apply(state)
   }
+
+  private Update upronoun(Map<Construction, Map> mites, Construction caze, Variable var) {
+    Update update = new Update()
+    if (caze == dat) {
+      update = update.addCxt(datSubj, noun:var).addCxt(dativePart, dat:var).addCxt(datAddressee, noun:var)
+    }
+    update = update.addCxt(caze, noun:var)
+    return update + mites
+  }
+
   private ParsingState pronoun(ParsingState state, Construction caze, String type) {
     state = state.satisfied(relativeClause)
 
-    Update update = _nounBase(state, caze, typeCxt(type))
+    Update update = _nounBase(caze, typeCxt(type))
 
     return update.apply(state)
   }
 
-  private Update _nounBase(ParsingState state, Construction caze, Construction init) {
+  private Update _nounBase(Construction caze, Construction init) {
     Variable noun = new Variable()
 
     Update update = new Update()

@@ -530,9 +530,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
   private ParsingState noun(ParsingState state, Construction caze, Construction init) {
     state = state.satisfied(relativeClause)
 
-    Update update = _nounBase(caze, init)
+    Variable noun = new Variable()
+    Update update = _nounBase(caze, init, noun)
 
-    Variable noun = update.mites.find { it.cxt == caze }.contents.noun
     def tokens = new Tokens()
     update = update.addCxt(possessive, head:noun, xor:tokens.a)
 //    update = update.addCxt(gen, head:noun, xor:tokens.a)
@@ -551,14 +551,16 @@ class Parser { //todo alex implements cons3.RussianConstructions
     if (type) {
       update = update.addCxt(typeCxt(type), var:var)
     }
-    return update + commonCase(caze, var) + mites
+    return update + mites + commonCase(caze, var)
   }
 
   private Update commonCase(Construction caze, Variable var) {
-    Tokens t = new Tokens()
     Update update = new Update()
+    if (caze == nom) {
+      update = update.addCxt(shortAdj, noun:var).addCxt(reflexiveHolder, noun:var)
+    }
     if (caze == dat) {
-      update = update.addCxt(datSubj, noun:var, xor:t.a).addCxt(dativePart, dat:var)
+      update = update.addCxt(datSubj, noun:var).addCxt(dativePart, dat:var)
     }
     update = update.addCxt(caze, noun:var)
     update
@@ -567,24 +569,13 @@ class Parser { //todo alex implements cons3.RussianConstructions
   private ParsingState pronoun(ParsingState state, Construction caze, String type) {
     state = state.satisfied(relativeClause)
 
-    Update update = _nounBase(caze, typeCxt(type))
+    Update update = _nounBase(caze, typeCxt(type), new Variable())
 
     return update.apply(state)
   }
 
-  private Update _nounBase(Construction caze, Construction init) {
-    Variable noun = new Variable()
-
-    Update update = new Update()
-
-    if (caze == nom) {
-      update = update.addCxt(shortAdj, noun:noun).addCxt(reflexiveHolder, noun:noun)
-    }
-
-    update = update.addCxt(init, var:noun)
-    update = update.addCxt(caze, noun:noun)
-
-    return update
+  private Update _nounBase(Construction caze, Construction init, Variable noun) {
+    return upronoun(caze, noun, null, (init):[var:noun])
   }
 
 

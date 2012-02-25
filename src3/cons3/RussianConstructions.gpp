@@ -63,10 +63,10 @@ interface RussianConstructions {
   Construction datSubj = cxt('datSubj', ['+head', 'noun']) { ParsingState state, Map args ->
     state.assign(args.head, 'arg1', args.noun)
   }
-  Construction datAddressee = cxt('datAddressee', ['+head', 'noun']) { ParsingState state, Map args ->
-    state.assign(args.head, 'addressee', args.noun)
-  }
   Construction dat = cxt('dat', ['+head', 'noun']) { ParsingState state, Map args ->
+    if (((Variable) args.head)?.frame(state.chart)?.type == 'SAY') {
+      state = state.assign(args.head, 'addressee', args.noun)
+    }
     state
   }
   Construction prep = cxt('prep', ['X']) { ParsingState state, Map args -> state }

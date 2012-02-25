@@ -8,7 +8,7 @@ import static cons3.RussianConstructions.*
  */
 class Parser { //todo alex implements cons3.RussianConstructions
   public static final ArrayList<Construction> importantForSimilarity =
-    [nom, acc, gen, dat, instr, prep, poDat, datSubj, datAddressee,
+    [nom, acc, gen, dat, instr, prep, poDat, datSubj,
             possessive, parenthetical, comeScalarly, elaboration, declOrQuestionComp, question, complementizer, numQuantifier]
   String log = ""
 
@@ -301,7 +301,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return finiteVerb(state, var, 'SMILE', 'PAST', (nom):[head:var], (adverb):[head:var])
       case "сказал":
       case "сказала":
-        return finiteVerb(state, var, 'SAY', 'PAST', (nom):[head:var], (datAddressee):[head:var],
+        return finiteVerb(state, var, 'SAY', 'PAST', (nom):[head:var], (dat):[head:var],
                 (directSpeech):[head:var, xor:t.a], (declOrQuestionComp):[head:var, xor:t.a])
       case "вынул":
       case "вынула":
@@ -579,7 +579,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     Tokens t = new Tokens()
     Update update = new Update()
     if (caze == dat) {
-      update = update.addCxt(datSubj, noun:var, xor:t.a).addCxt(dativePart, dat:var).addCxt(datAddressee, noun:var, xor:t.a)
+      update = update.addCxt(datSubj, noun:var, xor:t.a).addCxt(dativePart, dat:var)
     }
     update = update.addCxt(caze, noun:var)
     update

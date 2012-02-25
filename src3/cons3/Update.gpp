@@ -13,6 +13,9 @@ class Update {
     this.mites = mites instanceof FList ? mites : FList.fromList(mites)
   }
 
+  Update plus(Update update) {
+    return addMites(update.mites.reverse() as Mite[])
+  }
   Update plus(Map<Construction, Map> constructions) {
     return addMites((constructions.keySet() as List<Construction>).collect { it(constructions[it]) } as Mite[])
   }

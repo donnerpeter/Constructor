@@ -37,40 +37,28 @@ interface RussianConstructions {
     return state
   }
   Construction acc = cxt('acc', ['head', 'noun']) { ParsingState state, Map args ->
-    if (args.head && args.noun) {
-      state = state.assign(args.head, 'arg2', args.noun)
-    }
-    return state
+    state.assign(args.head, 'arg2', args.noun)
   }
   Construction gen = cxt('gen', ['head', 'noun']) { ParsingState state, Map args ->
-    if (args.head && args.noun) {
-      if (((Variable) args.head)?.frame(state.chart)?.type == 'BOTH') {
-        state = state.assign(args.noun, 'quantifier', args.head)
-      } else {
-        Frame head = ((Variable) args.head).frame(state.chart)
-        List<Variable> heads = head.flatten().collect {it.var}
-        int i = 0
-        for (h in heads) {
-          def hf = h.frame(state.chart)
-          def hType = hf.type
-          def attr = hType == 'LACK' ? 'arg2' :
-            hType == 'WORDS' ? 'author' :
-              hType in ['OPINION', 'CORNER', 'CASHIER'] ? 'arg1' :
-                'criterion'
-          if (i == heads.size() - 1 || !hf.f(attr)) {
-            state = state.assign(h, attr, args.noun)
-          }
-          i++
-        }
+    Frame head = ((Variable) args.head).frame(state.chart)
+    List<Variable> heads = head.flatten().collect {it.var}
+    int i = 0
+    for (h in heads) {
+      def hf = h.frame(state.chart)
+      def hType = hf.type
+      def attr = hType == 'LACK' ? 'arg2' :
+        hType == 'WORDS' ? 'author' :
+          hType in ['OPINION', 'CORNER', 'CASHIER'] ? 'arg1' :
+            'criterion'
+      if (i == heads.size() - 1 || !hf.f(attr)) {
+        state = state.assign(h, attr, args.noun)
       }
+      i++
     }
     return state
   }
   Construction instr = cxt('instr', ['+head', 'noun']) { ParsingState state, Map args ->
-    if (((Variable) args.head)?.frame(state.chart)?.type && args.noun) {
-      state = state.assign(args.head, 'arg2', args.noun)
-    }
-    state
+    state.assign(args.head, 'arg2', args.noun)
   }
   Construction datSubj = cxt('datSubj', ['+head', 'noun']) { ParsingState state, Map args ->
     state.assign(args.head, 'arg1', args.noun)

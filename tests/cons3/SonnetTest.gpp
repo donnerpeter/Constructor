@@ -229,15 +229,15 @@ B.type=CORNER
 C.type=location
 C.arg1=A
 C.arg2=B
-D.type=STREET
 B.arg1=D
+D.type=STREET
 D.name=знаменская
-E.type=STREET
-F.member=D
-F.conj=and
-F.member=E
-B.arg1=F
-E.name=бассейная
+E.member=D
+E.conj=and
+E.member=F
+B.arg1=E
+F.type=STREET
+F.name=бассейная
 """
   }
 

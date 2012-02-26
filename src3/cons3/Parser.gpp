@@ -62,8 +62,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
     switch (word) {
       case "удивительный": return adj(state, nom, 'property', 'AMAZING')
       case "васи":
-        state = noun(state, gen, varCxt(name:'Вася'))
-        return state.apply(absTime, noun:state[posleGen].noun) //todo posleGen should generate absTime automatically
+        state = unoun(gen, var, null, (varCxt(name:'Вася')):[var:var], (absTime):[noun:var]).apply(state)
+        return state //todo posleGen should generate absTime automatically
       case "знаменской": // todo a unified treatment for street names
       case "бассейной":
         return (commonCase(gen, var.lightVar) + [(varCxt(type:'STREET')):[var:var], (adjective):[nounFrame:var, rel:'name', val:word[0..-3]+"ая"]]).apply(state)
@@ -190,9 +190,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "она": return pronoun(state, nom, 'SHE')
       case "они": return pronoun(state, nom, 'THEY')
       case "соседям": return noun(state, dat, 'NEIGHBOURS')
-      case "кассир": return noun(state, nom, varCxt(type:'CASHIER', gender:'masc'))
+      case "кассир": return unoun(nom, var, null, (varCxt(type:'CASHIER', gender:'masc')):[var:var]).apply(state)
       case "кассиршу": return noun(state, acc, 'CASHIER')
-      case "кассирша": return noun(state, nom, varCxt(type:'CASHIER', gender:'fem'))
+      case "кассирша": return unoun(nom, var, null, (varCxt(type:'CASHIER', gender:'fem')):[var:var]).apply(state)
       case "кассирши": return unoun(gen, var, 'CASHIER').apply(state)
       case "одних": return unoun(gen, var, 'SOME').apply(state)
       case "других": return unoun(gen, var, 'OTHERS').apply(state)
@@ -525,26 +525,15 @@ class Parser { //todo alex implements cons3.RussianConstructions
   }
 
   private ParsingState noun(ParsingState state, Construction caze, String type) {
-    return noun(state, caze, typeCxt(type))
-  }
-  private ParsingState noun(ParsingState state, Construction caze, Construction init) {
-    state = state.satisfied(relativeClause)
-
     Variable noun = new Variable()
-    Update update = _nounBase(caze, init, noun)
-
-    def tokens = new Tokens()
-    update = update.addCxt(possessive, head:noun, xor:tokens.a)
-//    update = update.addCxt(gen, head:noun, xor:tokens.a)
-
-    update = update.addCxt(quotedName, noun:noun).addCxt(numQuantifier, noun:noun)
-    update = update.addCxt(relativeClause, noun:noun, save:state)
-
-    return update.apply(state)
+    return unoun(caze, noun, null, (typeCxt(type)):[var:noun]).apply(state)
   }
 
-  private Update unoun(Map<Construction, Map> mites = [:], Construction caze, Variable var, String type) {
-    upronoun(mites, caze, var, type).addCxt(numQuantifier, noun:var)
+  private Update unoun(Map<Construction, Map> mites = [:], Construction caze, Variable noun, String type) {
+    def update = upronoun(mites, caze, noun, type)
+    update = update.addCxt(possessive, head:noun)
+    update = update.addCxt(quotedName, noun:noun).addCxt(numQuantifier, noun:noun)
+    update
   }
   private Update upronoun(Map<Construction, Map> mites = [:], Construction caze, Variable var, String type) {
     Update update = new Update()
@@ -567,17 +556,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
   }
 
   private ParsingState pronoun(ParsingState state, Construction caze, String type) {
-    state = state.satisfied(relativeClause)
-
-    Update update = _nounBase(caze, typeCxt(type), new Variable())
-
-    return update.apply(state)
+    def var = new Variable()
+    return upronoun(caze, var, null, (typeCxt(type)):[var:var]).apply(state)
   }
-
-  private Update _nounBase(Construction caze, Construction init, Variable noun) {
-    return upronoun(caze, noun, null, (init):[var:noun])
-  }
-
 
   private Construction typeCxt(String type) {
     return varCxt(type:type)

@@ -399,7 +399,8 @@ class ParsingState {
 
       if (verb.type in humanActions) {
         boolean meHuman = !verb.f('arg1')?.definitelyNonHuman()
-        if (meHuman != !alternative.f('arg1')?.definitelyNonHuman()) {
+        def otherHuman = !alternative.f('arg1')?.definitelyNonHuman()
+        if (meHuman != otherHuman) {
           return meHuman
         }
       }

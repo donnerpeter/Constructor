@@ -34,10 +34,9 @@ class Preposition implements Interceptor {
       def c = mite.cxt
       if (c == nom) continue
 
-      def replace = c in cases && !mite.contents.head
-      def newC = replace ? transformCase(state, c) : c
+      def newC = c in cases && !mite.contents.head ? transformCase(state, c) : c
       update = update.addCxt(mite.contents, newC)
-      if (replace && newC != c && ((Variable) mite.contents.noun)?.hard) {
+      if (newC != c && ((Variable) mite.contents.noun)?.hard) {
         state = state.inhibit(preposition)
       }
     }

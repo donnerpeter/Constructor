@@ -92,6 +92,7 @@ class Frame {
       return flatten().any { it.canBeHuman() }
     }
     if (type == 'wh') return false
+    if (type in ['SHOP']) return false
     if (s('number') || Util.parseNumber(type) != null) return false
     if (!type && s('name')) return true
     return true

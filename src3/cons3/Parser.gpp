@@ -85,8 +85,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "скромному": return adj(state, dat, 'quality', 'HUMBLE')
       case "том": return adj(state, prep, 'determiner', 'THAT')
       case "случай": return noun(state, nom, 'THING') //todo случай=CASE or THING
-      case "случае":
-        return state.apply((typeCxt('CASE')):[var:var], (prep):[noun:var], (conditionComp):[head:var]) //todo one noun frame - several cases
+      case "случае": return unoun(prep, var, 'CASE', (conditionComp):[head:var]).apply(state)
       case "удивление": return noun(state, nom, 'AMAZE')
       case "поводу": return noun(state, dat, 'MATTER')
       case "недоумении": return noun(state, prep, 'PREDICAMENT')
@@ -103,11 +102,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "магазин":
         Update update = new Update()
         update = update.addCxt(typeCxt('SHOP'), var:var)
-        update = update.addCxt(nom, noun:var, xor:t.a)
-        update = update.addCxt(acc, noun:var, xor:t.a)
-        update = update.addCxt(naPrep, head:var)
-        update = update.addCxt(quotedName, noun:var)
-        update = update.addCxt(relativeClause, noun:var, save:state)
+        update = update + [(nom):[noun:var, xor:t.a], (acc):[noun:var, xor:t.a]]
+        update = update + [(naPrep):[head:var], (quotedName):[noun:var], (relativeClause):[noun:var, save:state]]
         return update.apply(state.satisfied(relativeClause))
       case "сад":
         state = state.apply((typeCxt('GARDEN')):[var:var],
@@ -467,7 +463,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
 
   ParsingState adj(ParsingState state, Construction caze, String rel, String val) {
     def noun = new Variable().lightVar
-    return state.apply(adjective, nounFrame:noun, rel:rel, val:val).apply(caze, noun:noun)
+    return state.apply((adjective):[nounFrame:noun, rel:rel, val:val], (caze):[noun:noun])
+  }
+
+  Construction nounHolder(Construction caze) {
+    [(nom):nomHolder, (gen):genHolder, (acc):accHolder, (dat):datHolder, (instr):(instrHolder), (prep):prepHolder].get(caze)
   }
 
   ParsingState numeral(ParsingState state, Tokens t, String number) {
@@ -530,9 +530,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
 
   private Update unoun(Map<Construction, Map> mites = [:], Construction caze, Variable noun, String type) {
     def update = upronoun(mites, caze, noun, type)
-    update = update.addCxt(possessive, head:noun)
-    update = update.addCxt(quotedName, noun:noun).addCxt(numQuantifier, noun:noun)
-    update
+    update + [(possessive):[head:noun], (quotedName):[noun:noun], (numQuantifier):[noun:noun]]
   }
   private Update upronoun(Map<Construction, Map> mites = [:], Construction caze, Variable var, String type) {
     Update update = new Update()

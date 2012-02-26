@@ -357,4 +357,10 @@ interface RussianConstructions {
   Construction elaboration = cxt('elaboration', ['head', 'elaboration']) { ParsingState state, Map args ->
     state.assign(args.head, 'elaboration', args.elaboration)
   }
+  Construction nomHolder = cxt('nomHolder') { ParsingState state, Map args -> state }
+  Construction accHolder = cxt('accHolder') { ParsingState state, Map args -> state }
+  Construction genHolder = cxt('genHolder') { ParsingState state, Map args -> state }
+  Construction datHolder = cxt('datHolder') { ParsingState state, Map args -> state }
+  Construction instrHolder = cxt('instrHolder') { ParsingState state, Map args -> state }
+  Construction prepHolder = cxt('prepHolder') { ParsingState state, Map args -> state }
 }

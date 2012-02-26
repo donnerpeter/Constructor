@@ -70,16 +70,12 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       boolean merged = false
 
       def oldApps = history[similar].apps
-      LinkedHashSet<Variable> toSeparate = []
 
       for (mite in constructions) {
         Mite oldArgs = oldApps.find { it.cxt == mite.cxt }
         def newUpdate = merge(state, mite.cxt, oldArgs?.contents, mite.contents, update, seqs, declOrQuestionComp in constructions)
         merged |= newUpdate != null
         update = newUpdate ?: update.addMites(mite)
-        if (newUpdate && oldArgs) {
-          oldArgs.contents.values().each { if (it instanceof Variable) toSeparate << it.base }
-        }
       }
 
       if (merged) {
@@ -91,7 +87,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
             update = update.addCxt(commaList, rollback:rollback)
           }
           def oldVerb = state[verbHolder]?.head
-          state = state.clearConstructions().restore(rollback).separateUnifications(rollback, toSeparate)
+          state = state.clearConstructions().restore(rollback)
           if (oldApps.find { it.cxt == nom && it.contents.head } && constructions.find { it.cxt == nom && it.contents.head }) {
             if (conj == 'but') {
               state = state.inhibit(nom, acc)
@@ -108,21 +104,18 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
               state = state.apply(contribution)
             }
           }
-        } else {
-          state = state.inhibit(seq)
         }
 
-
         if (similar > 0) {
-          List<Contribution> remainingPrecedent = history[0..<similar].reverse() //todo alex infer
-          if (history[similar].apps.find { it.cxt == poDat }) { //todo a generic way of finding sequence precedents
+          List<Contribution> remainingPrecedent = history[0..<similar].reverse()
+          if (history[similar].apps.find { it.cxt == preposition }) { //todo a generic way of finding sequence precedents
             def nounContribution = remainingPrecedent.find { it.apps.any { it.cxt == dat && it.contents.noun } }
             if (nounContribution) {
-              update = update.addCxt(seq, precedent:[nounContribution], interceptor:new SeqInterceptor(state, conj))
+              update = new Update().addCxt(seq, precedent:[nounContribution], interceptor:new SeqInterceptor(state, conj)) + update
             }
           }
         }
-        return update.apply(state)
+        return precedent == null ? update.apply(state) : base(update.mites.reverse(), state)
       }
     }
 
@@ -158,9 +151,8 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       if (cxt in [nom, acc, gen, dat, poDat, datSubj] && oldArgs.noun && newArgs.noun && conj != 'but') {
         return doMerge(state, cxt, oldArgs, newArgs, 'noun', update, seqs)
       }
-      if (cxt in [poDat] && !oldArgs.noun && !newArgs.noun && before[cxt]?.noun && !newArgs.head) {
-        def newNoun = new Variable()
-        return doMerge(state, cxt, oldArgs + [noun:before[cxt].noun], newArgs + [noun:newNoun, unmergedNoun:newNoun], 'noun', update, seqs)
+      if (cxt in [preposition] && oldArgs.prep == newArgs.prep) {
+        return update.addCxt(newArgs + [repeated:true], cxt)
       }
       if (cxt in [gen] && oldArgs.head && newArgs.head && !newArgs.noun) {
         return doMerge(state, cxt, oldArgs, newArgs, 'head', update, seqs)
@@ -194,7 +186,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
     }
 
     return update.
-            addCxt(aSeqStart(), multi:multi, first:first, second:second, conj:conj, distinguish:newArgs.repeated).
+            addCxt(aSeqStart(), multi:multi, first:first, second:second, conj:conj, distinguish:state[preposition]?.repeated).
             addCxt(newArgs + [(prop):multi, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt)
   }
 

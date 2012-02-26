@@ -133,21 +133,20 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return finiteVerb(state, var, 'HAPPEN', 'PAST', (sInstr):[head:var], (nom):[head:var])
       case 'со':
       case 'с':
-        return state.apply((preposition):[prep:'с'], (sInstr):[noun:var.lightVar, xor:t.b], (sGen):[noun:var.lightVar, xor:t.b])
+        return state.apply((preposition):[prep:'с'], (sInstr):[xor:t.b], (sGen):[xor:t.b])
       case 'по':
-        return state.inhibit(gen, numQuantifier).apply((preposition):[prep:'по'],
-                (poDat):[noun:var, innerNoun:var.lightVar, repeated:(state[seq] != null)])
-      case 'о': return state.apply((preposition):[prep:'о'], (oPrep):[noun:var.lightVar])
-      case 'к': return state.apply((preposition):[prep:'к'], (kDat):[noun:var.lightVar])
+        return state.inhibit(gen, numQuantifier).apply((preposition):[prep:'по'], (poDat):[:])
+      case 'о': return state.apply((preposition):[prep:'о'], (oPrep):[:])
+      case 'к': return state.apply((preposition):[prep:'к'], (kDat):[:])
       case 'до':
-        return state.apply((preposition):[prep:'до'], (doGen):[noun:var.lightVar])
+        return state.apply((preposition):[prep:'до'], (doGen):[:])
       case 'от':
-        return state.apply((preposition):[prep:'от'], (otGen):[noun:var.lightVar])
+        return state.apply((preposition):[prep:'от'], (otGen):[:])
       case 'в':
-        return state.apply((preposition):[prep:'в'], (vAcc):[noun:var.lightVar, xor:t.b], (vPrep):[noun:var.lightVar, xor:t.b])
+        return state.apply((preposition):[prep:'в'], (vAcc):[xor:t.b], (vPrep):[xor:t.b])
       case 'из':
-      case 'изо': return state.apply((preposition):[prep:'из'], (izGen):[noun:var.lightVar])
-      case 'на': return state.inhibit(adjective).apply((preposition):[prep:'на'], (naPrep):[noun:var.lightVar])
+      case 'изо': return state.apply((preposition):[prep:'из'], (izGen):[:])
+      case 'на': return state.inhibit(adjective).apply((preposition):[prep:'на'], (naPrep):[:])
       case "мной": return noun(state, instr, 'ME')
       case ":":
         if (state[directSpeech]) {

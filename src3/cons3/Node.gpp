@@ -11,25 +11,20 @@ class Node {
   final List<Mite> ownMites
   final Set<Mite> _inhibited
   final Node before
-  final boolean sameLevel
-  private final Map<Boolean, Map<Construction, List<Mite>>> cache = [:]
+  private Map<Construction, List<Mite>> cache
 
-  Map<Construction, List<Mite>> getAllMites(boolean allowHeads) {
-    Map<Construction, List<Mite>> result = cache[allowHeads]
+  Map<Construction, List<Mite>> getAllMites() {
+    Map<Construction, List<Mite>> result = cache
     if (result != null) {
       return result
     }
 
     result = [:]
     for (k in ownMites) {
-      if (!allowHeads && k.hasHead && k.primary) {
-        continue
-      }
-
       result[k.cxt] = (result[k.cxt] ?: []) + [k]
     }
 
-    before?.getAllMites(true)?.each { c, oldMites ->
+    before?.getAllMites()?.each { c, oldMites ->
       result[c] = oldMites + (result[c] ?: [])
     }
 
@@ -40,7 +35,7 @@ class Node {
         result.remove(mite.cxt)
       }
     }
-    cache[allowHeads] = result
+    cache = result
     return result
   }
 
@@ -49,5 +44,9 @@ class Node {
       return this
     }
     return before.findNode(mite)
+  }
+
+  boolean isMoreRecentThan(Node node) {
+    return node == this || before?.isMoreRecentThan(node)
   }
 }

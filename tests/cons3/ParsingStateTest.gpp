@@ -97,7 +97,8 @@ public class ParsingStateTest extends TestCase {
             apply((myAcc):[noun:new Variable()])
     def frame = state.chart.frames[0]
     assert frame.f('arg2')
-    assert !frame.f('arg1')
+    assert frame.f('arg1')
+    assert frame.f('arg1') != frame.f('arg2')
   }
 
   public void testPreferFirst() {
@@ -186,7 +187,7 @@ public class ParsingStateTest extends TestCase {
     assert frame.f('arg2').f('arg2')?.var == vars[2]
   }
 
-  public void _testHeadHidesPrecedingArguments() {
+  public void testHeadHidesPrecedingArguments() {
     def var = new Variable()
     def state = new ParsingState().
             apply((myAcc):[noun:new Variable()], (ac1):[hidden:'true'], (myNom):[head:var]).

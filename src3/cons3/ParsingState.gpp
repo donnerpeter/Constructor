@@ -45,7 +45,7 @@ class ParsingState {
   }
 
   Map<Construction, List<Mite>> getVisibleMites() {
-    return node.getAllMites(true)
+    return node.getAllMites()
   }
 
   ParsingState getBeforeThisChange() {
@@ -120,7 +120,7 @@ class ParsingState {
     def victim = active.find { it.cxt == mite.cxt }
 
     def fat = victim ? victim.unify(mite) : mite
-    return clone(node:new Node(node.ownMites + [fat] as List, node._inhibited, node.before, node.sameLevel),
+    return clone(node:new Node(node.ownMites + [fat] as List, node._inhibited, node.before),
             active:(active as LinkedHashSet) - victim + fat,
             miteGenerations:miteGenerations.putValue(fat, currentGeneration))
   }
@@ -189,7 +189,7 @@ class ParsingState {
     LinkedHashSet<Mite> newActive = new LinkedHashSet<Mite>(active)
     Set<Mite> toRemove = new LinkedHashSet<Mite>(visibleMites[name] ?: [])
     newActive.removeAll(toRemove)
-    return clone(node: new Node(Collections.emptyList(), toRemove, node, true), active:newActive)
+    return clone(node: new Node(Collections.emptyList(), toRemove, node), active:newActive)
   }
 
   ParsingState startMeta(Variable meta) {
@@ -238,8 +238,7 @@ class ParsingState {
   private static ParsingState baseApply(ParsingState state, List<Mite> update, boolean tryAlternatives) {
     List<Mite> newMites = []
     Map<Mite, Mite> inheritors = [:]
-    Node prevUp = state.node
-    Node prevSame = state.node
+    Node best = null
     def vm = state.visibleMites
     Map<Construction, List<Mite>> maximalUnions = [:]
     for (mite in update) {
@@ -254,13 +253,22 @@ class ParsingState {
         if (older in state.active) {
           inheritors[older] = union
         }
+        Node pretendent = null
+        if (older.hasHead) {
+          pretendent = state.node.findNode(older)
+        } else if (mite.hasHead) {
+          pretendent = state.node.findNode(older)?.before
+        }
+        if (pretendent) {
+          best = best == null || pretendent.isMoreRecentThan(best) ? pretendent : best
+        }
       }
       if (lastUnified) {
         maximalUnions[mite.cxt] = (maximalUnions[mite.cxt] ?: []) + lastUnified
       }
     }
 
-    state = state.addCxt(new Node(newMites, Collections.emptySet(), prevSame, true))
+    state = state.addCxt(new Node(newMites, Collections.emptySet(), best ?: state.node))
     
     LinkedHashSet<Mite> toConsider = [] 
 

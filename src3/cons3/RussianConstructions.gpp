@@ -117,6 +117,15 @@ interface RussianConstructions {
   Construction kDat = cxt('kDat', ['+head', 'noun']) { ParsingState state, Map args ->
     args.noun && args.head ? state.assign(args.head, 'goal', args.noun) : state
   }
+  Construction uGen = cxt('uGen', ['+head', 'noun']) { ParsingState state, Map args ->
+    if (args.copula) {
+      def location = args.copula
+      state = state.assign(location, 'type', 'location').assign(location, 'arg2', args.head).assign(location, 'arg1', args.noun)
+    } else {
+      state = state.assign(args.head, 'location', args.noun)
+    }
+    state
+  }
   Construction dativePart = cxt('dativePart', ['head', 'dat', 'acc']) { state, args ->
     args.dat && args.head && args.acc ? state.assign(args.acc, 'arg1', args.dat) : state
   }
@@ -248,13 +257,11 @@ interface RussianConstructions {
     return state
   }
   Construction naPrep = cxt('naPrep', ['noun', 'head']) { ParsingState state, Map args ->
-    if (args.head && args.noun) {
-      if (args.copula) {
-        def location = args.copula
-        state = state.assign(location, 'type', 'location').assign(location, 'arg1', args.head).assign(location, 'arg2', args.noun)
-      } else {
-        state = state.assign(args.head, 'location', args.noun)
-      }
+    if (args.copula) {
+      def location = args.copula
+      state = state.assign(location, 'type', 'location').assign(location, 'arg1', args.head).assign(location, 'arg2', args.noun)
+    } else {
+      state = state.assign(args.head, 'location', args.noun)
     }
     return state
   }

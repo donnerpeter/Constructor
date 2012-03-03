@@ -394,15 +394,23 @@ class EnglishGenerator {
       }
 
       if (verb.type == 'location') {
-        if (subj.s('relativized') == 'true') {
-          out(verb.s('time') == 'PAST' ? 'that was' : "that's")
-        } else {
+        if (subj.canBeHuman() && !subj.s('relativized')) {
           np(subj, true)
-          out 'was'
+          out(verb.s('time') == 'PAST' ? 'had' : 'have')
+          np(verb.f('arg2'), false)
+          return subj
+        } else {
+
+          if (subj.s('relativized') == 'true') {
+            out(verb.s('time') == 'PAST' ? 'that was' : "that's")
+          } else {
+            np(subj, true)
+            out(verb.s('time') == 'PAST' ? 'was' : 'is')
+          }
+          out 'on'
+          np(verb.f('arg2'), false)
+          return subj
         }
-        out 'on'
-        np(verb.f('arg2'), false)
-        return subj
       }
 
       def aux = subj ? aux(verb, subj, imperative) : null
@@ -1031,6 +1039,7 @@ class EnglishGenerator {
       case 'ROOMS': return 'rooms'
       case 'APARTMENTS': return 'apartments'
       case 'OFFICES': return 'offices'
+      case 'WATER_MELON': return 'water melon'
       default: return type
     }
 

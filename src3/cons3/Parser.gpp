@@ -134,6 +134,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.inhibit(gen, numQuantifier).apply((preposition):[prep:'по'], (poDat):[:])
       case 'о': return state.apply((preposition):[prep:'о'], (oPrep):[:])
       case 'к': return state.apply((preposition):[prep:'к'], (kDat):[:])
+      case 'у': return state.apply((preposition):[prep:'у'], (uGen):[:])
       case 'до':
         return state.apply((preposition):[prep:'до'], (doGen):[:])
       case 'от':
@@ -144,6 +145,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case 'изо': return state.apply((preposition):[prep:'из'], (izGen):[:])
       case 'на': return state.inhibit(adjective).apply((preposition):[prep:'на'], (naPrep):[:])
       case "мной": return noun(state, instr, 'ME')
+      case "меня": return noun(state, gen, 'ME')
       case ":":
         if (state[directSpeech]) {
           //todo construction handling of elaboration and direct speech
@@ -185,6 +187,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "она": return pronoun(state, nom, 'SHE')
       case "они": return pronoun(state, nom, 'THEY')
       case "соседям": return noun(state, dat, 'NEIGHBOURS')
+      case "арбуз": return noun(state, nom, 'WATER_MELON')
       case "кассир": return unoun(nom, var, null, (varCxt(type:'CASHIER', gender:'masc')):[var:var]).apply(state)
       case "кассиршу": return noun(state, acc, 'CASHIER')
       case "кассирша": return unoun(nom, var, null, (varCxt(type:'CASHIER', gender:'fem')):[var:var]).apply(state)
@@ -418,7 +421,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case 'был':
         def subj = new Variable().lightVar
         state = state.assign(var, 'time', 'PAST')
-        return state.apply((naPrep):[head: subj, copula:var], (nom):[noun:subj], (verbHolder):[head:var])
+        return state.apply((naPrep):[head: subj, copula:var], (nom):[noun:subj], (verbHolder):[head:var], (uGen):[head:subj, copula:var])
+      case 'есть':
+        def subj = new Variable().lightVar
+        state = state.assign(var, 'time', 'PRESENT')
+        return state.apply((naPrep):[head: subj, copula:var], (nom):[noun:subj], (verbHolder):[head:var], (uGen):[head:subj, copula:var])
       case 'было':
         return state.apply((conditionComp):[head:state[shortAdj]?.copula], (shortAdj):[time:'PAST'], (timedModality):[time:'PAST'], (adverbPred):[time:'PAST'])
       case 'так':

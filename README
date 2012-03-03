@@ -4,4 +4,4 @@ As a way of ensuring that the parser produces something that makes sense, I tran
 
 Currently I'm translating Daniil Kharms' 'Sonnet' into English.
 
-This project is created by IntelliJ IDEA 10 (http://www.jetbrains.com/idea/) and everything works from it. The tests can be run using 'all tests' run configuration. The bundled Groovy plugin for IDEA is needed to open the project.
+This project is created by IntelliJ IDEA 11 (http://www.jetbrains.com/idea/) and everything works from it. The tests can be run using 'all tests' run configuration. The bundled Groovy plugin for IDEA is needed to open the project.

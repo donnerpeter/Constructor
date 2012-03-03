@@ -135,8 +135,8 @@ interface RussianConstructions {
     state = state.assign(args.modality, 'time', args.time)
     return state
   }
-  Construction question = cxt('question', ['questioned', 'frame', 'mainVerb']) { ParsingState state, Map args ->
-    state = state.assign(args.frame, 'content', args.mainVerb)
+  Construction question = cxt('question', ['questioned', 'frame', 'content']) { ParsingState state, Map args ->
+    state = state.assign(args.frame, 'content', args.content)
     state = state.assign(args.frame, 'type', 'question').assign(args.frame, 'questioned', args.questioned)
     return state
   }
@@ -329,11 +329,9 @@ interface RussianConstructions {
   Construction nestedClause = cxt('nestedClause', ['X']) { ParsingState state, Map args ->
     return state
   }
-  Construction complementizer = cxt('complementizer', ['frame', 'mainVerb']) { ParsingState state, Map args ->
+  Construction complementizer = cxt('complementizer', ['frame', 'content']) { ParsingState state, Map args ->
     state = state.assign(args.frame, 'type', 'fact')
-    if (args.mainVerb) {
-      state = state.assign(args.frame, 'content', args.mainVerb)
-    }
+    state = state.assign(args.frame, 'content', args.content)
     return state
   }
   Construction directSpeech = cxt('directSpeech') { ParsingState state, Map args ->

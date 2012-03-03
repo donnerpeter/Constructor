@@ -127,8 +127,8 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
       if (cxt == elaboration && before[cxt]?.head && oldArgs.elaboration && newArgs.elaboration) {
         return doMerge(state, cxt, oldArgs, newArgs, 'elaboration', update, seqs)
       }
-      if (cxt == complementizer && oldArgs.mainVerb && newArgs.mainVerb && before[cxt]?.frame && before[cxt].mainVerb) {
-        return doMerge(state, cxt, oldArgs, newArgs, 'mainVerb', update, seqs)
+      if (cxt == complementizer && oldArgs.content && newArgs.content && before[cxt]?.frame && before[cxt].content) {
+        return doMerge(state, cxt, oldArgs, newArgs, 'content', update, seqs)
       }
       if (cxt == declOrQuestionComp && !before[cxt]?.head && oldArgs.comp && newArgs.comp && oldArgs.comp != state[cxt]?.head) {
         return doMerge(state, cxt, oldArgs, newArgs, 'comp', update, seqs)

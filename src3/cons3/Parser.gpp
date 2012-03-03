@@ -316,7 +316,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return infinitive(state, var, 'DANCE', [:])
       case "нужно":
         return state.assign(var, 'type', 'NEED').apply((acc):[head:var], (datSubj):[head:var], (adverbPred):[adverb:var],
-                (verbHolder):[head:var], (question):[mainVerb:var])
+                (verbHolder):[head:var], (question):[content:var])
       case "спросить":
         return infinitive(state, var, 'ASK', [(acc):[head:var]])
       case "думают":
@@ -388,7 +388,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (poDat):[head:var], (verbHolder): [head:var],
                 (posleGen):[head:var], (ransheGen):[head:var],
                 (conditionComp):[head:var], (absTime):[head:var],
-                (complementizer):[mainVerb:var, xor:t.c], (question):[mainVerb:var, xor:t.c])
+                (complementizer):[content:var, xor:t.c], (question):[content:var, xor:t.c])
       case "следовало":
         state = state.assign(var, 'time', 'PAST')
         return state.inhibit(preposition, numQuantifier).apply((nom):[head:var],
@@ -512,7 +512,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     def mod = new Variable()
     return state.inhibit(verbHolder).assign(verb, 'type', type).apply(args +
             [(datSubj):[head: verb], (control): [slave: verb],
-                    (question): [mainVerb:mod], (modality):[modality:mod, infinitive:verb], (timedModality):[modality:mod],
+                    (question): [content:mod], (modality):[modality:mod, infinitive:verb], (timedModality):[modality:mod],
                     (verbHolder):[head:verb]])
   }
 
@@ -524,7 +524,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     return state.inhibit(preposition, relativeClause, numQuantifier).
             assign(verb, 'type', type).assign(verb, 'time', tense).
             apply(args + [(subjunctive):[head:verb], (verbHolder):[head:verb], (relTime):[head:verb], (also):[head: verb],
-                    (complementizer):[mainVerb:verb, xor:t.a], (question):[mainVerb:verb, xor:t.a], (verbEmphasis):[verb:verb]])
+                    (complementizer):[content:verb, xor:t.a], (question):[content:verb, xor:t.a], (verbEmphasis):[verb:verb]])
   }
 
   private ParsingState noun(ParsingState state, Construction caze, String type) {

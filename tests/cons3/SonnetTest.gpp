@@ -478,11 +478,11 @@ A.type=WE
 B.type=DO
 B.arg2=C
 B.arg1=A
-C.type=wh
 D.type=modality
 D.arg1=B
-E.content=D
 D.time=PAST
+C.type=wh
+E.content=D
 E.type=question
 E.questioned=C
 '''

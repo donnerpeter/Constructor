@@ -127,16 +127,16 @@ interface RussianConstructions {
     def attr = type == 'FORGET' ? 'arg2' : type == 'DISCOVER' ? 'theme' : type == 'SAY' ? 'message' : 'question'
     state.assign(args.head, attr, args.comp).inhibit(seq)
   }
+  Construction modality = cxt('modality', ['modality', 'infinitive', 'questioned']) { ParsingState state, Map args ->
+    state = state.assign(args.modality, 'type', 'modality').assign(args.modality, 'arg1', args.infinitive)
+    return state
+  }
+  Construction timedModality = cxt('timedModality', ['modality', 'time']) { ParsingState state, Map args ->
+    state = state.assign(args.modality, 'time', args.time)
+    return state
+  }
   Construction question = cxt('question', ['questioned', 'frame', 'mainVerb']) { ParsingState state, Map args ->
-    if (args.modality) {
-      state = state.assign(args.modality, 'type', 'modality').assign(args.modality, 'arg1', args.mainVerb).assign(args.frame, 'content', args.modality)
-      if (args.time) {
-        state = state.assign(args.modality, 'time', args.time)
-      }
-    }
-    else if (args.mainVerb) {
-      state = state.assign(args.frame, 'content', args.mainVerb)
-    }
+    state = state.assign(args.frame, 'content', args.mainVerb)
     state = state.assign(args.frame, 'type', 'question').assign(args.frame, 'questioned', args.questioned)
     return state
   }

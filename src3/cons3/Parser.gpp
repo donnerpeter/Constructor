@@ -315,7 +315,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "танцевать":
         return infinitive(state, var, 'DANCE', [:])
       case "нужно":
-        return state.assign(var, 'type', 'NEED').apply((acc):[head:var], (datSubj):[head:var], (adverbPred):[adverb:var], (verbHolder):[head:var])
+        return state.assign(var, 'type', 'NEED').apply((acc):[head:var], (datSubj):[head:var], (adverbPred):[adverb:var],
+                (verbHolder):[head:var], (question):[mainVerb:var])
       case "спросить":
         return infinitive(state, var, 'ASK', [(acc):[head:var]])
       case "думают":
@@ -372,7 +373,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
 
         Update update = new Update(acc(noun:var, xor:t.a), nom(noun:var, xor:t.a, agr:'3sg'))
         update = update + [
-                (typeCxt('wh')):[var:var, xor:t.fg], (question):[questioned:var, frame:comp, xor:t.ce]]
+                (typeCxt('wh')):[var:var, xor:t.f], (question):[questioned:var, frame:comp, xor:t.e], (modality):[questioned:var, xor:t.d]]
         update = update + [(complementizer):[xor:t.adef, frame:comp]]
         if (!state[seq]?.conj) {
           state = state.clearConstructions()
@@ -419,7 +420,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = state.assign(var, 'time', 'PAST')
         return state.apply((naPrep):[head: subj, copula:var], (nom):[noun:subj], (verbHolder):[head:var])
       case 'было':
-        return state.apply((conditionComp):[head:state[shortAdj]?.copula], (shortAdj):[time:'PAST'], (question):[time:'PAST'], (adverbPred):[time:'PAST'])
+        return state.apply((conditionComp):[head:state[shortAdj]?.copula], (shortAdj):[time:'PAST'], (timedModality):[time:'PAST'], (adverbPred):[time:'PAST'])
       case 'так':
         return state.apply(reasonComp, active:true)
       case 'обе':
@@ -436,7 +437,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def verb = new Variable().lightVar
         return state.assign(verb, 'opinion_of', opinion).assign(opinion, 'type', 'OPINION').assign(opinion, 'arg1', me).assign(me, 'type', 'ME').
                 apply((verbHolder):[head:verb], (parenthetical):[:])
-      case '?': return state.apply((question):[mainVerb:state[verbHolder].head])
+      case '?': return state.apply((question):[:])
       case '"':
         if (state[quotedName]) {
           if (state[quotedName].started) {
@@ -508,8 +509,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
   }
 
   private ParsingState infinitive(ParsingState state, Variable verb, String type, Map<Construction, Map> args) {
+    def mod = new Variable()
     return state.inhibit(verbHolder).assign(verb, 'type', type).apply(args +
-            [(datSubj):[head: verb], (control): [slave: verb], (question): [modality: new Variable(), mainVerb:verb], (verbHolder):[head:verb]])
+            [(datSubj):[head: verb], (control): [slave: verb],
+                    (question): [mainVerb:mod], (modality):[modality:mod, infinitive:verb], (timedModality):[modality:mod],
+                    (verbHolder):[head:verb]])
   }
 
   private ParsingState finiteVerb(Map<Construction, Map> args, ParsingState state, Variable verb, String type, String tense) {

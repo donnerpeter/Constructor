@@ -13,7 +13,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
   private int findSimilar(List<Contribution> history, List<Mite> constructions) {
     int i = 0
     for (old in history) {
-      if (Parser.areSimilar(old.apps, constructions)) {
+      if (Similarity.areSimilar(old.apps, constructions)) {
         return i
       }
       if (constructions.find { it.cxt == nom && it.contents.head }) {

@@ -6,14 +6,14 @@ import static cons3.RussianConstructions.*
  * @author peter
  */
 class Similarity {
-  public static final ArrayList<Construction> importantForSimilarity =
-    [nom, acc, gen, dat, instr, prep, poDat, datSubj,
-            possessive, parenthetical, comeScalarly, elaboration, declOrQuestionComp, question, complementizer, numQuantifier]
+  private static final ArrayList<Construction> importantForSimilarity =
+    [nom, acc, gen, dat, instr, prep, poDat,
+            possessive, parenthetical, comeScalarly, elaboration, declOrQuestionComp, question]
 
-  static boolean areSimilar(List<Mite> c1, List<Mite> c2) {
+  static boolean areSimilar(Contribution old, List<Mite> c2) {
+    def c1 = old.apps
     def common = c1.findAll { m1 -> m1.cxt in importantForSimilarity && m1.findSimilar(c2) } as List<Mite>
     common = common.findAll { !(it.cxt == possessive && it.contents.head) }
-    common = common.findAll { !(it.cxt == numQuantifier && !it.contents.num) }
 
     if (!common) {
       return false
@@ -25,10 +25,32 @@ class Similarity {
       return false
     }
 
-    if ((c1.any { it.cxt == question } || c2.any { it.cxt == question }) && !common.any { it.cxt == question }) {
-      return false
-    }
-
     return true
   }
+
+  static int findSimilar(List<Contribution> history, List<Mite> constructions) {
+   int i = 0
+   for (old in history) {
+     if (Similarity.areSimilar(old, constructions)) {
+       return i
+     }
+     if (constructions.find { it.cxt == nom && it.contents.head }) {
+       if (old.apps.find { it.cxt == complementizer && it.contents.frame || it.cxt == directSpeech && it.contents.hasColon }) {
+         return -1
+       }
+     }
+
+     if (old.apps.find { it.cxt == nom && it.contents.head && !it.contents.noun} && !constructions.find { it.cxt == complementizer } &&
+       (constructions.find { it.cxt in [dat, gen, nom, acc] && it.contents.noun || it.cxt == preposition })) {
+       return -1
+     }
+
+     if (old.apps.find { it.cxt == dat && it.contents.noun} && constructions.find { it.cxt in [acc] && it.contents.noun }) {
+       return -1
+     }
+
+     i++
+   }
+   return -1
+ }
 }

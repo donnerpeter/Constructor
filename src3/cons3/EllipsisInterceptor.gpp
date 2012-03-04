@@ -16,10 +16,10 @@ class EllipsisInterceptor implements Interceptor, RussianConstructions {
     Update update = new Update(constructions)
 
     FList<Contribution> old = prevHistory.history
-    def endPrecedent = old.findIndexOf { Contribution it -> Similarity.areSimilar(it.apps, update.mites) }
+    def endPrecedent = old.findIndexOf { Contribution it -> Similarity.areSimilar(it, update.mites) }
     if (endPrecedent >= 0) {
       List<Contribution> beforeGap = beforeDash.history[0..beforeDash.history.size - old.size]
-      def lcs = Util.lcs(old.subList(endPrecedent + 1), beforeGap) { a, b -> Similarity.areSimilar(a.apps, b.apps) }
+      def lcs = Util.lcs(old.subList(endPrecedent + 1), beforeGap) { a, b -> Similarity.areSimilar(a, b.apps) }
       if (lcs) {
         def startPrecedent = old.indexOf(lcs[0])
         FList<Contribution> precedent = FList.fromList(old[0..startPrecedent-1])

@@ -10,32 +10,6 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
   ParsingState before
   String conj
 
-  private int findSimilar(List<Contribution> history, List<Mite> constructions) {
-    int i = 0
-    for (old in history) {
-      if (Similarity.areSimilar(old.apps, constructions)) {
-        return i
-      }
-      if (constructions.find { it.cxt == nom && it.contents.head }) {
-        if (old.apps.find { it.cxt == complementizer && it.contents.frame || it.cxt == directSpeech && it.contents.hasColon }) {
-          return -1
-        }
-      }
-      
-      if (old.apps.find { it.cxt == nom && it.contents.head && !it.contents.noun} && !constructions.find { it.cxt == complementizer } &&
-        (constructions.find { it.cxt in [dat, gen, nom, acc] && it.contents.noun || it.cxt == preposition })) {
-        return -1
-      }
-
-      if (old.apps.find { it.cxt == dat && it.contents.noun} && constructions.find { it.cxt in [acc] && it.contents.noun }) {
-        return -1
-      }
-
-      i++
-    }
-    return -1
-  }
-
   static boolean agree(agr1, agr2) {
     return agrUnifiable(agrGender((String)agr1), agrGender((String)agr2)) &&
            agrUnifiable(agrNumber((String)agr1), agrNumber((String)agr2)) &&
@@ -53,7 +27,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
 
     List<Contribution> precedent = state[seq]?.precedent
     if (precedent != null) {
-      similar = findSimilar(precedent, constructions)
+      similar = Similarity.findSimilar(precedent, constructions)
       if (similar >= 0) {
         history = precedent.reverse()
         similar = history.size() - 1 - similar
@@ -61,7 +35,7 @@ class SeqInterceptor implements Interceptor, RussianConstructions {
     } else {
       history = before.history
       similar = before[preposition] == null && state[preposition] != null && !state[preposition].hasNoun ?
-        -1 : findSimilar(history, constructions) //todo honor hierarchy in conj processing
+        -1 : Similarity.findSimilar(history, constructions) //todo honor hierarchy in conj processing
     }
 
     if (similar >= 0) {

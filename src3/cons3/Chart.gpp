@@ -1,8 +1,11 @@
 package cons3
 
+import groovy.transform.EqualsAndHashCode
+
 /**
  * @author peter
  */
+@EqualsAndHashCode
 class Chart {
   final Map<Situation, List<Assignment<Variable>>> __assignments
   final Map<Variable, Situation> __vars

@@ -361,9 +361,18 @@ class ParsingState {
     state = state.undoChanges(toRemove)
     state = state.clone(chart:addNewUnifications(state, toApply))
 
-    for (mite in toApply) {
-      if (state.visibleMites[mite.cxt]?.contains(mite)) {
-        state = state.doApply(mite)
+    boolean changed = true
+    while (changed) {
+      changed = false
+      for (mite in toApply) {
+        if (mite in state.active && mite.contents && mite.cxt.isExecutable([mite])) {
+          def prev = state
+          state = prev.doApply(mite)
+          if (prev.chart != state.chart) {
+            changed = true
+            break
+          }
+        }
       }
     }
     state
@@ -444,9 +453,7 @@ class ParsingState {
 
   private ParsingState doApply(Mite mite) {
     ParsingState next = clone(currentGeneration:miteGenerations[mite], chart:chart.startMeta(mite))
-    if (mite.contents && mite.cxt.isExecutable([mite])) {
-      next = mite.cxt.action.call(next, mite.contents)
-    }
+    next = mite.cxt.action.call(next, mite.contents)
     return next.clone(currentGeneration:currentGeneration, chart:next.chart.finishMeta(mite))
   }
 

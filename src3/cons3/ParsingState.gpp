@@ -251,7 +251,14 @@ class ParsingState {
       }
     }
     for (group in newMites.values()) {
-      toConsider.addAll group.reverse()[0]
+      if (group.size() > 1) {
+        toConsider.add group.reverse()[0]
+      }
+    }
+    for (group in newMites.values()) {
+      if (group.size() == 1) {
+        toConsider.add group.reverse()[0]
+      }
     }
     toConsider
   }
@@ -292,6 +299,7 @@ class ParsingState {
       if (mite.findContradictors(newActive)) {
         List<Mite> candidates = all.findAll { cnd -> cnd.contradicts(mite) && !cnd.findContradictors(newActive) }
         def best = candidates.find { b -> active.every { b.cxt != it.cxt } }
+        best = best ?: candidates.find { !it.primary }
         best = best ?: candidates[0]
         if (best) {
           newActive << best

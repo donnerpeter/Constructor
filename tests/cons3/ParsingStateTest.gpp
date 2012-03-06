@@ -97,7 +97,7 @@ public class ParsingStateTest extends TestCase {
             apply((myAcc):[noun:new Variable()])
     def frame = state.chart.frames[0]
     assert frame.f('arg2')
-    assert !frame.f('arg1')
+    assert frame.f('arg1')
   }
 
   public void testPreferFirst() {
@@ -196,6 +196,18 @@ public class ParsingStateTest extends TestCase {
     assert !frame.s('hidden')
     assert !frame.s('arg1')
 
+  }
+
+  public void testPreferMergedWhenDisplacing() {
+    def var = new Variable()
+    def head = new Variable()
+    def state = new ParsingState().
+            apply((myAcc):[noun:var, xor:t.a], (myNom):[noun:var, xor:t.a, agr:'b'], (ac1):[comp:'true', xor:t.a]).
+            apply((myAcc):[head:head], (myNom):[head:head, agr:'a'], (ac1):[head:head]).
+            apply((myAcc):[noun:new Variable()])
+    def frame = state.chart.frames.find { it.s('comp') == 'true' }
+    assert frame.f('arg2')
+    assert !frame.f('arg1')
   }
 
 }

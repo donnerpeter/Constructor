@@ -222,41 +222,11 @@ class ParsingState {
   }
 
   private static ParsingState baseApply(ParsingState state, List<Mite> update, boolean tryAlternatives) {
-    List<Mite> newMites = []
-    Map<Mite, Mite> inheritors = [:]
-    Map<Construction, List<Mite>> maximalUnions = [:]
-    for (mite in update) {
-      def c = mite.cxt
-      List<Mite> existing = state.visibleMites[c] ?: []
-      newMites << mite
-      Mite lastUnified = mite
-      for (older in existing.findAll { !overwrites(mite.contents, it.contents) }) {
-        def union = older.unify(mite)
-        newMites << union
-        lastUnified = union
-        if (older in state.active) {
-          inheritors[older] = union
-        }
-      }
-      if (lastUnified) {
-        maximalUnions[mite.cxt] = (maximalUnions[mite.cxt] ?: []) + lastUnified
-      }
-    }
+    Map<Mite, List<Mite>> newMites = mergeMites(update, state)
 
-    state = state.addCxt(new Node(newMites, Collections.emptySet(), state.node))
+    state = state.addCxt(new Node(newMites.values().flatten() as List<Mite>, Collections.emptySet(), state.node))
     
-    LinkedHashSet<Mite> toConsider = []
-
-    for (mite in state.active) {
-      def next = inheritors[mite]
-      if (next && next in state.visibleMites[next.cxt]) {
-        toConsider << next
-      }
-    }
-
-    for (unions in maximalUnions.values()) {
-      toConsider += unions
-    }
+    LinkedHashSet<Mite> toConsider = pickPreferred(state, newMites)
 
     def newActive = suggestActive(state, toConsider)
     state = state.activate(newActive)
@@ -271,6 +241,31 @@ class ParsingState {
     }
 
     return state.clone(currentGeneration: state.currentGeneration + 1)
+  }
+
+  public static LinkedHashSet<Mite> pickPreferred(ParsingState state, Map<Mite, List<Mite>> newMites) {
+    LinkedHashSet<Mite> toConsider = []
+    for (old in state.active) {
+      for (group in newMites.values()) {
+        toConsider.addAll group.reverse().findAll { it.src1 == old }
+      }
+    }
+    for (group in newMites.values()) {
+      toConsider.addAll group.reverse()[0]
+    }
+    toConsider
+  }
+
+  public static Map<Mite, List<Mite>> mergeMites(List<Mite> update, ParsingState state) {
+    Map<Mite, List<Mite>> newMites = [:]
+    for (mite in update) {
+      newMites[mite] = [mite]
+      List<Mite> existing = state.visibleMites[mite.cxt] ?: []
+      for (older in existing.findAll { !overwrites(mite.contents, it.contents) }) {
+        newMites[mite] << older.unify(mite)
+      }
+    }
+    newMites
   }
 
   private static ParsingState tryAlternative(ParsingState state, Mite toAdd) {

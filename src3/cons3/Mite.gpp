@@ -8,13 +8,14 @@ class Mite {
   final FLinkedMap contents
   final FList<Pair<Variable, Variable>> unifications
   private final Map<Mite, Boolean> _contradictors = [:]
-  final LinkedHashSet<Mite> primaries
+  final Mite src1, src2
 
-  Mite(Map contents, Construction cxt, FList<Pair<Variable, Variable>> unifications = FList.emptyList, Collection<Mite> primaries = null) {
+  Mite(Map contents, Construction cxt, FList<Pair<Variable, Variable>> unifications = FList.emptyList, Mite src1 = null, Mite src2 = null) {
     this.cxt = cxt
     this.contents = contents instanceof FLinkedMap ? contents : FLinkedMap.fromMap(contents)
     this.unifications = unifications
-    this.primaries = (primaries == null ? [this] : primaries) as LinkedHashSet
+    this.src1 = src1
+    this.src2 = src2
   }
 
   boolean contradicts(Mite another) {
@@ -68,7 +69,7 @@ class Mite {
       }
     }
 
-    return new Mite(ParsingState.unify(before, newArgs), cxt, newUnifications, primaries + another.primaries)
+    return new Mite(ParsingState.unify(before, newArgs), cxt, newUnifications, this, another)
   }
 
   boolean isHasHead() {
@@ -76,8 +77,15 @@ class Mite {
     return headVal instanceof Variable && headVal.hard
   }
 
+  LinkedHashSet<Mite> getPrimaries() {
+    if (primary) {
+      return [this]
+    }
+    return src1.primaries + src2.primaries
+  }
+
   boolean isPrimary() {
-    primaries.size() == 1
+    src1 == null
   }
 
 }

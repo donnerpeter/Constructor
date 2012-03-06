@@ -30,20 +30,6 @@ class ParsingState {
     miteGenerations = map.miteGenerations
   }
 
-  ParsingState separateUnifications(ParsingState before, Set<Variable> withVariables) {
-    Set<Variable> oldVariables = []
-    for (c in before.visibleMites.values()) {
-      for (mite in c) {
-        for (v in mite.contents.values()) {
-          if (v instanceof Variable) {
-            oldVariables << v.base
-          }
-        }
-      }
-    }
-    clone(chart:chart.separateUnifications(oldVariables, withVariables))
-  }
-
   Map<Construction, List<Mite>> getVisibleMites() {
     return node.getAllMites()
   }
@@ -238,11 +224,10 @@ class ParsingState {
   private static ParsingState baseApply(ParsingState state, List<Mite> update, boolean tryAlternatives) {
     List<Mite> newMites = []
     Map<Mite, Mite> inheritors = [:]
-    def vm = state.visibleMites
     Map<Construction, List<Mite>> maximalUnions = [:]
     for (mite in update) {
       def c = mite.cxt
-      List<Mite> existing = vm[c] ?: []
+      List<Mite> existing = state.visibleMites[c] ?: []
       newMites << mite
       Mite lastUnified = mite
       for (older in existing.findAll { !overwrites(mite.contents, it.contents) }) {
@@ -260,12 +245,11 @@ class ParsingState {
 
     state = state.addCxt(new Node(newMites, Collections.emptySet(), state.node))
     
-    LinkedHashSet<Mite> toConsider = [] 
+    LinkedHashSet<Mite> toConsider = []
 
-    vm = state.visibleMites
     for (mite in state.active) {
       def next = inheritors[mite]
-      if (next && next in vm[next.cxt]) {
+      if (next && next in state.visibleMites[next.cxt]) {
         toConsider << next
       }
     }

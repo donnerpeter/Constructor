@@ -238,7 +238,6 @@ class ParsingState {
   private static ParsingState baseApply(ParsingState state, List<Mite> update, boolean tryAlternatives) {
     List<Mite> newMites = []
     Map<Mite, Mite> inheritors = [:]
-    Node best = null
     def vm = state.visibleMites
     Map<Construction, List<Mite>> maximalUnions = [:]
     for (mite in update) {
@@ -253,22 +252,13 @@ class ParsingState {
         if (older in state.active) {
           inheritors[older] = union
         }
-        Node pretendent = null
-        if (older.hasHead) {
-          pretendent = state.node.findNode(older)
-        } else if (mite.hasHead) {
-          pretendent = state.node.findNode(older)?.before
-        }
-        if (pretendent) {
-          best = best == null || pretendent.isMoreRecentThan(best) ? pretendent : best
-        }
       }
       if (lastUnified) {
         maximalUnions[mite.cxt] = (maximalUnions[mite.cxt] ?: []) + lastUnified
       }
     }
 
-    state = state.addCxt(new Node(newMites, Collections.emptySet(), best ?: state.node))
+    state = state.addCxt(new Node(newMites, Collections.emptySet(), state.node))
     
     LinkedHashSet<Mite> toConsider = [] 
 

@@ -34,7 +34,7 @@ class Mite {
   }
 
   List<Mite> findContradictors(Collection<Mite> mites) {
-    mites.findAll { it.cxt == cxt || contradicts(it) } as List
+    (mites as List<Mite>).findAll { it.cxt == cxt || contradicts(it) } as List
   }
 
   @Override
@@ -78,13 +78,13 @@ class Mite {
   }
 
   LinkedHashSet<Mite> getPrimaries() {
-    if (primary) {
+    if (atom) {
       return [this]
     }
     return src1.primaries + src2.primaries
   }
 
-  boolean isPrimary() {
+  boolean isAtom() {
     src1 == null
   }
 

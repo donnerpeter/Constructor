@@ -222,7 +222,7 @@ class ParsingState {
   }
 
   private static ParsingState baseApply(ParsingState state, List<Mite> update, boolean tryAlternatives) {
-    Map<Mite, List<Mite>> newMites = mergeMites(update, state)
+    LinkedHashMap<Mite, List<Mite>> newMites = mergeMites(update, state)
 
     state = state.addCxt(new Node(newMites.values().flatten() as List<Mite>, Collections.emptySet(), state.node))
     
@@ -243,18 +243,46 @@ class ParsingState {
     return state.clone(currentGeneration: state.currentGeneration + 1)
   }
 
-  public static LinkedHashSet<Mite> pickPreferred(ParsingState state, Map<Mite, List<Mite>> newMites) {
-    LinkedHashSet<Mite> toConsider = []
-    for (old in state.active) {
-      for (group in newMites.values()) {
-        toConsider.addAll group.reverse().findAll { it.src1 == old }
+  public static LinkedHashSet<Mite> pickPreferred(ParsingState state, LinkedHashMap<Mite, List<Mite>> newMites) {
+    Map<Mite, List<Mite>> inheritors = [:]
+    for (group in newMites.values()) {
+      for (mite in group.reverse()) {
+        def old = mite.src1
+        if (old) {
+          inheritors[old] = (inheritors[old] ?: []) + mite
+        }
       }
     }
+
+    LinkedHashSet<Mite> toConsider = []
+
+    LinkedHashSet<Mite> unmergedCompetitors = []
+    //disprefer not merged
+    for (old in state.active) {
+      if (!(old in inheritors) && old.atom) {
+        for (competitor in old.findContradictors(inheritors.keySet())) {
+          unmergedCompetitors.addAll inheritors[competitor]
+        }
+      }
+    }
+    for (old in state.active) {
+      if (old in unmergedCompetitors) {
+        toConsider << old
+      }
+    }
+    //preserve active
+    for (old in state.active) {
+      if (old in inheritors) {
+        toConsider.addAll inheritors[old]
+      }
+    }
+    //prefer merged
     for (group in newMites.values()) {
       if (group.size() > 1) {
         toConsider.add group.reverse()[0]
       }
     }
+    //prefer new
     for (group in newMites.values()) {
       if (group.size() == 1) {
         toConsider.add group.reverse()[0]
@@ -263,8 +291,8 @@ class ParsingState {
     toConsider
   }
 
-  public static Map<Mite, List<Mite>> mergeMites(List<Mite> update, ParsingState state) {
-    Map<Mite, List<Mite>> newMites = [:]
+  public static LinkedHashMap<Mite, List<Mite>> mergeMites(List<Mite> update, ParsingState state) {
+    LinkedHashMap<Mite, List<Mite>> newMites = [:]
     for (mite in update) {
       newMites[mite] = [mite]
       List<Mite> existing = state.visibleMites[mite.cxt] ?: []
@@ -299,7 +327,7 @@ class ParsingState {
       if (mite.findContradictors(newActive)) {
         List<Mite> candidates = all.findAll { cnd -> cnd.contradicts(mite) && !cnd.findContradictors(newActive) }
         def best = candidates.find { b -> active.every { b.cxt != it.cxt } }
-        best = best ?: candidates.find { !it.primary }
+        best = best ?: candidates.find { !it.atom }
         best = best ?: candidates[0]
         if (best) {
           newActive << best

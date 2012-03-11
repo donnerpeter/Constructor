@@ -88,4 +88,8 @@ class Mite {
     src1 == null
   }
 
+  boolean isPartOf(Mite another) {
+    return another.cxt == cxt && another.primaries.containsAll(primaries)
+  }
+
 }

@@ -226,9 +226,7 @@ class ParsingState {
 
     state = state.addCxt(new Node(newMites.values().flatten() as List<Mite>, Collections.emptySet(), state.node))
     
-    LinkedHashSet<Mite> toConsider = pickPreferred(state, newMites)
-
-    def newActive = suggestActive(state, toConsider)
+    def newActive = suggestActive(state, newMites.values().collect { it.reverse() }.flatten() as List<Mite>)
     state = state.activate(newActive)
 
     for (cxt in state.visibleMites.keySet()) {
@@ -241,54 +239,6 @@ class ParsingState {
     }
 
     return state.clone(currentGeneration: state.currentGeneration + 1)
-  }
-
-  public static LinkedHashSet<Mite> pickPreferred(ParsingState state, LinkedHashMap<Mite, List<Mite>> newMites) {
-    Map<Mite, List<Mite>> inheritors = [:]
-    for (group in newMites.values()) {
-      for (mite in group.reverse()) {
-        def old = mite.src1
-        if (old) {
-          inheritors[old] = (inheritors[old] ?: []) + mite
-        }
-      }
-    }
-
-    LinkedHashSet<Mite> toConsider = []
-
-    LinkedHashSet<Mite> unmergedCompetitors = []
-    //disprefer not merged
-    for (old in state.active) {
-      if (!(old in inheritors) && old.atom) {
-        for (competitor in old.findContradictors(inheritors.keySet())) {
-          unmergedCompetitors.addAll inheritors[competitor]
-        }
-      }
-    }
-    for (old in state.active) {
-      if (old in unmergedCompetitors) {
-        toConsider << old
-      }
-    }
-    //preserve active
-    for (old in state.active) {
-      if (old in inheritors) {
-        toConsider.addAll inheritors[old]
-      }
-    }
-    //prefer merged
-    for (group in newMites.values()) {
-      if (group.size() > 1) {
-        toConsider.add group.reverse()[0]
-      }
-    }
-    //prefer new
-    for (group in newMites.values()) {
-      if (group.size() == 1) {
-        toConsider.add group.reverse()[0]
-      }
-    }
-    toConsider
   }
 
   public static LinkedHashMap<Mite, List<Mite>> mergeMites(List<Mite> update, ParsingState state) {
@@ -312,41 +262,51 @@ class ParsingState {
     return state
   }
 
-  private static LinkedHashSet<Mite> suggestActive(ParsingState state, Collection<Mite> preferred) {
+  private static LinkedHashSet<Mite> suggestActive(ParsingState state, Collection<Mite> updated) {
     Set<Mite> checked = []
     LinkedHashSet<Mite> newActive = []
+
+    LinkedHashSet<Mite> preferred = rearrangeUpdatedMites(state, updated)
     for (mite in preferred) {
       if (checked.add(mite) && !mite.findContradictors(newActive)) {
         newActive << mite
       }
     }
 
-    List<Mite> all = state.visibleMites.values().collect { it.reverse() }.flatten()
-    LinkedHashSet<Mite> active = Util.intersect(all, state.active)
-    for (mite in active) {
+    List<Mite> all = state.visibleMites.values().collect { it.reverse() }.flatten() as List<Mite>
+    for (mite in state.active) {
       if (mite.findContradictors(newActive)) {
-        List<Mite> candidates = all.findAll { cnd -> cnd.contradicts(mite) && !cnd.findContradictors(newActive) }
-        def best = candidates.find { b -> active.every { b.cxt != it.cxt } }
-        best = best ?: candidates.find { !it.atom }
-        best = best ?: candidates[0]
-        if (best) {
-          newActive << best
+        Mite replacement = all.find { cnd -> !cnd.atom && cnd.contradicts(mite) && !cnd.findContradictors(newActive) }
+        if (replacement) {
+          newActive << replacement
         }
       }
     }
 
-    for (mite in active) {
-      if (checked.add(mite) && !mite.findContradictors(newActive)) {
-        newActive << mite
-      }
-    }
-
-    for (mite in all) {
+    for (mite in (state.active as LinkedHashSet<Mite>) + all) {
       if (checked.add(mite) && !mite.findContradictors(newActive)) {
         newActive << mite
       }
     }
     return newActive
+  }
+
+  public static LinkedHashSet<Mite> rearrangeUpdatedMites(ParsingState state, Collection<Mite> updated) {
+    LinkedHashSet<Mite> preferred = []
+    LinkedHashSet<Mite> dispreferred = []
+    for (mite in state.active) {
+      preferred.addAll(updated.findAll { mite.isPartOf(it) })
+      for (contr in mite.findContradictors(updated)) {
+        if (!contr.atom) {
+          dispreferred << contr.src2
+        }
+      }
+    }
+
+    preferred.addAll(updated)
+    preferred.removeAll(dispreferred)
+    preferred.addAll(updated)
+    return preferred
   }
 
   private ParsingState activate(LinkedHashSet<Mite> newActive) {
@@ -419,7 +379,8 @@ class ParsingState {
       def alternative = verb.unifiedVar.frame(other.chart)
       if (!alternative) continue
 
-      if (verb.type in humanActions) {
+      if (verb.type in humanActions ||
+          verb.type == 'COME_SCALARLY' && verb.f('anchor')?.canBeHuman() && alternative.type == 'COME_SCALARLY' && alternative.f('anchor')?.canBeHuman()) {
         boolean meHuman = !verb.f('arg1')?.definitelyNonHuman()
         def otherHuman = !alternative.f('arg1')?.definitelyNonHuman()
         if (meHuman != otherHuman) {

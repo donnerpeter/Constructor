@@ -157,7 +157,7 @@ public class ParsingStateTest extends TestCase {
             apply((ac1):[head:head, xor:t.e]).
             apply((ac1):[rel:'1', xor:t.d]).
             apply((ac1):[rel:'2', xor:t.a], (ac2):[head:head, xor:t.a])
-            state = state.apply((ac2):[attr:'val'])
+    state = state.apply((ac2):[attr:'val'])
     def frame = state.chart.frames[0]
     assert frame.s('attr') == 'val'
     assert frame.s('rel') == '1'
@@ -229,6 +229,33 @@ public class ParsingStateTest extends TestCase {
     def frame = state.chart.frames[0]
     assert frame.f('arg2')
     assert frame.f('arg1')
+  }
+
+  public void testNewMitesLeavingNoChoice() {
+    def head = new Variable()
+    def var = new Variable()
+    def state = new ParsingState().
+            apply((myAcc):[head:head], (myNom):[head:head]).
+            apply((myAcc):[noun:var, xor:t.a], (myNom):[noun:var, xor:t.a]).
+            apply((myNom):[agr:'aaa'])
+    def frame = state.chart.frames[0]
+    assert frame.f('arg1')
+    assert !frame.f('arg2')
+  }
+
+  public void _testThatMotherLovesDaughter() { //todo remove active count heuristic
+    def var0 = new Variable()
+    def var1 = new Variable()
+    def var2 = new Variable()
+    def head = new Variable()
+    def state = new ParsingState()
+    state = state.apply((myAcc):[noun:var0, xor:t.a], (myNom):[noun:var0, xor:t.a], (ec2):[xor:t.a])
+    state = state.apply((myNom):[noun:var1], (ac1):[head:var1, type:'mother'])
+    state = state.apply((myNom):[head:head], (myAcc):[head:head])
+    state = state.apply((myNom):[noun:var2, xor:t.b], (myAcc):[noun:var2, xor:t.b], (ac2):[head:var2, type:'daughter'])
+    def frame = head.frame(state.chart)
+    assert frame.f('arg1')?.type == 'mother'
+    assert frame.f('arg2')?.type == 'daughter'
   }
 
 }

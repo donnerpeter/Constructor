@@ -222,10 +222,10 @@ public class ParsingStateTest extends TestCase {
   public void testBeConservativeAboutMerged() {
     def head = new Variable()
     def noun = new Variable()
-    def state = new ParsingState().
-            apply((ec2):[head:head, xor:t.ac], (ec3):[xor:t.c], (myAcc):[xor:t.a, head:head], (myNom):[head:head]).
-            apply((myAcc):[noun:new Variable()]).
-            apply((ec2):[xxx:'yyy', xor:t.b], (myNom):[noun:noun, xor:t.b], (ac1):[attr:'val'])
+    def state = new ParsingState()
+    state = state.apply((ec2):[head:head, xor:t.ac], (ec3):[xor:t.c], (myAcc):[xor:t.a, head:head], (myNom):[head:head])
+    state = state.apply((myAcc):[noun:new Variable()])
+    state = state.apply((ec2):[xxx:'yyy', xor:t.b], (myNom):[noun:noun, xor:t.b], (ac1):[attr:'val'])
     def frame = state.chart.frames[0]
     assert frame.f('arg2')
     assert frame.f('arg1')

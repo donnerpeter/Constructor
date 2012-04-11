@@ -5,7 +5,7 @@ import static cons3.RussianConstructions.*
 /**
  * @author peter
  */
-class Preposition implements Interceptor {
+class Preposition extends Interceptor {
 
   static final ArrayList<Construction> cases = [nom, acc, gen, dat, instr, prep]
 

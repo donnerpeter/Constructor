@@ -3,7 +3,7 @@ package cons3
 /**
  * @author peter
  */
-class EllipsisInterceptor implements Interceptor, RussianConstructions {
+class EllipsisInterceptor extends Interceptor implements RussianConstructions {
   final ParsingState prevHistory
   final ParsingState beforeDash
 

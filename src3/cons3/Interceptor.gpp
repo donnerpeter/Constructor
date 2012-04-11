@@ -3,7 +3,9 @@ package cons3
 /**
  * @author peter
  */
-public interface Interceptor {
-  ParsingState intercept(List<Mite> contribution, ParsingState state, Function2<List<Mite>, ParsingState, ParsingState> base)
+public abstract class Interceptor {
+  ParsingState intercept(List<Mite> contribution, ParsingState state, Function2<List<Mite>, ParsingState, ParsingState> base) {
+    base(contribution, state)
+  }
 
 }

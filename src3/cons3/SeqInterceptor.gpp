@@ -6,7 +6,7 @@ import groovy.transform.TupleConstructor
  * @author peter
  */
 @TupleConstructor
-class SeqInterceptor implements Interceptor, RussianConstructions {
+class SeqInterceptor extends Interceptor implements RussianConstructions {
   ParsingState before
   String conj
 

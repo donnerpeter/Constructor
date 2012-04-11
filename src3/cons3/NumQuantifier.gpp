@@ -3,7 +3,7 @@ package cons3
 /**
  * @author peter
  */
-class NumQuantifier implements Interceptor, RussianConstructions {
+class NumQuantifier extends Interceptor implements  RussianConstructions {
 
   ParsingState intercept(List<Mite> contribution, ParsingState state, Function2<List<Mite>, ParsingState, ParsingState> base) {
     if (state[numQuantifier].num) {

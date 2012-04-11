@@ -222,11 +222,15 @@ class ParsingState {
   }
 
   private static ParsingState baseApply(ParsingState state, List<Mite> update, boolean tryAlternatives) {
-    LinkedHashMap<Mite, List<Mite>> newMites = mergeMites(update, state)
+    LinkedHashSet<Mite> fullUpdate = update as LinkedHashSet
+    for (Mite mite in state.visibleMites.values().flatten()) {
+      Interceptor interceptor = mite.contents.interceptor ?: new Interceptor()
+      fullUpdate.addAll interceptor.enrichUpdate(mite, update, state)
+    }
+    state = state.addCxt(new Node(fullUpdate as List<Mite>, Collections.emptySet(), state.node))
 
-    state = state.addCxt(new Node(newMites.values().flatten() as List<Mite>, Collections.emptySet(), state.node))
-    
-    def newActive = suggestActive(state, newMites.values().collect { it.reverse() }.flatten() as List<Mite>)
+    LinkedHashSet<Mite> preferred = Util.intersect(state.visibleMites.values().collect { it.reverse() }.flatten(), fullUpdate)
+    def newActive = suggestActive(state, preferred)
     state = state.activate(newActive)
 
     for (cxt in state.visibleMites.keySet()) {
@@ -238,19 +242,7 @@ class ParsingState {
       }
     }
 
-    return state.clone(currentGeneration: state.currentGeneration + 1)
-  }
-
-  public static LinkedHashMap<Mite, List<Mite>> mergeMites(List<Mite> update, ParsingState state) {
-    LinkedHashMap<Mite, List<Mite>> newMites = [:]
-    for (mite in update) {
-      newMites[mite] = [mite]
-      List<Mite> existing = state.visibleMites[mite.cxt] ?: []
-      for (older in existing.findAll { !overwrites(mite.contents, it.contents) }) {
-        newMites[mite] << older.unify(mite)
-      }
-    }
-    newMites
+    return state.clone(currentGeneration:state.currentGeneration + 1)
   }
 
   private static ParsingState tryAlternative(ParsingState state, Mite toAdd) {

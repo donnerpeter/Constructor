@@ -3,9 +3,13 @@ package cons3
 /**
  * @author peter
  */
-public abstract class Interceptor {
+public class Interceptor {
   ParsingState intercept(List<Mite> contribution, ParsingState state, Function2<List<Mite>, ParsingState, ParsingState> base) {
     base(contribution, state)
+  }
+
+  Collection<Mite> enrichUpdate(Mite mite, List<Mite> contribution, ParsingState state) {
+    return contribution.findAll { it.cxt == mite.cxt && !ParsingState.overwrites(mite.contents, it.contents) }.collect { mite.unify(it) }
   }
 
 }

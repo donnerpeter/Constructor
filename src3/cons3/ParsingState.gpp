@@ -222,8 +222,20 @@ class ParsingState {
   }
 
   private static ParsingState baseApply(ParsingState state, List<Mite> update, boolean tryAlternatives) {
+    LinkedHashSet<Mite> toAsk = state.node.front as LinkedHashSet
+    LinkedList<Mite> queue = toAsk as LinkedList
+    while (queue) {
+      Mite mite = queue.removeFirst()
+      Interceptor interceptor = mite.contents.interceptor ?: new Interceptor()
+      for (next in interceptor.getVisibleMites(mite, state)) {
+        if (toAsk.add(next)) {
+          queue << next
+        }
+      }
+    }
+
     LinkedHashSet<Mite> fullUpdate = update as LinkedHashSet
-    for (Mite mite in state.visibleMites.values().flatten()) {
+    for (Mite mite in Util.intersect(state.visibleMites.values().flatten(), toAsk)) {
       Interceptor interceptor = mite.contents.interceptor ?: new Interceptor()
       fullUpdate.addAll interceptor.enrichUpdate(mite, update, state)
     }

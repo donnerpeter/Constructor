@@ -406,7 +406,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
           state = state.clearConstructions().apply((questionVariants):[questioned:state[question].questioned], (verbHolder):[head:state[verbHolder]?.head])
         }
         if (state[prevHistory]) {
-          state = state.apply(clauseEllipsis, interceptor:new EllipsisInterceptor((ParsingState) state[prevHistory].history, state))
+          state = state.apply((clauseEllipsis):[interceptor:new EllipsisInterceptor((ParsingState) state[prevHistory].history, state)],
+                  (clauseEllipsis2):[:]) //todo remove clauseEllipsis2
         }
         return state
       case ".":

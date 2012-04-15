@@ -49,4 +49,11 @@ class Node {
   boolean isMoreRecentThan(Node node) {
     return node == this || before?.isMoreRecentThan(node)
   }
+
+  LinkedHashSet<Mite> getFront() {
+    if (ownMites) return ownMites as LinkedHashSet
+    if (!before) return []
+    return before.front - _inhibited
+  }
+
 }

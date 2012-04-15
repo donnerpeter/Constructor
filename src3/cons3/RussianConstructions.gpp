@@ -131,6 +131,7 @@ interface RussianConstructions {
   }
   Construction prevHistory = cxt('prevHistory', ['X']) { ParsingState state, Map args -> return state }
   Construction clauseEllipsis = cxt('clauseEllipsis', ['X']) { ParsingState state, Map args -> return state }
+  Construction clauseEllipsis2 = cxt('clauseEllipsis2', ['X']) { ParsingState state, Map args -> return state }
   Construction declOrQuestionComp = cxt('declOrQuestionComp', ['head', 'comp', 'hasComma']) { ParsingState state, Map args ->
     def type = ((Variable) args.head).frame(state.chart).type
     def attr = type == 'FORGET' ? 'arg2' : type == 'DISCOVER' ? 'theme' : type == 'SAY' ? 'message' : 'question'
@@ -324,7 +325,7 @@ interface RussianConstructions {
     state.assign(args.head, args.adv == 'LONG' ? 'duration' : 'manner', args.adv).inhibit(adverb)
   }
   Construction quotedName = cxt('quotedName', ['finished']) { ParsingState state, Map args ->
-    state.assign(args.noun, 'name', args.name).satisfied(quotedName)
+    state.assign(args.noun, 'name', args.name)
   }
   Construction relativeClause = cxt('relativeClause', ['noun', 'hasComma', 'wh']) { ParsingState state, Map args ->
     if (args.noun && args.hasComma && args.wh) {

@@ -4,7 +4,7 @@ package cons3
  * @author peter
  */
 public class Interceptor {
-  static Interceptor SEEING_ALL = new Interceptor() {
+  static final Interceptor SEEING_ALL = new Interceptor() {
     @Override
     Collection<Mite> getVisibleMites(Mite mite, ParsingState state) {
       return state.visibleMites.values().flatten()
@@ -20,6 +20,12 @@ public class Interceptor {
   }
 
   Collection<Mite> getVisibleMites(Mite mite, ParsingState state) {
+    if (mite.cxt.headAttr) {
+      Variable head = mite.contents[mite.cxt.headAttr]
+      if (head) {
+        return state.everythingAbout(head)
+      }
+    }
     return state.visibleMites.values().flatten()
   }
 

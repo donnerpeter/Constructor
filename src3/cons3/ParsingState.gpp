@@ -448,4 +448,8 @@ class ParsingState {
     }
     return log
   }
+
+  Collection<Mite> everythingAbout(Variable variable) {
+    return visibleMites.values().flatten().findAll { Mite mite -> variable in mite.contents.values() }
+  }
 }

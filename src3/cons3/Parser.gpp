@@ -233,7 +233,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "работы":
         state = noun(state, gen, 'WORK')
         return state.apply(absTime, noun:state[posleGen].noun)
-      case "вдруг": return state.apply(adverb, adv:'SUDDENLY')
+      case "вдруг": return state.apply((adverb):[adv:'SUDDENLY', interceptor:Interceptor.SEEING_ALL])
       case "опять":
         return state.assign(var.lightVar, 'anchor', 'AGAIN').apply((verbHolder):[head:var.lightVar])
       case "слегка": return state.apply(adverb, adv:'SLIGHTLY')

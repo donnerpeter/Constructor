@@ -72,11 +72,6 @@ class Mite {
     return new Mite(ParsingState.unify(before, newArgs), cxt, newUnifications, this, another)
   }
 
-  boolean isHasHead() {
-    def headVal = contents[cxt.headAttr]
-    return headVal instanceof Variable && headVal.hard
-  }
-
   LinkedHashSet<Mite> getPrimaries() {
     if (atom) {
       return [this]

@@ -186,7 +186,7 @@ public class ParsingStateTest extends TestCase {
     assert frame.f('arg2').f('arg2')?.var == vars[2]
   }
 
-  public void testHeadHidesPrecedingArguments() {
+  public void _testHeadHidesPrecedingArguments() {
     def var = new Variable()
     def state = new ParsingState().
             apply((myAcc):[noun:new Variable()], (ac1):[hidden:'true'], (myNom):[head:var]).

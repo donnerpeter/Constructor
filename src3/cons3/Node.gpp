@@ -11,6 +11,7 @@ class Node {
   final List<Mite> ownMites
   final Set<Mite> _inhibited
   final Node before
+  final ParsingState prevState
   private Map<Construction, List<Mite>> cache
 
   Map<Construction, List<Mite>> getAllMites() {
@@ -20,15 +21,19 @@ class Node {
     }
 
     result = [:]
+    LinkedHashSet<Mite> toExclude = []
     for (k in ownMites) {
       result[k.cxt] = (result[k.cxt] ?: []) + [k]
+      Interceptor interceptor = k.contents.interceptor ?: new Interceptor()
+      toExclude.addAll(interceptor.getHiddenMites(k, prevState))
     }
+    toExclude.addAll(_inhibited)
 
     before?.getAllMites()?.each { c, oldMites ->
       result[c] = oldMites + (result[c] ?: [])
     }
 
-    for (mite in _inhibited) {
+    for (mite in toExclude) {
       def ms = result[mite.cxt]
       ms?.remove(mite)
       if (!ms) {

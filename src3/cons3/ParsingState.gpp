@@ -106,7 +106,7 @@ class ParsingState {
     def victim = active.find { it.cxt == mite.cxt }
 
     def fat = victim ? victim.unify(mite) : mite
-    return clone(node:new Node(node.ownMites + [fat] as List, node._inhibited, node.before),
+    return clone(node:new Node(node.ownMites + [fat] as List, node._inhibited, node.before, node.prevState),
             active:(active as LinkedHashSet) - victim + fat,
             miteGenerations:miteGenerations.putValue(fat, currentGeneration))
   }
@@ -175,7 +175,7 @@ class ParsingState {
     LinkedHashSet<Mite> newActive = new LinkedHashSet<Mite>(active)
     Set<Mite> toRemove = new LinkedHashSet<Mite>(visibleMites[name] ?: [])
     newActive.removeAll(toRemove)
-    return clone(node: new Node(Collections.emptyList(), toRemove, node), active:newActive)
+    return clone(node: new Node(Collections.emptyList(), toRemove, node, this), active:newActive)
   }
 
   ParsingState startMeta(Variable meta) {
@@ -222,24 +222,13 @@ class ParsingState {
   }
 
   private static ParsingState baseApply(ParsingState state, List<Mite> update, boolean tryAlternatives) {
-    LinkedHashSet<Mite> toAsk = state.node.front as LinkedHashSet
-    LinkedList<Mite> queue = toAsk as LinkedList
-    while (queue) {
-      Mite mite = queue.removeFirst()
-      Interceptor interceptor = mite.contents.interceptor ?: new Interceptor()
-      for (next in interceptor.getVisibleMites(mite, state)) {
-        if (toAsk.add(next)) {
-          queue << next
-        }
-      }
-    }
-
+    LinkedHashSet<Mite> toAsk = state.visibleMites.values().flatten() as LinkedHashSet
     LinkedHashSet<Mite> fullUpdate = update as LinkedHashSet
-    for (Mite mite in Util.intersect(state.visibleMites.values().flatten(), toAsk)) {
+    for (Mite mite in toAsk) {
       Interceptor interceptor = mite.contents.interceptor ?: new Interceptor()
       fullUpdate.addAll interceptor.enrichUpdate(mite, update, state)
     }
-    state = state.addCxt(new Node(fullUpdate as List<Mite>, Collections.emptySet(), state.node))
+    state = state.addCxt(new Node(fullUpdate as List<Mite>, Collections.emptySet(), state.node, state))
 
     LinkedHashSet<Mite> preferred = Util.intersect(state.visibleMites.values().collect { it.reverse() }.flatten(), fullUpdate)
     def newActive = suggestActive(state, preferred)
@@ -449,7 +438,7 @@ class ParsingState {
     return log
   }
 
-  Collection<Mite> everythingAbout(Variable variable) {
-    return visibleMites.values().flatten().findAll { Mite mite -> variable in mite.contents.values() }
+  List<Mite> everythingAbout(Variable variable) {
+    return visibleMites.values().flatten().findAll { Mite mite -> variable in mite.contents.values() } as List<Mite>
   }
 }

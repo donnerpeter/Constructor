@@ -4,12 +4,6 @@ package cons3
  * @author peter
  */
 public class Interceptor {
-  static final Interceptor SEEING_ALL = new Interceptor() {
-    @Override
-    Collection<Mite> getVisibleMites(Mite mite, ParsingState state) {
-      return state.visibleMites.values().flatten()
-    }
-  }
 
   ParsingState intercept(List<Mite> contribution, ParsingState state, Function2<List<Mite>, ParsingState, ParsingState> base) {
     base(contribution, state)
@@ -19,14 +13,20 @@ public class Interceptor {
     return contribution.findAll { it.cxt == mite.cxt && !ParsingState.overwrites(mite.contents, it.contents) }.collect { mite.unify(it) }
   }
 
-  Collection<Mite> getVisibleMites(Mite mite, ParsingState state) {
+  Collection<Mite> getHiddenMites(Mite mite, ParsingState before) {
     if (mite.cxt.headAttr) {
       Variable head = mite.contents[mite.cxt.headAttr]
       if (head) {
-        return state.everythingAbout(head)
+        LinkedHashSet<Mite> result = []
+        for (val in mite.contents.values()) {
+          if (val instanceof Variable && val != head) {
+            result.addAll(before.everythingAbout(val).findAll { it.contents[it.cxt.headAttr] == val })
+          }
+        }
+        return result
       }
     }
-    return state.visibleMites.values().flatten()
+    return []
   }
 
 }

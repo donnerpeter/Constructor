@@ -9,7 +9,7 @@ interface RussianConstructions {
 
   Construction adjective = cxt('adjective') { ParsingState state, Map args ->
     state.assign(args.nounFrame, (String)args.rel, args.val) }
-  Construction nom = cxt('nom', ['head']) { ParsingState state, Map args ->
+  Construction nom = cxt('nom', ['+head']) { ParsingState state, Map args ->
     if (args.agr && !((Variable) args.noun)?.hard) {
       Variable noun = args.noun
       if (!noun) {
@@ -175,7 +175,7 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction possessive = cxt('possessive') { ParsingState state, Map args ->
+  Construction possessive = cxt('possessive', ['+head']) { ParsingState state, Map args ->
     if (args.head && !args.possessor) {
       state = state.inhibit(possessive)
     }

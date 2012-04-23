@@ -8,6 +8,9 @@ import groovy.transform.TupleConstructor
 @TupleConstructor
 class Node {
   static final Node EMPTY = new Node(Collections.emptyList(), Collections.emptySet())
+  private static final Comparator nodeComparator = { ParsingState s1, ParsingState s2 ->
+    s1.node.isMoreRecentThan(s2.node) ? -1 : s1 == s2 ? 0 : 1
+  } as Comparator
   final List<Mite> ownMites
   final Set<Mite> _inhibited
   final Node before
@@ -20,17 +23,32 @@ class Node {
       return result
     }
 
+    LinkedHashSet<ParsingState> toInclude = []
     result = [:]
     LinkedHashSet<Mite> toExclude = []
+
+    if (_inhibited) {
+      toExclude.addAll(_inhibited)
+    }
+    if (prevState && !ownMites) {
+      toInclude << prevState
+    }
+
     for (k in ownMites) {
       result[k.cxt] = (result[k.cxt] ?: []) + [k]
       Interceptor interceptor = k.contents.interceptor ?: new Interceptor()
-      toExclude.addAll(interceptor.getHiddenMites(k, prevState))
+      def state = interceptor.getExtensionState(k, this)
+      if (state) {
+        toInclude << state
+        toExclude.addAll(interceptor.getHiddenMites(k, prevState))
+      }
     }
-    toExclude.addAll(_inhibited)
 
-    before?.getAllMites()?.each { c, oldMites ->
-      result[c] = oldMites + (result[c] ?: [])
+    def sorted = toInclude.sort(nodeComparator)
+    sorted.reverse().each { state ->
+      state.visibleMites.each { Construction c, List<Mite> oldMites ->
+        result[c] = ((oldMites + (result[c] ?: [])) as LinkedHashSet) as List
+      }
     }
 
     for (mite in toExclude) {

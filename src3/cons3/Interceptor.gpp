@@ -13,6 +13,10 @@ public class Interceptor {
     return contribution.findAll { it.cxt == mite.cxt && !ParsingState.overwrites(mite.contents, it.contents) }.collect { mite.unify(it) }
   }
 
+  ParsingState getExtensionState(Mite mite, Node current) {
+    current.findNode(mite).prevState
+  }
+
   Collection<Mite> getHiddenMites(Mite mite, ParsingState before) {
     if (mite.cxt.headAttr) {
       Variable head = mite.contents[mite.cxt.headAttr]

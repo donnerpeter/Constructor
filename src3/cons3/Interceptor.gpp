@@ -24,7 +24,7 @@ public class Interceptor {
         LinkedHashSet<Mite> result = []
         for (val in mite.contents.values()) {
           if (val instanceof Variable && val != head) {
-            result.addAll(before.everythingAbout(val).findAll { it.contents[it.cxt.headAttr] == val })
+            result.addAll(before.everythingAbout((Variable)val).findAll { it.contents[it.cxt.headAttr] == val })
           }
         }
         return result

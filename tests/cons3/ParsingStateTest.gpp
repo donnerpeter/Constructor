@@ -243,14 +243,14 @@ public class ParsingStateTest extends TestCase {
     assert !frame.f('arg2')
   }
 
-  public void _testThatMotherLovesDaughter() { //todo remove active count heuristic
+  public void testThatMotherLovesDaughter() {
     def var0 = new Variable()
     def var1 = new Variable()
     def var2 = new Variable()
     def head = new Variable()
     def state = new ParsingState()
     state = state.apply((myAcc):[noun:var0, xor:t.a], (myNom):[noun:var0, xor:t.a], (ec2):[xor:t.a])
-    state = state.apply((myNom):[noun:var1], (ac1):[head:var1, type:'mother'])
+    state = state.apply((myNom):[noun:var1, xor:t.c], (ac1):[head:var1, type:'mother'])
     state = state.apply((myNom):[head:head], (myAcc):[head:head])
     state = state.apply((myNom):[noun:var2, xor:t.b], (myAcc):[noun:var2, xor:t.b], (ac2):[head:var2, type:'daughter'])
     def frame = head.frame(state.chart)

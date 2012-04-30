@@ -226,6 +226,8 @@ class ParsingState {
   }
 
   private static ParsingState baseApply(ParsingState state, List<Mite> update, boolean tryAlternatives) {
+    Set oldXors = state.activeXors
+
     LinkedHashSet<Mite> toAsk = state.visibleMites.values().flatten() as LinkedHashSet
     LinkedHashSet<Mite> fullUpdate = update as LinkedHashSet
     for (Mite mite in toAsk) {
@@ -243,17 +245,17 @@ class ParsingState {
 
       def toAdd = state.visibleMites[cxt].reverse()[0]
       if (toAdd && !(toAdd in state.active)) {
-        state = tryAlternative(state, toAdd)
+        state = tryAlternative(state, toAdd, oldXors)
       }
     }
 
     return state.clone(currentGeneration:state.currentGeneration + 1)
   }
 
-  private static ParsingState tryAlternative(ParsingState state, Mite toAdd) {
+  private static ParsingState tryAlternative(ParsingState state, Mite toAdd, Set oldXors) {
     def anotherActive = suggestActive(state, [toAdd])
     def alternative = state.activate(anotherActive)
-    if (alternative.dominates(state)) {
+    if (alternative.dominates(state, oldXors)) {
       return alternative
     }
     return state
@@ -360,9 +362,11 @@ class ParsingState {
     return state
   }
 
+  private Set getActiveXors() { active.collect { it.contents.xor ?: [] }.flatten() as Set }
 
-  private boolean dominates(ParsingState other) {
-    if (active.size() < other.active.size() && !other.dominatesSemantically(this)) {
+  private boolean dominates(ParsingState other, Set oldXors) {
+    if ((active.size() < other.active.size() || (oldXors - activeXors).size() < (oldXors - other.activeXors).size()) &&
+        !other.dominatesSemantically(this)) {
       return true
     }
 

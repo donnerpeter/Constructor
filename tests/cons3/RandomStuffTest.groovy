@@ -20,4 +20,13 @@ class RandomStuffTest extends TestCase {
     doTranslateTest 'У Васи был арбуз.',
             'Vasya had a water melon.'
   }
+
+  public void _testItsRaining() {
+    doTranslateTest 'Идет дождь',
+            "It's raining"
+  }
+  public void _testItsSnowing() {
+    doTranslateTest 'Идет снег',
+            "It's snowing"
+  }
 }

@@ -36,10 +36,10 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction acc = cxt('acc', ['head', 'noun']) { ParsingState state, Map args ->
+  Construction acc = cxt('acc', ['+head', 'noun']) { ParsingState state, Map args ->
     state.assign(args.head, 'arg2', args.noun)
   }
-  Construction gen = cxt('gen', ['head', 'noun']) { ParsingState state, Map args ->
+  Construction gen = cxt('gen', ['+head', 'noun']) { ParsingState state, Map args ->
     Frame head = ((Variable) args.head).frame(state.chart)
     List<Variable> heads = head.flatten().collect {it.var}
     int i = 0
@@ -212,7 +212,7 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction numQuantifier = cxt('numQuantifier', ['num', 'noun']) { ParsingState state, Map args ->
+  Construction numQuantifier = cxt('numQuantifier', ['num', '+noun']) { ParsingState state, Map args ->
     return args.num && args.noun ? state.assign(args.noun, 'quantifier', args.num) : state
   }
   Construction negation = cxt('negation') { ParsingState state, Map args ->
@@ -243,7 +243,7 @@ interface RussianConstructions {
     }
     state
   }
-  Construction posleGen = cxt('posleGen', ['noun', 'head']) { ParsingState state, Map args ->
+  Construction posleGen = cxt('posleGen', ['noun', '+head']) { ParsingState state, Map args ->
     if (args.head && args.noun) {
       state = state.assign(args.head,'anchor', args.noun)
     }

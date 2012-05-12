@@ -534,7 +534,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     if (caze == dat) {
       update = update.addCxt(datSubj, noun:var).addCxt(dativePart, dat:var)
     }
-    update = update.addCxt(caze, noun:var)
+    update = update.addCxt(caze, noun:var, xor:new Tokens().a)
     update
   }
 

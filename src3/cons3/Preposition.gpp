@@ -37,13 +37,6 @@ class Preposition extends Interceptor {
     return super.getExtensionState(mite, current)
   }
 
-  Collection<Mite> getHiddenMites(Mite mite, ParsingState before) {
-    if (mite.contents.hasNoun || mite.contents.prep in ['posle', 'ranshe']) {
-      return super.getHiddenMites(mite, before)
-    }
-    return before.visibleMites.values().flatten().findAll { Mite m -> m.cxt != reflexiveHolder }
-  }
-
   Collection<Mite> enrichUpdate(Mite prep, List<Mite> contribution, ParsingState state) {
     List<Mite> result = []
     for (mite in contribution) {

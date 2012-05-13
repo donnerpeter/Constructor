@@ -29,19 +29,40 @@ class Preposition extends Interceptor {
     return caze
   }
 
-  ParsingState intercept(List<Mite> contribution, ParsingState state, Function2<List<Mite>, ParsingState, ParsingState> base) {
-    Update update = new Update()
+  @Override
+  ParsingState getExtensionState(Mite mite, Node current) {
+    if (mite.contents.hasNoun || mite.contents.prep in ['posle', 'ranshe']) {
+      return current.findNode(mite.primaries.iterator().next()).prevState
+    }
+    return super.getExtensionState(mite, current)
+  }
+
+  Collection<Mite> getHiddenMites(Mite mite, ParsingState before) {
+    if (mite.contents.hasNoun || mite.contents.prep in ['posle', 'ranshe']) {
+      return super.getHiddenMites(mite, before)
+    }
+    return before.visibleMites.values().flatten().findAll { Mite m -> m.cxt != reflexiveHolder }
+  }
+
+  Collection<Mite> enrichUpdate(Mite prep, List<Mite> contribution, ParsingState state) {
+    List<Mite> result = []
     for (mite in contribution) {
       def c = mite.cxt
-      if (c == nom) continue
-
-      def newC = c in cases && !mite.contents.head ? transformCase(state, c) : c
-      update = update.addCxt(mite.contents, newC)
-      if (newC != c && ((Variable) mite.contents.noun)?.hard) {
-        state = state.inhibit(preposition)
+      if (c in cases && !mite.contents.head) {
+        def newC = transformCase(state, c)
+        if (newC != c) {
+          def converted = new Mite(mite.contents, newC)
+          def existing = state.visibleMites[newC]
+          if (existing) {
+            result.addAll(existing.findAll { !ParsingState.overwrites(converted.contents, it.contents) }.collect { it.unify(converted) })
+          }
+        }
       }
     }
-    return base(update.mites.reverse(), state)
+    if (!result.empty && !prep.contents.hasNoun) {
+      result << prep.unify(new Mite(preposition, hasNoun:true))
+    }
+    return result
   }
 
 }

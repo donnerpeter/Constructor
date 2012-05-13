@@ -221,8 +221,8 @@ F.type=CASHIER
 D.arg2=F
 G.type=WE
 H.type=PREDICAMENT
-D.topic=H
 H.arg1=G
+D.topic=H
 --
 A.relativized=true
 B.type=CORNER
@@ -499,8 +499,8 @@ B.type=GO
 B.time=PAST
 B.arg1=A
 C.type=GARDEN
-B.goal=C
 C.name=Летний сад
+B.goal=C
 D.type=BEGIN
 D.time=PAST
 E.member=B
@@ -630,8 +630,8 @@ C.type=WE
 B.arg2=C
 D.type=WE
 E.type=ARGUE
-B.theme=E
 E.arg1=D
+B.theme=E
 '''
   }
 

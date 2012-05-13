@@ -10,7 +10,7 @@ public class Interceptor {
   }
 
   Collection<Mite> enrichUpdate(Mite mite, List<Mite> contribution, ParsingState state) {
-    return contribution.findAll { it.cxt == mite.cxt && !ParsingState.overwrites(mite.contents, it.contents) }.collect { mite.unify(it) }
+    return mite.unifyWherePossible(contribution, true)
   }
 
   ParsingState getExtensionState(Mite mite, Node current) {

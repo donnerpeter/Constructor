@@ -5,6 +5,25 @@ package cons3
  */
 class NumQuantifier extends Interceptor implements  RussianConstructions {
 
+/*
+  Collection<Mite> enrichUpdate(Mite prep, List<Mite> contribution, ParsingState state) {
+    List<Mite> result = []
+    if (state[numQuantifier].num) {
+      def args = state[numQuantifier]
+      Update update = new Update()
+      for (mite in contribution) {
+        if (mite.cxt == args.innerCase) {
+          Variable noun = mite.contents.noun
+          result << new Mite(dativePart, acc:noun)
+          result.addAll(new Mite(noun:noun.lightVar, acc).unifyWherePossible(state))
+        }
+      }
+    }
+    return super.enrichUpdate(prep, contribution, state) + result
+  }
+*/
+
+
   ParsingState intercept(List<Mite> contribution, ParsingState state, Function2<List<Mite>, ParsingState, ParsingState> base) {
     if (state[numQuantifier].num) {
       def args = state[numQuantifier]

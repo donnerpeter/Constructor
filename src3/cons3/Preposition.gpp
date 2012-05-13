@@ -29,14 +29,6 @@ class Preposition extends Interceptor {
     return caze
   }
 
-  @Override
-  ParsingState getExtensionState(Mite mite, Node current) {
-    if (mite.contents.hasNoun || mite.contents.prep in ['posle', 'ranshe']) {
-      return current.findNode(mite.primaries.iterator().next()).prevState
-    }
-    return super.getExtensionState(mite, current)
-  }
-
   Collection<Mite> enrichUpdate(Mite prep, List<Mite> contribution, ParsingState state) {
     List<Mite> result = []
     for (mite in contribution) {
@@ -44,11 +36,7 @@ class Preposition extends Interceptor {
       if (c in cases && !mite.contents.head) {
         def newC = transformCase(state, c)
         if (newC != c) {
-          def converted = new Mite(mite.contents, newC)
-          def existing = state.visibleMites[newC]
-          if (existing) {
-            result.addAll(existing.findAll { !ParsingState.overwrites(converted.contents, it.contents) }.collect { it.unify(converted) })
-          }
+          result.addAll(new Mite(mite.contents, newC).unifyWherePossible(state))
         }
       }
     }

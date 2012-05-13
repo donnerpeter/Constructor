@@ -87,4 +87,14 @@ class Mite {
     return another.cxt == cxt && another.primaries.containsAll(primaries)
   }
 
+  List<Mite> unifyWherePossible(ParsingState state) {
+    return unifyWherePossible(state.visibleMites[cxt], false)
+  }
+
+  List<Mite> unifyWherePossible(Collection<Mite> mites, boolean before) {
+    return mites.
+            findAll { it.cxt == cxt && !ParsingState.overwrites(contents, it.contents) }.
+            collect { before ? this.unify(it) : it.unify(this) }
+  }
+
 }

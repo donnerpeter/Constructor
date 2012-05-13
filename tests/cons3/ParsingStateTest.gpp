@@ -120,10 +120,10 @@ public class ParsingStateTest extends TestCase {
   public void testDontPreferOldMitesJustBecauseTheirConstructionUpdated() {
     def head = new Variable()
 
-    def state = new ParsingState().
-            apply((ec2):[xor:t.ab], (ac1):[head:head, xor:t.a], (ac2):[head:head]).
-            apply((ac1):[xtype:'byAc1']).
-            apply((ac2):[rel:'AFTER', xor:t.d], (ec2):[xor:t.d])
+    def state = new ParsingState()
+    state = state.apply((ec2):[xor:t.a], (ac1):[head:head, xor:t.a], (ac2):[head:head])
+    state = state.apply((ac1):[xtype:'byAc1', xor:t.b])
+    state = state.apply((ac2):[rel:'AFTER', xor:t.d], (ec2):[xor:t.d])
 
     def frame = state.chart.frames[0]
     assert frame.s('xtype') == 'byAc1'
@@ -142,12 +142,14 @@ public class ParsingStateTest extends TestCase {
 
   public void testPreferLessActiveMites() {
     def head = new Variable()
+    def daughter = new Variable()
 
     def state = new ParsingState().
-            apply((ac1):[head:head], (ac2):[head:head]).
-            apply((ac1):[rel:'1', xor:t.d], (ac2):[rel:'2', xor:t.ad], (ec2):[xor:t.a])
+            apply((ac1):[rel:'1'], (myAcc):[noun:daughter]).
+            apply((ac1):[head:head, xor:t.d], (myAcc):[head:head, xor:t.ad], (ec2):[xor:t.a])
     def frame = state.chart.frames[0]
-    assert frame.s('rel') == '2'
+    assert frame.f('arg2')
+    assert !frame.s('rel')
   }
 
   public void testRestoreLatestPossibleMite() {

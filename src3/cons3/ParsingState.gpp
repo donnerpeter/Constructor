@@ -290,18 +290,22 @@ class ParsingState {
     return newActive
   }
 
-  public static LinkedHashSet<Mite> rearrangeUpdatedMites(ParsingState state, Collection<Mite> updated) {
+  private static LinkedHashSet<Mite> rearrangeUpdatedMites(ParsingState state, Collection<Mite> updated) {
     LinkedHashSet<Mite> preferred = []
     LinkedHashSet<Mite> dispreferred = []
     for (mite in state.active) {
-      preferred.addAll(updated.findAll { mite.isPartOf(it) })
-      for (contr in mite.findContradictors(updated)) {
-        if (!contr.atom) {
-          dispreferred << contr.src2
+      def inheritors = updated.findAll { mite.isPartOf(it) }
+      if (inheritors) {
+        preferred.addAll(inheritors)
+        for (contr in mite.findContradictors(updated)) {
+          if (!contr.atom) {
+            dispreferred << contr.src2
+          }
         }
       }
     }
 
+    preferred.addAll(updated.findAll { !it.atom })
     preferred.addAll(updated)
     preferred.removeAll(dispreferred)
     preferred.addAll(updated)
@@ -363,9 +367,16 @@ class ParsingState {
   }
 
   private Set getActiveXors() { active.collect { it.contents.xor ?: [] }.flatten() as Set }
+  private Collection getUnsatisfiedDaughters() { active.findAll {
+    it.cxt.headAttr && (!it.contents[it.cxt.headAttr] || ((Variable) it.contents[it.cxt.headAttr]).light)
+  } }
 
   private boolean dominates(ParsingState other, Set oldXors) {
-    if ((active.size() < other.active.size() || (oldXors - activeXors).size() < (oldXors - other.activeXors).size()) &&
+    if (unsatisfiedDaughters.size() > other.unsatisfiedDaughters.size() || (oldXors - activeXors).size() > (oldXors - other.activeXors).size()) {
+      return false
+    }
+
+    if ((unsatisfiedDaughters.size() < other.unsatisfiedDaughters.size() || (oldXors - activeXors).size() < (oldXors - other.activeXors).size()) &&
         !other.dominatesSemantically(this)) {
       return true
     }
@@ -387,6 +398,10 @@ class ParsingState {
         if (meHuman != otherHuman) {
           return meHuman
         }
+      }
+
+      if (verb.type == 'COME_SCALARLY' && verb.f('anchor')?.definitelyNonHuman() && verb.f('arg1')?.definitelyNonHuman() && alternative.type == 'GO') {
+        return true
       }
 
       if (verb.type && verb.type != 'fact' && !alternative.type) {

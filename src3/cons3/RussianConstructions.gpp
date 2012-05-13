@@ -212,8 +212,8 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction numQuantifier = cxt('numQuantifier', ['num', '+noun']) { ParsingState state, Map args ->
-    return args.num && args.noun ? state.assign(args.noun, 'quantifier', args.num) : state
+  Construction numQuantifier = cxt('numQuantifier', ['+num', 'noun']) { ParsingState state, Map args ->
+    state.assign(args.noun, 'quantifier', args.num)
   }
   Construction negation = cxt('negation') { ParsingState state, Map args ->
     return state

@@ -387,9 +387,14 @@ class ParsingState {
   private boolean dominatesSemantically(ParsingState other) {
     def humanActions = ['GO', 'BREAK', 'CAN', 'REMEMBER', 'FORGET']
     def verbs = humanActions + ['COME_SCALARLY', 'fact', 'question']
+    for (frame in chart.frames) {
+      def alternative = frame.unifiedVar.frame(other.chart)
+      if (!frame.type && alternative.type && frame.f('quantifier')?.type) {
+        return false
+      }
+    }
     for (verb in chart.frames.findAll { it.type in verbs }) {
       def alternative = verb.unifiedVar.frame(other.chart)
-      if (!alternative) continue
 
       if (verb.type in humanActions ||
           verb.type == 'COME_SCALARLY' && verb.f('anchor')?.canBeHuman() && alternative.type == 'COME_SCALARLY' && alternative.f('anchor')?.canBeHuman()) {

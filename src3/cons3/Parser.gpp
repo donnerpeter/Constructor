@@ -206,8 +206,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "квартирам": return noun(state, dat, 'APARTMENTS')
       case "офисам": return noun(state, dat, 'OFFICES')
       case "челюсти":
-        return state.apply((gen):[noun:var], (acc):[noun:var],
-                (dativePart):[acc:var], (typeCxt('JAWS')):[var:var], (numQuantifier):[noun:var])
+        return state.apply((gen):[noun:var, xor:t.ab], (acc):[noun:var, xor:t.a], (typeCxt('JAWS')):[var:var])
       case "челюстью": return noun(state, instr, 'JAW')
       case "челюсть":
         return state.apply((acc):[noun:var], (dativePart):[acc:var], (typeCxt('JAW')):[var:var])

@@ -609,8 +609,8 @@ J.member=I
 H.arg1=G
 K.type=BOTH
 H.arg2=L
-L.arg1=G
 L.type=JAWS
+L.arg1=G
 L.quantifier=K
 """
   }

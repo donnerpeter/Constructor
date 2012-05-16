@@ -253,7 +253,7 @@ public class ParsingStateTest extends TestCase {
     def state = new ParsingState()
     state = state.apply((myAcc):[noun:var0, xor:t.a], (myNom):[noun:var0, xor:t.a], (ec2):[xor:t.a])
     state = state.apply((myNom):[noun:var1, xor:t.c], (ac1):[head:var1, type:'mother'])
-    state = state.apply((myNom):[head:head], (myAcc):[head:head])
+     state = state.apply((myNom):[head:head], (myAcc):[head:head])
     state = state.apply((myNom):[noun:var2, xor:t.b], (myAcc):[noun:var2, xor:t.b], (ac2):[head:var2, type:'daughter'])
     def frame = head.frame(state.chart)
     assert frame.f('arg1')?.type == 'mother'

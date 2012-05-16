@@ -283,7 +283,7 @@ interface RussianConstructions {
     }
 
     if (!interceptor) {
-      interceptor = new SeqInterceptor(before, conj)
+      interceptor = new SeqInterceptor(before)
       if (conj) {
         state = state.clearConstructions()
       }

@@ -8,7 +8,6 @@ import groovy.transform.TupleConstructor
 @TupleConstructor
 class SeqInterceptor extends Interceptor implements RussianConstructions {
   ParsingState before
-  String conj
 
   static boolean agree(agr1, agr2) {
     return agrUnifiable(agrGender((String)agr1), agrGender((String)agr2)) &&
@@ -43,6 +42,7 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
       def seqs = [:]
       boolean merged = false
 
+      String conj = state[seq]?.conj
       def oldApps = history[similar].apps
 
       for (mite in constructions) {
@@ -85,7 +85,7 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
           if (history[similar].apps.find { it.cxt == preposition }) { //todo a generic way of finding sequence precedents
             def nounContribution = remainingPrecedent.find { it.apps.any { it.cxt == dat && it.contents.noun } }
             if (nounContribution) {
-              update = new Update().addCxt(seq, precedent:[nounContribution], interceptor:new SeqInterceptor(state, conj)) + update
+              update = new Update().addCxt(seq, precedent:[nounContribution], conj:conj, interceptor:new SeqInterceptor(state)) + update
             }
           }
         }
@@ -97,6 +97,7 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
   }
 
   private Update merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, Update update, Map<Pair<Variable, Variable>, Variable> seqs, boolean clauseLevel) {
+    String conj = state[seq]?.conj
     if (oldArgs != null) {
       if (cxt == elaboration && before[cxt]?.head && oldArgs.elaboration && newArgs.elaboration) {
         return doMerge(state, cxt, oldArgs, newArgs, 'elaboration', update, seqs)
@@ -148,7 +149,7 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
     Variable existingSeq = first.frame(state.chart).f('member') ? first : first.frame(state.chart).usages('member')[0]?.var
     if (existingSeq) {
       def oldConj = existingSeq.frame(state.chart).s('conj')
-      if (!oldConj || oldConj == conj) {
+      if (!oldConj || oldConj == state[seq]?.conj) {
         return joinSeq(newArgs, state, cxt, existingSeq, oldArgs, prop, update)
       }
     }
@@ -158,9 +159,8 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
     if (first.light && second.light) {
       multi = multi.lightVar
     }
-
     return update.
-            addCxt(aSeqStart(), multi:multi, first:first, second:second, conj:conj, distinguish:state[preposition]?.repeated).
+            addCxt(aSeqStart(), multi:multi, first:first, second:second, conj:state[seq]?.conj, distinguish:state[preposition]?.repeated).
             addCxt(newArgs + [(prop):multi, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt)
   }
 
@@ -206,4 +206,10 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
 
   }
 
+  @Override
+  public String toString() {
+    return "SeqInterceptor{" +
+           "before=" + before +
+           '}';
+  }
 }

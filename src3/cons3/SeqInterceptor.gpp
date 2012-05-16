@@ -18,7 +18,7 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
   static String agrGender(String agr) { return agr == 'masc' ? 'masc' : agr == 'fem' ? 'fem' : null }
   static String agrNumber(String agr) { return agr?.endsWith('pl') ? 'pl' : agr?.endsWith('sg') || agr in ['masc', 'fem'] ? 'sg' : null }
   static String agrPerson(String agr) { return agr?.startsWith('3') ? '3' : null }
-  static boolean agrUnifiable(String a1, String a2) { return a1 == null || a2 == null || a1 == a2 }
+  private static boolean agrUnifiable(String a1, String a2) { return a1 == null || a2 == null || a1 == a2 }
 
   ParsingState intercept(List<Mite> constructions, ParsingState state, Function2<List<Mite>, ParsingState, ParsingState> base) {
     List<Contribution> history

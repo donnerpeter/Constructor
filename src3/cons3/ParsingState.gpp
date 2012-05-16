@@ -9,7 +9,7 @@ class ParsingState {
   final Node node
   private final FLinkedMap<Mite, Integer> miteGenerations
   final FList<Contribution> history
-  private final Set<Mite> active
+  final Set<Mite> active
   private final int currentGeneration
 
   ParsingState() {
@@ -32,13 +32,6 @@ class ParsingState {
 
   Map<Construction, List<Mite>> getVisibleMites() {
     return node.getAllMites()
-  }
-
-  ParsingState getBeforeThisChange() {
-    if (history.empty) {
-      return new ParsingState()
-    }
-    return history[0].before.apply(history[0])
   }
 
   ParsingState apply(Contribution contribution) {

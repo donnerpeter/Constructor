@@ -277,7 +277,7 @@ interface RussianConstructions {
   Construction seq = cxt('seq') { ParsingState state, Map args ->
     SeqInterceptor interceptor = args.interceptor
     String conj = args.conj
-    def before = state.beforeThisChange
+    def before = state.node.findNode(state.active.find { it.cxt == seq }).prevState
     if (conj && !before[seq]?.conj && before[seq]?.interceptor) {
       interceptor = null
     }

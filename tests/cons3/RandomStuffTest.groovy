@@ -29,4 +29,13 @@ class RandomStuffTest extends TestCase {
     doTranslateTest 'Идет снег',
             "It's snowing"
   }
+
+  public void _testToSmokeIsToDamageHealth() {
+    doTranslateTest 'Курить - здоровью вредить',
+            "To smoke is to damage one's health"
+  }
+  public void _testToDrinkTea() {
+    doTranslateTest 'Чай пить - долго жить',
+            "To drink tea is to live long"
+  }
 }

@@ -231,23 +231,23 @@ class ParsingState {
 
     LinkedHashSet<Mite> preferred = Util.intersect(state.visibleMites.values().collect { it.reverse() }.flatten(), fullUpdate)
     def newActive = suggestActive(state, preferred)
-    state = state.activate(newActive)
+    state = state.activate(fullUpdate, newActive)
 
     for (cxt in state.visibleMites.keySet()) {
       if (!(cxt in state.visibleMites)) continue
 
       def toAdd = state.visibleMites[cxt].reverse()[0]
       if (toAdd && !(toAdd in state.active)) {
-        state = tryAlternative(state, toAdd, oldXors)
+        state = tryAlternative(state, toAdd, oldXors, fullUpdate)
       }
     }
 
     return state.clone(currentGeneration:state.currentGeneration + 1)
   }
 
-  private static ParsingState tryAlternative(ParsingState state, Mite toAdd, Set oldXors) {
+  private static ParsingState tryAlternative(ParsingState state, Mite toAdd, Set oldXors, LinkedHashSet<Mite> fullUpdate) {
     def anotherActive = suggestActive(state, [toAdd])
-    def alternative = state.activate(anotherActive)
+    def alternative = state.activate(fullUpdate, anotherActive)
     if (alternative.dominates(state, oldXors)) {
       return alternative
     }
@@ -305,12 +305,15 @@ class ParsingState {
     return preferred
   }
 
-  private ParsingState activate(LinkedHashSet<Mite> newActive) {
+  private ParsingState activate(LinkedHashSet<Mite> fullUpdate, LinkedHashSet<Mite> newActive) {
     def toRemove = new LinkedHashSet<Mite>(active)
     toRemove.removeAll(newActive)
     toRemove.retainAll(visibleMites.values().flatten())
+
+    def all = new LinkedHashSet<Mite>(fullUpdate)
+    all.addAll(visibleMites.values().flatten())
     def toApply = new LinkedHashSet<Mite>()
-    visibleMites.values().each {
+    all.each {
       toApply.addAll(it.findAll { it in newActive && !(it in active) })
     }
     toRemove = toRemove.findAll { m1 ->

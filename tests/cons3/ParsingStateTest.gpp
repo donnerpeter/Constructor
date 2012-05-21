@@ -260,4 +260,15 @@ public class ParsingStateTest extends TestCase {
     assert frame.f('arg2')?.type == 'daughter'
   }
 
+  public void testNoMiteDuplication() {
+    def state = new ParsingState()
+    state = state.apply((ec2):[foo:2, bar:3], (ec3):[foo:2])
+    assert state.visibleMites[ec2].size() == 1
+    assert state.visibleMites[ec3].size() == 1
+
+    state = state.apply((ec2):[foo:2], (ec3):[foo:2])
+    assert state.visibleMites[ec2].size() == 1
+    assert state.visibleMites[ec3].size() == 1
+  }
+
 }

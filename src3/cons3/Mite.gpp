@@ -104,4 +104,18 @@ class Mite {
     return result
   }
 
+  boolean contains(Mite another) {
+    if (cxt != another.cxt) return false
+    if (ParsingState.overwrites(contents, another.contents)) {
+      return false
+    }
+
+    def unity = unify(another)
+    if (unity.contents == contents && unity.unifications == unifications) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
 }

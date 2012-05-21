@@ -479,12 +479,12 @@ B.type=DO
 C.time=PAST
 B.arg1=A
 B.arg2=D
-C.type=modality
-C.arg1=B
-D.type=wh
 E.content=C
 E.type=question
 E.questioned=D
+C.type=modality
+C.arg1=B
+D.type=wh
 '''
   }
 

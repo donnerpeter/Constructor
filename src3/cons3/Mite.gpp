@@ -88,13 +88,20 @@ class Mite {
   }
 
   List<Mite> unifyWherePossible(ParsingState state) {
-    return unifyWherePossible(state.visibleMites[cxt], false)
+    return unifyWherePossible(state.visibleMites[cxt], false, true)
   }
 
-  List<Mite> unifyWherePossible(Collection<Mite> mites, boolean before) {
-    return mites.
-            findAll { it.cxt == cxt && !ParsingState.overwrites(contents, it.contents) }.
-            collect { before ? this.unify(it) : it.unify(this) }
+  List<Mite> unifyWherePossible(Collection<Mite> mites, boolean before, boolean includeSelf) {
+    List<Mite> result = []
+    if (includeSelf) {
+      result << this
+    }
+    if (mites) {
+      result.addAll mites.
+              findAll { it.cxt == cxt && !ParsingState.overwrites(contents, it.contents) }.
+              collect { before ? this.unify(it) : it.unify(this) }
+    }
+    return result
   }
 
 }

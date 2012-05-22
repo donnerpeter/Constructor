@@ -320,7 +320,7 @@ interface RussianConstructions {
   Construction adverb = cxt('adverb', ['head', 'adv']) { ParsingState state, Map args ->
     state.assign(args.head, args.adv == 'LONG' ? 'duration' : 'manner', args.adv).inhibit(adverb)
   }
-  Construction quotedName = cxt('quotedName', ['finished']) { ParsingState state, Map args ->
+  Construction quotedName = cxt('quotedName', ['finished', 'noun', 'name']) { ParsingState state, Map args ->
     state.assign(args.noun, 'name', args.name)
   }
   Construction relativeClause = cxt('relativeClause', ['noun', 'hasComma', 'wh']) { ParsingState state, Map args ->

@@ -237,9 +237,16 @@ class ParsingState {
     for (cxt in state.visibleMites.keySet()) {
       if (!(cxt in state.visibleMites)) continue
 
-      def toAdd = state.visibleMites[cxt].reverse()[0]
-      if (toAdd && !(toAdd in state.active)) {
-        state = tryAlternative(state, toAdd, oldXors)
+      List<Mite> toCheck = state.node.ownMites.findAll { it.cxt == cxt }
+      def last = state.visibleMites[cxt].reverse()[0]
+      if (last) {
+        toCheck << last
+      }
+
+      for (toAdd in toCheck.reverse()) {
+        if (!(toAdd in state.active)) {
+          state = tryAlternative(state, toAdd, oldXors)
+        }
       }
     }
 

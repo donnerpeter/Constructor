@@ -237,7 +237,7 @@ class ParsingState {
     for (cxt in state.visibleMites.keySet()) {
       if (!(cxt in state.visibleMites)) continue
 
-      List<Mite> toCheck = state.node.ownMites.findAll { it.cxt == cxt }
+      List<Mite> toCheck = (fullUpdate as List<Mite>).findAll { it.cxt == cxt }
       def last = state.visibleMites[cxt].reverse()[0]
       if (last) {
         toCheck << last

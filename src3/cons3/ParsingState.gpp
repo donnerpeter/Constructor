@@ -13,7 +13,7 @@ class ParsingState {
   private final int currentGeneration
 
   ParsingState() {
-    this(chart: new Chart(), situation: new Situation(), 
+    this(chart: new Chart(), situation: new Situation(),
             node: Node.EMPTY,
             history: FList.emptyList, active: Collections.emptySet(), currentGeneration:0, miteGenerations:FLinkedMap.emptyMap)
   }
@@ -53,7 +53,7 @@ class ParsingState {
   ParsingState assign(def var, String property, def value) {
     clone(chart: chart.assign(((Variable)var).base, situation, property, value instanceof Variable ? value.base : value, currentGeneration))
   }
-  
+
   Map getAt(Construction c) {
     def allMites = visibleMites[c]
     if (allMites == null) {
@@ -123,7 +123,7 @@ class ParsingState {
         }
         args[key] = newArgs[key]
       }
-    } 
+    }
 
     Collection xor = mergeXor(oldArgs, newArgs)
     if (xor) {
@@ -393,6 +393,9 @@ class ParsingState {
     def verbs = humanActions + ['COME_SCALARLY', 'fact', 'question']
     for (frame in chart.frames) {
       def alternative = frame.unifiedVar.frame(other.chart)
+      if (frame.f('member') && alternative.flatten().every { it.type != null } && !frame.flatten().every { it.type != null }) {
+        return false
+      }
       if (!frame.type && alternative.type && frame.f('quantifier')?.type) {
         return false
       }

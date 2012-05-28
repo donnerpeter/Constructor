@@ -396,7 +396,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "раньше":
         return state.apply((comeScalarly):[order:'EARLIER', xor:t.a], (preposition):[prep:'ranshe'], (relTime):[relTime:'BEFORE', xor:t.a], (ransheGen):[:])
       case "после":
-        return state.apply((absTime):[rel:'AFTER', xor:t.a], (comeScalarly):[order:'AFTER', xor:t.a], (preposition):[prep:'posle'], (posleGen):[:])
+        return state.apply((comeScalarly):[order:'AFTER', xor:t.a], (absTime):[rel:'AFTER', xor:t.a], (preposition):[prep:'posle'], (posleGen):[:])
       case "-":
         if (state[directSpeech]) {
           return state.apply(directSpeech, hasDash:true)

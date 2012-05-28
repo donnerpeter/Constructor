@@ -60,7 +60,7 @@ class ParsingState {
       return null
     }
 
-    for (Mite mite in allMites) {
+    for (Mite mite in allMites.reverse()) {
       if (mite in active) {
         return mite.contents
       }
@@ -205,7 +205,7 @@ class ParsingState {
         s1.nextApplier(interceptor.cxt).call(c1, s1)
       }) }
     }
-    return { c, s -> baseApply(s, c, true) }
+    return { c, s -> baseApply(s, c) }
   }
 
   ParsingState apply(Map<Construction, Map> constructions) {
@@ -218,7 +218,7 @@ class ParsingState {
     applier(constructions as List<Mite>, this).clone(history: history + new Contribution(this, FList.fromList(constructions).reverse(), FList.emptyList))
   }
 
-  private static ParsingState baseApply(ParsingState state, List<Mite> update, boolean tryAlternatives) {
+  private static ParsingState baseApply(ParsingState state, List<Mite> update) {
     Set oldXors = state.activeXors
 
     LinkedHashSet<Mite> toAsk = state.visibleMites.values().flatten() as LinkedHashSet
@@ -267,49 +267,63 @@ class ParsingState {
     LinkedHashSet<Mite> newActive = []
 
     LinkedHashSet<Mite> preferred = rearrangeUpdatedMites(state, updated)
-    for (mite in preferred) {
-      if (checked.add(mite) && !mite.findContradictors(newActive)) {
+    while (preferred) {
+      def mite = preferred.iterator().next()
+      preferred.remove(mite)
+      if (!checked.add(mite)) continue
+
+      if (!mite.findContradictors(newActive)) {
         newActive << mite
-      }
-    }
-
-    List<Mite> all = state.visibleMites.values().collect { it.reverse() }.flatten() as List<Mite>
-    for (mite in state.active) {
-      if (mite.findContradictors(newActive)) {
-        Mite replacement = all.find { cnd -> !cnd.atom && cnd.contradicts(mite) && !cnd.findContradictors(newActive) }
-        if (replacement) {
-          newActive << replacement
-        }
-      }
-    }
-
-    for (mite in (state.active as LinkedHashSet<Mite>) + all) {
-      if (checked.add(mite) && !mite.findContradictors(newActive)) {
-        newActive << mite
-      }
-    }
-    return newActive
-  }
-
-  private static LinkedHashSet<Mite> rearrangeUpdatedMites(ParsingState state, Collection<Mite> updated) {
-    LinkedHashSet<Mite> preferred = []
-    LinkedHashSet<Mite> dispreferred = []
-    for (mite in state.active) {
-      def inheritors = updated.findAll { mite.isPartOf(it) }
-      if (inheritors) {
-        preferred.addAll(inheritors)
-        for (contr in mite.findContradictors(updated)) {
-          if (!contr.atom) {
-            dispreferred << contr.src2
+      } else {
+        for (contr in mite.findContradictors(preferred)) {
+          if (checked.add(contr) && !contr.findContradictors(newActive)) {
+            preferred.remove(contr)
+            newActive << contr
           }
         }
       }
     }
 
-    preferred.addAll(updated.findAll { !it.atom })
+    return newActive
+  }
+
+  private static LinkedHashSet<Mite> rearrangeUpdatedMites(ParsingState state, Collection<Mite> updated) {
+    Collection<Mite> all = state.visibleMites.values().collect { it.reverse() }.flatten()
+    LinkedHashSet<Mite> preferred = []
+    for (mite in state.active) {
+      preferred.addAll(updated.findAll { mite.isPartOf(it) })
+    }
+
+    LinkedHashSet<Mite> oldMerged = Util.intersect(all, state.active).findAll { !it.atom }
+    List<Mite> newMerged = (updated as List<Mite>).findAll { !it.atom }
+    preferred.addAll(newMerged.findAll { !it.findContradictors(oldMerged) })
+
+    LinkedHashSet<Mite> dispreferred = []
+    for (mite in updated) {
+      if (mite.findContradictors(oldMerged)) {
+        dispreferred << mite
+        if (!mite.atom) {
+          dispreferred << mite.src2
+        }
+      }
+    }
+
+
+    for (mite in oldMerged) {
+      def newContradictors = mite.findContradictors(newMerged)
+      preferred.addAll((newMerged as LinkedHashSet<Mite>) - newContradictors)
+    }
+    //preferred.addAll(newMerged.findAll { !it.findContradictors(newMerged).findAll { !it.findContradictors(oldMerged) } })
+    preferred.addAll(updated.findAll { !it.findContradictors(oldMerged) })
+//    preferred.addAll(updated.findAll { !it.findContradictors(oldMerged) && it.atom })
+    //preferred.addAll(newMerged)
+//    preferred.addAll(oldMerged)
     preferred.addAll(updated)
-    preferred.removeAll(dispreferred)
-    preferred.addAll(updated)
+    preferred.addAll(oldMerged)
+
+    preferred.addAll(all.findAll { !it.atom })
+    preferred.addAll(state.active)
+    preferred.addAll(all)
     return preferred
   }
 
@@ -323,10 +337,6 @@ class ParsingState {
     def toApply = new LinkedHashSet<Mite>()
     all.each {
       toApply.addAll(it.findAll { it in newActive && !(it in active) })
-    }
-    toRemove = toRemove.findAll { m1 ->
-      def m2 = toApply.find { m1.cxt == it.cxt }
-      return !m2 || Util.intersects(m1.primaries, m2.primaries)
     }
 
     def state = clone(active: newActive)

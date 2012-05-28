@@ -66,10 +66,10 @@ public class ParsingStateTest extends TestCase {
   public void testReviveEarlierCompetitorsWhenChoosingABetterMite() {
     def head = new Variable()
     def noun1 = new Variable()
-    def state = new ParsingState().
-            apply((myAcc):[noun:noun1, xor:t.a], (ec2):[head:head, xor:t.b], (myNom):[noun:noun1, xor:t.ab]).
-            apply((myAcc):[head:head], (myNom):[head:head]).
-            apply((myAcc):[noun:new Variable()])
+    def state = new ParsingState()
+    state = state.apply((myAcc):[noun:noun1, xor:t.a], (ec2):[head:head, xor:t.b], (myNom):[noun:noun1, xor:t.ab])
+    state = state.apply((myAcc):[head:head], (myNom):[head:head])
+    state = state.apply((myAcc):[noun:new Variable()])
     def frame = state.chart.frames[0]
     assert frame.f('arg2')
     assert frame.f('arg1')
@@ -155,10 +155,10 @@ public class ParsingStateTest extends TestCase {
   public void testRestoreLatestPossibleMite() {
     def head = new Variable()
 
-    def state = new ParsingState().
-            apply((ac1):[head:head, xor:t.e]).
-            apply((ac1):[rel:'1', xor:t.d]).
-            apply((ac1):[rel:'2', xor:t.a], (ac2):[head:head, xor:t.a])
+    def state = new ParsingState()
+    state = state.apply((ac1):[head:head, xor:t.e])
+    state = state.apply((ac1):[rel:'1', xor:t.d])
+    state = state.apply((ac1):[rel:'2', xor:t.a], (ac2):[head:head, xor:t.a])
     state = state.apply((ac2):[attr:'val'])
     def frame = state.chart.frames[0]
     assert frame.s('attr') == 'val'
@@ -166,26 +166,32 @@ public class ParsingStateTest extends TestCase {
   }
 
   public void testOnlyOneHardVariable() {
-    def state = new ParsingState().
-            apply((ac1):[head:new Variable(), a:'b']).
-            apply((ac1):[rel:'1', head:new Variable().lightVar]).
-            apply((ac1):[attr:'2', head:new Variable()])
-    def frame = state.chart.frames[0]
-    assert frame.s('attr') == '2'
-    assert !frame.s('a')
-    assert frame.s('rel') == '1'
+    def var0 = new Variable()
+    def var1 = new Variable()
+    def state = new ParsingState()
+    state = state.apply((ac1):[head:var0, a:'b'])
+    state = state.apply((ac1):[rel:'1', head:new Variable().lightVar])
+    state = state.apply((ac1):[attr:'2', head:var1])
+
+    def frame0 = var0.frame(state.chart)
+    assert frame0.s('a') == 'b'
+    assert frame0.s('rel') == '1'
+
+    def frame1 = var1.frame(state.chart)
+    assert frame1.s('attr') == '2'
   }
 
   public void testChain() {
     def vars = [new Variable(), new Variable(), new Variable()]
-    def state = new ParsingState().
-            apply((myAcc):[head:vars[0]]).
-            apply([myAcc(noun:vars[1]), myAcc(head:vars[1])]).
-            apply([myAcc(noun:vars[2]), myAcc(head:vars[2])])
+    def state = new ParsingState()
+    state = state.apply((myAcc):[head:vars[0]])
+    state = state.apply([myAcc(noun:vars[1]), myAcc(head:vars[1])])
+    state = state.apply([myAcc(noun:vars[2]), myAcc(head:vars[2])])
     def frame = state.chart.frames[0]
     assert frame.var == vars[0]
     assert frame.f('arg2')?.var == vars[1]
     assert frame.f('arg2').f('arg2')?.var == vars[2]
+    assert state.active.findAll { it.cxt == myAcc }.size() == 3
   }
 
   public void _testHeadHidesPrecedingArguments() {
@@ -248,12 +254,12 @@ public class ParsingStateTest extends TestCase {
   public void testThatMotherLovesDaughter() {
     def var0 = new Variable()
     def var1 = new Variable()
-    def var2 = new Variable()
     def head = new Variable()
+    def var2 = new Variable()
     def state = new ParsingState()
     state = state.apply((myAcc):[noun:var0, xor:t.a], (myNom):[noun:var0, xor:t.a], (ec2):[xor:t.a])
     state = state.apply((myNom):[noun:var1, xor:t.c], (ac1):[head:var1, type:'mother'])
-     state = state.apply((myNom):[head:head], (myAcc):[head:head])
+    state = state.apply((myNom):[head:head], (myAcc):[head:head])
     state = state.apply((myNom):[noun:var2, xor:t.b], (myAcc):[noun:var2, xor:t.b], (ac2):[head:var2, type:'daughter'])
     def frame = head.frame(state.chart)
     assert frame.f('arg1')?.type == 'mother'

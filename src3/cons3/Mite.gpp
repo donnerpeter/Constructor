@@ -26,7 +26,12 @@ class Mite {
       Set<Object> xor2 = another.contents.xor ?: [] as Set
       boolean result = Util.intersects(xor1, xor2)
       if (!result && another.cxt == cxt) {
-        result = ParsingState.overwrites(another.contents, contents)
+        result = Util.intersects(primaries, another.primaries)
+      }
+      if (!result && another.cxt == cxt) {
+        Set myVars = contents.values().findAll { it instanceof Variable }.collect { ((Variable) it).base } as Set
+        Set anotherVars = another.contents.values().findAll { it instanceof Variable }.collect { ((Variable) it).base } as Set
+        result = myVars == anotherVars
       }
       _contradictors[another] = result
     }
@@ -34,7 +39,7 @@ class Mite {
   }
 
   List<Mite> findContradictors(Collection<Mite> mites) {
-    (mites as List<Mite>).findAll { it.cxt == cxt || contradicts(it) } as List
+    (mites as List<Mite>).findAll { contradicts(it) } as List
   }
 
   @Override

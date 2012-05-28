@@ -98,7 +98,7 @@ class ParsingState {
   ParsingState augmentWith(Mite mite) {
     def victim = active.find { it.cxt == mite.cxt }
 
-    def fat = victim ? victim.unify(mite) : mite
+    def fat = victim && !overwrites(victim.contents, mite.contents) ? victim.unify(mite) : mite
     return clone(node:new Node(node.ownMites - [victim] + [fat] as List, node._inhibited, node.before, node.prevState),
             active:(active as LinkedHashSet) - victim + fat,
             miteGenerations:miteGenerations.putValue(fat, currentGeneration))

@@ -68,6 +68,7 @@ class Mite {
   Mite unify(Mite another) {
     def before = contents
     def newArgs = another.contents
+    assert !ParsingState.overwrites(before, newArgs)
     def newUnifications = unifications.prependAll(another.unifications)
     for (arg in before.keySet().intersect(newArgs.keySet())) {
       def val1 = before[arg]

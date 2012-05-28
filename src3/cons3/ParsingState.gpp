@@ -298,26 +298,9 @@ class ParsingState {
     List<Mite> newMerged = (updated as List<Mite>).findAll { !it.atom }
     preferred.addAll(newMerged.findAll { !it.findContradictors(oldMerged) })
 
-    LinkedHashSet<Mite> dispreferred = []
-    for (mite in updated) {
-      if (mite.findContradictors(oldMerged)) {
-        dispreferred << mite
-        if (!mite.atom) {
-          dispreferred << mite.src2
-        }
-      }
-    }
-
-
     for (mite in oldMerged) {
-      def newContradictors = mite.findContradictors(newMerged)
-      preferred.addAll((newMerged as LinkedHashSet<Mite>) - newContradictors)
+      preferred.addAll(Util.minus(newMerged, mite.findContradictors(newMerged)))
     }
-    //preferred.addAll(newMerged.findAll { !it.findContradictors(newMerged).findAll { !it.findContradictors(oldMerged) } })
-    preferred.addAll(updated.findAll { !it.findContradictors(oldMerged) })
-//    preferred.addAll(updated.findAll { !it.findContradictors(oldMerged) && it.atom })
-    //preferred.addAll(newMerged)
-//    preferred.addAll(oldMerged)
     preferred.addAll(updated)
     preferred.addAll(oldMerged)
 
@@ -334,10 +317,7 @@ class ParsingState {
 
     def all = new LinkedHashSet<Mite>(node.ownMites)
     all.addAll(visibleMites.values().flatten())
-    def toApply = new LinkedHashSet<Mite>()
-    all.each {
-      toApply.addAll(it.findAll { it in newActive && !(it in active) })
-    }
+    LinkedHashSet<Mite> toApply = all.findAll { it in newActive && !(it in active) }
 
     def state = clone(active: newActive)
     state = state.undoChanges(toRemove)
@@ -380,17 +360,17 @@ class ParsingState {
     return state
   }
 
-  private Set getActiveXors() { active.collect { it.contents.xor ?: [] }.flatten() as Set }
-  private Collection getUnsatisfiedDaughters() { active.findAll {
-    it.cxt.headAttr && (!it.contents[it.cxt.headAttr] || ((Variable) it.contents[it.cxt.headAttr]).light)
-  } }
+  private Set getActiveXors() { new LinkedHashSet(active.collect { it.contents.xor ?: [] }.flatten()) }
+  private Collection getUnsatisfiedDaughters() { return active.findAll { it.missingHead } }
 
   private boolean dominates(ParsingState other, Set oldXors) {
-    if (unsatisfiedDaughters.size() > other.unsatisfiedDaughters.size() || (oldXors - activeXors).size() > (oldXors - other.activeXors).size()) {
+    int daughterDelta = unsatisfiedDaughters.size() - other.unsatisfiedDaughters.size()
+    int xorDelta = Util.minus(oldXors, activeXors).size() - Util.minus(oldXors, other.activeXors).size()
+    if (daughterDelta > 0 || xorDelta > 0) {
       return false
     }
 
-    if ((unsatisfiedDaughters.size() < other.unsatisfiedDaughters.size() || (oldXors - activeXors).size() < (oldXors - other.activeXors).size()) &&
+    if ((daughterDelta < 0 || xorDelta < 0) &&
         !other.dominatesSemantically(this)) {
       return true
     }

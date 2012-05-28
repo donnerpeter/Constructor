@@ -174,10 +174,10 @@ public class ParsingStateTest extends TestCase {
     state = state.apply((ac1):[attr:'2', head:var1])
 
     def frame0 = var0.frame(state.chart)
-    assert frame0.s('a') == 'b'
-    assert frame0.s('rel') == '1'
-
     def frame1 = var1.frame(state.chart)
+    assert frame0.s('a') == 'b'
+
+    assert frame1.s('rel') == '1'
     assert frame1.s('attr') == '2'
   }
 

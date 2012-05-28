@@ -74,4 +74,11 @@ class Util {
     ts.retainAll(new HashSet<T>(set2))
     return ts
   }
+
+  static <T> LinkedHashSet<T> minus(Collection<T> set1, Collection<T> set2) {
+    def ts = new LinkedHashSet<T>(set1)
+    ts.removeAll(set2)
+    return ts
+
+  }
 }

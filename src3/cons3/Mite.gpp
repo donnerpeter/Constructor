@@ -39,7 +39,13 @@ class Mite {
   }
 
   List<Mite> findContradictors(Collection<Mite> mites) {
-    (mites as List<Mite>).findAll { contradicts(it) } as List
+    List<Mite> result = []
+    for (mite in mites) {
+      if (contradicts(mite)) {
+        result << mite
+      }
+    }
+    result
   }
 
   @Override
@@ -121,6 +127,10 @@ class Mite {
     } else {
       return false;
     }
+  }
+
+  boolean isMissingHead() {
+    return cxt.headAttr && (!contents[cxt.headAttr] || ((Variable) contents[cxt.headAttr]).light)
   }
 
 }

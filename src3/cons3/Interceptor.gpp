@@ -13,8 +13,8 @@ public class Interceptor {
     return mite.unifyWherePossible(contribution, true, false)
   }
 
-  ParsingState getExtensionState(Mite mite, Node current) {
-    current.findNode(mite).prevState
+  Map<Construction, List<Mite>> getExtensionState(Mite mite, Node current) {
+    current.findNode(mite).prevState?.visibleMites ?: [:]
   }
 
   Collection<Mite> getHiddenMites(Mite mite, ParsingState before) {

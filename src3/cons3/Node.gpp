@@ -23,39 +23,35 @@ class Node {
       return result
     }
 
-    LinkedHashSet<ParsingState> toInclude = []
     result = [:]
     LinkedHashSet<Mite> toExclude = []
 
     if (_inhibited) {
       toExclude.addAll(_inhibited)
     }
-    if (prevState && !ownMites) {
-      toInclude << prevState
-    }
 
     for (k in ownMites) {
       result[k.cxt] = (result[k.cxt] ?: []) + [k]
-      Interceptor interceptor = k.contents.interceptor ?: new Interceptor()
-      def state = interceptor.getExtensionState(k, this)
-      if (state) {
-        toInclude << state
-        toExclude.addAll(interceptor.getHiddenMites(k, prevState))
-      }
     }
 
-    def sorted = toInclude.sort(nodeComparator)
-    sorted.reverse().each { state ->
-      state.visibleMites.each { Construction c, List<Mite> oldMites ->
+    if (prevState && !ownMites) {
+      result += prevState.visibleMites
+    }
+
+    for (k in ownMites) {
+      Interceptor interceptor = k.contents.interceptor ?: new Interceptor()
+      interceptor.getExtensionState(k, this).each { Construction c, List<Mite> oldMites ->
         result[c] = ((oldMites + (result[c] ?: [])) as LinkedHashSet) as List
       }
+      toExclude.addAll(interceptor.getHiddenMites(k, prevState))
     }
 
     for (mite in toExclude) {
-      def ms = result[mite.cxt]
-      ms?.remove(mite)
+      def ms = (result[mite.cxt] ?: []) - mite
       if (!ms) {
         result.remove(mite.cxt)
+      } else {
+        result[mite.cxt] = ms
       }
     }
     cache = result

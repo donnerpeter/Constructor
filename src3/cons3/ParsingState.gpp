@@ -256,8 +256,14 @@ class ParsingState {
   private static ParsingState tryAlternative(ParsingState state, Mite toAdd, Set oldXors) {
     def anotherActive = suggestActive(state, [toAdd])
     def alternative = state.activate(anotherActive)
-    if (alternative.dominates(state, oldXors)) {
-      return alternative
+    try {
+      if (alternative.dominates(state, oldXors)) {
+        return alternative
+      }
+    } catch (Throwable e) {
+      println alternative.chart.presentable() + "\n\n"
+      println alternative.presentable() + "\n\n"
+      throw e
     }
     return state
   }
@@ -307,7 +313,7 @@ class ParsingState {
     preferred.addAll(all.findAll { !it.atom })
     preferred.addAll(state.active)
     preferred.addAll(all)
-    return preferred
+    return Util.intersect(preferred, all)
   }
 
   private ParsingState activate(LinkedHashSet<Mite> newActive) {

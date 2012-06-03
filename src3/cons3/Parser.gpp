@@ -266,7 +266,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return finiteVerb(state, var, 'FALL', 'PAST', (nom):[head:var, agr:'masc'], (sGen):[head:var], (poDat):[head:var])
       case 'сломал':
       case 'сломала':
-        return finiteVerb(state, var, 'BREAK', 'PAST', (nom):[head:var, agr: (word == 'сломал' ? 'masc' : 'fem')], (acc):[head:var], (dat):[head:var], (dativePart):[head:var])
+        def datNoun = new Variable().lightVar
+        return finiteVerb(state, var, 'BREAK', 'PAST', (nom):[head:var, agr: (word == 'сломал' ? 'masc' : 'fem')],
+                (acc):[head:var], (dat):[noun:datNoun], (dativePart):[head:var])
       case "отвлекло":
         return finiteVerb(state, var, 'DISTRACT', 'PAST', (otGen):[head:var], (nom):[head:var], (acc):[head:var])
       case "отправился":
@@ -283,13 +285,14 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return finiteVerb(state, var, 'SMILE', 'PAST', (nom):[head:var], (adverb):[head:var])
       case "сказал":
       case "сказала":
-        return finiteVerb(state, var, 'SAY', 'PAST', (nom):[head:var], (dat):[head:var],
+        def datNoun = new Variable().lightVar
+        return finiteVerb(state, var, 'SAY', 'PAST', (nom):[head:var], (dat):[noun:datNoun], (datAddressee):[head:var, noun:datNoun],
                 (directSpeech):[head:var, xor:t.a], (declOrQuestionComp):[head:var, xor:t.a])
       case "вынул":
       case "вынула":
         return finiteVerb(state, var, 'TAKE_OUT', 'PAST', (nom):[head:var], (acc):[head:var], (izGen):[head:var])
       case "показались":
-        return finiteVerb(state, var, 'SEEM', 'PAST', (nom):[head:var], (dat):[head:var], (participleArg):[head:var])
+        return finiteVerb(state, var, 'SEEM', 'PAST', (nom):[head:var], (dat):[noun:new Variable().lightVar], (participleArg):[head:var])
       case "подвигав":
         def instrNoun = new Variable()
         state = state.assign(var, 'type', 'MOVE').assign(var, 'background', 'perfect')
@@ -317,7 +320,10 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "танцевать":
         return infinitive(state, var, 'DANCE', [:])
       case "нужно":
-        return state.assign(var, 'type', 'NEED').apply((acc):[head:var], (datSubj):[head:var], (adverbPred):[adverb:var],
+        def datNoun = new Variable().lightVar
+        return state.assign(var, 'type', 'NEED').apply((acc):[head:var],
+                (datSubj):[head:var, noun:datNoun], (dat):[noun:datNoun],
+                (adverbPred):[adverb:var],
                 (verbHolder):[head:var], (question):[content:var])
       case "спросить":
         return infinitive(state, var, 'ASK', [(acc):[head:var]])
@@ -490,8 +496,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
 
   private ParsingState infinitive(ParsingState state, Variable verb, String type, Map<Construction, Map> args) {
     def mod = new Variable()
+    def datNoun = new Variable().lightVar
     return state.inhibit(verbHolder).assign(verb, 'type', type).apply(args +
-            [(datSubj):[head: verb], (control): [slave: verb],
+            [(dat):[noun:datNoun], (datSubj):[head:verb, noun:datNoun], (control): [slave: verb],
                     (question): [content:mod], (modality):[modality:mod, infinitive:verb], (timedModality):[modality:mod],
                     (verbHolder):[head:verb]])
   }
@@ -530,7 +537,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       update = update.addCxt(shortAdj, noun:var).addCxt(reflexiveHolder, noun:var)
     }
     if (caze == dat) {
-      update = update.addCxt(datSubj, noun:var).addCxt(dativePart, dat:var)
+      update = update.addCxt(dativePart, dat:var)
     }
     update = update.addCxt(caze, noun:var, xor:new Tokens().a)
     update

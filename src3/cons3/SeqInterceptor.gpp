@@ -123,7 +123,7 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
 
       if (clauseLevel) return null
 
-      if (cxt in [nom, acc, gen, dat, poDat, datSubj] && oldArgs.noun && newArgs.noun && conj != 'but') {
+      if (cxt in [nom, acc, gen, dat, poDat] && oldArgs.noun && newArgs.noun && conj != 'but') {
         return doMerge(state, cxt, oldArgs, newArgs, 'noun', update, seqs)
       }
       if (cxt in [preposition] && oldArgs.prep == newArgs.prep) {

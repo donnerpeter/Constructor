@@ -222,7 +222,7 @@ class Chart {
   }
 
   Variable getUnifiedVar(Variable var) {
-    return __baseVars[var] ?: var.base
+    return __baseVars[var.base] ?: var.base
   }
 
   Chart separateUnifications(Set<Variable> oldVars, Set<Variable> withVariables) {

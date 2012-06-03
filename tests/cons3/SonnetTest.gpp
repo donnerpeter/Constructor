@@ -476,8 +476,8 @@ C.dot=true
     doParseTest 'Что нам было делать?', '''
 A.type=WE
 B.type=DO
-C.time=PAST
 B.arg1=A
+C.time=PAST
 B.arg2=D
 E.content=C
 E.type=question

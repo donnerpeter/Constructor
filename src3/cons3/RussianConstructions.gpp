@@ -61,14 +61,12 @@ interface RussianConstructions {
   Construction instrArg2 = cxt('instr', ['+head', 'noun']) { ParsingState state, Map args ->
     ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'arg2', args.noun) : state
   }
+  Construction dat = cxt('dat', ['+noun']) { ParsingState state, Map args -> state }
   Construction datSubj = cxt('datSubj', ['+head', 'noun']) { ParsingState state, Map args ->
-    state.assign(args.head, 'arg1', args.noun)
+    ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'arg1', args.noun) : state
   }
-  Construction dat = cxt('dat', ['+head', 'noun']) { ParsingState state, Map args ->
-    if (((Variable) args.head)?.frame(state.chart)?.type == 'SAY') {
-      state = state.assign(args.head, 'addressee', args.noun)
-    }
-    state
+  Construction datAddressee = cxt('dat', ['+head', 'noun']) { ParsingState state, Map args ->
+    ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'addressee', args.noun) : state
   }
   Construction prep = cxt('prep', ['X']) { ParsingState state, Map args -> state }
   Construction sInstr = cxt('sInstr', ['+head', 'noun']) { ParsingState state, Map args ->

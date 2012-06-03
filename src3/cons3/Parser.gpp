@@ -291,10 +291,13 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "показались":
         return finiteVerb(state, var, 'SEEM', 'PAST', (nom):[head:var], (dat):[head:var], (participleArg):[head:var])
       case "подвигав":
+        def instrNoun = new Variable()
         state = state.assign(var, 'type', 'MOVE').assign(var, 'background', 'perfect')
-        return state.apply((instr):[head:var], (adverb):[head:var])
+        return state.apply((instr):[noun:instrNoun.lightVar], (instrArg2):[head:var, noun:instrNoun], (adverb):[head:var])
       case "подвигала":
-        return finiteVerb(state, var, 'MOVE', 'PAST', (instr):[head:var], (adverb):[head:var], (nom):[head:var])
+        def instrNoun = new Variable()
+        return finiteVerb(state, var, 'MOVE', 'PAST',
+                (instr):[noun:instrNoun.lightVar], (instrArg2):[head:var, noun:instrNoun], (adverb):[head:var], (nom):[head:var])
       case "дойдя":
         state = state.assign(var, 'type', 'COME_TO').assign(var, 'background', 'perfect')
         return state.apply((vPrep):[head:var], (doGen):[head:var])
@@ -468,10 +471,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
   ParsingState adj(ParsingState state, Construction caze, String rel, String val) {
     def noun = new Variable().lightVar
     return state.apply((adjective):[nounFrame:noun, rel:rel, val:val], (caze):[noun:noun])
-  }
-
-  Construction nounHolder(Construction caze) {
-    [(nom):nomHolder, (gen):genHolder, (acc):accHolder, (dat):datHolder, (instr):(instrHolder), (prep):prepHolder].get(caze)
   }
 
   ParsingState numeral(ParsingState state, Tokens t, String number) {

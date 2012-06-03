@@ -57,8 +57,9 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction instr = cxt('instr', ['+head', 'noun']) { ParsingState state, Map args ->
-    state.assign(args.head, 'arg2', args.noun)
+  Construction instr = cxt('instr', ['+noun']) { ParsingState state, Map args -> state }
+  Construction instrArg2 = cxt('instr', ['+head', 'noun']) { ParsingState state, Map args ->
+    ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'arg2', args.noun) : state
   }
   Construction datSubj = cxt('datSubj', ['+head', 'noun']) { ParsingState state, Map args ->
     state.assign(args.head, 'arg1', args.noun)

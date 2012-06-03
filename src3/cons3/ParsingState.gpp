@@ -41,7 +41,7 @@ class ParsingState {
   private ParsingState clone(Map update) {
     Map current = [chart:chart, situation:situation, node:node, history:history, active:active, currentGeneration:currentGeneration, miteGenerations:miteGenerations]
     current.putAll(update)
-    return new ParsingState(current)
+    return current == update ? this : new ParsingState(current)
   }
 
   static boolean areUnifiableVars(val1, val2) {
@@ -332,6 +332,7 @@ class ParsingState {
           state = prev.doApply(mite)
           if (prev.chart != state.chart) {
             changed = true
+            toApply += newActive
             break
           }
         }

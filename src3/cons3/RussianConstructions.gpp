@@ -39,27 +39,48 @@ interface RussianConstructions {
   Construction acc = cxt('acc', ['+head', 'noun']) { ParsingState state, Map args ->
     state.assign(args.head, 'arg2', args.noun)
   }
-  Construction gen = cxt('gen', ['+head', 'noun']) { ParsingState state, Map args ->
-    Frame head = ((Variable) args.head).frame(state.chart)
-    for (hf in head.flatten()) {
-      def hType = hf.type
-      def attr = hType == 'LACK' ? 'arg2' :
-        hType == 'WORDS' ? 'author' :
-          hType in ['OPINION', 'CORNER', 'CASHIER'] ? 'arg1' :
-            'criterion'
-      state = state.assign(hf.var, attr, args.noun)
+  Construction gen = cxt('gen', ['+noun']) { ParsingState state, Map args -> state }
+  Construction genArg1 = cxt('genArg1', ['+head', 'noun']) { ParsingState state, Map args ->
+    if (((Variable) args.noun).frame(state.chart).type) {
+      for (hf in ((Variable) args.head).frame(state.chart).flatten()) {
+        state = state.assign(hf.var, 'arg1', args.noun)
+      }
+    }
+    return state
+  }
+  Construction genArg2 = cxt('genArg2', ['+head', 'noun']) { ParsingState state, Map args ->
+    if (((Variable) args.noun).frame(state.chart).type) {
+      for (hf in ((Variable) args.head).frame(state.chart).flatten()) {
+        state = state.assign(hf.var, 'arg2', args.noun)
+      }
+    }
+    return state
+  }
+  Construction genCriterion = cxt('genCriterion', ['+head', 'noun']) { ParsingState state, Map args ->
+    if (((Variable) args.noun).frame(state.chart).type) {
+      for (hf in ((Variable) args.head).frame(state.chart).flatten()) {
+        state = state.assign(hf.var, 'criterion', args.noun)
+      }
+    }
+    return state
+  }
+  Construction genAuthor = cxt('genAuthor', ['+head', 'noun']) { ParsingState state, Map args ->
+    if (((Variable) args.noun).frame(state.chart).type) {
+      for (hf in ((Variable) args.head).frame(state.chart).flatten()) {
+        state = state.assign(hf.var, 'author', args.noun)
+      }
     }
     return state
   }
   Construction instr = cxt('instr', ['+noun']) { ParsingState state, Map args -> state }
-  Construction instrArg2 = cxt('instr', ['+head', 'noun']) { ParsingState state, Map args ->
+  Construction instrArg2 = cxt('instrArg2', ['+head', 'noun']) { ParsingState state, Map args ->
     ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'arg2', args.noun) : state
   }
   Construction dat = cxt('dat', ['+noun']) { ParsingState state, Map args -> state }
   Construction datSubj = cxt('datSubj', ['+head', 'noun']) { ParsingState state, Map args ->
     ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'arg1', args.noun) : state
   }
-  Construction datAddressee = cxt('dat', ['+head', 'noun']) { ParsingState state, Map args ->
+  Construction datAddressee = cxt('datAddressee', ['+head', 'noun']) { ParsingState state, Map args ->
     ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'addressee', args.noun) : state
   }
   Construction prep = cxt('prep', ['X']) { ParsingState state, Map args -> state }

@@ -95,7 +95,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "скамейки": return noun(state, gen, 'BENCH')
       case "ребенок": return noun(state, nom, 'CHILD')
       case "углу":  //todo plain noun
-        return state.apply((typeCxt('CORNER')):[var:var], (prep):[noun:var], (gen):[head:var]) //todo one noun frame - several cases
+        def genNoun = new Variable().lightVar
+        return state.apply((typeCxt('CORNER')):[var:var], (prep):[noun:var], (gen):[noun:genNoun], (genArg1):[head:var, noun:genNoun]) //todo one noun frame - several cases
       case "магазин":
         Update update = new Update()
         update = update.addCxt(typeCxt('SHOP'), var:var)
@@ -115,11 +116,14 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 apply((relativeClause):[noun:var, save:state])
       case "мнению":
         state = state.assign(var, 'type', 'OPINION')
-        return state.apply((gen):[head:var, xor:t.a], (possessive):[head:var, xor:t.a], (dat):[noun:var],
+        def genNoun = new Variable().lightVar
+        return state.apply((gen):[noun:genNoun, hasHead:true, xor:t.a], (genArg1):[head:var, noun:genNoun, xor:t.b],
+                (possessive):[head:var, xor:t.ab], (dat):[noun:var],
                            (parenthetical):[:]) // todo common constructions in по-моему & по моему мнению
       case "словам":
+        def genNoun = new Variable().lightVar
         return state.apply((typeCxt('WORDS')):[var:var], (dat):[noun:var],
-                            (gen):[head:var], (possessive):[head:var])
+                (gen):[noun:genNoun, hasHead:true], (genArg1):[head:var, noun:genNoun], (possessive):[head:var])
       case "счастию":
         return state.assign(var, 'type', 'LUCK').apply((dat):[noun:var])
       case "случился":
@@ -213,15 +217,18 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "семь": return numeral(state, t, '7')
       case "семи": return noun(state, gen, '7')
       case "восемь": return numeral(state, t, '8')
-      case "восьми": return noun(state, gen, '8')
+      case "восьми":
+        return noun(state, gen, '8')
       case "два": return numeral(state, t, '2')
       case "три": return numeral(state, t, '3')
       case "один": return numeral(state, t, '1')
       case "порядок":
-        return state.apply((typeCxt('ORDER')):[var:var], (acc):[noun:var], (gen):[head:var])
+        def genNoun = new Variable().lightVar
+        return state.apply((typeCxt('ORDER')):[var:var], (acc):[noun:var], (gen):[noun:genNoun], (genCriterion):[head:var, noun:genNoun])
       case "слова":
+        def genNoun = new Variable().lightVar
         Update update = new Update((typeCxt('WORDS'))(var:var), acc(noun:var, xor:t.a),
-                                   gen(head:var), possessive(head:var))
+                                   genAuthor(head:var, noun:genNoun), gen(noun:genNoun), possessive(head:var))
         if (!state[preposition]) {
           update = update.addCxt(nom, noun:var, xor:t.a)
         }
@@ -461,7 +468,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state
       case 'лишенными':
         state = state.assign(var, 'type', 'LACK')
-        return state.apply((participleArg):[participle:var], (gen):[head:var])
+        def genNoun = new Variable().lightVar
+        return state.apply((participleArg):[participle:var], (gen):[noun:genNoun], (genArg2):[head:var, noun:genNoun])
       case 'бессмысленными':
         state = state.assign(var, 'type', 'MEANINGLESS')
         return state.apply(participleArg, participle:var)

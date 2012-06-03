@@ -36,9 +36,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
       if (qv) {
         def seqVar = new Variable()
         state = state.apply((questionVariants):[seq:seqVar], (nom):[:])
-        def update = new Update(sem(var:noun))
+        Update update = new Update(sem(var:noun))
         for (caze in cases) {
-          update = SeqInterceptor.joinSeq([noun:noun, xor:t.a], state, caze, seqVar, [:], 'noun', update)
+          for (mite in SeqInterceptor.joinSeq([noun:noun, xor:t.a], state, caze, seqVar, [:], 'noun', state)) {
+            update = update.addMites(mite)
+          }
         }
         state = update.apply(state)
       } else {
@@ -165,7 +167,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "или": return state.apply((seq):[conj:'or'])
       case "а":
       case "но":
-        return state.apply((seq):[conj:'but', butWord:word])
+        return state.apply((seq):[conj:'but']).apply((prevHistory):[history:state], (verbEmphasis):[emphasis:word == 'а' ? 'andEmphasis' : 'butEmphasis'])
       case "тут":
         return state.assign(var.lightVar, 'emphasis', 'true').apply((verbHolder):[head:var.lightVar])
       case "потом":
@@ -364,10 +366,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 declOrQuestionComp(hasComma:true),
                 relativeClause(hasComma:true, parentSituation:state.situation),
                 prevHistory(history:state))
-        if (!state[seq]?.conj) {
-          state = state.inhibit(seq)
-          update = update.addCxt(seq, conj:null)
-        }
+        state = state.inhibit(seq)
+        update = update.addCxt(seq, conj:null)
         if (state[poDat]?.head && ((Variable) state[poDat]?.noun)?.hard) {
           state = state.inhibit(poDat)
         }

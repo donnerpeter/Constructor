@@ -298,21 +298,7 @@ interface RussianConstructions {
 
     if (!interceptor) {
       interceptor = new SeqInterceptor(before)
-      if (conj) {
-        state = state.clearConstructions()
-      }
       state = state.augmentWith(RussianConstructions.seq(conj:conj, interceptor:interceptor))
-    }
-    if (args.conj == 'but') {
-      if (!interceptor.before.history) {
-        state = state.inhibit(seq)
-      }
-      if (args.butWord && !args.butWordHandled) {
-        def verb = new Variable().lightVar
-        state = state.apply((seq):[butWordHandled:true],
-                (prevHistory):[history:before],
-                (verbEmphasis):[emphasis:args.butWord == 'а' ? 'andEmphasis' : 'butEmphasis'])
-      }
     }
     return state
   }

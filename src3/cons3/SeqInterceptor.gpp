@@ -24,7 +24,27 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
   static String agrPerson(String agr) { return agr?.startsWith('3') ? '3' : null }
   private static boolean agrUnifiable(String a1, String a2) { return a1 == null || a2 == null || a1 == a2 }
 
-  ParsingState intercept(List<Mite> constructions, ParsingState state, Function2<List<Mite>, ParsingState, ParsingState> base) {
+  @Override
+  Map<Construction, List<Mite>> getExtensionState(Mite mite, Node current) {
+    if (mite.contents.rollback) {
+      return ((ParsingState) mite.contents.rollback)?.visibleMites
+    }
+    return [:]
+  }
+
+  @Override
+  Collection<Mite> getHiddenMites(Mite mite, ParsingState before) {
+    return super.getHiddenMites(mite, before)
+  }
+
+  @Override
+  Collection<Mite> enrichUpdate(Mite self, List<Mite> constructions, ParsingState state) {
+    def plainMerge = super.enrichUpdate(self, constructions.findAll { self.contents.conj || it.cxt == seq && !it.contents.conj } as List, state)
+    if (state[seq]?.precedent == null && state[seq]?.rollback) {
+      return plainMerge
+    }
+
+    List<Mite> result = []
     List<Contribution> history
     int similar
 
@@ -42,7 +62,6 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
     }
 
     if (similar >= 0) {
-      Update update = new Update()
       def seqs = [:]
       boolean merged = false
 
@@ -51,110 +70,96 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
 
       for (mite in constructions) {
         Mite oldArgs = oldApps.find { it.cxt == mite.cxt }
-        def newUpdate = merge(state, mite.cxt, oldArgs?.contents, mite.contents, update, seqs, declOrQuestionComp in constructions)
-        merged |= newUpdate != null
-        update = newUpdate ?: update.addMites(mite)
+        def newUpdate = merge(state, mite.cxt, oldArgs?.contents, mite.contents, result, seqs, declOrQuestionComp in constructions, history[similar].before)
+        merged |= newUpdate
       }
 
       if (merged) {
-        def modernHistory = state.history
+        ParsingState rollback = null
         if (precedent == null) {
-          ParsingState rollback = before[commaList]?.rollback ?: history[similar].before
+          rollback = before[commaList]?.rollback ?: history[similar].before
           rollback = rollback[numQuantifier]?.prev ?: rollback //todo a more generic way of finding a phrase start
           if (conj == null) {
-            update = update.addCxt(commaList, rollback:rollback)
-          }
-          def oldVerb = state[verbHolder]?.head
-          state = state.clearConstructions().restore(rollback)
-          if (oldApps.find { it.cxt == nom && it.contents.head } && constructions.find { it.cxt == nom && it.contents.head }) {
-            if (conj == 'but') {
-              state = state.inhibit(nom, acc)
-            }
-            state = state.inhibit(verbHolder, verbEmphasis)
-            if (oldVerb) {
-              state = state.apply((verbHolder):[head:oldVerb])
-            }
-          }
-
-          def lastConj = modernHistory.findLastIndexOf { Contribution it -> it.before[seq]?.interceptor == (SeqInterceptor)this }
-          if (lastConj >= 0) {
-            for (contribution in modernHistory.subList(0, lastConj + 1).reverse()) {
-              state = state.apply(contribution)
-            }
+            result << new Mite(commaList, rollback:rollback)
           }
         }
 
+        def newPrecedent = null
         if (similar > 0) {
           List<Contribution> remainingPrecedent = history[0..<similar].reverse()
           if (history[similar].apps.find { it.cxt == preposition }) { //todo a generic way of finding sequence precedents
             def nounContribution = remainingPrecedent.find { it.apps.any { it.cxt == dat && it.contents.noun } }
             if (nounContribution) {
-              update = new Update().addCxt(seq, precedent:[nounContribution], conj:conj, interceptor:new SeqInterceptor(before)) + update
+              newPrecedent = [nounContribution]
             }
           }
         }
-        return precedent == null ? update.apply(state) : base(update.mites.reverse(), state)
+        result.add(0, new Mite(seq, conj:conj, interceptor:new SeqInterceptor(state)).unify(new Mite(seq, precedent:newPrecedent, rollback:rollback))) //todo don't unify mites artificially
       }
     }
 
-    return base(constructions, state)
+    return plainMerge + result
   }
 
-  private Update merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, Update update, Map<Pair<Variable, Variable>, Variable> seqs, boolean clauseLevel) {
+  private boolean merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, List<Mite> update, Map<Pair<Variable, Variable>, Variable> seqs, boolean clauseLevel, ParsingState beforeState) {
     String conj = state[seq]?.conj
     if (oldArgs != null) {
       if (cxt == elaboration && before[cxt]?.head && oldArgs.elaboration && newArgs.elaboration) {
-        return doMerge(state, cxt, oldArgs, newArgs, 'elaboration', update, seqs)
+        return doMerge(state, cxt, oldArgs, newArgs, 'elaboration', update, seqs, beforeState)
       }
       if (cxt == complementizer && oldArgs.content && newArgs.content && before[cxt]?.frame && before[cxt].content) {
-        return doMerge(state, cxt, oldArgs, newArgs, 'content', update, seqs)
+        return doMerge(state, cxt, oldArgs, newArgs, 'content', update, seqs, beforeState)
       }
       if (cxt == declOrQuestionComp && !before[cxt]?.head && oldArgs.comp && newArgs.comp && oldArgs.comp != state[cxt]?.head) {
-        return doMerge(state, cxt, oldArgs, newArgs, 'comp', update, seqs)
+        return doMerge(state, cxt, oldArgs, newArgs, 'comp', update, seqs, beforeState)
       }
       if (cxt in [nom] && oldArgs.head && newArgs.head) {
-        if (conj == 'but' && !agree(before[cxt]?.agr, newArgs.agr)) {
-          Variable second = newArgs.head
-          Variable first = oldArgs.head
-          return update.addCxt(aSeqStart(), multi: joinedVar(seqs, first, second), first:first, second:second, conj:conj).addCxt(newArgs, nom)
-        }
         if (before[cxt]?.noun) {
           newArgs += [noun:before[cxt].noun]
-          update = update.addCxt(reflexiveHolder, noun:before[cxt].noun)
+          update.addAll new Mite(reflexiveHolder, noun:before[cxt].noun).unifyWherePossible(beforeState)
         }
-        return doMerge(state, cxt, oldArgs, newArgs, 'head', update, seqs)
+        if (conj == 'but'/* && !agree(before[cxt]?.agr, newArgs.agr)*/) {
+          Variable second = newArgs.head
+          Variable first = oldArgs.head
+          update << new Mite(aSeqStart(), multi: joinedVar(seqs, first, second), first:first, second:second, conj:conj)
+          update.addAll new Mite(newArgs, nom).unifyWherePossible(beforeState)
+          return true
+        }
+        return doMerge(state, cxt, oldArgs, newArgs, 'head', update, seqs, beforeState)
       }
 
-      if (clauseLevel) return null
+      if (clauseLevel) return false
 
       if (cxt in [nom, acc, gen, dat, poDat] && oldArgs.noun && newArgs.noun && conj != 'but') {
-        return doMerge(state, cxt, oldArgs, newArgs, 'noun', update, seqs)
+        return doMerge(state, cxt, oldArgs, newArgs, 'noun', update, seqs, beforeState)
       }
       if (cxt in [preposition] && oldArgs.prep == newArgs.prep) {
-        return update.addCxt(newArgs + [repeated:true], cxt)
+        update.addAll new Mite(newArgs + [repeated:true], cxt).unifyWherePossible(beforeState)
+        return true
       }
-      if (cxt in [gen] && oldArgs.head && newArgs.head && !newArgs.noun && !(before[cxt]?.head && before[cxt]?.noun)) {
-        return doMerge(state, cxt, oldArgs, newArgs, 'head', update, seqs)
+      if (cxt in [gen] && oldArgs.head && newArgs.head && !newArgs.noun) {
+        return doMerge(state, cxt, oldArgs, newArgs, 'head', update, seqs, beforeState)
       }
       if (cxt == possessive && oldArgs.possessor && newArgs.possessor) {
-        return doMerge(state, cxt, oldArgs, newArgs, 'possessor', update, seqs)
+        return doMerge(state, cxt, oldArgs, newArgs, 'possessor', update, seqs, beforeState)
       }
       if (cxt == possessive && oldArgs.head && newArgs.head) {
-        return doMerge(state, cxt, oldArgs, newArgs, 'head', update, seqs)
+        return doMerge(state, cxt, oldArgs, newArgs, 'head', update, seqs, beforeState)
       }
     }
 
-    return null
+    return false
   }
 
 
-  private Update doMerge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, String prop, Update update, Map<Pair<Variable, Variable>, Variable> seqs) {
+  private boolean doMerge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, String prop, List<Mite> update, Map<Pair<Variable, Variable>, Variable> seqs, ParsingState beforeState) {
     Variable first = (Variable) oldArgs[prop]
     Variable existingSeq = first.frame(state.chart).f('member') ? first : first.frame(state.chart).usages('member')[0]?.var
     if (existingSeq) {
       def oldConj = existingSeq.frame(state.chart).s('conj')
       if (!oldConj || oldConj == state[seq]?.conj) {
-        return joinSeq(newArgs, state, cxt, existingSeq, oldArgs, prop, update)
+        update.addAll joinSeq(newArgs, state, cxt, existingSeq, oldArgs, prop, beforeState)
+        return true
       }
     }
 
@@ -163,9 +168,9 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
     if (first.light && second.light) {
       multi = multi.lightVar
     }
-    return update.
-            addCxt(aSeqStart(), multi:multi, first:first, second:second, conj:state[seq]?.conj, distinguish:state[preposition]?.repeated).
-            addCxt(newArgs + [(prop):multi, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt)
+    update << new Mite(aSeqStart(), multi:multi, first:first, second:second, conj:state[seq]?.conj, distinguish:state[preposition]?.repeated)
+    update.addAll new Mite(newArgs + [(prop):multi, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt).unifyWherePossible(beforeState)
+    return true
   }
 
   private Variable joinedVar(Map<Pair<Variable, Variable>, Variable> seqs, Variable first, second) {
@@ -194,7 +199,7 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
   }
 
 
-  static Update joinSeq(Map newArgs, ParsingState state, Construction cxt, Variable seqVar, Map oldArgs, String property, Update update) {
+  static List<Mite> joinSeq(Map newArgs, ParsingState state, Construction cxt, Variable seqVar, Map oldArgs, String property, ParsingState beforeState) {
     Reference<Construction> seqNext = []
     seqNext.set(Construction.cxt('seqNext') { ParsingState st, Map args ->
       if (args.conj) {
@@ -204,9 +209,8 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
       st.satisfied(seqNext.get())
     })
     def newMember = newArgs[property]
-    return update.
-            addCxt(seqNext.get(), multi:seqVar, next:newMember, conj:state[seq]?.conj).
-            addCxt(newArgs + [(property):seqVar, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt)
+    return [new Mite(seqNext.get(), multi:seqVar, next:newMember, conj:state[seq]?.conj)] +
+            new Mite(newArgs + [(property):seqVar, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt).unifyWherePossible(beforeState)
 
   }
 

@@ -9,6 +9,10 @@ import groovy.transform.TupleConstructor
 class SeqInterceptor extends Interceptor implements RussianConstructions {
   ParsingState before
 
+  SeqInterceptor(ParsingState before) {
+    this.before = before
+  }
+
   static boolean agree(agr1, agr2) {
     return agrUnifiable(agrGender((String)agr1), agrGender((String)agr2)) &&
            agrUnifiable(agrNumber((String)agr1), agrNumber((String)agr2)) &&
@@ -85,7 +89,7 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
           if (history[similar].apps.find { it.cxt == preposition }) { //todo a generic way of finding sequence precedents
             def nounContribution = remainingPrecedent.find { it.apps.any { it.cxt == dat && it.contents.noun } }
             if (nounContribution) {
-              update = new Update().addCxt(seq, precedent:[nounContribution], conj:conj, interceptor:new SeqInterceptor(state)) + update
+              update = new Update().addCxt(seq, precedent:[nounContribution], conj:conj, interceptor:new SeqInterceptor(before)) + update
             }
           }
         }
@@ -129,7 +133,7 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
       if (cxt in [preposition] && oldArgs.prep == newArgs.prep) {
         return update.addCxt(newArgs + [repeated:true], cxt)
       }
-      if (cxt in [gen] && oldArgs.head && newArgs.head && !newArgs.noun) {
+      if (cxt in [gen] && oldArgs.head && newArgs.head && !newArgs.noun && !(before[cxt]?.head && before[cxt]?.noun)) {
         return doMerge(state, cxt, oldArgs, newArgs, 'head', update, seqs)
       }
       if (cxt == possessive && oldArgs.possessor && newArgs.possessor) {

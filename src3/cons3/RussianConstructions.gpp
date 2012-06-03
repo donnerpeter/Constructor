@@ -41,19 +41,13 @@ interface RussianConstructions {
   }
   Construction gen = cxt('gen', ['+head', 'noun']) { ParsingState state, Map args ->
     Frame head = ((Variable) args.head).frame(state.chart)
-    List<Variable> heads = head.flatten().collect {it.var}
-    int i = 0
-    for (h in heads) {
-      def hf = h.frame(state.chart)
+    for (hf in head.flatten()) {
       def hType = hf.type
       def attr = hType == 'LACK' ? 'arg2' :
         hType == 'WORDS' ? 'author' :
           hType in ['OPINION', 'CORNER', 'CASHIER'] ? 'arg1' :
             'criterion'
-      if (i == heads.size() - 1 || !hf.f(attr)) {
-        state = state.assign(h, attr, args.noun)
-      }
-      i++
+      state = state.assign(hf.var, attr, args.noun)
     }
     return state
   }
@@ -358,10 +352,4 @@ interface RussianConstructions {
   Construction elaboration = cxt('elaboration', ['head', 'elaboration']) { ParsingState state, Map args ->
     state.assign(args.head, 'elaboration', args.elaboration)
   }
-  Construction nomHolder = cxt('nomHolder') { ParsingState state, Map args -> state }
-  Construction accHolder = cxt('accHolder') { ParsingState state, Map args -> state }
-  Construction genHolder = cxt('genHolder') { ParsingState state, Map args -> state }
-  Construction datHolder = cxt('datHolder') { ParsingState state, Map args -> state }
-  Construction instrHolder = cxt('instrHolder') { ParsingState state, Map args -> state }
-  Construction prepHolder = cxt('prepHolder') { ParsingState state, Map args -> state }
 }

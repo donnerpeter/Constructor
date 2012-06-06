@@ -319,6 +319,7 @@ class ParsingState {
   private ParsingState activate(LinkedHashSet<Mite> newActive) {
     def toRemove = new LinkedHashSet<Mite>(active)
     toRemove.removeAll(newActive)
+    toRemove.removeAll(toRemove.findAll { !it.findContradictors(newActive) })
 
     def all = new LinkedHashSet<Mite>(node.ownMites)
     all.addAll(visibleMites.values().flatten())
@@ -442,7 +443,7 @@ class ParsingState {
   }
 
   private ParsingState doApply(Mite mite) {
-    ParsingState next = clone(currentGeneration:miteGenerations[mite], chart:chart.startMeta(mite))
+    ParsingState next = clone(currentGeneration:miteGenerations[mite]?:currentGeneration, chart:chart.startMeta(mite))
     next = mite.cxt.action.call(next, mite.contents)
     return next.clone(currentGeneration:currentGeneration, chart:next.chart.finishMeta(mite))
   }

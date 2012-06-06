@@ -9,6 +9,24 @@ class Preposition extends Interceptor {
 
   static final ArrayList<Construction> cases = [nom, acc, gen, dat, instr, prep]
 
+  @Override
+  Map<Construction, List<Mite>> getExtensionState(Mite mite, Node current) {
+    Map<Construction, List<Mite>> result = [:] + super.getExtensionState(mite, current)
+    Variable noun = mite.contents.noun
+    if (!noun || mite.contents.hasNoun) {
+      return result
+    }
+
+    Tokens t = new Tokens()
+    if (mite.contents.prep == 'с') {
+      result[sInstr] = sInstr(noun:noun, xor:t.ac).unifyWherePossible(result[sInstr] ?: [], false, true)
+      result[sGen] = sGen(noun:noun, xor:t.ab).unifyWherePossible(result[sGen] ?: [], false, true)
+      result[instr] = [instr(noun:noun.lightVar, xor:t.bd)]
+      result[gen] = [gen(noun:noun.lightVar, xor:t.cd)]
+    }
+    return result
+  }
+
   private Construction transformCase(ParsingState state, Construction caze) {
     def p = state[preposition].prep
 

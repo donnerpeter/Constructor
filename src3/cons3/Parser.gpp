@@ -23,6 +23,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
 
   ParsingState handleWord(String word, ParsingState state) {
     Tokens t = new Tokens()
+    Vars v = new Vars()
     Variable var = new Variable()
     if (Util.parseNumber(word) != null) { //todo generic noun treatment for numbers
       Variable noun = var
@@ -35,7 +36,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       def qv = state[questionVariants]
       if (qv) {
         def seqVar = new Variable()
-        state = state.apply((questionVariants):[seq:seqVar], (nom):[:])
+        state = state.apply((questionVariants):[seq:seqVar])
         Update update = new Update(sem(var:noun))
         for (caze in cases) {
           for (mite in SeqInterceptor.joinSeq([noun:noun, xor:t.a], state, caze, seqVar, [:], 'noun', state)) {
@@ -129,10 +130,12 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "счастию":
         return state.assign(var, 'type', 'LUCK').apply((dat):[noun:var])
       case "случился":
-        return finiteVerb(state, var, 'HAPPEN', 'PAST', (sInstr):[head:var], (nom):[head:var])
+        return finiteVerb(state, var, 'HAPPEN', 'PAST',
+                (sInstr):[noun:v[sInstr].lightVar], (sInstrExperiencer):[head:var, noun:v[sInstr]],
+                (nom):[noun:v[nom].lightVar], (nomSubject):[head:var, noun:v[nom]])
       case 'со':
       case 'с':
-        return state.apply((preposition):[prep:'с'], (sInstr):[xor:t.b], (sGen):[xor:t.b])
+        return state.apply((preposition):[prep:'с'])
       case 'по':
         return state.inhibit(gen, numQuantifier).apply((preposition):[prep:'по'], (poDat):[:])
       case 'о': return state.apply((preposition):[prep:'о'], (oPrep):[:])
@@ -256,7 +259,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "забыла":
       case "забыли":
         return finiteVerb(state.inhibit(declOrQuestionComp), var, 'FORGET', 'PAST',
-                (nom):[head:var, agr:(word == 'забыли' ? 'pl' : word == 'забыла' ? 'fem' : 'masc')], (adverb):[head:var], (elaboration):[elaboration:var],
+                (nom):[noun:v[nom].lightVar], (nomSubject):[head:var, noun:v[nom]],
+                (adverb):[head:var], (elaboration):[elaboration:var],
                 (advObj):[head:var, xor:t.a], (acc):[head:var, xor:t.a], (declOrQuestionComp):[head:var, xor:t.a])
       case "помнят":
       case "помнит":
@@ -399,7 +403,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "идёт":
         state = state.assign(var, 'time', 'PRESENT')
         return state.inhibit(preposition, numQuantifier).apply((comeScalarly):[verb:var, xor:t.ab], (typeCxt('GO')):[var:var, xor:t.a],
-                (vAcc):[head:var, xor:t.b], (vPrep):[head:var], (nom):[head:var],
+                (vAcc):[head:var, xor:t.b], (vPrep):[head:var],
+                (nom):[noun:v[nom].lightVar], (nomSubject):[head:var, noun:v[nom]],
                 (poDat):[head:var], (verbHolder): [head:var],
                 (posleGen):[head:var], (ransheGen):[head:var],
                 (conditionComp):[head:var], (absTime):[head:var],

@@ -9,29 +9,11 @@ interface RussianConstructions {
 
   Construction adjective = cxt('adjective') { ParsingState state, Map args ->
     state.assign(args.nounFrame, (String)args.rel, args.val) }
-  Construction nom = cxt('nom', ['+head']) { ParsingState state, Map args ->
-    if (args.agr && !((Variable) args.noun)?.hard) {
-      Variable noun = args.noun
-      if (!noun) {
-        noun = new Variable().lightVar
-        state = state.augmentWith(RussianConstructions.nom(noun:noun)).augmentWith(RussianConstructions.reflexiveHolder(noun:noun))
-      }
-      String agr = args.agr
-      if (SeqInterceptor.agrNumber(agr)) {
-        state = state.assign(noun, 'rusNumber', SeqInterceptor.agrNumber(agr))
-      }
-      if (SeqInterceptor.agrPerson(agr)) {
-        state = state.assign(noun, 'person', SeqInterceptor.agrPerson(agr))
-      }
-      if (SeqInterceptor.agrGender(agr)) {
-        state = state.assign(noun, 'gender', SeqInterceptor.agrGender(agr))
-      }
-      args = state[nom]
-    }
-    Variable noun = args.noun
-    if (args.head && noun) {
-      for (subj in ((Variable) args.head).frame(state.chart).flatten()) {
-        state = state.assign(subj.var, 'arg1', noun)
+  Construction nom = cxt('nom', ['+noun']) { ParsingState state, Map args -> state }
+  Construction nomSubject = cxt('nomSubject', ['+head', 'noun']) { ParsingState state, Map args ->
+    if (((Variable) args.noun).frame(state.chart).type) {
+      for (hf in ((Variable) args.head).frame(state.chart).flatten()) {
+        state = state.assign(hf.var, 'arg1', args.noun)
       }
     }
     return state
@@ -84,16 +66,14 @@ interface RussianConstructions {
     ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'addressee', args.noun) : state
   }
   Construction prep = cxt('prep', ['X']) { ParsingState state, Map args -> state }
-  Construction sInstr = cxt('sInstr', ['+head', 'noun']) { ParsingState state, Map args ->
-    if (args.head && args.noun) {
-      if (((Variable) args.noun).frame(state.chart)?.type in ['JOY', 'RELIEF']) {
-        state = state.assign(args.head, 'mood', args.noun)
-      } else {
-        state = state.assign(args.head, 'experiencer', args.noun)
-      }
+  Construction sInstr = cxt('sInstr', ['+noun']) { ParsingState state, Map args ->
+    if (((Variable) args.noun).frame(state.chart)?.type in ['JOY', 'RELIEF'] && args.head) {
+      state = state.assign(args.head, 'mood', args.noun)
     }
-
     return state
+  }
+  Construction sInstrExperiencer = cxt('sInstrExperiencer', ['+head', 'noun']) { ParsingState state, Map args ->
+    ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'experiencer', args.noun) : state
   }
   Construction sGen = cxt('sGen', ['+head', 'noun']) { ParsingState state, Map args ->
     if (args.head && args.noun) {

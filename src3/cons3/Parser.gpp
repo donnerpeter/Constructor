@@ -285,7 +285,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "отвлекло":
         return finiteVerb(state, var, 'DISTRACT', 'PAST', (otGen):[head:var], (nom):[head:var], (acc):[head:var])
       case "отправился":
-        return finiteVerb(state, var, 'GO_OFF', 'PAST', (kDat):[head:var], (nom):[head:var])
+        return finiteVerb(state, var, 'GO_OFF', 'PAST',
+                (kDat):[noun:v[kDat].lightVar], (kDatGoal):[head:var, noun:v[kDat]],
+                (nom):[noun:v[nom].lightVar], (nomSubject):[head:var, noun:v[nom]])
       case "пошли":
         return finiteVerb(state, var, 'GO', 'PAST', (nom):[head:var], (vAcc):[head:var])
       case "спорили":
@@ -341,12 +343,17 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "спросить":
         return infinitive(state, var, 'ASK', [(acc):[head:var]])
       case "думают":
-        return finiteVerb(state, var, 'THINK', 'PRESENT', (poDat):[head:var], (nom):[head:var], (acc):[head:var])
+        return finiteVerb(state, var, 'THINK', 'PRESENT',
+                (poDat):[noun:v[poDat].lightVar], (poDatTopic):[head:var, noun:v[poDat]],
+                (nom):[noun:v[nom].lightVar], (nomSubject):[head:var, noun:v[nom]],
+                (acc):[noun:v[acc].lightVar], (accArg2):[head:var, noun:v[acc]])
       case "сидят":
         return finiteVerb(state, var, 'SIT', 'PRESENT', (nom):[head:var], (adverb):[head:var])
       case "спросил":
       case "спросили":
-        return finiteVerb(state, var, 'ASK', 'PAST', (acc):[head:var], (nom):[head:var],
+        return finiteVerb(state, var, 'ASK', 'PAST',
+                (acc):[noun:v[acc].lightVar], (accArg2):[head:var, noun:v[acc]],
+                (nom):[noun:v[nom].lightVar], (nomSubject):[head:var, noun:v[nom]],
                 (declOrQuestionComp):[head:var], (oPrep):[head:var])
       case "делал":
       case "делали":

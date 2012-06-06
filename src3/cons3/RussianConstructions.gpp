@@ -18,8 +18,9 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction acc = cxt('acc', ['+head', 'noun']) { ParsingState state, Map args ->
-    state.assign(args.head, 'arg2', args.noun)
+  Construction acc = cxt('acc', ['+noun']) { ParsingState state, Map args -> state }
+  Construction accArg2 = cxt('accArg2', ['+head', 'noun']) { ParsingState state, Map args ->
+    ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'arg2', args.noun) : state
   }
   Construction gen = cxt('gen', ['+noun']) { ParsingState state, Map args -> state }
   Construction genArg1 = cxt('genArg1', ['+head', 'noun']) { ParsingState state, Map args ->
@@ -82,7 +83,8 @@ interface RussianConstructions {
 
     return state
   }
-  Construction poDat = cxt('poDat', ['head', 'noun']) { ParsingState state, Map args ->
+  Construction poDat = cxt('poDat', ['+noun']) { ParsingState state, Map args ->
+/*
     Variable lastNoun = args.noun
     def member = lastNoun?.frame(state.chart)?.f('member')
     if (member) {
@@ -103,13 +105,18 @@ interface RussianConstructions {
       }
     }
 
+*/
     return state
+  }
+  Construction poDatTopic = cxt('poDatTopic', ['+head', 'noun']) { ParsingState state, Map args ->
+    ((Variable) args.noun).frame(state.chart).type ? state = state.assign(args.head, 'topic', args.noun) : state
   }
   Construction oPrep = cxt('oPrep', ['+head', 'noun']) { ParsingState state, Map args ->
     args.noun ? state.assign(args.head, 'topic', args.noun) : state
   }
-  Construction kDat = cxt('kDat', ['+head', 'noun']) { ParsingState state, Map args ->
-    args.noun && args.head ? state.assign(args.head, 'goal', args.noun) : state
+  Construction kDat = cxt('kDat', ['+noun']) { ParsingState state, Map args -> state }
+  Construction kDatGoal = cxt('kDatGoal', ['+head', 'noun']) { ParsingState state, Map args ->
+    ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'goal', args.noun) : state
   }
   Construction uGen = cxt('uGen', ['+head', 'noun']) { ParsingState state, Map args ->
     if (args.copula) {

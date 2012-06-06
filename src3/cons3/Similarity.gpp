@@ -7,7 +7,7 @@ import static cons3.RussianConstructions.*
  */
 class Similarity {
   private static final ArrayList<Construction> importantForSimilarity =
-    [nom, acc, gen, dat, instr, prep, poDat,
+    [nom, acc, gen, dat, instr, prep, poDat, nomSubject,
             possessive, parenthetical, comeScalarly, elaboration, declOrQuestionComp, question]
 
   static boolean areSimilar(Contribution old, List<Mite> c2) {

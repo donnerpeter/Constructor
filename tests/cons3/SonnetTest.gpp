@@ -71,18 +71,18 @@ D.arg1=A
 F.type=THEY
 D.arg2=F
 D.question=G
-H.type=THEY
-I.type=THINK
-I.time=PRESENT
-I.arg1=H
-I.arg2=J
-G.content=I
+H.type=wh
+I.type=THEY
+J.type=THINK
+J.time=PRESENT
+J.arg1=I
+J.arg2=H
+G.content=J
 G.type=question
-G.questioned=J
-J.type=wh
+G.questioned=H
 K.determiner=THIS
 K.type=MATTER
-I.topic=K
+J.topic=K
 """
   }
 

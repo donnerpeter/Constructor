@@ -30,6 +30,9 @@ class ParsingState {
     miteGenerations = map.miteGenerations
   }
 
+  List<Mite> getMiteList() {
+    return visibleMites.values().flatten() as List
+  }
   Map<Construction, List<Mite>> getVisibleMites() {
     return node.getAllMites()
   }

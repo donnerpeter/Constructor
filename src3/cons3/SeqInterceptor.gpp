@@ -76,7 +76,7 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
 */
 
       def newPrecedent = null
-      result.add(0, new Mite(seq, conj:conj, interceptor:new SeqInterceptor(state)).unify(new Mite(seq, precedent:newPrecedent, rollback:rollback))) //todo don't unify mites artificially
+      result.add(0, new Mite(seq, conj:conj, interceptor:new SeqInterceptor(state)).unify(new Mite(seq, precedent:newPrecedent, rollback:before))) //todo don't unify mites artificially
     }
     return plainMerge + result
   }

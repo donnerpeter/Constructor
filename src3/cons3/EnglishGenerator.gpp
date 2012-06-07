@@ -185,6 +185,12 @@ class EnglishGenerator {
           else if (last?.f('member')) {
             last = last.f('member')
           }
+          else if (last?.f('whenCondition')) {
+            last = last.f('whenCondition')
+          }
+          else if (last?.f('ifCondition')) {
+            last = last.f('ifCondition')
+          }
           else break
         }
         if (last?.s('dot') == 'true') {
@@ -238,6 +244,8 @@ class EnglishGenerator {
           candidate in (head.f('message')?.flatten() ?: []) ||
           candidate in (head.f('arg2')?.flatten() ?: []) ||
           candidate in (head.f('question')?.flatten() ?: []) ||
+          candidate in (head.f('ifCondition')?.flatten() ?: []) ||
+          candidate in (head.f('whenCondition')?.flatten() ?: []) ||
           head.type in ['question', 'fact'] && candidate in (head.f('content')?.flatten() ?: []) ||
           head.type == 'modality' && candidate == head.f('arg1') ||
           head.type == 'BEGIN' && candidate == head.f('arg1')
@@ -678,14 +686,14 @@ class EnglishGenerator {
           return
         }
 
-        new SituationGenerator(chart, (Situation) content.var, false).sentence(false)
+        new ClauseGenerator(content, null, false, null).generate(true)
       }
 
       def condComp = verb.f('ifCondition') ?: verb.f('whenCondition')
       if (condComp) {
         out ','
         out(verb.f('ifCondition') ? 'if' : 'when')
-        new SituationGenerator(chart, (Situation) condComp.var, false).sentence(false)
+        new ClauseGenerator(condComp, null, false, null).generate(true)
       }
     }
 

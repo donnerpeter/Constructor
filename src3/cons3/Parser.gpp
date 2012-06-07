@@ -86,7 +86,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "том": return adj(state, prep, 'determiner', 'THAT')
       case "случай": return noun(state, nom, 'THING') //todo случай=CASE or THING
       case "случае": return unoun(prep, var, 'CASE', (conditionComp):[head:var]).apply(state)
-      case "удивление": return noun(state, nom, 'AMAZE')
+      case "удивление": return unoun(nom, var, 'AMAZE',
+              (possessive):[possessor:v[possessive].lightVar], (possArg1):[head:var, possessor:v[possessive]]).apply(state)
       case "поводу": return noun(state, dat, 'MATTER')
       case "недоумении": return noun(state, prep, 'PREDICAMENT')
       case "рта": return noun(state, gen, 'MOUTH')
@@ -163,7 +164,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "мы": return noun(state, nom, 'WE') // todo we pronoun
       case "нам": return upronoun(dat, var, 'WE').apply(state)
       case "нас": return pronoun(state, acc, 'WE')
-      case "мое": return state.apply((typeCxt('ME')):[var:var], (possessive):[possessor:var])
+      case "мое": return state.apply((typeCxt('ME')):[var:var], (possessive):[possessor:var, xor:t.a])
       case "моему": return state.apply((typeCxt('ME')):[var:var], (possessive):[possessor:var])
       case "нашего": return state.apply((typeCxt('WE')):[var:var], (possessive):[possessor:var])
       case "и": return state.apply((seq):[conj:'and'])
@@ -228,12 +229,10 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "три": return numeral(state, t, '3')
       case "один": return numeral(state, t, '1')
       case "порядок":
-        def genNoun = new Variable().lightVar
-        return state.apply((typeCxt('ORDER')):[var:var], (acc):[noun:var], (gen):[noun:genNoun], (genCriterion):[head:var, noun:genNoun])
+        return state.apply((typeCxt('ORDER')):[var:var], (acc):[noun:var], (gen):[noun:v[gen].lightVar], (genCriterion):[head:var, noun:v[gen]])
       case "слова":
-        def genNoun = new Variable().lightVar
         Update update = new Update((typeCxt('WORDS'))(var:var), acc(noun:var, xor:t.a),
-                                   genAuthor(head:var, noun:genNoun), gen(noun:genNoun), possessive(head:var))
+                                   genAuthor(head:var, noun:v[gen]), gen(noun:v[gen].lightVar), possessive(head:var))
         if (!state[preposition]) {
           update = update.addCxt(nom, noun:var, xor:t.a)
         }
@@ -268,10 +267,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (nom):[head:var, agr:(word == 'помнят' ? '3pl' : '3sg')], (verbHolder):[head:var], (acc):[head:var])
       case "может":
       case "могут":
-        def agr = word == 'могут' ? '3pl' : '3sg'
-        boolean hasSubj = state[nom]?.noun && SeqInterceptor.agree(state[nom].agr, agr)
-        def subj = hasSubj ? state[nom].noun : new Variable()
-        return finiteVerb(state, var, 'CAN', 'PRESENT', (control):[subj:subj, head:var], (nom):[noun:subj, agr:agr, head:var])
+        return finiteVerb(state, var, 'CAN', 'PRESENT', (control):[subj:v[nom], head:var],
+                (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom]])
       case 'стали':
       case 'начали':
         return finiteVerb(state.inhibit(preposition), var, 'BEGIN', 'PAST', (control):[head:var], (nom):[head:var])
@@ -295,7 +292,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "обнаружил":
       case "обнаружила":
       case "обнаружили":
-        return finiteVerb(state, var, 'DISCOVER', 'PAST', (declOrQuestionComp):[head:var], (nom):[head:var], (adverb):[head:var])
+        return finiteVerb(state, var, 'DISCOVER', 'PAST', (declOrQuestionComp):[head:var],
+                (nom):[noun:v[nom].lightVar], (nomSubject):[head:var, noun:v[nom]],
+                (adverb):[head:var])
       case "улыбнулась":
         return finiteVerb(state, var, 'SMILE', 'PAST', (nom):[head:var], (adverb):[head:var])
       case "сказал":
@@ -323,7 +322,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = state.assign(var, 'type', 'THINK').assign(var, 'background', 'present')
         return state.apply((vAcc):[head:var])
       case "вспомнить":
-        return infinitive(state, var, 'RECALL', [(acc):[head:var]])
+        return infinitive(state, var, 'RECALL', [(acc):[noun:v[acc].lightVar, head:new Object()], (accArg2):[head:var, noun:v[acc]]])
       case "делать":
         return infinitive(state, var, 'DO', [(acc):[head:var]])
       case "спорить":
@@ -369,24 +368,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "остановились":
         return finiteVerb(state, var, 'STOP', 'PAST', (nom):[head:var])
       case ",":
-        if (state[nestedClause]) {
-          return state.withSituation((Situation)state[nestedClause].parent).clearConstructions().restore((ParsingState) state[nestedClause].save)
-        }
-        Update update = new Update(conditionComp(hasComma:true),
-                reasonComp(hasComma:true),
-                declOrQuestionComp(hasComma:true),
-                relativeClause(hasComma:true, parentSituation:state.situation),
-                prevHistory(history:state))
-        state = state.inhibit(seq)
-        update = update.addCxt(seq, conj:null)
-        if (state[poDat]?.head && ((Variable) state[poDat]?.noun)?.hard) {
-          state = state.inhibit(poDat)
-        }
-        return update.apply(state.inhibit(numQuantifier))
+        return state.apply((declOrQuestionComp):[hasComma:true], (conditionComp):[hasComma:true], (seq):[conj:','])
       case "если":
-        return state.apply((conditionComp):[wh:'if'])
+        return state.apply((conditionComp):[wh:'if', comp:v[verbHolder]], (verbHolder):[head:v[verbHolder].lightVar])
       case "когда":
-        return state.apply((conditionComp):[wh:'when'])
+        return state.apply((conditionComp):[wh:'when', comp:v[verbHolder]], (verbHolder):[head:v[verbHolder].lightVar])
       case "это":
         return state.apply((nom):[noun:var, xor:t.a], (acc):[noun:var, xor:t.a], (typeCxt('THAT')):[var:var])
       case "что":
@@ -439,7 +425,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case ".":
         return state.assign(state[verbHolder]?.head ?: var, 'dot', 'true').withSituation(new Situation())
       case 'каково':
-        return state.assign(var, 'type', 'wh').apply(shortAdj, copula: new Variable(), value:var)
+        return state.assign(var, 'type', 'wh').apply((shortAdj):[copula: new Variable(), value:var, noun:v[nom]], (nom):[noun:v[nom].lightVar])
       case 'бы':
         return state.apply((subjunctive):[subjunctive:true])
       case 'был':
@@ -451,7 +437,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = state.assign(var, 'time', 'PRESENT')
         return state.apply((naPrep):[head: subj, copula:var], (nom):[noun:subj], (verbHolder):[head:var], (uGen):[head:subj, copula:var])
       case 'было':
-        return state.apply((conditionComp):[head:state[shortAdj]?.copula], (shortAdj):[time:'PAST'], (timedModality):[time:'PAST'], (adverbPred):[time:'PAST'])
+        return state.apply((conditionComp):[head:var], (shortAdj):[time:'PAST', copula:var.lightVar], (timedModality):[time:'PAST'], (adverbPred):[time:'PAST'])
       case 'так':
         return state.apply(reasonComp, active:true)
       case 'обе':
@@ -541,7 +527,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
 
   private Update unoun(Map<Construction, Map> mites = [:], Construction caze, Variable noun, String type) {
     def update = upronoun(mites, caze, noun, type)
-    update + [(possessive):[head:noun], (quotedName):[noun:noun], (numQuantifier):[noun:noun]]
+    update + [(quotedName):[noun:noun], (numQuantifier):[noun:noun]]
   }
   private Update upronoun(Map<Construction, Map> mites = [:], Construction caze, Variable var, String type) {
     Update update = new Update()
@@ -554,7 +540,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
   private Update commonCase(Construction caze, Variable var) {
     Update update = new Update()
     if (caze == nom) {
-      update = update.addCxt(shortAdj, noun:var).addCxt(reflexiveHolder, noun:var)
+      update = update.addCxt(reflexiveHolder, noun:var)
     }
     if (caze == dat) {
       update = update.addCxt(dativePart, dat:var)

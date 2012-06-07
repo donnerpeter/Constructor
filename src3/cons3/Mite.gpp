@@ -131,7 +131,7 @@ class Mite {
   }
 
   boolean isMissingHead() {
-    return cxt.headAttr && (!contents[cxt.headAttr] || ((Variable) contents[cxt.headAttr]).light)
+    return cxt.beingMissedAttr && !contents[cxt.beingMissedAttr]
   }
 
 }

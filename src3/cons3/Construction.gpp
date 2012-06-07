@@ -7,13 +7,44 @@ class Construction {
   final Function2<ParsingState, Map, ParsingState> action
   final String name
   final List<String> requiredAttrs
-  final String headAttr
+  String headAttr
+  String beingMissedAttr
+  Function2<Mite, ParsingState, Collection<Mite>> _hidingMites = { mite, before ->
+    if (headAttr) {
+      Variable head = mite.contents[headAttr]
+      if (head) {
+        LinkedHashSet<Mite> result = []
+        for (val in mite.contents.values()) {
+          if (val instanceof Variable && val != head) {
+            result.addAll(before.everythingAbout((Variable)val).findAll { it.contents[it.cxt.headAttr] == val })
+          }
+        }
+        return result
+      }
+    }
+    return []
+  }
 
   private Construction(String name, Function2<ParsingState, Map, ParsingState> action, List<String> requiredAttrs) {
     this.action = action
     this.name = name
-    this.requiredAttrs = requiredAttrs.collect { it.startsWith('+') ? it.substring(1) : it }
-    headAttr = requiredAttrs.find { it.startsWith('+') }?.substring(1)
+    this.requiredAttrs = []
+    for (attr in requiredAttrs) {
+      if (attr.startsWith('+')) {
+        headAttr = attr
+        attr = attr.substring(1)
+      }
+      if (attr.startsWith('*')) {
+        beingMissedAttr = attr
+        attr = attr.substring(1)
+      }
+      this.requiredAttrs << attr
+    }
+  }
+
+  Construction hidingMites(Function2<Mite, ParsingState, Collection<Mite>> action) {
+    _hidingMites = action
+    return this
   }
 
   Mite call(Map miteContents) {

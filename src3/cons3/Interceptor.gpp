@@ -18,6 +18,11 @@ public class Interceptor {
   }
 
   Collection<Mite> getHiddenMites(Mite mite, ParsingState before) {
+    def fromCxt = mite.cxt._hidingMites(mite, before)
+    if (fromCxt != null) {
+      return fromCxt
+    }
+
     if (mite.cxt.headAttr) {
       Variable head = mite.contents[mite.cxt.headAttr]
       if (head) {

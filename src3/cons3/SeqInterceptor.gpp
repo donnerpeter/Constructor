@@ -23,7 +23,8 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
     List<Mite> result = []
 
     Map<Pair<Variable, Variable>, Variable> seqs = [:]
-    boolean merged = false
+
+    ParsingState rollback = null
 
     String conj = state[seq]?.conj
     for (mite in constructions) {
@@ -31,29 +32,20 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
         continue
       }
 
-
-      Mite oldArgs = before.visibleMites[mite.cxt]?.reverse()?.getAt(0)
-      if (oldArgs != null) {
-        def newUpdate = merge(state, mite.cxt, oldArgs?.contents, mite.contents, result, seqs, declOrQuestionComp in constructions, before.node.findNode(oldArgs).prevState)
-        merged |= newUpdate
+      Mite oldMite = before.visibleMites[mite.cxt]?.reverse()?.getAt(0)
+      if (oldMite != null) {
+        def nextRollback = before.node.findNode(oldMite).prevState
+        def newUpdate = merge(state, mite.cxt, oldMite?.contents, mite.contents, result, seqs, declOrQuestionComp in constructions, nextRollback)
+        if (newUpdate) {
+          rollback = nextRollback
+        }
       }
     }
 
-    if (merged) {
-      ParsingState rollback = null
-/*
-      if (precedent == null) {
-        rollback = before[commaList]?.rollback ?: history[similar].before
-        rollback = rollback[numQuantifier]?.prev ?: rollback //todo a more generic way of finding a phrase start
-        if (conj == null) {
-          result << new Mite(commaList, rollback:rollback)
-        }
-      }
-*/
-
+    if (rollback != null) {
       seqs.each { pair, multi ->
-        result.add(0, seq(conj:conj, interceptor:new SeqInterceptor(state), rollback:before,
-                multi:multi, second:pair.second, first:(multi == pair.first ? null : pair.first)))
+        result.add(0, seq(conj:conj, interceptor:new SeqInterceptor(state), rollback:rollback,
+                multi:multi, second:pair.second, first:(multi == pair.first ? null : pair.first), id:self.contents.id))
 
       }
 
@@ -114,22 +106,21 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
 
   private boolean doMerge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, String prop, List<Mite> update, Map<Pair<Variable, Variable>, Variable> seqs, ParsingState beforeState) {
     Variable first = (Variable) oldArgs[prop]
-    Variable existingSeq = first.frame(state.chart).f('member') ? first : first.frame(state.chart).usages('member')[0]?.var
     Variable second = newArgs[prop]
-    if (existingSeq) {
-      def oldConj = existingSeq.frame(state.chart).s('conj')
+    Variable multi = first.frame(state.chart).f('member') ? first : null
+    if (multi) {
+      def oldConj = multi.frame(state.chart).s('conj')
       if (!oldConj || oldConj == state[seq]?.conj) {
-        def pair = new Pair(existingSeq, second)
+        def pair = new Pair(multi, second)
         if (!seqs[pair]) {
-          seqs[pair] = existingSeq
+          seqs[pair] = multi
         }
-        return true
       }
-    }
-
-    Variable multi = joinedVar(seqs, first, second)
-    if (first.light && second.light) {
-      multi = multi.lightVar
+    } else {
+      multi = joinedVar(seqs, first, second)
+      if (first.light && second.light) {
+        multi = multi.lightVar
+      }
     }
     update.addAll cxt(newArgs + [(prop):multi, xor:ParsingState.mergeXor(oldArgs, newArgs)]).unifyWherePossible(beforeState)
     return true

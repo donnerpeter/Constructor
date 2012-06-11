@@ -37,10 +37,6 @@ class ParsingState {
     return node.getAllMites()
   }
 
-  ParsingState apply(Contribution contribution) {
-    return inhibit(contribution.inhibited as Construction[]).apply(contribution.apps)
-  }
-
   private ParsingState clone(Map update) {
     Map current = [chart:chart, situation:situation, node:node, history:history, active:active, currentGeneration:currentGeneration, miteGenerations:miteGenerations]
     current.putAll(update)
@@ -231,6 +227,9 @@ class ParsingState {
       fullUpdate.addAll interceptor.enrichUpdate(mite, update, state)
     }
     fullUpdate = fullUpdate.findAll { newMite -> !state.visibleMites[newMite.cxt]?.find { it.contains(newMite) } }
+    if (!fullUpdate) {
+      return state
+    }
     state = state.addCxt(new Node(fullUpdate as List<Mite>, Collections.emptySet(), state.node, state))
 
     LinkedHashSet<Mite> preferred = Util.intersect(state.visibleMites.values().collect { it.reverse() }.flatten(), fullUpdate)
@@ -327,6 +326,7 @@ class ParsingState {
     def all = new LinkedHashSet<Mite>(node.ownMites)
     all.addAll(visibleMites.values().flatten())
     LinkedHashSet<Mite> toApply = all.findAll { it in newActive && !(it in active) }
+    toApply.addAll newActive
 
     def state = clone(active: newActive)
     state = state.undoChanges(toRemove)
@@ -341,7 +341,6 @@ class ParsingState {
           state = prev.doApply(mite)
           if (prev.chart != state.chart) {
             changed = true
-            toApply += newActive
             break
           }
         }

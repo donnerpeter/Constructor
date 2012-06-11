@@ -21,7 +21,8 @@ interface RussianConstructions {
   }
   Construction acc = cxt('acc', ['+noun', '*head']) { ParsingState state, Map args -> state }
   Construction accArg2 = cxt('accArg2', ['+head', 'noun']) { ParsingState state, Map args ->
-    ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'arg2', args.noun) : state
+    def nf = ((Variable) args.noun).frame(state.chart)
+    nf.flatten()[0]?.type ? state.assign(args.head, 'arg2', args.noun) : state
   }
   Construction gen = cxt('gen', ['+noun', '*head']) { ParsingState state, Map args -> state }
   Construction genArg1 = cxt('genArg1', ['+head', 'noun']) { ParsingState state, Map args ->
@@ -136,7 +137,7 @@ interface RussianConstructions {
   Construction declOrQuestionComp = cxt('declOrQuestionComp', ['head', 'comp', 'hasComma']) { ParsingState state, Map args ->
     def type = ((Variable) args.head).frame(state.chart).type //todo split declOrQuestionComp semantically
     def attr = type == 'FORGET' ? 'arg2' : type == 'DISCOVER' ? 'theme' : type == 'SAY' ? 'message' : 'question'
-    state.assign(args.head, attr, args.comp).inhibit(seq)
+    state.assign(args.head, attr, args.comp)
   }.hidingMites { mite, screen -> mite.contents.head && mite.contents.hasComma ? screen.hideAll() : screen }
   Construction modality = cxt('modality', ['modality', 'infinitive', 'questioned']) { ParsingState state, Map args ->
     state = state.assign(args.modality, 'type', 'modality').assign(args.modality, 'arg1', args.infinitive)

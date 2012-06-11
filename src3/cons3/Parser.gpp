@@ -43,7 +43,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         }
         state = update.apply(state)
       } else {
-        state = state.inhibit(numQuantifier).apply(cases.collectEntries { [it, [noun:noun, xor:t.a]] } +
+        state = state.apply(cases.collectEntries { [it, [noun:noun, xor:t.a]] } +
                          [(sem):[var:noun, xor:t.bd],
                                  (numQuantifier):[num: num, xor:t.b, noun:noun.lightVar, outerNoun:noun, interceptor:new NumQuantifier(), prev:state, innerCase:(word == '1' ? acc : gen)],
                                  (numberTypeCxt(num, word)):[xor:t.d, var:num],
@@ -136,7 +136,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case 'с':
         return state.apply((preposition):[prep:'с'])
       case 'по':
-        return state.inhibit(gen, numQuantifier).apply((preposition):[prep:'по'])
+        return state.apply((preposition):[prep:'по'])
       case 'о': return state.apply((preposition):[prep:'о'])
       case 'к': return state.apply((preposition):[prep:'к'])
       case 'у': return state.apply((preposition):[prep:'у'])
@@ -148,7 +148,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply((preposition):[prep:'в'], (vAcc):[xor:t.b], (vPrep):[xor:t.b])
       case 'из':
       case 'изо': return state.apply((preposition):[prep:'из'], (izGen):[:])
-      case 'на': return state.inhibit(adjective).apply((preposition):[prep:'на'], (naPrep):[:])
+      case 'на': return state.apply((preposition):[prep:'на'], (naPrep):[:])
       case "мной": return noun(state, instr, 'ME')
       case "меня": return noun(state, gen, 'ME')
       case ":":
@@ -165,11 +165,12 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "мое": return state.apply((typeCxt('ME')):[var:var], (possessive):[possessor:var, xor:t.a])
       case "моему": return state.apply((typeCxt('ME')):[var:var], (possessive):[possessor:var])
       case "нашего": return state.apply((typeCxt('WE')):[var:var], (possessive):[possessor:var])
-      case "и": return state.apply((seq):[conj:'and'])
-      case "или": return state.apply((seq):[conj:'or'])
+      case "и": return state.apply((seq):[conj:'and', id:new Object()])
+      case "или": return state.apply((seq):[conj:'or', id:new Object()])
       case "а":
       case "но":
-        return state.apply((seq):[conj:'but']).apply((prevHistory):[history:state], (verbEmphasis):[emphasis:word == 'а' ? 'andEmphasis' : 'butEmphasis'])
+        return state.apply((seq):[conj:'but', id:new Object()],
+                (prevHistory):[history:state], (verbEmphasis):[emphasis:word == 'а' ? 'andEmphasis' : 'butEmphasis'])
       case "тут":
         return state.assign(var.lightVar, 'emphasis', 'true').apply((verbHolder):[head:var.lightVar])
       case "потом":
@@ -255,7 +256,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "забыл":
       case "забыла":
       case "забыли":
-        return finiteVerb(state.inhibit(declOrQuestionComp), var, 'FORGET', 'PAST',
+        return finiteVerb(state, var, 'FORGET', 'PAST',
                 (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom]],
                 (adverb):[head:var], (elaboration):[elaboration:var],
                 (advObj):[head:var, xor:t.a],
@@ -274,7 +275,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom]])
       case 'стали':
       case 'начали':
-        return finiteVerb(state.inhibit(preposition), var, 'BEGIN', 'PAST', (control):[head:var], (nom):[head:var])
+        return finiteVerb(state, var, 'BEGIN', 'PAST', (control):[head:var], (nom):[head:var])
       case 'свалился':
         return finiteVerb(state, var, 'FALL', 'PAST', (nom):[head:var, agr:'masc'], (sGen):[head:var], (poDat):[head:var])
       case 'сломал':
@@ -371,7 +372,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "остановились":
         return finiteVerb(state, var, 'STOP', 'PAST', (nom):[head:var])
       case ",":
-        return state.apply((declOrQuestionComp):[hasComma:true], (conditionComp):[hasComma:true], (seq):[conj:','])
+        return state.apply((declOrQuestionComp):[hasComma:true], (conditionComp):[hasComma:true], (seq):[conj:',', id:new Object()])
       case "если":
         return state.apply((conditionComp):[wh:'if', comp:v[verbHolder]], (verbHolder):[head:v[verbHolder].lightVar])
       case "когда":
@@ -398,7 +399,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "идет":
       case "идёт":
         state = state.assign(var, 'time', 'PRESENT')
-        return state.inhibit(preposition, numQuantifier).apply((comeScalarly):[verb:var, xor:t.ab], (typeCxt('GO')):[var:var, xor:t.a],
+        return state.apply((comeScalarly):[verb:var, xor:t.ab], (typeCxt('GO')):[var:var, xor:t.a],
                 (vAcc):[head:var, xor:t.b], (vPrep):[head:var],
                 (nom):[noun:v[nom].lightVar], (nomSubject):[head:var, noun:v[nom]],
                 (poDat):[head:var], (verbHolder): [head:var],
@@ -407,7 +408,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (complementizer):[content:var, xor:t.c], (question):[content:var, xor:t.c])
       case "следовало":
         state = state.assign(var, 'time', 'PAST')
-        return state.inhibit(preposition, numQuantifier).apply((nom):[head:var],
+        return state.apply((nom):[head:var],
                 (comeScalarly):[verb:var],
                 (posleGen):[head:var], (relTime):[head:var], (poDat):[head:var], (verbHolder):[head:var], (elaboration):[elaboration:var])
       case "раньше":
@@ -445,7 +446,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply(reasonComp, active:true)
       case 'обе':
         def num = new Variable()
-        return state.inhibit(numQuantifier).assign(num, 'type', 'BOTH').apply((acc):[noun:var],
+        return state.assign(num, 'type', 'BOTH').apply((acc):[noun:var],
                 (numQuantifier):[num:num, interceptor:new NumQuantifier(), prev:state, noun:var.lightVar, innerCase:gen, outerNoun:var])
       case 'себе':
         return upronoun(dat, var, null, (reflexiveHolder):[noun:var.lightVar]).apply(state)
@@ -491,8 +492,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
   ParsingState numeral(ParsingState state, Tokens t, String number) {
     def noun = new Variable()
     def num = new Variable()
-    return state.inhibit(numQuantifier).
-            apply((nom):[noun:noun, xor:t.ae], (acc):[noun:noun, xor:t.ae],
+    return state.apply((nom):[noun:noun, xor:t.ae], (acc):[noun:noun, xor:t.ae],
                     (typeCxt(number)):[xor:t.bd, var:noun], (dativePart):[acc:noun],
                     (numQuantifier):[num:num, xor:t.b, noun:noun.lightVar, outerNoun:noun,
                             interceptor:new NumQuantifier(), prev:state, innerCase:(number == '1' ? acc : gen)],
@@ -506,7 +506,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
   private ParsingState infinitive(ParsingState state, Variable verb, String type, Map<Construction, Map> args) {
     def mod = new Variable()
     def datNoun = new Variable().lightVar
-    return state.inhibit(verbHolder).assign(verb, 'type', type).apply(args +
+    return state.assign(verb, 'type', type).apply(args +
             [(dat):[noun:datNoun], (datSubj):[head:verb, noun:datNoun], (control): [slave: verb],
                     (question): [content:mod], (modality):[modality:mod, infinitive:verb], (timedModality):[modality:mod],
                     (verbHolder):[head:verb]])
@@ -517,7 +517,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       state = state.assign(verb, 'negated', 'true')
     }
     Tokens t = new Tokens()
-    return state.inhibit(preposition, relativeClause, numQuantifier).
+    return state.
             assign(verb, 'type', type).assign(verb, 'time', tense).
             apply(args + [(subjunctive):[head:verb], (verbHolder):[head:verb], (relTime):[head:verb], (also):[head: verb],
                     (complementizer):[content:verb, xor:t.a], (question):[content:verb, xor:t.a], (verbEmphasis):[verb:verb]])

@@ -13,17 +13,6 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
     this.before = before
   }
 
-  static boolean agree(agr1, agr2) {
-    return agrUnifiable(agrGender((String)agr1), agrGender((String)agr2)) &&
-           agrUnifiable(agrNumber((String)agr1), agrNumber((String)agr2)) &&
-           agrUnifiable(agrPerson((String)agr1), agrPerson((String)agr2))
-  }
-
-  static String agrGender(String agr) { return agr == 'masc' ? 'masc' : agr == 'fem' ? 'fem' : null }
-  static String agrNumber(String agr) { return agr?.endsWith('pl') ? 'pl' : agr?.endsWith('sg') || agr in ['masc', 'fem'] ? 'sg' : null }
-  static String agrPerson(String agr) { return agr?.startsWith('3') ? '3' : null }
-  private static boolean agrUnifiable(String a1, String a2) { return a1 == null || a2 == null || a1 == a2 }
-
   @Override
   Map<Construction, List<Mite>> getExtensionState(Mite mite, Node current) {
     if (mite.contents.rollback) {
@@ -34,6 +23,10 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
 
   @Override
   Collection<Mite> getHiddenMites(Mite mite, ParsingState before) {
+    if (mite.contents.conj && !mite.contents.first) {
+      return before.miteList
+    }
+
     return super.getHiddenMites(mite, before)
   }
 
@@ -46,7 +39,7 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
 
     List<Mite> result = []
 
-    def seqs = [:]
+    Map<Pair<Variable, Variable>, Variable> seqs = [:]
     boolean merged = false
 
     String conj = state[seq]?.conj
@@ -75,8 +68,12 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
       }
 */
 
-      def newPrecedent = null
-      result.add(0, new Mite(seq, conj:conj, interceptor:new SeqInterceptor(state)).unify(new Mite(seq, precedent:newPrecedent, rollback:before))) //todo don't unify mites artificially
+      seqs.each { pair, multi ->
+        result.add(0, seq(conj:conj, interceptor:new SeqInterceptor(state), rollback:before,
+                multi:multi, second:pair.second, first:(multi == pair.first ? null : pair.first)))
+
+      }
+
     }
     return plainMerge + result
   }
@@ -101,7 +98,7 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
         if (conj == 'but') {
           Variable second = newArgs.head
           Variable first = oldArgs.head
-          update << new Mite(aSeqStart(), multi: joinedVar(seqs, first, second), first:first, second:second, conj:conj)
+          joinedVar(seqs, first, second)
           update.addAll new Mite(newArgs, nom).unifyWherePossible(beforeState)
           return true
         }
@@ -135,21 +132,23 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
   private boolean doMerge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, String prop, List<Mite> update, Map<Pair<Variable, Variable>, Variable> seqs, ParsingState beforeState) {
     Variable first = (Variable) oldArgs[prop]
     Variable existingSeq = first.frame(state.chart).f('member') ? first : first.frame(state.chart).usages('member')[0]?.var
+    Variable second = newArgs[prop]
     if (existingSeq) {
       def oldConj = existingSeq.frame(state.chart).s('conj')
       if (!oldConj || oldConj == state[seq]?.conj) {
-        update.addAll joinSeq(newArgs, state, cxt, existingSeq, oldArgs, prop, beforeState)
+        def pair = new Pair(existingSeq, second)
+        if (!seqs[pair]) {
+          seqs[pair] = existingSeq
+        }
         return true
       }
     }
 
-    Variable second = newArgs[prop]
     Variable multi = joinedVar(seqs, first, second)
     if (first.light && second.light) {
       multi = multi.lightVar
     }
-    update << new Mite(aSeqStart(), multi:multi, first:first, second:second, conj:state[seq]?.conj, distinguish:state[preposition]?.repeated)
-    update.addAll new Mite(newArgs + [(prop):multi, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt).unifyWherePossible(beforeState)
+    update.addAll cxt(newArgs + [(prop):multi, xor:ParsingState.mergeXor(oldArgs, newArgs)]).unifyWherePossible(beforeState)
     return true
   }
 
@@ -159,45 +158,8 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
     return multi
   }
 
-  private Construction aSeqStart() {
-    Reference<Construction> seqStart = []
-    seqStart.set(Construction.cxt('seqStart') { ParsingState st, Map args ->
-      st = st.assign(args.multi, 'member', args.first)
-      if (args.conj) {
-        st = st.assign(args.multi, 'conj', args.conj)
-      }
-      if (args.distinguish) {
-        st = st.assign(args.second, 'distinguished_in', args.multi)
-      }
-      st.assign(args.multi, 'member', args.second).satisfied(seqStart.get())
-    })
-    return seqStart.get()
-  }
-
-  static Construction commaList = Construction.cxt('commaList') { state, args ->
-    state
-  }
-
-
-  static List<Mite> joinSeq(Map newArgs, ParsingState state, Construction cxt, Variable seqVar, Map oldArgs, String property, ParsingState beforeState) {
-    Reference<Construction> seqNext = []
-    seqNext.set(Construction.cxt('seqNext') { ParsingState st, Map args ->
-      if (args.conj) {
-        st = st.assign(args.multi, 'conj', args.conj)
-      }
-      st = st.assign(args.multi, 'member', args.next)
-      st.satisfied(seqNext.get())
-    })
-    def newMember = newArgs[property]
-    return [new Mite(seqNext.get(), multi:seqVar, next:newMember, conj:state[seq]?.conj)] +
-            new Mite(newArgs + [(property):seqVar, xor:ParsingState.mergeXor(oldArgs, newArgs)], cxt).unifyWherePossible(beforeState)
-
-  }
-
   @Override
   public String toString() {
-    return "SeqInterceptor{" +
-           "before=" + before +
-           '}';
+    return "SeqInterceptor{" + "before=" + before + '}';
   }
 }

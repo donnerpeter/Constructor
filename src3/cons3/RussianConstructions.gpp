@@ -11,7 +11,8 @@ interface RussianConstructions {
     state.assign(args.nounFrame, (String)args.rel, args.val) }
   Construction nom = cxt('nom', ['+noun', '*head']) { ParsingState state, Map args -> state }
   Construction nomSubject = cxt('nomSubject', ['+head', 'noun']) { ParsingState state, Map args ->
-    if (((Variable) args.noun).frame(state.chart).type) {
+    def nf = ((Variable) args.noun).frame(state.chart)
+    if (nf.type || nf.s('rusNumber')) { //todo a nicer way of distinguishing contentful frames
       for (hf in ((Variable) args.head).frame(state.chart).flatten()) {
         state = state.assign(hf.var, 'arg1', args.noun)
       }
@@ -279,14 +280,22 @@ interface RussianConstructions {
   Construction seq = cxt('seq') { ParsingState state, Map args ->
     SeqInterceptor interceptor = args.interceptor
     String conj = args.conj
-    def before = state.node.findNode(state.active.find { it.cxt == seq }).prevState
-    if (conj && !before[seq]?.conj && before[seq]?.interceptor) {
-      interceptor = null
-    }
-
+    def before = state.node.findNode(state.active.find { it.cxt == seq && it.contents == args }).prevState
     if (!interceptor) {
       interceptor = new SeqInterceptor(before)
       state = state.augmentWith(RussianConstructions.seq(conj:conj, interceptor:interceptor))
+    }
+    if (args.second) {
+      if (args.first) {
+        state = state.assign(args.multi, 'member', args.first)
+      }
+      if (conj && conj != ',') {
+        state = state.assign(args.multi, 'conj', conj)
+      }
+      if (args.distinguish) {
+        state = state.assign(args.second, 'distinguished_in', args.multi)
+      }
+      state = state.assign(args.multi, 'member', args.second)
     }
     return state
   }

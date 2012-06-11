@@ -37,11 +37,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       if (qv) {
         def seqVar = new Variable()
         state = state.apply((questionVariants):[seq:seqVar])
-        Update update = new Update(sem(var:noun))
+        Update update = new Update(sem(var:noun), seq(multi:seqVar, second:noun))
         for (caze in cases) {
-          for (mite in SeqInterceptor.joinSeq([noun:noun, xor:t.a], state, caze, seqVar, [:], 'noun', state)) {
-            update = update.addMites(mite)
-          }
+          update = update.addCxt(caze, noun:seqVar)
         }
         state = update.apply(state)
       } else {
@@ -258,13 +256,18 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "забыла":
       case "забыли":
         return finiteVerb(state.inhibit(declOrQuestionComp), var, 'FORGET', 'PAST',
-                (nom):[noun:v[nom].lightVar], (nomSubject):[head:var, noun:v[nom]],
+                (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom]],
                 (adverb):[head:var], (elaboration):[elaboration:var],
-                (advObj):[head:var, xor:t.a], (acc):[head:var, xor:t.a], (declOrQuestionComp):[head:var, xor:t.a])
+                (advObj):[head:var, xor:t.a],
+                (acc):[noun:v[acc].lightVar, head:new Object()], (accArg2):[head:var, noun:v[acc]],
+                (declOrQuestionComp):[head:var, xor:t.a])
       case "помнят":
       case "помнит":
         return finiteVerb(state, var, 'REMEMBER', 'PRESENT',
-                (nom):[head:var, agr:(word == 'помнят' ? '3pl' : '3sg')], (verbHolder):[head:var], (acc):[head:var])
+                (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom]],
+                (varCxt(rusNumber:(word == "помнят" ? 'pl' : 'sg'), person:'3')):[var:v[nom]],
+                (verbHolder):[head:var],
+                (acc):[noun:v[acc].lightVar, head:new Object()], (accArg2):[head:var, noun:v[acc]])
       case "может":
       case "могут":
         return finiteVerb(state, var, 'CAN', 'PRESENT', (control):[subj:v[nom], head:var],

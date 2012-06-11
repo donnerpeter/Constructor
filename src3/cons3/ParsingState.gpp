@@ -226,10 +226,7 @@ class ParsingState {
       Interceptor interceptor = mite.contents.interceptor ?: new Interceptor()
       fullUpdate.addAll interceptor.enrichUpdate(mite, update, state)
     }
-    fullUpdate = fullUpdate.findAll { newMite -> !state.visibleMites[newMite.cxt]?.find { it.contains(newMite) } }
-    if (!fullUpdate) {
-      return state
-    }
+    assert fullUpdate
     state = state.addCxt(new Node(fullUpdate as List<Mite>, Collections.emptySet(), state.node, state))
 
     LinkedHashSet<Mite> preferred = Util.intersect(state.visibleMites.values().collect { it.reverse() }.flatten(), fullUpdate)

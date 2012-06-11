@@ -165,11 +165,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "мое": return state.apply((typeCxt('ME')):[var:var], (possessive):[possessor:var, xor:t.a])
       case "моему": return state.apply((typeCxt('ME')):[var:var], (possessive):[possessor:var])
       case "нашего": return state.apply((typeCxt('WE')):[var:var], (possessive):[possessor:var])
-      case "и": return state.apply((seq):[conj:'and', id:new Object()])
-      case "или": return state.apply((seq):[conj:'or', id:new Object()])
+      case "и": return state.apply((seq):[conj:'and'])
+      case "или": return state.apply((seq):[conj:'or'])
       case "а":
       case "но":
-        return state.apply((seq):[conj:'but', id:new Object()],
+        return state.apply((seq):[conj:'but'],
                 (prevHistory):[history:state], (verbEmphasis):[emphasis:word == 'а' ? 'andEmphasis' : 'butEmphasis'])
       case "тут":
         return state.assign(var.lightVar, 'emphasis', 'true').apply((verbHolder):[head:var.lightVar])
@@ -372,7 +372,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "остановились":
         return finiteVerb(state, var, 'STOP', 'PAST', (nom):[head:var])
       case ",":
-        return state.apply((declOrQuestionComp):[hasComma:true], (conditionComp):[hasComma:true], (seq):[conj:',', id:new Object()])
+        return state.apply((declOrQuestionComp):[hasComma:true], (conditionComp):[hasComma:true], (seq):[conj:','])
       case "если":
         return state.apply((conditionComp):[wh:'if', comp:v[verbHolder]], (verbHolder):[head:v[verbHolder].lightVar])
       case "когда":
@@ -427,7 +427,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         }
         return state
       case ".":
-        return state.assign(state[verbHolder]?.head ?: var, 'dot', 'true').withSituation(new Situation())
+        return state.apply((verbHolder):[head:var.lightVar]).assign(var, 'dot', 'true').withSituation(new Situation())
       case 'каково':
         return state.assign(var, 'type', 'wh').apply((shortAdj):[copula: new Variable(), value:var, noun:v[nom]], (nom):[noun:v[nom].lightVar])
       case 'бы':

@@ -15,9 +15,15 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
 
   @Override
   Collection<Mite> enrichUpdate(Mite self, List<Mite> constructions, ParsingState state) {
-    def plainMerge = super.enrichUpdate(self, constructions.findAll { self.contents.conj || it.cxt == seq && !it.contents.conj } as List, state)
+    if (self.contents.conj == ',' && !self.contents.multi) {
+      def buts = constructions.findAll { it.cxt == seq && it.contents.conj == 'but' }
+      if (buts) {
+        return seq(interceptor:this).unifyWherePossible(buts, false, false)
+      }
+    }
+
     if (state[seq]?.precedent == null && state[seq]?.rollback) {
-      return plainMerge
+      return []
     }
 
     List<Mite> result = []
@@ -45,12 +51,12 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
     if (rollback != null) {
       seqs.each { pair, multi ->
         result.add(0, seq(conj:conj, interceptor:new SeqInterceptor(state), rollback:rollback,
-                multi:multi, second:pair.second, first:(multi == pair.first ? null : pair.first), id:self.contents.id))
+                multi:multi, second:pair.second, first:(multi == pair.first ? null : pair.first)))
 
       }
 
     }
-    return plainMerge + result
+    return result
   }
 
   private boolean merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, List<Mite> update, Map<Pair<Variable, Variable>, Variable> seqs, boolean clauseLevel, ParsingState beforeState) {

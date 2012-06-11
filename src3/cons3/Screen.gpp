@@ -1,0 +1,45 @@
+package cons3
+
+import groovy.transform.TupleConstructor
+
+/**
+ * @author peter
+ */
+@TupleConstructor
+class Screen {
+  ParsingState before
+  LinkedHashSet<Mite> visibleMites
+
+  Screen hide(Predicate1<Mite> condition) {
+    LinkedHashSet<Mite> newMites = new LinkedHashSet<Mite>(visibleMites)
+    newMites.removeAll(before.miteList.findAll(condition))
+    new Screen(before, newMites)
+  }
+
+  Screen showEverything(ParsingState state) {
+    showMites(state.miteList)
+  }
+
+  Screen showMites(Collection<Mite> mites) {
+    new Screen(before, (LinkedHashSet)visibleMites + (mites as LinkedHashSet<Mite>))
+  }
+
+  Screen hideObscuredByHead(Mite mite) {
+    Screen answer = this
+    if (mite.cxt.headAttr) {
+      Variable head = mite.contents[mite.cxt.headAttr]
+      if (head) {
+        for (val in mite.contents.values()) {
+          if (val instanceof Variable && val != head) {
+            answer = answer.hide { it.contents[it.cxt.headAttr] == val }
+          }
+        }
+      }
+    }
+    answer
+  }
+
+  Screen hideAll() {
+    return hide { true }
+  }
+}

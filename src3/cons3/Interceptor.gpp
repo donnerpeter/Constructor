@@ -13,29 +13,4 @@ public class Interceptor {
     return mite.unifyWherePossible(contribution, true, false)
   }
 
-  Map<Construction, List<Mite>> getExtensionState(Mite mite, Node current) {
-    current.findNode(mite).prevState?.visibleMites ?: [:]
-  }
-
-  Collection<Mite> getHiddenMites(Mite mite, ParsingState before) {
-    def fromCxt = mite.cxt._hidingMites(mite, before)
-    if (fromCxt != null) {
-      return fromCxt
-    }
-
-    if (mite.cxt.headAttr) {
-      Variable head = mite.contents[mite.cxt.headAttr]
-      if (head) {
-        LinkedHashSet<Mite> result = []
-        for (val in mite.contents.values()) {
-          if (val instanceof Variable && val != head) {
-            result.addAll(before.everythingAbout((Variable)val).findAll { it.contents[it.cxt.headAttr] == val })
-          }
-        }
-        return result
-      }
-    }
-    return []
-  }
-
 }

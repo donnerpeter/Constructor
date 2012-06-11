@@ -9,20 +9,8 @@ class Construction {
   final List<String> requiredAttrs
   String headAttr
   String beingMissedAttr
-  Function2<Mite, ParsingState, Collection<Mite>> _hidingMites = { mite, before ->
-    if (headAttr) {
-      Variable head = mite.contents[headAttr]
-      if (head) {
-        LinkedHashSet<Mite> result = []
-        for (val in mite.contents.values()) {
-          if (val instanceof Variable && val != head) {
-            result.addAll(before.everythingAbout((Variable)val).findAll { it.contents[it.cxt.headAttr] == val })
-          }
-        }
-        return result
-      }
-    }
-    return []
+  Function2<Mite, Screen, Screen> displayAction = { mite, screen ->
+    return screen.hideObscuredByHead(mite)
   }
 
   private Construction(String name, Function2<ParsingState, Map, ParsingState> action, List<String> requiredAttrs) {
@@ -42,8 +30,8 @@ class Construction {
     }
   }
 
-  Construction hidingMites(Function2<Mite, ParsingState, Collection<Mite>> action) {
-    _hidingMites = action
+  Construction hidingMites(Function2<Mite, Screen, Screen> action) {
+    displayAction = action
     return this
   }
 

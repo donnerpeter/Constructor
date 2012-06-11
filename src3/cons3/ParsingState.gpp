@@ -456,10 +456,6 @@ class ParsingState {
     return inhibit(visibleMites.keySet() as Construction[])
   }
 
-  ParsingState restore(ParsingState saved) {
-    clone(node: saved.node, active:saved.active)
-  }
-
   String presentable() {
     def log = ""
     def mites = visibleMites

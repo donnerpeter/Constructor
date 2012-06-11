@@ -116,10 +116,10 @@ J.theme=K
 K.arg2=L
 L.type=ORDER
 J.arg1=M
-I.type=fact
-I.content=J
 N.type=COUNTING
 L.criterion=N
+I.type=fact
+I.content=J
 K.dot=true
 """
   }

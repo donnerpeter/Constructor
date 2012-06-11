@@ -14,23 +14,6 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
   }
 
   @Override
-  Map<Construction, List<Mite>> getExtensionState(Mite mite, Node current) {
-    if (mite.contents.rollback) {
-      return ((ParsingState) mite.contents.rollback)?.visibleMites
-    }
-    return [:]
-  }
-
-  @Override
-  Collection<Mite> getHiddenMites(Mite mite, ParsingState before) {
-    if (mite.contents.conj && !mite.contents.first) {
-      return before.miteList
-    }
-
-    return super.getHiddenMites(mite, before)
-  }
-
-  @Override
   Collection<Mite> enrichUpdate(Mite self, List<Mite> constructions, ParsingState state) {
     def plainMerge = super.enrichUpdate(self, constructions.findAll { self.contents.conj || it.cxt == seq && !it.contents.conj } as List, state)
     if (state[seq]?.precedent == null && state[seq]?.rollback) {

@@ -136,14 +136,14 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case 'с':
         return state.apply((preposition):[prep:'с'])
       case 'по':
-        return state.inhibit(gen, numQuantifier).apply((preposition):[prep:'по'], (poDat):[:])
-      case 'о': return state.apply((preposition):[prep:'о'], (oPrep):[:])
-      case 'к': return state.apply((preposition):[prep:'к'], (kDat):[:])
-      case 'у': return state.apply((preposition):[prep:'у'], (uGen):[:])
+        return state.inhibit(gen, numQuantifier).apply((preposition):[prep:'по'])
+      case 'о': return state.apply((preposition):[prep:'о'])
+      case 'к': return state.apply((preposition):[prep:'к'])
+      case 'у': return state.apply((preposition):[prep:'у'])
       case 'до':
-        return state.apply((preposition):[prep:'до'], (doGen):[:])
+        return state.apply((preposition):[prep:'до'])
       case 'от':
-        return state.apply((preposition):[prep:'от'], (otGen):[:])
+        return state.apply((preposition):[prep:'от'])
       case 'в':
         return state.apply((preposition):[prep:'в'], (vAcc):[xor:t.b], (vPrep):[xor:t.b])
       case 'из':

@@ -24,36 +24,21 @@ class Node {
     }
 
     result = [:]
-    LinkedHashSet<Mite> toExclude = []
-
-    if (_inhibited) {
-      toExclude.addAll(_inhibited)
-    }
-
     for (k in ownMites) {
       result[k.cxt] = (result[k.cxt] ?: []) + [k]
     }
 
-    if (prevState && !ownMites) {
-      result += prevState.visibleMites
-    }
-
-    for (k in ownMites) {
-      Interceptor interceptor = k.contents.interceptor ?: new Interceptor()
-      interceptor.getExtensionState(k, this).each { Construction c, List<Mite> oldMites ->
-        result[c] = ((oldMites + (result[c] ?: [])) as LinkedHashSet) as List
+    if (prevState) {
+      Screen screen = new Screen(prevState, prevState.miteList as LinkedHashSet<Mite>)
+      for (k in ownMites) {
+        screen = k.cxt.displayAction(k, screen)
       }
-      toExclude.addAll(interceptor.getHiddenMites(k, prevState))
-    }
-
-    for (mite in toExclude) {
-      def ms = (result[mite.cxt] ?: []) - mite
-      if (!ms) {
-        result.remove(mite.cxt)
-      } else {
-        result[mite.cxt] = ms
+      screen = screen.hide { it in _inhibited}
+      for (k in screen.visibleMites) {
+        result[k.cxt] = (([k] + (result[k.cxt] ?: [])) as LinkedHashSet) as List
       }
     }
+
     cache = result
     return result
   }

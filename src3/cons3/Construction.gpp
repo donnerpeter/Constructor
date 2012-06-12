@@ -30,7 +30,7 @@ class Construction {
     }
   }
 
-  Construction hidingMites(Function2<Mite, Screen, Screen> action) {
+  Construction screeningMites(Function2<Mite, Screen, Screen> action) {
     displayAction = action
     return this
   }

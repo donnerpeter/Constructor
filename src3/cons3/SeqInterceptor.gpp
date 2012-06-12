@@ -34,7 +34,7 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
 
     String conj = state[seq]?.conj
     for (mite in constructions) {
-      if (mite.cxt in [nom] && constructions.any { it.cxt in [nomSubject]}) {
+      if (mite.cxt in [nom, acc] && constructions.any { it.cxt in [nomSubject]}) {
         continue
       }
 
@@ -50,8 +50,7 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
 
     if (rollback != null) {
       seqs.each { pair, multi ->
-        result.add(0, seq(conj:conj, interceptor:new SeqInterceptor(state), rollback:rollback,
-                multi:multi, second:pair.second, first:(multi == pair.first ? null : pair.first)))
+        result.add(0, self.unify(seq(rollback:rollback, multi:multi, second:pair.second, first:(multi == pair.first ? null : pair.first))))
 
       }
 

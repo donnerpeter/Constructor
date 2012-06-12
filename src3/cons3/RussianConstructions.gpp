@@ -113,8 +113,9 @@ interface RussianConstructions {
   Construction poDatTopic = cxt('poDatTopic', ['+head', 'noun']) { ParsingState state, Map args ->
     ((Variable) args.noun).frame(state.chart).type ? state = state.assign(args.head, 'topic', args.noun) : state
   }
-  Construction oPrep = cxt('oPrep', ['+head', 'noun']) { ParsingState state, Map args ->
-    args.noun ? state.assign(args.head, 'topic', args.noun) : state
+  Construction oPrep = cxt('oPrep', ['*head', '+noun']) { ParsingState state, Map args -> state }
+  Construction oPrepTopic = cxt('oPrep', ['+head', 'noun']) { ParsingState state, Map args ->
+    ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'topic', args.noun) : state
   }
   Construction kDat = cxt('kDat', ['+noun']) { ParsingState state, Map args -> state }
   Construction kDatGoal = cxt('kDatGoal', ['+head', 'noun']) { ParsingState state, Map args ->
@@ -138,7 +139,7 @@ interface RussianConstructions {
     def type = ((Variable) args.head).frame(state.chart).type //todo split declOrQuestionComp semantically
     def attr = type == 'FORGET' ? 'arg2' : type == 'DISCOVER' ? 'theme' : type == 'SAY' ? 'message' : 'question'
     state.assign(args.head, attr, args.comp)
-  }.hidingMites { mite, screen -> mite.contents.head && mite.contents.hasComma ? screen.hideAll() : screen }
+  }.screeningMites { mite, screen -> mite.contents.head && mite.contents.hasComma ? screen.hideAll() : screen }
   Construction modality = cxt('modality', ['modality', 'infinitive', 'questioned']) { ParsingState state, Map args ->
     state = state.assign(args.modality, 'type', 'modality').assign(args.modality, 'arg1', args.infinitive)
     return state
@@ -177,7 +178,7 @@ interface RussianConstructions {
       state = state.augmentWith(RussianConstructions.preposition(interceptor:new Preposition()))
     }
     return state
-  }.hidingMites { mite, screen ->
+  }.screeningMites { mite, screen ->
     Variable noun = mite.contents.noun
     if (!noun || mite.contents.hasNoun) {
       return screen
@@ -188,6 +189,11 @@ interface RussianConstructions {
       screen = screen.showMites(new Mite(sInstr, noun:noun, xor:t.ac).unifyWherePossible(screen.before.visibleMites[sInstr] ?: [], false, true))
       screen = screen.showMites(new Mite(sGen, noun:noun, xor:t.ab).unifyWherePossible(screen.before.visibleMites[sGen] ?: [], false, true))
       screen = screen.showMites([new Mite(instr, noun:noun.lightVar, xor:t.bd), new Mite(gen, noun:noun.lightVar, xor:t.cd)])
+    }
+    if (mite.contents.prep == 'в') {
+      screen = screen.showMites(new Mite(vAcc, noun:noun, xor:t.ac).unifyWherePossible(screen.before.visibleMites[vAcc] ?: [], false, true))
+      screen = screen.showMites(new Mite(vPrep, noun:noun, xor:t.ab).unifyWherePossible(screen.before.visibleMites[vPrep] ?: [], false, true))
+      screen = screen.showMites([new Mite(acc, noun:noun.lightVar, xor:t.bd), new Mite(prep, noun:noun.lightVar, xor:t.cd)])
     }
     return screen
 
@@ -222,7 +228,7 @@ interface RussianConstructions {
   }
   Construction conditionComp = cxt('conditionComp', ['hasComma', 'head', 'wh']) { ParsingState state, Map args ->
     state.assign(args.head, "${args.wh}Condition", args.comp)
-  }.hidingMites { mite, screen -> mite.contents.head && mite.contents.hasComma ? screen.hideAll() : screen }
+  }.screeningMites { mite, screen -> mite.contents.head && mite.contents.hasComma ? screen.hideAll() : screen }
   Construction reasonComp = cxt('reasonComp', ['hasComma', 'head', 'active']) { ParsingState state, Map args ->
     if (args.hasComma && !args.comp && args.head && args.active) {
       def next = new Situation()
@@ -245,11 +251,12 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction vAcc = cxt('vAcc', ['noun', 'head']) { ParsingState state, Map args ->
-    if (args.head && args.noun) {
-      state = state.assign(args.head, ((Variable) args.head).frame(state.chart).type == 'THINK' ? 'theme' : 'goal', args.noun)
-    }
-    state
+  Construction vAcc = cxt('vAcc', ['+noun', '*head']) { ParsingState state, Map args -> state }
+  Construction vAccGoal = cxt('vAccGoal', ['noun', '+head']) { ParsingState state, Map args ->
+    ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'goal', args.noun) : state
+  }
+  Construction vAccTheme = cxt('vAccTheme', ['noun', '+head']) { ParsingState state, Map args ->
+    ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'theme', args.noun) : state
   }
   Construction vPrep = cxt('vPrep', ['noun', 'head']) { ParsingState state, Map args ->
     if (args.head && args.noun) {
@@ -295,8 +302,8 @@ interface RussianConstructions {
   Construction seq = cxt('seq') { ParsingState state, Map args ->
     SeqInterceptor interceptor = args.interceptor
     String conj = args.conj
-    def before = state.node.findNode(state.active.find { it.cxt == seq && it.contents == args }).prevState
     if (!interceptor) {
+      def before = state.node.findNode(state.active.find { it.cxt == seq && it.contents == args }).prevState
       interceptor = new SeqInterceptor(before)
       state = state.augmentWith(RussianConstructions.seq(conj:conj, interceptor:interceptor))
     }
@@ -313,7 +320,7 @@ interface RussianConstructions {
       state = state.assign(args.multi, 'member', args.second)
     }
     return state
-  }.hidingMites { mite, screen ->
+  }.screeningMites { mite, screen ->
     if (mite.contents.rollback) {
       screen = screen.showEverything((ParsingState) mite.contents.rollback)
     }
@@ -344,15 +351,27 @@ interface RussianConstructions {
   Construction quotedName = cxt('quotedName', ['finished', 'noun', 'name']) { ParsingState state, Map args ->
     state.assign(args.noun, 'name', args.name)
   }
-  Construction relativeClause = cxt('relativeClause', ['noun', 'hasComma', 'wh']) { ParsingState state, Map args ->
-    if (args.noun && args.hasComma && args.wh) {
-      def next = new Situation()
-      return state.assign(args.noun, 'relative', next).withSituation(next).assign(args.wh, 'relativized', 'true').apply(nestedClause, save:args.save, parent:args.parentSituation)
+  Construction relativeClause = cxt('relativeClause', ['noun', 'comma1']) { ParsingState state, Map args ->
+    if (args.comma1 && !args.before) {
+      def before = state.node.findNode(state.active.find { it.cxt == relativeClause && it.contents == args }).prevState
+      state = state.augmentWith(new Mite(relativeClause, before:before))
+    }
+    if (args.comma1 && args.wh && !args.interceptor) {
+      state = state.augmentWith(new Mite(relativeClause, interceptor:new RelativeClause()))
+    }
+    if (args.relative && args.wh) {
+      state = state.assign(args.noun, 'relative', args.relative).assign(args.wh, 'relativized', 'true')
     }
     return state
-  }
-  Construction nestedClause = cxt('nestedClause', ['X']) { ParsingState state, Map args ->
-    return state
+  }.screeningMites { mite, screen ->
+    if (mite.contents.comma1) {
+      if (mite.contents.comma2) {
+        screen = screen.showEverything((ParsingState)mite.contents.before)
+      } else {
+        screen = screen.hideAll()
+      }
+    }
+    screen
   }
   Construction complementizer = cxt('complementizer', ['frame', 'content']) { ParsingState state, Map args ->
     state = state.assign(args.frame, 'type', 'fact')

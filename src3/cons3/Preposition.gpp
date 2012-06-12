@@ -15,10 +15,6 @@ class Preposition extends Interceptor {
     if (p == 'posle' && caze == gen) return posleGen
     if (p == 'ranshe' && caze == gen) return ransheGen
     if (p == 'по' && caze == dat) return poDat
-    if (p == 'в' && caze == prep) return vPrep
-    if (p == 'в' && caze == acc) return vAcc
-    if (p == 'с' && caze == gen) return sGen
-    if (p == 'с' && caze == instr) return sInstr
     if (p == 'до' && caze == gen) return doGen
     if (p == 'к' && caze == dat) return kDat
     if (p == 'о' && caze == prep) return oPrep

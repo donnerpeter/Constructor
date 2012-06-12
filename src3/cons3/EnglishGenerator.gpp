@@ -243,6 +243,7 @@ class EnglishGenerator {
           candidate in (head.f('theme')?.flatten() ?: []) ||
           candidate in (head.f('message')?.flatten() ?: []) ||
           candidate in (head.f('arg2')?.flatten() ?: []) ||
+          candidate in (head.f('goal')?.f('relative')?.flatten() ?: []) ||
           candidate in (head.f('question')?.flatten() ?: []) ||
           candidate in (head.f('ifCondition')?.flatten() ?: []) ||
           candidate in (head.f('whenCondition')?.flatten() ?: []) ||
@@ -873,12 +874,10 @@ class EnglishGenerator {
       }
 
       def rel = n.f('relative')
-      if (rel?.var instanceof Situation) {
+      if (rel) {
         out ','
-        out 'the'
-        out 'one'
-        new SituationGenerator(chart, (Situation) rel.var, false).sentence(false)
-
+        out 'the one'
+        new ClauseGenerator(rel, null, false, null).generate(false)
       }
     }
 

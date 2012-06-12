@@ -39,7 +39,7 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
       }
 
       Mite oldMite = before.visibleMites[mite.cxt]?.reverse()?.getAt(0)
-      if (oldMite != null) {
+      if (oldMite != null && oldMite.isSimilarTo(mite)) {
         def nextRollback = before.node.findNode(oldMite).prevState
         def newUpdate = merge(state, mite.cxt, oldMite?.contents, mite.contents, result, seqs, declOrQuestionComp in constructions, nextRollback)
         if (newUpdate) {

@@ -8,16 +8,13 @@ import groovy.transform.TupleConstructor
 @TupleConstructor
 class Node {
   static final Node EMPTY = new Node(Collections.emptyList(), Collections.emptySet())
-  private static final Comparator nodeComparator = { ParsingState s1, ParsingState s2 ->
-    s1.node.isMoreRecentThan(s2.node) ? -1 : s1 == s2 ? 0 : 1
-  } as Comparator
   final List<Mite> ownMites
   final Set<Mite> _inhibited
   final Node before
   final ParsingState prevState
   private Map<Construction, List<Mite>> cache
 
-  Map<Construction, List<Mite>> getAllMites() {
+  Map<Construction, List<Mite>> getVisibleMites() {
     Map<Construction, List<Mite>> result = cache
     if (result != null) {
       return result
@@ -47,7 +44,7 @@ class Node {
     if (mite in ownMites) {
       return this
     }
-    return before.findNode(mite)
+    return before?.findNode(mite)
   }
 
   boolean isMoreRecentThan(Node node) {

@@ -33,8 +33,9 @@ class ParsingState {
   List<Mite> getMiteList() {
     return visibleMites.values().flatten() as List
   }
+
   Map<Construction, List<Mite>> getVisibleMites() {
-    return node.getAllMites()
+    return node.visibleMites
   }
 
   private ParsingState clone(Map update) {

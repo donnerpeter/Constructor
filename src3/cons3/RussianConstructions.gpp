@@ -114,7 +114,7 @@ interface RussianConstructions {
     ((Variable) args.noun).frame(state.chart).type ? state = state.assign(args.head, 'topic', args.noun) : state
   }
   Construction oPrep = cxt('oPrep', ['*head', '+noun']) { ParsingState state, Map args -> state }
-  Construction oPrepTopic = cxt('oPrep', ['+head', 'noun']) { ParsingState state, Map args ->
+  Construction oPrepTopic = cxt('oPrepTopic', ['+head', 'noun']) { ParsingState state, Map args ->
     ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'topic', args.noun) : state
   }
   Construction kDat = cxt('kDat', ['+noun']) { ParsingState state, Map args -> state }
@@ -174,9 +174,6 @@ interface RussianConstructions {
     return state
   }
   Construction preposition = cxt('preposition', ['prep']) { ParsingState state, Map args ->
-    if (!args.interceptor && args.prep) {
-      state = state.augmentWith(RussianConstructions.preposition(interceptor:new Preposition()))
-    }
     return state
   }.screeningMites { mite, screen ->
     Variable noun = mite.contents.noun
@@ -197,7 +194,7 @@ interface RussianConstructions {
     }
     return screen
 
-  }
+  }.enrichingMites { mite, contribution, state -> Preposition.enrichUpdate(mite, contribution, state) }
   Construction possArg1 = cxt('possArg1', ['+head', 'possessor']) { ParsingState state, Map args ->
     if (((Variable) args.possessor).frame(state.chart).flatten()[0]?.type) {
       for (hf in ((Variable) args.head).frame(state.chart).flatten()) {
@@ -238,7 +235,7 @@ interface RussianConstructions {
   }
   Construction numQuantifier = cxt('numQuantifier', ['+num', 'noun']) { ParsingState state, Map args ->
     state.assign(args.noun, 'quantifier', args.num)
-  }
+  }.enrichingMites { mite, contribution, state -> NumQuantifier.enrichUpdate(mite, contribution, state) }
   Construction negation = cxt('negation') { ParsingState state, Map args ->
     return state
   }
@@ -300,13 +297,7 @@ interface RussianConstructions {
     args.head && args.participle ? state.assign(args.head, 'theme', args.participle) : state
   }
   Construction seq = cxt('seq') { ParsingState state, Map args ->
-    SeqInterceptor interceptor = args.interceptor
     String conj = args.conj
-    if (!interceptor) {
-      def before = state.node.findNode(state.active.find { it.cxt == seq && it.contents == args }).prevState
-      interceptor = new SeqInterceptor(before)
-      state = state.augmentWith(RussianConstructions.seq(conj:conj, interceptor:interceptor))
-    }
     if (args.second) {
       if (args.first) {
         state = state.assign(args.multi, 'member', args.first)
@@ -329,6 +320,9 @@ interface RussianConstructions {
       return screen.hideAll()
     }
     return screen
+  }.enrichingMites { mite, contribution, state ->
+    ParsingState before = mite.contents.beforeComma ?: state.node.findNode(mite.primaries.iterator().next()).prevState
+    new SeqInterceptor(before).enrichUpdate(mite, contribution, state)
   }
   Construction advObj = cxt('advObj', ['adv', 'head']) { ParsingState state, Map args ->
     if (args.head && args.adv) {
@@ -351,28 +345,18 @@ interface RussianConstructions {
   Construction quotedName = cxt('quotedName', ['finished', 'noun', 'name']) { ParsingState state, Map args ->
     state.assign(args.noun, 'name', args.name)
   }
-  Construction relativeClause = cxt('relativeClause', ['noun', 'comma1']) { ParsingState state, Map args ->
-    if (args.comma1 && !args.before) {
-      def before = state.node.findNode(state.active.find { it.cxt == relativeClause && it.contents == args }).prevState
-      state = state.augmentWith(new Mite(relativeClause, before:before))
-    }
-    if (args.comma1 && args.wh && !args.interceptor) {
-      state = state.augmentWith(new Mite(relativeClause, interceptor:new RelativeClause()))
-    }
-    if (args.relative && args.wh) {
-      state = state.assign(args.noun, 'relative', args.relative).assign(args.wh, 'relativized', 'true')
-    }
-    return state
+  Construction relativeClause = cxt('relativeClause', ['noun', 'relative', 'wh']) { ParsingState state, Map args ->
+    state.assign(args.noun, 'relative', args.relative).assign(args.wh, 'relativized', 'true')
   }.screeningMites { mite, screen ->
     if (mite.contents.comma1) {
       if (mite.contents.comma2) {
-        screen = screen.showEverything((ParsingState)mite.contents.before)
+        screen = screen.showEverything(screen.before.node.findNode(mite.primaries.iterator().next()).prevState)
       } else {
         screen = screen.hideAll()
       }
     }
     screen
-  }
+  }.enrichingMites { mite, contribution, state -> RelativeClause.enrichUpdate(mite, contribution, state) }
   Construction complementizer = cxt('complementizer', ['frame', 'content']) { ParsingState state, Map args ->
     state = state.assign(args.frame, 'type', 'fact')
     state = state.assign(args.frame, 'content', args.content)

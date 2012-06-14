@@ -6,19 +6,14 @@ import groovy.transform.TupleConstructor
  * @author peter
  */
 @TupleConstructor
-class SeqInterceptor extends Interceptor implements RussianConstructions {
+class SeqInterceptor implements RussianConstructions {
   ParsingState before
 
-  SeqInterceptor(ParsingState before) {
-    this.before = before
-  }
-
-  @Override
   Collection<Mite> enrichUpdate(Mite self, List<Mite> constructions, ParsingState state) {
     if (self.contents.conj == ',' && !self.contents.multi) {
       def buts = constructions.findAll { it.cxt == seq && it.contents.conj == 'but' }
       if (buts) {
-        return seq(interceptor:this).unifyWherePossible(buts, false, false)
+        return seq(beforeComma:before).unifyWherePossible(buts, false, false)
       }
     }
 
@@ -32,7 +27,6 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
 
     ParsingState rollback = null
 
-    String conj = state[seq]?.conj
     for (mite in constructions) {
       if (mite.cxt in [nom, acc] && constructions.any { it.cxt in [nomSubject]}) {
         continue
@@ -40,8 +34,8 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
 
       Mite oldMite = before.visibleMites[mite.cxt]?.reverse()?.getAt(0)
       if (oldMite != null && oldMite.isSimilarTo(mite)) {
-        def nextRollback = before.node.findNode(oldMite).prevState
-        def newUpdate = merge(state, mite.cxt, oldMite?.contents, mite.contents, result, seqs, declOrQuestionComp in constructions, nextRollback)
+        def nextRollback = before.node.findNode(oldMite)?.prevState
+        def newUpdate = merge(state, mite.cxt, oldMite?.contents, mite.contents, result, seqs, declOrQuestionComp in constructions, nextRollback, constructions)
         if (newUpdate) {
           rollback = nextRollback
         }
@@ -58,7 +52,7 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
     return result
   }
 
-  private boolean merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, List<Mite> update, Map<Pair<Variable, Variable>, Variable> seqs, boolean clauseLevel, ParsingState beforeState) {
+  private boolean merge(ParsingState state, Construction cxt, Map oldArgs, Map newArgs, List<Mite> update, Map<Pair<Variable, Variable>, Variable> seqs, boolean clauseLevel, ParsingState beforeState, List<Mite> rawUpdate) {
     String conj = state[seq]?.conj
     if (oldArgs != null) {
       if (cxt == elaboration && before[cxt]?.head && oldArgs.elaboration && newArgs.elaboration) {
@@ -72,15 +66,12 @@ class SeqInterceptor extends Interceptor implements RussianConstructions {
       }
       if (cxt in [nomSubject]) {
         if (before[cxt]?.noun) {
-          newArgs += [noun:before[cxt].noun]
-          update.addAll new Mite(reflexiveHolder, noun:before[cxt].noun).unifyWherePossible(beforeState)
-        }
-        if (conj == 'but') {
-          Variable second = newArgs.head
-          Variable first = oldArgs.head
-          joinedVar(seqs, first, second)
-          update.addAll new Mite(newArgs, nom).unifyWherePossible(beforeState)
-          return true
+          update.addAll reflexiveHolder(noun:before[cxt].noun).unifyWherePossible(beforeState)
+          for (m in rawUpdate) {
+            if (m.cxt == nom) {
+              update.addAll m.unifyWherePossible(beforeState.visibleMites[nom], false, false)
+            }
+          }
         }
         return doMerge(state, cxt, oldArgs, newArgs, 'head', update, seqs, beforeState)
       }

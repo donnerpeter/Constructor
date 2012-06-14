@@ -3,14 +3,13 @@ package cons3
 /**
  * @author peter
  */
-class RelativeClause extends Interceptor implements RussianConstructions {
+class RelativeClause implements RussianConstructions {
 
-  @Override
-  Collection<Mite> enrichUpdate(Mite self, List<Mite> constructions, ParsingState state) {
-    if (constructions.find { it.cxt == relativeClause && it.contents.comma1 }) {
+  static Collection<Mite> enrichUpdate(Mite self, List<Mite> constructions, ParsingState state) {
+    if (constructions.find { it.cxt == relativeClause && it.contents.comma1 && it.contents.wh }) {
       return [self.unify(relativeClause(comma2:true))]
     }
-    return []
+    return self.unifyWherePossible(constructions)
   }
 
 }

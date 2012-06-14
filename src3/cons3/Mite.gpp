@@ -103,7 +103,7 @@ class Mite {
     return unifyWherePossible(state.visibleMites[cxt], false, true)
   }
 
-  List<Mite> unifyWherePossible(Collection<Mite> mites, boolean before, boolean includeSelf) {
+  List<Mite> unifyWherePossible(Collection<Mite> mites, boolean before = true, boolean includeSelf = false) {
     List<Mite> result = []
     if (includeSelf) {
       result << this

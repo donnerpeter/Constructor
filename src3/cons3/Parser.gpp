@@ -45,7 +45,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       } else {
         state = state.apply(cases.collectEntries { [it, [noun:noun, xor:t.a]] } +
                          [(sem):[var:noun, xor:t.bd],
-                                 (numQuantifier):[num: num, xor:t.b, noun:noun.lightVar, outerNoun:noun, interceptor:new NumQuantifier(), prev:state, innerCase:(word == '1' ? acc : gen)],
+                                 (numQuantifier):[num: num, xor:t.b, noun:noun.lightVar, outerNoun:noun, prev:state, innerCase:(word == '1' ? acc : gen)],
                                  (numberTypeCxt(num, word)):[xor:t.d, var:num],
                                  (dativePart):[acc:noun]])
       }
@@ -181,7 +181,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         }
         return update.apply(state)
       case "все":
-        return state.assign(state[nom].noun, 'quantifier', 'ALL')
+        return state.apply((nom):[noun:v[nom].lightVar], (varCxt(quantifier:'ALL')):[var:v[nom]])
       case "дальше":
         return state.apply((comeScalarly):[order:'AFTER', xor: t.ab], (typeCxt('NEXT')):[var:var, xor:t.b], (advObj):[adv:var, xor:t.a])
       case "их":
@@ -292,7 +292,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (nom):[noun:v[nom].lightVar], (nomSubject):[head:var, noun:v[nom]])
       case "пошли":
         return finiteVerb(state, var, 'GO', 'PAST',
-                (nom):[noun:v[nom].lightVar], (nomSubject):[head:var, noun:v[nom]],
+                (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom]],
                 (vAcc):[noun:v[vAcc].lightVar, head:new Object()], (vAccGoal):[head:var, noun:v[vAcc]])
       case "спорили":
         return finiteVerb(state, var, 'ARGUE', 'PAST',
@@ -387,15 +387,12 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply((nom):[noun:var, xor:t.a], (acc):[noun:var, xor:t.a], (typeCxt('THAT')):[var:var])
       case "что":
         def comp = new Variable()
-        state = state.apply((declOrQuestionComp):[comp:comp])
-        state = state.apply((relativeClause):[wh:var, relative:v[verbHolder]], (verbHolder):[head:v[verbHolder].lightVar], (naPrep):[head:var, copula:v[verbHolder].lightVar])  //todo pp copula
-
-        Update update = new Update(acc(noun:var, xor:t.a), nom(noun:var, xor:t.a))
+        Update update = new Update(acc(noun:var, xor:t.a, wh:true), nom(noun:var, xor:t.a, wh:true))
         update = update + [
-                (typeCxt('wh')):[var:var, xor:t.f], (question):[questioned:var, frame:comp, xor:t.e], (modality):[questioned:var, xor:t.d]]
-        update = update + [(complementizer):[xor:t.adef, frame:comp]]
-        state = update.apply(state)
-        return state
+                (declOrQuestionComp):[comp:comp], (relativeClause):[wh:var, relative:v[verbHolder]],
+                (verbHolder):[head:v[verbHolder].lightVar], (naPrep):[head:var, copula:v[verbHolder].lightVar],
+                (typeCxt('wh')):[var:var, xor:t.f], (question):[questioned:var, frame:comp, xor:t.e], (modality):[questioned:var, xor:t.d], (complementizer):[xor:t.adef, frame:comp]]
+        return update.apply(state)
       case "идет":
       case "идёт":
         state = state.assign(var, 'time', 'PRESENT')
@@ -447,7 +444,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case 'обе':
         def num = new Variable()
         return state.assign(num, 'type', 'BOTH').apply((acc):[noun:var],
-                (numQuantifier):[num:num, interceptor:new NumQuantifier(), prev:state, noun:var.lightVar, innerCase:gen, outerNoun:var])
+                (numQuantifier):[num:num, prev:state, noun:var.lightVar, innerCase:gen, outerNoun:var])
       case 'себе':
         return upronoun(dat, var, null, (reflexiveHolder):[noun:var.lightVar]).apply(state)
       case 'мне':
@@ -495,7 +492,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     return state.apply((nom):[noun:noun, xor:t.ae], (acc):[noun:noun, xor:t.ae],
                     (typeCxt(number)):[xor:t.bd, var:noun], (dativePart):[acc:noun],
                     (numQuantifier):[num:num, xor:t.b, noun:noun.lightVar, outerNoun:noun,
-                            interceptor:new NumQuantifier(), prev:state, innerCase:(number == '1' ? acc : gen)],
+                            prev:state, innerCase:(number == '1' ? acc : gen)],
                     (typeCxt(number)):[xor:t.d, var:num])
   }
 

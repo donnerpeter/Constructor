@@ -12,6 +12,9 @@ class Construction {
   Function2<Mite, Screen, Screen> displayAction = { mite, screen ->
     return screen.hideObscuredByHead(mite)
   }
+  Function3<Mite, List<Mite>, ParsingState, Collection<Mite>> enrichAction = { mite, contribution, state ->
+    return mite.unifyWherePossible(contribution)
+  }
 
   private Construction(String name, Function2<ParsingState, Map, ParsingState> action, List<String> requiredAttrs) {
     this.action = action
@@ -32,6 +35,11 @@ class Construction {
 
   Construction screeningMites(Function2<Mite, Screen, Screen> action) {
     displayAction = action
+    return this
+  }
+
+  Construction enrichingMites(Function3<Mite, List<Mite>, ParsingState, Collection<Mite>> action) {
+    enrichAction = action
     return this
   }
 

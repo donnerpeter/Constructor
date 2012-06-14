@@ -9,8 +9,4 @@ public class Interceptor {
     base(contribution, state)
   }
 
-  Collection<Mite> enrichUpdate(Mite mite, List<Mite> contribution, ParsingState state) {
-    return mite.unifyWherePossible(contribution, true, false)
-  }
-
 }

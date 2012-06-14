@@ -11,7 +11,7 @@ class Chart {
   final Map<Variable, Situation> __vars
   private final FList<Object> currentMetas
   final IdentityHashMap<Assignment<Variable>, FList<Object>> __metas
-  private final FLinkedMap<Set<Variable>, Integer> __unifications
+  final FLinkedMap<Set<Variable>, Integer> __unifications
   private final FLinkedMap<Variable, Variable> __baseVars
   private final FLinkedMap<Object, List<Set<Variable>>> metaUnifications
 

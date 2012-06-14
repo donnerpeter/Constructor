@@ -1,15 +1,16 @@
 package cons3
 
+import static cons3.RussianConstructions.*
+
 /**
  * @author peter
  */
-class NumQuantifier extends Interceptor implements  RussianConstructions {
+class NumQuantifier {
 
-  Collection<Mite> enrichUpdate(Mite prep, List<Mite> contribution, ParsingState state) {
+  static Collection<Mite> enrichUpdate(Mite prep, List<Mite> contribution, ParsingState state) {
     List<Mite> result = []
     if (state[numQuantifier].num) {
       def args = state[numQuantifier]
-      Update update = new Update()
       for (mite in contribution) {
         if (mite.cxt == args.innerCase) {
           Variable noun = mite.contents.noun
@@ -18,7 +19,7 @@ class NumQuantifier extends Interceptor implements  RussianConstructions {
         }
       }
     }
-    return super.enrichUpdate(prep, contribution, state) + result
+    return prep.unifyWherePossible(contribution) + result
   }
 
 }

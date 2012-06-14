@@ -5,11 +5,11 @@ import static cons3.RussianConstructions.*
 /**
  * @author peter
  */
-class Preposition extends Interceptor {
+class Preposition {
 
   static final ArrayList<Construction> cases = [nom, acc, gen, dat, instr, prep]
 
-  private Construction transformCase(ParsingState state, Construction caze) {
+  private static Construction transformCase(ParsingState state, Construction caze) {
     def p = state[preposition].prep
 
     if (p == 'posle' && caze == gen) return posleGen
@@ -25,7 +25,7 @@ class Preposition extends Interceptor {
     return caze
   }
 
-  Collection<Mite> enrichUpdate(Mite prep, List<Mite> contribution, ParsingState state) {
+  static Collection<Mite> enrichUpdate(Mite prep, List<Mite> contribution, ParsingState state) {
     List<Mite> result = []
     for (mite in contribution) {
       def c = mite.cxt

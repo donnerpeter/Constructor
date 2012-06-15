@@ -281,15 +281,15 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case 'сломала':
         def datNoun = new Variable().lightVar
         return finiteVerb(state, var, 'BREAK', 'PAST',
-                (nom):[noun:v[nom].lightVar], (nomSubject):[head:var, noun:v[nom]],
+                (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom]],
                 (acc):[noun:v[acc].lightVar, head:new Object()], (accArg2):[head:var, noun:v[acc]],
-                (dat):[noun:v[dat].lightVar], (dativePart):[head:var])
+                (dat):[noun:v[dat].lightVar, head:new Object()], (dativePart):[head:var])
       case "отвлекло":
         return finiteVerb(state, var, 'DISTRACT', 'PAST', (otGen):[head:var], (nom):[head:var], (acc):[head:var])
       case "отправился":
         return finiteVerb(state, var, 'GO_OFF', 'PAST',
-                (kDat):[noun:v[kDat].lightVar], (kDatGoal):[head:var, noun:v[kDat]],
-                (nom):[noun:v[nom].lightVar], (nomSubject):[head:var, noun:v[nom]])
+                (kDat):[noun:v[kDat].lightVar, head:new Object()], (kDatGoal):[head:var, noun:v[kDat]],
+                (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom]])
       case "пошли":
         return finiteVerb(state, var, 'GO', 'PAST',
                 (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom]],

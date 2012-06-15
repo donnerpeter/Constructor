@@ -99,6 +99,9 @@ class Mite {
     return another.cxt == cxt && another.primaries.containsAll(primaries)
   }
 
+  List<Mite> unifyWherePossible(Node state) {
+    return unifyWherePossible(state.visibleMites[cxt], false, true)
+  }
   List<Mite> unifyWherePossible(ParsingState state) {
     return unifyWherePossible(state.visibleMites[cxt], false, true)
   }
@@ -118,6 +121,21 @@ class Mite {
 
   boolean isMissingHead() {
     return cxt.beingMissedAttr && !contents[cxt.beingMissedAttr]
+  }
+
+  LinkedHashSet<Variable> allUnifiedWith(Variable var) {
+    LinkedHashSet<Variable> result = [var.base]
+    if (!var) return result
+
+    for (pair in unifications) {
+      if (pair.first.base == var.base) {
+        result << pair.second.base
+      }
+      else if (pair.second.base == var.base) {
+        result << pair.first.base
+      }
+    }
+    result
   }
 
 }

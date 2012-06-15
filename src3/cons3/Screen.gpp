@@ -11,8 +11,11 @@ class Screen {
   LinkedHashSet<Mite> visibleMites
 
   Screen hide(Predicate1<Mite> condition) {
+    hide before.miteList.findAll(condition)
+  }
+  Screen hide(Collection<Mite> toRemove) {
     LinkedHashSet<Mite> newMites = new LinkedHashSet<Mite>(visibleMites)
-    newMites.removeAll(before.miteList.findAll(condition))
+    newMites.removeAll(toRemove)
     new Screen(before, newMites)
   }
 
@@ -25,21 +28,24 @@ class Screen {
   }
 
   Screen hideObscuredByHead(Mite mite) {
-    Screen answer = this
-    if (mite.cxt.headAttr) {
-      Variable head = mite.contents[mite.cxt.headAttr]
-      if (head) {
-        for (val in mite.contents.values()) {
-          if (val instanceof Variable && val != head) {
-            answer = answer.hide { it.contents[it.cxt.headAttr] == val }
-          }
+    hide findObscuredMites(mite, before)
+  }
+
+  static LinkedHashSet<Mite> findObscuredMites(Mite mite, ParsingState state) {
+    LinkedHashSet<Mite> toRemove = []
+    if (mite.cxt.beingMissedAttr && mite.contents[mite.cxt.beingMissedAttr]) {
+      LinkedHashSet<Variable> varsToHide = []
+      for (val in mite.contents.values()) {
+        if (val instanceof Variable) {
+          varsToHide.addAll(mite.allUnifiedWith(val))
         }
       }
+      toRemove.addAll(state.miteList.findAll { ((Variable) it.contents[it.cxt.headAttr])?.base in varsToHide })
     }
-    answer
+    toRemove
   }
 
   Screen hideAll() {
-    return hide { true }
+    return hide(before.miteList)
   }
 }

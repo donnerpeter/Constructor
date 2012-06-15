@@ -22,12 +22,12 @@ class Construction {
     this.requiredAttrs = []
     for (attr in requiredAttrs) {
       if (attr.startsWith('+')) {
-        headAttr = attr
         attr = attr.substring(1)
+        headAttr = attr
       }
       if (attr.startsWith('*')) {
-        beingMissedAttr = attr
         attr = attr.substring(1)
+        beingMissedAttr = attr
       }
       this.requiredAttrs << attr
     }

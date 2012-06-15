@@ -17,7 +17,7 @@ class SeqInterceptor implements RussianConstructions {
       }
     }
 
-    if (state[seq]?.precedent == null && state[seq]?.rollback) {
+    if (state[seq]?.precedent == null && state[seq]?.mergedWith) {
       return []
     }
 
@@ -25,7 +25,7 @@ class SeqInterceptor implements RussianConstructions {
 
     Map<Pair<Variable, Variable>, Variable> seqs = [:]
 
-    ParsingState rollback = null
+    Node mergePoint = null
 
     for (mite in constructions) {
       if (mite.cxt in [nom, acc] && constructions.any { it.cxt in [nomSubject]}) {
@@ -34,16 +34,16 @@ class SeqInterceptor implements RussianConstructions {
 
       Mite oldMite = before.visibleMites[mite.cxt]?.reverse()?.getAt(0)
       if (oldMite != null && oldMite.isSimilarTo(mite)) {
-        def nextRollback = merge(state, oldMite, mite.contents, result, seqs, declOrQuestionComp in constructions, constructions)
-        if (nextRollback) {
-          rollback = nextRollback
+        def nextPoint = merge(state, oldMite, mite.contents, result, seqs, declOrQuestionComp in constructions)
+        if (nextPoint) {
+          mergePoint = nextPoint
         }
       }
     }
 
-    if (rollback != null) {
+    if (mergePoint != null) {
       seqs.each { pair, multi ->
-        result.add(0, self.unify(seq(rollback:rollback, multi:multi, second:pair.second, first:(multi == pair.first ? null : pair.first))))
+        result.add(0, self.unify(seq(mergedWith:mergePoint, multi:multi, second:pair.second, first:(multi == pair.first ? null : pair.first))))
 
       }
 
@@ -51,7 +51,7 @@ class SeqInterceptor implements RussianConstructions {
     return result
   }
 
-  private ParsingState merge(ParsingState state, Mite oldMite, Map newArgs, List<Mite> update, Map<Pair<Variable, Variable>, Variable> seqs, boolean clauseLevel, List<Mite> rawUpdate) {
+  private Node merge(ParsingState state, Mite oldMite, Map newArgs, List<Mite> update, Map<Pair<Variable, Variable>, Variable> seqs, boolean clauseLevel) {
     def oldArgs = oldMite.contents
     def cxt = oldMite.cxt
     if (cxt == elaboration && before[cxt]?.head && oldArgs.elaboration && newArgs.elaboration) {
@@ -64,16 +64,14 @@ class SeqInterceptor implements RussianConstructions {
       return doMerge(state, oldMite, newArgs, 'comp', update, seqs)
     }
     if (cxt in [nomSubject]) {
-      def rollback = findRollback(oldMite)
+      def mergePoint = findMergePoint(oldMite, 'head')
+      def merged = createMergedMite(oldMite, 'head', newArgs, state, seqs)
       if (before[cxt]?.noun) {
-        update.addAll reflexiveHolder(noun:before[cxt].noun).unifyWherePossible(rollback)
-        for (m in rawUpdate) {
-          if (m.cxt == nom) {
-            update.addAll m.unifyWherePossible(rollback.visibleMites[nom], false, false)
-          }
-        }
+        update.addAll reflexiveHolder(noun:before[cxt].noun).unifyWherePossible(mergePoint)
+        update.addAll(merged.unify(cxt(noun:((Variable) before[cxt]?.noun).lightVar)).unifyWherePossible(mergePoint))
       }
-      return doMerge(state, oldMite, newArgs, 'head', update, seqs)
+      update.addAll merged.unifyWherePossible(mergePoint)
+      return mergePoint
     }
 
     if (clauseLevel) return null
@@ -82,9 +80,9 @@ class SeqInterceptor implements RussianConstructions {
       return doMerge(state, oldMite, newArgs, 'noun', update, seqs)
     }
     if (cxt in [preposition] && oldArgs.prep == newArgs.prep) {
-      def rollback = findRollback(oldMite)
-      update.addAll new Mite(newArgs + [repeated:true], cxt).unifyWherePossible(rollback)
-      return rollback
+      def mergePoint = findMergePoint(oldMite, 'x')
+      update.addAll new Mite(newArgs + [repeated:true], cxt).unifyWherePossible(mergePoint)
+      return mergePoint
     }
     if (cxt in [gen] && oldArgs.head && newArgs.head && !newArgs.noun) {
       return doMerge(state, oldMite, newArgs, 'head', update, seqs)
@@ -99,7 +97,14 @@ class SeqInterceptor implements RussianConstructions {
   }
 
 
-  private ParsingState doMerge(ParsingState state, Mite oldMite, Map newArgs, String prop, List<Mite> update, Map<Pair<Variable, Variable>, Variable> seqs) {
+  private Node doMerge(ParsingState state, Mite oldMite, Map newArgs, String prop, List<Mite> update, Map<Pair<Variable, Variable>, Variable> seqs) {
+    def mPoint = findMergePoint(oldMite, prop)
+    assert mPoint
+    update.addAll createMergedMite(oldMite, prop, newArgs, state, seqs).unifyWherePossible(mPoint)
+    return mPoint
+  }
+
+  private Mite createMergedMite(Mite oldMite, String prop, Map newArgs, ParsingState state, Map<Pair<Variable, Variable>, Variable> seqs) {
     Variable first = (Variable) oldMite.contents[prop]
     Variable second = newArgs[prop]
     Variable multi = first.frame(state.chart).f('member') ? first : null
@@ -117,13 +122,17 @@ class SeqInterceptor implements RussianConstructions {
         multi = multi.lightVar
       }
     }
-    def beforeState = findRollback(oldMite)
-    update.addAll oldMite.cxt(newArgs + [(prop):multi, xor:ParsingState.mergeXor(oldMite.contents, newArgs)]).unifyWherePossible(beforeState)
-    return beforeState
+    def createMergedMite = oldMite.cxt(newArgs + [(prop):multi, xor:ParsingState.mergeXor(oldMite.contents, newArgs)])
+    createMergedMite
   }
 
-  private ParsingState findRollback(Mite oldMite) {
-    before.node.findNode(oldMite)?.prevState
+  private Node findMergePoint(Mite oldMite, String property) {
+    def node = before.node.findNode(oldMite)
+    def prevSeq = node.ownMites.find { it.cxt == seq && it.contents.mergedWith && it.contents.multi && it.contents.multi == oldMite.contents[property]  }
+    if (prevSeq) {
+      return prevSeq.contents.mergedWith
+    }
+    node
   }
 
   private Variable joinedVar(Map<Pair<Variable, Variable>, Variable> seqs, Variable first, second) {

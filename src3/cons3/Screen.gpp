@@ -36,7 +36,7 @@ class Screen {
     if (mite.cxt.beingMissedAttr && mite.contents[mite.cxt.beingMissedAttr]) {
       LinkedHashSet<Variable> varsToHide = []
       for (val in mite.contents.values()) {
-        if (val instanceof Variable) {
+        if (val instanceof Variable && mite.contents[mite.cxt.beingMissedAttr] != val) {
           varsToHide.addAll(mite.allUnifiedWith(val))
         }
       }

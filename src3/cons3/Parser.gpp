@@ -241,13 +241,12 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "работы":
         state = noun(state, gen, 'WORK')
         return state.apply(absTime, noun:state[posleGen].noun)
-      case "вдруг": return state.apply((adverb):[adv:'SUDDENLY'])
-      case "опять":
-        return state.assign(var.lightVar, 'anchor', 'AGAIN').apply((verbHolder):[head:var.lightVar])
-      case "слегка": return state.apply(adverb, adv:'SLIGHTLY')
-      case "долго": return state.apply(adverb, adv:'LONG')
-      case "грустно": return state.apply(adverb, adv:'SADLY')
-      case "просто": return state.apply(adverb, adv:'JUST')
+      case "вдруг": return uadv('manner', 'SUDDENLY').apply(state)
+      case "опять": return uadv('anchor', 'AGAIN').apply(state)
+      case "слегка": return uadv('manner', 'SLIGHTLY').apply(state)
+      case "долго": return uadv('duration', 'LONG').apply(state)
+      case "грустно": return uadv('manner', 'SADLY').apply(state)
+      case "просто": return uadv('manner', 'JUST').apply(state)
       case "тоже":
         return state.apply(also, hasAlso:true)
       case "не":
@@ -257,7 +256,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "забыли":
         return finiteVerb(state, var, 'FORGET', 'PAST',
                 (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom]],
-                (adverb):[head:var], (elaboration):[elaboration:var],
+                (elaboration):[elaboration:var],
                 (advObj):[head:var, xor:t.a],
                 (acc):[noun:v[acc].lightVar, head:new Object()], (accArg2):[head:var, noun:v[acc]],
                 (declOrQuestionComp):[head:var, xor:t.a])
@@ -279,7 +278,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return finiteVerb(state, var, 'FALL', 'PAST', (nom):[head:var, agr:'masc'], (sGen):[head:var], (poDat):[head:var])
       case 'сломал':
       case 'сломала':
-        def datNoun = new Variable().lightVar
         return finiteVerb(state, var, 'BREAK', 'PAST',
                 (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom]],
                 (acc):[noun:v[acc].lightVar, head:new Object()], (accArg2):[head:var, noun:v[acc]],
@@ -296,34 +294,39 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (vAcc):[noun:v[vAcc].lightVar, head:new Object()], (vAccGoal):[head:var, noun:v[vAcc]])
       case "спорили":
         return finiteVerb(state, var, 'ARGUE', 'PAST',
-                (nom):[noun:v[nom].lightVar], (nomSubject):[head:var, noun:v[nom]],
-                (adverb):[head:var])
+                (nom):[noun:v[nom].lightVar], (nomSubject):[head:var, noun:v[nom]])
       case "обнаружил":
       case "обнаружила":
       case "обнаружили":
         return finiteVerb(state, var, 'DISCOVER', 'PAST', (declOrQuestionComp):[head:var],
-                (nom):[noun:v[nom].lightVar], (nomSubject):[head:var, noun:v[nom]],
-                (adverb):[head:var])
+                (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom]])
       case "улыбнулась":
-        return finiteVerb(state, var, 'SMILE', 'PAST', (nom):[head:var], (adverb):[head:var])
+        return finiteVerb(state, var, 'SMILE', 'PAST',
+                (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom]])
       case "сказал":
       case "сказала":
         def datNoun = new Variable().lightVar
-        return finiteVerb(state, var, 'SAY', 'PAST', (nom):[head:var], (dat):[noun:datNoun], (datAddressee):[head:var, noun:datNoun],
+        return finiteVerb(state, var, 'SAY', 'PAST',
+                (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom]],
+                (dat):[noun:datNoun, head:new Object()], (datAddressee):[head:var, noun:datNoun],
                 (directSpeech):[head:var, xor:t.a], (declOrQuestionComp):[head:var, xor:t.a])
       case "вынул":
       case "вынула":
-        return finiteVerb(state, var, 'TAKE_OUT', 'PAST', (nom):[head:var], (acc):[head:var], (izGen):[head:var])
+        return finiteVerb(state, var, 'TAKE_OUT', 'PAST',
+                (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom]],
+                (acc):[noun:v[acc].lightVar, head:new Object()], (accArg2):[head:var, noun:v[acc]],
+                (izGen):[noun:v[izGen].lightVar, head:new Object()], (izGenSource):[noun:v[izGen], head:var])
       case "показались":
-        return finiteVerb(state, var, 'SEEM', 'PAST', (nom):[head:var], (dat):[noun:new Variable().lightVar], (participleArg):[head:var])
+        return finiteVerb(state, var, 'SEEM', 'PAST',
+                (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom]],
+                (dat):[noun:new Variable().lightVar], (participleArg):[head:var])
       case "подвигав":
-        def instrNoun = new Variable()
         state = state.assign(var, 'type', 'MOVE').assign(var, 'background', 'perfect')
-        return state.apply((instr):[noun:instrNoun.lightVar], (instrArg2):[head:var, noun:instrNoun], (adverb):[head:var])
+        return state.apply((instr):[noun:v[instr].lightVar], (instrArg2):[head:var, noun:v[instr]], (adverb):[head:var])
       case "подвигала":
         def instrNoun = new Variable()
         return finiteVerb(state, var, 'MOVE', 'PAST',
-                (instr):[noun:instrNoun.lightVar], (instrArg2):[head:var, noun:instrNoun], (adverb):[head:var], (nom):[head:var])
+                (instr):[noun:instrNoun.lightVar], (instrArg2):[head:var, noun:instrNoun], (nom):[head:var])
       case "дойдя":
         state = state.assign(var, 'type', 'COME_TO').assign(var, 'background', 'perfect')
         return state.apply((vPrep):[head:var], (doGen):[head:var])
@@ -356,7 +359,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (nom):[noun:v[nom].lightVar], (nomSubject):[head:var, noun:v[nom]],
                 (acc):[noun:v[acc].lightVar], (accArg2):[head:var, noun:v[acc]])
       case "сидят":
-        return finiteVerb(state, var, 'SIT', 'PRESENT', (nom):[head:var], (adverb):[head:var])
+        return finiteVerb(state, var, 'SIT', 'PRESENT', (nom):[head:var])
       case "спросил":
       case "спросили":
         return finiteVerb(state, var, 'ASK', 'PAST',
@@ -481,6 +484,10 @@ class Parser { //todo alex implements cons3.RussianConstructions
     return state
   }
 
+  Update uadv(String rel, String adv) {
+    return new Update() + [(adverb):[adv:adv, attr:rel, head:new Variable().lightVar]]
+  }
+
   ParsingState adj(ParsingState state, Construction caze, String rel, String val) {
     def noun = new Variable().lightVar
     return state.apply((adjective):[nounFrame:noun, rel:rel, val:val], (caze):[noun:noun])
@@ -517,6 +524,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     return state.
             assign(verb, 'type', type).assign(verb, 'time', tense).
             apply(args + [(subjunctive):[head:verb], (verbHolder):[head:verb], (relTime):[head:verb], (also):[head: verb],
+                    (adverb):[head:verb],
                     (complementizer):[content:verb, xor:t.a], (question):[content:verb, xor:t.a], (verbEmphasis):[verb:verb]])
   }
 

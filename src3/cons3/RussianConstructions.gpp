@@ -284,8 +284,11 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction izGen = cxt('izGen', ['noun', 'head']) { ParsingState state, Map args ->
-    args.head && args.noun ? state.assign(args.head, 'source', args.noun) : state
+  Construction izGen = cxt('izGen', ['+noun', '*head']) { ParsingState state, Map args ->
+    state
+  }
+  Construction izGenSource = cxt('izGenSource', ['noun', '+head']) { ParsingState state, Map args ->
+    ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'source', args.noun) : state
   }
   Construction doGen = cxt('doGen', ['noun', 'head']) { ParsingState state, Map args ->
     args.head && args.noun ? state.assign(args.head, 'goal', args.noun) : state
@@ -340,8 +343,13 @@ interface RussianConstructions {
   Construction absTime = cxt('absTime', ['rel', 'head', 'noun']) { ParsingState state, Map args ->
     state.assign(args.head, 'relTime_after', args.noun)
   }
-  Construction adverb = cxt('adverb', ['head', 'adv']) { ParsingState state, Map args ->
-    state.assign(args.head, args.adv == 'LONG' ? 'duration' : 'manner', args.adv).inhibit(adverb)
+  Construction adverb = cxt('adverb', ['head', 'adv', 'attr']) { ParsingState state, Map args ->
+    state.assign(args.head, (String)args.attr, args.adv)
+  }.screeningMites { mite, screen ->
+    if (!((Variable) mite.contents.head).light) {
+      screen = screen.hide { it.isPartOf(mite) }
+    }
+    screen
   }
   Construction quotedName = cxt('quotedName', ['finished', 'noun', 'name']) { ParsingState state, Map args ->
     state.assign(args.noun, 'name', args.name)

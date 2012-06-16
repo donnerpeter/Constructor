@@ -100,7 +100,7 @@ class SeqInterceptor implements RussianConstructions {
   private Node doMerge(ParsingState state, Mite oldMite, Map newArgs, String prop, List<Mite> update, Map<Pair<Variable, Variable>, Variable> seqs) {
     def mPoint = findMergePoint(oldMite, prop)
     assert mPoint
-    update.addAll createMergedMite(oldMite, prop, newArgs, state, seqs).unifyWherePossible(mPoint)
+    update.addAll createMergedMite(oldMite, prop, newArgs, state, seqs).unifyWherePossible(mPoint.prevState)
     return mPoint
   }
 

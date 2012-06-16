@@ -244,13 +244,13 @@ A.type=CASHIER
 A.gender=fem
 B.type=SMILE
 B.time=PAST
-B.manner=SADLY
 B.arg1=A
+B.manner=SADLY
 C.type=TAKE_OUT
 C.time=PAST
+C.arg1=A
 D.member=B
 D.member=C
-C.arg1=A
 E.type=MOUTH
 C.source=E
 F.size=LITTLE
@@ -263,9 +263,9 @@ H.type=NOSE
 G.arg2=H
 I.type=SAY
 I.time=PAST
+I.arg1=A
 D.conj=and
 D.member=I
-I.arg1=A
 I.message=#2
 """
   }

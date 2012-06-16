@@ -322,14 +322,15 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (dat):[noun:new Variable().lightVar], (participleArg):[head:var])
       case "подвигав":
         state = state.assign(var, 'type', 'MOVE').assign(var, 'background', 'perfect')
-        return state.apply((instr):[noun:v[instr].lightVar], (instrArg2):[head:var, noun:v[instr]], (adverb):[head:var])
+        return state.apply((instr):[noun:v[instr].lightVar], (instrArg2):[head:var, noun:v[instr]],
+                (adverb):[head:var], (commaSurrounded):[content:var])
       case "подвигала":
         def instrNoun = new Variable()
         return finiteVerb(state, var, 'MOVE', 'PAST',
                 (instr):[noun:instrNoun.lightVar], (instrArg2):[head:var, noun:instrNoun], (nom):[head:var])
       case "дойдя":
         state = state.assign(var, 'type', 'COME_TO').assign(var, 'background', 'perfect')
-        return state.apply((vPrep):[head:var], (doGen):[head:var])
+        return state.apply((vPrep):[head:var], (doGen):[head:var], (commaSurrounded):[content:var])
       case "вдумываясь":
         state = state.assign(var, 'type', 'THINK').assign(var, 'background', 'present')
         return state.apply((vAcc):[noun:v[vAcc].lightVar, head:new Object()], (vAccTheme):[head:var, noun:v[vAcc]])
@@ -381,7 +382,10 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "остановились":
         return finiteVerb(state, var, 'STOP', 'PAST', (nom):[head:var])
       case ",":
-        return state.apply((declOrQuestionComp):[hasComma:true], (conditionComp):[hasComma:true], (seq):[conj:','], (relativeClause):[comma1:true])
+        return state.apply((declOrQuestionComp):[hasComma:true],
+                (conditionComp):[hasComma:true],
+                (seq):[conj:','],
+                (relativeClause):[comma1:true], (commaSurrounded):[comma1:true])
       case "если":
         return state.apply((conditionComp):[wh:'if', comp:v[verbHolder]], (verbHolder):[head:v[verbHolder].lightVar])
       case "когда":

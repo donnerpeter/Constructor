@@ -313,11 +313,10 @@ interface RussianConstructions {
     }
     return screen
   }.enrichingMites { mite, contribution, state ->
-    def comma2 = contribution.find { it.cxt == adverbialPhrase && it.contents.comma1 }
+    def comma2 = contribution.find { it.cxt == adverbialPhrase && it.contents.comma1 && it.contents.head }
     if (comma2) {
-      return mite.contents.content && mite.contents.head ?
-        new Mite(adverbialPhrase, comma2:true).unifyWherePossible(state) +
-        [new Mite(verbHolder, head:((Variable) mite.contents.head).lightVar)] :
+      return mite.contents.content ?
+        [mite.unify(new Mite(adverbialPhrase, comma2:true, head:comma2.contents.head)), new Mite(verbHolder, head:comma2.contents.head)] :
         []
     }
     return mite.unifyWherePossible(contribution)

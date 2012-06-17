@@ -51,16 +51,13 @@ class EnglishGenerator {
 
     private class ClauseGenerator {
       Frame frame
-      Frame bg
       boolean topLevel
       Frame comp
-      Frame copula
       Map<String, Frame> preAdjuncts = [:]
       Map<String, Frame> postAdjuncts = [:]
 
-      ClauseGenerator(Frame frame, Frame bg, boolean topLevel, Frame comp) {
+      ClauseGenerator(Frame frame, boolean topLevel, Frame comp) {
         this.frame = frame
-        this.bg = bg
         this.topLevel = topLevel
         this.comp = comp
 
@@ -73,7 +70,7 @@ class EnglishGenerator {
 
       def generate(boolean last) {
         if (frame?.f('member')) {
-          List<ClauseGenerator> conjuncts = frame.flatten().collect { new ClauseGenerator(it, null, false, null) }
+          List<ClauseGenerator> conjuncts = frame.flatten().collect { new ClauseGenerator(it, false, null) }
           generateConjuncts(conjuncts) { gen, lst -> gen.generate(lst) }
           return
         }
@@ -98,6 +95,7 @@ class EnglishGenerator {
           }
         }
 
+        def bg = frame?.f('perfectBackground')
         if (bg) {
           if (bg.type == 'MOVE') {
             out 'moving'
@@ -214,12 +212,12 @@ class EnglishGenerator {
           List<Frame> seqs = prev.frame?.usages('member') ?: [] //todo infer
           def but = seqs.any { conj -> conj.s('conj') == 'but' && conj.allAssignments('member')[-1].value == cur.frame }
           wasBut |= but
-          if (last && (!cur.bg || cur.frame) || but) {
+          if (last && (!cur.frame?.f('perfectBackground') || cur.frame) || but) {
             def negated = cur.frame?.s('negated')
             if (but && !negated) {
               out(prev.frame?.f('opinion_of') ? ';' : ',')
             }
-            else if (!wasBut && j > 1 || cur.bg) out ","
+            else if (!wasBut && j > 1 || cur.frame?.f('perfectBackground')) out ","
 
             out(but ? negated ? 'and' : prev.frame?.s('irrealis') == 'true' ? 'when' : 'but' : "and")
           } else {
@@ -247,6 +245,7 @@ class EnglishGenerator {
           candidate in (head.f('question')?.flatten() ?: []) ||
           candidate in (head.f('ifCondition')?.flatten() ?: []) ||
           candidate in (head.f('whenCondition')?.flatten() ?: []) ||
+          candidate in (head.f('perfectBackground')?.flatten() ?: []) ||
           head.type in ['question', 'fact'] && candidate in (head.f('content')?.flatten() ?: []) ||
           head.type == 'modality' && candidate == head.f('arg1') ||
           head.type == 'BEGIN' && candidate == head.f('arg1')
@@ -263,11 +262,6 @@ class EnglishGenerator {
       int i = 0
       int mainVerbs = 0
       while (i < allVerbs.size()) {
-        Frame bg = null
-        if (allVerbs[i].s('background')) {
-          bg = allVerbs[i++]
-        }
-
         def cur = allVerbs[i++]
         if (cur) {
           mainVerbs++
@@ -278,7 +272,7 @@ class EnglishGenerator {
           comp = next
           i++
         }
-        conjuncts << new ClauseGenerator(cur, bg, topLevel, comp)
+        conjuncts << new ClauseGenerator(cur, topLevel, comp)
       }
       return conjuncts
     }
@@ -575,7 +569,7 @@ class EnglishGenerator {
           out 'on'
           np(question.f('topic'), false)
         } else {
-          new ClauseGenerator(question, null, false, null).generate(true)
+          new ClauseGenerator(question, false, null).generate(true)
         }
       }
 
@@ -585,7 +579,7 @@ class EnglishGenerator {
         if (that) {
           out ","
         }
-        List<ClauseGenerator> clauses = theme.flatten().collect { new ClauseGenerator(it.f('content'), null, false, null) }
+        List<ClauseGenerator> clauses = theme.flatten().collect { new ClauseGenerator(it.f('content'), false, null) }
         generateConjuncts(clauses)  { conj, last ->
           if (that) {
             out 'that'
@@ -662,7 +656,7 @@ class EnglishGenerator {
           } else if (message.f('opinion_of')) {
             out ','
           }
-          new ClauseGenerator(message, null, false, null).generate(true)
+          new ClauseGenerator(message, false, null).generate(true)
         }
       }
     }
@@ -687,14 +681,14 @@ class EnglishGenerator {
           return
         }
 
-        new ClauseGenerator(content, null, false, null).generate(true)
+        new ClauseGenerator(content, false, null).generate(true)
       }
 
       def condComp = verb.f('ifCondition') ?: verb.f('whenCondition')
       if (condComp) {
         out ','
         out(verb.f('ifCondition') ? 'if' : 'when')
-        new ClauseGenerator(condComp, null, false, null).generate(true)
+        new ClauseGenerator(condComp, false, null).generate(true)
       }
     }
 
@@ -708,7 +702,7 @@ class EnglishGenerator {
         def commaStyle = verb.type == 'HAPPEN'
         out(commaStyle ? ',' : ":")
         def sameSentence = commaStyle || verb.type == 'BEGIN'
-        List<ClauseGenerator> clauses = elaboration.flatten().collect { new ClauseGenerator(it, null, !sameSentence, null) }
+        List<ClauseGenerator> clauses = elaboration.flatten().collect { new ClauseGenerator(it, !sameSentence, null) }
         generateConjuncts(clauses) { conj, last -> conj.generate(last) }
       }
     }
@@ -877,7 +871,7 @@ class EnglishGenerator {
       if (rel) {
         out ','
         out 'the one'
-        new ClauseGenerator(rel, null, false, null).generate(false)
+        new ClauseGenerator(rel, false, null).generate(false)
       }
     }
 

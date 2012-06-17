@@ -299,8 +299,8 @@ interface RussianConstructions {
   Construction participleArg = cxt('participleArg', ['participle', 'head']) { ParsingState state, Map args ->
     args.head && args.participle ? state.assign(args.head, 'theme', args.participle) : state
   }
-  Construction commaSurrounded = cxt('commaSurrounded', ['content']) { ParsingState state, Map args ->
-    state
+  Construction adverbialPhrase = cxt('adverbialPhrase', ['content', 'head']) { ParsingState state, Map args ->
+    state.assign(args.head, 'perfectBackground', args.content)
   }.screeningMites { mite, screen ->
     if (mite.contents.comma1 && !mite.contents.content) {
       return screen.hideAll()
@@ -313,8 +313,12 @@ interface RussianConstructions {
     }
     return screen
   }.enrichingMites { mite, contribution, state ->
-    if (mite.contents.content && contribution.find { it.cxt == commaSurrounded && it.contents.comma1 }) {
-      return new Mite(commaSurrounded, comma2:true).unifyWherePossible(state)
+    def comma2 = contribution.find { it.cxt == adverbialPhrase && it.contents.comma1 }
+    if (comma2) {
+      return mite.contents.content && mite.contents.head ?
+        new Mite(adverbialPhrase, comma2:true).unifyWherePossible(state) +
+        [new Mite(verbHolder, head:((Variable) mite.contents.head).lightVar)] :
+        []
     }
     return mite.unifyWherePossible(contribution)
   }
@@ -409,7 +413,13 @@ interface RussianConstructions {
   Construction adverbPred = cxt('adverbPred', ['adverb', 'time']) { ParsingState state, Map args ->
     state.assign(args.adverb, 'time', args.time)
   }
-  Construction verbHolder = cxt('verbHolder', ['X']) { ParsingState state, Map args -> state }
+  Construction verbHolder = cxt('verbHolder', ['X']) { ParsingState state, Map args -> state }.
+          enrichingMites { mite, contriution, state ->
+            if (mite.contents.hasComma) {
+              return []
+            }
+            return mite.unifyWherePossible(contriution)
+          }
   Construction elaboration = cxt('elaboration', ['head', 'elaboration']) { ParsingState state, Map args ->
     state.assign(args.head, 'elaboration', args.elaboration)
   }

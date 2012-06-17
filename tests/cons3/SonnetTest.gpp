@@ -364,11 +364,11 @@ B.arg2=C
 D.type=JOY
 E.type=RUN_OUT
 E.time=PAST
+E.arg1=A
+E.mood=D
 F.member=B
 F.conj=and
 F.member=E
-E.mood=D
-E.arg1=A
 G.type=SHOP
 E.source=G
 """

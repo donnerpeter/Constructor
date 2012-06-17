@@ -129,7 +129,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.assign(var, 'type', 'LUCK').apply((dat):[noun:var])
       case "случился":
         return finiteVerb(state, var, 'HAPPEN', 'PAST',
-                (sInstr):[noun:v[sInstr].lightVar], (sInstrExperiencer):[head:var, noun:v[sInstr]],
+                (sInstr):[noun:v[sInstr].lightVar, head:new Object()], (sInstrExperiencer):[head:var, noun:v[sInstr]],
                 (nom):[noun:v[nom].lightVar], (nomSubject):[head:var, noun:v[nom]])
       case 'со':
       case 'с':
@@ -370,13 +370,20 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (oPrep):[noun:v[oPrep].lightVar, head: new Object()], (oPrepTopic):[head:var, noun:v[oPrep]])
       case "делал":
       case "делали":
-        return finiteVerb(state, var, 'DO', 'PAST', (acc):[head:var], (nom):[head:var])
+        return finiteVerb(state, var, 'DO', 'PAST',
+                (acc):[noun:v[acc].lightVar, head:new Object()], (accArg2):[head:var, noun:v[acc]],
+                (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom]])
       case "поблагодарили":
-        return finiteVerb(state, var, 'THANK', 'PAST', (acc):[head:var], (nom):[head:var])
+        return finiteVerb(state, var, 'THANK', 'PAST',
+                (acc):[noun:v[acc].lightVar, head:new Object()], (accArg2):[head:var, noun:v[acc]],
+                (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom]])
       case "разошлись":
         return finiteVerb(state, var, 'DISPERSE', 'PAST', (poDat):[head:var], (nom):[head:var])
       case "выбежали":
-        return finiteVerb(state, var, 'RUN_OUT', 'PAST', (izGen):[head:var], (nom):[head:var], (sInstr):[head:var])
+        return finiteVerb(state, var, 'RUN_OUT', 'PAST',
+                (izGen):[noun:v[izGen].lightVar, head:new Object()], (izGenSource):[noun:v[izGen], head:var],
+                (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom]],
+                (sInstr):[noun:v[sInstr].lightVar, head:new Object()], (sInstrMood):[head:var, noun:v[sInstr]])
       case "приуныли":
         return finiteVerb(state, var, 'GET_SAD', 'PAST', (nom):[head:var], (reasonComp):[head:var])
       case "остановились":

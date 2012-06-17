@@ -1,5 +1,7 @@
 package cons3
 
+import static cons3.RussianConstructions.verbHolder
+
 /**
  * @author peter
  */
@@ -79,6 +81,28 @@ class Util {
     def ts = new LinkedHashSet<T>(set1)
     ts.removeAll(set2)
     return ts
+  }
 
+  static Construction commaSurrounded(Construction cxt) {
+    cxt.screeningMites { mite, screen ->
+      if (mite.contents.comma1 && !mite.contents.content) {
+        return screen.hideAll()
+      }
+      if (mite.contents.content) {
+        def firstAtom = mite.primaries.iterator().next()
+        if (firstAtom?.contents?.comma1) {
+          return screen.showEverything(screen.before.node.findNode(firstAtom).prevState)
+        }
+      }
+      return screen
+    }.enrichingMites { mite, contribution, state ->
+      def newComma = contribution.find { it.cxt == cxt && it.contents.comma1 && it.contents.head }
+      if (newComma) {
+        return mite.contents.content && !mite.contents.comma2 ?
+          [mite.unify(new Mite(cxt, comma2:true, head:newComma.contents.head)), new Mite(verbHolder, head:newComma.contents.head)] :
+          []
+      }
+      return mite.unifyWherePossible(contribution)
+    }
   }
 }

@@ -235,22 +235,20 @@ class EnglishGenerator {
     private List<ClauseGenerator> planConjuncts(boolean topLevel) {
       List<Frame> allVerbs = chart.frames(situation).findAll { isVerb(it) || it.type in ['fact', 'question'] } as List
 
-      def subordinates = allVerbs.findAll { candidate ->
-        Frame master = allVerbs.find { head ->
-          candidate in (head.f('elaboration')?.flatten() ?: []) ||
-          candidate in (head.f('theme')?.flatten() ?: []) ||
-          candidate in (head.f('message')?.flatten() ?: []) ||
-          candidate in (head.f('arg2')?.flatten() ?: []) ||
-          candidate in (head.f('goal')?.f('relative')?.flatten() ?: []) ||
-          candidate in (head.f('question')?.flatten() ?: []) ||
-          candidate in (head.f('ifCondition')?.flatten() ?: []) ||
-          candidate in (head.f('whenCondition')?.flatten() ?: []) ||
-          candidate in (head.f('perfectBackground')?.flatten() ?: []) ||
-          head.type in ['question', 'fact'] && candidate in (head.f('content')?.flatten() ?: []) ||
-          head.type == 'modality' && candidate == head.f('arg1') ||
-          head.type == 'BEGIN' && candidate == head.f('arg1')
+      LinkedHashSet<Frame> subordinates = []
+      for (head in allVerbs) {
+        for (attr in ['elaboration', 'theme', 'message', 'arg2', 'question', 'ifCondition', 'whenCondition', 'perfectBackground']) {
+          subordinates.addAll(head.f(attr)?.flatten() ?: [])
         }
-        return master != null
+        subordinates.addAll(head.f('goal')?.f('relative')?.flatten() ?: [])
+        subordinates.addAll(head.f('condition')?.f('whenCondition')?.flatten() ?: [])
+        subordinates.addAll(head.f('condition')?.f('ifCondition')?.flatten() ?: [])
+        if (head.type in ['question', 'fact']) {
+          subordinates.addAll(head.f('content')?.flatten() ?: [])
+        }
+        if (head.type in ['modality', 'BEGIN']) {
+          subordinates.addAll(head.f('arg1')?.flatten() ?: [])
+        }
       }
       allVerbs.removeAll(subordinates)
 

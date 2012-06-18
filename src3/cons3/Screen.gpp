@@ -33,7 +33,7 @@ class Screen {
 
   static LinkedHashSet<Mite> findObscuredMites(Mite mite, ParsingState state) {
     LinkedHashSet<Mite> toRemove = []
-    if (mite.cxt.beingMissedAttr && mite.contents[mite.cxt.beingMissedAttr]) {
+    if (mite.cxt.beingMissedAttr && mite.contents[mite.cxt.beingMissedAttr] && mite.lastAtom.contents[mite.cxt.beingMissedAttr]) {
       LinkedHashSet<Variable> varsToHide = []
       for (val in mite.contents.values()) {
         if (val instanceof Variable && mite.contents[mite.cxt.beingMissedAttr] != val) {

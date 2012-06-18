@@ -28,29 +28,4 @@ class Similarity {
     return true
   }
 
-  static int findSimilar(List<Contribution> history, List<Mite> constructions) {
-   int i = 0
-   for (old in history) {
-     if (Similarity.areSimilar(old, constructions)) {
-       return i
-     }
-     if (constructions.find { it.cxt == nom && it.contents.head }) {
-       if (old.apps.find { it.cxt == complementizer && it.contents.frame || it.cxt == directSpeech && it.contents.hasColon }) {
-         return -1
-       }
-     }
-
-     if (old.apps.find { it.cxt == nom && it.contents.head && !it.contents.noun} && !constructions.find { it.cxt == complementizer } &&
-       (constructions.find { it.cxt in [dat, gen, nom, acc] && it.contents.noun || it.cxt == preposition })) {
-       return -1
-     }
-
-     if (old.apps.find { it.cxt == dat && it.contents.noun} && constructions.find { it.cxt in [acc] && it.contents.noun }) {
-       return -1
-     }
-
-     i++
-   }
-   return -1
- }
 }

@@ -138,4 +138,12 @@ class Mite {
     result
   }
 
+  Mite getLastAtom() {
+    def mites = primaries as List<Mite>
+    return mites[mites.size() - 1]
+  }
+
+  Mite getFirstAtom() {
+    return primaries.iterator().next()
+  }
 }

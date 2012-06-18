@@ -89,7 +89,7 @@ class Util {
         return screen.hideAll()
       }
       if (mite.contents.content) {
-        def firstAtom = mite.primaries.iterator().next()
+        def firstAtom = mite.firstAtom
         if (firstAtom?.contents?.comma1) {
           return screen.showEverything(screen.before.node.findNode(firstAtom).prevState)
         }
@@ -98,9 +98,18 @@ class Util {
     }.enrichingMites { mite, contribution, state ->
       def newComma = contribution.find { it.cxt == cxt && it.contents.comma1 && it.contents.head }
       if (newComma) {
-        return mite.contents.content && !mite.contents.comma2 ?
-          [mite.unify(new Mite(cxt, comma2:true, head:newComma.contents.head)), new Mite(verbHolder, head:newComma.contents.head)] :
-          []
+        if (mite.contents.content && !mite.contents.comma2) {
+          def newVerb = new Mite(verbHolder, head:newComma.contents.head)
+          def result = [mite.unify(new Mite(cxt, comma2:true, head:newComma.contents.head)), newVerb]
+          if (mite.contents.head) {
+            def firstAtom = mite.firstAtom
+            if (firstAtom.contents?.comma1) {
+              result.addAll(newVerb.unifyWherePossible(state.node.findNode(firstAtom)?.prevState?.visibleMites?.get(verbHolder) ?: [], false))
+            }
+          }
+          return result
+        }
+        return []
       }
       return mite.unifyWherePossible(contribution)
     }

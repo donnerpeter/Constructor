@@ -173,26 +173,7 @@ interface RussianConstructions {
   }
   Construction preposition = cxt('preposition', ['prep']) { ParsingState state, Map args ->
     return state
-  }.screeningMites { mite, screen ->
-    Variable noun = mite.contents.noun
-    if (!noun || mite.contents.hasNoun) {
-      return screen
-    }
-
-    Tokens t = new Tokens()
-    if (mite.contents.prep == 'с') {
-      screen = screen.showMites(new Mite(sInstr, noun:noun, xor:t.ac).unifyWherePossible(screen.before.visibleMites[sInstr] ?: [], false, true))
-      screen = screen.showMites(new Mite(sGen, noun:noun, xor:t.ab).unifyWherePossible(screen.before.visibleMites[sGen] ?: [], false, true))
-      screen = screen.showMites([new Mite(instr, noun:noun.lightVar, xor:t.bd), new Mite(gen, noun:noun.lightVar, xor:t.cd)])
-    }
-    if (mite.contents.prep == 'в') {
-      screen = screen.showMites(new Mite(vAcc, noun:noun, xor:t.ac).unifyWherePossible(screen.before.visibleMites[vAcc] ?: [], false, true))
-      screen = screen.showMites(new Mite(vPrep, noun:noun, xor:t.ab).unifyWherePossible(screen.before.visibleMites[vPrep] ?: [], false, true))
-      screen = screen.showMites([new Mite(acc, noun:noun.lightVar, xor:t.bd), new Mite(prep, noun:noun.lightVar, xor:t.cd)])
-    }
-    return screen
-
-  }.enrichingMites { mite, contribution, state -> Preposition.enrichUpdate(mite, contribution, state) }
+  }
   Construction possArg1 = cxt('possArg1', ['+head', 'possessor']) { ParsingState state, Map args ->
     if (((Variable) args.possessor).frame(state.chart).flatten()[0]?.type) {
       for (hf in ((Variable) args.head).frame(state.chart).flatten()) {
@@ -268,10 +249,10 @@ interface RussianConstructions {
     state
   }
   Construction posleGen = cxt('posleGen', ['noun', '+head']) { ParsingState state, Map args ->
-    state.assign(args.head, 'anchor', args.noun)
+    ((Variable) args.noun)?.frame(state.chart)?.type ? state.assign(args.head, 'anchor', args.noun) : state
   }
   Construction ransheGen = cxt('ransheGen', ['noun', 'head']) { ParsingState state, Map args ->
-    def type = ((Variable) args.head)?.frame(state.chart)?.type
+    def type = ((Variable) args.noun)?.frame(state.chart)?.type
     if (type && args.noun) {
       state = state.assign(args.head,'anchor', args.noun)
     }
@@ -333,7 +314,7 @@ interface RussianConstructions {
     }
     return screen
   }.enrichingMites { mite, contribution, state ->
-    ParsingState before = mite.contents.beforeComma ?: state.node.findNode(mite.primaries.iterator().next()).prevState
+    ParsingState before = mite.contents.beforeComma ?: state.node.findNode(mite.firstAtom).prevState
     new SeqInterceptor(before).enrichUpdate(mite, contribution, state)
   }
   Construction advObj = cxt('advObj', ['adv', 'head']) { ParsingState state, Map args ->

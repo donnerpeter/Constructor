@@ -99,7 +99,8 @@ class Mite {
   }
 
   boolean isMissingHead() {
-    return cxt.beingMissedAttr && !contents[cxt.beingMissedAttr]
+    return cxt.beingMissedAttr && !contents[cxt.beingMissedAttr] ||
+           cxt.headAttr && (!contents[cxt.headAttr] || ((Variable) contents[cxt.headAttr]).light)
   }
 
   LinkedHashSet<Variable> allUnifiedWith(Variable var) {

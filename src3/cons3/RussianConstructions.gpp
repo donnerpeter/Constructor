@@ -305,7 +305,7 @@ interface RussianConstructions {
   }.screeningMites { mite, screen ->
     if (mite.contents.mergedWith) {
       Node mergedWith = mite.contents.mergedWith
-      screen = screen.showMites(mergedWith.screenPreviousState())
+      screen = screen.showMites(mergedWith.ownMites.reverse()).showMites(mergedWith.screenPreviousState())
     }
 
     if (mite.contents.conj && !mite.contents.first) {

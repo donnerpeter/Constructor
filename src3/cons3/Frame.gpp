@@ -5,6 +5,7 @@ package cons3
  */
 class Frame {
   final Variable var
+  final Variable unifiedVar
   final Situation situation
   final Chart chart
 
@@ -12,10 +13,7 @@ class Frame {
     this.var = var
     this.situation = situation
     this.chart = chart
-  }
-
-  Variable getUnifiedVar() {
-    return chart.getUnifiedVar(var)
+    unifiedVar = chart.getUnifiedVar(var)
   }
 
   String toString() {

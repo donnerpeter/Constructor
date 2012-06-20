@@ -27,8 +27,7 @@ class EllipsisInterceptor extends Interceptor implements RussianConstructions {
         Map<Variable, Variable> mapping = buildMapping(lcs, precedent, update)
 
         def ellipsis = new Variable()
-        state = state.satisfied(clauseEllipsis).
-                inhibit(comeScalarly, nom, advObj, elaboration, numQuantifier). //todo inhibit/satisfy should also be replicated
+        state = state.
                 assign(ellipsis, 'type', 'ellipsis').startMeta(ellipsis)
 
         for (i in 0..<precedent.size()) {

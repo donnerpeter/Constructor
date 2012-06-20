@@ -34,7 +34,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       List<Construction> cases = [nom, acc, gen]
 
       def qv = state[questionVariants]
-      if (qv) {
+      if (qv && !qv.seq) {
         def seqVar = new Variable()
         state = state.apply((questionVariants):[seq:seqVar])
         Update update = new Update(sem(var:noun), seq(multi:seqVar, second:noun))
@@ -159,7 +159,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
           return state.apply(directSpeech, hasColon:true)
         }
 
-        return state.clearConstructions().apply((elaboration):[head:state[verbHolder].head])
+        return state.apply((elaboration):[head:state[verbHolder].head])
       case "я": return pronoun(state, nom, 'ME')
       case "мы": return upronoun(nom, var, 'WE').apply(state)
       case "нам": return upronoun(dat, var, 'WE').apply(state)
@@ -179,11 +179,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.assign(var.lightVar, 'emphasis', 'true').apply((verbHolder):[head:var.lightVar])
       case "потом":
         Update update = new Update(comeScalarly(order:'AFTER', xor: t.a), nom([:]))
-        if (state[comeScalarly]?.order) {
-          state = state.inhibit(comeScalarly)
-        } else {
-          update = update.addCxt(relTime, relTime:'AFTER', xor:t.a)
-        }
+        update = update.addCxt(relTime, relTime:'AFTER', xor:t.a)
         return update.apply(state)
       case "все":
         return state.apply((nom):[noun:v[nom].lightVar], (varCxt(quantifier:'ALL')):[var:v[nom]])
@@ -443,14 +439,14 @@ class Parser { //todo alex implements cons3.RussianConstructions
           return state.apply(directSpeech, hasDash:true)
         }
         if (state[question]?.questioned) {
-          state = state.clearConstructions().apply((questionVariants):[questioned:state[question].questioned], (verbHolder):[head:state[verbHolder]?.head])
+          state = state.apply((questionVariants):[questioned:state[question].questioned])
         }
         if (state[prevHistory]) {
           state = state.apply((clauseEllipsis):[interceptor:new EllipsisInterceptor((ParsingState) state[prevHistory].history, state)])
         }
         return state
       case ".":
-        return state.apply((verbHolder):[head:var.lightVar]).assign(var, 'dot', 'true').withSituation(new Situation())
+        return state.apply((dot):[head:state[verbHolder].head])
       case 'каково':
         return state.assign(var, 'type', 'wh').apply((shortAdj):[copula: new Variable(), value:var, noun:v[nom]], (nom):[noun:v[nom].lightVar])
       case 'бы':

@@ -191,7 +191,7 @@ public class ParsingStateTest extends TestCase {
     assert frame.var == vars[0]
     assert frame.f('arg2')?.var == vars[1]
     assert frame.f('arg2').f('arg2')?.var == vars[2]
-    assert state.active.findAll { it.cxt == myAcc }.size() == 3
+    assert state.network._chosen.findAll { it.cxt == myAcc }.size() == 3
   }
 
   public void _testHeadHidesPrecedingArguments() {

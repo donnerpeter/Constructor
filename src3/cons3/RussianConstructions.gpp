@@ -156,7 +156,9 @@ interface RussianConstructions {
     args.order ? state.assign(args.verb, 'order', args.order) : state
   }
   Construction questionVariants = cxt('questionVariants', ['seq', 'questioned']) { ParsingState state, Map args ->
-    args.seq && args.questioned ? state.assign(args.questioned, 'variants', args.seq).satisfied(questionVariants) : state
+    state.assign(args.questioned, 'variants', args.seq)
+  }.screeningMites { mite, screen ->
+    if (!mite.contents.seq && mite.contents.questioned) return screen.hideAll() else return screen
   }
   Construction reflexiveHolder = cxt('reflexiveHolder', ['X']) { ParsingState state, Map args -> state }
   Construction shortAdj = cxt('shortAdj', ['noun', 'value', 'copula']) { ParsingState state, Map args ->
@@ -212,8 +214,8 @@ interface RussianConstructions {
   }.screeningMites { mite, screen -> mite.contents.head && mite.contents.hasComma ? screen.hideAll() : screen }
   Construction reasonComp = cxt('reasonComp', ['hasComma', 'head', 'active']) { ParsingState state, Map args ->
     if (args.hasComma && !args.comp && args.head && args.active) {
-      def next = new Situation()
-      state = state.assign(args.head, "reason", next).withSituation(next)
+//      def next = new Situation()
+//      state = state.assign(args.head, "reason", next)/*.withSituation(next)*/
     }
     return state
   }
@@ -224,9 +226,6 @@ interface RussianConstructions {
     return state
   }
   Construction also = cxt('also') { ParsingState state, Map args ->
-    if (args.head && !args.hasAlso) {
-      state = state.inhibit(also)
-    }
     if (args.hasAlso && args.head) {
       state = state.assign(args.head, 'also', 'true')
     }
@@ -364,8 +363,8 @@ interface RussianConstructions {
   }
   Construction directSpeech = cxt('directSpeech') { ParsingState state, Map args ->
     if (args.head && args.hasColon) {
-      def message = new Situation()
-      state = state.assign(args.head, 'message', message).withSituation(message)
+//      def message = new Situation()
+//      state = state.assign(args.head, 'message', message)/*.withSituation(message)*/
     }
 
     return state
@@ -388,5 +387,10 @@ interface RussianConstructions {
           }
   Construction elaboration = cxt('elaboration', ['head', 'elaboration']) { ParsingState state, Map args ->
     state.assign(args.head, 'elaboration', args.elaboration)
+  }.screeningMites { mite, screen ->
+    if (mite.contents.head && !mite.contents.elaboration) return screen.hideAll() else return screen
   }
+  Construction dot = cxt('dot', ['head']) { ParsingState state, Map args ->
+    state.assign(args.head, 'dot', 'true')
+  }.screeningMites { mite, screen -> screen.hideAll() }.enrichingMites { mite, contribution, state -> [] }
 }

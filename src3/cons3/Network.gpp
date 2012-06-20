@@ -1,0 +1,153 @@
+package cons3
+
+import groovy.transform.TupleConstructor
+
+/**
+ * @author peter
+ */
+@TupleConstructor
+class Network {
+  final Map<Mite, Collection<Mite>> contradictors = [:]
+  final Map<Object, Collection<Mite>> groups = [:]
+  final Set<Mite> _chosen = []
+
+  Network addMites(LinkedHashSet<Mite> mites) {
+    Map<Mite, Collection<Mite>> newContradictors = [:] + contradictors
+    Map<Object, Collection<Mite>> newGroups = [:] + groups
+
+    for (mite in mites) {
+      for (id in allGroups(mite)) {
+        newGroups[id] = (newGroups[id] ?: []) + mite
+      }
+    }
+
+    for (mite in mites) {
+      LinkedHashSet<Mite> contras = []
+      for (id in allGroups(mite)) {
+        contras.addAll(newGroups[id])
+      }
+      contras.remove(mite)
+      newContradictors[mite] = contras
+      for (c in contras) {
+        if (!(c in mites)) {
+          newContradictors[c] = newContradictors[c] + mite
+        }
+      }
+    }
+
+
+    new Network(newContradictors, newGroups, _chosen)
+  }
+
+  boolean isChosen(Mite mite) {
+    mite in _chosen
+  }
+
+  private Mite findChosenAncestor(Mite mite, Set<Mite> chosen) {
+    while (mite) {
+      if (mite in chosen) return mite
+      mite = mite.src1
+    }
+    return null
+  }
+
+  private Set<Object> allGroups(Mite mite) {
+    Set xor = mite.contents.xor
+    xor ? mite.primaries + xor : mite.primaries
+  }
+
+  private Mite findBest(Collection<Mite> mites, LinkedHashSet<Mite> chosen, LinkedHashSet<Object> queue, LinkedHashSet<Object> processed) {
+    Mite purelyBest
+    Mite mergedBest
+    Mite anyBest
+    for (mite in mites) {
+      def groups = allGroups(mite)
+      if (Util.intersects(groups, processed)) {
+        continue
+      }
+
+      def pure = contradictors[mite].every { !(it in chosen) }
+      if (anyBest == null || Util.intersect(groups, queue).size() > Util.intersect(allGroups(anyBest), queue).size()) {
+        anyBest = mite
+      }
+      if (!mite.atom && (mergedBest == null || Util.intersect(groups, queue).size() > Util.intersect(allGroups(mergedBest), queue).size())) {
+        mergedBest = mite
+      }
+      if (pure && !mite.atom && (purelyBest == null || Util.intersect(groups, queue).size() > Util.intersect(allGroups(purelyBest), queue).size())) {
+        purelyBest = mite
+      }
+    }
+
+    return purelyBest ?: mergedBest ?: anyBest
+  }
+
+  private LinkedHashSet<Mite> rearrangeUpdatedMites(Collection<Mite> updated) {
+    LinkedHashSet<Mite> preferred = []
+
+    for (mite in updated) {
+      def ancestor = findChosenAncestor(mite, _chosen)
+      if (ancestor && !Util.intersects(preferred, contradictors[mite])) {
+        preferred << mite
+      }
+    }
+
+    List<Mite> newMerged = (updated as List<Mite>).findAll { !it.atom }
+    for (mite in newMerged.findAll { !contradictors[it].any { !it.atom && isChosen(it) } }) {
+      if (!Util.intersects(preferred, contradictors[mite])) {
+        preferred << mite
+      }
+    }
+
+    for (mite in updated) {
+      if (!Util.intersects(preferred, contradictors[mite])) {
+        preferred << mite
+      }
+    }
+
+    return preferred
+  }
+
+
+  Network choose(Collection<Mite> preferred) {
+    LinkedHashSet<Mite> result = new LinkedHashSet<Mite>(_chosen)
+
+    LinkedHashSet<Object> groupsToProcess = []
+    LinkedHashSet<Object> processed = []
+
+    for (mite in rearrangeUpdatedMites(preferred)) {
+      result << mite
+      processed.addAll(allGroups(mite))
+      for (displaced in Util.intersect(contradictors[mite], result)) {
+        result.remove(displaced)
+        groupsToProcess.addAll(allGroups(displaced))
+      }
+    }
+    groupsToProcess.removeAll(processed)
+
+    while (groupsToProcess) {
+      LinkedHashSet<Mite> mitesToProcess = groupsToProcess.collect { groups[it] }.flatten() as LinkedHashSet
+
+      Mite best = findBest(mitesToProcess, result, groupsToProcess, processed)
+      if (!best) {
+         break
+      }
+
+      for (victim in Util.intersect(contradictors[best], result)) {
+        result.remove(victim)
+        def more = allGroups(victim)
+        assert !Util.intersects(more, processed)
+        groupsToProcess = new LinkedHashSet<Object>(more) + groupsToProcess
+      }
+      result << best
+      groupsToProcess.removeAll(allGroups(best))
+      processed.addAll(allGroups(best))
+    }
+
+    new Network(contradictors, groups, result)
+  }
+
+  Set getActiveXors() { new LinkedHashSet(_chosen.collect { it.contents.xor ?: [] }.flatten()) }
+  Collection getUnsatisfiedDaughters() { return _chosen.findAll { it.missingHead } }
+
+
+}

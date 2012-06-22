@@ -6,18 +6,16 @@ package cons3
 class Frame {
   final Variable var
   final Variable unifiedVar
-  final Situation situation
   final Chart chart
 
-  Frame(Variable var, Situation situation, Chart chart) {
+  Frame(Variable var, Chart chart) {
     this.var = var
-    this.situation = situation
     this.chart = chart
     unifiedVar = chart.getUnifiedVar(var)
   }
 
   String toString() {
-    return "$var: ${chart.allAssignments(situation).findAll { it.frame == (Frame) this }}"
+    return "$var: ${chart.allAssignments.findAll { it.frame == (Frame) this }}"
   }
 
   private Frame findController() {
@@ -50,10 +48,6 @@ class Frame {
       }
 
       return (Frame) v
-    }
-
-    if (!situation) {
-      return null
     }
 
     if (attr == 'arg1') {
@@ -101,7 +95,7 @@ class Frame {
   }
 
   private Frame mockFrame(Map attrs) {
-    return new Frame(new Variable(), situation, chart) {
+    return new Frame(new Variable(), chart) {
 
       @Override
       String s(String attr) {
@@ -128,10 +122,6 @@ class Frame {
     def v = definedAttributeValue(attr)
     if (v instanceof String) {
       return (String) v
-    }
-
-    if (!situation) {
-      return null
     }
 
     if (attr == 'given') {
@@ -178,10 +168,7 @@ class Frame {
   String getType() { s('type') }
 
   List<Assignment<Frame>> allAssignments(String attr) {
-    if (!situation) {
-      return []
-    }
-    return chart.allAssignments(situation).findAll { it.frame.unifiedVar == unifiedVar && it.property == attr }
+    return chart.allAssignments.findAll { it.frame.unifiedVar == unifiedVar && it.property == attr }
   }
 
   boolean equals(o) {
@@ -199,7 +186,6 @@ class Frame {
   int hashCode() {
     int result;
     result = unifiedVar.hashCode();
-    result = 31 * result + situation?.hashCode();
     result = 31 * result + chart.hashCode();
     return result;
   }
@@ -209,10 +195,7 @@ class Frame {
   }
 
   List<Frame> allMetas(String attr) {
-    if (!situation) {
-      return []
-    }
-    def a = chart.getActiveAssignments(situation).findAll { chart.getUnifiedVar(it.frame) == unifiedVar && it.property == attr } as List
+    def a = chart.activeAssignments.findAll { chart.getUnifiedVar(it.frame) == unifiedVar && it.property == attr } as List
     Assignment<Variable> last = a.reverse()[0]
     if (last) {
       return chart.__metas[last].findAll { it instanceof Variable }.collect { ((Variable) it).frame(chart) }

@@ -5,7 +5,6 @@ package cons3
  */
 class ParsingState {
   final Chart chart
-  final Situation situation
   final Node node
   private final FLinkedMap<Mite, Integer> miteGenerations
   final FList<Contribution> history
@@ -13,14 +12,13 @@ class ParsingState {
   private final int currentGeneration
 
   ParsingState() {
-    this(chart: new Chart(), situation: new Situation(),
+    this(chart: new Chart(),
             node: Node.EMPTY,
             history: FList.emptyList, network: new Network([:], [:], []), currentGeneration:0, miteGenerations:FLinkedMap.emptyMap, byXor:Collections.emptyMap())
   }
 
   ParsingState(Map map) {
     chart = map.chart
-    situation = map.situation
     node = map.node
     history = map.history
     currentGeneration = map.currentGeneration
@@ -39,7 +37,7 @@ class ParsingState {
   }
 
   private ParsingState clone(Map update) {
-    Map current = [chart:chart, situation:situation, node:node, history:history, network:network, currentGeneration:currentGeneration, miteGenerations:miteGenerations]
+    Map current = [chart:chart, node:node, history:history, network:network, currentGeneration:currentGeneration, miteGenerations:miteGenerations]
     current.putAll(update)
     return current == update ? this : new ParsingState(current)
   }
@@ -49,7 +47,7 @@ class ParsingState {
   }
 
   ParsingState assign(def var, String property, def value) {
-    clone(chart: chart.assign(((Variable)var).base, situation, property, value instanceof Variable ? value.base : value, currentGeneration))
+    clone(chart: chart.assign(((Variable)var).base, property, value instanceof Variable ? value.base : value, currentGeneration))
   }
 
   Map getAt(Construction c) {

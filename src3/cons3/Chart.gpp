@@ -7,8 +7,7 @@ import groovy.transform.EqualsAndHashCode
  */
 @EqualsAndHashCode
 class Chart {
-  final Map<Situation, List<Assignment<Variable>>> __assignments
-  final Map<Variable, Situation> __vars
+  final List<Assignment<Variable>> __assignments
   private final FList<Object> currentMetas
   final IdentityHashMap<Assignment<Variable>, FList<Object>> __metas
   final FLinkedMap<Set<Variable>, Integer> __unifications
@@ -17,7 +16,6 @@ class Chart {
 
   private Chart(Map args) {
     __assignments = args.assignments
-    __vars = args.vars
     currentMetas = args.currentMetas
     __metas = args.metas
     __unifications = args.unifications
@@ -26,14 +24,14 @@ class Chart {
   }
 
   Chart() {
-    this(assignments:[:], vars:[:],
+    this(assignments:[],
             currentMetas:FList.emptyList, metas:new IdentityHashMap(),
             metaUnifications:FLinkedMap.emptyMap,
             unifications:FLinkedMap.emptyMap, baseVars:[:])
   }
 
   Chart clone(Map update) {
-    Map current = [assignments:__assignments, vars:__vars,
+    Map current = [assignments:__assignments,
             currentMetas:currentMetas, metas:__metas,
             metaUnifications:metaUnifications,
             unifications:__unifications, baseVars:__baseVars]
@@ -41,102 +39,100 @@ class Chart {
     return new Chart(current)
   }
 
-  List<Assignment<Variable>> getActiveAssignments(Situation situation) {
-    def all = (__assignments[situation] ?: []) as List
-    return all
-  }
-
-  List<Situation> getSituations() {
-    def result = (__assignments.keySet()) as LinkedHashSet
-    __assignments.values().each {
-      it.each {
-        if (it.value instanceof Situation) {
-          result << (Situation) it.value
-        }
-      }
-    }
-    return result as List
-  }
-
-  LinkedHashSet<Frame> frames(Situation situation) {
-    new LinkedHashSet<Frame>(vars(situation).collect { it.frame(this) })
+  List<Assignment<Variable>> getActiveAssignments() {
+    return __assignments
   }
 
   private List<Frame> cachedFrames
 
   List<Frame> getFrames() {
     if (cachedFrames == null) {
-      cachedFrames = situations.collect { frames(it) }.flatten() as List
+      cachedFrames = (vars.collect { it.frame(this) } as LinkedHashSet) as List
     }
     return cachedFrames
   }
 
 
   boolean earlier(Frame f1, String a1, Frame f2, String a2) {
-    assert f1.situation == f2.situation
-    List<Assignment<Frame>> assignments = allAssignments(f1.situation)
+    List<Assignment<Frame>> assignments = allAssignments
     Assignment<Frame> i1 = assignments.find { Assignment it -> it.frame == f1 && it.property == a1 }
     Assignment<Frame> i2 = assignments.find { Assignment it -> it.frame == f2 && it.property == a2 }
     if (!i1 || !i2) return false
     return i1.generation < i2.generation
   }
 
-  List<Variable> vars(Situation situation) {
+  List<Variable> getVars() {
     Set<Variable> set = [] as LinkedHashSet
-    for (assignment in getActiveAssignments(situation)) {
-      if (assignment.frame != situation) {
-        set << assignment.frame
-      }
-      if (assignment.value instanceof Variable && !(assignment.value instanceof Situation)) {
+    for (assignment in activeAssignments) {
+      set << assignment.frame
+      if (assignment.value instanceof Variable) {
         set << (Variable) assignment.value
       }
     }
     return set as List
   }
 
-  private Map<Situation, List<Assignment<Frame>>> assignmentCache = [:]
+  private List<Assignment<Frame>> assignmentCache
 
-  List<Assignment<Frame>> allAssignments(Situation situation) {
-    def result = assignmentCache[situation]
+  List<Assignment<Frame>> getAllAssignments() {
+    def result = assignmentCache
     if (result != null) {
       return result
     }
 
-    result = getActiveAssignments(situation).collect {
+    result = activeAssignments.collect {
       def oldValue = it.value
       def newValue = oldValue instanceof String ? oldValue : ((Variable) (Object)oldValue).frame(this) //todo alex
-      Frame newFrame = it.frame.frame(situation, this)
+      Frame newFrame = it.frame.frame(this)
       new Assignment<Frame>(newFrame, it.property, newValue, it.generation)
     }
-    assignmentCache[situation] = result
+    assignmentCache = result
     return result
   }
 
-  Chart assign(Variable var, Situation situation, String property, def value, int generation) {
+  Chart assign(Variable var, String property, def value, int generation) {
     assert value instanceof String || value instanceof Variable
     assert var
 
     def assignment = new Assignment(var, property, value, generation)
-    if (getActiveAssignments(situation).contains(assignment)) {
+    if (getActiveAssignments().contains(assignment)) {
       return this
     }
 
-    Map<Situation, List<Assignment<Variable>>> newAsss = [:] + __assignments
-    newAsss[situation] = newAsss.get(situation, []) + assignment
-
-    Map<Variable, Situation> newVars = [:] + __vars
-    newVars[var] = situation
-    if (value instanceof Variable && !newVars[value]) {
-      newVars[value] = situation
-    }
+    List<Assignment<Variable>> newAsss = __assignments + assignment
 
     def newMetas = new IdentityHashMap<Assignment<Variable>, FList<Object>>(__metas)
     newMetas[assignment] = currentMetas
-    return clone(assignments:newAsss, vars:newVars, metas:newMetas)
+    return clone(assignments:newAsss, metas:newMetas)
   }
 
   String presentable() {
-    situations.collect { it.presentable(this) }.findAll { it.trim().size() > 0 }.join("\n--\n")
+    Map<Variable, String> naming = [:]
+
+    (vars.collect { getUnifiedVar(it) } as LinkedHashSet<Variable>).eachWithIndex { Variable var, int i ->
+      naming[var] = String.valueOf((char)(i + (int)'A'.charAt(0)))
+    }
+    vars.each {
+      naming[it] = naming[getUnifiedVar(it)]
+    }
+
+    Set<Variable> prevMetas = []
+    LinkedHashSet<String> lines = []
+    for (eq in activeAssignments) {
+      Set<Variable> metas = __metas[eq].findAll { it instanceof Variable } as Set
+      for (finished in (prevMetas - metas)) {
+        lines << "</${naming[finished]}>"
+      }
+      for (started in (metas - prevMetas)) {
+        lines << "<${naming[started]}>"
+      }
+      prevMetas = metas
+      lines << "${naming[eq.frame]}.$eq.property=${ eq.value instanceof String ? eq.value : naming[(Variable)eq.value]}"
+    }
+    for (finished in prevMetas) {
+      lines << "</${naming[finished]}>"
+    }
+    return lines.join("\n")
   }
 
   Chart startMeta(meta) {
@@ -148,14 +144,8 @@ class Chart {
   }
 
   Chart removeDifference(diffMeta) {
-    final def newAssignments = new LinkedHashMap<Situation, List<Assignment<Variable>>>()
-    for (sit in __assignments.keySet()) {
-      List<Assignment<Variable>> assignments = __assignments[sit]
-      def filtered = assignments.findAll { __metas[it] != [diffMeta] }
-      if (filtered) {
-        newAssignments[sit] = filtered
-      }
-    }
+    List<Assignment<Variable>> newAssignments = __assignments
+    newAssignments = newAssignments.findAll { __metas[it] != [diffMeta] }
     def sets = metaUnifications[diffMeta]
     def result = clone(metaUnifications:metaUnifications.removeKey(diffMeta))
     if (sets) {

@@ -272,13 +272,7 @@ class ParsingState {
   }
 
   private boolean dominates(ParsingState other) {
-    int daughterDelta = network.unsatisfiedDaughters.size() - other.network.unsatisfiedDaughters.size()
-    int xorDelta = network.activeXors.size() - other.network.activeXors.size()
-    if (daughterDelta > 0 || xorDelta > 0) {
-      return false
-    }
-
-    if ((daughterDelta < 0 || xorDelta < 0) &&
+    if (network.unsatisfiedDaughters.size() < other.network.unsatisfiedDaughters.size() &&
         !other.dominatesSemantically(this)) {
       return true
     }

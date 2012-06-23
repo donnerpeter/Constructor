@@ -13,6 +13,7 @@ class Chart {
   final FLinkedMap<Set<Variable>, Integer> __unifications
   private final Map<Variable, Variable> __baseVars
   private final FLinkedMap<Object, List<Set<Variable>>> metaUnifications
+  final int section
 
   private Chart(Map args) {
     __assignments = args.assignments
@@ -21,12 +22,14 @@ class Chart {
     __unifications = args.unifications
     __baseVars = args.baseVars
     metaUnifications = args.metaUnifications
+    section = args.section
   }
 
   Chart() {
     this(assignments:[],
             currentMetas:FList.emptyList, metas:new IdentityHashMap(),
             metaUnifications:FLinkedMap.emptyMap,
+            section:1,
             unifications:FLinkedMap.emptyMap, baseVars:[:])
   }
 
@@ -34,6 +37,7 @@ class Chart {
     Map current = [assignments:__assignments,
             currentMetas:currentMetas, metas:__metas,
             metaUnifications:metaUnifications,
+            section:section,
             unifications:__unifications, baseVars:__baseVars]
     current.putAll(update)
     return new Chart(current)
@@ -80,21 +84,27 @@ class Chart {
       return result
     }
 
-    result = activeAssignments.collect {
-      def oldValue = it.value
-      def newValue = oldValue instanceof String ? oldValue : ((Variable) (Object)oldValue).frame(this) //todo alex
-      Frame newFrame = it.frame.frame(this)
-      new Assignment<Frame>(newFrame, it.property, newValue, it.generation)
-    }
+    result = activeAssignments.collect { framify(it) }
     assignmentCache = result
     return result
+  }
+
+  Assignment<Frame> framify(Assignment<Variable> it) {
+    def oldValue = it.value
+    def newValue = oldValue instanceof String ? oldValue : ((Variable) (Object) oldValue).frame(this)
+    Frame newFrame = it.frame.frame(this)
+    return new Assignment<Frame>(newFrame, it.property, newValue, it.generation, it.section)
+  }
+
+  Chart advanceSection() {
+    clone(section:section+1)
   }
 
   Chart assign(Variable var, String property, def value, int generation) {
     assert value instanceof String || value instanceof Variable
     assert var
 
-    def assignment = new Assignment(var, property, value, generation)
+    def assignment = new Assignment(var, property, value, generation, section)
     if (getActiveAssignments().contains(assignment)) {
       return this
     }
@@ -106,31 +116,53 @@ class Chart {
     return clone(assignments:newAsss, metas:newMetas)
   }
 
+  private Function2<Variable, Integer, String> createNamer() {
+    Map<Variable, String> shortNames = [:]
+    Map<Variable, Integer> sections = [:]
+    Map<Integer, Character> nextShortName = [:]
+    return { Variable var, Integer currentSection ->
+      var = getUnifiedVar(var)
+      if (!(var in shortNames)) {
+        def ch = nextShortName.get(currentSection, 'A' as Character)
+        shortNames[var] = String.valueOf(ch)
+        nextShortName[currentSection] = (ch + 1) as Character
+        sections[var] = currentSection
+      }
+      if (currentSection == sections[var]) return shortNames[var]
+      return "#${sections[var]}." + shortNames[var]
+    }
+  }
+
   String presentable() {
-    Map<Variable, String> naming = [:]
 
-    (vars.collect { getUnifiedVar(it) } as LinkedHashSet<Variable>).eachWithIndex { Variable var, int i ->
-      naming[var] = String.valueOf((char)(i + (int)'A'.charAt(0)))
-    }
-    vars.each {
-      naming[it] = naming[getUnifiedVar(it)]
-    }
+    Function2<Variable, Integer, String> namer = createNamer()
 
+    Set<Assignment<Frame>> handled = []
     Set<Variable> prevMetas = []
-    LinkedHashSet<String> lines = []
+    List<String> lines = []
+    int curSection = 1
+
     for (eq in activeAssignments) {
+      if (curSection != eq.section) {
+        lines << "-- #${eq.section}:"
+        curSection = eq.section
+      }
+      if (!handled.add(framify(eq))) {
+        continue
+      }
+
       Set<Variable> metas = __metas[eq].findAll { it instanceof Variable } as Set
       for (finished in (prevMetas - metas)) {
-        lines << "</${naming[finished]}>"
+        lines << "</${namer(finished, curSection)}>"
       }
       for (started in (metas - prevMetas)) {
-        lines << "<${naming[started]}>"
+        lines << "<${namer(started, curSection)}>"
       }
       prevMetas = metas
-      lines << "${naming[eq.frame]}.$eq.property=${ eq.value instanceof String ? eq.value : naming[(Variable)eq.value]}"
+      lines << "${namer(eq.frame, curSection)}.$eq.property=${ eq.value instanceof String ? eq.value : namer((Variable)eq.value, curSection)}"
     }
     for (finished in prevMetas) {
-      lines << "</${naming[finished]}>"
+      lines << "</${namer(finished, curSection)}>"
     }
     return lines.join("\n")
   }

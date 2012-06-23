@@ -11,6 +11,7 @@ class Assignment<T> {
   final String property
   final Object value
   final int generation
+  final int section
 
   @Override
   String toString() {

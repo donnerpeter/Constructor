@@ -50,6 +50,10 @@ class ParsingState {
     clone(chart: chart.assign(((Variable)var).base, property, value instanceof Variable ? value.base : value, currentGeneration))
   }
 
+  ParsingState advanceSection() {
+    clone(chart: chart.advanceSection())
+  }
+
   Map getAt(Construction c) {
     def allMites = visibleMites[c]
     if (allMites == null) {

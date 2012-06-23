@@ -129,7 +129,7 @@ class Chart {
         sections[var] = currentSection
       }
       if (currentSection == sections[var]) return shortNames[var]
-      return "#${sections[var]}." + shortNames[var]
+      return shortNames[var] + "@" + sections[var]
     }
   }
 
@@ -144,7 +144,7 @@ class Chart {
 
     for (eq in activeAssignments) {
       if (curSection != eq.section) {
-        lines << "-- #${eq.section}:"
+        lines << "-- ${eq.section}:"
         curSection = eq.section
       }
       if (!handled.add(framify(eq))) {

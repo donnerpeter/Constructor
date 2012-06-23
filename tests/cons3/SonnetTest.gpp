@@ -16,15 +16,15 @@ B.time=PAST
 B.arg1=A
 C.type=ME
 B.experiencer=C
--- #2:
+-- 2:
 A.type=ME
 B.type=FORGET
 B.time=PAST
 B.manner=SUDDENLY
-#1.B.elaboration=B
+B@1.elaboration=B
 B.arg1=A
--- #3:
-#2.B.arg2=A
+-- 3:
+B@2.arg2=A
 B.time=PRESENT
 A.content=B
 A.type=question
@@ -33,8 +33,8 @@ C.type=wh
 B.arg1=C
 B.type=COME_SCALARLY
 B.order=EARLIER
--- #4:
-#3.C.variants=A
+-- 4:
+C@3.variants=A
 B.type=7
 B.number=true
 A.member=B
@@ -73,8 +73,8 @@ E.member=D
 D.arg1=A
 F.type=THEY
 D.arg2=F
--- #2:
-#1.D.question=A
+-- 2:
+D@1.question=A
 B.type=THEY
 C.type=THINK
 C.time=PRESENT
@@ -104,15 +104,15 @@ E.member=F
 F.type=ME
 C.type=AMAZE
 C.arg1=E
--- #2:
+-- 2:
 A.type=THEY
 B.type=DISCOVER
 B.time=PAST
 B.manner=SUDDENLY
 B.arg1=A
-#1.B.whenCondition=B
--- #3:
-#2.B.theme=A
+B@1.whenCondition=B
+-- 3:
+B@2.theme=A
 B.negated=true
 B.type=CAN
 B.time=PRESENT
@@ -144,15 +144,15 @@ E.member=F
 F.type=ME
 C.type=AMAZE
 C.arg1=E
--- #2:
+-- 2:
 A.type=THEY
 B.type=DISCOVER
 B.time=PAST
 B.manner=SUDDENLY
 B.arg1=A
-#1.B.whenCondition=B
--- #3:
-#2.B.theme=A
+B@1.whenCondition=B
+-- 3:
+B@2.theme=A
 B.negated=true
 B.type=CAN
 B.time=PRESENT
@@ -167,28 +167,28 @@ C.arg2=E
 F.type=COUNTING
 E.criterion=F
 C.dot=true
--- #4:
+-- 4:
 A.type=1
 A.number=true
--- #5:
-A.member=#4.A
+-- 5:
+A.member=A@4
 A.member=B
 B.type=2
 B.number=true
--- #6:
-#5.A.member=A
+-- 6:
+A@5.member=A
 A.type=3
 A.number=true
--- #7:
-#5.A.member=A
+-- 7:
+A@5.member=A
 A.type=4
 A.number=true
--- #8:
-#5.A.member=A
+-- 8:
+A@5.member=A
 A.type=5
 A.number=true
-#5.A.conj=and
-#5.A.member=B
+A@5.conj=and
+A@5.member=B
 B.type=6
 B.number=true
 C.type=REMEMBER
@@ -196,15 +196,15 @@ C.time=PRESENT
 D.rusNumber=pl
 D.person=3
 C.arg1=D
-C.arg2=#5.A
--- #9:
+C.arg2=A@5
+-- 9:
 A.andEmphasis=true
 A.type=FORGET
 A.time=PAST
-B.member=#8.C
+B.member=C@8
 B.conj=but
 B.member=A
-A.arg1=#8.D
+A.arg1=D@8
 A.arg2=C
 C.type=NEXT
 A.dot=true
@@ -222,8 +222,8 @@ C.kind=COMMERCIAL
 C.type=SHOP
 B.goal=C
 C.name=гастроном
--- #2:
-#1.C.relative=A
+-- 2:
+C@1.relative=A
 B.relativized=true
 A.type=location
 A.arg1=B
@@ -237,13 +237,13 @@ E.conj=and
 E.member=F
 F.type=STREET
 F.name=бассейная
--- #3:
+-- 3:
 A.type=ASK
 A.time=PAST
-B.member=#1.B
+B.member=B@1
 B.conj=and
 B.member=A
-A.arg1=#1.A
+A.arg1=A@1
 C.type=CASHIER
 A.arg2=C
 D.type=WE
@@ -261,30 +261,30 @@ B.type=SMILE
 B.time=PAST
 B.manner=SADLY
 B.arg1=A
--- #2:
+-- 2:
 A.type=TAKE_OUT
 A.time=PAST
-B.member=#1.B
+B.member=B@1
 B.member=A
-A.arg1=#1.A
+A.arg1=A@1
 C.type=MOUTH
 A.source=C
 D.size=LITTLE
 D.type=HAMMER
 A.arg2=D
--- #3:
+-- 3:
 A.type=MOVE
 A.manner=SLIGHTLY
 B.type=NOSE
 A.arg2=B
 C.perfectBackground=A
--- #4:
-#3.C.type=SAY
-#3.C.time=PAST
-#2.B.conj=and
-#2.B.member=#3.C
-#3.C.arg1=#1.A
-#3.C.message=A
+-- 4:
+C@3.type=SAY
+C@3.time=PAST
+B@2.conj=and
+B@2.member=C@3
+C@3.arg1=A@1
+C@3.message=A
 A.directSpeech=true
 """
   }
@@ -295,19 +295,19 @@ A.type=OPINION
 A.arg1=B
 B.type=ME
 C.opinion_of=A
--- #2:
+-- 2:
 A.type=7
-#1.C.time=PRESENT
-#1.C.arg1=A
-#1.C.type=COME_SCALARLY
-#1.C.order=AFTER
+C@1.time=PRESENT
+C@1.arg1=A
+C@1.type=COME_SCALARLY
+C@1.order=AFTER
 B.type=8
-#1.C.anchor=B
+C@1.anchor=B
 C.determiner=THAT
 C.type=CASE
-#1.C.condition=C
--- #3:
-#2.C.whenCondition=A
+C@1.condition=C
+-- 3:
+C@2.whenCondition=A
 B.type=8
 A.time=PRESENT
 A.arg1=B
@@ -327,49 +327,49 @@ B.type=SMILE
 B.time=PAST
 B.manner=SADLY
 B.arg1=A
--- #2:
+-- 2:
 A.type=TAKE_OUT
 A.time=PAST
-B.member=#1.B
+B.member=B@1
 B.member=A
-A.arg1=#1.A
+A.arg1=A@1
 C.type=MOUTH
 A.source=C
 D.size=LITTLE
 D.type=HAMMER
 A.arg2=D
--- #3:
+-- 3:
 A.type=MOVE
 A.manner=SLIGHTLY
 B.type=NOSE
 A.arg2=B
 C.perfectBackground=A
--- #4:
-#3.C.type=SAY
-#3.C.time=PAST
-#2.B.conj=and
-#2.B.member=#3.C
-#3.C.arg1=#1.A
-#3.C.message=A
+-- 4:
+C@3.type=SAY
+C@3.time=PAST
+B@2.conj=and
+B@2.member=C@3
+C@3.arg1=A@1
+C@3.message=A
 A.directSpeech=true
--- #5:
+-- 5:
 A.type=OPINION
 A.arg1=B
 B.type=ME
-#4.A.opinion_of=A
--- #6:
+A@4.opinion_of=A
+-- 6:
 A.type=7
-#4.A.time=PRESENT
-#4.A.arg1=A
-#4.A.type=COME_SCALARLY
-#4.A.order=AFTER
+A@4.time=PRESENT
+A@4.arg1=A
+A@4.type=COME_SCALARLY
+A@4.order=AFTER
 B.type=8
-#4.A.anchor=B
+A@4.anchor=B
 C.determiner=THAT
 C.type=CASE
-#4.A.condition=C
--- #7:
-#6.C.whenCondition=A
+A@4.condition=C
+-- 7:
+C@6.whenCondition=A
 B.type=8
 A.time=PRESENT
 A.arg1=B

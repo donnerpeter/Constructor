@@ -361,13 +361,8 @@ interface RussianConstructions {
     state = state.assign(args.frame, 'content', args.content)
     return state
   }
-  Construction directSpeech = cxt('directSpeech') { ParsingState state, Map args ->
-    if (args.head && args.hasColon) {
-//      def message = new Situation()
-//      state = state.assign(args.head, 'message', message)/*.withSituation(message)*/
-    }
-
-    return state
+  Construction directSpeech = cxt('directSpeech', ['head', 'message']) { ParsingState state, Map args ->
+    state.assign(args.head, 'message', args.message).assign(args.message, 'directSpeech', 'true')
   }
   Construction summerGarden = cxt('summerGarden', ['summer', 'garden']) { ParsingState state, Map args ->
     state.assign(args.garden, 'name', 'Летний сад')
@@ -379,11 +374,11 @@ interface RussianConstructions {
     state.assign(args.adverb, 'time', args.time)
   }
   Construction verbHolder = cxt('verbHolder', ['X']) { ParsingState state, Map args -> state }.
-          enrichingMites { mite, contriution, state ->
-            if (mite.contents.hasComma) {
+          enrichingMites { mite, contribution, state ->
+            if (mite.contents.mustFinish) {
               return []
             }
-            return mite.unifyWherePossible(contriution)
+            return mite.unifyWherePossible(contribution.findAll { it.cxt == verbHolder && !it.contents.mustStart })
           }
   Construction elaboration = cxt('elaboration', ['head', 'elaboration']) { ParsingState state, Map args ->
     state.assign(args.head, 'elaboration', args.elaboration)

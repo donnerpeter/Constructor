@@ -154,12 +154,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "мной": return noun(state, instr, 'ME')
       case "меня": return noun(state, gen, 'ME')
       case ":":
-        if (state[directSpeech]) {
-          //todo construction handling of elaboration and direct speech
-          return state.apply(directSpeech, hasColon:true)
-        }
-
-        return state.apply((elaboration):[head:state[verbHolder].head])
+        return state.apply([verbHolder(mustFinish:true, head:var.lightVar), verbHolder(mustStart:true, head:v['newVerb'].lightVar),
+                directSpeech(xor:t.a, message:v['newVerb']), elaboration(head:var, xor:t.a)])
       case "я": return pronoun(state, nom, 'ME')
       case "мы": return upronoun(nom, var, 'WE').apply(state)
       case "нам": return upronoun(dat, var, 'WE').apply(state)
@@ -397,7 +393,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (relativeClause):[comma1:true],
                 (adverbialPhrase):[comma1:true, head:v[verbHolder].lightVar],
                 (accordingTo):[comma1:true, head:v[verbHolder].lightVar],
-                (verbHolder):[head:v[verbHolder].lightVar, hasComma:true])
+                (verbHolder):[head:v[verbHolder].lightVar, mustFinish: true])
       case "если":
         return state.apply((conditionComp):[wh:'if', comp:v[verbHolder]], (verbHolder):[head:v[verbHolder].lightVar])
       case "когда":

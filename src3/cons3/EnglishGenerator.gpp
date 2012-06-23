@@ -640,7 +640,7 @@ class StatefulGenerator {
   private def generateDirectSpeech(Frame verb) {
     if (verb.type == 'SAY') {
       def message = verb.f('message')
-      if (message && !message.f('content')) {
+      if (message?.s('directSpeech')) {
         out ':'
         if (message.type) {
           out '\n-'

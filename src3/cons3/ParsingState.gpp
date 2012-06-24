@@ -42,9 +42,6 @@ class ParsingState {
     return current == update ? this : new ParsingState(current)
   }
 
-  static boolean areUnifiableVars(val1, val2) {
-    return val1 != val2 && val1 instanceof Variable && val2 instanceof Variable && (val1.light || val2.light) && val1.base != val2.base
-  }
 
   ParsingState assign(def var, String property, def value) {
     clone(chart: chart.assign(((Variable)var).base, property, value instanceof Variable ? value.base : value, currentGeneration))
@@ -68,8 +65,8 @@ class ParsingState {
 
     Map value = [:]
     for (part in allMites.reverse()) {
-      if (!overwrites(value, part.contents)) {
-        value = unify(value, part.contents)
+      if (!Mite.overwrites(value, part.contents)) {
+        value = Mite.unify(value, part.contents)
       }
     }
     value
@@ -79,22 +76,6 @@ class ParsingState {
     return apply((name): newArgs)
   }
 
-  static boolean overwrites(Map before, Map newArgs) {
-    if (before == null) {
-      return false
-    }
-    for (arg in before.keySet().intersect(newArgs.keySet())) {
-      if (arg == 'xor') continue
-
-      def val1 = before[arg]
-      def val2 = newArgs[arg]
-      if (val1 != val2 && val1 != null && val2 != null && !areUnifiableVars(val1, val2)) {
-        return true
-      }
-    }
-    return false
-  }
-
   private ParsingState addCxt(Node node) {
     def newMiteGenerations = miteGenerations
     for (mite in node.ownMites) {
@@ -102,39 +83,6 @@ class ParsingState {
     }
 
     return clone(node:node, miteGenerations:newMiteGenerations, network:network.addMites(node.ownMites as LinkedHashSet))
-  }
-
-  public static Map unify(Map oldArgs, Map newArgs) {
-    def args = new HashMap()
-    if (oldArgs) args.putAll(oldArgs)
-    if (newArgs) {
-      for (key in newArgs.keySet()) {
-        if (oldArgs[key] instanceof Variable && !((Variable) oldArgs[key]).light) {
-          continue
-        }
-        args[key] = newArgs[key]
-      }
-    }
-
-    Collection xor = mergeXor(oldArgs, newArgs)
-    if (xor) {
-      args.xor = xor
-    }
-
-    return args
-  }
-
-  static Collection mergeXor(Map oldArgs, Map newArgs) {
-    Set xor1 = oldArgs?.xor ?: Collections.emptySet()
-    Set xor2 = newArgs?.xor ?: Collections.emptySet()
-    if (!xor1 && !xor2) {
-      return null
-    }
-
-    def xor = new LinkedHashSet()
-    xor.addAll xor1
-    xor.addAll xor2
-    return xor
   }
 
   ParsingState startMeta(Variable meta) {

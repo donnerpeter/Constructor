@@ -127,7 +127,7 @@ class SeqInterceptor implements RussianConstructions {
         multi = multi.lightVar
       }
     }
-    def createMergedMite = oldMite.cxt(newArgs + [(prop):multi, xor:ParsingState.mergeXor(oldMite.contents, newArgs)])
+    def createMergedMite = oldMite.cxt(newArgs + [(prop):multi, xor:Mite.mergeXor(oldMite.contents, newArgs)])
     createMergedMite
   }
 

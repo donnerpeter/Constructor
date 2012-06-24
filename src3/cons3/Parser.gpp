@@ -53,10 +53,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
       return state
     }
 
-    if (state[quotedName]?.started && !state[quotedName].name) {
-      state = state.apply(quotedName, name:word)
-    }
-
     switch (word) {
       case "удивительный": return adj(state, nom, 'property', 'AMAZING')
       case "васи":
@@ -100,6 +96,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "углу":  //todo plain noun
         def genNoun = new Variable().lightVar
         return state.apply((typeCxt('CORNER')):[var:var], (prep):[noun:var], (gen):[noun:genNoun], (genArg1):[head:var, noun:genNoun]) //todo one noun frame - several cases
+      case "гастроном": return state.apply((RussianConstructions.word):[word:word])
       case "магазин":
         Update update = new Update()
         update = update.addCxt(typeCxt('SHOP'), var:var)
@@ -242,9 +239,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "грустно": return uadv('manner', 'SADLY').apply(state)
       case "просто": return uadv('manner', 'JUST').apply(state)
       case "тоже":
-        return state.apply(also, hasAlso:true)
+        return state.apply((also):[hasAlso:true])
       case "не":
-        return state.apply(negation)
+        return state.apply((negation):[:])
       case "забыл":
       case "забыла":
       case "забыли":
@@ -442,7 +439,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         }
         return state
       case ".":
-        return state.apply((dot):[head:state[verbHolder].head]).advanceSection()
+        return state.apply((dot):[head:var], (verbHolder):[head:var.lightVar, mustFinish:true]).advanceSection()
       case 'каково':
         return state.assign(var, 'type', 'wh').apply((shortAdj):[copula: new Variable(), value:var, noun:v[nom]], (nom):[noun:v[nom].lightVar])
       case 'бы':
@@ -473,14 +470,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 apply((accordingTo):[content:var])
       case '?': return state.apply((question):[:])
       case '"':
-        if (state[quotedName]) {
-          if (state[quotedName].started) {
-            state = state.apply(quotedName, finished:true)
-          } else {
-            state = state.apply(quotedName, started:true)
-          }
-        }
-        return state
+        return state.apply((quote):[:])
       case 'лишенными':
         state = state.assign(var, 'type', 'LACK')
         def genNoun = new Variable().lightVar
@@ -532,9 +522,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
   }
 
   private ParsingState finiteVerb(Map<Construction, Map> args, ParsingState state, Variable verb, String type, String tense) {
-    if (state[negation] != null) {
-      state = state.assign(verb, 'negated', 'true')
-    }
     Tokens t = new Tokens()
     return state.
             assign(verb, 'type', type).assign(verb, 'time', tense).

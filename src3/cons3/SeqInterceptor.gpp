@@ -17,7 +17,7 @@ class SeqInterceptor implements RussianConstructions {
       }
     }
 
-    if (state[seq]?.precedent == null && state[seq]?.mergedWith) {
+    if (self.contents.precedent == null && self.contents.mergedWith) {
       return []
     }
 

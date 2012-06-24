@@ -235,14 +235,17 @@ interface RussianConstructions {
   Construction numQuantifier = cxt('numQuantifier', ['+num', 'noun']) { ParsingState state, Map args ->
     state.assign(args.noun, 'quantifier', args.num)
   }.enrichingMites { mite, contribution, state -> NumQuantifier.enrichUpdate(mite, contribution, state) }
-  Construction negation = cxt('negation') { ParsingState state, Map args ->
-    return state
-  }
-  Construction also = cxt('also') { ParsingState state, Map args ->
-    if (args.hasAlso && args.head) {
-      state = state.assign(args.head, 'also', 'true')
+  Construction negation = cxt('negation', ['negated']) { ParsingState state, Map args ->
+    state.assign(args.negated, 'negated', 'true')
+  }.enrichingMites { mite, contribution, state ->
+    def vh = contribution.find { it.cxt == verbHolder && ((Variable) it.contents.head).hard }
+    if (vh && !mite.contents.negated) {
+      return [mite.unify(new Mite(negation, negated:vh.contents.head))]
     }
-    return state
+    []
+  }.screeningMites { mite, screen -> return screen.hide { it.cxt == negation } }
+  Construction also = cxt('also', ['hasAlso', 'head']) { ParsingState state, Map args ->
+    state.assign(args.head, 'also', 'true')
   }
   Construction vAcc = cxt('vAcc', ['+noun', '*head']) { ParsingState state, Map args -> state }
   Construction vAccGoal = cxt('vAccGoal', ['noun', '+head']) { ParsingState state, Map args ->
@@ -324,7 +327,7 @@ interface RussianConstructions {
     if (mite.contents.conj && !mite.contents.first) {
       return screen.hideAll()
     }
-    return screen
+    return screen.hide { it.cxt == seq }
   }.enrichingMites { mite, contribution, state ->
     ParsingState before = mite.contents.beforeComma ?: state.node.findNode(mite.firstAtom).prevState
     new SeqInterceptor(before).enrichUpdate(mite, contribution, state)
@@ -352,8 +355,22 @@ interface RussianConstructions {
     }
     screen
   }
-  Construction quotedName = cxt('quotedName', ['finished', 'noun', 'name']) { ParsingState state, Map args ->
+  Construction quotedName = cxt('quotedName', ['noun', 'name']) { ParsingState state, Map args ->
     state.assign(args.noun, 'name', args.name)
+  }.enrichingMites { mite, contribution, state ->
+    if (contribution.find { it.cxt == quote }) {
+      if (mite.contents.noun && !mite.contents.quote1) {
+        return [mite.unify(RussianConstructions.quotedName(quote1:true))]
+      }
+      if (mite.contents.quote1 && !mite.contents.quote2) {
+        return [mite.unify(RussianConstructions.quotedName(quote2:true))]
+      }
+    }
+    def word = contribution.find { it.cxt == word }
+    if (word && mite.contents.quote1) {
+      return [mite.unify(RussianConstructions.quotedName(name:word.contents.word))]
+    }
+    return []
   }
   Construction relativeClause = cxt('relativeClause', ['noun', 'relative', 'wh']) { ParsingState state, Map args ->
     state.assign(args.noun, 'relative', args.relative).assign(args.wh, 'relativized', 'true')
@@ -404,4 +421,6 @@ interface RussianConstructions {
   Construction comma = cxt('comma', ['hasComma']) { ParsingState state, Map args ->
     state
   }.screeningMites { mite, screen -> screen.hideAll() }.enrichingMites { mite, contribution, state -> [] }
+  Construction word = cxt('word', ['word']) { ParsingState state, Map args -> state }
+  Construction quote = cxt('quote', ['quote']) { ParsingState state, Map args -> state }.enrichingMites { mite, contribution, state -> [] }
 }

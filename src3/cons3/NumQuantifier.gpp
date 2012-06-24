@@ -7,10 +7,10 @@ import static cons3.RussianConstructions.*
  */
 class NumQuantifier {
 
-  static Collection<Mite> enrichUpdate(Mite prep, List<Mite> contribution, ParsingState state) {
+  static Collection<Mite> enrichUpdate(Mite self, List<Mite> contribution, ParsingState state) {
     List<Mite> result = []
-    if (state[numQuantifier].num) {
-      def args = state[numQuantifier]
+    if (self.contents.num) {
+      def args = self.contents
       for (mite in contribution) {
         if (mite.cxt == args.innerCase) {
           Variable noun = mite.contents.noun
@@ -19,7 +19,7 @@ class NumQuantifier {
         }
       }
     }
-    return prep.unifyWherePossible(contribution) + result
+    return self.unifyWherePossible(contribution) + result
   }
 
 }

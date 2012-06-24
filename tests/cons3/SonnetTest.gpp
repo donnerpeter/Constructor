@@ -113,10 +113,10 @@ B.arg1=A
 B@1.whenCondition=B
 -- 3:
 B@2.theme=A
-B.negated=true
 B.type=CAN
 B.time=PRESENT
 B.also=true
+B.negated=true
 C.type=RECALL
 B.theme=C
 B.arg1=D
@@ -153,10 +153,10 @@ B.arg1=A
 B@1.whenCondition=B
 -- 3:
 B@2.theme=A
-B.negated=true
 B.type=CAN
 B.time=PRESENT
 B.also=true
+B.negated=true
 C.type=RECALL
 B.theme=C
 B.arg1=D

@@ -89,6 +89,9 @@ class Util {
         return screen.hideAll()
       }
       if (mite.contents.content) {
+        if (mite.contents.comma2) {
+          screen = screen.hideAll()
+        }
         def firstAtom = mite.firstAtom
         if (firstAtom?.contents?.comma1) {
           return screen.showEverything(screen.before.node.findNode(firstAtom).prevState)

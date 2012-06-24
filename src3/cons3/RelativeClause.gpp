@@ -10,7 +10,7 @@ class RelativeClause implements RussianConstructions {
       return []
     }
 
-    if (constructions.find { it.cxt == relativeClause && it.contents.comma1 }) {
+    if (constructions.find { it.cxt == comma }) {
       if (!self.contents.comma1) {
         return [self.unify(relativeClause(comma1:true, beforeComma:state))]
       }

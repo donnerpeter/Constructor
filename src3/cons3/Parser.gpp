@@ -387,10 +387,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "остановились":
         return finiteVerb(state, var, 'STOP', 'PAST', (nom):[head:var])
       case ",":
-        return state.apply((declOrQuestionComp):[hasComma:true],
-                (conditionComp):[hasComma:true],
+        return state.apply(
+                (comma):[hasComma:true],
                 (seq):[conj:','],
-                (relativeClause):[comma1:true],
                 (adverbialPhrase):[comma1:true, head:v[verbHolder].lightVar],
                 (accordingTo):[comma1:true, head:v[verbHolder].lightVar],
                 (verbHolder):[head:v[verbHolder].lightVar, mustFinish: true]).advanceSection()
@@ -459,7 +458,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case 'было':
         return state.apply((conditionComp):[head:var], (shortAdj):[time:'PAST', copula:var.lightVar], (timedModality):[time:'PAST'], (adverbPred):[time:'PAST'])
       case 'так':
-        return state.apply(reasonComp, active:true)
+        return state.apply((reasonComp):[reason:var], (verbHolder):[head:var.lightVar])
       case 'обе':
         def num = new Variable()
         return state.assign(num, 'type', 'BOTH').apply((acc):[noun:var],

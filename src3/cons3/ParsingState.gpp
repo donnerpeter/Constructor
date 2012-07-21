@@ -4,6 +4,7 @@ package cons3
  * @author peter
  */
 class ParsingState {
+  static final ParsingState EMPTY = new ParsingState()
   final Chart chart
   final Node node
   private final FLinkedMap<Mite, Integer> miteGenerations
@@ -129,16 +130,11 @@ class ParsingState {
   }
 
   private static ParsingState baseApply(ParsingState state, List<Mite> update) {
-    LinkedHashSet<Mite> toAsk = state.visibleMites.values().flatten() as LinkedHashSet
-    LinkedHashSet<Mite> fullUpdate = update as LinkedHashSet
-    for (Mite mite in toAsk) {
-      fullUpdate.addAll mite.cxt.enrichAction(mite, update, state)
-    }
+    LinkedHashSet<Mite> fullUpdate = enrichUpdate(update, state)
     assert fullUpdate
     state = state.addCxt(new Node(fullUpdate as List<Mite>, Collections.emptySet(), state.node, state))
 
-    LinkedHashSet<Mite> preferred = Util.intersect(state.miteList, fullUpdate)
-    def newActive = state.network.choose(preferred)
+    def newActive = state.network.choose(fullUpdate)
     state = state.activate(newActive)
 
     for (cxt in state.visibleMites.keySet()) {
@@ -158,6 +154,35 @@ class ParsingState {
     }
 
     return state.clone(currentGeneration:state.currentGeneration + 1)
+  }
+
+  private static LinkedHashSet<Mite> enrichUpdate(List<Mite> update, ParsingState state) {
+    LinkedHashSet<Mite> fullUpdate = update as LinkedHashSet
+    Mite via = null
+    while (state) {
+      ParsingState bestPrev = state.node.prevState
+      List<Mite> filtered = update
+      boolean hasEmpty = false
+      Mite nextVia = null
+      for (mite in state.node.ownMites) {
+        fullUpdate.addAll((mite.cxt.enrichAction(mite, update, state) as List<Mite>).reverse())
+
+        def prevState = mite.cxt.showPrev(mite, state.node.prevState, via)
+        hasEmpty |= prevState == EMPTY
+        if (prevState && prevState != EMPTY && (bestPrev == null || bestPrev.node.isMoreRecentThan(prevState.node))) {
+          bestPrev = prevState
+          nextVia = mite
+          filtered = update.findAll { mite.cxt.filterUpdate(mite, it) }
+        }
+      }
+      if (hasEmpty && bestPrev == state.node.prevState) {
+        break
+      }
+      state = bestPrev
+      update = filtered
+      via = nextVia
+    }
+    fullUpdate
   }
 
   private static ParsingState tryAlternative(ParsingState state, Mite toAdd) {
@@ -307,4 +332,17 @@ class ParsingState {
     return log
   }
 
+  ParsingState findState(Mite mite, String attr) {
+    findState(mite.primaries.find { it.contents[attr] })
+  }
+  ParsingState findState(Mite mite) {
+    if (mite in node.ownMites) {
+      return this
+    }
+    return prevState?.findState(mite)
+  }
+
+  ParsingState getPrevState() {
+    return node.prevState
+  }
 }

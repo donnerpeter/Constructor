@@ -1,5 +1,6 @@
 package cons3
 
+import static cons3.Construction.cxt
 import static cons3.RussianConstructions.verbHolder
 
 /**
@@ -107,7 +108,7 @@ class Util {
           if (mite.contents.head) {
             def firstAtom = mite.firstAtom
             if (firstAtom.contents?.comma1) {
-              result.addAll(newVerb.unifyWherePossible(state.node.findNode(firstAtom)?.prevState?.visibleMites?.get(verbHolder) ?: [], false))
+              result.addAll(newVerb.unifyWherePossible(state.findState(firstAtom)?.prevState?.visibleMites?.get(verbHolder) ?: [], false))
             }
           }
           return result
@@ -115,6 +116,42 @@ class Util {
         return []
       }
       return mite.unifyWherePossible(contribution)
+    }.structural { mite, state, via ->
+      if (mite.contents.comma1 && !mite.contents.content) {
+        return ParsingState.EMPTY
+      }
+      if (mite.contents.content && mite.contents.comma2) {
+        def firstAtom = mite.firstAtom
+        if (firstAtom?.contents?.comma1) {
+          return state.findState(firstAtom).prevState
+        }
+      }
+    }
+  }
+
+  static Construction commonCase(String name) {
+    cxt(name, ['+noun', '*head']) { ParsingState state, Map args ->
+      state
+    }.structural { mite, state, via ->
+      def parentState = state.findState(mite, 'head')
+      return parentState ?: state.findState(mite.firstAtom)?.prevState
+    }
+  }
+
+  static Construction commonPrep(String name) {
+    cxt(name, ['+noun', '*head']) { ParsingState state, Map args ->
+      state
+    }.structural { mite, state, via ->
+      Variable noun = mite.lastAtom.contents.noun
+      if (noun && !mite.lastAtom.contents.head) {
+        if (!via ||
+            !via.primaries.find { it.contents.noun == noun.lightVar }) {
+          return ParsingState.EMPTY
+        }
+      }
+
+      def parentState = state.findState(mite, 'head')
+      return parentState ?: state.findState(mite.firstAtom)?.prevState
     }
   }
 }

@@ -52,8 +52,16 @@ class Network {
   }
 
   private Set<Object> allGroups(Mite mite) {
+    Set result = mite.primaries
     Set xor = mite.contents.xor
-    xor ? mite.primaries + xor : mite.primaries
+    if (xor) {
+      result += xor
+    }
+    def prerequisites = mite.prerequisites
+    for (p in prerequisites) {
+      result += allGroups(p)
+    }
+    result
   }
 
   private Mite findBest(Collection<Mite> mites, LinkedHashSet<Mite> chosen, LinkedHashSet<Object> queue, LinkedHashSet<Object> processed) {

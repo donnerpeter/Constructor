@@ -9,7 +9,7 @@ interface RussianConstructions {
 
   Construction adjective = cxt('adjective') { ParsingState state, Map args ->
     state.assign(args.nounFrame, (String)args.rel, args.val) }
-  Construction nom = cxt('nom', ['+noun', '*head']) { ParsingState state, Map args -> state }
+  Construction nom = Util.commonCase('nom')
   Construction nomSubject = cxt('nomSubject', ['+head', 'noun']) { ParsingState state, Map args ->
     def nf = ((Variable) args.noun).frame(state.chart)
     if (nf.type || nf.s('rusNumber')) { //todo a nicer way of distinguishing contentful frames
@@ -19,12 +19,12 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction acc = cxt('acc', ['+noun', '*head']) { ParsingState state, Map args -> state }
+  Construction acc = Util.commonCase('acc')
   Construction accArg2 = cxt('accArg2', ['+head', 'noun']) { ParsingState state, Map args ->
     def nf = ((Variable) args.noun).frame(state.chart)
     nf.flatten()[0]?.type ? state.assign(args.head, 'arg2', args.noun) : state
   }
-  Construction gen = cxt('gen', ['+noun', '*head']) { ParsingState state, Map args -> state }
+  Construction gen = Util.commonCase('gen')
   Construction genArg1 = cxt('genArg1', ['+head', 'noun']) { ParsingState state, Map args ->
     if (((Variable) args.noun).frame(state.chart).type) {
       for (hf in ((Variable) args.head).frame(state.chart).flatten()) {
@@ -57,19 +57,19 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction instr = cxt('instr', ['+noun']) { ParsingState state, Map args -> state }
+  Construction instr = Util.commonCase('instr')
   Construction instrArg2 = cxt('instrArg2', ['+head', 'noun']) { ParsingState state, Map args ->
     ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'arg2', args.noun) : state
   }
-  Construction dat = cxt('dat', ['+noun', '*head']) { ParsingState state, Map args -> state }
+  Construction dat = Util.commonCase('dat')
   Construction datSubj = cxt('datSubj', ['+head', 'noun']) { ParsingState state, Map args ->
     ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'arg1', args.noun) : state
   }
   Construction datAddressee = cxt('datAddressee', ['+head', 'noun']) { ParsingState state, Map args ->
     ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'addressee', args.noun) : state
   }
-  Construction prep = cxt('prep', ['+noun', '*head']) { ParsingState state, Map args -> state }
-  Construction sInstr = cxt('sInstr', ['+noun', '*head']) { ParsingState state, Map args -> state }
+  Construction prep = Util.commonCase('prep')
+  Construction sInstr = Util.commonPrep('sInstr')
   Construction sInstrExperiencer = cxt('sInstrExperiencer', ['+head', 'noun']) { ParsingState state, Map args ->
     ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'experiencer', args.noun) : state
   }
@@ -174,7 +174,7 @@ interface RussianConstructions {
       }
     }
     return state
-  }
+  }.structural { mite, state, via -> state.findState(mite, 'value') }
   Construction parenthetical = cxt('parenthetical', ['X']) { ParsingState state, Map args ->
     return state
   }
@@ -205,10 +205,10 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction possessive = cxt('possessive', ['+possessor']) { ParsingState state, Map args -> state }
+  Construction possessive = cxt('possessive', ['+possessor', '*head']) { ParsingState state, Map args -> state }
   Construction control = cxt('control', ['+head', 'slave']) { ParsingState state, Map args ->
     return args.head && args.slave ? state.assign(args.head, 'theme', args.slave) : state
-  }
+  }.structural { mite, state, via -> state.findState(mite, 'head') } { mite, fresh -> fresh.cxt != verbHolder }
   Construction conditionComp = cxt('conditionComp', ['hasComma', 'head', 'wh']) { ParsingState state, Map args ->
     state.assign(args.head, "${args.wh}Condition", args.comp)
   }.enrichingMites { mite, contribution, state ->
@@ -219,7 +219,11 @@ interface RussianConstructions {
       return []
     }
     return mite.unifyWherePossible(contribution)
-  }.screeningMites { mite, screen -> mite.contents.head && mite.contents.hasComma ? screen.hideAll() : screen }
+  }.screeningMites { mite, screen -> mite.contents.head && mite.contents.hasComma ? screen.hideAll() : screen }.structural { mite, state, via ->
+    if (mite.contents.wh) {
+      return ParsingState.EMPTY
+    }
+  }
   Construction reasonComp = cxt('reasonComp', ['reason', 'head']) { ParsingState state, Map args ->
     return state.assign(args.head, 'reason', args.reason)
   }.enrichingMites { mite, contribution, state ->
@@ -243,7 +247,11 @@ interface RussianConstructions {
       return [mite.unify(new Mite(negation, negated:vh.contents.head))]
     }
     []
-  }.screeningMites { mite, screen -> return screen.hide { it.cxt == negation } }
+  }.screeningMites { mite, screen -> return screen.hide { it.cxt == negation } }.structural { mite, state, via ->
+    if (mite.contents.negated) {
+      return state.findState(mite.firstAtom).prevState
+    }
+  }
   Construction also = cxt('also', ['hasAlso', 'head']) { ParsingState state, Map args ->
     state.assign(args.head, 'also', 'true')
   }
@@ -263,17 +271,17 @@ interface RussianConstructions {
   Construction vPrep = cxt('vPrep', ['+noun', '*head']) { ParsingState state, Map args ->
     state
   }
-  Construction posleGen = cxt('posleGen', ['noun', '+head']) { ParsingState state, Map args ->
+  Construction posleGen = cxt('posleGen', ['+noun', '*head']) { ParsingState state, Map args ->
     ((Variable) args.noun)?.frame(state.chart)?.type ? state.assign(args.head, 'anchor', args.noun) : state
   }
-  Construction ransheGen = cxt('ransheGen', ['noun', 'head']) { ParsingState state, Map args ->
+  Construction ransheGen = cxt('ransheGen', ['+noun', '*head']) { ParsingState state, Map args ->
     def type = ((Variable) args.noun)?.frame(state.chart)?.type
     if (type && args.noun) {
       state = state.assign(args.head,'anchor', args.noun)
     }
     return state
   }
-  Construction naPrep = cxt('naPrep', ['noun', 'head']) { ParsingState state, Map args ->
+  Construction naPrep = cxt('naPrep', ['+noun', '*head']) { ParsingState state, Map args ->
     if (args.copula) {
       def location = args.copula
       state = state.assign(location, 'type', 'location').assign(location, 'arg1', args.head).assign(location, 'arg2', args.noun)
@@ -282,9 +290,7 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction izGen = cxt('izGen', ['+noun', '*head']) { ParsingState state, Map args ->
-    state
-  }
+  Construction izGen = Util.commonPrep('izGen')
   Construction izGenSource = cxt('izGenSource', ['noun', '+head']) { ParsingState state, Map args ->
     ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, 'source', args.noun) : state
   }
@@ -331,6 +337,14 @@ interface RussianConstructions {
   }.enrichingMites { mite, contribution, state ->
     ParsingState before = mite.contents.beforeComma ?: state.node.findNode(mite.firstAtom).prevState
     new SeqInterceptor(before).enrichUpdate(mite, contribution, state)
+  }.structural { mite, state, via ->
+    if (mite.contents.mergedWith) {
+      return ((Node) mite.contents.mergedWith).prevState
+    }
+    if (mite.contents.conj && !mite.contents.first) {
+      return ParsingState.EMPTY
+    }
+    return null
   }
   Construction advObj = cxt('advObj', ['adv', 'head']) { ParsingState state, Map args ->
     if (args.head && args.adv) {
@@ -390,7 +404,7 @@ interface RussianConstructions {
     state = state.assign(args.frame, 'type', 'fact')
     state = state.assign(args.frame, 'content', args.content)
     return state
-  }
+  }.structural { mite, state, via -> state.findState(mite, 'frame') } { mite, fresh -> fresh.cxt != verbHolder }
   Construction directSpeech = cxt('directSpeech', ['head', 'message']) { ParsingState state, Map args ->
     state.assign(args.head, 'message', args.message).assign(args.message, 'directSpeech', 'true')
   }
@@ -414,10 +428,16 @@ interface RussianConstructions {
     state.assign(args.head, 'elaboration', args.elaboration)
   }.screeningMites { mite, screen ->
     if (mite.contents.head && !mite.contents.elaboration) return screen.hideAll() else return screen
+  }.structural { mite, state, via ->
+    if (mite.contents.head) {
+      return ParsingState.EMPTY
+    }
+    return null
+
   }
   Construction dot = cxt('dot', ['head']) { ParsingState state, Map args ->
     state.assign(args.head, 'dot', 'true')
-  }.screeningMites { mite, screen -> screen.hideAll() }.enrichingMites { mite, contribution, state -> [] }
+  }.screeningMites { mite, screen -> screen.hideAll() }.enrichingMites { mite, contribution, state -> [] }.structural { mite, state, via -> ParsingState.EMPTY }
   Construction comma = cxt('comma', ['hasComma']) { ParsingState state, Map args ->
     state
   }.screeningMites { mite, screen -> screen.hideAll() }.enrichingMites { mite, contribution, state -> [] }

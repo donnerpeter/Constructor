@@ -12,6 +12,8 @@ class Construction {
   Function2<Mite, Screen, Screen> displayAction = { mite, screen ->
     return screen.hideObscuredByHead(mite)
   }
+  Function3<Mite, ParsingState, Mite, ParsingState> showPrev = { mite, state, via -> null }
+  Function2<Mite, Mite, Boolean> filterUpdate = { mite, update -> true }
   Function3<Mite, List<Mite>, ParsingState, Collection<Mite>> enrichAction = { mite, contribution, state ->
     return mite.unifyWherePossible(contribution)
   }
@@ -40,6 +42,12 @@ class Construction {
 
   Construction enrichingMites(Function3<Mite, List<Mite>, ParsingState, Collection<Mite>> action) {
     enrichAction = action
+    return this
+  }
+
+  Construction structural(Function3<Mite, ParsingState, Mite, ParsingState> action, Function2<Mite, Mite, Boolean> filterUpdate = { mite, update -> true }) {
+    showPrev = action
+    this.filterUpdate = filterUpdate
     return this
   }
 

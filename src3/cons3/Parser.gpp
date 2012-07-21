@@ -386,9 +386,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case ",":
         return state.apply(
                 (comma):[hasComma:true],
-                (seq):[conj:','],
-                (adverbialPhrase):[comma1:true, head:v[verbHolder].lightVar],
-                (accordingTo):[comma1:true, head:v[verbHolder].lightVar],
+                (seq):[conj:',', xor:t.a],
+                (adverbialPhrase):[comma1:true, head:v[verbHolder].lightVar, xor:t.a],
+                (accordingTo):[comma1:true, head:v[verbHolder].lightVar, xor:t.a],
                 (verbHolder):[head:v[verbHolder].lightVar, mustFinish: true]).advanceSection()
       case "если":
         return state.apply((conditionComp):[wh:'if', comp:v[verbHolder]], (verbHolder):[head:v[verbHolder].lightVar])

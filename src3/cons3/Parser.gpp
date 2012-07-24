@@ -93,9 +93,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       //case "улицы": return noun(state, gen, 'STREET') todo улицы in conj
       case "скамейки": return noun(state, gen, 'BENCH')
       case "ребенок": return noun(state, nom, 'CHILD')
-      case "углу":  //todo plain noun
-        def genNoun = new Variable().lightVar
-        return state.apply((typeCxt('CORNER')):[var:var], (prep):[noun:var], (gen):[noun:genNoun], (genArg1):[head:var, noun:genNoun]) //todo one noun frame - several cases
+      case "углу":
+        return unoun(prep, var, 'CORNER', (prep):[noun:var],
+                (gen):[noun:v[gen].lightVar, head:new Object()], (genArg1):[head:var, noun:v[gen].lightVar]).apply(state)
       case "гастроном": return state.apply((RussianConstructions.word):[word:word])
       case "магазин":
         Update update = new Update()
@@ -254,10 +254,10 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "помнят":
       case "помнит":
         return finiteVerb(state, var, 'REMEMBER', 'PRESENT',
-                (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom]],
+                (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom], xor:t.a],
                 (varCxt(rusNumber:(word == "помнят" ? 'pl' : 'sg'), person:'3')):[var:v[nom]],
                 (verbHolder):[head:var],
-                (acc):[noun:v[acc].lightVar, head:new Object()], (accArg2):[head:var, noun:v[acc]])
+                (acc):[noun:v[acc].lightVar, head:new Object()], (accArg2):[head:var, noun:v[acc], xor:t.b])
       case "может":
       case "могут":
         return finiteVerb(state, var, 'CAN', 'PRESENT', (control):[subj:v[nom], head:var],

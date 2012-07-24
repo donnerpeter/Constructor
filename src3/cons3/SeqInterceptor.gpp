@@ -32,8 +32,8 @@ class SeqInterceptor implements RussianConstructions {
         continue
       }
 
-      Mite oldMite = before.visibleMites[mite.cxt]?.reverse()?.getAt(0)
-      if (oldMite != null && oldMite.isSimilarTo(mite)) {
+      Mite oldMite = before.visibleMites[mite.cxt]?.reverse()?.find { it.isSimilarTo(mite) }
+      if (oldMite) {
         def nextPoint = merge(state, oldMite, mite.contents, result, seqs, self.contents.questionLevel != null)
         if (nextPoint) {
           mergePoint = nextPoint
@@ -89,7 +89,7 @@ class SeqInterceptor implements RussianConstructions {
       update.addAll new Mite(newArgs + [repeated:true], cxt).unifyWherePossible(mergePoint)
       return mergePoint
     }
-    if (cxt in [gen] && oldArgs.head && newArgs.head && !newArgs.noun) {
+    if (cxt in [gen] && oldArgs.head && newArgs.head) {
       return doMerge(state, oldMite, newArgs, 'head', update, seqs)
     }
     if (cxt == possessive && oldArgs.possessor && newArgs.possessor) {

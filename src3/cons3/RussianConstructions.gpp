@@ -335,7 +335,7 @@ interface RussianConstructions {
     }
     return screen.hide { it.cxt == seq }
   }.enrichingMites { mite, contribution, state ->
-    ParsingState before = mite.contents.beforeComma ?: state.node.findNode(mite.firstAtom).prevState
+    ParsingState before = mite.contents.beforeComma ?: state.findState(mite.firstAtom).prevState
     new SeqInterceptor(before).enrichUpdate(mite, contribution, state)
   }.structural { mite, state, via ->
     if (mite.contents.mergedWith) {
@@ -345,6 +345,15 @@ interface RussianConstructions {
       return ParsingState.EMPTY
     }
     return null
+  }.routeWrong { mite, state ->
+    if (mite.contents.conj == ',' && !mite.contents.mergedWith) {
+      def apMites = state.miteList.findAll { it.cxt == adverbialPhrase }
+      if (apMites.find { !it.contents.comma1 && it.contents.content } &&
+          !apMites.find { it.contents.comma1 && it.contents.content }) {
+        return true
+      }
+    }
+    return false
   }
   Construction advObj = cxt('advObj', ['adv', 'head']) { ParsingState state, Map args ->
     if (args.head && args.adv) {
@@ -405,7 +414,7 @@ interface RussianConstructions {
     state = state.assign(args.frame, 'content', args.content)
     return state
   }.structural { mite, state, via -> state.findState(mite, 'frame') } { mite, fresh -> fresh.cxt != verbHolder }
-  Construction directSpeech = cxt('directSpeech', ['head', 'message']) { ParsingState state, Map args ->
+  Construction directSpeech = cxt('directSpeech', ['*head', 'message']) { ParsingState state, Map args ->
     state.assign(args.head, 'message', args.message).assign(args.message, 'directSpeech', 'true')
   }
   Construction summerGarden = cxt('summerGarden', ['summer', 'garden']) { ParsingState state, Map args ->

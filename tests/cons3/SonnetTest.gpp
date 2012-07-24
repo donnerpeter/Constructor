@@ -193,7 +193,6 @@ C.type=REMEMBER
 C.time=PRESENT
 D.rusNumber=pl
 D.person=3
-C.arg1=D
 C.arg2=A@5
 -- 9:
 A.andEmphasis=true
@@ -203,6 +202,7 @@ B.member=C@8
 B.conj=but
 B.member=A
 A.arg2=C
+C@8.arg1=D@8
 A.arg1=D@8
 C.type=NEXT
 A.dot=true

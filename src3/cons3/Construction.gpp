@@ -14,6 +14,7 @@ class Construction {
   }
   Function3<Mite, ParsingState, Mite, ParsingState> showPrev = { mite, state, via -> null }
   Function2<Mite, Mite, Boolean> filterUpdate = { mite, update -> true }
+  Function2<Mite, ParsingState, Boolean> wrongRoute = { mite, update -> false }
   Function3<Mite, List<Mite>, ParsingState, Collection<Mite>> enrichAction = { mite, contribution, state ->
     return mite.unifyWherePossible(contribution)
   }
@@ -48,6 +49,11 @@ class Construction {
   Construction structural(Function3<Mite, ParsingState, Mite, ParsingState> action, Function2<Mite, Mite, Boolean> filterUpdate = { mite, update -> true }) {
     showPrev = action
     this.filterUpdate = filterUpdate
+    return this
+  }
+
+  Construction routeWrong(Function2<Mite, ParsingState, Boolean> condition) {
+    wrongRoute = condition
     return this
   }
 

@@ -610,7 +610,7 @@ class StatefulGenerator {
   private def generateSubject(boolean shouldHaveSubject, boolean forceSubject, Frame verb, Frame subj) {
     if (skipAlreadyMentionedArgument(verb, 'arg1')) {
       if (forceSubject) {
-        out(subj.s('gender') == 'fem' ? 'she' : 'he')
+        out(subj?.s('gender') == 'fem' ? 'she' : 'he')
       }
       return
     }

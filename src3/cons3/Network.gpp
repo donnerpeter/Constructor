@@ -43,6 +43,10 @@ class Network {
     mite in _chosen
   }
 
+  boolean contradict(Mite m1, Mite m2) {
+    m1 != m2 && Util.intersects(allGroups(m1), allGroups(m2))
+  }
+
   private Mite findChosenAncestor(Mite mite, Set<Mite> chosen) {
     while (mite) {
       if (mite in chosen) return mite

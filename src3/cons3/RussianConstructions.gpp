@@ -347,9 +347,8 @@ interface RussianConstructions {
     return null
   }.routeWrong { mite, state ->
     if (mite.contents.conj == ',' && !mite.contents.mergedWith) {
-      def apMites = state.miteList.findAll { it.cxt == adverbialPhrase }
-      if (apMites.find { !it.contents.comma1 && it.contents.content } &&
-          !apMites.find { it.contents.comma1 && it.contents.content }) {
+      if (state.ownMites.find { it.cxt == adverbialPhrase && it.atom && it.contents.content } &&
+          !state.miteList.find { it.cxt == adverbialPhrase && it.contents.comma1 && it.contents.content }) {
         return true
       }
     }

@@ -26,7 +26,7 @@ class SeqInterceptor implements RussianConstructions {
     Map<Pair<Variable, Variable>, Variable> seqs = [:]
 
     Node mergePoint = null
-
+    LinkedHashSet newXors = []
     for (mite in constructions) {
       if (mite.cxt in [nom, acc] && constructions.any { it.cxt in [nomSubject]}) {
         continue
@@ -36,6 +36,12 @@ class SeqInterceptor implements RussianConstructions {
       if (oldMite) {
         def nextPoint = merge(state, oldMite, mite.contents, result, seqs, self.contents.questionLevel != null)
         if (nextPoint) {
+          def prev = before.findState(oldMite)
+          def oldMerge = prev?.ownMites?.find { it.cxt == seq && it.contents.mergedWith == nextPoint }
+          if (!oldMerge) {
+            newXors.addAll(oldMite.primaries)
+          }
+          newXors.addAll(mite.primaries)
           mergePoint = nextPoint
         }
       }
@@ -43,7 +49,7 @@ class SeqInterceptor implements RussianConstructions {
 
     if (mergePoint != null) {
       seqs.each { pair, multi ->
-        result.add(0, self.unify(seq(mergedWith:mergePoint, multi:multi, second:pair.second, first:(multi == pair.first ? null : pair.first))))
+        result.add(0, self.unify(seq(mergedWith:mergePoint, multi:multi, second:pair.second, first:(multi == pair.first ? null : pair.first), xor:newXors)))
 
       }
 

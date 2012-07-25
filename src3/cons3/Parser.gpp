@@ -384,12 +384,14 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "остановились":
         return finiteVerb(state, var, 'STOP', 'PAST', (nom):[head:var])
       case ",":
+        Variable before = new Variable().lightVar
+        Variable after = new Variable().lightVar
         return state.apply(
-                (comma):[hasComma:true],
-                (seq):[conj:',', xor:t.a],
-                (adverbialPhrase):[comma1:true, head:v[verbHolder].lightVar, xor:t.a],
-                (accordingTo):[comma1:true, head:v[verbHolder].lightVar, xor:t.a],
-                (verbHolder):[head:new Variable().lightVar, mustFinish: true]).advanceSection()
+                comma(hasComma:true), seq(conj:',', xor:t.a),
+                verbHolder(mustFinish:true, head:before), verbHolder(mustStart:true, head:after),
+                adverbialPhrase(comma1:true, head:before, xor:t.a), adverbialPhrase(comma2:true, head:after, xor:t.a),
+                accordingTo(comma1:true, head:before, xor:t.a), accordingTo(comma2:true, head:after, xor:t.a),
+        ).advanceSection()
       case "если":
         return state.apply((conditionComp):[wh:'if', comp:v[verbHolder]], (verbHolder):[head:v[verbHolder].lightVar])
       case "когда":

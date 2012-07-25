@@ -1,8 +1,5 @@
 package cons3
-
 import static cons3.Construction.cxt
-import static cons3.RussianConstructions.verbHolder
-
 /**
  * @author peter
  */
@@ -100,22 +97,12 @@ class Util {
       }
       return screen
     }.enrichingMites { mite, contribution, state ->
-      def newComma = contribution.find { it.cxt == cxt && it.contents.comma1 && it.contents.head }
-      if (newComma) {
-        if (mite.contents.content && !mite.contents.comma2) {
-          def newVerb = new Mite(verbHolder, head:newComma.contents.head)
-          def result = [mite.unify(new Mite(cxt, comma2:true, head:newComma.contents.head, xor:newComma.contents.xor)), newVerb]
-          if (mite.contents.head) {
-            def firstAtom = mite.firstAtom
-            if (firstAtom.contents?.comma1) {
-              result.addAll(newVerb.unifyWherePossible(state.findState(firstAtom)?.prevState?.visibleMites?.get(verbHolder) ?: [], false))
-            }
-          }
-          return result
-        }
-        return []
-      }
-      return mite.unifyWherePossible(contribution)
+      boolean wantContent = mite.contents.comma1 && !mite.contents.content
+      boolean wantComma2 = mite.contents.content && !mite.contents.comma2
+      return mite.unifyWherePossible(contribution.findAll { it.cxt == cxt &&
+                                                            (wantContent && it.contents.content ||
+                                                             wantComma2 && it.contents.comma2)
+      })
     }.structural { mite, state, via, up ->
       if (mite.contents.comma1 && !mite.contents.content) {
         return ParsingState.EMPTY

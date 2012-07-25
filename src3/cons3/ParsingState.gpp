@@ -126,12 +126,13 @@ class ParsingState {
         s1.nextApplier(interceptor.cxt).call(c1, s1)
       }) }
     }
-    return { c, s -> baseApply(s, c) }
+    return { c, s -> baseApply(s, c, true) }
   }
 
   ParsingState apply(Map<Construction, Map> constructions) {
     apply((constructions.keySet() as List<Construction>).collect { it(constructions[it]) } as List)
   }
+  ParsingState apply(Mite... constructions) { apply(constructions as List) }
   ParsingState apply(List<Mite> constructions) {
     if (!constructions) return this
 
@@ -139,7 +140,7 @@ class ParsingState {
     applier(constructions as List<Mite>, this).clone(history: history + new Contribution(this, FList.fromList(constructions).reverse(), FList.emptyList))
   }
 
-  private static ParsingState baseApply(ParsingState state, List<Mite> update) {
+  private static ParsingState baseApply(ParsingState state, List<Mite> update, boolean mayCorrectRoute) {
     LinkedHashSet<Mite> fullUpdate = enrichUpdate(update, state)
     assert fullUpdate
     state = state.addCxt(new Node(fullUpdate as List<Mite>, Collections.emptySet(), state.node, state), update)
@@ -163,7 +164,7 @@ class ParsingState {
       }
     }
 
-    if (state.findTraitor()) {
+    if (mayCorrectRoute && state.findTraitor()) {
       state = correctRoute(state.prevState, FList.fromList([state]))
     }
 
@@ -176,7 +177,7 @@ class ParsingState {
         def anotherActive = state.network.choose([mite])
         def alternative = state.activate(anotherActive)
         for (step in reapply) {
-          alternative = baseApply(alternative, step.contribution)
+          alternative = baseApply(alternative, step.contribution, false)
         }
         if (!alternative.findTraitor()) {
           return alternative

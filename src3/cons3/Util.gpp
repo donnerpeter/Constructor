@@ -95,7 +95,7 @@ class Util {
         }
         def firstAtom = mite.firstAtom
         if (firstAtom?.contents?.comma1) {
-          return screen.showEverything(screen.before.node.findNode(firstAtom).prevState)
+          return screen.showEverything(screen.before.findState(firstAtom).prevState)
         }
       }
       return screen
@@ -104,7 +104,7 @@ class Util {
       if (newComma) {
         if (mite.contents.content && !mite.contents.comma2) {
           def newVerb = new Mite(verbHolder, head:newComma.contents.head)
-          def result = [mite.unify(new Mite(cxt, comma2:true, head:newComma.contents.head)), newVerb]
+          def result = [mite.unify(new Mite(cxt, comma2:true, head:newComma.contents.head, xor:newComma.contents.xor)), newVerb]
           if (mite.contents.head) {
             def firstAtom = mite.firstAtom
             if (firstAtom.contents?.comma1) {
@@ -116,7 +116,7 @@ class Util {
         return []
       }
       return mite.unifyWherePossible(contribution)
-    }.structural { mite, state, via ->
+    }.structural { mite, state, via, up ->
       if (mite.contents.comma1 && !mite.contents.content) {
         return ParsingState.EMPTY
       }
@@ -132,16 +132,16 @@ class Util {
   static Construction commonCase(String name) {
     cxt(name, ['+noun', '*head']) { ParsingState state, Map args ->
       state
-    }.structural { mite, state, via ->
+    }.structural { mite, state, via, up ->
       def parentState = state.findState(mite, 'head')
-      return parentState ?: state.findState(mite.firstAtom)?.prevState
+      return up ? parentState : state.findState(mite.firstAtom)?.prevState
     }
   }
 
   static Construction commonPrep(String name) {
     cxt(name, ['+noun', '*head']) { ParsingState state, Map args ->
       state
-    }.structural { mite, state, via ->
+    }.structural { mite, state, via, up ->
       Variable noun = mite.lastAtom.contents.noun
       if (noun && !mite.lastAtom.contents.head) {
         if (!via ||

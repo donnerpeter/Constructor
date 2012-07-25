@@ -675,7 +675,7 @@ class StatefulGenerator {
       out 'if'
       def content = condition.f('whenCondition') ?: condition.f('ifCondition')
       if (!content) {
-        println "No condition: " + verb.chart.presentable()
+        println "No condition: " + condition
         return
       }
 

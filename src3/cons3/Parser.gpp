@@ -151,7 +151,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "мной": return noun(state, instr, 'ME')
       case "меня": return noun(state, gen, 'ME')
       case ":":
-        return state.apply([verbHolder(mustFinish:true, head:var.lightVar), verbHolder(mustStart:true, head:v['newVerb'].lightVar),
+        return state.apply([verbHolder(mustFinish:true, head:var.lightVar), sentenceHolder(mustStart:true, head:v['newVerb'].lightVar),
                 directSpeech(xor:t.a, message:v['newVerb']), elaboration(head:var, xor:t.a)]).advanceSection()
       case "я": return pronoun(state, nom, 'ME')
       case "мы": return upronoun(nom, var, 'WE').apply(state)
@@ -389,7 +389,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (seq):[conj:',', xor:t.a],
                 (adverbialPhrase):[comma1:true, head:v[verbHolder].lightVar, xor:t.a],
                 (accordingTo):[comma1:true, head:v[verbHolder].lightVar, xor:t.a],
-                (verbHolder):[head:v[verbHolder].lightVar, mustFinish: true]).advanceSection()
+                (verbHolder):[head:new Variable().lightVar, mustFinish: true]).advanceSection()
       case "если":
         return state.apply((conditionComp):[wh:'if', comp:v[verbHolder]], (verbHolder):[head:v[verbHolder].lightVar])
       case "когда":
@@ -411,7 +411,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (vAcc):[noun:v[vAcc].lightVar, xor:t.b, head:new Object()], (vAccGoal):[head:var, noun:v[vAcc]],
                 (vPrep):[noun:v[vPrep].lightVar, head:new Object()], (vPrepCondition):[head:var, noun:v[vPrep]],
                 (nom):[noun:v[nom].lightVar, head:new Object()], (nomSubject):[head:var, noun:v[nom]],
-                (poDat):[head:var], (verbHolder): [head:var],
+                (poDat):[head:var], (verbHolder): [head:var], (sentenceHolder): [head:var],
                 (posleGen):[head:var], (ransheGen):[head:var],
                 (conditionComp):[head:var], (absTime):[head:var],
                 (complementizer):[content:var, xor:t.c], (question):[content:var, xor:t.c])

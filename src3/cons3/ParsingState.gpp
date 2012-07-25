@@ -81,13 +81,19 @@ class ParsingState {
     return apply((name): newArgs)
   }
 
+  @Override
+  String toString() {
+    return "#$currentGeneration"
+  }
+
   private ParsingState addCxt(Node node, List<Mite> update) {
     def newMiteGenerations = miteGenerations
     for (mite in node.ownMites) {
       newMiteGenerations = newMiteGenerations.putValue(mite, currentGeneration)
     }
 
-    return clone(node:node, miteGenerations:newMiteGenerations, network:network.addMites(node.ownMites as LinkedHashSet), contribution:update)
+    return clone(node:node, miteGenerations:newMiteGenerations, network:network.addMites(node.ownMites as LinkedHashSet),
+            contribution:update, currentGeneration:currentGeneration + 1)
   }
 
   ParsingState startMeta(Variable meta) {
@@ -158,10 +164,10 @@ class ParsingState {
     }
 
     if (state.findTraitor()) {
-      state = correctRoute(state, FList.emptyList)
+      state = correctRoute(state.prevState, FList.fromList([state]))
     }
 
-    return state.clone(currentGeneration:state.currentGeneration + 1)
+    return state
   }
 
   private static ParsingState correctRoute(ParsingState state, FList<ParsingState> reapply) {
@@ -170,7 +176,7 @@ class ParsingState {
         def anotherActive = state.network.choose([mite])
         def alternative = state.activate(anotherActive)
         for (step in reapply) {
-          alternative = alternative.apply(step.contribution)
+          alternative = baseApply(alternative, step.contribution)
         }
         if (!alternative.findTraitor()) {
           return alternative
@@ -187,41 +193,49 @@ class ParsingState {
     miteList.find { it.cxt.wrongRoute(it, this) }
   }
 
+  private Mite findLink(Mite via, Network original) {
+    findLink(via, original, true) ?: findLink(via, original, false)
+  }
+  private Mite findLink(Mite via, Network original, boolean up) {
+    ParsingState bestPrev = null
+    Mite nextVia = null
+    for (mite in ownMites) {
+      if (!original.isChosen(mite)) continue
+
+      def somePrev = mite.cxt.showPrev(mite, prevState, via, up)
+      if (somePrev == EMPTY) {
+        return mite
+      }
+      if (somePrev && (bestPrev == null || bestPrev.node.isMoreRecentThan(somePrev.node))) {
+        bestPrev = somePrev
+        nextVia = mite
+      }
+    }
+    return nextVia
+  }
+
   private static LinkedHashSet<Mite> enrichUpdate(List<Mite> update, ParsingState state) {
     ParsingState original = state
     LinkedHashSet<Mite> fullUpdate = update as LinkedHashSet
     Mite via = null
     while (state) {
-      ParsingState bestPrev = state.node.prevState
-      List<Mite> filtered = update
-      boolean hasEmpty = false
-      Mite nextVia = null
-
-      def ownMites = state.node.ownMites
-      Map<Mite, ParsingState> miteToPrev = ownMites.collectEntries { Mite it -> [it, it.cxt.showPrev(it, state.prevState, via)] }
-      List<Mite> structuralChosen = ownMites.findAll { miteToPrev[it] && original.network.isChosen(it) }
-
-      for (mite in ownMites) {
-        if (structuralChosen && structuralChosen.every { original.network.contradict(it, mite) }) continue
-
-        fullUpdate.addAll((mite.cxt.enrichAction(mite, update, state) as List<Mite>).reverse())
-
-        def prevState = miteToPrev[mite]
-        hasEmpty |= prevState == EMPTY
-        if (prevState && prevState != EMPTY && (bestPrev == null || bestPrev.node.isMoreRecentThan(prevState.node))) {
-          bestPrev = prevState
-          nextVia = mite
-          filtered = update.findAll { mite.cxt.filterUpdate(mite, it) }
+      Mite link = state.findLink(via, original.network)
+      for (mite in state.ownMites) {
+        if (!link || !original.network.contradict(mite, link)) {
+          fullUpdate.addAll((mite.cxt.enrichAction(mite, update, state) as List<Mite>).reverse())
         }
       }
-      if (hasEmpty && bestPrev == state.node.prevState) {
-        break
+      state = state.getPrevStateFromLink(link, via)
+      if (link) {
+        update = update.findAll { link.cxt.filterUpdate(link, it) }
       }
-      state = bestPrev
-      update = filtered
-      via = nextVia
+      via = link
     }
     fullUpdate
+  }
+
+  private ParsingState getPrevStateFromLink(Mite link, Mite via) {
+    link?.cxt?.showPrev(link, prevState, via, true) ?: link?.cxt?.showPrev(link, prevState, via, false) ?: prevState
   }
 
   private static ParsingState tryAlternative(ParsingState state, Mite toAdd) {
@@ -360,7 +374,7 @@ class ParsingState {
   String presentable() {
     def log = ""
     def mites = visibleMites
-    log += " - - uni: " + chart.__unifications.keySet().collect { "${it.iterator().next()}=" + (it as List)[1] }.join(", ") + "\n"
+    log += " -- $this->${getPrevStateFromLink(findLink(null, network), null)},  uni: " + chart.__unifications.keySet().collect { "${it.iterator().next()}=" + (it as List)[1] }.join(", ") + "\n"
     for (k in mites.keySet()) {
       log += "    $k: " + mites[k].collect {
         (network.isChosen(it) ? '*' : '') +

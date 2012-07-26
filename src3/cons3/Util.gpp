@@ -141,4 +141,10 @@ class Util {
       return parentState ?: state.findState(mite.firstAtom)?.prevState
     }
   }
+
+  static Construction commonArg(String name, String rel) {
+    cxt(name + rel.capitalize(), ['+noun', '*head']) { ParsingState state, Map args ->
+      ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, rel, args.noun) : state
+    }
+  }
 }

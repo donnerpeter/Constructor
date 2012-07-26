@@ -344,7 +344,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return infinitive([:], state, var, 'DANCE')
       case "нужно":
         return state.assign(var, 'type', 'NEED').apply((acc):[head:var],
-                (datSubj):[head:var, noun:v[dat]], (dat):[noun:v[dat].lightVar],
+                (datArg1):[head:var, noun:v[dat]], (dat):[noun:v[dat].lightVar],
                 (adverbPred):[adverb:var],
                 (verbHolder):[head:var], (question):[content:var])
       case "спросить":
@@ -523,7 +523,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     def mod = new Variable()
     def datNoun = new Variable().lightVar
     return state.assign(verb, 'type', type).apply(args +
-            [(dat):[noun:datNoun], (datSubj):[head:verb, noun:datNoun], (control): [slave: verb],
+            [(dat):[noun:datNoun], (datArg1):[head:verb, noun:datNoun], (control): [slave: verb],
                     (question): [content:mod], (modality):[modality:mod, infinitive:verb], (timedModality):[modality:mod],
                     (verbHolder):[head:verb]])
   }

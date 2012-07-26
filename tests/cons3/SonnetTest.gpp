@@ -498,15 +498,15 @@ A.dot=true
     doParseTest 'Что нам было делать?', '''
 A.type=WE
 B.type=DO
-B.arg1=A
 C.time=PAST
+C.type=modality
+C.arg1=B
+B.arg1=A
+D.type=wh
 B.arg2=D
 E.content=C
 E.type=question
 E.questioned=D
-C.type=modality
-C.arg1=B
-D.type=wh
 '''
   }
 

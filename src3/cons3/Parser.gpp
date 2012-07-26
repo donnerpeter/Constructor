@@ -330,25 +330,24 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (vAccTheme):[head:var, noun:v[vAcc]],
                 (adverbialPhrase):[content:var])
       case "вспомнить":
-        return infinitive(state, var, 'RECALL', [(acc):[noun:v[acc].lightVar, head:h], (accArg2):[head:var, noun:v[acc]]])
+        return infinitive(state, var, 'RECALL', (acc):[noun:v[acc].lightVar, head:h], (accArg2):[head:var, noun:v[acc]])
       case "делать":
-        return infinitive(state, var, 'DO', [(acc):[head:var]])
+        return infinitive(state, var, 'DO', (acc):[noun:v[acc].lightVar, head:h], (accArg2):[head:var, noun:v[acc]])
       case "спорить":
-        return infinitive(state, var, 'ARGUE', [:])
+        return infinitive([:], state, var, 'ARGUE')
       case "считать":
-        return infinitive(state, var, 'COUNT', [(acc):[head:var]])
+        return infinitive(state, var, 'COUNT', (acc):[noun:v[acc].lightVar, head:h], (accArg2):[head:var, noun:v[acc]])
       case "поливать":
-        return infinitive(state, var, 'TO_WATER', [(acc):[head:var]])
+        return infinitive(state, var, 'TO_WATER', (acc):[noun:v[acc].lightVar, head:h], (accArg2):[head:var, noun:v[acc]])
       case "танцевать":
-        return infinitive(state, var, 'DANCE', [:])
+        return infinitive([:], state, var, 'DANCE')
       case "нужно":
-        def datNoun = new Variable().lightVar
         return state.assign(var, 'type', 'NEED').apply((acc):[head:var],
-                (datSubj):[head:var, noun:datNoun], (dat):[noun:datNoun],
+                (datSubj):[head:var, noun:v[dat]], (dat):[noun:v[dat].lightVar],
                 (adverbPred):[adverb:var],
                 (verbHolder):[head:var], (question):[content:var])
       case "спросить":
-        return infinitive(state, var, 'ASK', [(acc):[head:var]])
+        return infinitive(state, var, 'ASK', (acc):[noun:v[acc].lightVar, head:h], (accArg2):[head:var, noun:v[acc]])
       case "думают":
         return finiteVerb(state, var, 'THINK', 'PRESENT',
                 (poDat):[noun:v[poDat].lightVar], (poDatTopic):[head:var, noun:v[poDat]],
@@ -519,7 +518,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     return cxt("sem_number_${var}_$word") { ParsingState st, Map args -> st.assign(args.var, 'type', word).assign(args.var, 'number', 'true') }
   }
 
-  private ParsingState infinitive(ParsingState state, Variable verb, String type, Map<Construction, Map> args) {
+  private ParsingState infinitive(Map<Construction, Map> args, ParsingState state, Variable verb, String type) {
     def mod = new Variable()
     def datNoun = new Variable().lightVar
     return state.assign(verb, 'type', type).apply(args +

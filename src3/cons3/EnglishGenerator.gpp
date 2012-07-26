@@ -172,6 +172,9 @@ class StatefulGenerator {
         else if (last?.f('whenCondition')) {
           last = last.f('whenCondition')
         }
+        else if (last?.f('reason')) {
+          last = last.f('reason')
+        }
         else if (last?.f('ifCondition')) {
           last = last.f('ifCondition')
         }
@@ -218,7 +221,7 @@ class StatefulGenerator {
 
     LinkedHashSet<Frame> subordinates = []
     for (head in allVerbs) {
-      for (attr in ['elaboration', 'theme', 'message', 'arg2', 'question', 'ifCondition', 'whenCondition', 'perfectBackground']) {
+      for (attr in ['elaboration', 'theme', 'message', 'arg2', 'question', 'ifCondition', 'whenCondition', 'perfectBackground', 'reason']) {
         subordinates.addAll(head.f(attr)?.flatten() ?: [])
       }
       subordinates.addAll(head.f('goal')?.f('relative')?.flatten() ?: [])

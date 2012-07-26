@@ -227,14 +227,15 @@ interface RussianConstructions {
   Construction reasonComp = cxt('reasonComp', ['reason', 'head']) { ParsingState state, Map args ->
     return state.assign(args.head, 'reason', args.reason)
   }.enrichingMites { mite, contribution, state ->
-    if (contribution.find { it.cxt == comma }) {
-      return [mite.unify(new Mite(reasonComp, hasComma:true))]
-    }
-    if (mite.contents.head && contribution.find { it.cxt == conditionComp && it.contents.hasComma } ||
-        mite.contents.head && mite.contents.hasComma && contribution.find { it.cxt == conditionComp && it.contents.reason }) {
+    if (mite.contents.head && contribution.find { it.cxt == reasonComp && it.contents.hasComma } ||
+        mite.contents.head && mite.contents.hasComma && contribution.find { it.cxt == reasonComp && it.contents.reason }) {
       return mite.unifyWherePossible(contribution)
     }
     return []
+  }.structural { mite, state, via, up ->
+    if (mite.contents.hasComma) {
+      return ParsingState.EMPTY
+    }
   }
   Construction numQuantifier = cxt('numQuantifier', ['+num', 'noun']) { ParsingState state, Map args ->
     state.assign(args.noun, 'quantifier', args.num)

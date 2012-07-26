@@ -456,34 +456,36 @@ E.source=G
 
   public void testParse9() throws Exception {
     doParseTest 'Но тут, вдумываясь в слова кассирши, мы опять приуныли, так как ее слова показались нам лишенными всякого смысла.', '''
-A.emphasis=true
-B.type=THINK
-B.background=present
-C.type=WORDS
-B.theme=C
-D.type=CASHIER
-C.author=D
-E.type=WE
-A.anchor=AGAIN
-A.type=GET_SAD
-A.time=PAST
-A.arg1=E
 A.butEmphasis=true
-A.reason=#2
---
-A.type=SHE
+A.emphasis=true
+-- 2:
+A.type=THINK
 B.type=WORDS
-B.author=A
-C.type=SEEM
-C.time=PAST
-C.arg1=B
+A.theme=B
+C.type=CASHIER
+B.author=C
+A@1.perfectBackground=A
+-- 3:
+A.type=WE
+A@1.type=GET_SAD
+A@1.time=PAST
+A@1.anchor=AGAIN
+A@1.arg1=A
+-- 4:
+A@1.reason=A
+B.type=SHE
+C.type=WORDS
+C.author=B
+A.type=SEEM
+A.time=PAST
+A.arg1=C
 D.type=WE
 E.type=LACK
-C.theme=E
+A.theme=E
 F.determiner=ANY
 F.type=MEANING
 E.arg2=F
-C.dot=true
+A.dot=true
 '''
   }
 

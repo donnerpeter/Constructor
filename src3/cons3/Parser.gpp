@@ -52,7 +52,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       return state
     }
     
-    def h = new Object()
+    String h = "Head" + state.currentGeneration
 
     switch (word) {
       case "удивительный": return adj(state, nom, 'property', 'AMAZING')
@@ -266,7 +266,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (nom):[noun:v[nom].lightVar, head:h], (nomSubject):[head:var, noun:v[nom]])
       case 'стали':
       case 'начали':
-        return finiteVerb(state, var, 'BEGIN', 'PAST', (control):[head:var], (nom):[head:var])
+        return finiteVerb(state, var, 'BEGIN', 'PAST', (control):[head:var],
+                (nom):[noun:v[nom].lightVar, head:h], (nomSubject):[head:var, noun:v[nom]])
       case 'свалился':
         return finiteVerb(state, var, 'FALL', 'PAST', (nom):[head:var, agr:'masc'], (sGen):[head:var], (poDat):[head:var])
       case 'сломал':

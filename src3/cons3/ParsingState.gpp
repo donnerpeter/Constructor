@@ -11,7 +11,7 @@ class ParsingState {
   final FList<Contribution> history
   final List<Mite> contribution
   final Network network
-  private final int currentGeneration
+  final int currentGeneration
 
   ParsingState() {
     this(chart: new Chart(),

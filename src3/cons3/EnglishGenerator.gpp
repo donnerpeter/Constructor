@@ -142,7 +142,7 @@ class StatefulGenerator {
 
     for (clause in generators) {
       capitalize = true
-      if (clause?.frame?.s('butEmphasis')) {
+      if (clause?.frame?.flatten()?.get(0)?.s('butEmphasis')) {
         out 'but'
       }
       else if (clause?.frame?.s('andEmphasis')) {

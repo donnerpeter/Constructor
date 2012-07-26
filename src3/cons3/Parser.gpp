@@ -168,8 +168,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "но":
         return state.apply((seq):[conj:'but'],
                 (prevHistory):[history:state],
-                (verbEmphasis):[emphasis:word == 'а' ? 'andEmphasis' : 'butEmphasis', verb:v[verbHolder]],
-                (verbHolder):[head:v[verbHolder].lightVar])
+                (verbEmphasis):[emphasis:word == 'а' ? 'andEmphasis' : 'butEmphasis', verb:var],
+                (sentenceHolder):[head:var.lightVar])
       case "тут":
         return state.assign(var.lightVar, 'emphasis', 'true').apply((verbHolder):[head:var.lightVar])
       case "потом":
@@ -324,7 +324,10 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (instr):[noun:instrNoun.lightVar, head:h], (instrArg2):[head:var, noun:instrNoun], (nom):[head:var])
       case "дойдя":
         state = state.assign(var, 'type', 'COME_TO')
-        return state.apply((vPrep):[head:var], (doGen):[head:var, head:h], (adverbialPhrase):[content:var])
+        return state.apply(
+                (vPrep):[head:h, noun:v[vPrep].lightVar], (vPrepDomain):[head:var, noun:v[vPrep]],
+                (doGen):[head:h, noun:v[doGen].lightVar], (doGenGoal):[head:var, noun:v[doGen]],
+                (adverbialPhrase):[content:var])
       case "вдумываясь":
         state = state.assign(var, 'type', 'THINK')
         return state.apply((vAcc):[noun:v[vAcc].lightVar, head:h],
@@ -384,7 +387,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (nom):[noun:v[nom].lightVar, head:h], (nomSubject):[head:var, noun:v[nom]],
                 (reasonComp):[head:var])
       case "остановились":
-        return finiteVerb(state, var, 'STOP', 'PAST', (nom):[head:var])
+        return finiteVerb(state, var, 'STOP', 'PAST', (nom):[noun:v[nom].lightVar, head:h], (nomSubject):[head:var, noun:v[nom]])
       case ",":
         Variable before = new Variable().lightVar
         Variable after = new Variable().lightVar
@@ -532,7 +535,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
     Tokens t = new Tokens()
     return state.
             assign(verb, 'type', type).assign(verb, 'time', tense).
-            apply(args + [(subjunctive):[head:verb], (verbHolder):[head:verb], (relTime):[head:verb], (also):[head: verb],
+            apply(args + [(subjunctive):[head:verb], (verbHolder):[head:verb], (sentenceHolder):[head:verb],
+                    (relTime):[head:verb], (also):[head: verb],
                     (adverb):[head:verb],
                     (complementizer):[content:verb, xor:t.a], (question):[content:verb, xor:t.a]])
   }

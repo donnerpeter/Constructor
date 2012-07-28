@@ -116,7 +116,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "мнению":
         state = state.assign(var, 'type', 'OPINION')
         def genNoun = new Variable().lightVar
-        return state.apply((gen):[noun:genNoun, hasHead:true, xor:t.a], (genArg1):[head:var, noun:genNoun, xor:t.b],
+        return state.apply((gen):[noun:genNoun, head:h, xor:t.a], (genArg1):[head:var, noun:genNoun, xor:t.b],
                 (possessive):[head:var, xor:t.ab], (dat):[noun:var],
                            (parenthetical):[:]) // todo common constructions in по-моему & по моему мнению
       case "словам":
@@ -425,9 +425,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (complementizer):[content:var, xor:t.c], (question):[content:var, xor:t.c])
       case "следовало":
         state = state.assign(var, 'time', 'PAST')
-        return state.apply((nom):[head:var],
+        return state.apply((nom):[noun:v[nom].lightVar, head:h], (nomSubject):[head:var, noun:v[nom]],
                 (comeScalarly):[verb:var],
-                (posleGen):[head:var], (relTime):[head:var], (poDat):[head:var], (verbHolder):[head:var], (elaboration):[elaboration:var])
+                (posleGen):[head:var], (relTime):[head:var],
+                (poDat):[head:h, noun:v[poDat].lightVar], (poDatOpinion):[head:var, noun:v[poDat]],
+                (verbHolder):[head:var], (elaboration):[elaboration:var])
       case "раньше":
         return state.apply((comeScalarly):[order:'EARLIER', xor:t.a], (preposition):[prep:'ranshe'], (relTime):[relTime:'BEFORE', xor:t.a],
                 (ransheGen):[noun:var], (gen):[noun:var.lightVar, head:h])

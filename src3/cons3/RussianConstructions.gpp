@@ -71,6 +71,7 @@ interface RussianConstructions {
   Construction poDat = commonPrep('poDat')
   Construction poDatTopic = commonArg('poDat', 'topic')
   Construction poDatGoal = commonArg('poDat', 'goal')
+  Construction poDatOpinion = commonArg('poDat', 'opinion_of')
   Construction poDatInverseTopic = cxt("poDatInverseTopic", ['+noun', '*head']) { ParsingState state, Map args ->
     ((Variable) args.noun).frame(state.chart).type ? state.assign(args.noun, 'topic', args.head) : state
   }

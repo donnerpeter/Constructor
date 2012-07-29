@@ -1,8 +1,10 @@
 package cons3
 import static cons3.Construction.cxt
+import static cons3.Util.commaSurrounded
 import static cons3.Util.commonArg
 import static cons3.Util.commonCase
 import static cons3.Util.commonPrep
+import static cons3.Util.emptyCxt
 /**
  * @author peter
  */
@@ -132,7 +134,7 @@ interface RussianConstructions {
   }.screeningMites { mite, screen ->
     if (!mite.contents.seq && mite.contents.questioned) return screen.hideAll() else return screen
   }.structural { mite, state, via, up -> if (!mite.contents.seq && mite.contents.questioned) return ParsingState.EMPTY }
-  Construction reflexiveHolder = cxt('reflexiveHolder', ['X']) { ParsingState state, Map args -> state }
+  Construction reflexiveHolder = emptyCxt('reflexiveHolder')
   Construction shortAdj = cxt('shortAdj', ['noun', 'value', 'copula']) { ParsingState state, Map args ->
     if (args.noun && args.value && args.copula) {
       state = state.assign(args.copula, 'type', 'degree').assign(args.copula, 'arg1', args.noun).assign(args.copula, 'arg2', args.value)
@@ -142,8 +144,8 @@ interface RussianConstructions {
     }
     return state
   }.structural { mite, state, via, up -> state.findState(mite, 'value') }
-  Construction parenthetical = cxt('parenthetical', ['X']) { ParsingState state, Map args -> state }
-  Construction preposition = cxt('preposition', ['prep']) { ParsingState state, Map args -> state }
+  Construction parenthetical = emptyCxt('parenthetical')
+  Construction preposition = emptyCxt('preposition')
   Construction possArg1 = cxt('possArg1', ['+head', 'possessor']) { ParsingState state, Map args ->
     if (((Variable) args.possessor).frame(state.chart).flatten()[0]?.type) {
       for (hf in ((Variable) args.head).frame(state.chart).flatten()) {
@@ -244,10 +246,10 @@ interface RussianConstructions {
   Construction participleArg = cxt('participleArg', ['participle', 'head']) { ParsingState state, Map args ->
     args.head && args.participle ? state.assign(args.head, 'theme', args.participle) : state
   }
-  Construction adverbialPhrase = Util.commaSurrounded(cxt('adverbialPhrase', ['content', 'head']) { ParsingState state, Map args ->
+  Construction adverbialPhrase = commaSurrounded(cxt('adverbialPhrase', ['content', 'head']) { ParsingState state, Map args ->
     state.assign(args.head, 'perfectBackground', args.content)
   })
-  Construction accordingTo = Util.commaSurrounded(cxt('accordingTo', ['content', 'head']) { ParsingState state, Map args ->
+  Construction accordingTo = commaSurrounded(cxt('accordingTo', ['content', 'head']) { ParsingState state, Map args ->
     state.assign(args.head, 'opinion_of', args.content)
   })
   Construction seq = cxt('seq') { ParsingState state, Map args ->
@@ -372,14 +374,14 @@ interface RussianConstructions {
   Construction adverbPred = cxt('adverbPred', ['adverb', 'time']) { ParsingState state, Map args ->
     state.assign(args.adverb, 'time', args.time)
   }
-  Construction verbHolder = cxt('verbHolder', ['X']) { ParsingState state, Map args -> state }.
+  Construction verbHolder = emptyCxt('verbHolder').
           enrichingMites { mite, contribution, state ->
             if (mite.contents.mustFinish) {
               return []
             }
             return mite.unifyWherePossible(contribution.findAll { it.cxt == verbHolder && !it.contents.mustStart })
           }
-  Construction sentenceHolder = cxt('sentenceHolder', ['X']) { ParsingState state, Map args -> state }.
+  Construction sentenceHolder = emptyCxt('sentenceHolder').
           enrichingMites { mite, contribution, state ->
             if (mite.contents.mustFinish) {
               return []
@@ -403,6 +405,6 @@ interface RussianConstructions {
   Construction comma = cxt('comma', ['hasComma']) { ParsingState state, Map args ->
     state
   }.screeningMites { mite, screen -> screen.hideAll() }.enrichingMites { mite, contribution, state -> [] }
-  Construction word = cxt('word', ['word']) { ParsingState state, Map args -> state }
-  Construction quote = cxt('quote', ['quote']) { ParsingState state, Map args -> state }.enrichingMites { mite, contribution, state -> [] }
+  Construction word = emptyCxt('word')
+  Construction quote = emptyCxt('quote').enrichingMites { mite, contribution, state -> [] }
 }

@@ -2,6 +2,8 @@ package cons3;
 
 import junit.framework.TestCase
 
+import static cons3.Util.emptyCxt
+
 /**
  * @author peter
  */
@@ -13,10 +15,6 @@ public class ParsingStateTest extends TestCase {
   Construction myAcc = Construction.cxt('myAcc', ['+head', 'noun']) { state, args -> state.assign(args.head, 'arg2', args.noun) }
   Construction myNom = Construction.cxt('myNom', ['+head', 'noun']) { state, args -> state.assign(args.head, 'arg1', args.noun) }
   Tokens t = new Tokens()
-
-  Construction emptyCxt(String name) {
-    return Construction.cxt(name, ['head']) { state, args -> state }
-  }
 
   Construction attrCxt(String name) {
     return Construction.cxt(name, ['head']) { state, args ->

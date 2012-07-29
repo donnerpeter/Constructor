@@ -131,6 +131,9 @@ class Util {
     }
   }
 
+  static Construction emptyCxt(String name) {
+    cxt(name, ['X']) { state, args -> state }
+  }
   static Construction commonPrep(String prep, Construction caze) {
     cxt(prep + caze.name.capitalize(), ['+noun', '*head']) { ParsingState state, Map args ->
       state

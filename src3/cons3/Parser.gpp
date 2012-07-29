@@ -269,7 +269,10 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return finiteVerb(state, var, 'BEGIN', 'PAST', (control):[head:var],
                 (nom):[noun:v[nom].lightVar, head:h], (nomSubject):[head:var, noun:v[nom]])
       case 'свалился':
-        return finiteVerb(state, var, 'FALL', 'PAST', (nom):[head:var, agr:'masc'], (sGen):[head:var], (poDat):[head:var])
+        return finiteVerb(state, var, 'FALL', 'PAST',
+                (nom):[noun:v[nom].lightVar, head:h], (nomSubject):[head:var, noun:v[nom]],
+                (sGen):[head:h, noun:v[sGen].lightVar], (sGenSource):[head:var, noun:v[sGen]],
+                (poDat):[head:h, noun:v[poDat].lightVar], (poDatInverseTopic):[head:var, noun:v[poDat]])
       case 'сломал':
       case 'сломала':
         return finiteVerb(state, var, 'BREAK', 'PAST',

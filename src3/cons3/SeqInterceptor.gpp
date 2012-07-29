@@ -26,7 +26,7 @@ class SeqInterceptor implements RussianConstructions {
 
     Map<Pair<Variable, Variable>, Variable> seqs = [:]
 
-    Node mergePoint = null
+    ParsingState mergePoint = null
     LinkedHashSet newXors = []
     for (mite in constructions) {
       if (mite.cxt in [nom, acc] && constructions.any { it.cxt in [nomSubject]}) {
@@ -61,7 +61,7 @@ class SeqInterceptor implements RussianConstructions {
     return result
   }
 
-  private Node merge(ParsingState state, Mite oldMite, Map newArgs, List<Mite> update, Map<Pair<Variable, Variable>, Variable> seqs, boolean clauseLevel) {
+  private ParsingState merge(ParsingState state, Mite oldMite, Map newArgs, List<Mite> update, Map<Pair<Variable, Variable>, Variable> seqs, boolean clauseLevel) {
     def oldArgs = oldMite.contents
     def cxt = oldMite.cxt
     if (cxt == elaboration && before[cxt]?.head && oldArgs.elaboration && newArgs.elaboration) {
@@ -109,7 +109,7 @@ class SeqInterceptor implements RussianConstructions {
   }
 
 
-  private Node doMerge(ParsingState state, Mite oldMite, Map newArgs, String prop, List<Mite> update, Map<Pair<Variable, Variable>, Variable> seqs) {
+  private ParsingState doMerge(ParsingState state, Mite oldMite, Map newArgs, String prop, List<Mite> update, Map<Pair<Variable, Variable>, Variable> seqs) {
     def mPoint = findMergePoint(oldMite, prop)
     assert mPoint
     update.addAll createMergedMite(oldMite, prop, newArgs, state, seqs).unifyWherePossible(mPoint.prevState)
@@ -138,13 +138,13 @@ class SeqInterceptor implements RussianConstructions {
     createMergedMite
   }
 
-  private Node findMergePoint(Mite oldMite, String property) {
-    def node = before.node.findNode(oldMite)
-    def prevSeq = node.ownMites.find { it.cxt == seq && it.contents.mergedWith && it.contents.multi && it.contents.multi == oldMite.contents[property]  }
+  private ParsingState findMergePoint(Mite oldMite, String property) {
+    def state = before.findState(oldMite)
+    def prevSeq = state.ownMites.find { it.cxt == seq && it.contents.mergedWith && it.contents.multi && it.contents.multi == oldMite.contents[property]  }
     if (prevSeq) {
       return prevSeq.contents.mergedWith
     }
-    node
+    state
   }
 
   private Variable joinedVar(Map<Pair<Variable, Variable>, Variable> seqs, Variable first, second) {

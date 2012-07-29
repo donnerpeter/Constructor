@@ -244,7 +244,7 @@ class ParsingState {
   private ParsingState activate(Network newActive) {
     def toRemove = Util.minus(network._chosen, newActive._chosen)
     LinkedHashSet<Mite> toApply = Util.minus(newActive._chosen, network._chosen)
-    toApply = Util.intersect(toApply, node.ownMites) + toApply + Util.intersect(miteList, newActive._chosen)
+    toApply = Util.intersect(toApply, ownMites) + toApply + Util.intersect(miteList, newActive._chosen)
 
     def state = clone(network:newActive)
     state = state.undoChanges(toRemove)
@@ -378,7 +378,7 @@ class ParsingState {
     findState(mite.primaries.find { it.contents[attr] })
   }
   ParsingState findState(Mite mite) {
-    if (mite in node.ownMites) {
+    if (mite in ownMites) {
       return this
     }
     return prevState?.findState(mite)

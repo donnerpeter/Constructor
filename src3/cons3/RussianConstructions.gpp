@@ -267,8 +267,8 @@ interface RussianConstructions {
     return state
   }.screeningMites { mite, screen ->
     if (mite.contents.mergedWith) {
-      Node mergedWith = mite.contents.mergedWith
-      screen = screen.showMites(mergedWith.ownMites.reverse()).showMites(mergedWith.screenPreviousState())
+      ParsingState mergedWith = mite.contents.mergedWith
+      screen = screen.showMites(mergedWith.ownMites.reverse()).showMites(mergedWith.node.screenPreviousState())
     }
 
     if (mite.contents.conj && !mite.contents.first) {
@@ -280,7 +280,7 @@ interface RussianConstructions {
     new SeqInterceptor(before).enrichUpdate(mite, contribution, state)
   }.structural { mite, state, via, up ->
     if (mite.contents.mergedWith) {
-      return ((Node) mite.contents.mergedWith).prevState
+      return ((ParsingState) mite.contents.mergedWith).prevState
     }
     if (mite.contents.conj && !mite.contents.first) {
       return ParsingState.EMPTY

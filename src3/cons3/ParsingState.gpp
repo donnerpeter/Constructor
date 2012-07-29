@@ -8,7 +8,6 @@ class ParsingState {
   final Chart chart
   final Node node
   private final FLinkedMap<Mite, Integer> miteGenerations
-  final FList<Contribution> history
   final List<Mite> contribution
   final Network network
   final int currentGeneration
@@ -17,13 +16,12 @@ class ParsingState {
     this(chart: new Chart(),
             node: Node.EMPTY,
             contribution:[],
-            history: FList.emptyList, network: new Network([:], [:], []), currentGeneration:0, miteGenerations:FLinkedMap.emptyMap, byXor:Collections.emptyMap())
+            network: new Network([:], [:], []), currentGeneration:0, miteGenerations:FLinkedMap.emptyMap, byXor:Collections.emptyMap())
   }
 
   ParsingState(Map map) {
     chart = map.chart
     node = map.node
-    history = map.history
     currentGeneration = map.currentGeneration
     assert (map.active instanceof LinkedHashSet) || !(map.active instanceof HashSet)
     assert (map.groups instanceof LinkedHashSet) || !(map.groups instanceof HashSet)
@@ -41,7 +39,7 @@ class ParsingState {
   }
 
   private ParsingState clone(Map update) {
-    Map current = [chart:chart, node:node, history:history, network:network,
+    Map current = [chart:chart, node:node, network:network,
             currentGeneration:currentGeneration, miteGenerations:miteGenerations, contribution:contribution]
     current.putAll(update)
     return current == update ? this : new ParsingState(current)
@@ -124,7 +122,7 @@ class ParsingState {
 
     def interceptor = nextInterceptor(null)
     if (interceptor) {
-      return ((Interceptor) interceptor.contents.interceptor).intercept(constructions, this)
+      return ((Interceptor) interceptor.contents.interceptor).intercept(constructions, this, { c, s -> baseApply(s, c, true) })
     }
     return baseApply(this, constructions, true)
   }
@@ -393,4 +391,15 @@ class ParsingState {
   List<Mite> getOwnMites() {
     return node.ownMites
   }
+
+  List<ParsingState> getHistory() {
+    def result = []
+    def each = this
+    while (each) {
+      result << each
+      each = each.prevState
+    }
+    result
+  }
+
 }

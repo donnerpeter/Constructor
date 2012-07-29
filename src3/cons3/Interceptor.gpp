@@ -5,8 +5,8 @@ package cons3
  */
 public class Interceptor {
 
-  ParsingState intercept(List<Mite> contribution, ParsingState state) {
-    state.apply(contribution)
+  ParsingState intercept(List<Mite> contribution, ParsingState state, Function2<List<Mite>, ParsingState, ParsingState> base) {
+    base(contribution, state)
   }
 
 }

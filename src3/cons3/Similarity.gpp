@@ -10,8 +10,7 @@ class Similarity {
     [nom, acc, gen, dat, instr, prep, poDat, nomSubject,
             possessive, parenthetical, comeScalarly, elaboration, declOrQuestionComp, question]
 
-  static boolean areSimilar(Contribution old, List<Mite> c2) {
-    def c1 = old.apps
+  static boolean areSimilar(List<Mite> c1, List<Mite> c2) {
     def common = c1.findAll { m1 -> m1.cxt in importantForSimilarity && m1.findSimilar(c2) } as List<Mite>
     common = common.findAll { !(it.cxt == possessive && it.contents.head) }
 

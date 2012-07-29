@@ -36,3 +36,13 @@ class Tokens {
   }
 
 }
+
+@TupleConstructor
+class TokenWrapper {
+  Object wrapped
+
+  @Override
+  String toString() {
+    return wrapped.toString() + "+"
+  }
+}

@@ -115,6 +115,13 @@ interface RussianConstructions {
     state = state.assign(args.frame, 'content', args.content)
     state = state.assign(args.frame, 'type', 'question').assign(args.frame, 'questioned', args.questioned)
     return state
+  }.enrichingMites { mite, contribution, state ->
+    def dash = contribution.find { it.cxt == questionVariants && it.contents.hasDash }
+    def questioned = mite.contents.questioned
+    if (questioned && dash) {
+      return [dash.unify(new Mite(questionVariants, questioned:questioned))]
+    }
+    return mite.unifyWherePossible(contribution)
   }
   Construction comeScalarly = cxt('comeScalarly', ['verb']) { ParsingState state, Map args ->
     state = state.assign(args.verb, 'type', 'COME_SCALARLY')
@@ -124,7 +131,7 @@ interface RussianConstructions {
     state.assign(args.questioned, 'variants', args.seq)
   }.screeningMites { mite, screen ->
     if (!mite.contents.seq && mite.contents.questioned) return screen.hideAll() else return screen
-  }
+  }.structural { mite, state, via, up -> if (!mite.contents.seq && mite.contents.questioned) return ParsingState.EMPTY }
   Construction reflexiveHolder = cxt('reflexiveHolder', ['X']) { ParsingState state, Map args -> state }
   Construction shortAdj = cxt('shortAdj', ['noun', 'value', 'copula']) { ParsingState state, Map args ->
     if (args.noun && args.value && args.copula) {

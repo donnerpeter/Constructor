@@ -33,7 +33,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       List<Construction> cases = [nom, acc, gen]
 
       def qv = state[questionVariants]
-      if (qv && !qv.seq) {
+      if (qv?.questioned && !qv?.seq) {
         def seqVar = new Variable()
         state = state.apply((questionVariants):[seq:seqVar])
         Update update = new Update(sem(var:noun), seq(multi:seqVar, second:noun))
@@ -167,7 +167,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "а":
       case "но":
         return state.apply((seq):[conj:'but'],
-                (prevHistory):[history:state],
+                (clauseEllipsis):[prevHistory:state],
                 (verbEmphasis):[emphasis:word == 'а' ? 'andEmphasis' : 'butEmphasis', verb:var],
                 (sentenceHolder):[head:var.lightVar])
       case "тут":
@@ -397,6 +397,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 reasonComp(hasComma:true, xor:t.a),
                 adverbialPhrase(comma1:true, head:before, xor:t.a), adverbialPhrase(comma2:true, head:after, xor:t.a),
                 accordingTo(comma1:true, head:before, xor:t.a), accordingTo(comma2:true, head:after, xor:t.a),
+                clauseEllipsis(prevHistory:state)
         ).advanceSection()
       case "если":
         return state.apply((conditionComp):[wh:'if', comp:v[verbHolder]], (verbHolder):[head:v[verbHolder].lightVar])
@@ -438,15 +439,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (posleGen):[noun:var], (gen):[noun:var.lightVar, head:h])
       case "-":
         state = state.advanceSection()
-        if (state[directSpeech]) {
-          return state.apply((directSpeech):[hasDash:true])
-        }
-        if (state[question]?.questioned) {
-          state = state.apply((questionVariants):[questioned:state[question].questioned])
-        }
-        if (state[prevHistory]) {
-          state = state.apply((clauseEllipsis):[interceptor:new EllipsisInterceptor((ParsingState) state[prevHistory].history, state)])
-        }
+        return state.apply((directSpeech):[hasDash:true],
+                (questionVariants):[hasDash:true],
+                (clauseEllipsis):[interceptor:new EllipsisInterceptor(state)])
         return state
       case ".":
         return state.apply((dot):[head:var], (verbHolder):[head:var.lightVar, mustFinish:true]).advanceSection()

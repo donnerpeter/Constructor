@@ -153,8 +153,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "мной": return noun(state, instr, 'ME')
       case "меня": return noun(state, gen, 'ME')
       case ":":
-        return state.apply([verbHolder(mustFinish:true, head:var.lightVar), sentenceHolder(mustStart:true, head:v['newVerb'].lightVar),
-                directSpeech(xor:t.a, message:v['newVerb']), elaboration(head:var, xor:t.a)]).advanceSection()
+        return state.apply(verbHolder(mustFinish:true, head:var.lightVar), sentenceHolder(mustStart:true, head:v['newVerb'].lightVar),
+                directSpeech(xor:t.a, message:v['newVerb']), elaboration(head:var, xor:t.a)).advanceSection()
       case "я": return pronoun(state, nom, 'ME')
       case "мы": return upronoun(nom, var, 'WE').apply(state)
       case "нам": return upronoun(dat, var, 'WE').apply(state)
@@ -233,7 +233,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "счете": return noun(state, prep, 'COUNTING')
       case "работы":
         state = noun(state, gen, 'WORK')
-        return state.apply(absTime, noun:state[posleGen].noun)
+        return state//.apply(absTime, noun:state[posleGen].noun)
       case "вдруг": return uadv('manner', 'SUDDENLY').apply(state)
       case "опять": return uadv('anchor', 'AGAIN').apply(state)
       case "слегка": return uadv('manner', 'SLIGHTLY').apply(state)
@@ -439,7 +439,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "-":
         state = state.advanceSection()
         if (state[directSpeech]) {
-          return state.apply(directSpeech, hasDash:true)
+          return state.apply((directSpeech):[hasDash:true])
         }
         if (state[question]?.questioned) {
           state = state.apply((questionVariants):[questioned:state[question].questioned])
@@ -489,7 +489,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (gen):[noun:v[gen].lightVar, head:h], (genArg2):[head:var, noun:v[gen]])
       case 'бессмысленными':
         state = state.assign(var, 'type', 'MEANINGLESS')
-        return state.apply(participleArg, participle:var)
+        return state.apply((participleArg):[participle:var])
       case '6-ти':
       case 'шести':
         return unoun(gen, var, '6').apply(state)

@@ -12,7 +12,7 @@ class EllipsisInterceptor extends Interceptor implements RussianConstructions {
     this.beforeDash = beforeDash
   }
 
-  ParsingState intercept(List<Mite> constructions, ParsingState state, Function2<List<Mite>, ParsingState, ParsingState> base) {
+  ParsingState intercept(List<Mite> constructions, ParsingState state) {
     Update update = new Update(constructions)
 
     FList<Contribution> old = prevHistory.history
@@ -35,7 +35,7 @@ class EllipsisInterceptor extends Interceptor implements RussianConstructions {
 
           Contribution oldContribution = precedent[i]
           def mapped = applyMapping(oldContribution, mapping)
-          state = base(mapped, state)
+          state = state.apply(mapped)
           //todo a generic conjunctless 'but'
           def cs = mapped.find { it.cxt == comeScalarly && it.contents.verb }
           if (cs && prevHistory[comeScalarly]?.verb) {
@@ -51,7 +51,7 @@ class EllipsisInterceptor extends Interceptor implements RussianConstructions {
       }
     }
 
-    return base(constructions, state)
+    return state.apply(constructions)
   }
 
   List<Mite> applyMapping(Contribution oldContribution, Map<Variable, Variable> mapping) {
@@ -81,7 +81,7 @@ class EllipsisInterceptor extends Interceptor implements RussianConstructions {
     }
     template.each { Contribution oldContribution ->
       oldContribution.apps.each { mite ->
-        mite.contents.each { k, v ->
+        mite.contents.each { k, Variable v ->
           if (v instanceof Variable && !mapping[v]) {
             List<Mite> candidateMites = update.mites.findAll { it.isSimilarTo(mite) }
             List values = candidateMites.collect { it.contents[k] }

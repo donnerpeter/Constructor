@@ -77,10 +77,6 @@ class ParsingState {
     value
   }
 
-  ParsingState apply(Map newArgs = [:], Construction name) {
-    return apply((name): newArgs)
-  }
-
   @Override
   String toString() {
     return "#$currentGeneration"
@@ -119,16 +115,6 @@ class ParsingState {
     return null
   }
 
-  private Function2<List<Mite>, ParsingState, ParsingState> nextApplier(Construction start) {
-    def interceptor = nextInterceptor(start)
-    if (interceptor) {
-      return { c, s -> ((Interceptor) interceptor.contents.interceptor).intercept(c, s, { c1, s1 ->
-        s1.nextApplier(interceptor.cxt).call(c1, s1)
-      }) }
-    }
-    return { c, s -> baseApply(s, c, true) }
-  }
-
   ParsingState apply(Map<Construction, Map> constructions) {
     apply((constructions.keySet() as List<Construction>).collect { it(constructions[it]) } as List)
   }
@@ -136,8 +122,11 @@ class ParsingState {
   ParsingState apply(List<Mite> constructions) {
     if (!constructions) return this
 
-    def applier = nextApplier(null)
-    applier(constructions as List<Mite>, this).clone(history: history + new Contribution(this, FList.fromList(constructions).reverse(), FList.emptyList))
+    def interceptor = nextInterceptor(null)
+    if (interceptor) {
+      return ((Interceptor) interceptor.contents.interceptor).intercept(constructions, this)
+    }
+    return baseApply(this, constructions, true)
   }
 
   private static ParsingState baseApply(ParsingState state, List<Mite> update, boolean mayCorrectRoute) {

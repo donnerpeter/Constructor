@@ -1,5 +1,6 @@
 package cons3
 import static cons3.Construction.cxt
+import static cons3.RussianConstructions.preposition
 /**
  * @author peter
  */
@@ -122,11 +123,16 @@ class Util {
     }.structural { mite, state, via, up ->
       def parentState = state.findState(mite, 'head')
       return up ? parentState : state.findState(mite.firstAtom)?.prevState
+    }.enrichingMites { mite, contribution, state ->
+      if (contribution.find { it.cxt == preposition }) {
+        return []
+      }
+      mite.unifyWherePossible(contribution)
     }
   }
 
-  static Construction commonPrep(String name) {
-    cxt(name, ['+noun', '*head']) { ParsingState state, Map args ->
+  static Construction commonPrep(String prep, Construction caze) {
+    cxt(prep + caze.name.capitalize(), ['+noun', '*head']) { ParsingState state, Map args ->
       state
     }.structural { mite, state, via, up ->
       Variable noun = mite.lastAtom.contents.noun

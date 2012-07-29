@@ -8,8 +8,14 @@ import static cons3.Util.commonPrep
  */
 interface RussianConstructions {
 
-  Construction adjective = cxt('adjective') { ParsingState state, Map args -> state.assign(args.nounFrame, (String)args.rel, args.val) }
   Construction nom = commonCase('nom')
+  Construction acc = commonCase('acc')
+  Construction dat = commonCase('dat')
+  Construction prep = commonCase('prep')
+  Construction instr = commonCase('instr')
+  Construction gen = commonCase('gen')
+
+  Construction adjective = cxt('adjective') { ParsingState state, Map args -> state.assign(args.nounFrame, (String)args.rel, args.val) }
   Construction nomSubject = cxt('nomSubject', ['+head', 'noun']) { ParsingState state, Map args ->
     def nf = ((Variable) args.noun).frame(state.chart)
     if (nf.type || nf.s('rusNumber')) { //todo a nicer way of distinguishing contentful frames
@@ -19,12 +25,10 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction acc = commonCase('acc')
   Construction accArg2 = cxt('accArg2', ['+head', 'noun']) { ParsingState state, Map args ->
     def nf = ((Variable) args.noun).frame(state.chart)
     nf.flatten()[0]?.type ? state.assign(args.head, 'arg2', args.noun) : state
   }
-  Construction gen = commonCase('gen')
   Construction genArg1 = cxt('genArg1', ['+head', 'noun']) { ParsingState state, Map args ->
     if (((Variable) args.noun).frame(state.chart).type) {
       for (hf in ((Variable) args.head).frame(state.chart).flatten()) {
@@ -57,27 +61,24 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction instr = commonCase('instr')
   Construction instrArg2 = commonArg('instr', 'arg2')
-  Construction dat = commonCase('dat')
   Construction datArg1 = commonArg('dat', 'arg1')
   Construction datAddressee = commonArg('dat', 'addressee')
-  Construction prep = commonCase('prep')
-  Construction sInstr = commonPrep('sInstr')
+  Construction sInstr = commonPrep('s', instr)
   Construction sInstrExperiencer = commonArg('sInstr', 'experiencer')
   Construction sInstrMood = commonArg('sInstr', 'mood')
-  Construction sGen = commonPrep('sGen')
+  Construction sGen = commonPrep('s', gen)
   Construction sGenSource = commonArg('sGen', 'source')
-  Construction poDat = commonPrep('poDat')
+  Construction poDat = commonPrep('po', dat)
   Construction poDatTopic = commonArg('poDat', 'topic')
   Construction poDatGoal = commonArg('poDat', 'goal')
   Construction poDatOpinion = commonArg('poDat', 'opinion_of')
   Construction poDatInverseTopic = cxt("poDatInverseTopic", ['+noun', '*head']) { ParsingState state, Map args ->
     ((Variable) args.noun).frame(state.chart).type ? state.assign(args.noun, 'topic', args.head) : state
   }
-  Construction oPrep = commonPrep('oPrep')
+  Construction oPrep = commonPrep('o', prep)
   Construction oPrepTopic = commonArg('oPrep', 'topic')
-  Construction kDat = commonPrep('kDat')
+  Construction kDat = commonPrep('k', dat)
   Construction kDatGoal = commonArg('kDat', 'goal')
   Construction uGen = cxt('uGen', ['+head', 'noun']) { ParsingState state, Map args ->
     if (args.copula) {
@@ -91,7 +92,6 @@ interface RussianConstructions {
   Construction dativePart = cxt('dativePart', ['head', 'dat', 'acc']) { state, args ->
     args.dat && args.head && args.acc ? state.assign(args.acc, 'arg1', args.dat) : state
   }
-  Construction prevHistory = cxt('prevHistory', ['X']) { ParsingState state, Map args -> return state }
   Construction clauseEllipsis = cxt('clauseEllipsis', ['X']) { ParsingState state, Map args -> return state }
   Construction declOrQuestionComp = cxt('declOrQuestionComp', ['head', 'comp', 'hasComma']) { ParsingState state, Map args ->
     def type = ((Variable) args.head).frame(state.chart).type //todo split declOrQuestionComp semantically
@@ -219,22 +219,14 @@ interface RussianConstructions {
   Construction also = cxt('also', ['hasAlso', 'head']) { ParsingState state, Map args ->
     state.assign(args.head, 'also', 'true')
   }
-  Construction vAcc = commonPrep('vAcc')
+  Construction vAcc = commonPrep('v', acc)
   Construction vAccGoal = commonArg('vAcc', 'goal')
   Construction vAccTheme = commonArg('vAcc', 'theme')
   Construction vPrepDomain = commonArg('vPrep', 'domain')
   Construction vPrepCondition = commonArg('vPrep', 'condition')
-  Construction vPrep = commonPrep('vPrep')
-  Construction posleGen = cxt('posleGen', ['+noun', '*head']) { ParsingState state, Map args ->
-    ((Variable) args.noun)?.frame(state.chart)?.type ? state.assign(args.head, 'anchor', args.noun) : state
-  }
-  Construction ransheGen = cxt('ransheGen', ['+noun', '*head']) { ParsingState state, Map args ->
-    def type = ((Variable) args.noun)?.frame(state.chart)?.type
-    if (type && args.noun) {
-      state = state.assign(args.head,'anchor', args.noun)
-    }
-    return state
-  }
+  Construction vPrep = commonPrep('v', prep)
+  Construction posleGen = commonArg('posleGen', 'anchor')
+  Construction ransheGen = commonArg('ransheGen', 'anchor')
   Construction naPrep = cxt('naPrep', ['+noun', '*head']) { ParsingState state, Map args ->
     if (args.copula) {
       def location = args.copula
@@ -244,11 +236,11 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction izGen = commonPrep('izGen')
+  Construction izGen = commonPrep('iz', gen)
   Construction izGenSource = commonArg('izGen', 'source')
-  Construction doGen = commonPrep('doGen')
+  Construction doGen = commonPrep('do', gen)
   Construction doGenGoal = commonArg('doGen', 'goal')
-  Construction otGen = commonPrep('otGen')
+  Construction otGen = commonPrep('ot', gen)
   Construction participleArg = cxt('participleArg', ['participle', 'head']) { ParsingState state, Map args ->
     args.head && args.participle ? state.assign(args.head, 'theme', args.participle) : state
   }

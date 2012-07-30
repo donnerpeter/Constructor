@@ -17,6 +17,8 @@ interface RussianConstructions {
   Construction instr = commonCase('instr')
   Construction gen = commonCase('gen')
 
+  Set<Construction> cases = [nom, gen, dat, acc, instr, prep] as Set
+
   Construction adjective = cxt('adjective') { ParsingState state, Map args -> state.assign(args.nounFrame, (String)args.rel, args.val) }
   Construction nomSubject = cxt('nomSubject', ['+head', 'noun']) { ParsingState state, Map args ->
     def nf = ((Variable) args.noun).frame(state.chart)
@@ -145,7 +147,13 @@ interface RussianConstructions {
     return state
   }.structural { mite, state, via, up -> state.findState(mite, 'value') }
   Construction parenthetical = emptyCxt('parenthetical')
-  Construction preposition = emptyCxt('preposition')
+  Construction preposition = emptyCxt('preposition').structural { mite, state, via, up ->
+    if (via?.cxt in cases && via.contents.noun && via.contents.head && state.findState(mite) == state.findState(via.firstAtom)) {
+      return null
+    }
+
+    return ParsingState.EMPTY
+  }
   Construction possArg1 = cxt('possArg1', ['+head', 'possessor']) { ParsingState state, Map args ->
     if (((Variable) args.possessor).frame(state.chart).flatten()[0]?.type) {
       for (hf in ((Variable) args.head).frame(state.chart).flatten()) {

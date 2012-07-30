@@ -150,7 +150,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case 'из':
       case 'изо': return state.apply((preposition):[prep:'из'], (izGen):[noun:var], (gen):[noun:var.lightVar, head:h])
       case 'на': return state.apply((preposition):[prep:'на'], (naPrep):[noun:var], (prep):[noun:var.lightVar, head:h])
-      case "мной": return noun(state, instr, 'ME')
+      case "мной":
+        return noun(state, instr, 'ME')
       case "меня": return noun(state, gen, 'ME')
       case ":":
         return state.apply(verbHolder(mustFinish:true, head:var.lightVar), sentenceHolder(mustStart:true, head:v['newVerb'].lightVar),
@@ -435,10 +436,10 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (poDat):[head:h, noun:v[poDat].lightVar], (poDatOpinion):[head:var, noun:v[poDat]],
                 (verbHolder):[head:var], (elaboration):[elaboration:var])
       case "раньше":
-        return state.apply((comeScalarly):[order:'EARLIER', xor:t.a], (preposition):[prep:'ranshe'], (relTime):[relTime:'BEFORE', xor:t.a],
+        return state.apply((comeScalarly):[order:'EARLIER', xor:t.a], (relTime):[relTime:'BEFORE', xor:t.a],
                 (ransheGen):[noun:var], (gen):[noun:var.lightVar, head:h])
       case "после":
-        return state.apply((comeScalarly):[order:'AFTER', xor:t.a], (absTime):[rel:'AFTER', xor:t.a], (preposition):[prep:'posle'],
+        return state.apply((comeScalarly):[order:'AFTER', xor:t.a], (absTime):[rel:'AFTER', xor:t.a],
                 (posleGen):[noun:var], (gen):[noun:var.lightVar, head:h])
       case "-":
         state = state.advanceSection()

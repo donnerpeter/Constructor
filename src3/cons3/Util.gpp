@@ -138,16 +138,8 @@ class Util {
     cxt(prep + caze.name.capitalize(), ['+noun', '*head']) { ParsingState state, Map args ->
       state
     }.structural { mite, state, via, up ->
-      Variable noun = mite.lastAtom.contents.noun
-      if (noun && !mite.lastAtom.contents.head) {
-        if (!via ||
-            !via.primaries.find { it.contents.noun == noun.lightVar }) {
-          return ParsingState.EMPTY
-        }
-      }
-
       def parentState = state.findState(mite, 'head')
-      return parentState ?: state.findState(mite.firstAtom)?.prevState
+      return up ? parentState : state.findState(mite.firstAtom)?.prevState
     }
   }
 

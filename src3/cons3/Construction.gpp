@@ -9,7 +9,6 @@ class Construction {
   final List<String> requiredAttrs
   String headAttr
   String beingMissedAttr
-  Function2<Mite, Screen, Screen> displayAction = { mite, screen -> screen.hideObscuredByHead(mite) }
   Function4<Mite, ParsingState, Mite, Boolean, ParsingState> showPrev = { mite, state, via, up -> null }
   Function2<Mite, Mite, Boolean> filterUpdate = { mite, update -> true }
   Function2<Mite, ParsingState, Boolean> wrongRoute = { mite, update -> false }
@@ -35,7 +34,6 @@ class Construction {
   }
 
   Construction screeningMites(Function2<Mite, Screen, Screen> action) {
-    displayAction = action
     return this
   }
 

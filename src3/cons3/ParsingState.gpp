@@ -6,29 +6,32 @@ package cons3
 class ParsingState {
   static final ParsingState EMPTY = new ParsingState()
   final Chart chart
-  final Node node
   private final FLinkedMap<Mite, Integer> miteGenerations
   final List<Mite> contribution
   final Network network
   final int currentGeneration
   private Map<Construction, List<Mite>> vmCache
+  final List<Mite> ownMites
+  final ParsingState prevState
 
   ParsingState() {
     this(chart: new Chart(),
-            node: Node.EMPTY,
+            ownMites: [],
+            prevState:EMPTY,
             contribution:[],
             network: new Network([:], [:], []), currentGeneration:0, miteGenerations:FLinkedMap.emptyMap, byXor:Collections.emptyMap())
   }
 
   ParsingState(Map map) {
     chart = map.chart
-    node = map.node
     currentGeneration = map.currentGeneration
     assert (map.active instanceof LinkedHashSet) || !(map.active instanceof HashSet)
     assert (map.groups instanceof LinkedHashSet) || !(map.groups instanceof HashSet)
     network = map.network
     miteGenerations = map.miteGenerations
     contribution = map.contribution
+    ownMites = map.ownMites
+    prevState = map.prevState
   }
 
   List<Mite> getMiteList() {
@@ -37,13 +40,13 @@ class ParsingState {
 
   Map<Construction, List<Mite>> getVisibleMites() {
     if (vmCache == null) {
-      vmCache = calcVisibleMites()
+      vmCache = this.calcVisibleMites()
     }
     return vmCache
   }
 
   private ParsingState clone(Map update) {
-    Map current = [chart:chart, node:node, network:network,
+    Map current = [chart:chart, ownMites:ownMites, prevState:prevState, network:network,
             currentGeneration:currentGeneration, miteGenerations:miteGenerations, contribution:contribution]
     current.putAll(update)
     return current == update ? this : new ParsingState(current)
@@ -82,16 +85,6 @@ class ParsingState {
   @Override
   String toString() {
     return "#$currentGeneration"
-  }
-
-  private ParsingState addCxt(Node node, List<Mite> update) {
-    def newMiteGenerations = miteGenerations
-    for (mite in node.ownMites) {
-      newMiteGenerations = newMiteGenerations.putValue(mite, currentGeneration)
-    }
-
-    return clone(node:node, miteGenerations:newMiteGenerations, network:network.addMites(node.ownMites as LinkedHashSet),
-            contribution:update, currentGeneration:currentGeneration + 1)
   }
 
   ParsingState startMeta(Variable meta) {
@@ -134,7 +127,14 @@ class ParsingState {
   private static ParsingState baseApply(ParsingState state, List<Mite> update, boolean mayCorrectRoute) {
     LinkedHashSet<Mite> fullUpdate = enrichUpdate(update, state)
     assert fullUpdate
-    state = state.addCxt(new Node(fullUpdate as List<Mite>, Collections.emptySet(), state.node, state), update)
+
+    def newMiteGenerations = state.miteGenerations
+    for (mite in fullUpdate) {
+      newMiteGenerations = newMiteGenerations.putValue(mite, state.currentGeneration)
+    }
+    state = state.clone(ownMites:fullUpdate as List, prevState:state,
+            miteGenerations:newMiteGenerations, network:state.network.addMites(fullUpdate),
+            contribution:update, currentGeneration:state.currentGeneration + 1)
 
     def newActive = state.network.choose(fullUpdate)
     state = state.activate(newActive)
@@ -198,12 +198,16 @@ class ParsingState {
       if (somePrev == EMPTY) {
         return mite
       }
-      if (somePrev && (bestPrev == null || bestPrev.node.isMoreRecentThan(somePrev.node))) {
+      if (somePrev && (bestPrev == null || bestPrev.isMoreRecentThan(somePrev))) {
         bestPrev = somePrev
         nextVia = mite
       }
     }
     return nextVia
+  }
+
+  boolean isMoreRecentThan(ParsingState state) {
+    return state == this || prevState?.isMoreRecentThan(state)
   }
 
   private static LinkedHashSet<Mite> enrichUpdate(List<Mite> update, ParsingState state) {
@@ -389,14 +393,6 @@ class ParsingState {
       return this
     }
     return prevState?.findState(mite)
-  }
-
-  ParsingState getPrevState() {
-    return node.prevState
-  }
-
-  List<Mite> getOwnMites() {
-    return node.ownMites
   }
 
   List<ParsingState> getHistory() {

@@ -223,7 +223,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "три": return numeral(state, t, '3')
       case "один": return numeral(state, t, '1')
       case "порядок":
-        return state.apply((typeCxt('ORDER')):[var:var], (acc):[noun:var], (gen):[noun:v[gen].lightVar], (genCriterion):[head:var, noun:v[gen]])
+        return state.apply((typeCxt('ORDER')):[var:var], (acc):[noun:var], (gen):[noun:v[gen].lightVar, head:h], (genCriterion):[head:var, noun:v[gen]])
       case "слова":
         return state.apply((typeCxt('WORDS')):[var:var],
                 (acc):[noun:var, xor:t.a], (nom):[noun:var, xor:t.a],
@@ -357,9 +357,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return infinitive(state, var, 'ASK', (acc):[noun:v[acc].lightVar, head:h], (accArg2):[head:var, noun:v[acc]])
       case "думают":
         return finiteVerb(state, var, 'THINK', 'PRESENT',
-                (poDat):[noun:v[poDat].lightVar], (poDatTopic):[head:var, noun:v[poDat]],
-                (nom):[noun:v[nom].lightVar], (nomSubject):[head:var, noun:v[nom]],
-                (acc):[noun:v[acc].lightVar], (accArg2):[head:var, noun:v[acc]])
+                (poDat):[noun:v[poDat].lightVar, head:h], (poDatTopic):[head:var, noun:v[poDat]],
+                (nom):[noun:v[nom].lightVar, head:h], (nomSubject):[head:var, noun:v[nom]],
+                (acc):[noun:v[acc].lightVar, head:h], (accArg2):[head:var, noun:v[acc]])
       case "сидят":
         return finiteVerb(state, var, 'SIT', 'PRESENT', (nom):[head:var])
       case "спросил":
@@ -534,8 +534,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
   private ParsingState finiteVerb(Map<Construction, Map> args, ParsingState state, Variable verb, String type, String tense) {
     Tokens t = new Tokens()
     return state.
-            assign(verb, 'type', type).assign(verb, 'time', tense).
-            apply(args + [(subjunctive):[head:verb], (verbHolder):[head:verb], (sentenceHolder):[head:verb],
+            apply(args + [(varCxt(type:type, time:tense)):[var:verb],
+                    (subjunctive):[head:verb], (verbHolder):[head:verb], (sentenceHolder):[head:verb],
                     (relTime):[head:verb], (also):[head: verb],
                     (adverb):[head:verb],
                     (complementizer):[content:verb, xor:t.a], (question):[content:verb, xor:t.a]])

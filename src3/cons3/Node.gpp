@@ -12,38 +12,6 @@ class Node {
   final Set<Mite> _inhibited
   final Node before
   final ParsingState prevState
-  private Map<Construction, List<Mite>> cache
-
-  Map<Construction, List<Mite>> getVisibleMites() {
-    Map<Construction, List<Mite>> result = cache
-    if (result != null) {
-      return result
-    }
-
-    result = [:]
-    for (k in ownMites) {
-      result[k.cxt] = (result[k.cxt] ?: []) + [k]
-    }
-
-    if (prevState) {
-      cons3.Screen screen
-      for (k in screenPreviousState()) {
-        result[k.cxt] = (([k] + (result[k.cxt] ?: [])) as LinkedHashSet) as List
-      }
-    }
-
-    cache = result
-    return result
-  }
-
-  LinkedHashSet<Mite> screenPreviousState() {
-    Screen screen = new Screen(prevState, prevState.miteList as LinkedHashSet<Mite>)
-    for (k in ownMites) {
-      screen = k.cxt.displayAction(k, screen)
-    }
-    screen = screen.hide { it in _inhibited}
-    screen.visibleMites
-  }
 
   Node findNode(Mite mite) {
     if (mite in ownMites) {

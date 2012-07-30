@@ -125,9 +125,6 @@ class Mite {
     return another.cxt == cxt && another.primaries.containsAll(primaries)
   }
 
-  List<Mite> unifyWherePossible(Node state) {
-    return unifyWherePossible(state.visibleMites[cxt], false, true)
-  }
   List<Mite> unifyWherePossible(ParsingState state) {
     return unifyWherePossible(state.visibleMites[cxt], false, true)
   }

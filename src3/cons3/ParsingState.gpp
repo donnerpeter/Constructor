@@ -11,6 +11,7 @@ class ParsingState {
   final List<Mite> contribution
   final Network network
   final int currentGeneration
+  private Map<Construction, List<Mite>> vmCache
 
   ParsingState() {
     this(chart: new Chart(),
@@ -35,7 +36,10 @@ class ParsingState {
   }
 
   Map<Construction, List<Mite>> getVisibleMites() {
-    return node.visibleMites
+    if (vmCache == null) {
+      vmCache = calcVisibleMites()
+    }
+    return vmCache
   }
 
   private ParsingState clone(Map update) {
@@ -181,7 +185,7 @@ class ParsingState {
     miteList.find { it.cxt.wrongRoute(it, this) }
   }
 
-  private Mite findLink(Mite via, Network original) {
+  Mite findLink(Mite via, Network original) {
     findLink(via, original, true) ?: findLink(via, original, false)
   }
   private Mite findLink(Mite via, Network original, boolean up) {
@@ -222,7 +226,7 @@ class ParsingState {
     fullUpdate
   }
 
-  private ParsingState getPrevStateFromLink(Mite link, Mite via) {
+  ParsingState getPrevStateFromLink(Mite link, Mite via) {
     link?.cxt?.showPrev(link, prevState, via, true) ?: link?.cxt?.showPrev(link, prevState, via, false) ?: prevState
   }
 
@@ -241,12 +245,15 @@ class ParsingState {
     return state
   }
 
-  private ParsingState activate(Network newActive) {
-    def toRemove = Util.minus(network._chosen, newActive._chosen)
-    LinkedHashSet<Mite> toApply = Util.minus(newActive._chosen, network._chosen)
-    toApply = Util.intersect(toApply, ownMites) + toApply + Util.intersect(miteList, newActive._chosen)
+  private static ParsingState activate(ParsingState state, Network newActive) {
+    def oldActive = state.network
+    state = state.clone(network:newActive)
 
-    def state = clone(network:newActive)
+    def toRemove = Util.minus(oldActive._chosen, newActive._chosen)
+
+    LinkedHashSet<Mite> toApply = Util.minus(newActive._chosen, oldActive._chosen)
+    toApply = Util.intersect(toApply, state.ownMites) + toApply + Util.intersect(state.miteList, newActive._chosen)
+
     state = state.undoChanges(toRemove)
     state = state.clone(chart:addNewUnifications(state, toApply))
 
@@ -398,6 +405,21 @@ class ParsingState {
     while (each) {
       result << each
       each = each.prevState
+    }
+    result
+  }
+
+  private static Map<Construction, List<Mite>> calcVisibleMites(ParsingState state) {
+    Map<Construction, List<Mite>> result = [:]
+    ParsingState original = state
+    Mite via = null
+    while (state) {
+      Mite link = state.findLink(via, original.network)
+      state.ownMites.groupBy { it.cxt }.each { cxt, group ->
+        result[cxt] = (group + (result[cxt] ?: [])) as List
+      }
+      state = state.getPrevStateFromLink(link, via)
+      via = link
     }
     result
   }

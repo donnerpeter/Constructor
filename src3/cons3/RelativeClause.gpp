@@ -15,7 +15,7 @@ class RelativeClause implements RussianConstructions {
         return [self.unify(relativeClause(comma1:true, beforeComma:state))]
       }
       if (self.contents.beforeComma) {
-        return [afterRelativeClause(beforeComma:self.contents.beforeComma, noun:self.contents.noun)]
+        return [afterRelativeClause(beforeComma:self.contents.beforeComma, noun:self.contents.noun, xor:constructions.find { it.cxt == seq }.contents.xor)]
       }
     }
     return self.unifyWherePossible(constructions)

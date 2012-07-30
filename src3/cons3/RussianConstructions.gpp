@@ -133,7 +133,7 @@ interface RussianConstructions {
     state.assign(args.questioned, 'variants', args.seq)
   }.screeningMites { mite, screen ->
     if (!mite.contents.seq && mite.contents.questioned) return screen.hideAll() else return screen
-  }.structural { mite, state, via, up -> if (!mite.contents.seq && mite.contents.questioned) return ParsingState.EMPTY }
+  }.structural { mite, state, via, up -> if (mite.contents.questioned) return ParsingState.EMPTY }
   Construction reflexiveHolder = emptyCxt('reflexiveHolder')
   Construction shortAdj = cxt('shortAdj', ['noun', 'value', 'copula']) { ParsingState state, Map args ->
     if (args.noun && args.value && args.copula) {
@@ -267,16 +267,6 @@ interface RussianConstructions {
       state = state.assign(args.multi, 'member', args.second)
     }
     return state
-  }.screeningMites { mite, screen ->
-    if (mite.contents.mergedWith) {
-      ParsingState mergedWith = mite.contents.mergedWith
-      screen = screen.showMites(mergedWith.ownMites.reverse()).showMites(mergedWith.node.screenPreviousState())
-    }
-
-    if (mite.contents.conj && !mite.contents.first) {
-      return screen.hideAll()
-    }
-    return screen.hide { it.cxt == seq }
   }.enrichingMites { mite, contribution, state ->
     ParsingState before = mite.contents.beforeComma ?: state.findState(mite.firstAtom).prevState
     new SeqInterceptor(before).enrichUpdate(mite, contribution, state)
@@ -289,7 +279,10 @@ interface RussianConstructions {
     }
     return null
   }.routeWrong { mite, state ->
-    if (mite.contents.conj == ',' && !mite.contents.mergedWith) {
+    if (mite.contents.mergedWith) {
+      return false
+    }
+    if (mite.contents.conj == ',') {
       if (state.ownMites.find { it.cxt == adverbialPhrase && it.atom && it.contents.content } &&
           !state.miteList.find { it.cxt == adverbialPhrase && it.contents.comma1 && it.contents.content }) {
         return true
@@ -300,6 +293,14 @@ interface RussianConstructions {
           return true
         }
       }
+    } else {
+      if (state.ownMites.find { it.cxt == nomSubject && it.atom && it.contents.head }) {
+        ParsingState prev = state.findState(mite.firstAtom).prevState?.ownMites?.find { it.cxt == afterRelativeClause }?.contents?.beforeComma
+        if (prev && prev.visibleMites[nomSubject]?.find { it.atom && it.contents.head }) {
+          return true
+        }
+      }
+
     }
     return false
   }
@@ -356,7 +357,7 @@ interface RussianConstructions {
   }.screeningMites { mite, screen ->
     def prevMites = ((ParsingState) mite.contents.beforeComma).miteList
     screen.showMites(prevMites.findAll { it.cxt != relativeClause || it.contents.noun != mite.contents.noun })
-  }
+  }.structural { mite, state, via, up -> (ParsingState) mite.contents.beforeComma }
   Construction complementizer = cxt('complementizer', ['frame', 'content']) { ParsingState state, Map args ->
     state = state.assign(args.frame, 'type', 'fact')
     state = state.assign(args.frame, 'content', args.content)

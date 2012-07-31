@@ -185,7 +185,11 @@ class ParsingState {
     miteList.find { it.cxt.wrongRoute(it, this) }
   }
 
-  Mite findLink(Mite via, Network original) {
+  ParsingState getPrevVisibleState() {
+    getPrevStateFromLink(findLink(null, network), null)
+  }
+
+  private Mite findLink(Mite via, Network original) {
     findLink(via, original, true) ?: findLink(via, original, false)
   }
   private Mite findLink(Mite via, Network original, boolean up) {

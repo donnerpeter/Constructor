@@ -280,7 +280,7 @@ interface RussianConstructions {
     new SeqInterceptor(before).enrichUpdate(mite, contribution, state)
   }.structural { mite, state, via, up ->
     if (mite.contents.mergedWith) {
-      return ((ParsingState) mite.contents.mergedWith).prevState
+      return ((ParsingState) mite.contents.mergedWith).prevVisibleState
     }
     if (mite.contents.conj && !mite.contents.first) {
       return ParsingState.EMPTY

@@ -582,6 +582,16 @@ I.number=true
     doTranslateTest 'По словам и по мнению кассирши, 7 идет раньше 8',
                     'According to and in the opinion of the cashier, a 7 comes before an 8'
   }
+
+  public void _test13MissingComma1() throws Exception {
+    doTranslateTest 'Мы спорили бы очень долго, но по счастию, тут со скамейки свалился какой-то ребенок и сломал себе обе челюсти',
+            'We were arguing for a long time, when by some sheer luck, a child fell off a bench and broke both of his jaws'
+  }
+  public void _test13MissingComma2() throws Exception {
+    doTranslateTest 'Мы спорили бы очень долго, но, по счастию тут со скамейки свалился какой-то ребенок и сломал себе обе челюсти',
+            'We were arguing for a long time, when by some sheer luck, a child fell off a bench and broke both of his jaws'
+  }
+
   public void test13_OneJaw() throws Exception {
     doTranslateTest 'Ребенок свалился и сломал себе челюсть',
                     'The child fell and broke his jaw'

@@ -125,7 +125,8 @@ class ParsingState {
   }
 
   private static ParsingState baseApply(ParsingState state, List<Mite> update, boolean mayCorrectRoute) {
-    LinkedHashSet<Mite> fullUpdate = enrichUpdate(update, state)
+    LinkedHashSet<Mite> fullUpdate = update as LinkedHashSet<Mite>
+    fullUpdate.addAll(state.enrichUpdate(update))
     assert fullUpdate
 
     def newMiteGenerations = state.miteGenerations
@@ -214,9 +215,11 @@ class ParsingState {
     return state == this || prevState?.isMoreRecentThan(state)
   }
 
-  private static LinkedHashSet<Mite> enrichUpdate(List<Mite> update, ParsingState state) {
+  LinkedHashSet<Mite> enrichUpdate(List<Mite> update) { _enrichUpdate(update, this) }
+
+  private static LinkedHashSet<Mite> _enrichUpdate(List<Mite> update, ParsingState state) {
     ParsingState original = state
-    LinkedHashSet<Mite> fullUpdate = update as LinkedHashSet
+    LinkedHashSet<Mite> fullUpdate = []
     Mite via = null
     while (state) {
       Mite link = state.findLink(via, original.network)

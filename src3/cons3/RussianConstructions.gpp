@@ -23,9 +23,7 @@ interface RussianConstructions {
   Construction nomSubject = cxt('nomSubject', ['+head', 'noun']) { ParsingState state, Map args ->
     def nf = ((Variable) args.noun).frame(state.chart)
     if (nf.type || nf.s('rusNumber')) { //todo a nicer way of distinguishing contentful frames
-      for (hf in ((Variable) args.head).frame(state.chart).flatten()) {
-        state = state.assign(hf.var, 'arg1', args.noun)
-      }
+      state = state.assign(args.head, 'arg1', args.noun)
     }
     return state
   }
@@ -102,10 +100,15 @@ interface RussianConstructions {
     def attr = type == 'FORGET' ? 'arg2' : type == 'DISCOVER' ? 'theme' : type == 'SAY' ? 'message' : 'question'
     state.assign(args.head, attr, args.comp)
   }.enrichingMites { mite, contribution, state ->
-    if (contribution.find { it.cxt == comma }) {
-      return [mite.unify(new Mite(declOrQuestionComp, hasComma:true))]
+    if (mite.contents.head && contribution.find { it.cxt == declOrQuestionComp && it.contents.hasComma } ||
+        mite.contents.head && mite.contents.hasComma && contribution.find { it.cxt == declOrQuestionComp && it.contents.comp }) {
+      return mite.unifyWherePossible(contribution)
     }
-    return mite.unifyWherePossible(contribution)
+    return []
+  }.structural { mite, state, via, up ->
+    if (mite.contents.hasComma) {
+      return ParsingState.EMPTY
+    }
   }
   Construction modality = cxt('modality', ['modality', 'infinitive', 'questioned']) { ParsingState state, Map args ->
     state = state.assign(args.modality, 'type', 'modality').assign(args.modality, 'arg1', args.infinitive)

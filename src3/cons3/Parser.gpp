@@ -252,7 +252,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (nom):[noun:v[nom].lightVar, head:h], (nomSubject):[head:var, noun:v[nom]],
                 (elaboration):[elaboration:var],
                 (advObj):[head:var, xor:t.a],
-                (acc):[noun:v[acc].lightVar, head:h], (accArg2):[head:var, noun:v[acc]],
+                (acc):[noun:v[acc].lightVar, head:h, xor:t.a], (accArg2):[head:var, noun:v[acc]],
                 (declOrQuestionComp):[head:var, xor:t.a])
       case "помнят":
       case "помнит":
@@ -399,6 +399,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 comma(hasComma:true), seq(conj:',', xor:t.a),
                 verbHolder(mustFinish:true, head:before), verbHolder(mustStart:true, head:after),
                 reasonComp(hasComma:true, xor:t.a),
+                declOrQuestionComp(hasComma:true, xor:t.a),
                 adverbialPhrase(comma1:true, head:before, xor:t.a), adverbialPhrase(comma2:true, head:after, xor:t.a),
                 accordingTo(comma1:true, head:before, xor:t.a), accordingTo(comma2:true, head:after, xor:t.a),
                 clauseEllipsis(prevHistory:state)

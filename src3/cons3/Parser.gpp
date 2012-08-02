@@ -271,13 +271,13 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (nom):[noun:v[nom].lightVar, head:h], (nomSubject):[head:var, noun:v[nom]])
       case 'свалился':
         return finiteVerb(state, var, 'FALL', 'PAST',
-                (nom):[noun:v[nom].lightVar, head:h, rusNumber:'sg'], (nomSubject):[head:var, noun:v[nom]],
+                (nom):[noun:v[nom].lightVar, head:h, agrNumber:'sg'], (nomSubject):[head:var, noun:v[nom]],
                 (sGen):[head:h, noun:v[sGen].lightVar], (sGenSource):[head:var, noun:v[sGen]],
                 (poDat):[head:h, noun:v[poDat].lightVar], (poDatInverseTopic):[head:var, noun:v[poDat]])
       case 'сломал':
       case 'сломала':
         return finiteVerb(state, var, 'BREAK', 'PAST',
-                (nom):[noun:v[nom].lightVar, head:h], (nomSubject):[head:var, noun:v[nom]],
+                (nom):[noun:v[nom].lightVar, head:h, agrNumber:'sg'], (nomSubject):[head:var, noun:v[nom]],
                 (acc):[noun:v[acc].lightVar, head:h], (accArg2):[head:var, noun:v[acc]],
                 (dat):[noun:v[dat].lightVar, head:h], (dativePart):[head:var])
       case "отвлекло":
@@ -292,7 +292,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (vAcc):[noun:v[vAcc].lightVar, head:h], (vAccGoal):[head:var, noun:v[vAcc]])
       case "спорили":
         return finiteVerb(state, var, 'ARGUE', 'PAST',
-                (nom):[noun:v[nom].lightVar, head:h, rusNumber:'pl'], (nomSubject):[head:var, noun:v[nom]])
+                (nom):[noun:v[nom].lightVar, head:h, agrNumber:'pl'], (nomSubject):[head:var, noun:v[nom]])
       case "обнаружил":
       case "обнаружила":
       case "обнаружили":

@@ -258,20 +258,27 @@ class StatefulGenerator {
     }
 
     List<ClauseGenerator> result = []
-    i = 0
-    while (i < clauses.size()) {
-      def each = clauses[i]
+    Set<Frame> covered =[]
+    for (each in clauses) {
+      if (!covered.add(each.frame)) continue
+
       def seq = each.frame.usages('member')[0]
       if (seq && !each.comp) {
         def parent = new ClauseGenerator(seq, true, null)
-        while (i < clauses.size() && clauses[i].frame.usages('member')[0] == seq) {
-          parent.members << clauses[i]
-          i++
-        }
         result << parent
+        for (child1 in seq.flatten()) {
+          covered << child1
+          def childGen = new ClauseGenerator(child1, true, null)
+          parent.members << childGen
+          if (child1.f('member')) {
+            for (child2 in child1.flatten()) {
+              covered << child2
+              childGen.members << new ClauseGenerator(child2, true, null)
+            }
+          }
+        }
       } else {
         result << each
-        i++
       }
     }
     return result

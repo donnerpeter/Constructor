@@ -14,7 +14,6 @@ class NumQuantifier {
       for (mite in contribution) {
         if (mite.cxt == args.innerCase) {
           Variable noun = mite.contents.noun
-          result.addAll(new Mite(dativePart, acc:noun).unifyWherePossible(state))
           result.addAll(new Mite(noun:noun, xor:mite.contents.xor, numQuantifier).unifyWherePossible(state))
         }
       }

@@ -92,7 +92,7 @@ interface RussianConstructions {
     state
   }
   Construction dativePart = cxt('dativePart', ['head', 'dat', 'acc']) { state, args ->
-    args.dat && args.head && args.acc ? state.assign(args.acc, 'arg1', args.dat) : state
+    ((Variable) args.acc).frame(state.chart).type && ((Variable) args.acc).frame(state.chart).type ? state.assign(args.acc, 'arg1', args.dat) : state
   }
   Construction clauseEllipsis = cxt('clauseEllipsis', ['X']) { ParsingState state, Map args -> return state }
   Construction declOrQuestionComp = cxt('declOrQuestionComp', ['head', 'comp', 'hasComma']) { ParsingState state, Map args ->

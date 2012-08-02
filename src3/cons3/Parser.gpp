@@ -45,8 +45,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = state.apply(cases.collectEntries { [it, [noun:noun, xor:t.a]] } +
                          [(sem):[var:noun, xor:t.bd],
 //                                 (numQuantifier):[num: num, xor:t.b, noun:noun.lightVar, outerNoun:noun, prev:state, innerCase:(word == '1' ? acc : gen)],
-//                                 (numberTypeCxt(num, word)):[xor:t.d, var:num],
-                                 (dativePart):[acc:noun]])
+//                                 (numberTypeCxt(num, word)):[xor:t.d, var:num]
+                                 ])
       }
 
       return state
@@ -214,7 +214,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply((gen):[noun:var, xor:t.ab], (acc):[noun:var, xor:t.a], (typeCxt('JAWS')):[var:var])
       case "челюстью": return noun(state, instr, 'JAW')
       case "челюсть":
-        return state.apply((acc):[noun:var], (dativePart):[acc:var], (typeCxt('JAW')):[var:var])
+        return state.apply((acc):[noun:var], (typeCxt('JAW')):[var:var])
       case "семь": return numeral(state, t, '7')
       case "семи": return noun(state, gen, '7')
       case "восемь": return numeral(state, t, '8')
@@ -279,7 +279,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return finiteVerb(state, var, 'BREAK', 'PAST',
                 (nom):[noun:v[nom].lightVar, head:h, agrNumber:'sg'], (nomSubject):[head:var, noun:v[nom]],
                 (acc):[noun:v[acc].lightVar, head:h], (accArg2):[head:var, noun:v[acc]],
-                (dat):[noun:v[dat].lightVar, head:h], (dativePart):[head:var])
+                (dat):[noun:v[dat].lightVar, head:h], (dativePart):[head:var, acc:v[acc], dat:v[dat]])
       case "отвлекло":
         return finiteVerb(state, var, 'DISTRACT', 'PAST', (otGen):[head:var], (nom):[head:var], (acc):[head:var])
       case "отправился":
@@ -512,7 +512,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     def noun = new Variable()
     def num = new Variable()
     return state.apply((nom):[noun:noun, xor:t.ae], (acc):[noun:noun, xor:t.ae],
-                    (typeCxt(number)):[xor:t.bd, var:noun], (dativePart):[acc:noun]
+                    (typeCxt(number)):[xor:t.bd, var:noun],
 //            ,
 //                    (numQuantifier):[num:num, xor:t.b, noun:noun.lightVar, outerNoun:noun,
 //                            prev:state, innerCase:(number == '1' ? acc : gen)],
@@ -564,9 +564,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
     Update update = new Update()
     if (caze == nom) {
       update = update.addCxt(reflexiveHolder, noun:var)
-    }
-    if (caze == dat) {
-      update = update.addCxt(dativePart, dat:var)
     }
     update = update.addCxt(caze, noun:var, xor:new Tokens().a)
     update

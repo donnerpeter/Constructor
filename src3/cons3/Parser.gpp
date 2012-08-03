@@ -36,7 +36,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       if (qv?.questioned && !qv?.seq) {
         def seqVar = new Variable()
         state = state.apply((questionVariants):[seq:seqVar])
-        Update update = new Update(sem(var:noun), seq(multi:seqVar, second:noun))
+        Update update = u(sem(var:noun), seq(multi:seqVar, second:noun))
         for (caze in cases) {
           update = update.addCxt(caze, noun:seqVar)
         }
@@ -97,12 +97,12 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (gen):[noun:v[gen].lightVar, head:var], (genArg1):[head:var, noun:v[gen].lightVar]).apply(state)
       case "гастроном": return state.apply((RussianConstructions.word):[word:word])
       case "магазин":
-        Update update = new Update()
-        update = update.addCxt(typeCxt('SHOP'), var:var)
+        Update update = u(new Mite(typeCxt('SHOP'), var:var))
         update = update + [(nom):[noun:var, xor:t.a], (acc):[noun:var, xor:t.a]]
-        update = update + [(naPrep):[head:var], (quotedName):[noun:var], (relativeClause):[noun:var]]
+        update = update + u(naPrep(head:var), quotedName(noun:var), relativeClause(noun:var))
         return update.apply(state)
       case "сад":
+
         state = state.apply((typeCxt('GARDEN')):[var:var],
                 (nom):[noun:var, xor:t.a], (acc):[noun:var, xor:t.a],
                 (summerGarden):[garden:var], (naPrep):[head:var], (relativeClause):[noun:var])
@@ -172,8 +172,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "тут":
         return state.assign(var.lightVar, 'emphasis', 'true').apply((verbHolder):[head:var.lightVar])
       case "потом":
-        Update update = new Update(comeScalarly(order:'AFTER', xor: t.a), nom([:]))
-        update = update.addCxt(relTime, relTime:'AFTER', xor:t.a)
+        Update update = u(comeScalarly(order:'AFTER', xor: t.a), nom([:]), relTime(relTime:'AFTER', xor:t.a))
         return update.apply(state)
       case "все":
         return state.apply((nom):[noun:v[nom].lightVar], (varCxt(quantifier:'ALL')):[var:v[nom]])
@@ -410,7 +409,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply((nom):[noun:var, xor:t.a], (acc):[noun:var, xor:t.a], (typeCxt('THAT')):[var:var])
       case "что":
         def comp = new Variable()
-        Update update = new Update(acc(noun:var, xor:t.a, wh:true), nom(noun:var, xor:t.a, wh:true))
+        Update update = u(acc(noun:var, xor:t.a, wh:true), nom(noun:var, xor:t.a, wh:true))
         update = update + [
                 (declOrQuestionComp):[comp:comp], (relativeClause):[wh:var, relative:v[verbHolder]],
                 (verbHolder):[head:v[verbHolder].lightVar], (naPrep):[head:var, copula:v[verbHolder].lightVar],
@@ -498,7 +497,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
   }
 
   Update uadv(String rel, String adv) {
-    return new Update() + [(adverb):[adv:adv, attr:rel, head:new Variable().lightVar]]
+    return u(adverb(adv:adv, attr:rel, head:new Variable().lightVar))
   }
 
   ParsingState adj(ParsingState state, Construction caze, String rel, String val) {
@@ -551,7 +550,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     update + [(quotedName):[noun:noun], (numQuantifier):[noun:noun]]
   }
   private Update upronoun(Map<Construction, Map> mites = [:], Construction caze, Variable var, String type) {
-    Update update = new Update()
+    Update update = u()
     if (type) {
       update = update.addCxt(typeCxt(type), var:var)
     }
@@ -559,7 +558,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
   }
 
   private Update commonCase(Construction caze, Variable var) {
-    Update update = new Update()
+    Update update = u()
     if (caze == nom) {
       update = update.addCxt(reflexiveHolder, noun:var)
     }
@@ -584,5 +583,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       st
     }
   }
+
+  Update u(Mite... mites) { new Update(mites) }
 
 }

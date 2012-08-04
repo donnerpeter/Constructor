@@ -488,7 +488,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "бассейной":
         return commonCase(gen, var.lightVar) + uv(var, type:'STREET') + u(adjective(nounFrame:var, rel:'name', val:word[0..-3]+"ая"))
       case 'себе':
-        return upronoun(dat, var, null, (reflexiveHolder):[noun:var.lightVar])
+        return upronoun(dat, var, null) + u(reflexiveHolder(noun:var.lightVar))
       case 'мне':
         return upronoun(dat, var, 'ME')
       case '6-ти':
@@ -580,17 +580,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
   }
 
   private Update commonCase(Construction caze, Variable var) {
-    Update update = u()
-    if (caze == nom) {
-      update = update.addCxt(reflexiveHolder, noun:var)
-    }
-    update = update.addCxt(caze, noun:var, xor:new Tokens().a)
-    update
+    u(caze(noun:var, xor:new Tokens().a))
   }
 
   private ParsingState pronoun(ParsingState state, Construction caze, String type) {
-    def var = new Variable()
-    return upronoun(caze, var, null, (typeCxt(type)):[var:var]).apply(state)
+    return upronoun(caze, new Variable(), type).apply(state)
   }
 
   private Construction typeCxt(String type) {

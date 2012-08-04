@@ -95,11 +95,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return unoun(prep, var, 'CORNER', (prep):[noun:var],
                 (gen):[noun:v[gen].lightVar, head:var], (genArg1):[head:var, noun:v[gen].lightVar]).apply(state)
       case "гастроном": return state.apply((RussianConstructions.word):[word:word])
-      case "магазин":
-        Update update = u(new Mite(typeCxt('SHOP'), var:var))
-        update = update + [(nom):[noun:var, xor:t.a], (acc):[noun:var, xor:t.a]]
-        update = update + u(naPrep(head:var), quotedName(noun:var), relativeClause(noun:var))
-        return update.apply(state)
       case "сад":
 
         state = state.apply((typeCxt('GARDEN')):[var:var],
@@ -386,8 +381,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return finiteVerb(state, var, 'GET_SAD', 'PAST',
                 (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]],
                 (reasonComp):[head:var])
-      case "остановились":
-        return finiteVerb(state, var, 'STOP', 'PAST', (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]])
       case ",":
         Variable before = new Variable().lightVar
         Variable after = new Variable().lightVar
@@ -503,12 +496,26 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return unoun(gen, var, '6')
       case '5-ти':
         return unoun(gen, var, '5')
+      case "магазин":
+        return uv(var, type:'SHOP') + u(nom(noun:var)).xor(acc(noun:var)) + u(naPrep(head:var), quotedName(noun:var), relativeClause(noun:var))
+      case "остановились":
+        return ufiniteVerb(var, 'STOP', 'PAST') + uarg(var, nom, nomSubject)
     }
     return null
   }
 
   Update uadv(String rel, String adv) {
     return u(adverb(adv:adv, attr:rel, head:new Variable().lightVar))
+  }
+  
+  Update uarg(Variable head, Construction syn, Construction... sem) {
+    Variable arg = new Variable()
+    def tokens = new Tokens()
+    List<Mite> mites = [syn(noun:arg.lightVar, head:head)]
+    for (cxt in sem) {
+      mites << cxt(head:head, noun:arg, xor:tokens.a)
+    }
+    new Update(mites)
   }
 
   ParsingState adj(ParsingState state, Construction caze, String rel, String val) {
@@ -542,13 +549,17 @@ class Parser { //todo alex implements cons3.RussianConstructions
   }
 
   private ParsingState finiteVerb(Map<Construction, Map> args, ParsingState state, Variable verb, String type, String tense) {
-    Tokens t = new Tokens()
-    return state.
-            apply(args + [(varCxt(type:type, time:tense)):[var:verb],
-                    (subjunctive):[head:verb], (verbHolder):[head:verb], (sentenceHolder):[head:verb],
-                    (relTime):[head:verb], (also):[head: verb],
-                    (adverb):[head:verb],
-                    (complementizer):[content:verb, xor:t.a], (question):[content:verb, xor:t.a]])
+    return ufiniteVerb(args, verb, type, tense).apply(state)
+  }
+
+  private Update ufiniteVerb(Variable verb, String type, String tense) {
+    ufiniteVerb([:], verb, type, tense)
+  }
+  private Update ufiniteVerb(Map<Construction, Map> args, Variable verb, String type, String tense) {
+    return u() + args + uv(verb, type:type, time:tense) +
+           u(subjunctive(head:verb), verbHolder(head:verb), sentenceHolder(head:verb)) +
+           u(relTime(head:verb), also(head:verb), adverb(head:verb)) +
+           u(complementizer(content:verb)).xor(question(content:verb))
   }
 
   private ParsingState noun(ParsingState state, Construction caze, String type) {

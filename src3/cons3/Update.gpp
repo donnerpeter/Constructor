@@ -24,6 +24,34 @@ class Update {
     return addMites(name(newArgs))
   }
 
+  Update xor(Update another) { xor(another.mites.reverse() as Mite[]) }
+  Update xor(Mite... mites2) {
+    Tokens t = new Tokens()
+    List<Mite> mites1 = this.mites.reverse()
+    char c = 'a'
+    Map<Mite, LinkedHashSet<Object>> newXors = [:]
+    for (m1 in mites1) {
+      for (m2 in mites2) {
+        def token = (t.getProperty(c as String) as Set).iterator().next()
+        newXors.get(m1, new LinkedHashSet()).add token
+        newXors.get(m2, new LinkedHashSet()).add token
+        c++
+      }
+    }
+    List<Mite> newMites = []
+    def addXors = { Mite it ->
+      LinkedHashSet oldXors = it.contents.xor ?: new LinkedHashSet()
+      LinkedHashSet xors = new LinkedHashSet(oldXors)
+      for (x in newXors[it]) {
+        xors << x
+      }
+      new Mite(it.contents + [xor:xors], it.cxt)
+    }
+    newMites.addAll mites1.collect(addXors)
+    newMites.addAll mites2.collect(addXors)
+    return new Update(newMites)
+  }
+
   Update addMites(Mite... mites) {
     return new Update(this.mites.prependAll(mites.findAll { !(it in this.mites) }))
   }

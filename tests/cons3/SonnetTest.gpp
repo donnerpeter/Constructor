@@ -552,9 +552,9 @@ B.goal=D
 A.perfectBackground=B
 -- 2:
 A.type=WE
-A@1.arg1=A
 A@1.type=STOP
 A@1.time=PAST
+A@1.arg1=A
 B.member=A@1
 B.conj=and
 B.member=C

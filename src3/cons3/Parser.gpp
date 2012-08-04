@@ -137,8 +137,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return noun(state, instr, 'ME')
       case "меня": return noun(state, gen, 'ME')
       case ":":
-        return state.apply(verbHolder(mustFinish:true, head:var.lightVar), sentenceHolder(mustStart:true, head:v['newVerb'].lightVar),
-                directSpeech(xor:t.a, message:v['newVerb']), elaboration(head:var, xor:t.a)).advanceSection()
+        Variable newVerb = new Variable()
+        return state.apply(verbHolder(mustFinish:true, head:var.lightVar), sentenceHolder(mustStart:true, head:newVerb.lightVar),
+                directSpeech(xor:t.a, message:newVerb), elaboration(head:var, xor:t.a)).advanceSection()
       case "я": return pronoun(state, nom, 'ME')
       case "нас": return pronoun(state, acc, 'WE')
       case "мое": return state.apply((typeCxt('ME')):[var:var], (possessive):[possessor:var, xor:t.a])

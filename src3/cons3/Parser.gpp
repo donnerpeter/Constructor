@@ -77,23 +77,14 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "скромному": return adj(state, dat, 'quality', 'HUMBLE')
       case "том": return adj(state, prep, 'determiner', 'THAT')
       case "случай": return noun(state, nom, 'THING') //todo случай=CASE or THING
-      case "случае": return unoun(prep, var, 'CASE', (conditionComp):[head:var]).apply(state)
-      case "удивление": return unoun(nom, var, 'AMAZE',
-              (possessive):[possessor:v[possessive].lightVar], (possArg1):[head:var, possessor:v[possessive]]).apply(state)
       case "поводу": return noun(state, dat, 'MATTER')
-      case "недоумении": return unoun(prep, var, 'PREDICAMENT',
-              (possessive):[possessor:v[possessive].lightVar], (possArg1):[head:var, possessor:v[possessive]]).apply(state)
       case "рта": return noun(state, gen, 'MOUTH')
-      case "смысла": return unoun(gen, var, 'MEANING').apply(state)
       case "молоточек": return noun(state, acc, 'HAMMER')
       case "радостью": return noun(state, instr, 'JOY')
       case "облегчением": return noun(state, instr, 'RELIEF')
       //case "улицы": return noun(state, gen, 'STREET') todo улицы in conj
       case "скамейки": return noun(state, gen, 'BENCH')
       case "ребенок": return noun(state, nom, 'CHILD')
-      case "углу":
-        return unoun(prep, var, 'CORNER', (prep):[noun:var],
-                (gen):[noun:v[gen].lightVar, head:var], (genArg1):[head:var, noun:v[gen].lightVar]).apply(state)
       case "гастроном": return state.apply((RussianConstructions.word):[word:word])
       case "сад":
 
@@ -149,8 +140,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply(verbHolder(mustFinish:true, head:var.lightVar), sentenceHolder(mustStart:true, head:v['newVerb'].lightVar),
                 directSpeech(xor:t.a, message:v['newVerb']), elaboration(head:var, xor:t.a)).advanceSection()
       case "я": return pronoun(state, nom, 'ME')
-      case "мы": return upronoun(nom, var, 'WE').apply(state)
-      case "нам": return upronoun(dat, var, 'WE').apply(state)
       case "нас": return pronoun(state, acc, 'WE')
       case "мое": return state.apply((typeCxt('ME')):[var:var], (possessive):[possessor:var, xor:t.a])
       case "моему": return state.apply((typeCxt('ME')):[var:var], (possessive):[possessor:var])
@@ -181,12 +170,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "они": return pronoun(state, nom, 'THEY')
       case "соседям": return noun(state, dat, 'NEIGHBOURS')
       case "арбуз": return noun(state, nom, 'WATER_MELON')
-      case "кассир": return unoun(nom, var, null, (varCxt(type:'CASHIER', gender:'masc')):[var:var]).apply(state)
       case "кассиршу": return noun(state, acc, 'CASHIER')
-      case "кассирша": return unoun(nom, var, null, (varCxt(type:'CASHIER', gender:'fem')):[var:var]).apply(state)
-      case "кассирши": return unoun(gen, var, 'CASHIER').apply(state)
-      case "одних": return unoun(gen, var, 'SOME').apply(state)
-      case "других": return unoun(gen, var, 'OTHERS').apply(state)
       case "деревья": return noun(state, acc, 'TREES')
       case "деньги": return noun(state, acc, 'MONEY')
       case "спора": return noun(state, gen, 'ARGUE')
@@ -221,17 +205,10 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (acc):[noun:var, xor:t.a], (nom):[noun:var, xor:t.a],
                 (genAuthor):[head:var, noun:v[gen]], (gen):[noun:v[gen].lightVar, head:var],
                 (possessive):[possessor:v[possessive].lightVar], (possAuthor):[head:var, possessor:v[possessive]])
-      case "счета": return unoun(gen, var, 'COUNTING').apply(state)
       case "счете": return noun(state, prep, 'COUNTING')
       case "работы":
         state = noun(state, gen, 'WORK')
         return state//.apply(absTime, noun:state[posleGen].noun)
-      case "вдруг": return uadv('manner', 'SUDDENLY').apply(state)
-      case "опять": return uadv('anchor', 'AGAIN').apply(state)
-      case "слегка": return uadv('manner', 'SLIGHTLY').apply(state)
-      case "долго": return uadv('duration', 'LONG').apply(state)
-      case "грустно": return uadv('manner', 'SADLY').apply(state)
-      case "просто": return uadv('manner', 'JUST').apply(state)
       case "тоже":
         return state.apply((also):[hasAlso:true])
       case "не":
@@ -447,6 +424,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
 
   Update parseUpdate(String word) {
     Variable var = new Variable()
+    Vars v = new Vars()
     switch (word) {
       case "васи":
         return unoun(gen, var, null) + uv(var, name:'Вася') + u(absTime(noun:var)) //todo posleGen should generate absTime automatically
@@ -457,6 +435,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return upronoun(dat, var, null) + u(reflexiveHolder(noun:var.lightVar))
       case 'мне':
         return upronoun(dat, var, 'ME')
+      case "мы": return upronoun(nom, var, 'WE')
+      case "нам": return upronoun(dat, var, 'WE')
       case '6-ти':
       case 'шести':
         return unoun(gen, var, '6')
@@ -484,6 +464,26 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return ufiniteVerb(var, 'RUN_OUT', 'PAST') + uarg(var, izGen, izGenSource) + unomArg(var) + uarg(var, sInstr, sInstrMood)
       case "приуныли":
         return ufiniteVerb(var, 'GET_SAD', 'PAST') + unomArg(var) + u(reasonComp(head:var))
+      case "счета": return unoun(gen, var, 'COUNTING')
+      case "вдруг": return uadv('manner', 'SUDDENLY')
+      case "опять": return uadv('anchor', 'AGAIN')
+      case "слегка": return uadv('manner', 'SLIGHTLY')
+      case "долго": return uadv('duration', 'LONG')
+      case "грустно": return uadv('manner', 'SADLY')
+      case "просто": return uadv('manner', 'JUST')
+      case "случае": return unoun(prep, var, 'CASE', (conditionComp):[head:var])
+      case "удивление": return unoun(nom, var, 'AMAZE',
+              (possessive):[possessor:v[possessive].lightVar], (possArg1):[head:var, possessor:v[possessive]])
+      case "недоумении": return unoun(prep, var, 'PREDICAMENT',
+              (possessive):[possessor:v[possessive].lightVar], (possArg1):[head:var, possessor:v[possessive]])
+      case "смысла": return unoun(gen, var, 'MEANING')
+      case "углу":
+        return unoun(prep, var, 'CORNER') + uarg(var, gen, genArg1)
+      case "кассир": return unoun(nom, var, null) + uv(var, type:'CASHIER', gender:'masc')
+      case "кассирша": return unoun(nom, var, null) + uv(var, type:'CASHIER', gender:'fem')
+      case "кассирши": return unoun(gen, var, 'CASHIER')
+      case "одних": return unoun(gen, var, 'SOME')
+      case "других": return unoun(gen, var, 'OTHERS')
     }
     return null
   }

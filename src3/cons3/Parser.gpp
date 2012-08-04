@@ -96,18 +96,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "магазина":
         return state.apply((typeCxt('SHOP')):[var:var], (gen):[noun:var],
                 (naPrep):[head:var], (quotedName):[noun:var], (relativeClause):[noun:var])
-      case "мнению":
-        state = state.assign(var, 'type', 'OPINION')
-        def genNoun = new Variable().lightVar
-        return state.apply((gen):[noun:genNoun, head:var, xor:t.a], (genArg1):[head:var, noun:genNoun, xor:t.b],
-                (possessive):[head:var, xor:t.ab], (dat):[noun:var],
-                           (parenthetical):[:]) // todo common constructions in по-моему & по моему мнению
-      case "словам":
-        return state.apply((typeCxt('WORDS')):[var:var], (dat):[noun:var],
-                (gen):[noun:v[gen].lightVar, head:var], (genArg1):[head:var, noun:v[gen]],
-                (possessive):[possessor:v[possessive].lightVar], (possAuthor):[head:var, possessor:v[possessive]])
-      case "счастию":
-        return state.assign(var, 'type', 'LUCK').apply((dat):[noun:var])
       case "случился":
         return finiteVerb(state, var, 'HAPPEN', 'PAST',
                 (sInstr):[noun:v[sInstr].lightVar, head:var], (sInstrExperiencer):[head:var, noun:v[sInstr]],
@@ -485,6 +473,14 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "кассирши": return unoun(gen, var, 'CASHIER')
       case "одних": return unoun(gen, var, 'SOME')
       case "других": return unoun(gen, var, 'OTHERS')
+      case "мнению":
+        return unoun(dat, var, 'OPINION') +
+               uarg(var, gen, genArg1).xor(possessive(head:v[possessive].lightVar), possAuthor(head:var, possessor:v[possessive]))
+      case "словам":
+        return unoun(dat, var, 'WORDS') +
+               uarg(var, gen, genArg1).xor(possessive(head:v[possessive].lightVar), possAuthor(head:var, possessor:v[possessive]))
+      case "счастию":
+        return unoun(dat, var, 'LUCK')
     }
     return null
   }

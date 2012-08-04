@@ -347,40 +347,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (verbHolder):[head:var], (question):[content:var])
       case "спросить":
         return infinitive(state, var, 'ASK', (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]])
-      case "думают":
-        return finiteVerb(state, var, 'THINK', 'PRESENT',
-                (poDat):[noun:v[poDat].lightVar, head:var], (poDatTopic):[head:var, noun:v[poDat]],
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]],
-                (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]])
-      case "сидят":
-        return finiteVerb(state, var, 'SIT', 'PRESENT', (nom):[head:var])
-      case "спросил":
-      case "спросили":
-        return finiteVerb(state, var, 'ASK', 'PAST',
-                (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]],
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]],
-                (declOrQuestionComp):[head:var],
-                (oPrep):[noun:v[oPrep].lightVar, head:var], (oPrepTopic):[head:var, noun:v[oPrep]])
-      case "делал":
-      case "делали":
-        return finiteVerb(state, var, 'DO', 'PAST',
-                (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]],
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]])
-      case "поблагодарили":
-        return finiteVerb(state, var, 'THANK', 'PAST',
-                (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]],
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]])
-      case "разошлись":
-        return finiteVerb(state, var, 'DISPERSE', 'PAST', (poDat):[head:var], (nom):[head:var])
-      case "выбежали":
-        return finiteVerb(state, var, 'RUN_OUT', 'PAST',
-                (izGen):[noun:v[izGen].lightVar, head:var], (izGenSource):[noun:v[izGen], head:var],
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]],
-                (sInstr):[noun:v[sInstr].lightVar, head:var], (sInstrMood):[head:var, noun:v[sInstr]])
-      case "приуныли":
-        return finiteVerb(state, var, 'GET_SAD', 'PAST',
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]],
-                (reasonComp):[head:var])
       case ",":
         Variable before = new Variable().lightVar
         Variable after = new Variable().lightVar
@@ -499,7 +465,25 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "магазин":
         return uv(var, type:'SHOP') + u(nom(noun:var)).xor(acc(noun:var)) + u(naPrep(head:var), quotedName(noun:var), relativeClause(noun:var))
       case "остановились":
-        return ufiniteVerb(var, 'STOP', 'PAST') + uarg(var, nom, nomSubject)
+        return ufiniteVerb(var, 'STOP', 'PAST') + unomArg(var)
+      case "думают":
+        return ufiniteVerb(var, 'THINK', 'PRESENT') + uarg(var, poDat, poDatTopic) + unomArg(var) + uaccArg(var)
+      case "сидят":
+        return ufiniteVerb(var, 'SIT', 'PRESENT') + unomArg(var)
+      case "спросил":
+      case "спросили":
+        return ufiniteVerb(var, 'ASK', 'PAST') + uaccArg(var) + unomArg(var) + u(declOrQuestionComp(head:var)) + uarg(var, oPrep, oPrepTopic)
+      case "делал":
+      case "делали":
+        return ufiniteVerb(var, 'DO', 'PAST') + uaccArg(var) + unomArg(var)
+      case "поблагодарили":
+        return ufiniteVerb(var, 'THANK', 'PAST') + uaccArg(var) + unomArg(var)
+      case "разошлись":
+        return ufiniteVerb(var, 'DISPERSE', 'PAST') + unomArg(var) + uarg(var, poDat, poDatGoal)
+      case "выбежали":
+        return ufiniteVerb(var, 'RUN_OUT', 'PAST') + uarg(var, izGen, izGenSource) + unomArg(var) + uarg(var, sInstr, sInstrMood)
+      case "приуныли":
+        return ufiniteVerb(var, 'GET_SAD', 'PAST') + unomArg(var) + u(reasonComp(head:var))
     }
     return null
   }
@@ -508,6 +492,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
     return u(adverb(adv:adv, attr:rel, head:new Variable().lightVar))
   }
   
+  Update unomArg(Variable head) { uarg(head, nom, nomSubject) }
+  Update uaccArg(Variable head) { uarg(head, acc, accArg2) }
   Update uarg(Variable head, Construction syn, Construction... sem) {
     Variable arg = new Variable()
     def tokens = new Tokens()

@@ -32,6 +32,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     Variable var = new Variable()
     if (Util.parseNumber(word) != null) { //todo generic noun treatment for numbers
       Variable noun = var
+      Variable num = new Variable()
 
       def sem = numberTypeCxt(noun, word)
 
@@ -49,8 +50,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
       } else {
         state = state.apply(cases.collectEntries { [it, [noun:noun, xor:t.a]] } +
                          [(sem):[var:noun, xor:t.bd],
-//                                 (numQuantifier):[num: num, xor:t.b, noun:noun.lightVar, outerNoun:noun, prev:state, innerCase:(word == '1' ? acc : gen)],
-//                                 (numberTypeCxt(num, word)):[xor:t.d, var:num]
+                                 (numQuantifier):[num: num, xor:t.b, noun:noun.lightVar, outerNoun:noun, prev:state, innerCase:(word == '1' ? acc : gen)],
+                                 (numberTypeCxt(num, word)):[xor:t.d, var:num]
                                  ])
       }
 

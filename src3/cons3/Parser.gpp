@@ -264,10 +264,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
         state = state.assign(var, 'type', 'MOVE')
         return state.apply((instr):[noun:v[instr].lightVar, head:var], (instrArg2):[head:var, noun:v[instr]],
                 (adverb):[head:var], (adverbialPhrase):[content:var])
-      case "подвигала":
-        def instrNoun = new Variable()
-        return finiteVerb(state, var, 'MOVE', 'PAST',
-                (instr):[noun:instrNoun.lightVar, head:var], (instrArg2):[head:var, noun:instrNoun], (nom):[head:var])
       case "дойдя":
         state = state.assign(var, 'type', 'COME_TO')
         return state.apply(
@@ -433,6 +429,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return ufiniteVerb(var, 'GET_SAD', 'PAST') + unomArg(var) + u(reasonComp(head:var))
       case "отвлекло":
         return ufiniteVerb(var, 'DISTRACT', 'PAST') + uarg(var, otGen, otGenTheme) + unomArg(var) + uaccArg(var)
+      case "подвигала":
+        return ufiniteVerb(var, 'MOVE', 'PAST') + unomArg(var) + uarg(var, instr, instrArg2)
       case "счета": return unoun(gen, var, 'COUNTING')
       case "вдруг": return uadv('manner', 'SUDDENLY')
       case "опять": return uadv('anchor', 'AGAIN')

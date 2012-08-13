@@ -163,6 +163,10 @@ interface RussianConstructions {
       def result = [new Mite(poDatLuck, content:noun)]
       return result + prevState.enrichUpdate(result)
     }
+    List<Mite> refl = update.findAll { it.cxt == reflexiveHolder }
+    if (refl) {
+      return state.findState(mite).prevState.enrichUpdate(refl)
+    }
     []
   }
   Construction possArg1 = cxt('possArg1', ['+head', 'possessor']) { ParsingState state, Map args ->

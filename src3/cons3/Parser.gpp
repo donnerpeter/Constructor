@@ -166,10 +166,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "пальцев": return noun(state, gen, 'FINGERS')
       case "пальца": return noun(state, gen, 'FINGERS')
       case "палец": return noun(state, acc, 'FINGER')
-      case "домам": return noun(state, dat, 'HOMES')
-      case "комнатам": return noun(state, dat, 'ROOMS')
-      case "квартирам": return noun(state, dat, 'APARTMENTS')
-      case "офисам": return noun(state, dat, 'OFFICES')
       case "челюсти":
         return state.apply((gen):[noun:var, xor:t.ab], (acc):[noun:var, xor:t.a], (typeCxt('JAWS')):[var:var])
       case "челюстью": return noun(state, instr, 'JAW')
@@ -476,6 +472,10 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return unoun(dat, var, 'LUCK') + u(RussianConstructions.word(word:word))
       case "потом":
         return u(comeScalarly(order:'AFTER')).xor(relTime(relTime:'AFTER'))
+      case "домам": return unoun(dat, var, 'HOMES') + uposs(var, possOwner)
+      case "комнатам": return unoun(dat, var, 'ROOMS') + uposs(var, possOwner)
+      case "квартирам": return unoun(dat, var, 'APARTMENTS') + uposs(var, possOwner)
+      case "офисам": return unoun(dat, var, 'OFFICES') + uposs(var, possOwner)
     }
     return null
   }
@@ -488,7 +488,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
     Variable arg = new Variable()
     u(possessive(possessor:arg.lightVar), sem(head:head, possessor:arg))
   }
-  Update unomArg(Variable head) { uarg(head, nom, nomSubject) }
+  Update unomArg(Variable head) {
+    Variable arg = new Variable()
+    u(nom(noun:arg.lightVar, head:head), nomSubject(head:head, noun:arg), reflexiveHolder(noun:arg))
+  }
+
   Update uaccArg(Variable head) { uarg(head, acc, accArg2) }
   Update uarg(Variable head, Construction syn, Construction... sem) {
     Variable arg = new Variable()

@@ -667,14 +667,14 @@ B.theme=E
 
   public void testParse15() throws Exception {
     doParseTest 'А потом мы разошлись по домам', '''
-A.type=WE
-B.type=DISPERSE
-B.time=PAST
-B.arg1=A
-B.relTime=AFTER
-B.andEmphasis=true
+A.andEmphasis=true
+B.type=WE
+A.relTime=AFTER
+A.type=DISPERSE
+A.time=PAST
+A.arg1=B
 C.type=HOMES
-B.goal=C
+A.goal=C
 '''
   }
 

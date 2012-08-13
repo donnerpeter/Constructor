@@ -143,9 +143,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (sentenceHolder):[head:var.lightVar])
       case "тут":
         return state.assign(var.lightVar, 'emphasis', 'true').apply((verbHolder):[head:var.lightVar])
-      case "потом":
-        Update update = u(comeScalarly(order:'AFTER', xor: t.a), nom([:]), relTime(relTime:'AFTER', xor:t.a))
-        return update.apply(state)
       case "все":
         return state.apply((nom):[noun:v[nom].lightVar], (varCxt(quantifier:'ALL')):[var:v[nom]])
       case "дальше":
@@ -477,6 +474,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
                uarg(var, gen, genAuthor) + uposs(var, possAuthor)
       case "счастию":
         return unoun(dat, var, 'LUCK') + u(RussianConstructions.word(word:word))
+      case "потом":
+        return u(comeScalarly(order:'AFTER')).xor(relTime(relTime:'AFTER'))
     }
     return null
   }

@@ -83,21 +83,7 @@ class Util {
   }
 
   static Construction commaSurrounded(Construction cxt) {
-    cxt.screeningMites { mite, screen ->
-      if (mite.contents.comma1 && !mite.contents.content) {
-        return screen.hideAll()
-      }
-      if (mite.contents.content) {
-        if (mite.contents.comma2) {
-          screen = screen.hideAll()
-        }
-        def firstAtom = mite.firstAtom
-        if (firstAtom?.contents?.comma1) {
-          return screen.showEverything(screen.before.findState(firstAtom).prevState)
-        }
-      }
-      return screen
-    }.enrichingMites { mite, contribution, state ->
+    cxt.enrichingMites { mite, contribution, state ->
       boolean wantContent = mite.contents.comma1 && !mite.contents.content
       boolean wantComma2 = mite.contents.content && !mite.contents.comma2
       return mite.unifyWherePossible(contribution.findAll { it.cxt == cxt &&

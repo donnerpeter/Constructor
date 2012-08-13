@@ -602,42 +602,41 @@ B.arg1=D
   }
 
   public void testParse13() throws Exception {
-    doParseTest "Мы спорили бы очень долго, но, по счастию тут со скамейки свалился какой-то ребенок и сломал себе обе челюсти", """
+    doParseTest "Мы спорили бы очень долго, но, по счастию, тут со скамейки свалился какой-то ребенок и сломал себе обе челюсти", """
 A.type=WE
+B.arg1=A
 B.type=ARGUE
 B.time=PAST
-B.arg1=A
 B.irrealis=true
 B.duration=LONG
-C.type=LUCK
-D.emphasis=true
-E.type=BENCH
-D.type=FALL
+-- 2:
+A.butEmphasis=true
+-- 3:
+A.type=LUCK
+A.topic=A@2
+-- 4:
+A@2.emphasis=true
+A.type=BENCH
+A@2.source=A
+A@2.type=FALL
+A@2.time=PAST
+B.determiner=SOME
+B.type=CHILD
+A@2.arg1=B
+C.member=A@2
+C.conj=and
+C.member=D
+D.arg1=B
+D.type=BREAK
 D.time=PAST
-F.member=B
-F.conj=but
-F.member=D
-G.rusNumber=sg
-G.gender=masc
-D.arg1=G
-D.source=E
-C.topic=D
-G.determiner=SOME
-G.type=CHILD
-H.type=BREAK
-H.time=PAST
-I.member=D
-I.conj=and
-I.member=H
-J.member=B
-J.conj=but
-J.member=I
-H.arg1=G
-K.type=BOTH
-H.arg2=L
-L.type=JAWS
-L.arg1=G
-L.quantifier=K
+E.member=B@1
+E.conj=but
+E.member=C
+F.type=BOTH
+G.quantifier=F
+G.type=JAWS
+D.arg2=G
+G.arg1=H
 """
   }
 

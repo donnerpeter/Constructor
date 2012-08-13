@@ -229,8 +229,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case 'свалился':
         return finiteVerb(state, var, 'FALL', 'PAST',
                 (nom):[noun:v[nom].lightVar, head:var, agrNumber:'sg'], (nomSubject):[head:var, noun:v[nom]],
-                (sGen):[head:var, noun:v[sGen].lightVar], (sGenSource):[head:var, noun:v[sGen]],
-                (poDat):[head:var, noun:v[poDat].lightVar], (poDatInverseTopic):[head:var, noun:v[poDat]])
+                (sGen):[head:var, noun:v[sGen].lightVar], (sGenSource):[head:var, noun:v[sGen]])
       case 'сломал':
       case 'сломала':
         return finiteVerb(state, var, 'BREAK', 'PAST',
@@ -322,6 +321,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 reasonComp(hasComma:true, xor:t.a),
                 declOrQuestionComp(hasComma:true, xor:t.a),
                 adverbialPhrase(comma1:true, head:before, xor:t.a), adverbialPhrase(comma2:true, head:after, xor:t.a),
+                poDatLuck(comma1:true, head:before, xor:t.a), poDatLuck(comma2:true, head:after, xor:t.a),
                 accordingTo(comma1:true, head:before, xor:t.a), accordingTo(comma2:true, head:after, xor:t.a),
                 clauseEllipsis(prevHistory:state)
         ).advanceSection()
@@ -480,7 +480,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return unoun(dat, var, 'WORDS') +
                uarg(var, gen, genArg1).xor(possessive(head:v[possessive].lightVar), possAuthor(head:var, possessor:v[possessive]))
       case "счастию":
-        return unoun(dat, var, 'LUCK')
+        return unoun(dat, var, 'LUCK') + u(RussianConstructions.word(word:word))
     }
     return null
   }

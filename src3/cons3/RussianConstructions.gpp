@@ -75,9 +75,9 @@ interface RussianConstructions {
   Construction poDatTopic = commonArg('poDat', 'topic')
   Construction poDatGoal = commonArg('poDat', 'goal')
   Construction poDatOpinion = commonArg('poDat', 'opinion_of')
-  Construction poDatInverseTopic = cxt("poDatInverseTopic", ['+noun', '*head']) { ParsingState state, Map args ->
-    ((Variable) args.noun).frame(state.chart).type ? state.assign(args.noun, 'topic', args.head) : state
-  }
+  Construction poDatLuck = commaSurrounded(cxt("poDatLuck", ['content', '*head']) { ParsingState state, Map args ->
+    state.assign(args.content, 'topic', args.head)
+  })
   Construction oPrep = commonPrep('o', prep)
   Construction oPrepTopic = commonArg('oPrep', 'topic')
   Construction kDat = commonPrep('k', dat)
@@ -156,6 +156,14 @@ interface RussianConstructions {
     }
 
     return ParsingState.EMPTY
+  }.enrichingMites { mite, update, state ->
+    if (mite.contents.prep == 'по' && update.find { it.cxt == word && it.contents.word == 'счастию'}) {
+      def noun = update.find { it.cxt == dat }.contents.noun
+      def prevState = state.findState(mite).prevState
+      def result = [new Mite(poDatLuck, content:noun)]
+      return result + prevState.enrichUpdate(result)
+    }
+    []
   }
   Construction possArg1 = cxt('possArg1', ['+head', 'possessor']) { ParsingState state, Map args ->
     if (((Variable) args.possessor).frame(state.chart).flatten()[0]?.type) {
@@ -294,9 +302,11 @@ interface RussianConstructions {
       return false
     }
     if (mite.contents.conj == ',') {
-      if (state.ownMites.find { it.cxt == adverbialPhrase && it.atom && it.contents.content } &&
-          !state.miteList.find { it.cxt == adverbialPhrase && it.contents.comma1 && it.contents.content }) {
-        return true
+      for (c in [adverbialPhrase, poDatLuck]) {
+        if (state.ownMites.find { it.cxt == c && it.atom && it.contents.content } &&
+            !state.miteList.find { it.cxt == c && it.contents.comma1 && it.contents.content }) {
+          return true
+        }
       }
       if (state.ownMites.find { it.cxt == nomSubject && it.atom && it.contents.head }) {
         def advp = state.miteList.find { it.cxt == adverbialPhrase && it.contents.comma2 && it.contents.content }

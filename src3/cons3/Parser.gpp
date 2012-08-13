@@ -512,12 +512,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
   ParsingState numeral(ParsingState state, Tokens t, String number) {
     def noun = new Variable()
     def num = new Variable()
-    return state.apply((nom):[noun:noun, xor:t.ae], (acc):[noun:noun, xor:t.ae],
+    return state.apply((nom):[noun:noun, xor:t.a], (acc):[noun:noun, xor:t.a],
                     (typeCxt(number)):[xor:t.bd, var:noun],
-//            ,
-//                    (numQuantifier):[num:num, xor:t.b, noun:noun.lightVar, outerNoun:noun,
-//                            prev:state, innerCase:(number == '1' ? acc : gen)],
-//                    (typeCxt(number)):[xor:t.d, var:num]
+                    (numQuantifier):[num:num, xor:t.b, noun:noun.lightVar, outerNoun:noun,
+                            prev:state, innerCase:(number == '1' ? acc : gen)],
+                    (typeCxt(number)):[xor:t.d, var:num]
     )
   }
 

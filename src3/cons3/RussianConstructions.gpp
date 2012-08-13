@@ -262,6 +262,7 @@ interface RussianConstructions {
   Construction doGen = commonPrep('do', gen)
   Construction doGenGoal = commonArg('doGen', 'goal')
   Construction otGen = commonPrep('ot', gen)
+  Construction otGenTheme = commonArg('otGen', 'theme')
   Construction participleArg = cxt('participleArg', ['participle', 'head']) { ParsingState state, Map args ->
     args.head && args.participle ? state.assign(args.head, 'theme', args.participle) : state
   }

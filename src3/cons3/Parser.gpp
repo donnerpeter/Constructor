@@ -162,7 +162,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "кассиршу": return noun(state, acc, 'CASHIER')
       case "деревья": return noun(state, acc, 'TREES')
       case "деньги": return noun(state, acc, 'MONEY')
-      case "спора": return noun(state, gen, 'ARGUE')
       case "ее":
       case "её":
         return state.apply((typeCxt('SHE')):[var:var], (possessive):[possessor:var], (acc):[noun:var])
@@ -189,11 +188,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "один": return numeral(state, t, '1')
       case "порядок":
         return state.apply((typeCxt('ORDER')):[var:var], (acc):[noun:var], (gen):[noun:v[gen].lightVar, head:var], (genCriterion):[head:var, noun:v[gen]])
-      case "слова":
-        return state.apply((typeCxt('WORDS')):[var:var],
-                (acc):[noun:var, xor:t.a], (nom):[noun:var, xor:t.a],
-                (genAuthor):[head:var, noun:v[gen]], (gen):[noun:v[gen].lightVar, head:var],
-                (possessive):[possessor:v[possessive].lightVar], (possAuthor):[head:var, possessor:v[possessive]])
       case "счете": return noun(state, prep, 'COUNTING')
       case "работы":
         state = noun(state, gen, 'WORK')
@@ -236,8 +230,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (nom):[noun:v[nom].lightVar, head:var, agrNumber:'sg'], (nomSubject):[head:var, noun:v[nom]],
                 (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]],
                 (dat):[noun:v[dat].lightVar, head:var], (dativePart):[head:var, acc:v[acc], dat:v[dat]])
-      case "отвлекло":
-        return finiteVerb(state, var, 'DISTRACT', 'PAST', (otGen):[head:var], (nom):[head:var], (acc):[head:var])
       case "отправился":
         return finiteVerb(state, var, 'GO_OFF', 'PAST',
                 (kDat):[noun:v[kDat].lightVar, head:var], (kDatGoal):[head:var, noun:v[kDat]],
@@ -453,6 +445,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return ufiniteVerb(var, 'RUN_OUT', 'PAST') + uarg(var, izGen, izGenSource) + unomArg(var) + uarg(var, sInstr, sInstrMood)
       case "приуныли":
         return ufiniteVerb(var, 'GET_SAD', 'PAST') + unomArg(var) + u(reasonComp(head:var))
+      case "отвлекло":
+        return ufiniteVerb(var, 'DISTRACT', 'PAST') + uarg(var, otGen, otGenTheme) + unomArg(var) + uaccArg(var)
       case "счета": return unoun(gen, var, 'COUNTING')
       case "вдруг": return uadv('manner', 'SUDDENLY')
       case "опять": return uadv('anchor', 'AGAIN')
@@ -461,10 +455,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "грустно": return uadv('manner', 'SADLY')
       case "просто": return uadv('manner', 'JUST')
       case "случае": return unoun(prep, var, 'CASE', (conditionComp):[head:var])
-      case "удивление": return unoun(nom, var, 'AMAZE',
-              (possessive):[possessor:v[possessive].lightVar], (possArg1):[head:var, possessor:v[possessive]])
-      case "недоумении": return unoun(prep, var, 'PREDICAMENT',
-              (possessive):[possessor:v[possessive].lightVar], (possArg1):[head:var, possessor:v[possessive]])
+      case "удивление": return unoun(nom, var, 'AMAZE') + uposs(var, possArg1)
+      case "недоумении": return unoun(prep, var, 'PREDICAMENT') + uposs(var, possArg1)
+      case "спора": return unoun(gen, var, 'ARGUE') + uposs(var, possArg1)
       case "смысла": return unoun(gen, var, 'MEANING')
       case "углу":
         return unoun(prep, var, 'CORNER') + uarg(var, gen, genArg1)
@@ -475,10 +468,13 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "других": return unoun(gen, var, 'OTHERS')
       case "мнению":
         return unoun(dat, var, 'OPINION') +
-               uarg(var, gen, genArg1).xor(possessive(head:v[possessive].lightVar), possAuthor(head:var, possessor:v[possessive]))
+               uarg(var, gen, genArg1).xor(uposs(var, possAuthor))
       case "словам":
         return unoun(dat, var, 'WORDS') +
-               uarg(var, gen, genArg1).xor(possessive(head:v[possessive].lightVar), possAuthor(head:var, possessor:v[possessive]))
+               uarg(var, gen, genArg1).xor(uposs(var, possAuthor))
+      case "слова":
+        return uv(var, type:'WORDS') + unoun(acc, var, null).xor(unoun(nom, var, null)) +
+               uarg(var, gen, genAuthor) + uposs(var, possAuthor)
       case "счастию":
         return unoun(dat, var, 'LUCK') + u(RussianConstructions.word(word:word))
     }
@@ -489,6 +485,10 @@ class Parser { //todo alex implements cons3.RussianConstructions
     return u(adverb(adv:adv, attr:rel, head:new Variable().lightVar))
   }
   
+  Update uposs(Variable head, Construction sem) {
+    Variable arg = new Variable()
+    u(possessive(possessor:arg.lightVar), sem(head:head, possessor:arg))
+  }
   Update unomArg(Variable head) { uarg(head, nom, nomSubject) }
   Update uaccArg(Variable head) { uarg(head, acc, accArg2) }
   Update uarg(Variable head, Construction syn, Construction... sem) {

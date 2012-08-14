@@ -131,7 +131,8 @@ class Util {
 
   static Construction commonArg(String name, String rel) {
     cxt(name + rel.capitalize(), ['+noun', '*head']) { ParsingState state, Map args ->
-      ((Variable) args.noun).frame(state.chart).type ? state.assign(args.head, rel, args.noun) : state
+      def nf = ((Variable) args.noun).frame(state.chart)
+      nf.type || nf.s('name') ? state.assign(args.head, rel, args.noun) : state
     }
   }
 }

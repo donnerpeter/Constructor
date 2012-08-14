@@ -342,9 +342,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "раньше":
         return state.apply((comeScalarly):[order:'EARLIER', xor:t.a], (relTime):[relTime:'BEFORE', xor:t.a],
                 (ransheGen):[noun:var], (gen):[noun:var.lightVar, head:var])
-      case "после":
-        return state.apply((comeScalarly):[order:'AFTER', xor:t.a], (absTime):[rel:'AFTER', xor:t.a],
-                (posleGen):[noun:var], (gen):[noun:var.lightVar, head:var])
       case "-":
         state = state.advanceSection()
         return state.apply((directSpeech):[hasDash:true],
@@ -390,7 +387,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     Vars v = new Vars()
     switch (word) {
       case "васи":
-        return unoun(gen, var, null) + uv(var, name:'Вася') + u(absTime(noun:var)) //todo posleGen should generate absTime automatically
+        return unoun(gen, var, null) + uv(var, name:'Вася')
       case "знаменской": // todo a unified treatment for street names
       case "бассейной":
         return commonCase(gen, var.lightVar) + uv(var, type:'STREET') + u(adjective(nounFrame:var, rel:'name', val:word[0..-3]+"ая"))
@@ -475,6 +472,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def subj = new Variable().lightVar
         return uv(var, time:'PRESENT') +
                u(naPrep(head:subj, copula:var), verbHolder(head:var), uGen(head:subj, copula:var), nom(noun:subj, head:var))
+      case "после":
+        Variable noun = new Variable()
+        return u(comeScalarly(order:'AFTER'), posleGen(noun:noun)).xor(absTime(rel:'AFTER', noun:noun)) + u(gen(noun:noun.lightVar, head:var))
     }
     return null
   }

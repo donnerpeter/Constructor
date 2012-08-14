@@ -22,7 +22,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
   }
 
   ParsingState handleWord(String word, ParsingState state) {
-    Update _update = parseUpdate(word)
+    Update _update = Verbs.parseUpdate(word) ?: parseUpdate(word)
     if (_update) {
       return _update.apply(state)
     }
@@ -384,7 +384,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
 
   Update parseUpdate(String word) {
     Variable var = new Variable()
-    Vars v = new Vars()
     switch (word) {
       case "васи":
         return unoun(gen, var, null) + uv(var, name:'Вася')
@@ -404,30 +403,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return unoun(gen, var, '5')
       case "магазин":
         return uv(var, type:'SHOP') + u(nom(noun:var)).xor(acc(noun:var)) + u(naPrep(head:var), quotedName(noun:var), relativeClause(noun:var))
-      case "остановились":
-        return ufiniteVerb(var, 'STOP', 'PAST') + unomArg(var)
-      case "думают":
-        return ufiniteVerb(var, 'THINK', 'PRESENT') + uarg(var, poDat, poDatTopic) + unomArg(var) + uaccArg(var)
-      case "сидят":
-        return ufiniteVerb(var, 'SIT', 'PRESENT') + unomArg(var)
-      case "спросил":
-      case "спросили":
-        return ufiniteVerb(var, 'ASK', 'PAST') + uaccArg(var) + unomArg(var) + u(declOrQuestionComp(head:var)) + uarg(var, oPrep, oPrepTopic)
-      case "делал":
-      case "делали":
-        return ufiniteVerb(var, 'DO', 'PAST') + uaccArg(var) + unomArg(var)
-      case "поблагодарили":
-        return ufiniteVerb(var, 'THANK', 'PAST') + uaccArg(var) + unomArg(var)
-      case "разошлись":
-        return ufiniteVerb(var, 'DISPERSE', 'PAST') + unomArg(var) + uarg(var, poDat, poDatGoal)
-      case "выбежали":
-        return ufiniteVerb(var, 'RUN_OUT', 'PAST') + uarg(var, izGen, izGenSource) + unomArg(var) + uarg(var, sInstr, sInstrMood)
-      case "приуныли":
-        return ufiniteVerb(var, 'GET_SAD', 'PAST') + unomArg(var) + u(reasonComp(head:var))
-      case "отвлекло":
-        return ufiniteVerb(var, 'DISTRACT', 'PAST') + uarg(var, otGen, otGenTheme) + unomArg(var) + uaccArg(var)
-      case "подвигала":
-        return ufiniteVerb(var, 'MOVE', 'PAST') + unomArg(var) + uarg(var, instr, instrArg2)
       case "счета": return unoun(gen, var, 'COUNTING')
       case "вдруг": return uadv('manner', 'SUDDENLY')
       case "опять": return uadv('anchor', 'AGAIN')
@@ -487,12 +462,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     Variable arg = new Variable()
     u(possessive(possessor:arg.lightVar), sem(head:head, possessor:arg))
   }
-  Update unomArg(Variable head, Variable arg = new Variable()) {
-    u(nom(noun:arg.lightVar, head:head), nomSubject(head:head, noun:arg), reflexiveHolder(noun:arg))
-  }
-
-  Update uaccArg(Variable head) { uarg(head, acc, accArg2) }
-  Update uarg(Variable head, Construction syn, Construction... sem) {
+  static Update uarg(Variable head, Construction syn, Construction... sem) {
     Variable arg = new Variable()
     def tokens = new Tokens()
     List<Mite> mites = [syn(noun:arg.lightVar, head:head)]
@@ -532,17 +502,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
   }
 
   private ParsingState finiteVerb(Map<Construction, Map> args, ParsingState state, Variable verb, String type, String tense) {
-    return ufiniteVerb(args, verb, type, tense).apply(state)
-  }
-
-  private Update ufiniteVerb(Variable verb, String type, String tense) {
-    ufiniteVerb([:], verb, type, tense)
-  }
-  private Update ufiniteVerb(Map<Construction, Map> args, Variable verb, String type, String tense) {
-    return u() + args + uv(verb, type:type, time:tense) +
-           u(subjunctive(head:verb), verbHolder(head:verb), sentenceHolder(head:verb)) +
-           u(relTime(head:verb), also(head:verb), adverb(head:verb)) +
-           u(complementizer(content:verb)).xor(question(content:verb))
+    return Verbs.ufiniteVerb(args, verb, type, tense).apply(state)
   }
 
   private ParsingState noun(ParsingState state, Construction caze, String type) {
@@ -574,12 +534,12 @@ class Parser { //todo alex implements cons3.RussianConstructions
     return varCxt(type:type)
   }
 
-  Update uv(Map<String, String> attrs, Variable var) {
+  static Update uv(Map<String, String> attrs, Variable var) {
     Construction cxt = varCxt(attrs)
     return u(cxt(var:var))
   }
 
-  private Construction varCxt(Map<String, String> attrs) {
+  static Construction varCxt(Map<String, String> attrs) {
     return cxt("var_${attrs.collect { k, v -> k + "_" + v}.join("_")}") { st, a ->
       for (attr in attrs.keySet()) {
         st = st.assign(a.var, attr, attrs[attr])
@@ -588,6 +548,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
     }
   }
 
-  Update u(Mite... mites) { new Update(mites) }
+  static Update u(Mite... mites) { new Update(mites) }
 
 }

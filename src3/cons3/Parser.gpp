@@ -97,10 +97,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "магазина":
         return state.apply((typeCxt('SHOP')):[var:var], (gen):[noun:var],
                 (naPrep):[head:var], (quotedName):[noun:var], (relativeClause):[noun:var])
-      case "случился":
-        return finiteVerb(state, var, 'HAPPEN', 'PAST',
-                (sInstr):[noun:v[sInstr].lightVar, head:var], (sInstrExperiencer):[head:var, noun:v[sInstr]],
-                (nom):[noun:v[nom].lightVar], (nomSubject):[head:var, noun:v[nom]])
       case 'со':
       case 'с':
         return state.apply((preposition):[prep:'с'],
@@ -190,61 +186,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply((also):[hasAlso:true])
       case "не":
         return state.apply((negation):[:])
-      case "помнят":
-      case "помнит":
-        return finiteVerb(state, var, 'REMEMBER', 'PRESENT',
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom], xor:t.a],
-                (varCxt(rusNumber:(word == "помнят" ? 'pl' : 'sg'), person:'3')):[var:v[nom]],
-                (verbHolder):[head:var],
-                (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc], xor:t.b])
-      case "может":
-      case "могут":
-        return finiteVerb(state, var, 'CAN', 'PRESENT', (control):[subj:v[nom], head:var],
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]])
-      case 'стали':
-      case 'начали':
-        return finiteVerb(state, var, 'BEGIN', 'PAST', (control):[head:var],
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]])
-      case 'свалился':
-        return finiteVerb(state, var, 'FALL', 'PAST',
-                (nom):[noun:v[nom].lightVar, head:var, agrNumber:'sg'], (nomSubject):[head:var, noun:v[nom]],
-                (sGen):[head:var, noun:v[sGen].lightVar], (sGenSource):[head:var, noun:v[sGen]])
-      case "отправился":
-        return finiteVerb(state, var, 'GO_OFF', 'PAST',
-                (kDat):[noun:v[kDat].lightVar, head:var], (kDatGoal):[head:var, noun:v[kDat]],
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]])
-      case "пошли":
-        return finiteVerb(state, var, 'GO', 'PAST',
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]],
-                (vAcc):[noun:v[vAcc].lightVar, head:var], (vAccGoal):[head:var, noun:v[vAcc]])
-      case "спорили":
-        return finiteVerb(state, var, 'ARGUE', 'PAST',
-                (nom):[noun:v[nom].lightVar, head:var, agrNumber:'pl'], (nomSubject):[head:var, noun:v[nom]])
-      case "обнаружил":
-      case "обнаружила":
-      case "обнаружили":
-        return finiteVerb(state, var, 'DISCOVER', 'PAST', (declOrQuestionComp):[head:var],
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]])
-      case "улыбнулась":
-        return finiteVerb(state, var, 'SMILE', 'PAST',
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]])
-      case "сказал":
-      case "сказала":
-        def datNoun = new Variable().lightVar
-        return finiteVerb(state, var, 'SAY', 'PAST',
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]],
-                (dat):[noun:datNoun, head:var], (datAddressee):[head:var, noun:datNoun],
-                (directSpeech):[head:var, xor:t.a], (declOrQuestionComp):[head:var, xor:t.a])
-      case "вынул":
-      case "вынула":
-        return finiteVerb(state, var, 'TAKE_OUT', 'PAST',
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]],
-                (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]],
-                (izGen):[noun:v[izGen].lightVar, head:var], (izGenSource):[noun:v[izGen], head:var])
-      case "показались":
-        return finiteVerb(state, var, 'SEEM', 'PAST',
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]],
-                (dat):[noun:v[dat].lightVar, head:var], (participleArg):[head:var])
       case "дойдя":
         state = state.assign(var, 'type', 'COME_TO')
         return state.apply(
@@ -479,10 +420,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
             [(dat):[noun:datNoun], (datArg1):[head:verb, noun:datNoun], (control): [slave: verb],
                     (question): [content:mod], (modality):[modality:mod, infinitive:verb], (timedModality):[modality:mod],
                     (verbHolder):[head:verb]])
-  }
-
-  private ParsingState finiteVerb(Map<Construction, Map> args, ParsingState state, Variable verb, String type, String tense) {
-    return Verbs.ufiniteVerb(args, verb, type, tense).apply(state)
   }
 
   private ParsingState noun(ParsingState state, Construction caze, String type) {

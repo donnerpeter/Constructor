@@ -52,6 +52,66 @@ class Verbs {
                uaccArg(var, v[acc]) + uarg(var, v[dat], dat) +
                u(dativePart(head:var, acc:v[acc], dat:v[dat])) +
                uv(v[nom], gender:(word == 'сломала' ? 'fem' : 'masc'))
+      case "случился":
+        return ufiniteVerb(var, 'HAPPEN', 'PAST',
+                (sInstr):[noun:v[sInstr].lightVar, head:var], (sInstrExperiencer):[head:var, noun:v[sInstr]],
+                (nom):[noun:v[nom].lightVar], (nomSubject):[head:var, noun:v[nom]])
+
+      case "помнят":
+      case "помнит":
+        return ufiniteVerb(var, 'REMEMBER', 'PRESENT',
+                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom], xor:t.a],
+                (varCxt(rusNumber:(word == "помнят" ? 'pl' : 'sg'), person:'3')):[var:v[nom]],
+                (verbHolder):[head:var],
+                (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc], xor:t.b])
+      case "может":
+      case "могут":
+        return ufiniteVerb(var, 'CAN', 'PRESENT', (control):[subj:v[nom], head:var],
+                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]])
+      case 'стали':
+      case 'начали':
+        return ufiniteVerb(var, 'BEGIN', 'PAST', (control):[head:var],
+                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]])
+      case 'свалился':
+        return ufiniteVerb(var, 'FALL', 'PAST',
+                (nom):[noun:v[nom].lightVar, head:var, agrNumber:'sg'], (nomSubject):[head:var, noun:v[nom]],
+                (sGen):[head:var, noun:v[sGen].lightVar], (sGenSource):[head:var, noun:v[sGen]])
+      case "отправился":
+        return ufiniteVerb(var, 'GO_OFF', 'PAST',
+                (kDat):[noun:v[kDat].lightVar, head:var], (kDatGoal):[head:var, noun:v[kDat]],
+                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]])
+      case "пошли":
+        return ufiniteVerb(var, 'GO', 'PAST',
+                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]],
+                (vAcc):[noun:v[vAcc].lightVar, head:var], (vAccGoal):[head:var, noun:v[vAcc]])
+      case "спорили":
+        return ufiniteVerb(var, 'ARGUE', 'PAST',
+                (nom):[noun:v[nom].lightVar, head:var, agrNumber:'pl'], (nomSubject):[head:var, noun:v[nom]])
+      case "обнаружил":
+      case "обнаружила":
+      case "обнаружили":
+        return ufiniteVerb(var, 'DISCOVER', 'PAST', (declOrQuestionComp):[head:var],
+                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]])
+      case "улыбнулась":
+        return ufiniteVerb(var, 'SMILE', 'PAST',
+                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]])
+      case "сказал":
+      case "сказала":
+        def datNoun = v[dat].lightVar
+        return ufiniteVerb(var, 'SAY', 'PAST',
+                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]],
+                (dat):[noun:datNoun, head:var], (datAddressee):[head:var, noun:datNoun],
+                (directSpeech):[head:var, xor:t.a], (declOrQuestionComp):[head:var, xor:t.a])
+      case "вынул":
+      case "вынула":
+        return ufiniteVerb(var, 'TAKE_OUT', 'PAST',
+                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]],
+                (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]],
+                (izGen):[noun:v[izGen].lightVar, head:var], (izGenSource):[noun:v[izGen], head:var])
+      case "показались":
+        return ufiniteVerb(var, 'SEEM', 'PAST',
+                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]],
+                (dat):[noun:v[dat].lightVar, head:var], (participleArg):[head:var])
     }
     return null
   }

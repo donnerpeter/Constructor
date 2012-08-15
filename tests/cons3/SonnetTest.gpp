@@ -26,11 +26,11 @@ B.arg1=A
 -- 3:
 B@2.arg2=A
 B.time=PRESENT
+B.arg1=C
 A.content=B
 A.type=question
 A.questioned=C
 C.type=wh
-B.arg1=C
 B.type=COME_SCALARLY
 B.order=EARLIER
 -- 4:
@@ -115,17 +115,18 @@ B@1.whenCondition=B
 B@2.theme=A
 B.negated=true
 B.also=true
+B.arg1=C
 B.type=CAN
 B.time=PRESENT
-C.type=RECALL
-B.theme=C
-C.arg2=D
-D.type=ORDER
+D.type=RECALL
+B.theme=D
+D.arg2=E
+E.type=ORDER
 A.type=fact
 A.content=B
-E.type=COUNTING
-D.criterion=E
-C.dot=true
+F.type=COUNTING
+E.criterion=F
+D.dot=true
 """
   }
 
@@ -154,17 +155,18 @@ B@1.whenCondition=B
 B@2.theme=A
 B.negated=true
 B.also=true
+B.arg1=C
 B.type=CAN
 B.time=PRESENT
-C.type=RECALL
-B.theme=C
-C.arg2=D
-D.type=ORDER
+D.type=RECALL
+B.theme=D
+D.arg2=E
+E.type=ORDER
 A.type=fact
 A.content=B
-E.type=COUNTING
-D.criterion=E
-C.dot=true
+F.type=COUNTING
+E.criterion=F
+D.dot=true
 -- 4:
 A.type=1
 A.number=true
@@ -189,21 +191,21 @@ A@5.conj=and
 A@5.member=B
 B.type=6
 B.number=true
-C.rusNumber=pl
-C.person=3
-D.arg1=C
-D.arg2=A@5
-D.type=REMEMBER
-D.time=PRESENT
+C.arg1=D
+D.rusNumber=pl
+D.person=3
+C.arg2=A@5
+C.type=REMEMBER
+C.time=PRESENT
 -- 9:
 A.andEmphasis=true
-B.member=D@8
+B.member=C@8
 B.conj=but
 B.member=A
 A.arg2=C
 A.type=FORGET
 A.time=PAST
-A.arg1=C@8
+A.arg1=D@8
 C.type=NEXT
 A.dot=true
 """
@@ -571,10 +573,10 @@ C.time=PAST
 C.type=COME_SCALARLY
 C.order=AFTER
 D@2.elaboration=C
+C.arg1=D
 C.opinion_of=A
 D.type=7
 D.number=true
-C.arg1=D
 -- 4:
 A.type=OPINION
 B.type=OTHERS
@@ -584,15 +586,15 @@ A.type=ellipsis
 <A>
 B.type=COME_SCALARLY
 B.order=AFTER
+B.arg1=C
 B.opinion_of=A@4
-C.member=C@3
-C.conj=but
-C.member=B
-D@2.elaboration=C
+D.member=C@3
+D.conj=but
+D.member=B
+D@2.elaboration=D
 </A>
-D.type=8
-D.number=true
-B.arg1=D
+C.type=8
+C.number=true
 '''
   }
 
@@ -617,18 +619,19 @@ A.topic=A@2
 -- 4:
 A@2.emphasis=true
 A.type=BENCH
+A@2.arg1=B
 A@2.source=A
 A@2.type=FALL
 A@2.time=PAST
 B.determiner=SOME
 B.type=CHILD
-A@2.arg1=B
 C.member=A@2
 C.conj=and
 C.member=D
 D.type=BREAK
 D.time=PAST
 D.arg1=B
+B.gender=masc
 E.member=B@1
 E.conj=but
 E.member=C

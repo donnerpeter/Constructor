@@ -50,7 +50,8 @@ class Verbs {
         return ufiniteVerb(var, 'BREAK', 'PAST') +
                unomArg(var, [agrNumber:'sg'], v[nom]) +
                uaccArg(var, v[acc]) + uarg(var, v[dat], dat) +
-               u(dativePart(head:var, acc:v[acc], dat:v[dat]))
+               u(dativePart(head:var, acc:v[acc], dat:v[dat])) +
+               uv(v[nom], gender:(word == 'сломала' ? 'fem' : 'masc'))
     }
     return null
   }

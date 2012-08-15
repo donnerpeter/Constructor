@@ -21,11 +21,7 @@ interface RussianConstructions {
 
   Construction adjective = cxt('adjective') { ParsingState state, Map args -> state.assign(args.nounFrame, (String)args.rel, args.val) }
   Construction nomSubject = cxt('nomSubject', ['+head', 'noun']) { ParsingState state, Map args ->
-    def nf = ((Variable) args.noun).frame(state.chart)
-    if (nf.type || nf.s('rusNumber')) { //todo a nicer way of distinguishing contentful frames
-      state = state.assign(args.head, 'arg1', args.noun)
-    }
-    return state
+    state.assign(args.head, 'arg1', args.noun)
   }
   Construction accArg2 = cxt('accArg2', ['+head', 'noun']) { ParsingState state, Map args ->
     def nf = ((Variable) args.noun).frame(state.chart)

@@ -210,7 +210,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "танцевать":
         return infinitive([:], state, var, 'DANCE')
       case "нужно":
-        return state.assign(var, 'type', 'NEED').apply((acc):[head:var],
+        return state.assign(var, 'type', 'NEED').apply((acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]],
                 (datArg1):[head:var, noun:v[dat]], (dat):[noun:v[dat].lightVar],
                 (adverbPred):[adverb:var],
                 (verbHolder):[head:var], (question):[content:var])

@@ -347,11 +347,6 @@ interface RussianConstructions {
   }
   Construction adverb = cxt('adverb', ['head', 'adv', 'attr']) { ParsingState state, Map args ->
     state.assign(args.head, (String)args.attr, args.adv)
-  }.screeningMites { mite, screen ->
-    if (!((Variable) mite.contents.head).light) {
-      screen = screen.hide { it.isPartOf(mite) }
-    }
-    screen
   }
   Construction quotedName = cxt('quotedName', ['noun', 'name']) { ParsingState state, Map args ->
     state.assign(args.noun, 'name', args.name)

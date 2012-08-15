@@ -10,6 +10,7 @@ class Verbs {
   static Update parseUpdate(String word) {
     Variable var = new Variable()
     Vars v = new Vars()
+    Tokens t = new Tokens()
     switch (word) {
       case "остановились":
         return ufiniteVerb(var, 'STOP', 'PAST') + unomArg(var)
@@ -35,6 +36,15 @@ class Verbs {
         return ufiniteVerb(var, 'DISTRACT', 'PAST') + uarg(var, otGen, otGenTheme) + unomArg(var) + uaccArg(var)
       case "подвигала":
         return ufiniteVerb(var, 'MOVE', 'PAST') + unomArg(var) + uarg(var, instr, instrArg2)
+      case "подвигав":
+        return uv(var, type:'MOVE') + u(adverb(head:var), adverbialPhrase(content:var)) + uarg(var, instr, instrArg2)
+      case "забыл":
+      case "забыла":
+      case "забыли":
+        return ufiniteVerb(var, 'FORGET', 'PAST') + unomArg(var) +
+               u(elaboration(elaboration:var), advObj(head:var, xor:t.a),
+                       acc(noun:v[acc].lightVar, head:var, xor:t.a), accArg2(head:var, noun:v[acc]),
+                       declOrQuestionComp(head:var, xor:t.a))
     }
     return null
   }

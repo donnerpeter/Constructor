@@ -20,9 +20,9 @@ B.experiencer=C
 A.type=ME
 B.manner=SUDDENLY
 B@1.elaboration=B
-B.arg1=A
 B.type=FORGET
 B.time=PAST
+B.arg1=A
 -- 3:
 B@2.arg2=A
 B.time=PRESENT
@@ -201,9 +201,9 @@ B.member=D@8
 B.conj=but
 B.member=A
 A.arg2=C
-A.arg1=C@8
 A.type=FORGET
 A.time=PAST
+A.arg1=C@8
 C.type=NEXT
 A.dot=true
 """
@@ -271,8 +271,8 @@ D.size=LITTLE
 D.type=HAMMER
 B.arg2=D
 -- 3:
-A.type=MOVE
 A.manner=SLIGHTLY
+A.type=MOVE
 B.type=NOSE
 A.arg2=B
 C.perfectBackground=A
@@ -337,8 +337,8 @@ D.size=LITTLE
 D.type=HAMMER
 B.arg2=D
 -- 3:
-A.type=MOVE
 A.manner=SLIGHTLY
+A.type=MOVE
 B.type=NOSE
 A.arg2=B
 C.perfectBackground=A

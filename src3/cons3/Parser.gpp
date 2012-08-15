@@ -209,12 +209,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return finiteVerb(state, var, 'FALL', 'PAST',
                 (nom):[noun:v[nom].lightVar, head:var, agrNumber:'sg'], (nomSubject):[head:var, noun:v[nom]],
                 (sGen):[head:var, noun:v[sGen].lightVar], (sGenSource):[head:var, noun:v[sGen]])
-      case 'сломал':
-      case 'сломала':
-        return finiteVerb(state, var, 'BREAK', 'PAST',
-                (nom):[noun:v[nom].lightVar, head:var, agrNumber:'sg'], (nomSubject):[head:var, noun:v[nom]],
-                (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]],
-                (dat):[noun:v[dat].lightVar, head:var], (dativePart):[head:var, acc:v[acc], dat:v[dat]])
       case "отправился":
         return finiteVerb(state, var, 'GO_OFF', 'PAST',
                 (kDat):[noun:v[kDat].lightVar, head:var], (kDatGoal):[head:var, noun:v[kDat]],
@@ -449,8 +443,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     Variable arg = new Variable()
     u(possessive(possessor:arg.lightVar), sem(head:head, possessor:arg))
   }
-  static Update uarg(Variable head, Construction syn, Construction... sem) {
-    Variable arg = new Variable()
+  static Update uarg(Variable head, Variable arg = new Variable(), Construction syn, Construction... sem) {
     def tokens = new Tokens()
     List<Mite> mites = [syn(noun:arg.lightVar, head:head)]
     for (cxt in sem) {

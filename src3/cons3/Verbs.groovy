@@ -45,6 +45,12 @@ class Verbs {
                u(elaboration(elaboration:var), advObj(head:var, xor:t.a),
                        acc(noun:v[acc].lightVar, head:var, xor:t.a), accArg2(head:var, noun:v[acc]),
                        declOrQuestionComp(head:var, xor:t.a))
+      case 'сломал':
+      case 'сломала':
+        return ufiniteVerb(var, 'BREAK', 'PAST') +
+               unomArg(var, [agrNumber:'sg'], v[nom]) +
+               uaccArg(var, v[acc]) + uarg(var, v[dat], dat) +
+               u(dativePart(head:var, acc:v[acc], dat:v[dat]))
     }
     return null
   }
@@ -60,10 +66,10 @@ class Verbs {
            u(complementizer(content:verb)).xor(question(content:verb))
   }
 
-  static Update unomArg(Variable head, Variable arg = new Variable()) {
-    u(nom(noun:arg.lightVar, head:head), nomSubject(head:head, noun:arg), reflexiveHolder(noun:arg))
+  static Update unomArg(Variable head, Map<String,String> agr = [:], Variable arg = new Variable()) {
+    u(nom([noun:arg.lightVar, head:head] + agr), nomSubject(head:head, noun:arg), reflexiveHolder(noun:arg))
   }
 
-  static Update uaccArg(Variable head) { uarg(head, acc, accArg2) }
+  static Update uaccArg(Variable head, Variable arg = new Variable()) { uarg(head, arg, acc, accArg2) }
 
 }

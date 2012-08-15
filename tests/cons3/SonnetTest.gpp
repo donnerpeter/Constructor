@@ -626,9 +626,9 @@ A@2.arg1=B
 C.member=A@2
 C.conj=and
 C.member=D
-D.arg1=B
 D.type=BREAK
 D.time=PAST
+D.arg1=B
 E.member=B@1
 E.conj=but
 E.member=C
@@ -636,7 +636,7 @@ F.type=BOTH
 G.quantifier=F
 G.type=JAWS
 D.arg2=G
-G.arg1=H
+G.arg1=B
 """
   }
 

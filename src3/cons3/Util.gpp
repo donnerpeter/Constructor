@@ -108,9 +108,8 @@ class Util {
       state
     }.structural { mite, state, via, up ->
       if (mite.contents.wh) return null
-
-      def parentState = state.findState(mite, 'head')
-      return up ? parentState : state.findState(mite.firstAtom)?.prevState
+      if (up) return state.findState(mite, 'head')
+      return state.findState(mite.firstAtom)?.prevVisibleState
     }.enrichingMites { mite, contribution, state ->
       if (contribution.find { it.cxt == preposition }) {
         return []

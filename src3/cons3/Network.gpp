@@ -68,29 +68,27 @@ class Network {
     result
   }
 
-  private Mite findBest(Collection<Mite> mites, LinkedHashSet<Mite> chosen, LinkedHashSet<Object> queue, LinkedHashSet<Object> processed) {
-    Mite purelyBest
-    Mite mergedBest
-    Mite anyBest
+  private Mite findMiteWithMostGroups(Collection<Mite> mites, LinkedHashSet<Object> queue) {
+    Mite best = null
     for (mite in mites) {
       def groups = allGroups(mite)
-      if (Util.intersects(groups, processed)) {
-        continue
-      }
-
-      def pure = contradictors[mite].every { !(it in chosen) }
-      if (anyBest == null || Util.intersect(groups, queue).size() > Util.intersect(allGroups(anyBest), queue).size()) {
-        anyBest = mite
-      }
-      if (!mite.atom && (mergedBest == null || Util.intersect(groups, queue).size() > Util.intersect(allGroups(mergedBest), queue).size())) {
-        mergedBest = mite
-      }
-      if (pure && !mite.atom && (purelyBest == null || Util.intersect(groups, queue).size() > Util.intersect(allGroups(purelyBest), queue).size())) {
-        purelyBest = mite
+      if (best == null || Util.intersect(groups, queue).size() > Util.intersect(allGroups(best), queue).size()) {
+        best = mite
       }
     }
+    return best
+  }
 
-    return purelyBest ?: mergedBest ?: anyBest
+  private Mite findBest(LinkedHashSet<Mite> mites, LinkedHashSet<Mite> chosen, LinkedHashSet<Object> queue, LinkedHashSet<Object> processed) {
+    LinkedHashSet<Mite> unprocessed = mites.findAll { !Util.intersects(allGroups(it), processed) }
+    def best = findMiteWithMostGroups(unprocessed.findAll { Mite mite -> !mite.atom && contradictors[mite].every { !(it in chosen) } }, queue)
+    if (!best) {
+      best = findMiteWithMostGroups(unprocessed.findAll { Mite mite -> !mite.atom }, queue)
+    }
+    if (!best) {
+      best = findMiteWithMostGroups(unprocessed, queue)
+    }
+    return best
   }
 
   private LinkedHashSet<Mite> rearrangeUpdatedMites(Collection<Mite> updated) {

@@ -15,9 +15,10 @@ class Verbs {
       case "остановились":
         return ufiniteVerb(var, 'STOP', 'PAST') + unomArg(var)
       case "думают":
-        return ufiniteVerb(var, 'THINK', 'PRESENT') + uarg(var, poDat, poDatTopic) + unomArg(var) + uaccArg(var)
+        return ufiniteVerb(var, 'THINK', 'PRESENT') + uarg(var, poDat, poDatTopic) +
+               unomArg(var, [agrNumber:'pl']) + uaccArg(var).xor(noArg(head:var))
       case "сидят":
-        return ufiniteVerb(var, 'SIT', 'PRESENT') + unomArg(var)
+        return ufiniteVerb(var, 'SIT', 'PRESENT') + unomArg(var, [agrNumber:'pl'])
       case "спросил":
       case "спросили":
         return ufiniteVerb(var, 'ASK', 'PAST') + uaccArg(var) + unomArg(var) + u(declOrQuestionComp(head:var)) + uarg(var, oPrep, oPrepTopic)

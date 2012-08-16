@@ -294,7 +294,7 @@ interface RussianConstructions {
     if (mite.contents.mergedWith) {
       return ((ParsingState) mite.contents.mergedWith).prevVisibleState
     }
-    if (mite.contents.conj && !mite.contents.first) {
+    if (mite.contents.conj && !mite.contents.first && !mite.lastAtom.contents.questionLevel) {
       return ParsingState.EMPTY
     }
     return null
@@ -425,4 +425,6 @@ interface RussianConstructions {
   }.screeningMites { mite, screen -> screen.hideAll() }.enrichingMites { mite, contribution, state -> [] }
   Construction word = emptyCxt('word')
   Construction quote = emptyCxt('quote').enrichingMites { mite, contribution, state -> [] }
+
+  Construction noArg = emptyCxt('noArg')
 }

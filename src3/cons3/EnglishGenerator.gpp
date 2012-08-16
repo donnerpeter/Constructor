@@ -87,30 +87,17 @@ class StatefulGenerator {
       }
 
       def bg = frame?.f('perfectBackground')
-      if (bg) {
-        if (bg.type == 'MOVE') {
-          out 'moving'
-          np(bg.f('arg2'), false)
-          emitMoveTail(bg)
-        } else if (bg.type == 'THINK') {
-          out ','
-          out 'thinking'
-          out 'carefully'
-          out 'about'
-          np(bg.f('theme'), false)
-        } else if (bg.type == 'COME_TO') {
-          out 'reaching'
-          np(bg.f('goal'), false)
-          if (bg.f('domain')?.type == 'COUNTING') {
-            out 'in'
-            out 'count'
-          }
-        }
+      if (bg && bg.chart.earlier(bg, 'type', frame, 'type')) {
+        generateBackground(bg)
         out ','
       }
 
       if (frame) {
         Frame subj = clauseInner(frame, true, bg != null, topLevel)
+        if (bg && bg.chart.earlier(frame, 'type', bg, 'type')) {
+          out ','
+          generateBackground(bg)
+        }
         if (last) {
           generateCondition(frame)
           generateElaboration(frame)
@@ -132,6 +119,27 @@ class StatefulGenerator {
         if (k == 'relTime_after') {
           out 'after'
           np(postAdjuncts[k], false)
+        }
+      }
+    }
+
+    private void generateBackground(Frame bg) {
+      if (bg.type == 'MOVE') {
+        out 'moving'
+        np(bg.f('arg2'), false)
+        emitMoveTail(bg)
+      } else if (bg.type == 'THINK') {
+        out ','
+        out 'thinking'
+        out 'carefully'
+        out 'about'
+        np(bg.f('theme'), false)
+      } else if (bg.type == 'COME_TO') {
+        out 'reaching'
+        np(bg.f('goal'), false)
+        if (bg.f('domain')?.type == 'COUNTING') {
+          out 'in'
+          out 'count'
         }
       }
     }

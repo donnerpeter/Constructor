@@ -316,7 +316,7 @@ class ParsingState {
   }
 
   private boolean dominates(ParsingState other) {
-    if (network.unsatisfiedDaughters.size() < other.network.unsatisfiedDaughters.size() &&
+    if (network.chosenUnsatisfied.size() < other.network.chosenUnsatisfied.size() &&
         !other.dominatesSemantically(this)) {
       return true
     }

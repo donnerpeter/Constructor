@@ -81,7 +81,13 @@ class Network {
 
   private Mite findBest(LinkedHashSet<Mite> mites, LinkedHashSet<Mite> chosen, LinkedHashSet<Object> queue, LinkedHashSet<Object> processed) {
     LinkedHashSet<Mite> unprocessed = mites.findAll { !Util.intersects(allGroups(it), processed) }
-    def best = findMiteWithMostGroups(unprocessed.findAll { Mite mite -> !mite.atom && contradictors[mite].every { !(it in chosen) } }, queue)
+    def best
+    if (!best) {
+      best = findMiteWithMostGroups(unprocessed.findAll { Mite mite -> !mite.atom && mite.satisfied }, queue)
+    }
+    if (!best) {
+      best = findMiteWithMostGroups(unprocessed.findAll { Mite mite -> !mite.atom && contradictors[mite].every { !(it in chosen) } }, queue)
+    }
     if (!best) {
       best = findMiteWithMostGroups(unprocessed.findAll { Mite mite -> !mite.atom }, queue)
     }
@@ -156,8 +162,7 @@ class Network {
     new Network(contradictors, groups, result)
   }
 
-  Set getActiveXors() { new LinkedHashSet(_chosen.collect { it.contents.xor ?: [] }.flatten()) }
-  Collection getUnsatisfiedDaughters() { return _chosen.findAll { it.missingHead } }
+  Collection getChosenUnsatisfied() { return _chosen.findAll { !it.satisfied } }
 
 
 }

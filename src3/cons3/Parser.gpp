@@ -237,7 +237,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply((nom):[noun:var, xor:t.a], (acc):[noun:var, xor:t.a], (typeCxt('THAT')):[var:var])
       case "что":
         def comp = new Variable()
-        Update update = u(acc(noun:var, xor:t.a, wh:true), nom(noun:var, xor:t.a, wh:true, agrNumber:'sg'))
+        Update update = u(acc(noun:var, xor:t.a, wh:true), nom(noun:var, xor:t.a, wh:true, agrNumber:'sg', agrGender:'neu'))
         update = update + [
                 (declOrQuestionComp):[comp:comp], (relativeClause):[wh:var, relative:v[verbHolder]],
                 (verbHolder):[head:v[verbHolder].lightVar], (naPrep):[head:var, copula:v[verbHolder].lightVar],

@@ -49,7 +49,7 @@ class Verbs {
       case 'сломал':
       case 'сломала':
         return ufiniteVerb(var, 'BREAK', 'PAST') +
-               unomArg(var, [agrNumber:'sg'], v[nom]) +
+               unomArg(var, [agrNumber:'sg', agrGender:word == 'сломала' ? 'fem' : 'masc'], v[nom]) +
                uaccArg(var, v[acc]) + uarg(var, v[dat], dat) +
                u(dativePart(head:var, acc:v[acc], dat:v[dat])) +
                uv(v[nom], gender:(word == 'сломала' ? 'fem' : 'masc'))
@@ -75,7 +75,7 @@ class Verbs {
                 (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]])
       case 'свалился':
         return ufiniteVerb(var, 'FALL', 'PAST',
-                (nom):[noun:v[nom].lightVar, head:var, agrNumber:'sg'], (nomSubject):[head:var, noun:v[nom]],
+                (nom):[noun:v[nom].lightVar, head:var, agrNumber:'sg', agrGender:'masc'], (nomSubject):[head:var, noun:v[nom]],
                 (sGen):[head:var, noun:v[sGen].lightVar], (sGenSource):[head:var, noun:v[sGen]])
       case "отправился":
         return ufiniteVerb(var, 'GO_OFF', 'PAST',

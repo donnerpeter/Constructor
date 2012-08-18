@@ -140,6 +140,17 @@ class ParsingState {
     def newActive = state.network.choose(fullUpdate)
     state = state.activate(newActive)
 
+    state = processAlternatives(state, fullUpdate, false)
+    state = processAlternatives(state, fullUpdate, true)
+
+    if (mayCorrectRoute && state.findTraitor()) {
+      state = correctRoute(state.prevState, FList.fromList([state]))
+    }
+
+    return state
+  }
+
+  private static ParsingState processAlternatives(ParsingState state, LinkedHashSet<Mite> fullUpdate, boolean sem) {
     for (cxt in state.visibleMites.keySet()) {
       if (!(cxt in state.visibleMites)) continue
 
@@ -151,15 +162,10 @@ class ParsingState {
 
       for (toAdd in toCheck.reverse()) {
         if (!state.network.isChosen(toAdd)) {
-          state = tryAlternative(state, toAdd)
+          state = tryAlternative(state, toAdd, sem)
         }
       }
     }
-
-    if (mayCorrectRoute && state.findTraitor()) {
-      state = correctRoute(state.prevState, FList.fromList([state]))
-    }
-
     return state
   }
 
@@ -251,11 +257,11 @@ class ParsingState {
     link?.cxt?.showPrev(link, prevState, via, true) ?: link?.cxt?.showPrev(link, prevState, via, false) ?: defValue
   }
 
-  private static ParsingState tryAlternative(ParsingState state, Mite toAdd) {
+  private static ParsingState tryAlternative(ParsingState state, Mite toAdd, boolean sem) {
     def anotherActive = state.network.choose([toAdd])
     def alternative = state.activate(anotherActive)
     try {
-      if (alternative.dominates(state)) {
+      if (alternative.dominates(state, sem)) {
         return alternative
       }
     } catch (Throwable e) {
@@ -315,13 +321,14 @@ class ParsingState {
     return state
   }
 
-  private boolean dominates(ParsingState other) {
-    if (network.chosenUnsatisfied.size() < other.network.chosenUnsatisfied.size() &&
-        !other.dominatesSemantically(this)) {
-      return true
+  private boolean dominates(ParsingState other, boolean sem) {
+    if (sem) {
+      return dominatesSemantically(other)
     }
 
-    return dominatesSemantically(other)
+    def unsatisfied1 = network.chosenUnsatisfied
+    def unsatisfied2 = other.network.chosenUnsatisfied
+    return unsatisfied1.size() < unsatisfied2.size()
   }
 
   private boolean dominatesSemantically(ParsingState other) {

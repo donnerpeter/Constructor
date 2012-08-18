@@ -122,10 +122,10 @@ D.type=RECALL
 B.theme=D
 D.arg2=E
 E.type=ORDER
-A.type=fact
-A.content=B
 F.type=COUNTING
 E.criterion=F
+A.type=fact
+A.content=B
 D.dot=true
 """
   }
@@ -162,10 +162,10 @@ D.type=RECALL
 B.theme=D
 D.arg2=E
 E.type=ORDER
-A.type=fact
-A.content=B
 F.type=COUNTING
 E.criterion=F
+A.type=fact
+A.content=B
 D.dot=true
 -- 4:
 A.type=1

@@ -143,8 +143,7 @@ class Mite {
   }
 
   boolean isSatisfied() {
-    return !(cxt.beingMissedAttr && !contents[cxt.beingMissedAttr] ||
-           cxt.headAttr && (!contents[cxt.headAttr] || ((Variable) contents[cxt.headAttr]).light))
+    return cxt.isSatisfied(this)
   }
 
   LinkedHashSet<Variable> allUnifiedWith(Variable var) {

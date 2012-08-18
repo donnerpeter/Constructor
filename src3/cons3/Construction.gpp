@@ -15,6 +15,12 @@ class Construction {
   Function3<Mite, List<Mite>, ParsingState, Collection<Mite>> enrichAction = { mite, contribution, state ->
     return mite.unifyWherePossible(contribution)
   }
+  Predicate1<Mite> isSatisfied = { mite ->
+    def cxt = mite.cxt
+    return !(cxt.beingMissedAttr && !mite.contents[cxt.beingMissedAttr] ||
+             cxt.headAttr && (!mite.contents[cxt.headAttr] || ((Variable) mite.contents[cxt.headAttr]).light))
+
+  }
 
   private Construction(String name, Function2<ParsingState, Map, ParsingState> action, List<String> requiredAttrs) {
     this.action = action
@@ -50,6 +56,11 @@ class Construction {
 
   Construction routeWrong(Function2<Mite, ParsingState, Boolean> condition) {
     wrongRoute = condition
+    return this
+  }
+
+  Construction satisfiedWhen(Predicate1<Mite> condition) {
+    isSatisfied = condition
     return this
   }
 

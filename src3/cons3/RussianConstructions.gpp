@@ -10,7 +10,7 @@ import static cons3.Util.emptyCxt
  */
 interface RussianConstructions {
 
-  Construction nom = commonCase('nom')
+  Construction nom = commonCase('nom').satisfiedWhen { mite -> mite.contents.head && mite.contents.noun }
   Construction acc = commonCase('acc')
   Construction dat = commonCase('dat')
   Construction prep = commonCase('prep')
@@ -125,7 +125,7 @@ interface RussianConstructions {
       return [dash.unify(new Mite(questionVariants, questioned:questioned))]
     }
     return mite.unifyWherePossible(contribution)
-  }
+  }.satisfiedWhen { mite -> mite.contents.content }
   Construction comeScalarly = cxt('comeScalarly', ['verb']) { ParsingState state, Map args ->
     state = state.assign(args.verb, 'type', 'COME_SCALARLY')
     args.order ? state.assign(args.verb, 'order', args.order) : state
@@ -379,7 +379,10 @@ interface RussianConstructions {
     state = state.assign(args.frame, 'type', 'fact')
     state = state.assign(args.frame, 'content', args.content)
     return state
-  }.structural { mite, state, via, up -> state.findState(mite, 'frame') } { mite, fresh -> fresh.cxt != verbHolder }
+  }.structural { mite, state, via, up ->
+    state.findState(mite, 'frame') } { mite, fresh ->
+    fresh.cxt != verbHolder
+  }.satisfiedWhen { mite -> mite.contents.content }
   Construction directSpeech = cxt('directSpeech', ['*head', 'message']) { ParsingState state, Map args ->
     state.assign(args.head, 'message', args.message).assign(args.message, 'directSpeech', 'true')
   }.structural { mite, state, via, up -> mite.contents.head ? ParsingState.EMPTY : null }

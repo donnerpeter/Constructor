@@ -113,6 +113,20 @@ class Verbs {
         return ufiniteVerb(var, 'SEEM', 'PAST',
                 (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]],
                 (dat):[noun:v[dat].lightVar, head:var], (participleArg):[head:var])
+      case "идет":
+      case "идёт":
+        Construction goes = varCxt(type:'GO')
+        return uv(var, time:'PRESENT') + u(comeScalarly(verb:var, xor:t.ab), goes(var:var, xor:t.ad)) +
+               uarg(var, vPrep, vPrepCondition) + unomArg(var) +
+               u(vAcc(noun:v[vAcc].lightVar, xor:t.b, head:var), vAccGoal(head:var, noun:v[vAcc]),
+                       poDat(head:var), verbHolder(head:var), sentenceHolder(head:var),
+                       posleGen(head:var, xor:t.d), ransheGen(head:var, xor:t.d),
+                       conditionComp(head:var), absTime(head:var),
+                       complementizer(content:var, xor:t.c), question(content:var, xor:t.c))
+      case "следовало":
+        return uv(var, time:'PAST') + unomArg(var) + uarg(var, poDat, poDatOpinion) +
+               u(comeScalarly(verb:var), verbHolder(head:var), sentenceHolder(head:var),
+                       posleGen(head:var, xor:t.d), relTime(head:var), elaboration(elaboration:var))
     }
     return null
   }

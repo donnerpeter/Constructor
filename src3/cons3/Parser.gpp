@@ -243,24 +243,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (verbHolder):[head:v[verbHolder].lightVar], (naPrep):[head:var, copula:v[verbHolder].lightVar],
                 (typeCxt('wh')):[var:var, xor:t.f], (question):[questioned:var, frame:comp, xor:t.e], (modality):[questioned:var, xor:t.d], (complementizer):[xor:t.adef, frame:comp]]
         return update.apply(state)
-      case "идет":
-      case "идёт":
-        state = state.assign(var, 'time', 'PRESENT')
-        return state.apply((comeScalarly):[verb:var, xor:t.ab], (typeCxt('GO')):[var:var, xor:t.ad],
-                (vAcc):[noun:v[vAcc].lightVar, xor:t.b, head:var], (vAccGoal):[head:var, noun:v[vAcc]],
-                (vPrep):[noun:v[vPrep].lightVar, head:var], (vPrepCondition):[head:var, noun:v[vPrep]],
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]],
-                (poDat):[head:var], (verbHolder): [head:var], (sentenceHolder): [head:var],
-                (posleGen):[head:var, xor:t.d], (ransheGen):[head:var, xor:t.d],
-                (conditionComp):[head:var], (absTime):[head:var],
-                (complementizer):[content:var, xor:t.c], (question):[content:var, xor:t.c])
-      case "следовало":
-        state = state.assign(var, 'time', 'PAST')
-        return state.apply((nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]],
-                (comeScalarly):[verb:var],
-                (posleGen):[head:var], (relTime):[head:var],
-                (poDat):[head:var, noun:v[poDat].lightVar], (poDatOpinion):[head:var, noun:v[poDat]],
-                (verbHolder):[head:var], (elaboration):[elaboration:var])
       case "раньше":
         return state.apply((comeScalarly):[order:'EARLIER', xor:t.a], (relTime):[relTime:'BEFORE', xor:t.a],
                 (ransheGen):[noun:var], (gen):[noun:var.lightVar, head:var])

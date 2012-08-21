@@ -25,16 +25,16 @@ B.time=PAST
 B.arg1=A
 -- 3:
 B@2.arg2=A
-B.time=PRESENT
-B.arg1=C
-A.content=B
+B.type=wh
+C.time=PRESENT
+A.content=C
 A.type=question
-A.questioned=C
-C.type=wh
-B.type=COME_SCALARLY
-B.order=EARLIER
+A.questioned=B
+C.arg1=B
+C.type=COME_SCALARLY
+C.order=EARLIER
 -- 4:
-C@3.variants=A
+B@3.variants=A
 B.type=7
 B.number=true
 A.member=B
@@ -75,18 +75,18 @@ F.type=THEY
 E.arg2=F
 -- 2:
 E@1.question=A
-B.type=THEY
-C.type=THINK
-C.time=PRESENT
-C.arg1=B
-A.content=C
+B.type=wh
+C.type=THEY
+A.content=D
 A.type=question
-A.questioned=D
-D.type=wh
-C.arg2=D
+A.questioned=B
+D.type=THINK
+D.time=PRESENT
+D.arg1=C
+D.arg2=B
 E.determiner=THIS
 E.type=MATTER
-C.topic=E
+D.topic=E
 """
   }
 
@@ -498,17 +498,17 @@ A.dot=true
 
   public void testParse10() throws Exception {
     doParseTest 'Что нам было делать?', '''
-A.type=WE
-B.type=DO
-C.time=PAST
-C.type=modality
+A.type=wh
+B.type=WE
+C.type=DO
+D.time=PAST
+D.type=modality
+D.arg1=C
+C.arg2=A
 C.arg1=B
-B.arg1=A
-D.type=wh
-B.arg2=D
-E.content=C
+E.content=D
 E.type=question
-E.questioned=D
+E.questioned=A
 '''
   }
 

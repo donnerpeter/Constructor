@@ -129,10 +129,7 @@ class ParsingState {
     fullUpdate.addAll(state.enrichUpdate(update))
     assert fullUpdate
 
-    def newMiteGenerations = state.miteGenerations
-    for (mite in fullUpdate) {
-      newMiteGenerations = newMiteGenerations.putValue(mite, state.currentGeneration)
-    }
+    def newMiteGenerations = registerGeneration(fullUpdate, state.miteGenerations, state.currentGeneration)
     state = state.clone(ownMites:fullUpdate as List, prevState:state,
             miteGenerations:newMiteGenerations, network:state.network.addMites(fullUpdate),
             contribution:update, currentGeneration:state.currentGeneration + 1)
@@ -140,7 +137,8 @@ class ParsingState {
     def newActive = state.network.choose(fullUpdate)
     state = state.activate(newActive)
 
-    state = processAlternatives(state, fullUpdate, false)
+    state = maximizeSatisfiedness(state, [])
+
     state = processAlternatives(state, fullUpdate, true)
 
     if (mayCorrectRoute && state.findTraitor()) {
@@ -148,6 +146,38 @@ class ParsingState {
     }
 
     return state
+  }
+
+  private static FLinkedMap<Mite, Integer> registerGeneration(LinkedHashSet<Mite> fullUpdate, FLinkedMap<Mite, Integer> newMiteGenerations, int generation) {
+    for (mite in fullUpdate) {
+      newMiteGenerations = newMiteGenerations.putValue(mite, generation)
+    }
+    return newMiteGenerations
+  }
+
+  private static ParsingState maximizeSatisfiedness(ParsingState state, List<Mite> fixed) {
+    ParsingState best = state
+    for (mite in state.miteList.reverse().findAll { state.network.isChosen(it) && !it.satisfied }) {
+      for (alt in state.network.contradictors[mite]) {
+        if (!alt.satisfied || fixed.find { state.network.contradict(it, alt) }) continue
+
+        def appended = (fixed + [alt]) as List<Mite>
+
+        def alternative = state.activate(state.network.choose(appended))
+
+        def unsatisfied1 = state.network.chosenUnsatisfied
+        def unsatisfied2 = alternative.network.chosenUnsatisfied
+        if (unsatisfied2.size() <= unsatisfied1.size()) {
+          alternative = maximizeSatisfiedness(alternative, appended)
+          unsatisfied1 = best.network.chosenUnsatisfied
+          unsatisfied2 = alternative.network.chosenUnsatisfied
+          if (unsatisfied2.size() < unsatisfied1.size()) {
+            best = alternative
+          }
+        }
+      }
+    }
+    return best
   }
 
   private static ParsingState processAlternatives(ParsingState state, LinkedHashSet<Mite> fullUpdate, boolean sem) {
@@ -162,7 +192,7 @@ class ParsingState {
 
       for (toAdd in toCheck.reverse()) {
         if (!state.network.isChosen(toAdd)) {
-          state = tryAlternative(state, toAdd, sem)
+          state = tryAlternative(state, [toAdd], sem)
         }
       }
     }
@@ -257,8 +287,8 @@ class ParsingState {
     link?.cxt?.showPrev(link, prevState, via, true) ?: link?.cxt?.showPrev(link, prevState, via, false) ?: defValue
   }
 
-  private static ParsingState tryAlternative(ParsingState state, Mite toAdd, boolean sem) {
-    def anotherActive = state.network.choose([toAdd])
+  private static ParsingState tryAlternative(ParsingState state, Collection<Mite> preferred, boolean sem) {
+    def anotherActive = state.network.choose(preferred)
     def alternative = state.activate(anotherActive)
     try {
       if (alternative.dominates(state, sem)) {

@@ -239,19 +239,19 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def comp = new Variable()
         Update update = u(acc(noun:var, xor:t.a, wh:true), nom(noun:var, xor:t.a, wh:true, agrNumber:'sg', agrGender:'neu'))
         update = update + [
-                (declOrQuestionComp):[comp:comp], (relativeClause):[wh:var, relative:v[verbHolder]],
+                (declOrQuestionComp):[comp:comp], (relativeClause):[wh:var, relative:v[verbHolder], xor:t.f],
                 (verbHolder):[head:v[verbHolder].lightVar], (naPrep):[head:var, copula:v[verbHolder].lightVar],
                 (typeCxt('wh')):[var:var, xor:t.f], (question):[questioned:var, frame:comp, xor:t.e], (modality):[questioned:var, xor:t.d], (complementizer):[xor:t.adef, frame:comp]]
         return update.apply(state)
       case "идет":
       case "идёт":
         state = state.assign(var, 'time', 'PRESENT')
-        return state.apply((comeScalarly):[verb:var, xor:t.ab], (typeCxt('GO')):[var:var, xor:t.a],
+        return state.apply((comeScalarly):[verb:var, xor:t.ab], (typeCxt('GO')):[var:var, xor:t.ad],
                 (vAcc):[noun:v[vAcc].lightVar, xor:t.b, head:var], (vAccGoal):[head:var, noun:v[vAcc]],
                 (vPrep):[noun:v[vPrep].lightVar, head:var], (vPrepCondition):[head:var, noun:v[vPrep]],
                 (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]],
                 (poDat):[head:var], (verbHolder): [head:var], (sentenceHolder): [head:var],
-                (posleGen):[head:var], (ransheGen):[head:var],
+                (posleGen):[head:var, xor:t.d], (ransheGen):[head:var, xor:t.d],
                 (conditionComp):[head:var], (absTime):[head:var],
                 (complementizer):[content:var, xor:t.c], (question):[content:var, xor:t.c])
       case "следовало":

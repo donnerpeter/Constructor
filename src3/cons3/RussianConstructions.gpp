@@ -363,12 +363,9 @@ interface RussianConstructions {
   }
   Construction relativeClause = cxt('relativeClause', ['noun', 'relative', 'wh']) { ParsingState state, Map args ->
     state.assign(args.noun, 'relative', args.relative).assign(args.wh, 'relativized', 'true')
-  }.screeningMites { mite, screen ->
-    if (mite.contents.comma1 && !mite.contents.wh) {
-      screen = screen.hideAll()
-    }
-    screen
-  }.enrichingMites { mite, contribution, state -> RelativeClause.enrichUpdate(mite, contribution, state) }
+  }.enrichingMites { mite, contribution, state ->
+    RelativeClause.enrichUpdate(mite, contribution, state)
+  }.satisfiedWhen { mite -> mite.contents.noun }
   Construction afterRelativeClause = cxt('afterRelativeClause', ['beforeComma', 'noun']) { ParsingState state, Map args ->
     state
   }.screeningMites { mite, screen ->

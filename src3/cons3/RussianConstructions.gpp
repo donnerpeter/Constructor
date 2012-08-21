@@ -125,7 +125,7 @@ interface RussianConstructions {
       return [dash.unify(new Mite(questionVariants, questioned:questioned))]
     }
     return mite.unifyWherePossible(contribution)
-  }.satisfiedWhen { mite -> mite.contents.content }
+  }.satisfiedWhen { mite -> mite.contents.content && mite.contents.frame }
   Construction comeScalarly = cxt('comeScalarly', ['verb']) { ParsingState state, Map args ->
     state = state.assign(args.verb, 'type', 'COME_SCALARLY')
     args.order ? state.assign(args.verb, 'order', args.order) : state
@@ -379,7 +379,7 @@ interface RussianConstructions {
   }.structural { mite, state, via, up ->
     state.findState(mite, 'frame') } { mite, fresh ->
     fresh.cxt != verbHolder
-  }.satisfiedWhen { mite -> mite.contents.content }
+  }.satisfiedWhen { mite -> mite.contents.content && mite.contents.frame }
   Construction directSpeech = cxt('directSpeech', ['*head', 'message']) { ParsingState state, Map args ->
     state.assign(args.head, 'message', args.message).assign(args.message, 'directSpeech', 'true')
   }.structural { mite, state, via, up -> mite.contents.head ? ParsingState.EMPTY : null }

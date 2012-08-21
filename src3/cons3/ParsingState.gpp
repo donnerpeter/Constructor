@@ -157,7 +157,7 @@ class ParsingState {
 
   private static ParsingState maximizeSatisfiedness(ParsingState state, List<Mite> fixed) {
     ParsingState best = state
-    for (mite in state.miteList.reverse().findAll { state.network.isChosen(it) && !it.satisfied }) {
+    for (mite in state.network.chosenUnsatisfied) {
       for (alt in state.network.contradictors[mite]) {
         if (!alt.satisfied || fixed.find { state.network.contradict(it, alt) }) continue
 

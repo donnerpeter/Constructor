@@ -9,7 +9,7 @@ import groovy.transform.TupleConstructor
 class Network {
   final Map<Mite, Collection<Mite>> contradictors = [:]
   final Map<Object, Collection<Mite>> groups = [:]
-  final Set<Mite> _chosen = []
+  final LinkedHashSet<Mite> _chosen = []
 
   Network addMites(LinkedHashSet<Mite> mites) {
     Map<Mite, Collection<Mite>> newContradictors = [:] + contradictors
@@ -162,7 +162,7 @@ class Network {
     new Network(contradictors, groups, result)
   }
 
-  Collection getChosenUnsatisfied() { return _chosen.findAll { !it.satisfied } }
+  LinkedHashSet<Mite> getChosenUnsatisfied() { return _chosen.findAll { !it.satisfied } }
 
 
 }

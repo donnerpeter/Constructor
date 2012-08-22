@@ -207,7 +207,7 @@ interface RussianConstructions {
       return []
     }
     return mite.unifyWherePossible(contribution)
-  }.screeningMites { mite, screen -> mite.contents.head && mite.contents.hasComma ? screen.hideAll() : screen }.structural { mite, state, via, up ->
+  }.structural { mite, state, via, up ->
     if (mite.contents.wh) {
       return ParsingState.EMPTY
     }
@@ -236,10 +236,6 @@ interface RussianConstructions {
       return [mite.unify(new Mite(negation, negated:vh.contents.head))]
     }
     []
-  }.screeningMites { mite, screen -> return screen.hide { it.cxt == negation } }.structural { mite, state, via, up ->
-    if (mite.contents.negated) {
-      return state.findState(mite.firstAtom).prevState
-    }
   }
   Construction also = cxt('also', ['hasAlso', 'head']) { ParsingState state, Map args ->
     state.assign(args.head, 'also', 'true')
@@ -372,9 +368,6 @@ interface RussianConstructions {
   }.satisfiedWhen { mite -> mite.contents.noun }
   Construction afterRelativeClause = cxt('afterRelativeClause', ['beforeComma', 'noun']) { ParsingState state, Map args ->
     state
-  }.screeningMites { mite, screen ->
-    def prevMites = ((ParsingState) mite.contents.beforeComma).miteList
-    screen.showMites(prevMites.findAll { it.cxt != relativeClause || it.contents.noun != mite.contents.noun })
   }.structural { mite, state, via, up -> (ParsingState) mite.contents.beforeComma }
   Construction complementizer = cxt('complementizer', ['frame', 'content']) { ParsingState state, Map args ->
     state = state.assign(args.frame, 'type', 'fact')
@@ -412,8 +405,6 @@ interface RussianConstructions {
           }
   Construction elaboration = cxt('elaboration', ['head', 'elaboration']) { ParsingState state, Map args ->
     state.assign(args.head, 'elaboration', args.elaboration)
-  }.screeningMites { mite, screen ->
-    if (mite.contents.head && !mite.contents.elaboration) return screen.hideAll() else return screen
   }.structural { mite, state, via, up ->
     if (mite.contents.head) {
       return ParsingState.EMPTY
@@ -423,10 +414,10 @@ interface RussianConstructions {
   }
   Construction dot = cxt('dot', ['head']) { ParsingState state, Map args ->
     state.assign(args.head, 'dot', 'true')
-  }.screeningMites { mite, screen -> screen.hideAll() }.enrichingMites { mite, contribution, state -> [] }.structural { mite, state, via, up -> ParsingState.EMPTY }
+  }.enrichingMites { mite, contribution, state -> [] }.structural { mite, state, via, up -> ParsingState.EMPTY }
   Construction comma = cxt('comma', ['hasComma']) { ParsingState state, Map args ->
     state
-  }.screeningMites { mite, screen -> screen.hideAll() }.enrichingMites { mite, contribution, state -> [] }
+  }.enrichingMites { mite, contribution, state -> [] }
   Construction word = emptyCxt('word')
   Construction quote = emptyCxt('quote').enrichingMites { mite, contribution, state -> [] }
 

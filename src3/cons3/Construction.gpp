@@ -39,10 +39,6 @@ class Construction {
     }
   }
 
-  Construction screeningMites(Function2<Mite, Screen, Screen> action) {
-    return this
-  }
-
   Construction enrichingMites(Function3<Mite, List<Mite>, ParsingState, Collection<Mite>> action) {
     enrichAction = action
     return this

@@ -105,7 +105,7 @@ interface RussianConstructions {
     if (mite.contents.hasComma) {
       return ParsingState.EMPTY
     }
-  }
+  }.satisfiedWhen { mite -> mite.contents.head && mite.contents.comp }
   Construction modality = cxt('modality', ['modality', 'infinitive', 'questioned']) { ParsingState state, Map args ->
     state = state.assign(args.modality, 'type', 'modality').assign(args.modality, 'arg1', args.infinitive)
     return state

@@ -265,7 +265,7 @@ class ParsingState {
     def anotherActive = state.network.choose(preferred)
     def alternative = state.activate(anotherActive)
     try {
-      if (Domination.dominatesSemantically(alternative, state)) {
+      if (new Domination(alternative, state).dominatesSemantically()) {
         return alternative
       }
     } catch (Throwable e) {

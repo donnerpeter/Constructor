@@ -1,21 +1,58 @@
 package cons3
 
+import groovy.transform.TupleConstructor
+
 /**
  * @author peter
  */
+@TupleConstructor
 class Domination {
-  static boolean dominatesSemantically(ParsingState self, ParsingState other) {
-    def humanActions = ['GO', 'BREAK', 'CAN', 'REMEMBER', 'FORGET']
-    def verbs = humanActions + ['COME_SCALARLY', 'fact', 'question']
+  private static Set<String> humanActions = ['GO', 'BREAK', 'CAN', 'REMEMBER', 'FORGET']
+  private static Set<String> verbs = humanActions + ['COME_SCALARLY', 'fact', 'question']
+  ParsingState self
+  ParsingState other
+
+  private Pair<Frame, Frame> findPair(Predicate2<Frame, Frame> condition) {
     for (frame in self.chart.frames) {
       Frame alternative = frame.unifiedVar.frame(other.chart)
-      if (frame.f('member') && alternative.flatten().every { it.type != null } && !frame.flatten().every { it.type != null }) {
-        return false
-      }
-      if (!frame.type && alternative.type && frame.f('quantifier')?.type) {
-        return false
+      if (condition(frame, alternative)) {
+        return new Pair(frame, alternative)
       }
     }
+    return null
+  }
+
+  boolean dominatesSemantically() {
+    if (checkIncompleteSequences() || checkIncompleteQuantifier()) {
+      return false
+    }
+
+    if (findPair { verb, alternative ->
+      verb.type == 'COME_SCALARLY' && verb.f('anchor')?.definitelyNonHuman() && verb.f('arg1')?.definitelyNonHuman() && alternative.type == 'GO'
+    }) {
+      return true
+    }
+    if (findPair { verb, alternative ->
+      verb.type == 'GO' && alternative.type == 'COME_SCALARLY' && alternative.f('anchor')?.canBeHuman()
+    }) {
+      return true
+    }
+    if (findPair { verb, alternative ->
+      verb.type == 'FORGET' && verb.f('arg2') && !alternative.f('arg2')
+    }) {
+      return true
+    }
+    if (findPair { verb, alternative ->
+      if (verb.type == 'question' && alternative.type == 'fact') {
+        def controller = alternative.findClauseController()
+        if (!controller || controller.type == 'ASK') {
+          return true
+        }
+      }
+    }) {
+      return true
+    }
+
     for (verb in self.chart.frames.findAll { it.type in verbs }) {
       def alternative = verb.unifiedVar.frame(other.chart)
 
@@ -28,15 +65,7 @@ class Domination {
         }
       }
 
-      if (verb.type == 'COME_SCALARLY' && verb.f('anchor')?.definitelyNonHuman() && verb.f('arg1')?.definitelyNonHuman() && alternative.type == 'GO') {
-        return true
-      }
-
       if (verb.type && verb.type != 'fact' && !alternative.type) {
-        return true
-      }
-
-      if (verb.type == 'GO' && alternative.type == 'COME_SCALARLY' && alternative.f('anchor')?.canBeHuman()) {
         return true
       }
 
@@ -44,20 +73,18 @@ class Domination {
           !((Frame) alternative?.definedAttributeValue('arg1'))?.definedAttributeValue('type')) {
         return true
       }
-
-      if (verb.type == 'FORGET' && verb.f('arg2') && !alternative.f('arg2')) {
-        return true
-      }
-
-      if (verb.type == 'question' && alternative.type == 'fact') {
-        def controller = alternative.findClauseController()
-        if (!controller || controller.type == 'ASK') {
-          return true
-        }
-      }
-
     }
 
     return false
+  }
+
+  private boolean checkIncompleteQuantifier() {
+    return findPair { frame, alternative -> !frame.type && alternative.type && frame.f('quantifier')?.type } != null
+  }
+
+  private boolean checkIncompleteSequences() {
+    return findPair { frame, alternative ->
+      frame.f('member') && alternative.flatten().every { it.type != null } && !frame.flatten().every { it.type != null }
+    } != null
   }
 }

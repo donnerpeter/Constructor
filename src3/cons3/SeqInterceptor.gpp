@@ -117,7 +117,11 @@ class SeqInterceptor implements RussianConstructions {
     if (cxt == complementizer && oldArgs.content && newArgs.content && before[cxt]?.frame && before[cxt].content) {
       return doMerge(oldMite, newArgs, 'content', update, seqs)
     }
-    if (cxt == declOrQuestionComp && oldArgs.comp && newArgs.comp && oldArgs.comp != state[cxt]?.head) {
+    if (cxt == declOrQuestionComp && oldArgs.comp && newArgs.comp) {
+      if (oldArgs.comp == before[complementizer]?.frame &&
+          before.visibleMites[declOrQuestionComp]?.any { before[complementizer]?.content == it.contents.head } ) {
+        return null
+      }
       return doMerge(oldMite, newArgs, 'comp', update, seqs)
     }
 

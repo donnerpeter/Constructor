@@ -137,6 +137,10 @@ B.number=true
   public void test1_ForgetRecursive3Question() throws Exception {
     doTranslateTest "Я забыл, что я забыл, что идет после 8", "I forgot, that I forgot what comes after an 8"
   }
+  public void _test1_ForgetRecursiveEnumeration() throws Exception {
+    doTranslateTest "Я забыл, что я забыл, что идет после 8 и что идет раньше 7",
+                    "I forgot, what I forgot, what comes after an 8 and what comes before a 7"
+  }
   public void test1_Forget2Questions() throws Exception {
     doTranslateTest "Я забыл, что идёт после 7 и что идёт раньше 8.", "I forgot what comes after a 7 and what comes before an 8."
   }

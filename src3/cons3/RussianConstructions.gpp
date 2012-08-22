@@ -288,8 +288,7 @@ interface RussianConstructions {
     }
     return state
   }.enrichingMites { mite, contribution, state ->
-    ParsingState before = mite.contents.beforeComma ?: state.findState(mite.firstAtom).prevState
-    new SeqInterceptor(before).enrichUpdate(mite, contribution, state)
+    new SeqInterceptor(mite, contribution, state).enrichUpdate()
   }.structural { mite, state, via, up ->
     if (mite.contents.mergedWith) {
       return ((ParsingState) mite.contents.mergedWith).prevVisibleState

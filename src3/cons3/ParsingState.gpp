@@ -288,21 +288,24 @@ class ParsingState {
     state = state.undoChanges(toRemove)
     state = state.clone(chart:addNewUnifications(state, toApply))
 
-    boolean changed = true
-    while (changed) {
-      changed = false
-      for (mite in toApply) {
-        if (state.network.isChosen(mite) && mite.contents && mite.cxt.isExecutable([mite])) {
-          def prev = state
-          state = prev.doApply(mite)
-          if (prev.chart != state.chart) {
-            changed = true
-            break
-          }
-        }
+    while (true) {
+      ParsingState result = applyConstructions(toApply, state)
+      if (result.chart == state.chart) {
+        return result
+      }
+      state = result
+    }
+  }
+
+  private static ParsingState applyConstructions(LinkedHashSet<Mite> toApply, ParsingState state) {
+    for (mite in toApply) {
+      if (state.network.isChosen(mite) && mite.contents && mite.cxt.isExecutable([mite])) {
+        ParsingState next = state.clone(currentGeneration:state.miteGenerations[mite]?: state.currentGeneration, chart:state.chart.startMeta(mite))
+        next = mite.cxt.action.call(next, mite.contents)
+        state = next.clone(currentGeneration:state.currentGeneration, chart:next.chart.finishMeta(mite))
       }
     }
-    state
+    return state
   }
 
   private static Chart addNewUnifications(ParsingState state, LinkedHashSet<Mite> toApply) {
@@ -323,12 +326,6 @@ class ParsingState {
       state = state.clone(chart:state.chart.removeDifference(mite))
     }
     return state
-  }
-
-  private ParsingState doApply(Mite mite) {
-    ParsingState next = clone(currentGeneration:miteGenerations[mite]?:currentGeneration, chart:chart.startMeta(mite))
-    next = mite.cxt.action.call(next, mite.contents)
-    return next.clone(currentGeneration:currentGeneration, chart:next.chart.finishMeta(mite))
   }
 
   String presentable() {

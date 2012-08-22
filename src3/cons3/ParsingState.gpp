@@ -323,16 +323,6 @@ class ParsingState {
     return state
   }
 
-  private boolean dominates(ParsingState other, boolean sem) {
-    if (sem) {
-      return dominatesSemantically(other)
-    }
-
-    def unsatisfied1 = network.chosenUnsatisfied
-    def unsatisfied2 = other.network.chosenUnsatisfied
-    return unsatisfied1.size() < unsatisfied2.size()
-  }
-
   private boolean dominatesSemantically(ParsingState other) {
     def humanActions = ['GO', 'BREAK', 'CAN', 'REMEMBER', 'FORGET']
     def verbs = humanActions + ['COME_SCALARLY', 'fact', 'question']
@@ -352,7 +342,7 @@ class ParsingState {
           verb.type == 'COME_SCALARLY' && verb.f('anchor')?.canBeHuman() && alternative.type == 'COME_SCALARLY' && alternative.f('anchor')?.canBeHuman()) {
         boolean meHuman = !verb.f('arg1')?.definitelyNonHuman()
         def otherHuman = !alternative.f('arg1')?.definitelyNonHuman()
-        if (meHuman != otherHuman) {
+        if (meHuman != otherHuman && verb.f('arg1').allAssignments && alternative.f('arg1').allAssignments) {
           return meHuman
         }
       }

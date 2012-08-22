@@ -167,8 +167,12 @@ class Frame {
 
   String getType() { s('type') }
 
+  List<Assignment<Frame>> getAllAssignments() {
+    return chart.allAssignments.findAll { it.frame.unifiedVar == unifiedVar }
+  }
+
   List<Assignment<Frame>> allAssignments(String attr) {
-    return chart.allAssignments.findAll { it.frame.unifiedVar == unifiedVar && it.property == attr }
+    return allAssignments.findAll { it.property == attr }
   }
 
   boolean equals(o) {

@@ -25,16 +25,16 @@ B.time=PAST
 B.arg1=A
 -- 3:
 B@2.arg2=A
-B.type=wh
-A.content=C
+B.time=PRESENT
+B.arg1=C
+B.type=COME_SCALARLY
+B.order=EARLIER
+C.type=wh
+A.content=B
 A.type=question
-A.questioned=B
-C.time=PRESENT
-C.arg1=B
-C.type=COME_SCALARLY
-C.order=EARLIER
+A.questioned=C
 -- 4:
-B@3.variants=A
+C@3.variants=A
 B.type=7
 B.number=true
 A.member=B
@@ -121,11 +121,11 @@ B.time=PRESENT
 D.type=RECALL
 B.theme=D
 D.arg2=E
+A.type=fact
+A.content=B
 E.type=ORDER
 F.type=COUNTING
 E.criterion=F
-A.type=fact
-A.content=B
 D.dot=true
 """
   }
@@ -161,11 +161,11 @@ B.time=PRESENT
 D.type=RECALL
 B.theme=D
 D.arg2=E
+A.type=fact
+A.content=B
 E.type=ORDER
 F.type=COUNTING
 E.criterion=F
-A.type=fact
-A.content=B
 D.dot=true
 -- 4:
 A.type=1
@@ -299,9 +299,9 @@ C.opinion_of=A
 A.type=7
 C@1.time=PRESENT
 C@1.arg1=A
+B.type=8
 C@1.type=COME_SCALARLY
 C@1.order=AFTER
-B.type=8
 C@1.anchor=B
 C.determiner=THAT
 C.type=CASE
@@ -311,9 +311,9 @@ C@2.whenCondition=A
 B.type=8
 A.time=PRESENT
 A.arg1=B
+C.type=7
 A.type=COME_SCALARLY
 A.order=AFTER
-C.type=7
 A.anchor=C
 """
   }
@@ -361,9 +361,9 @@ A@4.opinion_of=A
 A.type=7
 A@4.time=PRESENT
 A@4.arg1=A
+B.type=8
 A@4.type=COME_SCALARLY
 A@4.order=AFTER
-B.type=8
 A@4.anchor=B
 C.determiner=THAT
 C.type=CASE
@@ -373,9 +373,9 @@ C@6.whenCondition=A
 B.type=8
 A.time=PRESENT
 A.arg1=B
+C.type=7
 A.type=COME_SCALARLY
 A.order=AFTER
-C.type=7
 A.anchor=C
 """
   }

@@ -118,7 +118,8 @@ class Verbs {
         Construction goes = varCxt(type:'GO')
         return uv(var, time:'PRESENT') + u(comeScalarly(verb:var, xor:t.ab), goes(var:var, xor:t.ad)) +
                uarg(var, vPrep, vPrepCondition) + unomArg(var) +
-               u(vAcc(noun:v[vAcc].lightVar, xor:t.b, head:var), vAccGoal(head:var, noun:v[vAcc]),
+               u(vAcc(noun:v[vAcc].lightVar, xor:t.be, head:var), vAccGoal(head:var, noun:v[vAcc]),
+                       noArg(head:var, xor:t.e),
                        poDat(head:var), verbHolder(head:var), sentenceHolder(head:var),
                        posleGen(head:var, xor:t.d), ransheGen(head:var, xor:t.d),
                        conditionComp(head:var), absTime(head:var),

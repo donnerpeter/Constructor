@@ -135,11 +135,10 @@ class ParsingState {
             contribution:update, currentGeneration:state.currentGeneration + 1)
 
     def newActive = state.network.choose(fullUpdate)
-    state = state.activate(newActive)
+    def sat = Network.maximizeSatisfiedness(newActive, [])
+    state = state.activate(sat)
 
-    state = maximizeSatisfiedness(state, [])
-
-    state = processAlternatives(state, fullUpdate, true)
+    state = processAlternatives(state, fullUpdate)
 
     if (mayCorrectRoute && state.findTraitor()) {
       state = correctRoute(state.prevState, FList.fromList([state]))
@@ -155,35 +154,8 @@ class ParsingState {
     return newMiteGenerations
   }
 
-  private static ParsingState maximizeSatisfiedness(ParsingState state, List<Mite> fixed) {
-    ParsingState best = state
-    for (mite in state.network.chosenUnsatisfied) {
-      for (alt in state.network.contradictors[mite]) {
-        if (!alt.satisfied || fixed.find { state.network.contradict(it, alt) }) continue
-
-        def appended = (fixed + [alt]) as List<Mite>
-
-        def alternative = state.activate(state.network.choose(appended))
-
-        def unsatisfied1 = state.network.chosenUnsatisfied
-        def unsatisfied2 = alternative.network.chosenUnsatisfied
-        if (unsatisfied2.size() <= unsatisfied1.size()) {
-          alternative = maximizeSatisfiedness(alternative, appended)
-          unsatisfied1 = best.network.chosenUnsatisfied
-          unsatisfied2 = alternative.network.chosenUnsatisfied
-          if (unsatisfied2.size() < unsatisfied1.size()) {
-            best = alternative
-          }
-        }
-      }
-    }
-    return best
-  }
-
-  private static ParsingState processAlternatives(ParsingState state, LinkedHashSet<Mite> fullUpdate, boolean sem) {
+  private static ParsingState processAlternatives(ParsingState state, LinkedHashSet<Mite> fullUpdate) {
     for (cxt in state.visibleMites.keySet()) {
-      if (!(cxt in state.visibleMites)) continue
-
       List<Mite> toCheck = (fullUpdate as List<Mite>).findAll { it.cxt == cxt }
       def last = state.visibleMites[cxt].reverse()[0]
       if (last) {
@@ -192,7 +164,7 @@ class ParsingState {
 
       for (toAdd in toCheck.reverse()) {
         if (!state.network.isChosen(toAdd)) {
-          state = tryAlternative(state, [toAdd], sem)
+          state = tryAlternative(state, [toAdd])
         }
       }
     }
@@ -287,11 +259,11 @@ class ParsingState {
     link?.cxt?.showPrev(link, prevState, via, true) ?: link?.cxt?.showPrev(link, prevState, via, false) ?: defValue
   }
 
-  private static ParsingState tryAlternative(ParsingState state, Collection<Mite> preferred, boolean sem) {
+  private static ParsingState tryAlternative(ParsingState state, Collection<Mite> preferred) {
     def anotherActive = state.network.choose(preferred)
     def alternative = state.activate(anotherActive)
     try {
-      if (alternative.dominates(state, sem)) {
+      if (alternative.dominatesSemantically(state)) {
         return alternative
       }
     } catch (Throwable e) {
@@ -462,7 +434,6 @@ class ParsingState {
 
   private static Map<Construction, List<Mite>> calcVisibleMites(ParsingState state) {
     Map<Construction, List<Mite>> result = [:]
-    ParsingState original = state
     Mite via = null
     while (state) {
       Mite link = state.findLink(via)

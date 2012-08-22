@@ -11,6 +11,31 @@ class Network {
   final Map<Object, Collection<Mite>> groups = [:]
   final LinkedHashSet<Mite> _chosen = []
 
+  static Network maximizeSatisfiedness(Network net, List<Mite> fixed) {
+    Network best = net
+    for (mite in net.chosenUnsatisfied) {
+      for (alt in net.contradictors[mite]) {
+        if (!alt.satisfied || fixed.find { net.contradict(it, alt) }) continue
+
+        def appended = (fixed + [alt]) as List<Mite>
+
+        def alternative = net.choose(appended)
+
+        def unsatisfied1 = net.chosenUnsatisfied
+        def unsatisfied2 = alternative.chosenUnsatisfied
+        if (unsatisfied2.size() <= unsatisfied1.size()) {
+          alternative = maximizeSatisfiedness(alternative, appended)
+          unsatisfied1 = best.chosenUnsatisfied
+          unsatisfied2 = alternative.chosenUnsatisfied
+          if (unsatisfied2.size() < unsatisfied1.size()) {
+            best = alternative
+          }
+        }
+      }
+    }
+    return best
+  }
+
   Network addMites(LinkedHashSet<Mite> mites) {
     Map<Mite, Collection<Mite>> newContradictors = [:] + contradictors
     Map<Object, Collection<Mite>> newGroups = [:] + groups

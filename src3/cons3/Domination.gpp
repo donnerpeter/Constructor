@@ -1,0 +1,63 @@
+package cons3
+
+/**
+ * @author peter
+ */
+class Domination {
+  static boolean dominatesSemantically(ParsingState self, ParsingState other) {
+    def humanActions = ['GO', 'BREAK', 'CAN', 'REMEMBER', 'FORGET']
+    def verbs = humanActions + ['COME_SCALARLY', 'fact', 'question']
+    for (frame in self.chart.frames) {
+      Frame alternative = frame.unifiedVar.frame(other.chart)
+      if (frame.f('member') && alternative.flatten().every { it.type != null } && !frame.flatten().every { it.type != null }) {
+        return false
+      }
+      if (!frame.type && alternative.type && frame.f('quantifier')?.type) {
+        return false
+      }
+    }
+    for (verb in self.chart.frames.findAll { it.type in verbs }) {
+      def alternative = verb.unifiedVar.frame(other.chart)
+
+      if (verb.type in humanActions ||
+          verb.type == 'COME_SCALARLY' && verb.f('anchor')?.canBeHuman() && alternative.type == 'COME_SCALARLY' && alternative.f('anchor')?.canBeHuman()) {
+        boolean meHuman = !verb.f('arg1')?.definitelyNonHuman()
+        def otherHuman = !alternative.f('arg1')?.definitelyNonHuman()
+        if (meHuman != otherHuman && verb.f('arg1')?.type && alternative.f('arg1')?.type) {
+          return meHuman
+        }
+      }
+
+      if (verb.type == 'COME_SCALARLY' && verb.f('anchor')?.definitelyNonHuman() && verb.f('arg1')?.definitelyNonHuman() && alternative.type == 'GO') {
+        return true
+      }
+
+      if (verb.type && verb.type != 'fact' && !alternative.type) {
+        return true
+      }
+
+      if (verb.type == 'GO' && alternative.type == 'COME_SCALARLY' && alternative.f('anchor')?.canBeHuman()) {
+        return true
+      }
+
+      if (((Frame) verb?.definedAttributeValue('arg1'))?.definedAttributeValue('type') &&
+          !((Frame) alternative?.definedAttributeValue('arg1'))?.definedAttributeValue('type')) {
+        return true
+      }
+
+      if (verb.type == 'FORGET' && verb.f('arg2') && !alternative.f('arg2')) {
+        return true
+      }
+
+      if (verb.type == 'question' && alternative.type == 'fact') {
+        def controller = alternative.findClauseController()
+        if (!controller || controller.type == 'ASK') {
+          return true
+        }
+      }
+
+    }
+
+    return false
+  }
+}

@@ -132,8 +132,12 @@ interface RussianConstructions {
   }
   Construction questionVariants = cxt('questionVariants', ['seq', 'questioned']) { ParsingState state, Map args ->
     state.assign(args.questioned, 'variants', args.seq)
-  }.screeningMites { mite, screen ->
-    if (!mite.contents.seq && mite.contents.questioned) return screen.hideAll() else return screen
+  }.enrichingMites { mite, contribution, state ->
+    def sh = contribution.find { it.cxt == sentenceHolder }
+    if (sh) {
+      return sh.unifyWherePossible(state.findState(mite.firstAtom).prevState)
+    }
+    return mite.unifyWherePossible(contribution)
   }.structural { mite, state, via, up -> if (mite.contents.questioned) return ParsingState.EMPTY }
   Construction reflexiveHolder = emptyCxt('reflexiveHolder')
   Construction shortAdj = cxt('shortAdj', ['noun', 'value', 'copula']) { ParsingState state, Map args ->

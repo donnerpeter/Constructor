@@ -128,6 +128,14 @@ class Verbs {
         return uv(var, time:'PAST') + unomArg(var) + uarg(var, poDat, poDatOpinion) +
                u(comeScalarly(verb:var), verbHolder(head:var), sentenceHolder(head:var),
                        posleGen(head:var, xor:t.d), relTime(head:var), elaboration(elaboration:var))
+      case 'был':
+        def subj = new Variable().lightVar
+        return uv(var, time:'PAST') +
+               u(naPrep(head:subj, copula:var), sentenceHolder(head:var), uGen(head:subj, copula:var), nom(noun:subj, head:var))
+      case 'есть':
+        def subj = new Variable().lightVar
+        return uv(var, time:'PRESENT') +
+               u(naPrep(head:subj, copula:var), sentenceHolder(head:var), uGen(head:subj, copula:var), nom(noun:subj, head:var))
     }
     return null
   }

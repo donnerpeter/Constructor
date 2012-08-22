@@ -253,7 +253,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (clauseEllipsis):[interceptor:new EllipsisInterceptor(state)])
         return state
       case ".":
-        return state.apply((dot):[head:var], (verbHolder):[head:var.lightVar, mustFinish:true]).advanceSection()
+        return state.apply((dot):[head:var], (sentenceHolder):[head:var.lightVar, mustFinish:true]).advanceSection()
       case 'каково':
         return state.assign(var, 'type', 'wh').apply((shortAdj):[copula: v['copula'], value:var, noun:v[nom]],
                 (nom):[noun:v[nom].lightVar, head:var],
@@ -343,14 +343,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "комнатам": return unoun(dat, var, 'ROOMS') + uposs(var, possOwner)
       case "квартирам": return unoun(dat, var, 'APARTMENTS') + uposs(var, possOwner)
       case "офисам": return unoun(dat, var, 'OFFICES') + uposs(var, possOwner)
-      case 'был':
-        def subj = new Variable().lightVar
-        return uv(var, time:'PAST') +
-               u(naPrep(head:subj, copula:var), verbHolder(head:var), uGen(head:subj, copula:var), nom(noun:subj, head:var))
-      case 'есть':
-        def subj = new Variable().lightVar
-        return uv(var, time:'PRESENT') +
-               u(naPrep(head:subj, copula:var), verbHolder(head:var), uGen(head:subj, copula:var), nom(noun:subj, head:var))
       case "после":
         Variable noun = new Variable()
         return u(comeScalarly(order:'AFTER'), posleGen(noun:noun)).xor(absTime(rel:'AFTER', noun:noun)) + u(gen(noun:noun.lightVar, head:var))

@@ -85,26 +85,29 @@ A.type=ME
 B.type=FORGET
 B.time=PAST
 B.arg1=A
-B.arg2=C
-D.time=PRESENT
-D.arg1=E
-C.content=D
-C.type=question
-C.questioned=E
-E.type=wh
-D.type=COME_SCALARLY
-D.order=EARLIER
-E.variants=F
-G.type=7
-G.number=true
-F.member=G
-F.member=H
-H.type=8
-H.number=true
-F.conj=or
-F.member=I
-I.type=9
-I.number=true
+-- 2:
+B@1.arg2=A
+B.time=PRESENT
+B.arg1=C
+B.type=COME_SCALARLY
+B.order=EARLIER
+C.type=wh
+A.content=B
+A.type=question
+A.questioned=C
+-- 3:
+C@2.variants=A
+B.type=7
+B.number=true
+A.member=B
+-- 4:
+A@3.member=A
+A.type=8
+A.number=true
+A@3.conj=or
+A@3.member=B
+B.type=9
+B.number=true
 """
   }
 

@@ -126,7 +126,7 @@ A.content=B
 E.type=ORDER
 F.type=COUNTING
 E.criterion=F
-D.dot=true
+B.dot=true
 """
   }
 
@@ -166,7 +166,7 @@ A.content=B
 E.type=ORDER
 F.type=COUNTING
 E.criterion=F
-D.dot=true
+B.dot=true
 -- 4:
 A.type=1
 A.number=true

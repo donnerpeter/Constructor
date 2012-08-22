@@ -156,6 +156,8 @@ class ParsingState {
 
   private static ParsingState processAlternatives(ParsingState state, LinkedHashSet<Mite> fullUpdate) {
     for (cxt in state.visibleMites.keySet()) {
+      if (!(cxt in state.visibleMites)) continue
+
       List<Mite> toCheck = (fullUpdate as List<Mite>).findAll { it.cxt == cxt }
       def last = state.visibleMites[cxt].reverse()[0]
       if (last) {
@@ -342,7 +344,7 @@ class ParsingState {
           verb.type == 'COME_SCALARLY' && verb.f('anchor')?.canBeHuman() && alternative.type == 'COME_SCALARLY' && alternative.f('anchor')?.canBeHuman()) {
         boolean meHuman = !verb.f('arg1')?.definitelyNonHuman()
         def otherHuman = !alternative.f('arg1')?.definitelyNonHuman()
-        if (meHuman != otherHuman && verb.f('arg1').allAssignments && alternative.f('arg1').allAssignments) {
+        if (meHuman != otherHuman && verb.f('arg1').type && alternative.f('arg1').type) {
           return meHuman
         }
       }

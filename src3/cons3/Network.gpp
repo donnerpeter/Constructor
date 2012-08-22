@@ -21,11 +21,10 @@ class Network {
 
         def alternative = net.choose(appended)
 
-        def unsatisfied1 = net.chosenUnsatisfied
+        def unsatisfied1 = best.chosenUnsatisfied
         def unsatisfied2 = alternative.chosenUnsatisfied
         if (unsatisfied2.size() <= unsatisfied1.size()) {
           alternative = maximizeSatisfiedness(alternative, appended)
-          unsatisfied1 = best.chosenUnsatisfied
           unsatisfied2 = alternative.chosenUnsatisfied
           if (unsatisfied2.size() < unsatisfied1.size()) {
             best = alternative

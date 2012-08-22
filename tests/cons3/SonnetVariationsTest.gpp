@@ -87,16 +87,17 @@ B.time=PAST
 B.arg1=A
 -- 2:
 B@1.arg2=A
-B.time=PRESENT
-B.arg1=C
-B.type=COME_SCALARLY
-B.order=EARLIER
-C.type=wh
-A.content=B
+B.type=wh
+A.content=C
 A.type=question
-A.questioned=C
+A.questioned=B
+C.time=PRESENT
+C.arg1=B
+B.person=3
+C.type=COME_SCALARLY
+C.order=EARLIER
 -- 3:
-C@2.variants=A
+B@2.variants=A
 B.type=7
 B.number=true
 A.member=B

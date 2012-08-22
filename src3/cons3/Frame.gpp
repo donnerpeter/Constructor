@@ -149,7 +149,6 @@ class Frame {
     if (attr == 'type') {
       if (f('member')) return null
       if (s('rusNumber') == 'pl') return 'THEY'
-      if (s('person') == '3') return s('gender') == 'fem' ? 'SHE' : 'HE'
     }
 
     if (attr == 'quantifier' && type in ['WE', 'THEY'] && usages('arg1')[0]?.type == 'DISPERSE') {

@@ -63,9 +63,9 @@ C.number=true
   public void testParse2() throws Exception {
     doParseTest "Я отправился к соседям и спросил их, что они думают по этому поводу", """
 A.type=ME
-B.arg1=A
 B.type=GO_OFF
 B.time=PAST
+B.arg1=A
 C.type=NEIGHBOURS
 B.goal=C
 D.member=B
@@ -110,17 +110,17 @@ C.arg1=E
 -- 2:
 A.type=THEY
 B.manner=SUDDENLY
-B.arg1=A
 B.type=DISCOVER
 B.time=PAST
+B.arg1=A
 B@1.whenCondition=B
 -- 3:
 B@2.theme=A
 B.negated=true
 B.also=true
-B.arg1=C
 B.type=CAN
 B.time=PRESENT
+B.arg1=C
 D.type=RECALL
 B.theme=D
 D.arg2=E
@@ -150,17 +150,17 @@ C.arg1=E
 -- 2:
 A.type=THEY
 B.manner=SUDDENLY
-B.arg1=A
 B.type=DISCOVER
 B.time=PAST
+B.arg1=A
 B@1.whenCondition=B
 -- 3:
 B@2.theme=A
 B.negated=true
 B.also=true
-B.arg1=C
 B.type=CAN
 B.time=PRESENT
+B.arg1=C
 D.type=RECALL
 B.theme=D
 D.arg2=E
@@ -219,9 +219,9 @@ A.dot=true
     doParseTest 'Мы все пошли в коммерческий магазин "Гастроном", что на углу Знаменской и Бассейной улицы, и спросили кассиршу о нашем недоумении', """
 A.type=WE
 A.quantifier=ALL
-B.arg1=A
 B.type=GO
 B.time=PAST
+B.arg1=A
 C.kind=COMMERCIAL
 C.type=SHOP
 B.goal=C
@@ -262,15 +262,15 @@ B.topic=E
 A.type=CASHIER
 A.gender=fem
 B.manner=SADLY
-B.arg1=A
 B.type=SMILE
 B.time=PAST
+B.arg1=A
 -- 2:
 A.member=B@1
 A.member=B
-B.arg1=A@1
 B.type=TAKE_OUT
 B.time=PAST
+B.arg1=A@1
 C.type=MOUTH
 B.source=C
 D.size=LITTLE
@@ -285,9 +285,9 @@ C.perfectBackground=A
 -- 4:
 A@2.conj=and
 A@2.member=C@3
-C@3.arg1=A@1
 C@3.type=SAY
 C@3.time=PAST
+C@3.arg1=A@1
 C@3.message=A
 A.directSpeech=true
 """
@@ -330,15 +330,15 @@ A.anchor=C
 A.type=CASHIER
 A.gender=fem
 B.manner=SADLY
-B.arg1=A
 B.type=SMILE
 B.time=PAST
+B.arg1=A
 -- 2:
 A.member=B@1
 A.member=B
-B.arg1=A@1
 B.type=TAKE_OUT
 B.time=PAST
+B.arg1=A@1
 C.type=MOUTH
 B.source=C
 D.size=LITTLE
@@ -353,9 +353,9 @@ C.perfectBackground=A
 -- 4:
 A@2.conj=and
 A@2.member=C@3
-C@3.arg1=A@1
 C@3.type=SAY
 C@3.time=PAST
+C@3.arg1=A@1
 C@3.message=A
 A.directSpeech=true
 -- 5:
@@ -486,9 +486,9 @@ A@1.reason=A
 B.type=SHE
 C.type=WORDS
 C.author=B
-A.arg1=C
 A.type=SEEM
 A.time=PAST
+A.arg1=C
 D.type=WE
 E.type=LACK
 A.theme=E
@@ -527,18 +527,18 @@ E.questioned=A
   public void testParse11() throws Exception {
     doParseTest 'Мы пошли в Летний сад и стали там считать деревья', '''
 A.type=WE
-B.arg1=A
 B.type=GO
 B.time=PAST
+B.arg1=A
 C.name=Летний сад
 C.type=GARDEN
 B.goal=C
 D.member=B
 D.conj=and
 D.member=E
-E.arg1=A
 E.type=BEGIN
 E.time=PAST
+E.arg1=A
 F.type=COUNT
 E.theme=F
 G.type=TREES
@@ -568,9 +568,9 @@ A@1.arg1=A
 B.member=A@1
 B.conj=and
 B.member=C
-C.arg1=A
 C.type=BEGIN
 C.time=PAST
+C.arg1=A
 D.type=ARGUE
 C.theme=D
 -- 3:
@@ -615,9 +615,9 @@ C.number=true
   public void testParse13() throws Exception {
     doParseTest "Мы спорили бы очень долго, но, по счастию, тут со скамейки свалился какой-то ребенок и сломал себе обе челюсти", """
 A.type=WE
-B.arg1=A
 B.type=ARGUE
 B.time=PAST
+B.arg1=A
 B.irrealis=true
 B.duration=LONG
 -- 2:
@@ -628,10 +628,10 @@ A.topic=A@2
 -- 4:
 A@2.emphasis=true
 A.type=BENCH
-A@2.arg1=B
-A@2.source=A
 A@2.type=FALL
 A@2.time=PAST
+A@2.arg1=B
+A@2.source=A
 B.determiner=SOME
 B.type=CHILD
 C.member=A@2

@@ -70,52 +70,34 @@ class Verbs {
                uaccArg(var)
       case "может":
       case "могут":
-        return ufiniteVerb(var, 'CAN', 'PRESENT', (control):[subj:v[nom], head:var],
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]])
+        return ufiniteVerb(var, 'CAN', 'PRESENT', (control):[subj:v[nom], head:var]) + unomArg(var)
       case 'стали':
       case 'начали':
-        return ufiniteVerb(var, 'BEGIN', 'PAST', (control):[head:var],
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]])
+        return ufiniteVerb(var, 'BEGIN', 'PAST', (control):[head:var]) + unomArg(var)
       case 'свалился':
-        return ufiniteVerb(var, 'FALL', 'PAST',
-                (nom):[noun:v[nom].lightVar, head:var, agrNumber:'sg', agrGender:'masc'], (nomSubject):[head:var, noun:v[nom]],
-                (sGen):[head:var, noun:v[sGen].lightVar], (sGenSource):[head:var, noun:v[sGen]])
+        return ufiniteVerb(var, 'FALL', 'PAST') + unomArg(var, [agrNumber:'sg', agrGender:'masc']) + uarg(var, sGen, sGenSource)
       case "отправился":
-        return ufiniteVerb(var, 'GO_OFF', 'PAST',
-                (kDat):[noun:v[kDat].lightVar, head:var], (kDatGoal):[head:var, noun:v[kDat]],
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]])
+        return ufiniteVerb(var, 'GO_OFF', 'PAST')  + unomArg(var) + uarg(var, kDat, kDatGoal)
       case "пошли":
-        return ufiniteVerb(var, 'GO', 'PAST',
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]],
-                (vAcc):[noun:v[vAcc].lightVar, head:var], (vAccGoal):[head:var, noun:v[vAcc]])
+        return ufiniteVerb(var, 'GO', 'PAST') + unomArg(var) + uarg(var, vAcc, vAccGoal)
       case "спорили":
-        return ufiniteVerb(var, 'ARGUE', 'PAST',
-                (nom):[noun:v[nom].lightVar, head:var, agrNumber:'pl'], (nomSubject):[head:var, noun:v[nom]])
+        return ufiniteVerb(var, 'ARGUE', 'PAST') + unomArg(var, [agrNumber:'pl'])
       case "обнаружил":
       case "обнаружила":
       case "обнаружили":
-        return ufiniteVerb(var, 'DISCOVER', 'PAST', (declOrQuestionComp):[head:var],
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]])
+        return ufiniteVerb(var, 'DISCOVER', 'PAST', (declOrQuestionComp):[head:var]) + unomArg(var)
       case "улыбнулась":
-        return ufiniteVerb(var, 'SMILE', 'PAST',
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]])
+        return ufiniteVerb(var, 'SMILE', 'PAST') + unomArg(var)
       case "сказал":
       case "сказала":
-        def datNoun = v[dat].lightVar
-        return ufiniteVerb(var, 'SAY', 'PAST',
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]],
-                (dat):[noun:datNoun, head:var], (datAddressee):[head:var, noun:datNoun],
-                (directSpeech):[head:var, xor:t.a], (declOrQuestionComp):[head:var, xor:t.a])
+        return ufiniteVerb(var, 'SAY', 'PAST') + unomArg(var) + uarg(var, dat, datAddressee) +
+               u(directSpeech(head:var)).xor(declOrQuestionComp(head:var))
       case "вынул":
       case "вынула":
-        return ufiniteVerb(var, 'TAKE_OUT', 'PAST',
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]],
-                (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]],
-                (izGen):[noun:v[izGen].lightVar, head:var], (izGenSource):[noun:v[izGen], head:var])
+        return ufiniteVerb(var, 'TAKE_OUT', 'PAST') + unomArg(var) + uaccArg(var) + uarg(var, izGen, izGenSource)
       case "показались":
         return ufiniteVerb(var, 'SEEM', 'PAST',
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom]],
-                (dat):[noun:v[dat].lightVar, head:var], (participleArg):[head:var])
+                (dat):[noun:v[dat].lightVar, head:var], (participleArg):[head:var]) + unomArg(var)
       case "идет":
       case "идёт":
         Construction goes = varCxt(type:'GO')

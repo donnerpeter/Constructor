@@ -622,7 +622,7 @@ class StatefulGenerator {
   }
 
   private boolean isQuestion(Frame verb) {
-    return verb.flatten().any { findQuestioned(it) }
+    return verb && verb.flatten().any { findQuestioned(it) }
   }
 
   private def generateSubject(boolean shouldHaveSubject, boolean forceSubject, Frame verb, Frame subj) {

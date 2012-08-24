@@ -91,7 +91,7 @@ class Verbs {
       case "сказал":
       case "сказала":
         return ufiniteVerb(var, 'SAY', 'PAST') + unomArg(var) + uarg(var, dat, datAddressee) +
-               u(directSpeech(head:var)).xor(declOrQuestionComp(head:var))
+               u(declOrQuestionComp(head:var)).xor(directSpeech(head:var))
       case "вынул":
       case "вынула":
         return ufiniteVerb(var, 'TAKE_OUT', 'PAST') + unomArg(var) + uaccArg(var) + uarg(var, izGen, izGenSource)

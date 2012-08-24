@@ -378,7 +378,9 @@ interface RussianConstructions {
   }.satisfiedWhen { mite -> mite.contents.content && mite.contents.frame }
   Construction directSpeech = cxt('directSpeech', ['*head', 'message']) { ParsingState state, Map args ->
     state.assign(args.head, 'message', args.message).assign(args.message, 'directSpeech', 'true')
-  }.structural { mite, state, via, up -> mite.contents.head ? ParsingState.EMPTY : null }
+  }.structural { mite, state, via, up -> mite.contents.head ? ParsingState.EMPTY : null }.satisfiedWhen { mite ->
+    mite.contents.head && mite.contents.message
+  }
   Construction summerGarden = cxt('summerGarden', ['summer', 'garden']) { ParsingState state, Map args ->
     state.assign(args.garden, 'name', 'Летний сад')
   }

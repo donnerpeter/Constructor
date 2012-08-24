@@ -234,27 +234,30 @@ class ParsingState {
     return state == this || prevState?.isMoreRecentThan(state)
   }
 
-  LinkedHashSet<Mite> enrichUpdate(List<Mite> update) { _enrichUpdate(update, this) }
+  LinkedHashSet<Mite> enrichUpdate(List<Mite> update) { _enrichUpdate(update, null, this) }
 
-  private static LinkedHashSet<Mite> _enrichUpdate(List<Mite> update, ParsingState state) {
-    ParsingState original = state
-    LinkedHashSet<Mite> fullUpdate = []
-    Mite via = null
-    while (state) {
-      Mite link = state.findLink(via)
-      Set<Mite> links = state.findAllLinks(via)
-      for (mite in state.ownMites) {
-        if (!links || links.find { !original.network.contradict(mite, it) }) {
-          fullUpdate.addAll((mite.cxt.enrichAction(mite, update, state) as List<Mite>).reverse())
-        }
-      }
-      state = state.getPrevStateFromLink(link, via)
-      if (link) {
-        update = update.findAll { link.cxt.filterUpdate(link, it) }
-      }
-      via = link
+  private LinkedHashSet<Mite> _enrichUpdate(List<Mite> update, Mite via, ParsingState original) {
+    LinkedHashSet<Mite> fullUpdate = askEnrichAction(findMitesAlongParsingRoute(via, original), update)
+    Mite link = findLink(via)
+    ParsingState prev = getPrevStateFromLink(link, via)
+    if (prev) {
+      List<Mite> filtered = update.findAll { !link || link.cxt.filterUpdate(link, it) }
+      return fullUpdate + prev._enrichUpdate(filtered, link, original)
     }
-    fullUpdate
+    return fullUpdate
+  }
+
+  private LinkedHashSet<Mite> askEnrichAction(List<Mite> mites, List<Mite> update) {
+    LinkedHashSet<Mite> fullUpdate = []
+    for (mite in mites) {
+      fullUpdate.addAll((mite.cxt.enrichAction(mite, update, this) as List<Mite>).reverse())
+    }
+    return fullUpdate
+  }
+
+  private List<Mite> findMitesAlongParsingRoute(Mite via, ParsingState original) {
+    LinkedHashSet<Mite> links = findAllLinks(via)
+    return ownMites.findAll { mite -> !links || links.find { !original.network.contradict(mite, it) } }
   }
 
   ParsingState getPrevStateFromLink(Mite link, Mite via, ParsingState defValue = prevState) {
@@ -333,13 +336,17 @@ class ParsingState {
     def mites = visibleMites
     def link = findLink(null)
     def links = findAllLinks(null)
-    log += " -- $this->${getPrevStateFromLink(link, null)},  uni: " + chart.__unifications.keySet().collect { "${it.iterator().next()}=" + (it as List)[1] }.join(", ") + "\n"
+    log += "$this->${getPrevStateFromLink(link, null)},  uni: " + chart.__unifications.keySet().collect { "${it.iterator().next()}=" + (it as List)[1] }.join(", ") + "\n"
     for (k in mites.keySet()) {
       log += "    $k: " + mites[k].collect {
         (it in links ? '!!' : '') + (network.isChosen(it) ? '*' : '') + (it.satisfied ? '' : '@') +
         new LinkedHashMap(it.contents.reverse()) +
         (it.unifications ? ';' + it.unifications.collect { "<$it.first=$it.second>" }.join("") : '')
       }.join(" ") +"\n"
+    }
+    LinkedHashSet<Mite> invisible = network.chosenUnsatisfied.findAll { !(it in miteList) }
+    if (invisible) {
+      log += "    invisible: " + invisible.collect { "${network.isChosen(it) ? '*' : ''}@$it" }.join(", ") + "\n"
     }
     return log
   }

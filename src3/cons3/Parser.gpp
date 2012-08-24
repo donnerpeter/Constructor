@@ -15,7 +15,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     for (String w in tokenizer) {
       if (w != ' ') {
         state = handleWord(w.toLowerCase(), state)
-        log += w + "\n" + state.presentable()
+        log += w + " ${'-'*(120 - w.size())}\n" + state.presentable()
       }
     }
     return state.chart

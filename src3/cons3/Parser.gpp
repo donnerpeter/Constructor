@@ -237,15 +237,14 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply((nom):[noun:var, xor:t.a], (acc):[noun:var, xor:t.a], (typeCxt('THAT')):[var:var])
       case "что":
         def comp = new Variable()
-        Update update = u(acc(noun:var, xor:t.a, wh:true), nom(noun:var, xor:t.a, wh:true, agrNumber:'sg', agrGender:'neu'))
+        Update update = u(acc(noun:var, xor:t.a, wh:true), nom(noun:var, xor:t.a, wh:true, agrNumber:'sg', agrGender:'neu')) +
+                u(naPrep(head:var, copula:v[verbHolder].lightVar)).xor(noArg(head:var))
         update = update + [
                 (declOrQuestionComp):[comp:comp], (relativeClause):[wh:var, relative:v[verbHolder], xor:t.f],
-                (verbHolder):[head:v[verbHolder].lightVar], (naPrep):[head:var, copula:v[verbHolder].lightVar],
-                (typeCxt('wh')):[var:var, xor:t.f], (question):[questioned:var, frame:comp, xor:t.e], (modality):[questioned:var, xor:t.d], (complementizer):[xor:t.adef, frame:comp]]
+                (verbHolder):[head:v[verbHolder].lightVar],
+                (typeCxt('wh')):[var:var, xor:t.f], (question):[questioned:var, frame:comp, xor:t.e],
+                (modality):[questioned:var, xor:t.d], (complementizer):[xor:t.adef, frame:comp]]
         return update.apply(state)
-      case "раньше":
-        return state.apply((comeScalarly):[order:'EARLIER', xor:t.a], (relTime):[relTime:'BEFORE', xor:t.a],
-                (ransheGen):[noun:var], (gen):[noun:var.lightVar, head:var])
       case "-":
         state = state.advanceSection()
         return state.apply((directSpeech):[hasDash:true],
@@ -346,6 +345,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "после":
         Variable noun = new Variable()
         return u(comeScalarly(order:'AFTER'), posleGen(noun:noun)).xor(absTime(rel:'AFTER', noun:noun)) + u(gen(noun:noun.lightVar, head:var))
+      case "раньше":
+        Variable noun = new Variable()
+        return u(comeScalarly(order:'EARLIER'), ransheGen(noun:noun)).xor(relTime(relTime:'BEFORE', noun:noun)) + u(gen(noun:noun.lightVar, head:var))
     }
     return null
   }

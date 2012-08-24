@@ -117,13 +117,14 @@ class Verbs {
       case "идёт":
         Construction goes = varCxt(type:'GO')
         return uv(var, time:'PRESENT') + u(comeScalarly(verb:var, xor:t.ab), goes(var:var, xor:t.ad)) +
-               uarg(var, vPrep, vPrepCondition) + unomArg(var, [:], v[nom]) + uv(v[nom], person:'3') +
-               u(vAcc(noun:v[vAcc].lightVar, xor:t.be, head:var), vAccGoal(head:var, noun:v[vAcc]),
-                       noArg(head:var, xor:t.e),
-                       poDat(head:var), verbHolder(head:var), sentenceHolder(head:var),
+               uarg(var, vPrep, vPrepCondition).xor(noArg(head:var)) +
+               unomArg(var, [:], v[nom]) + uv(v[nom], person:'3') +
+               u(poDat(head:var)).xor(noArg(head:var)) +
+               u(vAcc(noun:v[vAcc].lightVar, xor:t.b, head:var), vAccGoal(head:var, noun:v[vAcc])).xor(noArg(head:var)) +
+               u(verbHolder(head:var), sentenceHolder(head:var),
                        posleGen(head:var, xor:t.d), ransheGen(head:var, xor:t.d),
-                       conditionComp(head:var), absTime(head:var),
-                       complementizer(content:var, xor:t.c), question(content:var, xor:t.c))
+                       conditionComp(head:var), absTime(head:var)) +
+               u(complementizer(content:var)).xor(question(content:var))
       case "следовало":
         return uv(var, time:'PAST') + unomArg(var) + uarg(var, poDat, poDatOpinion) +
                u(comeScalarly(verb:var), verbHolder(head:var), sentenceHolder(head:var),

@@ -145,6 +145,15 @@ B.number=true
     doTranslateTest "Я забыл, что идёт после 7 и что идёт раньше 8.", "I forgot what comes after a 7 and what comes before an 8."
   }
 
+  public void _test1_ForgetQuestionAndFact() throws Exception {
+    doTranslateTest "Я забыл, что 8 идёт после 7 и что идёт раньше 5.",
+            "I forgot that 8 comes after a 7 and what comes before a 5."
+  }
+  public void _test1_ForgetFactAndQuestion() throws Exception {
+    doTranslateTest "Я забыл, что идёт после 7 и что 4 идёт раньше 5.",
+            "I forgot what comes after a 7 and that 4 comes before a 5."
+  }
+
   public void test4_123TheyRemember() throws Exception {
     doTranslateTest "1, 2 и 3 они помнят", "They remember 1, 2 and 3"
   }

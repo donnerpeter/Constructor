@@ -113,6 +113,7 @@ class Frame {
       for (member in allAssignments('member')) {
         heads << (Frame) member.value
       }
+      assert !(this in heads)
       return heads as List
     }
     return [this]

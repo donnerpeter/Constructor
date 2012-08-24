@@ -85,7 +85,7 @@ class SeqInterceptor implements RussianConstructions {
       }
 
     } else if (constructions.find { it.cxt == declOrQuestionComp && it.contents.comp }) {
-      result.add(self.unify(seq(questionLevel:'true')))
+//      result.add(self.unify(seq(questionLevel:'true')))
     }
 
     return result

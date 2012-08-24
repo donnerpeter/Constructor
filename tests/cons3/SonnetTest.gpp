@@ -55,7 +55,7 @@ C.number=true
     def chart = parser.parse(input)
     def result = chart.presentable()
     if (expected.trim() != result) {
-      println parser.log
+      parser.printLog()
       assertEquals expected.trim() + "\n", result + "\n"
     }
   }
@@ -699,19 +699,29 @@ A.goal=C
     Variable.counter = 0
     Tokens.counter = 0
     def parser = new Parser()
-    def chart = parser.parse(input)
+
+    Chart chart
+    try {
+      chart = parser.parse(input)
+    } catch (Throwable e) {
+      parser.printLog()
+      throw e
+    }
+
     String actual
     try {
       actual = new EnglishGenerator().generate(chart)
     } catch (Throwable e) {
       println "\nChart:\n\n${chart.presentable()}"
-      println "\nLog:\n\n$parser.log\n"
+      parser.printLog()
       throw e
     }
+
     if (actual != expected) {
       println "\nChart:\n\n${chart.presentable()}"
-      println "\nLog:\n\n$parser.log"
+      parser.printLog()
     }
+
     assertEquals expected, actual
   }
 }

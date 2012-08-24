@@ -9,6 +9,10 @@ import static cons3.RussianConstructions.*
 class Parser { //todo alex implements cons3.RussianConstructions
   String log = ""
 
+  void printLog() {
+    println "\nLog:\n\n$log\n"
+  }
+
   Chart parse(String text) {
     ParsingState state = new ParsingState()
     def tokenizer = new StringTokenizer(text, """ '":,.?!""", true)

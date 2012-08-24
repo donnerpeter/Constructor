@@ -11,7 +11,17 @@ class Network {
   final Map<Object, Collection<Mite>> groups = [:]
   final LinkedHashSet<Mite> _chosen = []
 
-  static Network maximizeSatisfiedness(Network net, List<Mite> fixed) {
+  Network maximizeSatisfiedness() {
+    Network net = this
+    while (true) {
+      Network better = tryMaximizeSatisfiedness(net, [])
+      if (better == net) {
+        return net
+      }
+      net = better
+    }
+  }
+  private static Network tryMaximizeSatisfiedness(Network net, List<Mite> fixed) {
     Network best = net
     for (mite in net.chosenUnsatisfied) {
       for (alt in net.contradictors[mite]) {
@@ -24,7 +34,7 @@ class Network {
         def unsatisfied1 = best.chosenUnsatisfied
         def unsatisfied2 = alternative.chosenUnsatisfied
         if (unsatisfied2.size() <= unsatisfied1.size()) {
-          alternative = maximizeSatisfiedness(alternative, appended)
+          alternative = tryMaximizeSatisfiedness(alternative, appended)
           unsatisfied2 = alternative.chosenUnsatisfied
           if (unsatisfied2.size() < unsatisfied1.size()) {
             best = alternative

@@ -42,7 +42,10 @@ class Verbs {
       case "забыл":
       case "забыла":
       case "забыли":
-        return ufiniteVerb(var, 'FORGET', 'PAST') + unomArg(var) +
+        def gender = word == 'забыли' ? 'pl' : word == 'забыла' ? 'fem' : 'masc'
+        Map<String,String> agr = [agrGender:gender]
+        return ufiniteVerb(var, 'FORGET', 'PAST') + unomArg(var, agr, v[nom]) +
+               uv(v[nom], gender:gender, person:'3') +
                u(elaboration(elaboration:var), advObj(head:var, xor:t.a),
                        acc(noun:v[acc].lightVar, head:var, xor:t.a), accArg2(head:var, noun:v[acc]),
                        declOrQuestionComp(head:var, xor:t.a))
@@ -60,11 +63,11 @@ class Verbs {
 
       case "помнят":
       case "помнит":
-        return ufiniteVerb(var, 'REMEMBER', 'PRESENT',
-                (nom):[noun:v[nom].lightVar, head:var], (nomSubject):[head:var, noun:v[nom], xor:t.a],
-                (varCxt(rusNumber:(word == "помнят" ? 'pl' : 'sg'), person:'3')):[var:v[nom]],
-                (verbHolder):[head:var],
-                (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc], xor:t.b])
+        Map<String,String> agr = [agrGender:null]
+        return ufiniteVerb(var, 'REMEMBER', 'PRESENT') +
+               unomArg(var, agr, v[nom]) +
+               uv(v[nom], rusNumber:(word == "помнят" ? 'pl' : 'sg'), person:'3') +
+               uaccArg(var)
       case "может":
       case "могут":
         return ufiniteVerb(var, 'CAN', 'PRESENT', (control):[subj:v[nom], head:var],

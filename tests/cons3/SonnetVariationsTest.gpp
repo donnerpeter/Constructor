@@ -85,6 +85,8 @@ A.type=ME
 B.type=FORGET
 B.time=PAST
 B.arg1=A
+A.gender=masc
+A.person=3
 -- 2:
 B@1.arg2=A
 B.type=wh

@@ -23,6 +23,8 @@ B@1.elaboration=B
 B.type=FORGET
 B.time=PAST
 B.arg1=A
+A.gender=masc
+A.person=3
 -- 3:
 B@2.arg2=A
 B.type=wh
@@ -192,12 +194,12 @@ A@5.conj=and
 A@5.member=B
 B.type=6
 B.number=true
+C.type=REMEMBER
+C.time=PRESENT
 C.arg1=D
 D.rusNumber=pl
 D.person=3
 C.arg2=A@5
-C.type=REMEMBER
-C.time=PRESENT
 -- 9:
 A.andEmphasis=true
 B.member=C@8
@@ -207,6 +209,7 @@ A.arg2=C
 A.type=FORGET
 A.time=PAST
 A.arg1=D@8
+D@8.gender=pl
 C.type=NEXT
 A.dot=true
 """

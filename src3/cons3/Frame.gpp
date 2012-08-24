@@ -37,7 +37,7 @@ class Frame {
     return controller
   }
 
-  Frame f(String attr) {
+  Frame f(String attr, boolean infer = false) {
     def v = definedAttributeValue(attr)
     if (v instanceof Frame) {
       if (attr == 'arg1' && !v.definedAttributeValue('type')) {
@@ -98,7 +98,7 @@ class Frame {
     return new Frame(new Variable(), chart) {
 
       @Override
-      String s(String attr) {
+      String s(String attr, boolean infer = false) {
         def s = attrs[attr]
         return s instanceof String ? (String) s : null
       }
@@ -118,7 +118,7 @@ class Frame {
     return [this]
   }
 
-  String s(String attr) {
+  String s(String attr, boolean infer = false) {
     def v = definedAttributeValue(attr)
     if (v instanceof String) {
       return (String) v
@@ -149,6 +149,11 @@ class Frame {
     if (attr == 'type') {
       if (f('member')) return null
       if (s('rusNumber') == 'pl') return 'THEY'
+      if (s('person') == '3' && infer) {
+        if (usages('arg1').find { it.humanAction }) {
+          return s('gender') == 'fem' ? 'SHE' : 'HE'
+        }
+      }
     }
 
     if (attr == 'quantifier' && type in ['WE', 'THEY'] && usages('arg1')[0]?.type == 'DISPERSE') {
@@ -164,6 +169,7 @@ class Frame {
     return null
   }
 
+  String getTypeInferred() { s('type', true) }
   String getType() { s('type') }
 
   List<Assignment<Frame>> getAllAssignments() {
@@ -213,5 +219,9 @@ class Frame {
     }
 
     chart.frames.findAll { it.f(attrName) == (Frame) this }
+  }
+
+  boolean isHumanAction() {
+    type in ['GO', 'BREAK', 'CAN', 'REMEMBER', 'FORGET']
   }
 }

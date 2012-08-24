@@ -729,7 +729,7 @@ class StatefulGenerator {
             ASK: (verb.f('topic')?.type == 'PREDICAMENT' ? 'consulted' : (past ? 'asked' : 'ask')),
             DISCOVER: 'discovered', CAN: "couldn't", RECALL: 'recall', TAKE_OUT: "took",
             SAY:(verb.f('addressee') ? 'told' : 'said'),
-            REMEMBER: (past ? 'remembered' : verb.f('arg1')?.type in ['HE', 'SHE'] ? 'remembers' : 'remember'), GO: (past ? 'went' : 'goes'),
+            REMEMBER: (past ? 'remembered' : verb.f('arg1')?.typeInferred in ['HE', 'SHE'] ? 'remembers' : 'remember'), GO: (past ? 'went' : 'goes'),
             RUN_OUT: 'ran', THANK: 'thanked',
             GET_SAD: 'got sad', DO: 'do', NEED:'need',
             BEGIN:'started', STOP:'stopped',
@@ -761,26 +761,28 @@ class StatefulGenerator {
       return
     }
 
-    if (n.type == 'ME') {
+    String type = n.typeInferred
+
+    if (type == 'ME') {
       out (nom ? 'I' : "me")
       return
     }
-    if (n.type == 'HE') {
+    if (type == 'HE') {
       out (nom ? 'he' : "him")
       return
     }
-    if (n.type == 'SHE') {
+    if (type == 'SHE') {
       out (nom ? 'she' : "her")
       return
     }
-    if (n.type == 'WE') {
+    if (type == 'WE') {
       out (nom ? 'we' : "us")
       if (n.s('quantifier') == 'ALL') {
         out 'all'
       }
       return
     }
-    if (n.type == 'THEY') {
+    if (type == 'THEY') {
       out (nom ? 'they' : "them")
       if (n.s('quantifier') == 'ALL') {
         out 'all'
@@ -788,16 +790,16 @@ class StatefulGenerator {
       return
     }
 
-    if (n.type == 'wh') {
+    if (type == 'wh') {
       out 'what'
       return
     }
-    if (n.type == 'THAT') {
+    if (type == 'THAT') {
       out 'that'
       return
     }
 
-    if (n.type == 'NEXT') {
+    if (type == 'NEXT') {
       out 'what comes next' //todo a non-hacky model for 'what comes next'
       return
     }
@@ -839,16 +841,16 @@ class StatefulGenerator {
     if (criterion) {
       out noun(criterion)
     }
-    if (n.type == 'CASHIER' && n.f('arg1')) {
+    if (type == 'CASHIER' && n.f('arg1')) {
       np(n.f('arg1'), false, false)
     }
 
-    if (n.type == 'SHOP') {
+    if (type == 'SHOP') {
       if (n.s('name') == 'гастроном') {
         out 'grocery'
       }
       out('store')
-    } else if (n.type == 'GARDEN') {
+    } else if (type == 'GARDEN') {
       out(n.s('name') == 'Летний сад' ? 'Summer Garden' : 'garden')
     }
     else if (isNumber(n)) {
@@ -892,7 +894,7 @@ class StatefulGenerator {
   }
 
   private boolean isShortPronoun(Frame noun) {
-    return noun?.type in ['ME', 'THEY', 'HE', 'SHE', 'WE']
+    return noun?.typeInferred in ['ME', 'THEY', 'HE', 'SHE', 'WE']
   }
 
   private boolean isNumber(Frame n) {

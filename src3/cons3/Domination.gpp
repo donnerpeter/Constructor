@@ -7,8 +7,7 @@ import groovy.transform.TupleConstructor
  */
 @TupleConstructor
 class Domination {
-  private static Set<String> humanActions = ['GO', 'BREAK', 'CAN', 'REMEMBER', 'FORGET']
-  private static Set<String> verbs = humanActions + ['COME_SCALARLY', 'fact', 'question']
+  private static final Set<String> nonHumanVerbs = ['COME_SCALARLY', 'fact', 'question']
   ParsingState self
   ParsingState other
 
@@ -53,10 +52,10 @@ class Domination {
       return true
     }
 
-    for (verb in self.chart.frames.findAll { it.type in verbs }) {
+    for (verb in self.chart.frames.findAll { it.humanAction || it.type in nonHumanVerbs }) {
       def alternative = verb.unifiedVar.frame(other.chart)
 
-      if (verb.type in humanActions ||
+      if (verb.humanAction ||
           verb.type == 'COME_SCALARLY' && verb.f('anchor')?.canBeHuman() && alternative.type == 'COME_SCALARLY' && alternative.f('anchor')?.canBeHuman()) {
         boolean meHuman = !verb.f('arg1')?.definitelyNonHuman()
         def otherHuman = !alternative.f('arg1')?.definitelyNonHuman()

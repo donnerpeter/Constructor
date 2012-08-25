@@ -259,8 +259,40 @@ B.number=true
     doTranslateTest 'Кассирша, слегка подвигав челюстью, сказала:',
                     "Moving her jaw slightly back and forth, the cashier said:"
   }
+  public void test6_7_IndirectSheShort() throws Exception {
+    doTranslateTest 'Кассирша сказала, что семь идет после восьми',
+                    "The cashier said that a seven comes after an eight"
+  }
   public void test6_7_IndirectShe() throws Exception {
     doTranslateTest 'Кассирша сказала, что, по ее мнению, семь идет после восьми в том случае, когда восемь идет после семи',
+                    "The cashier said that in her opinion, a seven comes after an eight, only if an eight comes after a seven"
+  }
+  public void _test6_7_IndirectShe() throws Exception {
+    doTranslateTest 'Кассирша сказала, подвигав носом, что, по ее мнению, семь идет после восьми в том случае, когда восемь идет после семи',
+                    "The cashier said that in her opinion, a seven comes after an eight, only if an eight comes after a seven"
+  }
+  public void __test6_7_IndirectShe() throws Exception {
+    doTranslateTest 'Кассирша сказала, подвигав носом:\n - Семь идет после восьми.',
+                    "The cashier said that in her opinion, a seven comes after an eight, only if an eight comes after a seven"
+  }
+  public void ___test6_7_IndirectShe() throws Exception {
+    doTranslateTest 'Я забыл, по чьему мнению семь идет после восьми.',
+                    "The cashier said that in her opinion, a seven comes after an eight, only if an eight comes after a seven"
+  }
+  public void ____test6_7_IndirectShe() throws Exception {
+    doTranslateTest 'Я забыл, по чьим словам семь идет после восьми.',
+                    "The cashier said that in her opinion, a seven comes after an eight, only if an eight comes after a seven"
+  }
+  public void _____test6_7_IndirectShe() throws Exception {
+    doTranslateTest 'Я забыл, по чьим словам и мнению семь идет после восьми.',
+                    "The cashier said that in her opinion, a seven comes after an eight, only if an eight comes after a seven"
+  }
+  public void ______test6_7_IndirectShe() throws Exception {
+    doTranslateTest 'Я забыл, по словам кого семь идет после восьми.',
+                    "The cashier said that in her opinion, a seven comes after an eight, only if an eight comes after a seven"
+  }
+  public void _______test6_7_IndirectShe() throws Exception {
+    doTranslateTest 'Я забыл, по словам и мнению кого семь идет после восьми.',
                     "The cashier said that in her opinion, a seven comes after an eight, only if an eight comes after a seven"
   }
   public void test6_7_IndirectHeOpinion() throws Exception {

@@ -239,16 +239,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply((conditionComp):[wh:'when', comp:v[verbHolder]], (verbHolder):[head:v[verbHolder].lightVar])
       case "это":
         return state.apply((nom):[noun:var, xor:t.a], (acc):[noun:var, xor:t.a], (typeCxt('THAT')):[var:var])
-      case "что":
-        def comp = new Variable()
-        Update update = u(acc(noun:var, xor:t.a, wh:true), nom(noun:var, xor:t.a, wh:true, agrNumber:'sg', agrGender:'neu')) +
-                u(naPrep(head:var, copula:v[verbHolder].lightVar)).xor(noArg(head:var))
-        update = update + [
-                (declOrQuestionComp):[comp:comp], (relativeClause):[wh:var, relative:v[verbHolder], xor:t.f],
-                (verbHolder):[head:v[verbHolder].lightVar],
-                (typeCxt('wh')):[var:var, xor:t.f], (question):[questioned:var, frame:comp, xor:t.e],
-                (modality):[questioned:var, xor:t.d], (complementizer):[xor:t.adef, frame:comp]]
-        return update.apply(state)
       case "-":
         state = state.advanceSection()
         return state.apply((directSpeech):[hasDash:true],
@@ -290,6 +280,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
   }
 
   Update parseUpdate(String word) {
+    Tokens t = new Tokens()
     Variable var = new Variable()
     switch (word) {
       case "васи":
@@ -352,6 +343,16 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "раньше":
         Variable noun = new Variable()
         return u(comeScalarly(order:'EARLIER'), ransheGen(noun:noun)).xor(relTime(relTime:'BEFORE', noun:noun)) + u(gen(noun:noun.lightVar, head:var))
+      case "что":
+        def comp = new Variable()
+        def nextVerb = new Variable()
+        Update update = u(acc(noun:var, xor:t.a, wh:true), nom(noun:var, xor:t.a, wh:true, agrNumber:'sg', agrGender:'neu')) +
+                        u(naPrep(head:var, copula:nextVerb.lightVar)).xor(noArg(head:var))
+        return update + [
+                (declOrQuestionComp):[comp:comp], (relativeClause):[wh:var, relative:nextVerb, xor:t.f],
+                (verbHolder):[head:nextVerb.lightVar],
+                (typeCxt('wh')):[var:var, xor:t.f], (question):[questioned:var, frame:comp, xor:t.e],
+                (modality):[questioned:var, xor:t.d], (complementizer):[xor:t.adef, frame:comp]]
     }
     return null
   }

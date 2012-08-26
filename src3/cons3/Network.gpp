@@ -113,8 +113,7 @@ class Network {
     return best
   }
 
-  private Mite findBest(LinkedHashSet<Mite> mites, LinkedHashSet<Mite> chosen, LinkedHashSet<Object> queue, LinkedHashSet<Object> processed) {
-    LinkedHashSet<Mite> unprocessed = mites.findAll { !Util.intersects(allGroups(it), processed) }
+  private Mite findBest(LinkedHashSet<Mite> unprocessed, LinkedHashSet<Mite> chosen, LinkedHashSet<Object> queue) {
     def best
     if (!best) {
       best = findMiteWithMostGroups(unprocessed.findAll { Mite mite -> !mite.atom && mite.satisfied }, queue)
@@ -131,30 +130,25 @@ class Network {
     return best
   }
 
-  private LinkedHashSet<Mite> rearrangeUpdatedMites(Collection<Mite> updated) {
+  private LinkedHashSet<Mite> filterNonContradicting(LinkedHashSet<Mite> updated) {
+    LinkedHashSet<Mite> filtered = []
+    for (mite in updated) {
+      if (!Util.intersects(contradictors[mite], filtered)) {
+        filtered << mite
+      }
+    }
+    return filtered
+  }
+  private LinkedHashSet<Mite> rearrangeUpdatedMites(List<Mite> updated) {
     LinkedHashSet<Mite> preferred = []
-
-    for (mite in updated) {
-      def ancestor = findChosenAncestor(mite, _chosen)
-      if (ancestor && !Util.intersects(preferred, contradictors[mite])) {
-        preferred << mite
-      }
-    }
-
-    List<Mite> newMerged = (updated as List<Mite>).findAll { !it.atom }
-    for (mite in newMerged.findAll { !contradictors[it].any { !it.atom && isChosen(it) } }) {
-      if (!Util.intersects(preferred, contradictors[mite])) {
-        preferred << mite
-      }
-    }
-
-    for (mite in updated) {
-      if (!Util.intersects(preferred, contradictors[mite])) {
-        preferred << mite
-      }
-    }
-
+    preferred.addAll(updated.findAll { findChosenAncestor(it, _chosen) })
+    preferred.addAll(updated.findAll { !it.atom && !hasChosenMergedContradictors(it) })
+    preferred.addAll(updated)
     return preferred
+  }
+
+  private boolean hasChosenMergedContradictors(Mite mite) {
+    return contradictors[mite].any { !it.atom && isChosen(it) }
   }
 
 
@@ -164,7 +158,7 @@ class Network {
     LinkedHashSet<Object> groupsToProcess = []
     LinkedHashSet<Object> processed = []
 
-    for (mite in rearrangeUpdatedMites(preferred)) {
+    for (mite in filterNonContradicting(rearrangeUpdatedMites(preferred as List))) {
       result << mite
       processed.addAll(allGroups(mite))
       for (displaced in Util.intersect(contradictors[mite], result)) {
@@ -176,8 +170,9 @@ class Network {
 
     while (groupsToProcess) {
       LinkedHashSet<Mite> mitesToProcess = groupsToProcess.collect { groups[it] }.flatten() as LinkedHashSet
+      LinkedHashSet<Mite> unprocessed = mitesToProcess.findAll { !Util.intersects(allGroups(it), processed) }
 
-      Mite best = findBest(mitesToProcess, result, groupsToProcess, processed)
+      Mite best = findBest(unprocessed, result, groupsToProcess)
       if (!best) {
          break
       }

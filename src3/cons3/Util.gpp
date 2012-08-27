@@ -107,7 +107,6 @@ class Util {
     cxt(name, ['+noun', '*head']) { ParsingState state, Map args ->
       state
     }.structural { mite, state, via, up ->
-      if (mite.contents.wh) return null
       if (up) return state.findState(mite, 'head')
       return state.findState(mite.firstAtom)?.prevVisibleState
     }.enrichingMites { mite, contribution, state ->

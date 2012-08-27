@@ -59,7 +59,9 @@ class Domination {
           verb.type == 'COME_SCALARLY' && verb.f('anchor')?.canBeHuman() && alternative.type == 'COME_SCALARLY' && alternative.f('anchor')?.canBeHuman()) {
         boolean meHuman = !verb.f('arg1')?.definitelyNonHuman()
         def otherHuman = !alternative.f('arg1')?.definitelyNonHuman()
-        if (meHuman != otherHuman && verb.f('arg1')?.type && alternative.f('arg1')?.type) {
+        if (meHuman != otherHuman &&
+            verb.f('arg1')?.type && alternative.f('arg1')?.type &&
+            self.network.chosenUnsatisfied.size() <= other.network.chosenUnsatisfied.size()) {
           return meHuman
         }
       }

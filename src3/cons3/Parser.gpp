@@ -2,6 +2,7 @@ package cons3
 
 import static cons3.Construction.cxt
 import static cons3.RussianConstructions.*
+import static cons3.Util.emptyCxt
 
 /**
  * @author peter
@@ -346,13 +347,27 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "что":
         def comp = new Variable()
         def nextVerb = new Variable()
-        Update update = u(acc(noun:var, xor:t.a, wh:true), nom(noun:var, xor:t.a, wh:true, agrNumber:'sg', agrGender:'neu')) +
+        def fillerContent = [acc(noun:var, xor:t.g), nom(noun:var, xor:t.g, agrNumber:'sg', agrGender:'neu')]
+
+        def filler = emptyCxt('filler nom/acc').enrichingMites { mite, contribution, state ->
+          def result = fillerContent.collect { it.unifyWherePossible(contribution) }.flatten()
+          if (result) {
+            //todo try harder that any xor group has a representative
+            def unsatisfied = emptyCxt('unsatisfied hack').satisfiedWhen { any -> false }
+            return result +
+                   question(questioned:var, frame:comp, xor:t.e).unifyWherePossible(contribution) +
+                   [unsatisfied(xor:t.g)]
+          }
+          return []
+        }
+
+        Update update = u(filler(xor:t.a)) +
                         u(naPrep(head:var, copula:nextVerb.lightVar)).xor(noArg(head:var))
         return update + [
                 (declOrQuestionComp):[comp:comp], (relativeClause):[wh:var, relative:nextVerb, xor:t.f],
                 (verbHolder):[head:nextVerb.lightVar],
-                (typeCxt('wh')):[var:var, xor:t.f], (question):[questioned:var, frame:comp, xor:t.e],
-                (modality):[questioned:var, xor:t.d], (complementizer):[xor:t.adef, frame:comp]]
+                (typeCxt('wh')):[var:var, xor:t.f],
+                (modality):[questioned:var, xor:t.d], (complementizer):[xor:t.adefg, frame:comp]]
     }
     return null
   }
@@ -428,7 +443,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     return upronoun(caze, new Variable(), type).apply(state)
   }
 
-  private Construction typeCxt(String type) {
+  private static Construction typeCxt(String type) {
     return varCxt(type:type)
   }
 

@@ -160,7 +160,7 @@ class ParsingState {
 
       List<Mite> toCheck = (fullUpdate as List<Mite>).findAll { it.cxt == cxt }
       def last = state.visibleMites[cxt].reverse()[0]
-      if (last) {
+      if (last && !(last in toCheck)) {
         toCheck << last
       }
 

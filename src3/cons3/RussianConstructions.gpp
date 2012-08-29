@@ -70,7 +70,9 @@ interface RussianConstructions {
   Construction poDat = commonPrep('po', dat)
   Construction poDatTopic = commonArg('poDat', 'topic')
   Construction poDatGoal = commonArg('poDat', 'goal')
-  Construction poDatOpinion = commonArg('poDat', 'opinion_of')
+  Construction poDatOpinion = cxt("poDatOpinion", ['noun', '*head']) { ParsingState state, Map args ->
+    state.assign(args.head, 'opinion_of', args.noun)
+  }
   Construction poDatLuck = commaSurrounded(cxt("poDatLuck", ['content', '*head']) { ParsingState state, Map args ->
     state.assign(args.content, 'topic', args.head)
   })
@@ -157,11 +159,19 @@ interface RussianConstructions {
 
     return ParsingState.EMPTY
   }.enrichingMites { mite, update, state ->
-    if (mite.contents.prep == 'по' && update.find { it.cxt == word && it.contents.word == 'счастию'}) {
-      def noun = update.find { it.cxt == dat }.contents.noun
-      def prevState = state.findState(mite).prevState
-      def result = [new Mite(poDatLuck, content:noun)]
-      return result + prevState.enrichUpdate(result)
+    if (mite.contents.prep == 'по') {
+      def noun = update.find { it.cxt == dat }?.contents?.noun
+      if (noun) {
+        def prevState = state.findState(mite).prevState
+        def result = []
+        if (update.find { it.cxt == word && it.contents.word == 'счастию'}) {
+          result << new Mite(poDatLuck, content:noun)
+        }
+        if (update.find { it.cxt == word && it.contents.word in ['мнению', 'словам']}) {
+          result << new Mite(poDatOpinion, noun:noun, head:mite.contents.head)
+        }
+        return result + prevState.enrichUpdate(result)
+      }
     }
     List<Mite> refl = update.findAll { it.cxt == reflexiveHolder }
     if (refl) {
@@ -423,4 +433,8 @@ interface RussianConstructions {
   Construction quote = emptyCxt('quote').enrichingMites { mite, contribution, state -> [] }
 
   Construction noArg = emptyCxt('noArg')
+
+  Construction verbalModifier = emptyCxt('verbalModifier').structural { mite, state, via, up ->
+    state.findState(mite.firstAtom)?.prevVisibleState
+  }
 }

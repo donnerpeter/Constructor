@@ -111,8 +111,8 @@ class Verbs {
                        conditionComp(head:var), absTime(head:var)) +
                u(complementizer(content:var)).xor(question(content:var))
       case "следовало":
-        return uv(var, time:'PAST') + unomArg(var) + uarg(var, poDat, poDatOpinion) +
-               u(comeScalarly(verb:var), verbHolder(head:var), sentenceHolder(head:var),
+        return uv(var, time:'PAST') + unomArg(var) +
+               u(comeScalarly(verb:var), verbHolder(head:var), verbalModifier(head:var), sentenceHolder(head:var),
                        posleGen(head:var, xor:t.d), relTime(head:var), elaboration(elaboration:var))
       case 'был':
         def subj = new Variable().lightVar

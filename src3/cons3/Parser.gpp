@@ -107,8 +107,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply((preposition):[prep:'с'],
                 (sInstr):[noun:var, xor:t.ac], (sGen):[noun:var, xor:t.ab],
                 (instr):[noun:var.lightVar, xor:t.bd, head:var], (gen):[noun:var.lightVar, xor:t.cd, head:var])
-      case 'по':
-        return state.apply((preposition):[prep:'по'], (poDat):[noun:var], (dat):[noun:var.lightVar, head:var])
       case 'о': return state.apply((preposition):[prep:'о'], (oPrep):[noun:var], (prep):[noun:var.lightVar, head:var])
       case 'к': return state.apply((preposition):[prep:'к'], (kDat):[noun:var], (dat):[noun:var.lightVar, head:var])
       case 'у': return state.apply((preposition):[prep:'у'], (uGen):[noun:var], (gen):[noun:var.lightVar, head:var])
@@ -283,6 +281,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
   Update parseUpdate(String word) {
     Tokens t = new Tokens()
     Variable var = new Variable()
+    Vars v = new Vars()
     switch (word) {
       case "васи":
         return unoun(gen, var, null) + uv(var, name:'Вася')
@@ -323,10 +322,10 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "других": return unoun(gen, var, 'OTHERS')
       case "мнению":
         return unoun(dat, var, 'OPINION') +
-               uarg(var, gen, genArg1).xor(uposs(var, possAuthor))
+               uarg(var, gen, genArg1).xor(uposs(var, possAuthor)) + u(RussianConstructions.word(word:word))
       case "словам":
         return unoun(dat, var, 'WORDS') +
-               uarg(var, gen, genArg1).xor(uposs(var, possAuthor))
+               uarg(var, gen, genArg1).xor(uposs(var, possAuthor)) + u(RussianConstructions.word(word:word))
       case "слова":
         return uv(var, type:'WORDS') + unoun(acc, var, null).xor(unoun(nom, var, null)) +
                uarg(var, gen, genAuthor) + uposs(var, possAuthor)
@@ -368,6 +367,10 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (verbHolder):[head:nextVerb.lightVar],
                 (typeCxt('wh')):[var:var, xor:t.f],
                 (modality):[questioned:var, xor:t.d], (complementizer):[xor:t.adefg, frame:comp]]
+      case 'по':
+        return u(preposition(prep:'по', head:v[verbalModifier]),
+                poDat(noun:var), dat(noun:var.lightVar, head:var),
+                verbalModifier(head:v[verbalModifier].lightVar))
     }
     return null
   }

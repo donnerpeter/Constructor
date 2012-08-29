@@ -575,35 +575,35 @@ D.type=ARGUE
 C.theme=D
 -- 3:
 A.type=OPINION
-B.type=SOME
-A.arg1=B
-C.type=COME_SCALARLY
-C.order=AFTER
-D@2.elaboration=C
-C.time=PAST
-C.arg1=D
-C.opinion_of=A
+B.opinion_of=A
+C.type=SOME
+A.arg1=C
+B.type=COME_SCALARLY
+B.order=AFTER
+D@2.elaboration=B
+B.time=PAST
+B.arg1=D
 D.type=7
 D.number=true
 -- 4:
 A.type=OPINION
-B.type=OTHERS
-A.arg1=B
+B.opinion_of=A
+C.type=OTHERS
+A.arg1=C
 -- 5:
 A.type=ellipsis
 <A>
-B.type=COME_SCALARLY
-B.order=AFTER
-B.time=PAST
-B.arg1=C
-B.opinion_of=A@4
-D.member=C@3
-D.conj=but
-D.member=B
-D@2.elaboration=D
+B@4.type=COME_SCALARLY
+B@4.order=AFTER
+B@4.time=PAST
+B@4.arg1=B
+C.member=B@3
+C.conj=but
+C.member=B@4
+D@2.elaboration=C
 </A>
-C.type=8
-C.number=true
+B.type=8
+B.number=true
 '''
   }
 

@@ -93,7 +93,7 @@ class Util {
     if (mite.contents.comma1 && !mite.contents.content) {
       return ParsingState.EMPTY
     }
-    if (mite.contents.content && mite.contents.comma2) {
+    if (mite.contents.content) {
       def firstAtom = mite.firstAtom
       if (firstAtom?.contents?.comma1) {
         return state.findState(firstAtom).prevState

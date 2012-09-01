@@ -165,7 +165,7 @@ interface RussianConstructions {
         def prevState = state.findState(mite).prevState
         def result = []
         if (update.find { it.cxt == word && it.contents.word == 'счастию'}) {
-          result << new Mite(poDatLuck, content:noun)
+          result << new Mite(poDatLuck, content:noun, head:mite.contents.head)
         }
         if (update.find { it.cxt == word && it.contents.word in ['мнению', 'словам']}) {
           result << new Mite(poDatOpinion, content:noun, head:mite.contents.head)
@@ -433,6 +433,14 @@ interface RussianConstructions {
   Construction noArg = emptyCxt('noArg')
 
   Construction verbalModifier = emptyCxt('verbalModifier').structural { mite, state, via, up ->
-    state.findState(mite.firstAtom)?.prevVisibleState
+    if (((Variable) mite.lastAtom.contents.head)?.hard) {
+      return state.findState(mite.firstAtom)?.prevVisibleState
+    }
+  }.enrichingMites { mite, contribution, state ->
+    if (mite.contents.mustFinish) {
+      return []
+    }
+    return mite.unifyWherePossible(contribution.findAll { it.cxt == verbalModifier && !it.contents.mustStart })
   }
+
 }

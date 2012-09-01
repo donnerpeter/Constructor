@@ -133,14 +133,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "мое": return state.apply((typeCxt('ME')):[var:var], (possessive):[possessor:var, xor:t.a])
       case "моему": return state.apply((typeCxt('ME')):[var:var], (possessive):[possessor:var])
       case "нашего": return state.apply((typeCxt('WE')):[var:var], (possessive):[possessor:var])
-      case "и": return state.apply((seq):[conj:'and'])
-      case "или": return state.apply((seq):[conj:'or'])
       case "а":
       case "но":
-        return state.apply((seq):[conj:'but'],
-                (clauseEllipsis):[prevHistory:state],
-                (verbEmphasis):[emphasis:word == 'а' ? 'andEmphasis' : 'butEmphasis', verb:var],
-                (sentenceHolder):[head:var.lightVar])
+        return u(seq(conj:'but'), clauseEllipsis(prevHistory:state),
+                verbEmphasis(emphasis:word == 'а' ? 'andEmphasis' : 'butEmphasis', verb:var),
+                sentenceHolder(head:var.lightVar), verbalModifier(head:var.lightVar)).apply(state)
       case "тут":
         return state.assign(var.lightVar, 'emphasis', 'true').apply((verbHolder):[head:var.lightVar])
       case "все":
@@ -225,6 +222,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply(
                 comma(hasComma:true), seq(conj:',', xor:t.a),
                 verbHolder(mustFinish:true, head:before), verbHolder(mustStart:true, head:after),
+                verbalModifier(mustFinish:true, head:before), verbalModifier(mustStart:true, head:after),
                 reasonComp(hasComma:true, xor:t.a),
                 declOrQuestionComp(hasComma:true, xor:t.a),
                 adverbialPhrase(comma1:true, head:before, xor:t.a), adverbialPhrase(comma2:true, head:after, xor:t.a),
@@ -368,9 +366,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (typeCxt('wh')):[var:var, xor:t.f],
                 (modality):[questioned:var, xor:t.d], (complementizer):[xor:t.adefg, frame:comp]]
       case 'по':
-        return u(preposition(prep:'по', head:v[verbalModifier]),
+        return u(preposition(prep:'по', head:v[verbalModifier].lightVar),
                 poDat(noun:var), dat(noun:var.lightVar, head:var),
                 verbalModifier(head:v[verbalModifier].lightVar))
+      case "и": return u(seq(conj:'and'))
+      case "или": return u(seq(conj:'or'))
     }
     return null
   }

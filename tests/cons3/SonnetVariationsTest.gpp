@@ -646,13 +646,21 @@ B.number=true
                     'According to and in the opinion of the cashier, a 7 comes before an 8'
   }
 
-  public void _test13MissingComma1() throws Exception {
+  public void _test13LuckMissingComma1() throws Exception {
     doTranslateTest 'Мы спорили бы очень долго, но по счастию, тут со скамейки свалился какой-то ребенок и сломал себе обе челюсти',
             'We were arguing for a long time, when by some sheer luck, a child fell off a bench and broke both of his jaws'
   }
-  public void _test13MissingComma2() throws Exception {
-    doTranslateTest 'Мы спорили бы очень долго, но, по счастию тут со скамейки свалился какой-то ребенок и сломал себе обе челюсти',
-            'We were arguing for a long time, when by some sheer luck, a child fell off a bench and broke both of his jaws'
+  public void test13InnerClause() throws Exception {
+    doTranslateTest 'По счастию, тут со скамейки свалился какой-то ребенок',
+            'By some sheer luck, a child fell off a bench'
+  }
+  public void test13InnerClauseLuckMissingComma2() throws Exception {
+    doTranslateTest 'По счастию тут со скамейки свалился какой-то ребенок',
+            'By some sheer luck, a child fell off a bench'
+  }
+  public void test13LuckMissingComma2() throws Exception {
+    doTranslateTest 'Мы спорили бы очень долго, но, по счастию тут со скамейки свалился какой-то ребенок',
+            'We were arguing for a long time, when by some sheer luck, a child fell off a bench'
   }
 
   public void test13_OneJaw() throws Exception {

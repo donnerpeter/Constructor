@@ -132,7 +132,7 @@ class Verbs {
 
   static Update ufiniteVerb(Map<Construction, Map> args, Variable verb, String type, String tense) {
     return u() + args + uv(verb, type:type, time:tense) +
-           u(subjunctive(head:verb), verbHolder(head:verb), sentenceHolder(head:verb)) +
+           u(subjunctive(head:verb), verbHolder(head:verb), sentenceHolder(head:verb), verbalModifier(head:verb)) +
            u(relTime(head:verb), also(head:verb), adverb(head:verb)) +
            u(complementizer(content:verb)).xor(question(content:verb))
   }

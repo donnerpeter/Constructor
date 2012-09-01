@@ -70,8 +70,8 @@ interface RussianConstructions {
   Construction poDat = commonPrep('po', dat)
   Construction poDatTopic = commonArg('poDat', 'topic')
   Construction poDatGoal = commonArg('poDat', 'goal')
-  Construction poDatOpinion = cxt("poDatOpinion", ['noun', '*head']) { ParsingState state, Map args ->
-    state.assign(args.head, 'opinion_of', args.noun)
+  Construction poDatOpinion = cxt("poDatOpinion", ['content', '*head']) { ParsingState state, Map args ->
+    state.assign(args.head, 'opinion_of', args.content)
   }
   Construction poDatLuck = commaSurrounded(cxt("poDatLuck", ['content', '*head']) { ParsingState state, Map args ->
     state.assign(args.content, 'topic', args.head)
@@ -168,7 +168,7 @@ interface RussianConstructions {
           result << new Mite(poDatLuck, content:noun)
         }
         if (update.find { it.cxt == word && it.contents.word in ['мнению', 'словам']}) {
-          result << new Mite(poDatOpinion, noun:noun, head:mite.contents.head)
+          result << new Mite(poDatOpinion, content:noun, head:mite.contents.head)
         }
         return result + prevState.enrichUpdate(result)
       }
@@ -426,9 +426,7 @@ interface RussianConstructions {
   Construction dot = cxt('dot', ['head']) { ParsingState state, Map args ->
     state.assign(args.head, 'dot', 'true')
   }.enrichingMites { mite, contribution, state -> [] }.structural { mite, state, via, up -> ParsingState.EMPTY }
-  Construction comma = cxt('comma', ['hasComma']) { ParsingState state, Map args ->
-    state
-  }.enrichingMites { mite, contribution, state -> [] }
+  Construction comma = emptyCxt('comma').enrichingMites { mite, contribution, state -> [] }
   Construction word = emptyCxt('word')
   Construction quote = emptyCxt('quote').enrichingMites { mite, contribution, state -> [] }
 

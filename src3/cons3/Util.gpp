@@ -83,24 +83,33 @@ class Util {
   }
 
   static Construction commaSurrounded(Construction cxt) {
-    cxt.enrichingMites { mite, contribution, state ->
-      boolean wantContent = mite.contents.comma1 && !mite.contents.content
-      boolean wantComma2 = mite.contents.content && !mite.contents.comma2
-      return mite.unifyWherePossible(contribution.findAll { it.cxt == cxt &&
-                                                            (wantContent && it.contents.content ||
-                                                             wantComma2 && it.contents.comma2)
-      })
-    }.structural { mite, state, via, up ->
-      if (mite.contents.comma1 && !mite.contents.content) {
-        return ParsingState.EMPTY
-      }
-      if (mite.contents.content && mite.contents.comma2) {
-        def firstAtom = mite.firstAtom
-        if (firstAtom?.contents?.comma1) {
-          return state.findState(firstAtom).prevState
-        }
+    cxt.
+            enrichingMites { mite, contribution, state -> handleCommaEnrichments(mite, contribution) }.
+            structural { mite, state, via, up -> getPrevStateForCommaSurrounded(mite, state)
+    }
+  }
+
+  static ParsingState getPrevStateForCommaSurrounded(Mite mite, ParsingState state) {
+    if (mite.contents.comma1 && !mite.contents.content) {
+      return ParsingState.EMPTY
+    }
+    if (mite.contents.content && mite.contents.comma2) {
+      def firstAtom = mite.firstAtom
+      if (firstAtom?.contents?.comma1) {
+        return state.findState(firstAtom).prevState
       }
     }
+    return null
+  }
+
+  static List<Mite> handleCommaEnrichments(Mite mite, List<Mite> contribution) {
+    boolean wantContent = mite.contents.comma1 && !mite.contents.content
+    boolean wantComma2 = mite.contents.content && !mite.contents.comma2
+    return mite.unifyWherePossible(contribution.findAll {
+      it.cxt == mite.cxt &&
+      (wantContent && it.contents.content ||
+       wantComma2 && it.contents.comma2)
+    })
   }
 
   static Construction commonCase(String name) {

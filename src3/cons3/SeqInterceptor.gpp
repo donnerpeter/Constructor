@@ -79,7 +79,7 @@ class SeqInterceptor implements RussianConstructions {
           result << mite.cxt(noun:oldMite.contents.noun).unify(mite)
         }
       }
-      result.addAll(mergePoint.prevState.enrichUpdate(result))
+      result.addAll(mergePoint.prevState.enrichUpdate(result, state))
       seqs.each { pair, multi ->
         result.add(0, self.unify(seq(mergedWith:mergePoint, multi:multi, second:pair.second, first:(multi == pair.first ? null : pair.first), xor:newXors)))
       }

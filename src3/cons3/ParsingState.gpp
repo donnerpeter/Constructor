@@ -126,7 +126,7 @@ class ParsingState {
 
   private static ParsingState baseApply(ParsingState state, List<Mite> update, boolean mayCorrectRoute) {
     LinkedHashSet<Mite> fullUpdate = update as LinkedHashSet<Mite>
-    fullUpdate.addAll(state.enrichUpdate(update))
+    fullUpdate.addAll(state.enrichUpdate(update, state))
     assert fullUpdate
 
     def newMiteGenerations = registerGeneration(fullUpdate, state.miteGenerations, state.currentGeneration)
@@ -234,10 +234,12 @@ class ParsingState {
     return state == this || prevState?.isMoreRecentThan(state)
   }
 
-  LinkedHashSet<Mite> enrichUpdate(List<Mite> update) { _enrichUpdate(update, null, this) }
+  LinkedHashSet<Mite> enrichUpdate(List<Mite> update, ParsingState original) {
+    _enrichUpdate(update, null, original)
+  }
 
   private LinkedHashSet<Mite> _enrichUpdate(List<Mite> update, Mite via, ParsingState original) {
-    LinkedHashSet<Mite> fullUpdate = askEnrichAction(findMitesAlongParsingRoute(via, original), update)
+    LinkedHashSet<Mite> fullUpdate = askEnrichAction(findMitesAlongParsingRoute(via, original), update, original)
     Mite link = findLink(via)
     ParsingState prev = getPrevStateFromLink(link, via)
     if (prev) {
@@ -247,10 +249,10 @@ class ParsingState {
     return fullUpdate
   }
 
-  private LinkedHashSet<Mite> askEnrichAction(List<Mite> mites, List<Mite> update) {
+  private LinkedHashSet<Mite> askEnrichAction(List<Mite> mites, List<Mite> update, ParsingState original) {
     LinkedHashSet<Mite> fullUpdate = []
     for (mite in mites) {
-      fullUpdate.addAll((mite.cxt.enrichAction(mite, update, this) as List<Mite>).reverse())
+      fullUpdate.addAll((mite.cxt.enrichAction(mite, update, original) as List<Mite>).reverse())
     }
     return fullUpdate
   }

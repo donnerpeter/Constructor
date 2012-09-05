@@ -170,12 +170,12 @@ interface RussianConstructions {
         if (update.find { it.cxt == word && it.contents.word in ['мнению', 'словам']}) {
           result << new Mite(poDatOpinion, content:noun, head:mite.contents.head)
         }
-        return result + prevState.enrichUpdate(result)
+        return result + prevState.enrichUpdate(result, state)
       }
     }
     List<Mite> refl = update.findAll { it.cxt == reflexiveHolder }
     if (refl) {
-      return state.findState(mite).prevState.enrichUpdate(refl)
+      return state.findState(mite).prevState.enrichUpdate(refl, state)
     }
     []
   }

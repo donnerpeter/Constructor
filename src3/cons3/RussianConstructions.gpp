@@ -92,7 +92,12 @@ interface RussianConstructions {
   Construction dativePart = cxt('dativePart', ['head', 'dat', 'acc']) { state, args ->
     ((Variable) args.acc).frame(state.chart).type && ((Variable) args.acc).frame(state.chart).type ? state.assign(args.acc, 'arg1', args.dat) : state
   }
-  Construction clauseEllipsis = cxt('clauseEllipsis', ['X']) { ParsingState state, Map args -> return state }
+  Construction clauseEllipsis = cxt('clauseEllipsis', ['X']) { ParsingState state, Map args -> return state }.enrichingMites { mite, contribution, state ->
+    if (mite.contents.prevHistory && contribution.find { it.cxt == clauseEllipsis && it.contents.interceptor }) {
+      return mite.unifyWherePossible(contribution)
+    }
+    return []
+  }
   Construction declOrQuestionComp = cxt('declOrQuestionComp', ['head', 'comp', 'hasComma']) { ParsingState state, Map args ->
     def type = ((Variable) args.head).frame(state.chart).type //todo split declOrQuestionComp semantically
     def attr = type == 'FORGET' ? 'arg2' : type == 'DISCOVER' ? 'theme' : type == 'SAY' ? 'message' : 'question'
@@ -241,7 +246,7 @@ interface RussianConstructions {
   Construction negation = cxt('negation', ['negated']) { ParsingState state, Map args ->
     state.assign(args.negated, 'negated', 'true')
   }.enrichingMites { mite, contribution, state ->
-    def vh = contribution.find { it.cxt == verbHolder && ((Variable) it.contents.head).hard }
+    def vh = contribution.find { it.cxt == verbHolder && ((Variable) it.contents.head)?.hard }
     if (vh && !mite.contents.negated) {
       return [mite.unify(new Mite(negation, negated:vh.contents.head))]
     }
@@ -402,10 +407,12 @@ interface RussianConstructions {
   }
   Construction verbHolder = emptyCxt('verbHolder').
           enrichingMites { mite, contribution, state ->
-            if (mite.contents.mustFinish) {
-              return []
-            }
-            return mite.unifyWherePossible(contribution.findAll { it.cxt == verbHolder && !it.contents.mustStart })
+            if (mite.atom && !state.network.isChosen(mite) && state.visibleMites[verbHolder]?.find { !it.atom }) return []
+            if (mite.contents.hasColon) return []
+
+            if (contribution.find { it.cxt == verbHolder && it.contents.newClause }) return []
+
+            return mite.unifyWherePossible(contribution)
           }
   Construction sentenceHolder = emptyCxt('sentenceHolder').
           enrichingMites { mite, contribution, state ->

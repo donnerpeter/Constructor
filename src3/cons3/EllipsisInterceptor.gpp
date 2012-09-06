@@ -10,7 +10,8 @@ class EllipsisInterceptor extends Interceptor implements RussianConstructions {
   final ParsingState beforeDash
 
   ParsingState intercept(List<Mite> constructions, ParsingState state, Function2<List<Mite>, ParsingState, ParsingState> base) {
-    final ParsingState prevHistory = state[clauseEllipsis]?.prevHistory
+    Mite self = state.visibleMites[clauseEllipsis].find { state.network.isChosen(it) && it.contents.interceptor == (Interceptor) this }
+    final ParsingState prevHistory = self.contents.prevHistory
     if (!prevHistory || state[clauseEllipsis].finished || state.visibleMites[questionVariants]?.find { it.contents.questioned }) {
       return base(constructions, state)
     }

@@ -38,7 +38,9 @@ class Verbs {
       case "подвигала":
         return ufiniteVerb(var, 'MOVE', 'PAST') + unomArg(var) + uarg(var, instr, instrArg2)
       case "подвигав":
-        return uv(var, type:'MOVE') + u(adverb(head:var), adverbialPhrase(content:var)) + uarg(var, instr, instrArg2)
+        return uv(var, type:'MOVE') +
+               u(adverb(head:var), adverbialPhrase(content:var, head:v[verbHolder]), verbHolder(head:v[verbHolder].lightVar)) +
+               uarg(var, instr, instrArg2)
       case "забыл":
       case "забыла":
       case "забыли":

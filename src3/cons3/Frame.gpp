@@ -91,7 +91,15 @@ class Frame {
   }
 
   def definedAttributeValue(String attr) {
-    return allAssignments(attr).reverse()[0]?.value
+    def assignments = allAssignments
+    if (!assignments) return null
+
+    for (int i in assignments.size() - 1..0) {
+      if (assignments[i].property == attr) {
+        return assignments[i].value
+      }
+    }
+    return null
   }
 
   private Frame mockFrame(Map attrs) {
@@ -173,8 +181,10 @@ class Frame {
   String getTypeInferred() { s('type', true) }
   String getType() { s('type') }
 
+  private List<Assignment<Frame>> assignmentCache = null
   List<Assignment<Frame>> getAllAssignments() {
-    return chart.allAssignments.findAll { it.frame.unifiedVar == unifiedVar }
+    if (assignmentCache != null) return assignmentCache
+    return assignmentCache = chart.allAssignments.findAll { it.frame.unifiedVar == unifiedVar }
   }
 
   List<Assignment<Frame>> allAssignments(String attr) {

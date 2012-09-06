@@ -89,8 +89,12 @@ class Network {
     return null
   }
 
-  private Set<Object> allGroups(Mite mite) {
-    Set result = mite.primaries
+  private Map<Mite, LinkedHashSet<Object>> groupCache = [:]
+  private LinkedHashSet<Object> allGroups(Mite mite) {
+    LinkedHashSet<Object> result = groupCache[mite]
+    if (result != null) return result
+
+    result = new LinkedHashSet<Object>(mite.primaries)
     Set xor = mite.contents.xor
     if (xor) {
       result += xor
@@ -99,6 +103,7 @@ class Network {
     for (p in prerequisites) {
       result += allGroups(p)
     }
+    groupCache[mite] = result
     result
   }
 

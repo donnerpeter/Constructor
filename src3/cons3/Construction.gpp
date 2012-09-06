@@ -69,18 +69,15 @@ class Construction {
     return name
   }
 
-  boolean isExecutable(Collection<Mite> mites) {
+  boolean isExecutable(Mite mite) {
     if (!requiredAttrs) return true
-    
-    Set<String> absent = requiredAttrs as Set
-    for (mite in mites) {
-      absent.removeAll(Util.intersect(absent, mite.contents.keyList()))
-      if (!absent) {
-        return true
+
+    for (attr in requiredAttrs) {
+      if (!mite.contents[attr]) {
+        return false
       }
     }
-
-    return false
+    return true
   }
 
   static Construction cxt(String name, List<String> requiredAttrs = [], Function2<ParsingState, Map, ParsingState> cl) {

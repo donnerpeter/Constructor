@@ -9,6 +9,7 @@ class Mite {
   final FList<Pair<Variable, Variable>> unifications
   final Mite src1, src2
   final FList<Mite> prerequisites
+  final List<Mite> primaries
 
   Mite(Map contents, Construction cxt, FList<Pair<Variable, Variable>> unifications = FList.emptyList, Mite src1 = null, Mite src2 = null, FList<Mite> prerequisites = FList.emptyList) {
     this.cxt = cxt
@@ -17,6 +18,7 @@ class Mite {
     this.src1 = src1
     this.src2 = src2
     this.prerequisites = prerequisites
+    primaries = !src1 ? [this] : src1.primaries + src2.primaries
   }
 
   public static Map unify(Map oldArgs, Map newArgs) {
@@ -110,19 +112,8 @@ class Mite {
     new Mite(contents, cxt, unifications, src1, src2, m in prerequisites ? prerequisites : prerequisites.prepend(m))
   }
 
-  LinkedHashSet<Mite> getPrimaries() {
-    if (atom) {
-      return [this]
-    }
-    return src1.primaries + src2.primaries
-  }
-
   boolean isAtom() {
     src1 == null
-  }
-
-  boolean isPartOf(Mite another) {
-    return another.cxt == cxt && another.primaries.containsAll(primaries)
   }
 
   List<Mite> unifyWherePossible(ParsingState state) {
@@ -146,27 +137,11 @@ class Mite {
     return cxt.isSatisfied(this)
   }
 
-  LinkedHashSet<Variable> allUnifiedWith(Variable var) {
-    LinkedHashSet<Variable> result = [var.base]
-    if (!var) return result
-
-    for (pair in unifications) {
-      if (pair.first.base == var.base) {
-        result << pair.second.base
-      }
-      else if (pair.second.base == var.base) {
-        result << pair.first.base
-      }
-    }
-    result
-  }
-
   Mite getLastAtom() {
-    def mites = primaries as List<Mite>
-    return mites[mites.size() - 1]
+    return primaries[primaries.size() - 1]
   }
 
   Mite getFirstAtom() {
-    return primaries.iterator().next()
+    return primaries[0]
   }
 }

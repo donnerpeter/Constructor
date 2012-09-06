@@ -15,23 +15,17 @@ class ParsingState {
   final ParsingState prevState
 
   ParsingState() {
-    this(chart: new Chart(),
-            ownMites: [],
-            prevState:EMPTY,
-            contribution:[],
-            network: new Network([:], [:], []), currentGeneration:0, miteGenerations:FLinkedMap.emptyMap, byXor:Collections.emptyMap())
+    this([chart: new Chart(), prevState:EMPTY, network:new Network([:], [:], [])], null)
   }
 
-  ParsingState(Map map) {
-    chart = map.chart
-    currentGeneration = map.currentGeneration
-    assert (map.active instanceof LinkedHashSet) || !(map.active instanceof HashSet)
-    assert (map.groups instanceof LinkedHashSet) || !(map.groups instanceof HashSet)
-    network = map.network
-    miteGenerations = map.miteGenerations
-    contribution = map.contribution
-    ownMites = map.ownMites
-    prevState = map.prevState
+  private ParsingState(Map map, ParsingState base) {
+    chart = map.chart ?: base.chart
+    currentGeneration = map.currentGeneration ?: base?.currentGeneration ?: 0
+    network = map.network ?: base.network
+    miteGenerations = map.miteGenerations ?: base?.miteGenerations ?: FLinkedMap.emptyMap
+    contribution = map.contribution ?: base?.contribution ?: []
+    ownMites = map.ownMites ?: base?.ownMites ?: []
+    prevState = map.prevState ?: base?.prevState
   }
 
   List<Mite> getMiteList() {
@@ -46,10 +40,7 @@ class ParsingState {
   }
 
   private ParsingState clone(Map update) {
-    Map current = [chart:chart, ownMites:ownMites, prevState:prevState, network:network,
-            currentGeneration:currentGeneration, miteGenerations:miteGenerations, contribution:contribution]
-    current.putAll(update)
-    return current == update ? this : new ParsingState(current)
+    return new ParsingState(update, this)
   }
 
 
@@ -200,8 +191,13 @@ class ParsingState {
     getPrevStateFromLink(findLink(null), null)
   }
 
+  private final Map<Mite, Mite> linkCache = [:]
   private Mite findLink(Mite via) {
-    doFindLink(via, true) ?: doFindLink(via, false)
+    if (linkCache.containsKey(via)) {
+      return linkCache[via]
+    }
+
+    return linkCache[via] = doFindLink(via, true) ?: doFindLink(via, false)
   }
   private Mite doFindLink(Mite via, boolean up) {
     ParsingState bestPrev = null
@@ -304,7 +300,7 @@ class ParsingState {
 
   private static ParsingState applyConstructions(LinkedHashSet<Mite> toApply, ParsingState state) {
     for (mite in toApply) {
-      if (state.network.isChosen(mite) && mite.contents && mite.cxt.isExecutable([mite])) {
+      if (state.network.isChosen(mite) && mite.contents && mite.cxt.isExecutable(mite)) {
         ParsingState next = state.clone(currentGeneration:state.miteGenerations[mite]?: state.currentGeneration, chart:state.chart.startMeta(mite))
         next = mite.cxt.action.call(next, mite.contents)
         state = next.clone(currentGeneration:state.currentGeneration, chart:next.chart.finishMeta(mite))
@@ -379,7 +375,11 @@ class ParsingState {
     while (state) {
       Mite link = state.findLink(via)
       state.ownMites.groupBy { it.cxt }.each { cxt, group ->
-        result[cxt] = (group + (result[cxt] ?: [])) as List
+        List updated = new ArrayList(group)
+        if (result[cxt]) {
+          updated.addAll(result[cxt])
+        }
+        result[cxt] = updated
       }
       state = state.getPrevStateFromLink(link, via)
       via = link

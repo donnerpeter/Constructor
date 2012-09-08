@@ -384,7 +384,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
   
   Update uposs(Variable head, Construction sem) {
     Variable arg = new Variable()
-    u(possessive(possessor:arg.lightVar), sem(head:head, possessor:arg))
+    u(possessive(head:head, possessor:arg.lightVar), sem(head:head, possessor:arg))
   }
   static Update uarg(Variable head, Variable arg = new Variable(), Construction syn, Construction... sem) {
     def tokens = new Tokens()

@@ -73,22 +73,38 @@ class SeqInterceptor implements RussianConstructions {
     }
 
     if (mergePoint != null) {
-      for (mite in constructions) {
-        Mite oldMite = mergePoint.ownMites.find { it.atom && it.isSimilarTo(mite) }
-        if (oldMite && mite.cxt in [nom, acc, gen, dat, poDat] && mite.contents.noun && mite.contents.head && agree(mite, oldMite)) {
-          result << mite.cxt(noun:oldMite.contents.noun).unify(mite)
-        }
-      }
+      result.addAll(unifyHeadsWithMergePoint(mergePoint))
       result.addAll(mergePoint.prevState.enrichUpdate(result, state))
       seqs.each { pair, multi ->
         result.add(0, self.unify(seq(mergedWith:mergePoint, multi:multi, second:pair.second, first:(multi == pair.first ? null : pair.first), xor:newXors)))
       }
-
-    } else if (constructions.find { it.cxt == declOrQuestionComp && it.contents.comp }) {
-//      result.add(self.unify(seq(questionLevel:'true')))
     }
 
     return result
+  }
+
+  private List<Mite> unifyHeadsWithMergePoint(ParsingState mergePoint) {
+    List<Mite> result = []
+    for (mite in constructions) {
+      Mite oldMite = mergePoint.ownMites.find { it.atom && it.isSimilarTo(mite) }
+      if (oldMite) {
+        def unified = unifyHeadWithMergePoint(oldMite, mite)
+        if (unified) {
+          result << unified
+        }
+      }
+    }
+    return result
+  }
+
+  private Mite unifyHeadWithMergePoint(Mite oldMite, Mite newMite) {
+    if (newMite.cxt in [nom, acc, gen, dat, poDat] && newMite.contents.noun && newMite.contents.head && agree(newMite, oldMite)) {
+      return newMite.cxt(noun:oldMite.contents.noun).unify(newMite)
+    }
+    if (newMite.cxt == possessive && newMite.contents.possessor && newMite.contents.head) {
+      return newMite.cxt(possessor:oldMite.contents.possessor).unify(newMite)
+    }
+    return null
   }
 
   private boolean agree(Mite mite, Mite oldMite) {
@@ -138,11 +154,8 @@ class SeqInterceptor implements RussianConstructions {
     if (cxt in [gen] && oldArgs.head && newArgs.head) {
       return doMerge(oldMite, newArgs, 'head', update, seqs)
     }
-    if (cxt == possessive && oldArgs.possessor && newArgs.possessor) {
+    if (cxt == possessive && oldArgs.possessor && newArgs.possessor && !newArgs.head) {
       return doMerge(oldMite, newArgs, 'possessor', update, seqs)
-    }
-    if (cxt == possessive && oldArgs.head && newArgs.head) {
-      return doMerge(oldMite, newArgs, 'head', update, seqs)
     }
     return null
   }

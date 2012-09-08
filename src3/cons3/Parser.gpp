@@ -365,6 +365,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return update + [
                 (declOrQuestionComp):[comp:comp], (relativeClause):[wh:var, relative:nextVerb, xor:t.f],
                 (verbHolder):[head:nextVerb.lightVar, newClause:true],
+                (sentenceHolder):[head:nextVerb.lightVar],
                 (typeCxt('wh')):[var:var, xor:t.f],
                 (modality):[questioned:var, xor:t.d], (complementizer):[xor:t.adefg, frame:comp]]
       case 'по':

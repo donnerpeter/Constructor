@@ -34,14 +34,18 @@ class SeqInterceptor implements RussianConstructions {
       return []
     }
 
+    def similar = findSimilarContribution()
+    if (!similar) return []
+
     List<Mite> result = []
 
     Map<Pair<Variable, Variable>, Variable> seqs = [:]
 
     ParsingState mergePoint = null
     LinkedHashSet newXors = []
+
     for (mite in constructions) {
-      Mite oldMite = before.visibleMites[mite.cxt]?.reverse()?.find { it.atom && it.isSimilarTo(mite) }
+      Mite oldMite = similar.ownMites.reverse().find { it.atom && it.isSimilarTo(mite) }
       if (oldMite) {
         def nextPoint = merge(oldMite, mite, result, seqs)
         if (nextPoint) {
@@ -81,6 +85,22 @@ class SeqInterceptor implements RussianConstructions {
     }
 
     return result
+  }
+
+  private ParsingState findSimilarContribution() {
+    for (state in before.hierarchy) {
+      def similarMite = constructions.find { findSimilarOwnMite(it, state) }
+      if (similarMite) {
+        return state
+      }
+    }
+    return null
+  }
+
+  private Mite findSimilarOwnMite(Mite mite, ParsingState inState) {
+    if (mite.cxt == acc && mite.contents.head) return null
+    if (mite.cxt in [sentenceHolder, noArg]) return null
+    return inState.contribution.find { it.isSimilarTo(mite) }
   }
 
   private List<Mite> unifyHeadsWithMergePoint(ParsingState mergePoint) {

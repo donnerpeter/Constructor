@@ -234,6 +234,21 @@ class ParsingState {
     _enrichUpdate(update, null, original)
   }
 
+  List<ParsingState> getHierarchy() {
+    List<ParsingState> result = []
+    ParsingState state = this
+    Mite via = null
+    while (state) {
+      result << state
+      Mite link = state.findLink(via)
+      ParsingState prev = state.getPrevStateFromLink(link, via)
+      if (!prev) return result
+      state = prev
+      via = link
+    }
+    return result
+  }
+
   private LinkedHashSet<Mite> _enrichUpdate(List<Mite> update, Mite via, ParsingState original) {
     LinkedHashSet<Mite> fullUpdate = askEnrichAction(findMitesAlongParsingRoute(via, original), update, original)
     Mite link = findLink(via)

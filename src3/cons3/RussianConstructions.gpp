@@ -306,7 +306,8 @@ interface RussianConstructions {
     new SeqInterceptor(mite, contribution, state).enrichUpdate()
   }.structural { mite, state, via, up ->
     if (mite.contents.mergedWith) {
-      return ((ParsingState) mite.contents.mergedWith).prevVisibleState.hierarchy
+      def mergePointHierarchy = ((ParsingState) mite.contents.mergedWith).hierarchy
+      return mergePointHierarchy[1..<mergePointHierarchy.size()]
     }
     if (mite.contents.conj && !mite.contents.first && !mite.lastAtom.contents.questionLevel) {
       return [ParsingState.EMPTY]

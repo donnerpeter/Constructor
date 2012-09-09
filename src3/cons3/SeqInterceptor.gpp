@@ -91,13 +91,22 @@ class SeqInterceptor implements RussianConstructions {
   }
 
   private ParsingState findSimilarContribution() {
-    for (state in before.hierarchy) {
-      def similarMite = constructions.find { findSimilarOwnMite(it, state) }
-      if (similarMite) {
-        return state
+    def states = findSimilarContributions()
+    if (!states) return null
+
+    def closest = states[0]
+    Mite numQ = constructions.find { it.cxt == numQuantifier && it.contents.num }
+    if (numQ && !findSimilarOwnMite(numQ, closest)) {
+      def better = states.find { state -> findSimilarOwnMite(numQ, state) }
+      if (better) {
+        return better
       }
     }
-    return null
+
+    return closest
+  }
+  private List<ParsingState> findSimilarContributions() {
+    before.hierarchy.findAll { state -> constructions.any { findSimilarOwnMite(it, state) } }
   }
 
   private Mite findSimilarOwnMite(Mite mite, ParsingState inState) {

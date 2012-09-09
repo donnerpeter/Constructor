@@ -11,26 +11,25 @@ class SeqInterceptor implements RussianConstructions {
   final Mite self
   final List<Mite> constructions
   final ParsingState state
-  final boolean clauseLevel
 
   SeqInterceptor(Mite mite, List<Mite> constructions, ParsingState state) {
     before = mite.contents.beforeComma ?: state.findState(mite.firstAtom).prevState
     self = mite
     this.constructions = constructions
     this.state = state
-    clauseLevel = constructions.any { it.cxt == declOrQuestionComp && it.contents.comp }
+  }
+
+  private boolean isButAfterComma() {
+    return self.contents.conj == ',' && !self.contents.multi &&
+           constructions.find { it.cxt == seq && it.contents.conj == 'but' }
   }
 
   Collection<Mite> enrichUpdate() {
-    if (self.contents.conj == ',' && !self.contents.multi) {
-      def buts = constructions.findAll { it.cxt == seq && it.contents.conj == 'but' }
-      if (buts) {
-        return seq(beforeComma:before).unifyWherePossible(buts, false, false)
-      }
+    if (isButAfterComma()) {
+      return seq(beforeComma:before).unifyWherePossible(constructions, false, false)
     }
 
-    if (self.contents.precedent == null && self.contents.mergedWith ||
-        constructions.find { it.cxt == clauseEllipsis && it.contents.guard }) {
+    if (self.contents.mergedWith || isInsideEllipsisProcessing()) {
       return []
     }
 
@@ -85,6 +84,10 @@ class SeqInterceptor implements RussianConstructions {
     }
 
     return result
+  }
+
+  private Mite isInsideEllipsisProcessing() {
+    return constructions.find { it.cxt == clauseEllipsis && it.contents.guard }
   }
 
   private ParsingState findSimilarContribution() {
@@ -160,8 +163,6 @@ class SeqInterceptor implements RussianConstructions {
       }
       return doMerge(oldMite, newArgs, 'comp', update, seqs)
     }
-
-    if (clauseLevel) return null
 
     if (cxt in [nom, acc, gen, dat, poDat] && newArgs.noun && !newArgs.head) {
       return doMerge(oldMite, newArgs, 'noun', update, seqs)

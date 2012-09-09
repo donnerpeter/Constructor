@@ -31,37 +31,13 @@ class Parser { //todo alex implements cons3.RussianConstructions
     if (_update) {
       return _update.apply(state)
     }
+    if (Util.parseNumber(word) != null) {
+      return handleNumber(word, state)
+    }
 
     Tokens t = new Tokens()
     Vars v = new Vars()
     Variable var = new Variable()
-    if (Util.parseNumber(word) != null) { //todo generic noun treatment for numbers
-      Variable noun = var
-      Variable num = new Variable()
-
-      def sem = numberTypeCxt(noun, word)
-
-      List<Construction> cases = [nom, acc, gen]
-
-      def qv = state[questionVariants]
-      if (qv?.questioned && !qv?.seq) {
-        def seqVar = new Variable()
-        state = state.apply((questionVariants):[seq:seqVar])
-        Update update = u(sem(var:noun), seq(multi:seqVar, second:noun))
-        for (caze in cases) {
-          update = update.addCxt(caze, noun:seqVar)
-        }
-        state = update.apply(state)
-      } else {
-        state = state.apply(cases.collectEntries { [it, [noun:noun, xor:t.a]] } +
-                         [(sem):[var:noun, xor:t.bd],
-                                 (numQuantifier):[num: num, xor:t.b, noun:noun.lightVar, outerNoun:noun, prev:state, innerCase:(word == '1' ? acc : gen)],
-                                 (numberTypeCxt(num, word)):[xor:t.d, var:num]
-                                 ])
-      }
-
-      return state
-    }
 
     switch (word) {
       case "удивительный": return adj(state, nom, 'property', 'AMAZING')
@@ -276,6 +252,34 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply((participleArg):[participle:var])
     }
     return state
+  }
+
+  //todo generic noun treatment for numbers
+  private ParsingState handleNumber(String word, ParsingState state) {
+    Variable noun = new Variable()
+    Variable num = new Variable()
+
+    def sem = numberTypeCxt(noun, word)
+
+    List<Construction> cases = [nom, acc, gen]
+
+    def qv = state[questionVariants]
+    if (qv?.questioned && !qv?.seq) {
+      def seqVar = new Variable()
+      state = state.apply((questionVariants):[seq:seqVar])
+      Update update = u(sem(var:noun), seq(multi:seqVar, second:noun))
+      for (caze in cases) {
+        update = update.addCxt(caze, noun:seqVar)
+      }
+      return update.apply(state)
+    }
+
+    Tokens t = new Tokens()
+    return state.apply(cases.collectEntries { [it, [noun:noun, xor:t.a]] } +
+                       [(sem):[var:noun, xor:t.bd],
+                               (numQuantifier):[num:num, xor:t.b, noun:noun.lightVar, outerNoun:noun, prev:state, innerCase:(word == '1' ? acc : gen)],
+                               (numberTypeCxt(num, word)):[xor:t.d, var:num]
+                       ])
   }
 
   Update parseUpdate(String word) {

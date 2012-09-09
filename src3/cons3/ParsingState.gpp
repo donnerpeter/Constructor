@@ -188,42 +188,41 @@ class ParsingState {
   }
 
   ParsingState getPrevVisibleState() {
-    getPrevStateFromLink(findLink(null), null)
+    def h = hierarchy
+    return hierarchy.size() == 1 ? null : hierarchy[1]
   }
 
-  private final Map<Mite, Mite> linkCache = [:]
-  private Mite findLink(Mite via) {
-    if (linkCache.containsKey(via)) {
-      return linkCache[via]
-    }
-
-    return linkCache[via] = doFindLink(via, true) ?: doFindLink(via, false)
+  private Mite findLink() {
+    return doFindLink(true) ?: doFindLink(false)
   }
-  private Mite doFindLink(Mite via, boolean up) {
+  private Mite doFindLink(boolean up) {
     ParsingState bestPrev = null
-    Mite nextVia = null
+    Mite bestLink = null
     for (mite in ownMites) {
       if (!network.isChosen(mite)) continue
 
-      def somePrev = mite.cxt.showPrev(mite, prevState, via, up)
+      def history = mite.cxt.showPrev(mite, prevState, null, up)
+      if (!history) continue
+
+      ParsingState somePrev = history[0]
       if (somePrev == EMPTY) {
         return mite
       }
       if (somePrev && (bestPrev == null || bestPrev.isMoreRecentThan(somePrev))) {
         bestPrev = somePrev
-        nextVia = mite
+        bestLink = mite
       }
     }
-    return nextVia
+    return bestLink
   }
 
-  private LinkedHashSet<Mite> findAllLinks(Mite via) {
-    def link = findLink(via)
+  private LinkedHashSet<Mite> findAllLinks() {
+    def link = findLink()
     if (!link) return []
 
-    def prev = getPrevStateFromLink(link, via)
+    def prev = getPrevHierarchyFromLink(link)
     assert prev
-    return ownMites.findAll { prev == getPrevStateFromLink(it, via, null) } as LinkedHashSet
+    return ownMites.findAll { prev == getPrevHierarchyFromLink(it) } as LinkedHashSet
   }
 
   boolean isMoreRecentThan(ParsingState state) {
@@ -231,50 +230,32 @@ class ParsingState {
   }
 
   LinkedHashSet<Mite> enrichUpdate(List<Mite> update, ParsingState original) {
-    _enrichUpdate(update, null, original)
+    LinkedHashSet<Mite> fullUpdate = []
+    for (state in hierarchy) {
+      for (mite in state.findMitesAlongParsingRoute(original)) {
+        fullUpdate.addAll((mite.cxt.enrichAction(mite, update, original) as List<Mite>).reverse())
+      }
+    }
+    fullUpdate
   }
 
   List<ParsingState> getHierarchy() {
-    List<ParsingState> result = []
-    ParsingState state = this
-    Mite via = null
-    while (state) {
-      result << state
-      Mite link = state.findLink(via)
-      ParsingState prev = state.getPrevStateFromLink(link, via)
-      if (!prev) return result
-      state = prev
-      via = link
+    List<ParsingState> result = [this]
+    Mite link = findLink()
+    def prev = getPrevHierarchyFromLink(link) ?: prevState?.hierarchy
+    if (prev) {
+      result.addAll(prev)
     }
     return result
   }
 
-  private LinkedHashSet<Mite> _enrichUpdate(List<Mite> update, Mite via, ParsingState original) {
-    LinkedHashSet<Mite> fullUpdate = askEnrichAction(findMitesAlongParsingRoute(via, original), update, original)
-    Mite link = findLink(via)
-    ParsingState prev = getPrevStateFromLink(link, via)
-    if (prev) {
-      List<Mite> filtered = update.findAll { !link || link.cxt.filterUpdate(link, it) }
-      return fullUpdate + prev._enrichUpdate(filtered, link, original)
-    }
-    return fullUpdate
-  }
-
-  private LinkedHashSet<Mite> askEnrichAction(List<Mite> mites, List<Mite> update, ParsingState original) {
-    LinkedHashSet<Mite> fullUpdate = []
-    for (mite in mites) {
-      fullUpdate.addAll((mite.cxt.enrichAction(mite, update, original) as List<Mite>).reverse())
-    }
-    return fullUpdate
-  }
-
-  private List<Mite> findMitesAlongParsingRoute(Mite via, ParsingState original) {
-    LinkedHashSet<Mite> links = findAllLinks(via)
+  private List<Mite> findMitesAlongParsingRoute(ParsingState original) {
+    LinkedHashSet<Mite> links = findAllLinks()
     return ownMites.findAll { mite -> !links || links.find { !original.network.contradict(mite, it) } }
   }
 
-  ParsingState getPrevStateFromLink(Mite link, Mite via, ParsingState defValue = prevState) {
-    link?.cxt?.showPrev(link, prevState, via, true) ?: link?.cxt?.showPrev(link, prevState, via, false) ?: defValue
+  List<ParsingState> getPrevHierarchyFromLink(Mite link) {
+    return link?.cxt?.showPrev(link, prevState, null, true) ?: link?.cxt?.showPrev(link, prevState, null, false)
   }
 
   private static ParsingState tryAlternative(ParsingState state, Collection<Mite> preferred) {
@@ -347,9 +328,8 @@ class ParsingState {
   String presentable() {
     def log = ""
     def mites = visibleMites
-    def link = findLink(null)
-    def links = findAllLinks(null)
-    log += "$this->${getPrevStateFromLink(link, null)},  uni: " + chart.__unifications.keySet().collect { "${it.iterator().next()}=" + (it as List)[1] }.join(", ") + "\n"
+    def links = findAllLinks()
+    log += "$this->${prevVisibleState},  uni: " + chart.__unifications.keySet().collect { "${it.iterator().next()}=" + (it as List)[1] }.join(", ") + "\n"
     for (k in mites.keySet()) {
       log += "    $k: " + mites[k].collect {
         (it in links ? '!!' : '') + (network.isChosen(it) ? '*' : '') + (it.satisfied ? '' : '@') +
@@ -384,11 +364,9 @@ class ParsingState {
     result
   }
 
-  private static Map<Construction, List<Mite>> calcVisibleMites(ParsingState state) {
+  private Map<Construction, List<Mite>> calcVisibleMites() {
     Map<Construction, List<Mite>> result = [:]
-    Mite via = null
-    while (state) {
-      Mite link = state.findLink(via)
+    for (state in hierarchy) {
       state.ownMites.groupBy { it.cxt }.each { cxt, group ->
         List updated = new ArrayList(group)
         if (result[cxt]) {
@@ -396,8 +374,6 @@ class ParsingState {
         }
         result[cxt] = updated
       }
-      state = state.getPrevStateFromLink(link, via)
-      via = link
     }
     result
   }

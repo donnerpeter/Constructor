@@ -645,10 +645,10 @@ E.member=B@1
 E.conj=but
 E.member=C
 F.type=BOTH
+G.arg1=B
 G.quantifier=F
 G.type=JAWS
 D.arg2=G
-G.arg1=B
 """
   }
 

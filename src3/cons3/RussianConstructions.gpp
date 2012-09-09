@@ -90,7 +90,15 @@ interface RussianConstructions {
     state
   }
   Construction dativePart = cxt('dativePart', ['head', 'dat', 'acc']) { state, args ->
-    ((Variable) args.acc).frame(state.chart).type && ((Variable) args.acc).frame(state.chart).type ? state.assign(args.acc, 'arg1', args.dat) : state
+    ((Variable) args.dat).frame(state.chart).type ? state.assign(args.acc, 'arg1', args.dat) : state
+  }.enrichingMites { mite, contribution, state ->
+    if (!mite.contents.acc) {
+      def realAcc = contribution.find { it.cxt == acc && !it.contents.head && it.contents.noun }
+      if (realAcc) {
+        return [new Mite(mite.contents + [acc:realAcc.contents.noun], dativePart)]
+      }
+    }
+    return []
   }
   Construction clauseEllipsis = cxt('clauseEllipsis', ['X']) { ParsingState state, Map args -> return state }.enrichingMites { mite, contribution, state ->
     if (mite.contents.prevHistory && contribution.find { it.cxt == clauseEllipsis && it.contents.interceptor }) {

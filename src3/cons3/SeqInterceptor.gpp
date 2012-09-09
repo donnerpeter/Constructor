@@ -95,10 +95,10 @@ class SeqInterceptor implements RussianConstructions {
     if (!states) return null
 
     def closest = states[0]
-    Mite numQ = constructions.find { it.cxt == numQuantifier && it.contents.num }
-    if (numQ && !findSimilarOwnMite(numQ, closest)) {
-      def better = states.find { state -> findSimilarOwnMite(numQ, state) }
-      if (better) {
+    Mite numQ = closest.ownMites.find { it.cxt == numQuantifier && it.contents.num && ((Variable) it.contents.noun).hard }
+    if (numQ) {
+      def better = closest.prevVisibleState
+      if (better in states) {
         return better
       }
     }

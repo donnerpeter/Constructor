@@ -56,7 +56,7 @@ class Verbs {
         return ufiniteVerb(var, 'BREAK', 'PAST') +
                unomArg(var, [agrNumber:'sg', agrGender:word == 'сломала' ? 'fem' : 'masc'], v[nom]) +
                uaccArg(var, v[acc]) + uarg(var, v[dat], dat) +
-               u(dativePart(head:var, acc:v[acc], dat:v[dat])) +
+               u(dativePart(head:var, dat:v[dat])) +
                uv(v[nom], gender:(word == 'сломала' ? 'fem' : 'masc'))
       case "случился":
         return ufiniteVerb(var, 'HAPPEN', 'PAST',

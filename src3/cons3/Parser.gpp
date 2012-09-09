@@ -435,7 +435,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
 
   private Update unoun(Map<Construction, Map> mites = [:], Construction caze, Variable noun, String type) {
     def update = upronoun(mites, caze, noun, type)
-    update + [(quotedName):[noun:noun], (numQuantifier):[noun:noun]]
+    update + [(quotedName):[noun:noun]]
   }
   private Update upronoun(Map<Construction, Map> mites = [:], Construction caze, Variable var, String type) {
     Update update = u()

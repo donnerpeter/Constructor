@@ -70,9 +70,9 @@ interface RussianConstructions {
   Construction poDat = commonPrep('po', dat)
   Construction poDatTopic = commonArg('poDat', 'topic')
   Construction poDatGoal = commonArg('poDat', 'goal')
-  Construction poDatOpinion = cxt("poDatOpinion", ['content', '*head']) { ParsingState state, Map args ->
+  Construction poDatOpinion = commaSurrounded(cxt("poDatOpinion", ['content', '*head']) { ParsingState state, Map args ->
     state.assign(args.head, 'opinion_of', args.content)
-  }
+  })
   Construction poDatLuck = commaSurrounded(cxt("poDatLuck", ['content', '*head']) { ParsingState state, Map args ->
     state.assign(args.content, 'topic', args.head)
   })
@@ -100,7 +100,7 @@ interface RussianConstructions {
     }
     return []
   }
-  Construction clauseEllipsis = cxt('clauseEllipsis', ['X']) { ParsingState state, Map args -> return state }.enrichingMites { mite, contribution, state ->
+  Construction clauseEllipsis = emptyCxt('clauseEllipsis').enrichingMites { mite, contribution, state ->
     if (mite.contents.prevHistory && contribution.find { it.cxt == clauseEllipsis && it.contents.interceptor }) {
       return mite.unifyWherePossible(contribution)
     }
@@ -175,19 +175,20 @@ interface RussianConstructions {
     if (mite.contents.prep == 'по') {
       def noun = update.find { it.cxt == dat }?.contents?.noun
       if (noun) {
-        def prevState = state.findState(mite).prevState
+        def prepState = state.findState(mite)
+        def mods = prepState.ownMites.findAll { it.cxt == verbalModifier }
         def result = []
         if (update.find { it.cxt == word && it.contents.word == 'счастию'}) {
-          Variable head = new Variable()
-          result << new Mite(poDatLuck, content:noun, head:head)
-          result << new Mite(verbalModifier, head:head.lightVar, hasModifier:true)
+          result << new Mite(poDatLuck, content:noun, head:mite.contents.head)
         }
         if (update.find { it.cxt == word && it.contents.word in ['мнению', 'словам']}) {
-          Variable head = new Variable()
-          result << new Mite(poDatOpinion, content:noun, head:head)
-          result << new Mite(verbalModifier, head:head.lightVar, hasModifier:true)
+          result << new Mite(poDatOpinion, content:noun, head:mite.contents.head)
         }
-        return result + prevState.enrichUpdate(result, state)
+        if (result) {
+          result.addAll(prepState.prevState.enrichUpdate(result, state))
+          result.addAll(new Mite(verbalModifier, hasModifier:true).unifyWherePossible(mods, false))
+        }
+        return result
       }
     }
     List<Mite> refl = update.findAll { it.cxt == reflexiveHolder }
@@ -465,7 +466,7 @@ interface RussianConstructions {
     if (!mite.contents.hasModifier && !hasHead) {
       return []
     }
-    if (hasHead && contribution.find { it.cxt in [poDatLuck, poDatOpinion] && it.contents.content }) {
+    if (hasHead && contribution.find { it.cxt == poDat } ) {
       return []
     }
     return mite.unifyWherePossible(contribution)

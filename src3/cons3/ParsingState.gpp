@@ -13,6 +13,7 @@ class ParsingState {
   private Map<Construction, List<Mite>> vmCache
   final List<Mite> ownMites
   final ParsingState prevState
+  final String log
 
   ParsingState() {
     this([chart: new Chart(), prevState:EMPTY, network:new Network([:], [:], [])], null)
@@ -26,6 +27,7 @@ class ParsingState {
     contribution = map.contribution ?: base?.contribution ?: []
     ownMites = map.ownMites ?: base?.ownMites ?: []
     prevState = map.prevState ?: base?.prevState
+    log = map.log ?: base?.log ?: ''
   }
 
   List<Mite> getMiteList() {
@@ -135,7 +137,11 @@ class ParsingState {
       state = correctRoute(state.prevState, FList.fromList([state]))
     }
 
-    return state
+    return state.appendLog(state.presentable())
+  }
+
+  ParsingState appendLog(String entry) {
+    clone(log:log + entry)
   }
 
   private static FLinkedMap<Mite, Integer> registerGeneration(LinkedHashSet<Mite> fullUpdate, FLinkedMap<Mite, Integer> newMiteGenerations, int generation) {

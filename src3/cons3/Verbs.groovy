@@ -108,7 +108,7 @@ class Verbs {
                unomArg(var, [:], v[nom]) + uv(v[nom], person:'3') +
                u(poDat(head:var)).xor(noArg(head:var)) +
                u(vAcc(noun:v[vAcc].lightVar, xor:t.b, head:var), vAccGoal(head:var, noun:v[vAcc])).xor(noArg(head:var)) +
-               u(verbHolder(head:var), sentenceHolder(head:var),
+               u(verbHolder(head:var), verbalModifier(head:var), sentenceHolder(head:var),
                        posleGen(head:var, xor:t.d), ransheGen(head:var, xor:t.d),
                        conditionComp(head:var), absTime(head:var)) +
                u(complementizer(content:var)).xor(question(content:var))

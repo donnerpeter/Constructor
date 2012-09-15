@@ -19,8 +19,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
     def tokenizer = new StringTokenizer(text, """ '":,.?!""", true)
     for (String w in tokenizer) {
       if (w != ' ') {
-        state = handleWord(w.toLowerCase().trim(), state)
-        log += w + " ${'-'*(120 - w.size())}\n" + state.presentable()
+        def logged = state.appendLog(w + " ${'-' * (120 - w.size())}\n")
+        state = handleWord(w.toLowerCase().trim(), logged)
+        log = state.log
       }
     }
     return state.chart
@@ -328,7 +329,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                uarg(var, gen, genArg1).xor(uposs(var, possAuthor)) + u(RussianConstructions.word(word:word))
       case "словам":
         return unoun(dat, var, 'WORDS') +
-               uarg(var, gen, genArg1).xor(uposs(var, possAuthor)) + u(RussianConstructions.word(word:word))
+               uarg(var, gen, genAuthor).xor(uposs(var, possAuthor)) + u(RussianConstructions.word(word:word))
       case "слова":
         return uv(var, type:'WORDS') + unoun(acc, var, null).xor(unoun(nom, var, null)) +
                uarg(var, gen, genAuthor) + uposs(var, possAuthor)
@@ -372,8 +373,10 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (typeCxt('wh')):[var:var, xor:t.f],
                 (modality):[questioned:var, xor:t.d], (complementizer):[xor:t.adefg, frame:comp]]
       case 'по':
-        return u(preposition(prep:'по'),
-                poDat(noun:var), dat(noun:var.lightVar, head:var))
+        Variable verb = new Variable()
+        return u(preposition(prep:'по', head:verb.lightVar),
+                poDat(noun:var), dat(noun:var.lightVar, head:var),
+                verbalModifier(head:verb.lightVar))
       case "и": return u(seq(conj:'and'))
       case "или": return u(seq(conj:'or'))
     }

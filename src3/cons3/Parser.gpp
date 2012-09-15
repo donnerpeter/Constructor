@@ -194,8 +194,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "спросить":
         return infinitive(state, var, 'ASK', (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]])
       case ",":
-        Variable before = new Variable().lightVar
-        Variable after = new Variable().lightVar
         return state.apply(
                 comma(hasComma:true), seq(conj:',', xor:t.a),
                 verbHolder(hasComma:true),
@@ -203,7 +201,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 reasonComp(hasComma:true, xor:t.a),
                 declOrQuestionComp(hasComma:true, xor:t.a),
                 adverbialPhrase(comma1:true, xor:t.a), adverbialPhrase(comma2:true, xor:t.a),
-                poDatLuck(comma1:true, head:before, xor:t.a), poDatLuck(comma2:true, head:after, xor:t.a),
+                poDatLuck(comma1:true, xor:t.a), poDatLuck(comma2:true, xor:t.a),
                 accordingTo(comma1:true, xor:t.a), accordingTo(comma2:true, xor:t.a),
                 clauseEllipsis(prevHistory:state)
         ).advanceSection()

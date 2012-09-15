@@ -202,15 +202,15 @@ D.person=3
 C.arg2=A@5
 -- 9:
 A.andEmphasis=true
-B.member=C@8
-B.conj=but
-B.member=A
-A.arg2=C
+B.type=NEXT
+A.arg2=B
+C.member=C@8
+C.conj=but
+C.member=A
 A.type=FORGET
 A.time=PAST
 A.arg1=D@8
 D@8.gender=pl
-C.type=NEXT
 A.dot=true
 """
   }
@@ -578,9 +578,9 @@ A.type=OPINION
 B.opinion_of=A
 C.type=SOME
 A.arg1=C
+D@2.elaboration=B
 B.type=COME_SCALARLY
 B.order=AFTER
-D@2.elaboration=B
 B.time=PAST
 B.arg1=D
 D.type=7
@@ -593,17 +593,18 @@ A.arg1=C
 -- 5:
 A.type=ellipsis
 <A>
+B.type=NEXT
 B@4.type=COME_SCALARLY
 B@4.order=AFTER
 B@4.time=PAST
-B@4.arg1=B
-C.member=B@3
-C.conj=but
-C.member=B@4
-D@2.elaboration=C
+B@4.arg1=C
+D.member=B@3
+D.conj=but
+D.member=B@4
+D@2.elaboration=D
 </A>
-B.type=8
-B.number=true
+C.type=8
+C.number=true
 '''
   }
 

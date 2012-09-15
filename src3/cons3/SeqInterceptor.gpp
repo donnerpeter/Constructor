@@ -178,9 +178,6 @@ class SeqInterceptor implements RussianConstructions {
       update.addAll new Mite(newArgs + [repeated:true], cxt)
       return mergePoint
     }
-    if (cxt in [gen] && oldArgs.head && newArgs.head) {
-      return doMerge(oldMite, newArgs, 'head', update, seqs)
-    }
     if (cxt == possessive && oldArgs.possessor && newArgs.possessor && !newArgs.head) {
       return doMerge(oldMite, newArgs, 'possessor', update, seqs)
     }

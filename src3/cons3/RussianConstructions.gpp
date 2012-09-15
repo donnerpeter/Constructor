@@ -144,7 +144,7 @@ interface RussianConstructions {
   Construction comeScalarly = cxt('comeScalarly', ['verb']) { ParsingState state, Map args ->
     state = state.assign(args.verb, 'type', 'COME_SCALARLY')
     args.order ? state.assign(args.verb, 'order', args.order) : state
-  }
+  }.satisfiedWhen { mite -> !mite.contents.order || mite.contents.verb }
   Construction questionVariants = cxt('questionVariants', ['seq', 'questioned']) { ParsingState state, Map args ->
     state.assign(args.questioned, 'variants', args.seq)
   }.enrichingMites { mite, contribution, state ->
@@ -186,7 +186,7 @@ interface RussianConstructions {
         }
         if (result) {
           result.addAll(prepState.prevState.enrichUpdate(result, state))
-          result.addAll(new Mite(verbalModifier, hasModifier:true).unifyWherePossible(mods, false))
+          result.addAll(new Mite(verbalModifier, hasModifier:true).unifyWherePossible(mods, false, true))
         }
         return result
       }
@@ -363,7 +363,7 @@ interface RussianConstructions {
   Construction verbEmphasis = cxt('verbEmphasis', ['verb', 'emphasis']) { ParsingState state, Map args ->
     state.assign(args.verb, (String)args.emphasis, 'true')
   }
-  Construction relTime = cxt('relTime', ['relTime', 'head']) { ParsingState state, Map args ->
+  Construction relTime = cxt('relTime', ['relTime', '*head']) { ParsingState state, Map args ->
     state.assign(args.head, 'relTime', args.relTime)
   }
   Construction absTime = cxt('absTime', ['rel', 'head', 'noun']) { ParsingState state, Map args ->

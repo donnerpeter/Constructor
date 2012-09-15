@@ -1,6 +1,8 @@
 package cons3
 import static cons3.Construction.cxt
+import static cons3.RussianConstructions.posleGen
 import static cons3.RussianConstructions.preposition
+import static cons3.RussianConstructions.ransheGen
 /**
  * @author peter
  */
@@ -132,7 +134,7 @@ class Util {
       }
       return state.findState(mite.firstAtom)?.prevVisibleState?.hierarchy
     }.enrichingMites { mite, contribution, state ->
-      if (contribution.find { it.cxt == preposition }) {
+      if (contribution.find { it.cxt == preposition || it.cxt in [ransheGen, posleGen] && it.contents.noun && !it.contents.head }) {
         return []
       }
       mite.unifyWherePossible(contribution)

@@ -178,10 +178,14 @@ interface RussianConstructions {
         def prevState = state.findState(mite).prevState
         def result = []
         if (update.find { it.cxt == word && it.contents.word == 'счастию'}) {
-          result << new Mite(poDatLuck, content:noun, head:mite.contents.head)
+          Variable head = new Variable()
+          result << new Mite(poDatLuck, content:noun, head:head)
+          result << new Mite(verbalModifier, head:head.lightVar, hasModifier:true)
         }
         if (update.find { it.cxt == word && it.contents.word in ['мнению', 'словам']}) {
-          result << new Mite(poDatOpinion, content:noun, head:mite.contents.head)
+          Variable head = new Variable()
+          result << new Mite(poDatOpinion, content:noun, head:head)
+          result << new Mite(verbalModifier, head:head.lightVar, hasModifier:true)
         }
         return result + prevState.enrichUpdate(result, state)
       }
@@ -414,15 +418,19 @@ interface RussianConstructions {
   Construction adverbPred = cxt('adverbPred', ['adverb', 'time']) { ParsingState state, Map args ->
     state.assign(args.adverb, 'time', args.time)
   }
-  Construction verbHolder = emptyCxt('verbHolder').
-          enrichingMites { mite, contribution, state ->
-            if (mite.atom && !state.network.isChosen(mite) && state.visibleMites[verbHolder]?.find { !it.atom }) return []
-            if (mite.contents.hasColon) return []
+  Construction verbHolder = emptyCxt('verbHolder').enrichingMites { mite, contribution, state ->
+    if (mite.atom && !state.network.isChosen(mite) && state.visibleMites[verbHolder]?.find { !it.atom }) return []
+    if (mite.contents.hasColon) return []
 
-            if (contribution.find { it.cxt == verbHolder && it.contents.newClause }) return []
+    if (contribution.find { it.cxt == verbHolder && it.contents.newClause }) return []
 
-            return mite.unifyWherePossible(contribution)
-          }
+    def hasHead = ((Variable) mite.contents.head)?.hard
+    if (hasHead && contribution.find { it.cxt == seq && it.contents.conj in ['and', 'but'] }) {
+      return []
+    }
+
+    return mite.unifyWherePossible(contribution)
+  }
   Construction sentenceHolder = emptyCxt('sentenceHolder').
           enrichingMites { mite, contribution, state ->
             if (mite.contents.mustFinish) {
@@ -450,13 +458,17 @@ interface RussianConstructions {
 
   Construction verbalModifier = emptyCxt('verbalModifier').structural { mite, state, via, up ->
     if (((Variable) mite.lastAtom.contents.head)?.hard) {
-      return state.findState(mite.firstAtom)?.prevVisibleState?.hierarchy
+      return state.findState(mite, 'hasModifier')?.prevVisibleState?.hierarchy
     }
   }.enrichingMites { mite, contribution, state ->
-    if (mite.contents.mustFinish) {
+    def hasHead = ((Variable) mite.contents.head)?.hard
+    if (!mite.contents.hasModifier && !hasHead) {
       return []
     }
-    return mite.unifyWherePossible(contribution.findAll { it.cxt == verbalModifier && !it.contents.mustStart })
+    if (hasHead && contribution.find { it.cxt in [poDatLuck, poDatOpinion] && it.contents.content }) {
+      return []
+    }
+    return mite.unifyWherePossible(contribution)
   }
 
 }

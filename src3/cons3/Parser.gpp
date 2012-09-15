@@ -113,9 +113,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "но":
         return u(seq(conj:'but'), clauseEllipsis(prevHistory:state),
                 verbEmphasis(emphasis:word == 'а' ? 'andEmphasis' : 'butEmphasis', verb:var),
-                sentenceHolder(head:var.lightVar), verbalModifier(head:var.lightVar)).apply(state)
+                sentenceHolder(head:var.lightVar), verbHolder(head:var.lightVar)).apply(state)
       case "тут":
-        return state.assign(var.lightVar, 'emphasis', 'true').apply((verbHolder):[head:var.lightVar])
+        return state.assign(var.lightVar, 'emphasis', 'true').apply(verbHolder(head:var.lightVar))
       case "все":
         return state.apply((nom):[noun:v[nom].lightVar], (varCxt(quantifier:'ALL')):[var:v[nom]])
       case "дальше":
@@ -167,12 +167,12 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply(
                 (vPrep):[head:var, noun:v[vPrep].lightVar], (vPrepDomain):[head:var, noun:v[vPrep]],
                 (doGen):[head:var, noun:v[doGen].lightVar], (doGenGoal):[head:var, noun:v[doGen]],
-                (adverbialPhrase):[content:var, head:v[verbHolder]], (verbHolder):[head:v[verbHolder].lightVar])
+                (adverbialPhrase):[content:var, head:v[verbHolder]], (verbalModifier):[head:v[verbHolder].lightVar, hasModifier:true])
       case "вдумываясь":
         state = state.assign(var, 'type', 'THINK')
         return state.apply((vAcc):[noun:v[vAcc].lightVar, head:var],
                 (vAccTheme):[head:var, noun:v[vAcc]],
-                (adverbialPhrase):[content:var, head:v[verbHolder]], (verbHolder):[head:v[verbHolder].lightVar])
+                (adverbialPhrase):[content:var, head:v[verbHolder]], (verbalModifier):[head:v[verbHolder].lightVar, hasModifier:true])
       case "вспомнить":
         return infinitive(state, var, 'RECALL', (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]])
       case "делать":
@@ -198,7 +198,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return state.apply(
                 comma(hasComma:true), seq(conj:',', xor:t.a),
                 verbHolder(hasComma:true),
-                verbalModifier(mustFinish:true, head:before), verbalModifier(mustStart:true, head:after),
+                verbalModifier(hasComma:true),
                 reasonComp(hasComma:true, xor:t.a),
                 declOrQuestionComp(hasComma:true, xor:t.a),
                 adverbialPhrase(comma1:true, xor:t.a), adverbialPhrase(comma2:true, xor:t.a),
@@ -285,7 +285,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
   Update parseUpdate(String word) {
     Tokens t = new Tokens()
     Variable var = new Variable()
-    Vars v = new Vars()
     switch (word) {
       case "васи":
         return unoun(gen, var, null) + uv(var, name:'Вася')
@@ -373,9 +372,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 (typeCxt('wh')):[var:var, xor:t.f],
                 (modality):[questioned:var, xor:t.d], (complementizer):[xor:t.adefg, frame:comp]]
       case 'по':
-        return u(preposition(prep:'по', head:v[verbalModifier].lightVar),
-                poDat(noun:var), dat(noun:var.lightVar, head:var),
-                verbalModifier(head:v[verbalModifier].lightVar))
+        return u(preposition(prep:'по'),
+                poDat(noun:var), dat(noun:var.lightVar, head:var))
       case "и": return u(seq(conj:'and'))
       case "или": return u(seq(conj:'or'))
     }

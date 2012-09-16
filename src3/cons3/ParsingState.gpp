@@ -133,11 +133,16 @@ class ParsingState {
 
     state = processAlternatives(state, fullUpdate)
 
-    if (mayCorrectRoute && state.findTraitor()) {
-      state = correctRoute(state.prevState, FList.fromList([state]))
+    state = state.appendLog(state.presentable())
+
+    if (mayCorrectRoute) {
+      def traitor = state.findTraitor()
+      if (traitor) {
+        state = correctRoute(state.prevState, FList.fromList([state]), state.log + "changing route because of $traitor\n")
+      }
     }
 
-    return state.appendLog(state.presentable())
+    return state
   }
 
   ParsingState appendLog(String entry) {
@@ -170,11 +175,11 @@ class ParsingState {
     return state
   }
 
-  private static ParsingState correctRoute(ParsingState state, FList<ParsingState> reapply) {
+  private static ParsingState correctRoute(ParsingState state, FList<ParsingState> reapply, String log) {
     for (mite in state.miteList) {
       if (mite in state.miteList && !state.network.isChosen(mite)) {
         def anotherActive = state.network.choose([mite])
-        def alternative = state.activate(anotherActive)
+        def alternative = state.clone(log:log).activate(anotherActive)
         for (step in reapply) {
           alternative = baseApply(alternative, step.contribution, false)
         }
@@ -184,7 +189,7 @@ class ParsingState {
       }
     }
     if (state.prevState) {
-      return correctRoute(state.prevState, reapply.prepend(state))
+      return correctRoute(state.prevState, reapply.prepend(state), log)
     }
     return state
   }

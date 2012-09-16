@@ -207,15 +207,17 @@ class StatefulGenerator {
         def prev = conjuncts[j - 1]
         List<Frame> seqs = prev.frame?.usages('member') ?: [] //todo infer
         def but = seqs.any { conj -> conj.s('conj') == 'but' && conj.allAssignments('member')[-1].value == cur.frame }
+        def noConj = seqs && seqs.every { conj -> !conj.s('conj') }
         wasBut |= but
-        if (last && (!cur.frame?.f('perfectBackground') || cur.frame) || but) {
+        def opposition = noConj && prev.frame?.f('opinion_of')
+        if (last && (!cur.frame?.f('perfectBackground') || cur.frame) || opposition) {
           def negated = cur.frame?.s('negated')
-          if (but && !negated) {
-            out(prev.frame?.f('opinion_of') ? ';' : ',')
+          if ((but || noConj) && !negated) {
+            out(opposition ? ';' : ',')
           }
           else if (!wasBut && j > 1 || cur.frame?.f('perfectBackground')) out ","
 
-          out(but ? negated ? 'and' : prev.frame?.s('irrealis') == 'true' ? 'when' : 'but' : "and")
+          out(but || opposition ? negated ? 'and' : prev.frame?.s('irrealis') == 'true' ? 'when' : 'but' : "and")
         } else {
           out ","
         }

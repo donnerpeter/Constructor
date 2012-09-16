@@ -557,7 +557,7 @@ B.number=true
     doTranslateTest 'По словам кассирши, потом идет 7',
                     'According to the cashier, a 7 comes next'
   }
-  public void _test12_ShortNoEllipsis() throws Exception {
+  public void test12_ShortNoEllipsis() throws Exception {
     doTranslateTest 'По мнению одних дальше следовало 7, по мнению других дальше следовало 8',
                     'In the opinion of some, a 7 went next; but in opinion of others, an 8 went next'
   }

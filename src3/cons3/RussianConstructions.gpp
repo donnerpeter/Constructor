@@ -186,7 +186,7 @@ interface RussianConstructions {
         }
         if (result) {
           result.addAll(prepState.prevState.enrichUpdate(result, state))
-          result.addAll(new Mite(verbalModifier, hasModifier:true).unifyWherePossible(mods, false, true))
+//          result.addAll(new Mite(verbalModifier, hasRealModifier:true).unifyWherePossible(mods, false, true))
         }
         return result
       }
@@ -331,7 +331,7 @@ interface RussianConstructions {
       return false
     }
     if (mite.contents.conj == ',') {
-      for (c in [adverbialPhrase, poDatLuck]) {
+      for (c in [adverbialPhrase, poDatLuck, poDatOpinion]) {
         if (state.ownMites.find { it.cxt == c && it.atom && it.contents.content } &&
             !state.miteList.find { it.cxt == c && it.contents.comma1 && it.contents.content }) {
           return true
@@ -461,15 +461,6 @@ interface RussianConstructions {
     if (((Variable) mite.lastAtom.contents.head)?.hard) {
       return state.findState(mite, 'hasModifier')?.prevVisibleState?.hierarchy
     }
-  }.enrichingMites { mite, contribution, state ->
-    def hasHead = ((Variable) mite.contents.head)?.hard
-    if (!mite.contents.hasModifier && !hasHead) {
-      return []
-    }
-    if (hasHead && contribution.find { it.cxt == poDat } ) {
-      return []
-    }
-    return mite.unifyWherePossible(contribution)
   }
 
 }

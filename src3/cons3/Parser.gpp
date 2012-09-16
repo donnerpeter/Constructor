@@ -19,7 +19,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     def tokenizer = new StringTokenizer(text, """ '":,.?!""", true)
     for (String w in tokenizer) {
       if (w != ' ') {
-        def logged = state.appendLog(w + " ${'-' * (120 - w.size())}\n")
+        def logged = state.appendLog("$w ${System.currentTimeMillis()} ${'-' * (100 - w.size())}\n")
         state = handleWord(w.toLowerCase().trim(), logged)
         log = state.log
       }
@@ -194,14 +194,16 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "спросить":
         return infinitive(state, var, 'ASK', (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]])
       case ",":
+        def verb = v[verbHolder].lightVar
         return state.apply(
-                comma(hasComma:true), seq(conj:',', xor:t.a),
+                comma(hasComma:true), seq(conj:',', xor:t.ab),
                 verbHolder(hasComma:true),
-                verbalModifier(hasComma:true),
+                verbalModifier(head:verb, xor:t.b),
                 reasonComp(hasComma:true, xor:t.a),
                 declOrQuestionComp(hasComma:true, xor:t.a),
                 adverbialPhrase(comma1:true, xor:t.a), adverbialPhrase(comma2:true, xor:t.a),
-                poDatLuck(comma1:true, xor:t.a), poDatLuck(comma2:true, xor:t.a),
+                poDatLuck(comma1:true, xor:t.a, head:verb), poDatLuck(comma2:true, xor:t.a, head:verb),
+                poDatOpinion(comma1:true, xor:t.a, head:verb), poDatOpinion(comma2:true, xor:t.a, head:verb),
                 accordingTo(comma1:true, xor:t.a), accordingTo(comma2:true, xor:t.a),
                 clauseEllipsis(prevHistory:state)
         ).advanceSection()
@@ -324,7 +326,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "других": return unoun(gen, var, 'OTHERS')
       case "мнению":
         return unoun(dat, var, 'OPINION') +
-               uarg(var, gen, genArg1).xor(uposs(var, possAuthor)) + u(RussianConstructions.word(word:word))
+               uarg(var, gen, genArg1).xor(uposs(var, possArg1)) + u(RussianConstructions.word(word:word))
       case "словам":
         return unoun(dat, var, 'WORDS') +
                uarg(var, gen, genAuthor).xor(uposs(var, possAuthor)) + u(RussianConstructions.word(word:word))
@@ -374,7 +376,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         Variable verb = new Variable()
         return u(preposition(prep:'по', head:verb.lightVar),
                 poDat(noun:var), dat(noun:var.lightVar, head:var),
-                verbalModifier(head:verb.lightVar))
+                verbalModifier(head:verb.lightVar, hasModifier:true))
       case "и": return u(seq(conj:'and'))
       case "или": return u(seq(conj:'or'))
     }

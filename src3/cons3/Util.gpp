@@ -137,6 +137,9 @@ class Util {
       if (contribution.find { it.cxt == preposition || it.cxt in [ransheGen, posleGen] && it.contents.noun && !it.contents.head }) {
         return []
       }
+      if (mite.contents.inferred) {
+        return []
+      }
       mite.unifyWherePossible(contribution)
     }
   }

@@ -111,7 +111,7 @@ class SeqInterceptor implements RussianConstructions {
 
   private Mite findSimilarOwnMite(Mite mite, ParsingState inState) {
     if (mite.cxt == acc && mite.contents.head) return null
-    if (mite.cxt in [sentenceHolder, noArg]) return null
+    if (mite.cxt in [sentenceHolder, noArg, verbalModifier]) return null
     return inState.contribution.find { it.isSimilarTo(mite) }
   }
 
@@ -128,7 +128,7 @@ class SeqInterceptor implements RussianConstructions {
 
   private List<Mite> unifyHeadWithMergePoint(Mite oldMite, Mite newMite) {
     if (newMite.cxt in [nom, acc, gen, dat, poDat] && newMite.contents.noun && newMite.contents.head && agree(newMite, oldMite)) {
-      return [newMite.cxt(noun:oldMite.contents.noun).unify(newMite)]
+      return [newMite.cxt(noun:oldMite.contents.noun, inferred:true).unify(newMite)]
     }
     if (newMite.cxt == possessive && newMite.contents.possessor && newMite.contents.head) {
       return [newMite.cxt(possessor:oldMite.contents.possessor).unify(newMite)]

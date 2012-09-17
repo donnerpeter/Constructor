@@ -127,8 +127,8 @@ class ParsingState {
             miteGenerations:newMiteGenerations, network:state.network.addMites(fullUpdate),
             contribution:update, currentGeneration:state.currentGeneration + 1)
 
-    def newActive = state.network.choose(fullUpdate)
-    def sat = newActive.maximizeSatisfiedness()
+    def newActive = state.network.choose(fullUpdate as List)
+    def sat = newActive.maximizeSatisfiedness([])
     state = state.activate(sat)
 
     state = processAlternatives(state, fullUpdate)
@@ -168,7 +168,7 @@ class ParsingState {
 
       for (toAdd in toCheck.reverse()) {
         if (!state.network.isChosen(toAdd)) {
-          state = tryAlternative(state, [toAdd])
+          state = tryAlternative(state, toAdd)
         }
       }
     }
@@ -178,7 +178,7 @@ class ParsingState {
   private static ParsingState correctRoute(ParsingState state, FList<ParsingState> reapply, String log) {
     for (mite in state.miteList) {
       if (mite in state.miteList && !state.network.isChosen(mite)) {
-        def anotherActive = state.network.choose([mite])
+        def anotherActive = state.network.choose([mite]).maximizeSatisfiedness([mite])
         def alternative = state.clone(log:log).activate(anotherActive)
         for (step in reapply) {
           alternative = baseApply(alternative, step.contribution, false)
@@ -269,8 +269,8 @@ class ParsingState {
     return link?.cxt?.showPrev(link, prevState, null, true) ?: link?.cxt?.showPrev(link, prevState, null, false)
   }
 
-  private static ParsingState tryAlternative(ParsingState state, Collection<Mite> preferred) {
-    def anotherActive = state.network.choose(preferred)
+  private static ParsingState tryAlternative(ParsingState state, Mite preferred) {
+    def anotherActive = state.network.choose([preferred]).maximizeSatisfiedness([preferred])
     def alternative = state.activate(anotherActive)
     try {
       if (new Domination(alternative, state).dominatesSemantically()) {

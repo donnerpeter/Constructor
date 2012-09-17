@@ -11,10 +11,10 @@ class Network {
   final Map<Object, Collection<Mite>> groups = [:]
   final LinkedHashSet<Mite> _chosen = []
 
-  Network maximizeSatisfiedness() {
+  Network maximizeSatisfiedness(List<Mite> fixed) {
     Network net = this
     while (true) {
-      Network better = tryMaximizeSatisfiedness(net, [])
+      Network better = tryMaximizeSatisfiedness(net, fixed)
       if (better == net) {
         return net
       }

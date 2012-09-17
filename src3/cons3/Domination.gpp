@@ -37,6 +37,11 @@ class Domination {
       return true
     }
     if (findPair { verb, alternative ->
+      verb.type == 'COME_SCALARLY' && alternative.type == 'GO' && verb.f('anchor')?.type && !verb.f('anchor').canBeHuman()
+    }) {
+      return true
+    }
+    if (findPair { verb, alternative ->
       verb.type == 'FORGET' && verb.f('arg2') && !alternative.f('arg2')
     }) {
       return true
@@ -70,6 +75,13 @@ class Domination {
           return meHuman
         }
       }
+
+      if (verb.type && alternative.type &&
+          ((Frame) verb?.definedAttributeValue('arg1'))?.definedAttributeValue('type') &&
+          !((Frame) alternative?.definedAttributeValue('arg1'))?.definedAttributeValue('type')) {
+        return true
+      }
+
     }
 
     return false

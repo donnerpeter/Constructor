@@ -101,7 +101,7 @@ interface RussianConstructions {
     return []
   }
   Construction clauseEllipsis = emptyCxt('clauseEllipsis').enrichingMites { mite, contribution, state ->
-    if (mite.contents.prevHistory && contribution.find { it.cxt == clauseEllipsis && it.contents.interceptor }) {
+    if (mite.contents.prevHistory && contribution.find { it.cxt == clauseEllipsis && (it.contents.interceptor || it.contents.but) }) {
       return mite.unifyWherePossible(contribution)
     }
     return []

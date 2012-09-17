@@ -40,7 +40,6 @@ class EllipsisInterceptor extends Interceptor implements RussianConstructions {
           ParsingState oldContribution = precedent[i]
           List<Mite> mapped = applyMapping(oldContribution, mapping, xorMapping) + [clauseEllipsis(guard:true)]
           state = base(mapped, state)
-          //todo a generic conjunctless 'but'
           def cs = mapped.find { it.cxt == comeScalarly && it.contents.verb }
           if (cs && prevHistory[comeScalarly]?.verb) {
             def seq = new Variable()

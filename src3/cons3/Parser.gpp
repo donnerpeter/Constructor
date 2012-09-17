@@ -112,7 +112,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "нашего": return state.apply((typeCxt('WE')):[var:var], (possessive):[possessor:var])
       case "а":
       case "но":
-        return u(seq(conj:'but'), clauseEllipsis(prevHistory:state),
+        return u(seq(conj:'but'), clauseEllipsis(but:true),
                 verbEmphasis(emphasis:word == 'а' ? 'andEmphasis' : 'butEmphasis', verb:var),
                 sentenceHolder(head:var.lightVar), verbHolder(head:var.lightVar)).apply(state)
       case "тут":

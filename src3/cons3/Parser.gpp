@@ -383,11 +383,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
     return null
   }
 
-  Update uadv(String rel, String adv) {
+  static Update uadv(String rel, String adv) {
     return u(adverb(adv:adv, attr:rel, head:new Variable().lightVar))
   }
-  
-  Update uposs(Variable head, Construction sem) {
+
+  static Update uposs(Variable head, Construction sem) {
     Variable arg = new Variable()
     u(possessive(head:head, possessor:arg.lightVar), sem(head:head, possessor:arg))
   }
@@ -400,12 +400,12 @@ class Parser { //todo alex implements cons3.RussianConstructions
     new Update(mites)
   }
 
-  ParsingState adj(ParsingState state, Construction caze, String rel, String val) {
+  static ParsingState adj(ParsingState state, Construction caze, String rel, String val) {
     def noun = new Variable().lightVar
     return state.apply((adjective):[nounFrame:noun, rel:rel, val:val], (caze):[noun:noun])
   }
 
-  ParsingState numeral(ParsingState state, Tokens t, String number) {
+  static ParsingState numeral(ParsingState state, Tokens t, String number) {
     def noun = new Variable()
     def num = new Variable()
     return state.apply((nom):[noun:noun, xor:t.a], (acc):[noun:noun, xor:t.a],
@@ -416,11 +416,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
     )
   }
 
-  private Construction numberTypeCxt(Variable var, String word) {
+  private static Construction numberTypeCxt(Variable var, String word) {
     return cxt("sem_number_${var}_$word") { ParsingState st, Map args -> st.assign(args.var, 'type', word).assign(args.var, 'number', 'true') }
   }
 
-  private ParsingState infinitive(Map<Construction, Map> args, ParsingState state, Variable verb, String type) {
+  private static ParsingState infinitive(Map<Construction, Map> args, ParsingState state, Variable verb, String type) {
     def mod = new Variable()
     def datNoun = new Variable().lightVar
     return state.assign(verb, 'type', type).apply(args +
@@ -446,7 +446,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     return update + mites + commonCase(caze, var)
   }
 
-  private Update commonCase(Construction caze, Variable var) {
+  private static Update commonCase(Construction caze, Variable var) {
     u(caze(noun:var, xor:new Tokens().a))
   }
 

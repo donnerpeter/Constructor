@@ -27,7 +27,7 @@ class EllipsisInterceptor extends Interceptor {
     if (endPrecedent >= 0) {
       int startPrecedent = old.findIndexOf(endPrecedent + 1) { ParsingState it -> canPrecedeEllipsis(it) }
       if (startPrecedent >= 0) {
-        FList<ParsingState> precedent = FList.fromList(old[0..startPrecedent-1])
+        FList<ParsingState> precedent = FList.fromListReverse(old[0..startPrecedent-1])
 
         Map<Variable, Variable> mapping = buildMapping(old[startPrecedent], precedent, update)
         Map<Object, Object> xorMapping = [:]

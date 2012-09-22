@@ -13,7 +13,7 @@ class Mite {
 
   Mite(Map contents, Construction cxt, FList<Pair<Variable, Variable>> unifications = FList.emptyList, Mite src1 = null, Mite src2 = null, FList<Mite> prerequisites = FList.emptyList) {
     this.cxt = cxt
-    this.contents = contents instanceof FLinkedMap ? contents : FLinkedMap.fromMap(contents)
+    this.contents = contents instanceof FLinkedMap ? contents : FLinkedMap.fromMapReverse(contents)
     this.unifications = unifications
     this.src1 = src1
     this.src2 = src2
@@ -105,7 +105,7 @@ class Mite {
       }
     }
 
-    return new Mite(unify(before, newArgs), cxt, newUnifications, this, another, FList.fromList((this.prerequisites + another.prerequisites) as LinkedHashSet<Mite>))
+    return new Mite(unify(before, newArgs), cxt, newUnifications, this, another, FList.fromListReverse((this.prerequisites + another.prerequisites) as LinkedHashSet<Mite>))
   }
 
   Mite withPrerequisite(Mite m) {

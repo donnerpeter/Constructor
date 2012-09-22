@@ -26,7 +26,7 @@ abstract class FList<T> extends AbstractList<T> implements Serializable {
    */
   static final FList emptyList = new EmptyList ()
 
-  static <T> FList<T> fromList(Collection<T> l) {
+  static <T> FList<T> fromListReverse(Collection<T> l) {
     return emptyList.prependAll(l)
   }
 

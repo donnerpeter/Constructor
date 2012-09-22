@@ -138,7 +138,7 @@ class ParsingState {
     if (mayCorrectRoute) {
       def traitor = state.findTraitor()
       if (traitor) {
-        state = correctRoute(state.prevState, FList.fromList([state]), state.log + "changing route because of $traitor\n")
+        state = correctRoute(state.prevState, FList.fromListReverse([state]), state.log + "changing route because of $traitor\n")
       }
     }
 

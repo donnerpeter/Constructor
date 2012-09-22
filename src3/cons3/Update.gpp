@@ -10,7 +10,7 @@ class Update {
     this(mites as List)
   }
   Update(List<Mite> mites) {
-    this.mites = mites instanceof FList ? mites : FList.fromList(mites)
+    this.mites = mites instanceof FList ? mites : FList.fromListReverse(mites)
   }
 
   Update plus(Update update) {

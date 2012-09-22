@@ -203,8 +203,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 declOrQuestionComp(hasComma:true, xor:t.a),
                 adverbialPhrase(comma1:true, xor:t.a), adverbialPhrase(comma2:true, xor:t.a),
                 poDatLuck(comma1:true, xor:t.a, head:verb), poDatLuck(comma2:true, xor:t.a, head:verb),
-                poDatOpinion(comma1:true, xor:t.a, head:verb), poDatOpinion(comma2:true, xor:t.a, head:verb),
-                accordingTo(comma1:true, xor:t.a), accordingTo(comma2:true, xor:t.a),
+                accordingTo(comma1:true, xor:t.a, head:verb), accordingTo(comma2:true, xor:t.a, head:verb),
                 clauseEllipsis(prevHistory:state)
         ).advanceSection()
       case "если":

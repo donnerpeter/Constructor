@@ -70,9 +70,6 @@ interface RussianConstructions {
   Construction poDat = commonPrep('po', dat)
   Construction poDatTopic = commonArg('poDat', 'topic')
   Construction poDatGoal = commonArg('poDat', 'goal')
-  Construction poDatOpinion = commaSurrounded(cxt("poDatOpinion", ['content', '*head']) { ParsingState state, Map args ->
-    state.assign(args.head, 'opinion_of', args.content)
-  })
   Construction poDatLuck = commaSurrounded(cxt("poDatLuck", ['content', '*head']) { ParsingState state, Map args ->
     state.assign(args.content, 'topic', args.head)
   })
@@ -182,7 +179,7 @@ interface RussianConstructions {
           result << new Mite(poDatLuck, content:noun, head:mite.contents.head)
         }
         if (update.find { it.cxt == word && it.contents.word in ['мнению', 'словам']}) {
-          result << new Mite(poDatOpinion, content:noun, head:mite.contents.head)
+          result << new Mite(accordingTo, content:noun, head:mite.contents.head)
         }
         if (result) {
           result.addAll(prepState.prevState.enrichUpdate(result, state))
@@ -341,7 +338,7 @@ interface RussianConstructions {
       return false
     }
     if (mite.contents.conj == ',') {
-      for (c in [adverbialPhrase, poDatLuck, poDatOpinion]) {
+      for (c in [adverbialPhrase, poDatLuck, accordingTo]) {
         if (state.ownMites.find { it.cxt == c && it.atom && it.contents.content } &&
             !state.miteList.find { it.cxt == c && it.contents.comma1 && it.contents.content }) {
           return true

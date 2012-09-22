@@ -12,8 +12,8 @@ class EllipsisInterceptor extends Interceptor {
 
   ParsingState intercept(List<Mite> constructions, ParsingState state, Function2<List<Mite>, ParsingState, ParsingState> base) {
     Mite self = state.visibleMites[clauseEllipsis].find { state.network.isChosen(it) && it.contents.interceptor == (Interceptor) this }
-    final ParsingState prevHistory = self.contents.prevHistory
-    if (!prevHistory || state[clauseEllipsis].finished || state.visibleMites[questionVariants]?.find { it.contents.questioned }) {
+    final ParsingState prevClause = self.contents.prevHistory
+    if (!prevClause || state[clauseEllipsis].finished || state.visibleMites[questionVariants]?.find { it.contents.questioned }) {
       return base(constructions, state)
     }
     if (!canPrecedeEllipsis(beforeDash)) {
@@ -22,32 +22,31 @@ class EllipsisInterceptor extends Interceptor {
 
     Update update = new Update(constructions)
 
-    List<ParsingState> old = prevHistory.history
+    List<ParsingState> old = prevClause.history
     def endPrecedent = old.findIndexOf { ParsingState it -> Similarity.areSimilar(it.contribution, update.mites) }
-    if (endPrecedent >= 0) {
-      int startPrecedent = old.findIndexOf(endPrecedent + 1) { ParsingState it -> canPrecedeEllipsis(it) }
-      if (startPrecedent >= 0) {
-        FList<ParsingState> precedent = FList.fromListReverse(old[0..startPrecedent-1])
+    int startPrecedent = old.findIndexOf(endPrecedent + 1) { ParsingState it -> canPrecedeEllipsis(it) }
+    if (startPrecedent < 0 || endPrecedent < 0) {
+      return base(constructions, state)
+    }
 
-        Map<Variable, Variable> mapping = buildMapping(old[startPrecedent], precedent, update)
-        Map<Object, Object> xorMapping = [:]
+    FList<ParsingState> precedent = FList.fromListReverse(old[0..startPrecedent-1])
 
-        def ellipsis = new Variable()
-        state = state.assign(ellipsis, 'type', 'ellipsis').startMeta(ellipsis)
+    Map<Variable, Variable> mapping = buildMapping(old[startPrecedent], precedent, update)
 
-        for (i in 0..<precedent.size()) {
-          if (i == precedent.size() - endPrecedent - 1) continue
+    def ellipsis = new Variable()
+    state = state.assign(ellipsis, 'type', 'ellipsis')
 
-          ParsingState oldContribution = precedent[i]
-          List<Mite> mapped = applyMapping(oldContribution, mapping, xorMapping)
-          state = base(mapped, state)
-        }
-
-        state = state.finishMeta(ellipsis).apply((clauseEllipsis):[finished:true])
+    Map<Object, Object> xorMapping = [:]
+    for (i in 0..<precedent.size()) {
+      if (i == precedent.size() - endPrecedent - 1) {
+        state = base(constructions, state)
+      } else {
+        List<Mite> mapped = applyMapping(precedent[i], mapping, xorMapping)
+        state = base(mapped, state.startMeta(ellipsis)).finishMeta(ellipsis)
       }
     }
 
-    return base(constructions, state)
+    return state.apply((clauseEllipsis):[finished:true])
   }
 
   private static boolean canPrecedeEllipsis(ParsingState st) {

@@ -1,18 +1,22 @@
 package cons3
 
 import groovy.transform.TupleConstructor
+import static cons3.RussianConstructions.*
 
 /**
  * @author peter
  */
 @TupleConstructor
-class EllipsisInterceptor extends Interceptor implements RussianConstructions {
+class EllipsisInterceptor extends Interceptor {
   final ParsingState beforeDash
 
   ParsingState intercept(List<Mite> constructions, ParsingState state, Function2<List<Mite>, ParsingState, ParsingState> base) {
     Mite self = state.visibleMites[clauseEllipsis].find { state.network.isChosen(it) && it.contents.interceptor == (Interceptor) this }
     final ParsingState prevHistory = self.contents.prevHistory
     if (!prevHistory || state[clauseEllipsis].finished || state.visibleMites[questionVariants]?.find { it.contents.questioned }) {
+      return base(constructions, state)
+    }
+    if (!canPrecedeEllipsis(beforeDash)) {
       return base(constructions, state)
     }
 
@@ -22,17 +26,16 @@ class EllipsisInterceptor extends Interceptor implements RussianConstructions {
     def endPrecedent = old.findIndexOf { ParsingState it -> Similarity.areSimilar(it.contribution, update.mites) }
     if (endPrecedent >= 0) {
       List<ParsingState> beforeGap = beforeDash.history[0..<beforeDash.history.size() - old.size()]
+      int startPrecedent = old.findIndexOf(endPrecedent + 1) { ParsingState it -> Similarity.areSimilar(it.contribution, beforeDash.contribution) }
       def lcs = Util.lcs(old.subList(endPrecedent + 1, old.size()), beforeGap) { a, b -> Similarity.areSimilar(a.contribution, b.contribution) }
-      if (lcs) {
-        def startPrecedent = old.indexOf(lcs[0])
+      if (startPrecedent >= 0) {
         FList<ParsingState> precedent = FList.fromList(old[0..startPrecedent-1])
 
         Map<Variable, Variable> mapping = buildMapping(lcs, precedent, update)
         Map<Object, Object> xorMapping = [:]
 
         def ellipsis = new Variable()
-        state = state.
-                assign(ellipsis, 'type', 'ellipsis').startMeta(ellipsis)
+        state = state.assign(ellipsis, 'type', 'ellipsis').startMeta(ellipsis)
 
         for (i in 0..<precedent.size()) {
           if (i == precedent.size() - endPrecedent - 1) continue
@@ -47,6 +50,10 @@ class EllipsisInterceptor extends Interceptor implements RussianConstructions {
     }
 
     return base(constructions, state)
+  }
+
+  private static boolean canPrecedeEllipsis(ParsingState st) {
+    return st[accordingTo]?.content
   }
 
   static List<Mite> applyMapping(ParsingState oldContribution, Map<Variable, Variable> mapping, Map<Object, Object> xorMapping) {

@@ -221,7 +221,17 @@ interface RussianConstructions {
     }
     return state
   }
-  Construction possessive = cxt('possessive', ['+possessor', '*head']) { ParsingState state, Map args -> state }
+  Construction possessive = cxt('possessive', ['+possessor', '*head']) { ParsingState state, Map args ->
+    state
+  }.enrichingMites { mite, contribution, state ->
+    if (!((Variable) mite.contents.head)?.hard && !contribution.find { it.cxt == possessive }) {
+      def nounFrame = contribution.find { it.cxt == adjective }?.contents?.nounFrame
+      if (nounFrame) {
+        return [mite.unify(new Mite(possessive, head:nounFrame))]
+      }
+    }
+    return mite.unifyWherePossible(contribution)
+  }
   Construction control = cxt('control', ['+head', 'slave']) { ParsingState state, Map args ->
     return args.head && args.slave ? state.assign(args.head, 'theme', args.slave) : state
   }.structural { mite, state, via, up -> state.findState(mite, 'head')?.hierarchy } { mite, fresh -> fresh.cxt != verbHolder }

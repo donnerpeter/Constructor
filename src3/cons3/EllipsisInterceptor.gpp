@@ -57,7 +57,7 @@ class EllipsisInterceptor extends Interceptor implements RussianConstructions {
     return base(constructions, state)
   }
 
-  List<Mite> applyMapping(ParsingState oldContribution, Map<Variable, Variable> mapping, Map<Object, Object> xorMapping) {
+  static List<Mite> applyMapping(ParsingState oldContribution, Map<Variable, Variable> mapping, Map<Object, Object> xorMapping) {
     List<Mite> newContribution = []
     for (mite in oldContribution.contribution) {
       def newArgs = [:]
@@ -72,7 +72,7 @@ class EllipsisInterceptor extends Interceptor implements RussianConstructions {
     return newContribution
   }
 
-  Map<Variable, Variable> buildMapping(List<ParsingState> lcs, List<ParsingState> template, Update update) {
+  static Map<Variable, Variable> buildMapping(List<ParsingState> lcs, List<ParsingState> template, Update update) {
     Map<Variable, Variable> mapping = [:]
     lcs.each { contribution ->
       contribution.contribution.each { mite ->

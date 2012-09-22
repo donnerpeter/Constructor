@@ -2,11 +2,13 @@ package cons3
 
 import groovy.transform.TupleConstructor
 
+import static cons3.RussianConstructions.*
+
 /**
  * @author peter
  */
 @TupleConstructor
-class SeqInterceptor implements RussianConstructions {
+class SeqInterceptor {
   final ParsingState before
   final Mite self
   final List<Mite> constructions
@@ -109,7 +111,7 @@ class SeqInterceptor implements RussianConstructions {
     before.hierarchy.findAll { state -> constructions.any { findSimilarOwnMite(it, state) } }
   }
 
-  private Mite findSimilarOwnMite(Mite mite, ParsingState inState) {
+  private static Mite findSimilarOwnMite(Mite mite, ParsingState inState) {
     if (mite.cxt == acc && mite.contents.head) return null
     if (mite.cxt in [sentenceHolder, noArg, verbalModifier]) return null
     return inState.contribution.find { it.isSimilarTo(mite) }
@@ -126,7 +128,7 @@ class SeqInterceptor implements RussianConstructions {
     return result
   }
 
-  private List<Mite> unifyHeadWithMergePoint(Mite oldMite, Mite newMite) {
+  private static List<Mite> unifyHeadWithMergePoint(Mite oldMite, Mite newMite) {
     if (newMite.cxt in [nom, acc, gen, dat, poDat] && newMite.contents.noun && newMite.contents.head && agree(newMite, oldMite)) {
       return [newMite.cxt(noun:oldMite.contents.noun, inferred:true).unify(newMite)]
     }
@@ -136,11 +138,11 @@ class SeqInterceptor implements RussianConstructions {
     return []
   }
 
-  private boolean agree(Mite mite, Mite oldMite) {
+  private static boolean agree(Mite mite, Mite oldMite) {
     return mite.contents.agrNumber == oldMite.contents.agrNumber
   }
 
-  private Mite findPrevSeq(ParsingState state, Mite mite, String property, boolean topLevel) {
+  private static Mite findPrevSeq(ParsingState state, Mite mite, String property, boolean topLevel) {
     return state.ownMites.find {
       it.cxt == seq &&
       it.contents.mergedWith && it.contents.multi &&
@@ -148,7 +150,7 @@ class SeqInterceptor implements RussianConstructions {
     }
   }
 
-  private boolean canJoinSeq(Mite prevSeq) {
+  private static boolean canJoinSeq(Mite prevSeq) {
     return prevSeq && prevSeq.contents.conj != 'but'
   }
 
@@ -225,7 +227,7 @@ class SeqInterceptor implements RussianConstructions {
     return prevSeq.contents.mergedWith
   }
 
-  private Variable joinedVar(Map<Pair<Variable, Variable>, Variable> seqs, Variable first, Variable second) {
+  private static Variable joinedVar(Map<Pair<Variable, Variable>, Variable> seqs, Variable first, Variable second) {
     Variable multi = seqs[new Pair(first, second)] ?: new Variable("$first&$second")
     seqs[new Pair(first, second)] = multi
     if (first.light && second.light) {

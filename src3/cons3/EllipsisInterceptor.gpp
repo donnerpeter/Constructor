@@ -25,13 +25,11 @@ class EllipsisInterceptor extends Interceptor {
     List<ParsingState> old = prevHistory.history
     def endPrecedent = old.findIndexOf { ParsingState it -> Similarity.areSimilar(it.contribution, update.mites) }
     if (endPrecedent >= 0) {
-      List<ParsingState> beforeGap = beforeDash.history[0..<beforeDash.history.size() - old.size()]
-      int startPrecedent = old.findIndexOf(endPrecedent + 1) { ParsingState it -> Similarity.areSimilar(it.contribution, beforeDash.contribution) }
-      def lcs = Util.lcs(old.subList(endPrecedent + 1, old.size()), beforeGap) { a, b -> Similarity.areSimilar(a.contribution, b.contribution) }
+      int startPrecedent = old.findIndexOf(endPrecedent + 1) { ParsingState it -> canPrecedeEllipsis(it) }
       if (startPrecedent >= 0) {
         FList<ParsingState> precedent = FList.fromList(old[0..startPrecedent-1])
 
-        Map<Variable, Variable> mapping = buildMapping(lcs, precedent, update)
+        Map<Variable, Variable> mapping = buildMapping(old[startPrecedent], precedent, update)
         Map<Object, Object> xorMapping = [:]
 
         def ellipsis = new Variable()
@@ -53,7 +51,7 @@ class EllipsisInterceptor extends Interceptor {
   }
 
   private static boolean canPrecedeEllipsis(ParsingState st) {
-    return st[accordingTo]?.content
+    return st[accordingTo]?.content && st.linkUp || st.ownMites.find { it.cxt == accordingTo && it.contents.content }
   }
 
   static List<Mite> applyMapping(ParsingState oldContribution, Map<Variable, Variable> mapping, Map<Object, Object> xorMapping) {
@@ -71,16 +69,14 @@ class EllipsisInterceptor extends Interceptor {
     return newContribution
   }
 
-  static Map<Variable, Variable> buildMapping(List<ParsingState> lcs, List<ParsingState> template, Update update) {
+  static Map<Variable, Variable> buildMapping(ParsingState antecedent, List<ParsingState> template, Update update) {
     Map<Variable, Variable> mapping = [:]
-    lcs.each { contribution ->
-      contribution.contribution.each { mite ->
-        mite.contents.each { val ->
-          if (val instanceof Variable && !mapping[val]) {
-            def newVar = new Variable()
-            mapping[val.base] = newVar
-            mapping[val.base.lightVar] = newVar.lightVar
-          }
+    antecedent.miteList.each { mite ->
+      mite.contents.values().each { val ->
+        if (val instanceof Variable && !mapping[val]) {
+          def newVar = new Variable()
+          mapping[val.base] = newVar
+          mapping[val.base.lightVar] = newVar.lightVar
         }
       }
     }

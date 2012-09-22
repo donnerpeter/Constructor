@@ -239,7 +239,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case 'по-моему':
         def me = new Variable()
         return state.assign(var, 'type', 'OPINION').assign(var, 'arg1', me).assign(me, 'type', 'ME').
-                apply((accordingTo):[content:var, head:v[verbHolder]], (verbHolder):[head:v[verbHolder].lightVar])
+                apply(accordingTo(content:var, head:v[verbHolder]), verbalModifier(head:v[verbHolder].lightVar, hasModifier:true))
       case '?': return state.apply((question):[:])
       case '"':
         return state.apply((quote):[:])

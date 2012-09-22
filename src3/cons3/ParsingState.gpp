@@ -203,6 +203,10 @@ class ParsingState {
     return hierarchy.size() == 1 ? null : hierarchy[1]
   }
 
+  boolean isLinkUp() {
+    return doFindLink(true) != null
+  }
+
   private Mite findLink() {
     return doFindLink(true) ?: doFindLink(false)
   }

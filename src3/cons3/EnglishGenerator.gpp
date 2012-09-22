@@ -209,7 +209,7 @@ class StatefulGenerator {
         def but = seqs.any { conj -> conj.s('conj') == 'but' && conj.allAssignments('member')[-1].value == cur.frame }
         def noConj = seqs && seqs.every { conj -> !conj.s('conj') }
         wasBut |= but
-        def opposition = noConj && prev.frame?.f('opinion_of')
+        def opposition = (noConj || but) && prev.frame?.f('opinion_of')
         if (last && (!cur.frame?.f('perfectBackground') || cur.frame) || opposition) {
           def negated = cur.frame?.s('negated')
           if ((but || noConj) && !negated) {

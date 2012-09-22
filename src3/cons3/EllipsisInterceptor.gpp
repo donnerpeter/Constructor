@@ -38,16 +38,8 @@ class EllipsisInterceptor extends Interceptor implements RussianConstructions {
           if (i == precedent.size() - endPrecedent - 1) continue
 
           ParsingState oldContribution = precedent[i]
-          List<Mite> mapped = applyMapping(oldContribution, mapping, xorMapping) + [clauseEllipsis(guard:true)]
+          List<Mite> mapped = applyMapping(oldContribution, mapping, xorMapping)
           state = base(mapped, state)
-          def cs = mapped.find { it.cxt == comeScalarly && it.contents.verb }
-          if (cs && prevHistory[comeScalarly]?.verb) {
-            def seq = new Variable()
-            state = state.assign(seq, 'member', prevHistory[comeScalarly].verb).assign(seq, 'member', cs.contents.verb)
-            if (prevHistory[elaboration]?.head) {
-              state = state.assign(prevHistory[elaboration].head, 'elaboration', seq)
-            }
-          }
         }
 
         state = state.finishMeta(ellipsis).apply((clauseEllipsis):[finished:true])

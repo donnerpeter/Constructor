@@ -31,7 +31,7 @@ class SeqInterceptor {
       return seq(beforeComma:before).unifyWherePossible(constructions, false, false)
     }
 
-    if (self.contents.mergedWith || isInsideEllipsisProcessing()) {
+    if (self.contents.mergedWith) {
       return []
     }
 
@@ -86,10 +86,6 @@ class SeqInterceptor {
     }
 
     return result
-  }
-
-  private Mite isInsideEllipsisProcessing() {
-    return constructions.find { it.cxt == clauseEllipsis && it.contents.guard }
   }
 
   private ParsingState findSimilarContribution() {

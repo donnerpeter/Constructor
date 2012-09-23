@@ -247,9 +247,12 @@ class ParsingState {
   LinkedHashSet<Mite> enrichUpdate(List<Mite> update, ParsingState original) {
     LinkedHashSet<Mite> fullUpdate = []
     for (state in hierarchy) {
+      List<Mite> delta = []
+      List<Mite> toEnrich = (update + fullUpdate) as List
       for (mite in state.findMitesAlongParsingRoute(original)) {
-        fullUpdate.addAll((mite.cxt.enrichAction(mite, update, original) as List<Mite>).reverse())
+        delta.addAll((mite.cxt.enrichAction(mite, toEnrich, original) as List<Mite>).reverse())
       }
+      fullUpdate.addAll(delta)
     }
     fullUpdate
   }

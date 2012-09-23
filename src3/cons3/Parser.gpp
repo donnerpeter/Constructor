@@ -462,7 +462,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     return u(cxt(var:var))
   }
 
-  static Construction varCxt(Map<String, String> attrs) {
+  static Construction varCxt(Map<String, Object> attrs) {
     return cxt("var_${attrs.collect { k, v -> k + "_" + v}.join("_")}") { st, a ->
       for (attr in attrs.keySet()) {
         st = st.assign(a.var, attr, attrs[attr])

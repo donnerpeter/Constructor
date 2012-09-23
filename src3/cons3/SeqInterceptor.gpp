@@ -179,6 +179,14 @@ class SeqInterceptor {
     if (cxt == possessive && oldArgs.possessor && newArgs.possessor && !newArgs.head) {
       return doMerge(oldMite, newArgs, 'possessor', update, seqs)
     }
+    if (cxt == accordingTo && oldArgs.content && newArgs.content) {
+      def mPoint = doMerge(oldMite, newArgs, 'content', update, seqs)
+      update << new Mite(var:newArgs.content, Parser.varCxt(distinguished_in:newArgs.head))
+      if (!mPoint.contribution.find { it.cxt == accordingTo } && mPoint.visibleMites[preposition]) {
+        return mPoint.hierarchy[1]
+      }
+      return mPoint
+    }
     return null
   }
 

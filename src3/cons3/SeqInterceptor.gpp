@@ -108,9 +108,9 @@ class SeqInterceptor {
   }
 
   private static Mite findSimilarOwnMite(Mite mite, ParsingState inState) {
-    if (mite.cxt == acc && mite.contents.head) return null
-    if (mite.cxt in [sentenceHolder, noArg, verbalModifier]) return null
-    return inState.contribution.find { it.isSimilarTo(mite) }
+    if (mite.cxt in [nom, acc] && mite.contents.head) return null
+    if (mite.cxt in [sentenceHolder, noArg, verbalModifier, verbHolder]) return null
+    return inState.ownMites.find { it.isSimilarTo(mite) }
   }
 
   private List<Mite> unifyHeadsWithMergePoint(ParsingState mergePoint) {

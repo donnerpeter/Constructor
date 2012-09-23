@@ -35,7 +35,7 @@ class SeqInterceptor {
       return []
     }
 
-    def similar = findSimilarContribution()
+    def similar = findBestSimilarContribution()
     if (!similar) return []
 
     List<Mite> result = []
@@ -88,8 +88,8 @@ class SeqInterceptor {
     return result
   }
 
-  private ParsingState findSimilarContribution() {
-    def states = findSimilarContributions()
+  private ParsingState findBestSimilarContribution() {
+    def states = findAllSimilarContributions()
     if (!states) return null
 
     def closest = states[0]
@@ -103,7 +103,7 @@ class SeqInterceptor {
 
     return closest
   }
-  private List<ParsingState> findSimilarContributions() {
+  private List<ParsingState> findAllSimilarContributions() {
     before.hierarchy.findAll { state -> constructions.any { findSimilarOwnMite(it, state) } }
   }
 

@@ -147,7 +147,7 @@ class SeqInterceptor {
   }
 
   private static boolean canJoinSeq(Mite prevSeq) {
-    return prevSeq && prevSeq.contents.conj != 'but'
+    return prevSeq && prevSeq.contents.conj != 'but' && prevSeq.contents.conj != 'and'
   }
 
   private ParsingState merge(Mite oldMite, Mite newMite, List<Mite> update, Map<Pair<Variable, Variable>, Variable> seqs) {
@@ -170,11 +170,6 @@ class SeqInterceptor {
 
     if (cxt in [nom, acc, gen, dat, poDat] && newArgs.noun && !newArgs.head) {
       return doMerge(oldMite, newArgs, 'noun', update, seqs)
-    }
-    if (cxt in [preposition] && oldArgs.prep == newArgs.prep) {
-      def mergePoint = findMergePoint(oldMite, 'x')
-      update.addAll new Mite(newArgs + [repeated:true], cxt)
-      return mergePoint
     }
     if (cxt == possessive && oldArgs.possessor && newArgs.possessor && !newArgs.head) {
       return doMerge(oldMite, newArgs, 'possessor', update, seqs)

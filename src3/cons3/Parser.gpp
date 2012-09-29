@@ -325,15 +325,15 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "других": return unoun(gen, var, 'OTHERS')
       case "мнению":
         return unoun(dat, var, 'OPINION') +
-               uarg(var, gen, genArg1).xor(uposs(var, possArg1)) + u(RussianConstructions.word(word:word))
+               uarg(var, gen, genArg1).xor(uposs(var, possArg1)) + u(boxedForPreposition(prep:'по', boxed:[accordingTo(content:var)]))
       case "словам":
         return unoun(dat, var, 'WORDS') +
-               uarg(var, gen, genAuthor).xor(uposs(var, possAuthor)) + u(RussianConstructions.word(word:word))
+               uarg(var, gen, genAuthor).xor(uposs(var, possAuthor)) + u(boxedForPreposition(prep:'по', boxed:[accordingTo(content:var)]))
       case "слова":
         return uv(var, type:'WORDS') + unoun(acc, var, null).xor(unoun(nom, var, null)) +
                uarg(var, gen, genAuthor) + uposs(var, possAuthor)
       case "счастию":
-        return unoun(dat, var, 'LUCK') + u(RussianConstructions.word(word:word))
+        return unoun(dat, var, 'LUCK') + u(boxedForPreposition(prep:'по', boxed:[poDatLuck(content:var)]))
       case "потом":
         return u(comeScalarly(order:'AFTER')).xor(relTime(relTime:'AFTER'))
       case "домам": return unoun(dat, var, 'HOMES') + uposs(var, possOwner)

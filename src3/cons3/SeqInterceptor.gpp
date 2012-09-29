@@ -207,8 +207,13 @@ class SeqInterceptor {
 
 
   private ParsingState doMerge(Mite oldMite, Map newArgs, String prop, List<Mite> update, Map<Pair<Variable, Variable>, Variable> seqs) {
+    def oldMiteState = before.findState(oldMite)
+    def prevSeq = findPrevSeq(oldMiteState, oldMite, prop, false)
+    if (prevSeq && !canJoinSeq(prevSeq)) {
+      return null
+    }
     update << createMergedMite(oldMite, prop, newArgs, seqs)
-    def mPoint = findMergePoint(oldMite, prop)
+    def mPoint = prevSeq?.firstMemberState ?: oldMiteState
     assert mPoint
     return mPoint
   }
@@ -236,11 +241,6 @@ class SeqInterceptor {
     return multi
   }
 
-  private ParsingState findMergePoint(Mite oldMite, String property) {
-    def oldState = before.findState(oldMite)
-    def prevSeq = findPrevSeq(oldState, oldMite, property, false)
-    return canJoinSeq(prevSeq) ? prevSeq.firstMemberState : oldState
-  }
 
   private static ParsingState getFirstMemberState(Mite prevSeq) {
     return prevSeq.contents.mergedWith

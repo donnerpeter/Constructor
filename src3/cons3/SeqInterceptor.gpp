@@ -50,13 +50,8 @@ class SeqInterceptor {
       if (oldMite) {
         def nextPoint = merge(oldMite, mite, result, seqs)
         if (nextPoint) {
-          def prev = before.findState(oldMite)
-          def oldMerge = prev?.ownMites?.find { it.cxt == seq && it.contents.mergedWith == nextPoint }
-          if (!oldMerge) {
-            newXors.addAll(oldMite.primaries)
-          }
-          newXors.addAll(mite.primaries)
           mergePoint = nextPoint
+          newXors.addAll(calcSeqXors(oldMite, mite, mergePoint))
         } else if (mite.cxt == nomSubject) {
           def oldState = before.findState(oldMite)
           def prevSeq = findPrevSeq(oldState, oldMite, 'head', true)
@@ -86,6 +81,31 @@ class SeqInterceptor {
     }
 
     return result
+  }
+
+  private LinkedHashSet calcSeqXors(Mite oldMite, Mite newMite, ParsingState nextPoint) {
+    LinkedHashSet newXors = []
+
+    def oldMerge = before.findState(oldMite)?.ownMites?.find { it.cxt == seq && it.contents.mergedWith == nextPoint }
+    if (!oldMerge) {
+      newXors.addAll(oldMite.primaries)
+    }
+    newXors.addAll(newMite.primaries)
+
+    Set xor = Mite.mergeXor(oldMite.contents, newMite.contents)
+    if (xor) {
+      for (group in xor) {
+        List<Mite> members = constructions.findAll { it.contents.xor && group in (Set) it.contents.xor }
+        def existing = state.network.groups[group]
+        if (existing) {
+          members.addAll(existing)
+        }
+        assert members
+        newXors << new ExternalContradiction(members)
+      }
+    }
+
+    return newXors
   }
 
   private ParsingState findBestSimilarContribution() {

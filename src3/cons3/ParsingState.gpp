@@ -16,7 +16,7 @@ class ParsingState {
   final String log
 
   ParsingState() {
-    this([chart: new Chart(), prevState:EMPTY, network:new Network([:], [:], [])], null)
+    this([chart: new Chart(), prevState:EMPTY, network:new Network([:], [:], [:], [])], null)
   }
 
   private ParsingState(Map map, ParsingState base) {

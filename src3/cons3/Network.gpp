@@ -1,7 +1,6 @@
 package cons3
 
 import groovy.transform.TupleConstructor
-
 /**
  * @author peter
  */
@@ -9,6 +8,7 @@ import groovy.transform.TupleConstructor
 class Network {
   final Map<Mite, Collection<Mite>> contradictors = [:]
   final Map<Object, Collection<Mite>> groups = [:]
+  final Map<Mite, Collection<ExternalContradiction>> externalGroups = [:]
   final LinkedHashSet<Mite> _chosen = []
 
   Network maximizeSatisfiedness(List<Mite> fixed) {
@@ -46,21 +46,36 @@ class Network {
   }
 
   Network addMites(LinkedHashSet<Mite> mites) {
-    Map<Mite, Collection<Mite>> newContradictors = [:] + contradictors
+    def withGroups = updateGroups(mites)
+    def result = withGroups.updateContradictors(mites)
+    return result
+  }
+
+  private Network updateGroups(LinkedHashSet<Mite> mites) {
     Map<Object, Collection<Mite>> newGroups = [:] + groups
+    Map<Mite, Collection<ExternalContradiction>> newExternal = [:] + externalGroups
 
     for (mite in mites) {
-      for (id in allGroups(mite)) {
-        newGroups[id] = (newGroups[id] ?: []) + mite
+      for (id in calcInternalGroups(mite)) {
+        if (id instanceof ExternalContradiction) {
+          List<Mite> members = ((ExternalContradiction) id).contradictsTo + mite
+          for (Mite contr in members) {
+            newExternal[contr] = (newExternal[contr] ?: []) + id
+          }
+          newGroups[id] = (newGroups[id] ?: []) + members
+        } else {
+          newGroups[id] = (newGroups[id] ?: []) + mite
+        }
       }
     }
 
+    return new Network(contradictors, newGroups, newExternal, _chosen)
+  }
+
+  private Network updateContradictors(LinkedHashSet<Mite> mites) {
+    Map<Mite, Collection<Mite>> newContradictors = [:] + contradictors
     for (mite in mites) {
-      LinkedHashSet<Mite> contras = []
-      for (id in allGroups(mite)) {
-        contras.addAll(newGroups[id])
-      }
-      contras.remove(mite)
+      LinkedHashSet<Mite> contras = findContradictors(mite)
       newContradictors[mite] = contras
       for (c in contras) {
         if (!(c in mites)) {
@@ -68,9 +83,16 @@ class Network {
         }
       }
     }
+    return new Network(newContradictors, groups, externalGroups, _chosen)
+  }
 
-
-    new Network(newContradictors, newGroups, _chosen)
+  private LinkedHashSet<Mite> findContradictors(Mite mite) {
+    LinkedHashSet<Mite> contras = []
+    for (id in allGroups(mite)) {
+      contras.addAll(groups[id])
+    }
+    contras.remove(mite)
+    return contras
   }
 
   boolean isChosen(Mite mite) {
@@ -81,7 +103,7 @@ class Network {
     m1 != m2 && Util.intersects(allGroups(m1), allGroups(m2))
   }
 
-  private Mite findChosenAncestor(Mite mite, Set<Mite> chosen) {
+  private static Mite findChosenAncestor(Mite mite, Set<Mite> chosen) {
     while (mite) {
       if (mite in chosen) return mite
       mite = mite.src1
@@ -94,17 +116,23 @@ class Network {
     LinkedHashSet<Object> result = groupCache[mite]
     if (result != null) return result
 
+    result = calcInternalGroups(mite)
+    def external = externalGroups[mite]
+    if (external) {
+      result.addAll(external)
+    }
+    groupCache[mite] = result
+    return result
+  }
+
+  private static LinkedHashSet<Object> calcInternalGroups(Mite mite) {
+    LinkedHashSet<Object> result
     result = new LinkedHashSet<Object>(mite.primaries)
     Set xor = mite.contents.xor
     if (xor) {
       result += xor
     }
-    def prerequisites = mite.prerequisites
-    for (p in prerequisites) {
-      result += allGroups(p)
-    }
-    groupCache[mite] = result
-    result
+    return result
   }
 
   private Mite findMiteWithMostGroups(Collection<Mite> mites, LinkedHashSet<Object> queue) {
@@ -193,10 +221,20 @@ class Network {
       processed.addAll(allGroups(best))
     }
 
-    new Network(contradictors, groups, result)
+    new Network(contradictors, groups, externalGroups, result)
   }
 
   LinkedHashSet<Mite> getChosenUnsatisfied() { return _chosen.findAll { !it.satisfied } }
 
 
+}
+
+@TupleConstructor
+class ExternalContradiction {
+  final List<Mite> contradictsTo
+
+  @Override
+  String toString() {
+    return "external$contradictsTo"
+  }
 }

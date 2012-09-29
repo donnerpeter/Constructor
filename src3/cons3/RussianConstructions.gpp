@@ -335,6 +335,12 @@ interface RussianConstructions {
     return null
   }.routeWrong { mite, state ->
     if (mite.contents.mergedWith) {
+      if (state.ownMites.find { it.cxt == nomSubject && it.atom && it.contents.head }) {
+        def nomArg = state.miteList.find { it.cxt == nom && it.contents.noun == mite.contents.second }
+        if (nomArg && !state.network.isChosen(nomArg)) {
+          return true
+        }
+      }
       return false
     }
     if (mite.contents.conj == ',') {

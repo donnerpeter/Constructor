@@ -670,7 +670,7 @@ B.number=true
     doTranslateTest 'По счастию тут со скамейки свалился какой-то ребенок',
             'By some sheer luck, a child fell off a bench'
   }
-  public void test13_LuckMissingComma2() throws Exception {
+  public void _test13_LuckMissingComma2() throws Exception {
     doTranslateTest 'Мы спорили бы очень долго, но, по счастию тут со скамейки свалился какой-то ребенок',
             'We were arguing for a long time, when by some sheer luck, a child fell off a bench'
   }

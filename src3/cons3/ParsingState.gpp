@@ -356,7 +356,7 @@ class ParsingState {
     if (invisible) {
       log += "    invisible: " + invisible.collect { "${network.isChosen(it) ? '*' : ''}@$it" }.join(", ") + "\n"
     }
-    return log
+    return log + "\n"
   }
 
   ParsingState findState(Mite mite, String attr) {

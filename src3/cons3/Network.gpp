@@ -231,10 +231,11 @@ class Network {
 
 @TupleConstructor
 class ExternalContradiction {
+  final String stringId
   final List<Mite> contradictsTo
 
   @Override
   String toString() {
-    return "external$contradictsTo"
+    return "external[$stringId]"
   }
 }

@@ -94,14 +94,14 @@ class SeqInterceptor {
 
     Set xor = Mite.mergeXor(oldMite.contents, newMite.contents)
     if (xor) {
-      for (group in xor) {
-        List<Mite> members = constructions.findAll { it.contents.xor && group in (Set) it.contents.xor }
-        def existing = state.network.groups[group]
+      for (id in xor) {
+        List<Mite> members = constructions.findAll { it.contents.xor && id in (Set) it.contents.xor }
+        def existing = state.network.groups[id]
         if (existing) {
           members.addAll(existing)
         }
         assert members
-        newXors << new ExternalContradiction(members)
+        newXors << new ExternalContradiction(id.toString(), members)
       }
     }
 

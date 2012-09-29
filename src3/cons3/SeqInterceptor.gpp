@@ -124,12 +124,20 @@ class SeqInterceptor {
     return closest
   }
   private List<ParsingState> findAllSimilarContributions() {
-    before.hierarchy.findAll { state -> constructions.any { findSimilarOwnMite(it, state) } }
+    before.hierarchy.findAll { state -> hasSimilarOwnMite(state) }
+  }
+
+  private boolean hasSimilarOwnMite(ParsingState state) {
+    def similar = constructions.find { findSimilarOwnMite(it, state) }
+    if (similar != null) {
+      return true
+    }
+    return false
   }
 
   private static Mite findSimilarOwnMite(Mite mite, ParsingState inState) {
-    if (mite.cxt in [nom, acc] && mite.contents.head) return null
-    if (mite.cxt in [sentenceHolder, noArg, verbalModifier, verbHolder]) return null
+    if (mite.cxt in [nom, acc, gen] && mite.contents.head) return null
+    if (mite.cxt in [sentenceHolder, noArg, verbalModifier, verbHolder, quotedName]) return null
     return inState.ownMites.find { it.isSimilarTo(mite) }
   }
 
@@ -194,6 +202,17 @@ class SeqInterceptor {
     if (cxt == possessive && oldArgs.possessor && newArgs.possessor && !newArgs.head) {
       return doMerge(oldMite, newArgs, 'possessor', update, seqs)
     }
+    if (cxt == boxedForPreposition && oldArgs.prep == newArgs.prep) {
+      List<Mite> oldBoxed = oldArgs.boxed
+      List<Mite> newBoxed = newArgs.boxed
+      def oldAccording = oldBoxed.find { it.cxt == accordingTo }
+      def newAccording = newBoxed.find { it.cxt == accordingTo }
+      def mergePoint = suggestMergePoint(oldMite, 'boxed')
+      if (oldAccording && newAccording && mergePoint) {
+        update << boxedForPreposition(prep:oldArgs.prep, boxed:[createMergedMite(oldAccording, 'content', newAccording.contents, seqs)])
+        return mergePoint
+      }
+    }
     if (cxt == accordingTo && oldArgs.content && newArgs.content) {
       def mPoint = doMerge(oldMite, newArgs, 'content', update, seqs)
       update << new Mite(var:newArgs.content, Parser.varCxt(distinguished_in:newArgs.head))
@@ -205,16 +224,20 @@ class SeqInterceptor {
     return null
   }
 
-
-  private ParsingState doMerge(Mite oldMite, Map newArgs, String prop, List<Mite> update, Map<Pair<Variable, Variable>, Variable> seqs) {
+  private ParsingState suggestMergePoint(Mite oldMite, String prop) {
     def oldMiteState = before.findState(oldMite)
     def prevSeq = findPrevSeq(oldMiteState, oldMite, prop, false)
     if (prevSeq && !canJoinSeq(prevSeq)) {
       return null
     }
-    update << createMergedMite(oldMite, prop, newArgs, seqs)
-    def mPoint = prevSeq?.firstMemberState ?: oldMiteState
-    assert mPoint
+    return prevSeq?.firstMemberState ?: oldMiteState
+  }
+
+  private ParsingState doMerge(Mite oldMite, Map newArgs, String prop, List<Mite> update, Map<Pair<Variable, Variable>, Variable> seqs) {
+    def mPoint = suggestMergePoint(oldMite, prop)
+    if (mPoint) {
+      update << createMergedMite(oldMite, prop, newArgs, seqs)
+    }
     return mPoint
   }
 

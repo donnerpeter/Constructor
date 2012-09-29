@@ -626,6 +626,10 @@ B.number=true
                     'In the opinion of the cashier and in opinion of others, a 7 comes before an 8'
   }
   public void test12_OpinionCoordination() throws Exception {
+    doTranslateTest 'По мнению кассирши и мнению других, семь идет раньше восьми',
+                    'In the opinion of the cashier and opinion of others, a seven comes before an eight'
+  }
+  public void test12_OpinionCoordinationNumbers() throws Exception {
     doTranslateTest 'По мнению кассирши и мнению других, 7 идет раньше 8',
                     'In the opinion of the cashier and opinion of others, a 7 comes before an 8'
   }

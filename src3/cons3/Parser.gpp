@@ -325,10 +325,12 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "других": return unoun(gen, var, 'OTHERS')
       case "мнению":
         return unoun(dat, var, 'OPINION') +
-               uarg(var, gen, genArg1).xor(uposs(var, possArg1)) + u(boxedForPreposition(prep:'по', boxed:[accordingTo(content:var)]))
+               uarg(var, gen, genArg1).xor(uposs(var, possArg1)) +
+               u(boxedForPreposition(prep:'по', boxed:[accordingTo(content:var, xor:t.a)]))
       case "словам":
         return unoun(dat, var, 'WORDS') +
-               uarg(var, gen, genAuthor).xor(uposs(var, possAuthor)) + u(boxedForPreposition(prep:'по', boxed:[accordingTo(content:var)]))
+               uarg(var, gen, genAuthor).xor(uposs(var, possAuthor)) +
+               u(boxedForPreposition(prep:'по', boxed:[accordingTo(content:var, xor:t.a)]))
       case "слова":
         return uv(var, type:'WORDS') + unoun(acc, var, null).xor(unoun(nom, var, null)) +
                uarg(var, gen, genAuthor) + uposs(var, possAuthor)

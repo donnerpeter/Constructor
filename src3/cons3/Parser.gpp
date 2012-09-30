@@ -285,6 +285,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
   Update parseUpdate(String word) {
     Tokens t = new Tokens()
     Variable var = new Variable()
+    Vars v = new Vars()
     switch (word) {
       case "васи":
         return unoun(gen, var, null) + uv(var, name:'Вася')
@@ -322,18 +323,23 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "кассирша": return unoun(nom, var, null) + uv(var, type:'CASHIER', gender:'fem')
       case "кассирши": return unoun(gen, var, 'CASHIER')
       case "одних": return unoun(gen, var, 'SOME')
-      case "других": return unoun(gen, var, 'OTHERS')
+      case "других":
+        return unoun(gen, var, 'OTHERS')
       case "мнению":
         return unoun(dat, var, 'OPINION') +
-               uarg(var, gen, genArg1).xor(uposs(var, possArg1)) +
+               u(gen(head:var, noun:v[gen].lightVar)).optional() +
+               u(possessive(head:var, possessor:v[gen].lightVar)).optional() +
+               u(genArg1(head:var, noun:v[gen])) +
                u(boxedForPreposition(prep:'по', boxed:[accordingTo(content:var, xor:t.a)]))
       case "словам":
         return unoun(dat, var, 'WORDS') +
-               uarg(var, gen, genAuthor).xor(uposs(var, possAuthor)) +
+               u(gen(head:var, noun:v[gen].lightVar)).optional() +
+               u(possessive(head:var, possessor:v[gen].lightVar)).optional() +
+               u(genAuthor(head:var, noun:v[gen])) +
                u(boxedForPreposition(prep:'по', boxed:[accordingTo(content:var, xor:t.a)]))
       case "слова":
         return uv(var, type:'WORDS') + unoun(acc, var, null).xor(unoun(nom, var, null)) +
-               uarg(var, gen, genAuthor) + uposs(var, possAuthor)
+               uarg(var, v[gen], gen, genAuthor) + uposs(var, v[gen], possAuthor)
       case "счастию":
         return unoun(dat, var, 'LUCK') + u(boxedForPreposition(prep:'по', boxed:[poDatLuck(content:var)]))
       case "потом":
@@ -384,12 +390,15 @@ class Parser { //todo alex implements cons3.RussianConstructions
     return null
   }
 
+  static Update optional(Update u) {
+    u.xor(noArg(reason:u.mites.reverse()[0].cxt.name))
+  }
+
   static Update uadv(String rel, String adv) {
     return u(adverb(adv:adv, attr:rel, head:new Variable().lightVar))
   }
 
-  static Update uposs(Variable head, Construction sem) {
-    Variable arg = new Variable()
+  static Update uposs(Variable head, Variable arg = new Variable(), Construction sem) {
     u(possessive(head:head, possessor:arg.lightVar), sem(head:head, possessor:arg))
   }
   static Update uarg(Variable head, Variable arg = new Variable(), Construction syn, Construction... sem) {

@@ -471,9 +471,9 @@ A.emphasis=true
 -- 2:
 A.type=THINK
 B.type=WORDS
+B.author=C
 A.theme=B
 C.type=CASHIER
-B.author=C
 A@1.perfectBackground=A
 -- 3:
 A.type=WE

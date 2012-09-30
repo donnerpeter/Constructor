@@ -52,12 +52,7 @@ interface RussianConstructions {
     return state
   }
   Construction genAuthor = cxt('genAuthor', ['+head', 'noun']) { ParsingState state, Map args ->
-    if (((Variable) args.noun).frame(state.chart).type) {
-      for (hf in ((Variable) args.head).frame(state.chart).flatten()) {
-        state = state.assign(hf.var, 'author', args.noun)
-      }
-    }
-    return state
+    state.assign(args.head, 'author', args.noun)
   }
   Construction instrArg2 = commonArg('instr', 'arg2')
   Construction datArg1 = commonArg('dat', 'arg1')

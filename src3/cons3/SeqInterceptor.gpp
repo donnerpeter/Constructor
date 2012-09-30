@@ -154,7 +154,7 @@ class SeqInterceptor {
 
   private static List<Mite> unifyHeadWithMergePoint(Mite oldMite, Mite newMite) {
     if (newMite.cxt in [nom, acc, gen, dat, poDat] && newMite.contents.noun && newMite.contents.head && agree(newMite, oldMite)) {
-      return [newMite.cxt(noun:oldMite.contents.noun, inferred:true).unify(newMite)]
+      return [newMite.cxt(noun:oldMite.contents.noun, inferred:(newMite.cxt == nom)).unify(newMite)]
     }
     if (newMite.cxt == possessive && newMite.contents.possessor && newMite.contents.head) {
       return [newMite.cxt(possessor:oldMite.contents.possessor).unify(newMite)]
@@ -197,6 +197,10 @@ class SeqInterceptor {
     }
 
     if (cxt in [nom, acc, gen, dat, poDat] && newArgs.noun && !newArgs.head) {
+      if (cxt == gen && state.miteList.find { it.cxt == preposition } &&
+          !state.findState(oldMite).prevState.miteList.find { it.cxt == preposition }) {
+        return null
+      }
       return doMerge(oldMite, newArgs, 'noun', update, seqs)
     }
     if (cxt == possessive && oldArgs.possessor && newArgs.possessor && !newArgs.head) {

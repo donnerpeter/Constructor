@@ -46,6 +46,14 @@ class Domination {
     }) {
       return true
     }
+    if (findPair { noun, alternative ->
+      String attr = noun.type == 'WORDS' ? 'author' : noun.type == 'OPINION' ? 'arg1' : null
+      return attr &&
+             noun.f(attr)?.flatten()?.every { it.type } &&
+             !alternative.f(attr  )?.flatten()?.every { it.type }
+    }) {
+      return true
+    }
     if (findPair { verb, alternative ->
       verb.allAssignments('opinion_of').size() == 1 && alternative.allAssignments('opinion_of').size() > 1
     }) {

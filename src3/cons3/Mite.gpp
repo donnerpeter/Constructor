@@ -21,6 +21,10 @@ class Mite {
     primaries = !src1 ? [this] : src1.primaries + src2.primaries
   }
 
+  LinkedHashSet getXor() {
+    return contents.xor ?: new LinkedHashSet()
+  }
+
   public static Map unify(Map oldArgs, Map newArgs) {
     def args = new HashMap()
     if (oldArgs) args.putAll(oldArgs)

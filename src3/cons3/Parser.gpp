@@ -27,7 +27,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     return state.chart
   }
 
-  ParsingState handleWord(String word, ParsingState state) {
+  static ParsingState handleWord(String word, ParsingState state) {
     Update _update = Verbs.parseUpdate(word) ?: parseUpdate(word)
     if (_update) {
       return _update.apply(state)
@@ -255,7 +255,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
   }
 
   //todo generic noun treatment for numbers
-  private ParsingState handleNumber(String word, ParsingState state) {
+  private static ParsingState handleNumber(String word, ParsingState state) {
     Variable noun = new Variable()
     Variable num = new Variable()
 
@@ -282,7 +282,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
                        ])
   }
 
-  Update parseUpdate(String word) {
+  static Update parseUpdate(String word) {
     Tokens t = new Tokens()
     Variable var = new Variable()
     Vars v = new Vars()
@@ -439,16 +439,16 @@ class Parser { //todo alex implements cons3.RussianConstructions
                     (verbHolder):[head:verb]])
   }
 
-  private ParsingState noun(ParsingState state, Construction caze, String type) {
+  private static ParsingState noun(ParsingState state, Construction caze, String type) {
     Variable noun = new Variable()
     return unoun(caze, noun, null, (typeCxt(type)):[var:noun]).apply(state)
   }
 
-  private Update unoun(Map<Construction, Map> mites = [:], Construction caze, Variable noun, String type) {
+  private static Update unoun(Map<Construction, Map> mites = [:], Construction caze, Variable noun, String type) {
     def update = upronoun(mites, caze, noun, type)
     update + [(quotedName):[noun:noun]]
   }
-  private Update upronoun(Map<Construction, Map> mites = [:], Construction caze, Variable var, String type) {
+  private static Update upronoun(Map<Construction, Map> mites = [:], Construction caze, Variable var, String type) {
     Update update = u()
     if (type) {
       update = update.addCxt(typeCxt(type), var:var)
@@ -460,7 +460,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     u(caze(noun:var, xor:new Tokens().a))
   }
 
-  private ParsingState pronoun(ParsingState state, Construction caze, String type) {
+  private static ParsingState pronoun(ParsingState state, Construction caze, String type) {
     return upronoun(caze, new Variable(), type).apply(state)
   }
 

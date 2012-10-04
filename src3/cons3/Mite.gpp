@@ -148,4 +148,8 @@ class Mite {
   Mite getFirstAtom() {
     return primaries[0]
   }
+
+  Variable v(String attr) {
+    return (Variable) contents[attr]
+  }
 }

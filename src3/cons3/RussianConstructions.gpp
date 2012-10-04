@@ -465,4 +465,6 @@ interface RussianConstructions {
     }
   }
 
+  Construction argSharing = emptyCxt('argSharing')
+
 }

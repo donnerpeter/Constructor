@@ -148,17 +148,15 @@ class SeqInterceptor {
       def attr = cxt in [nom, acc, gen, dat, poDat] ? 'noun' : cxt == possessive ? 'possessor' : null
       Mite oldPure = mergePoint.ownMites.find { it.isSimilarTo(newMite) && it.atom && agree(newMite, it) }
       if (attr && newMite.contents[attr] && newMite.contents.head && newMite.atom && oldPure) {
-        Mite unified = argSharing(cxt:cxt, xor:[newMite] as LinkedHashSet).unify(
-                argSharing(xor:newMite.xor, var:newMite.contents[attr]))
+        Mite unified = argSharing(cxt:cxt, var:newMite.contents[attr], xor:newMite.xor + [newMite] as LinkedHashSet)
         List<Mite> oldUnified = mergePoint.ownMites.findAll { it.cxt == argSharing && it.contents.cxt == cxt }
         if (!oldUnified) {
-          oldUnified << argSharing(cxt:cxt, xor:[oldPure] as LinkedHashSet).unify(
-                  argSharing(xor:oldPure.xor, var:oldPure.contents[attr]))
+          oldUnified << argSharing(cxt:cxt, xor:oldPure.xor + [oldPure] as LinkedHashSet, var:oldPure.contents[attr])
         }
         for (oldMite in oldUnified) {
-          result << oldMite.unify(argSharing(var:newMite.contents[attr], xor:newMite.xor))
+          result << oldMite.unify(argSharing(var:newMite.contents[attr]))
           for (atom in oldMite.primaries.findAll { it.contents.var } ) {
-            unified = argSharing(var:atom.contents.var, xor:atom.xor).unify(unified)
+            unified = argSharing(var:atom.contents.var).unify(unified)
           }
         }
         result << unified

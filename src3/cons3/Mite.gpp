@@ -131,10 +131,14 @@ class Mite {
     }
     if (mites) {
       result.addAll mites.
-              findAll { it.cxt == cxt && !overwrites(contents, it.contents) }.
+              findAll { isUnifiable(it) }.
               collect { before ? this.unify(it) : it.unify(this) }
     }
     return result
+  }
+
+  boolean isUnifiable(Mite with) {
+    return with.cxt == cxt && !overwrites(contents, with.contents)
   }
 
   boolean isSatisfied() {

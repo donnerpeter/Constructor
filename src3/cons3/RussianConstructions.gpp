@@ -10,7 +10,17 @@ import static cons3.Util.emptyCxt
  */
 interface RussianConstructions {
 
-  Construction nom = commonCase('nom').satisfiedWhen { mite -> mite.contents.head && mite.contents.noun }
+  Construction nom = commonCase('nom').satisfiedWhen { mite ->
+    mite.contents.head && mite.contents.noun
+  }.routeWrong { mite, state ->
+    if (mite.contents.head && !mite.v('noun')?.hard && state.network.isChosen(mite)) {
+      def prev = state.findState(mite).prevState
+      def subj = prev?.miteList?.find { mite.isUnifiable(it) && it.v('noun')?.hard }
+      if (subj && prev.miteList.find { it.cxt == seq && it.contents.second == subj.contents.noun && it.contents.conj == ',' && state.network.contradict(it, subj) }) {
+        return true
+      }
+    }
+  }
   Construction acc = commonCase('acc')
   Construction dat = commonCase('dat')
   Construction prep = commonCase('prep')

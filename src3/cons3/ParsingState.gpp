@@ -140,7 +140,7 @@ class ParsingState {
     if (mayCorrectRoute) {
       def traitor = state.findTraitor()
       if (traitor) {
-        state = correctRoute(state.prevState, FList.fromListReverse([state]), state.log + "changing route because of $traitor\n")
+        state = correctRoute(state.prevState, FList.fromListReverse([state]), state.log + "changing route because of $traitor\n") ?: state
       }
     }
 
@@ -193,7 +193,7 @@ class ParsingState {
     if (state.prevState) {
       return correctRoute(state.prevState, reapply.prepend(state), log)
     }
-    return state
+    return null
   }
 
   private Mite findTraitor() {

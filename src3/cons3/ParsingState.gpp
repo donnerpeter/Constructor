@@ -8,6 +8,7 @@ class ParsingState {
   final Chart chart
   private final FLinkedMap<Mite, Integer> miteGenerations
   final List<Mite> contribution
+  final List<Mite> currentContribution
   final Network network
   final int currentGeneration
   private Map<Construction, List<Mite>> vmCache
@@ -25,6 +26,7 @@ class ParsingState {
     network = map.network ?: base.network
     miteGenerations = map.miteGenerations ?: base?.miteGenerations ?: FLinkedMap.emptyMap
     contribution = map.contribution ?: base?.contribution ?: []
+    currentContribution = map.currentContribution ?: []
     ownMites = map.ownMites ?: base?.ownMites ?: []
     prevState = map.prevState ?: base?.prevState
     log = map.log ?: base?.log ?: ''
@@ -119,7 +121,7 @@ class ParsingState {
 
   private static ParsingState baseApply(ParsingState state, List<Mite> update, boolean mayCorrectRoute) {
     LinkedHashSet<Mite> fullUpdate = update as LinkedHashSet<Mite>
-    fullUpdate.addAll(state.enrichUpdate(update, state))
+    fullUpdate.addAll(state.enrichUpdate(update, state.clone(currentContribution:update)))
     assert fullUpdate
 
     def newMiteGenerations = registerGeneration(fullUpdate, state.miteGenerations, state.currentGeneration)

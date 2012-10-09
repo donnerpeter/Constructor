@@ -143,7 +143,7 @@ class SeqInterceptor {
 
   private List<Mite> unifyHeadsWithMergePoint(ParsingState mergePoint) {
     List<Mite> result = []
-    for (newMite in constructions) {
+    for (newMite in state.currentContribution) {
       def cxt = newMite.cxt
       def attr = cxt in [nom, acc, gen, dat, poDat] ? 'noun' : cxt == possessive ? 'possessor' : null
       Mite oldPure = mergePoint.ownMites.find { it.isSimilarTo(newMite) && it.atom && agree(newMite, it) }

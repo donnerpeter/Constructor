@@ -516,7 +516,7 @@ class StatefulGenerator {
     }
 
     def dobj = verb.f('arg2')
-    def nounDObj = dobj && dobj.flatten().every { !isVerb(it) && !(it.type in ['fact', 'question']) }
+    def nounDObj = dobj && dobj.flatten().every { !isVerb(it) && !(it.type in ['fact', 'question']) } && dobj.flatten()[0].type
     if (nounDObj && dobj.type != 'wh') {
       np(dobj, false, !isNumber(dobj))
     }
@@ -873,7 +873,7 @@ class StatefulGenerator {
 
     if (n.type == 'CORNER') {
       def arg1 = n.f('arg1')
-      if (arg1) {
+      if (arg1?.flatten()[0]?.type) {
         out 'of'
         seq(arg1) { out it.s('name') == 'знаменская' ? 'Znamenskaya' : 'Basseinaya' }
         out 'streets'
@@ -929,7 +929,10 @@ class StatefulGenerator {
       hasQuantifier = true
     }
 
-    if (n.type in ['AMAZE', 'PREDICAMENT', 'NEIGHBOURS', 'MOUTH', 'NOSE', 'JAW', 'JAWS', 'FINGERS', 'ARGUE'] && n.f('arg1') && !skipAlreadyMentionedArgument(n, 'arg1')) {
+    if (n.type in ['AMAZE', 'PREDICAMENT', 'NEIGHBOURS', 'MOUTH', 'NOSE', 'JAW', 'JAWS', 'FINGERS', 'ARGUE'] &&
+        n.f('arg1') &&
+        n.f('arg1').flatten()[0]?.type &&
+        !skipAlreadyMentionedArgument(n, 'arg1')) {
       if (hasQuantifier) {
         out 'of'
       }

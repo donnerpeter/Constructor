@@ -34,31 +34,16 @@ interface RussianConstructions {
     state.assign(args.head, 'arg1', args.noun)
   }
   Construction accArg2 = cxt('accArg2', ['+head', 'noun']) { ParsingState state, Map args ->
-    def nf = ((Variable) args.noun).frame(state.chart)
-    nf.flatten()[0]?.type ? state.assign(args.head, 'arg2', args.noun) : state
+    state.assign(args.head, 'arg2', args.noun)
   }
   Construction genArg1 = cxt('genArg1', ['+head', 'noun']) { ParsingState state, Map args ->
-    if (((Variable) args.noun).frame(state.chart).type) {
-      for (hf in ((Variable) args.head).frame(state.chart).flatten()) {
-        state = state.assign(hf.var, 'arg1', args.noun)
-      }
-    }
-    return state
+    state.assign(args.head, 'arg1', args.noun)
   }
   Construction genArg2 = cxt('genArg2', ['+head', 'noun']) { ParsingState state, Map args ->
-    if (((Variable) args.noun).frame(state.chart).type) {
-      for (hf in ((Variable) args.head).frame(state.chart).flatten()) {
-        state = state.assign(hf.var, 'arg2', args.noun)
-      }
-    }
-    return state
+    state.assign(args.head, 'arg2', args.noun)
   }
   Construction genCriterion = cxt('genCriterion', ['+head', 'noun']) { ParsingState state, Map args ->
-    if (((Variable) args.noun).frame(state.chart).type) {
-      for (hf in ((Variable) args.head).frame(state.chart).flatten()) {
-        state = state.assign(hf.var, 'criterion', args.noun)
-      }
-    }
+    state = state.assign(args.head, 'criterion', args.noun)
     return state
   }
   Construction genAuthor = cxt('genAuthor', ['+head', 'noun']) { ParsingState state, Map args ->
@@ -108,10 +93,8 @@ interface RussianConstructions {
     }
     return []
   }
-  Construction declOrQuestionComp = cxt('declOrQuestionComp', ['head', 'comp', 'hasComma']) { ParsingState state, Map args ->
-    def type = ((Variable) args.head).frame(state.chart).type //todo split declOrQuestionComp semantically
-    def attr = type == 'FORGET' ? 'arg2' : type == 'DISCOVER' ? 'theme' : type == 'SAY' ? 'message' : 'question'
-    state.assign(args.head, attr, args.comp)
+  Construction declOrQuestionComp = cxt('declOrQuestionComp', ['head', 'comp', 'hasComma', 'rel']) { ParsingState state, Map args ->
+    state.assign(args.head, (String)args.rel, args.comp)
   }.enrichingMites { mite, contribution, state ->
     if (mite.contents.head && contribution.find { it.cxt == declOrQuestionComp && it.contents.hasComma } ||
         mite.contents.head && mite.contents.hasComma && contribution.find { it.cxt == declOrQuestionComp && it.contents.comp }) {
@@ -194,28 +177,13 @@ interface RussianConstructions {
   }
   Construction boxedForPreposition = emptyCxt('boxedForPreposition')
   Construction possArg1 = cxt('possArg1', ['+head', 'possessor']) { ParsingState state, Map args ->
-    if (((Variable) args.possessor).frame(state.chart).flatten()[0]?.type) {
-      for (hf in ((Variable) args.head).frame(state.chart).flatten()) {
-        state = state.assign(hf.var, 'arg1', args.possessor)
-      }
-    }
-    return state
+    state.assign(args.head, 'arg1', args.possessor)
   }
   Construction possOwner = cxt('possOwner', ['+head', 'possessor']) { ParsingState state, Map args ->
-    if (((Variable) args.possessor).frame(state.chart).type) {
-      for (hf in ((Variable) args.head).frame(state.chart).flatten()) {
-        state = state.assign(hf.var, 'owner', args.possessor)
-      }
-    }
-    return state
+    state.assign(args.head, 'owner', args.possessor)
   }
   Construction possAuthor = cxt('possAuthor', ['+head', 'possessor']) { ParsingState state, Map args ->
-    if (((Variable) args.possessor).frame(state.chart).type) {
-      for (hf in ((Variable) args.head).frame(state.chart).flatten()) {
-        state = state.assign(hf.var, 'author', args.possessor)
-      }
-    }
-    return state
+    state.assign(args.head, 'author', args.possessor)
   }
   Construction possessive = cxt('possessive', ['+possessor', '*head']) { ParsingState state, Map args ->
     state

@@ -21,7 +21,7 @@ class Verbs {
         return ufiniteVerb(var, 'SIT', 'PRESENT') + unomArg(var, [agrNumber:'pl'])
       case "спросил":
       case "спросили":
-        return ufiniteVerb(var, 'ASK', 'PAST') + uaccArg(var) + unomArg(var) + u(declOrQuestionComp(head:var)) + uarg(var, oPrep, oPrepTopic)
+        return ufiniteVerb(var, 'ASK', 'PAST') + uaccArg(var) + unomArg(var) + u(declOrQuestionComp(head:var, rel:'question')) + uarg(var, oPrep, oPrepTopic)
       case "делал":
       case "делали":
         return ufiniteVerb(var, 'DO', 'PAST') + uaccArg(var) + unomArg(var)
@@ -48,9 +48,9 @@ class Verbs {
         Map<String,String> agr = [agrGender:gender]
         return ufiniteVerb(var, 'FORGET', 'PAST') + unomArg(var, agr, v[nom]) +
                uv(v[nom], gender:gender, person:'3') +
-               u(elaboration(elaboration:var), advObj(head:var, xor:t.a),
-                       acc(noun:v[acc].lightVar, head:var, xor:t.a), accArg2(head:var, noun:v[acc]),
-                       declOrQuestionComp(head:var, xor:t.a))
+               u(elaboration(elaboration:var), advObj(head:var, xor:t.ab),
+                       acc(noun:v[acc].lightVar, head:var, xor:t.a), accArg2(head:var, noun:v[acc], xor:t.b),
+                       declOrQuestionComp(head:var, xor:t.ab, rel:'arg2'))
       case 'сломал':
       case 'сломала':
         return ufiniteVerb(var, 'BREAK', 'PAST') +
@@ -87,13 +87,13 @@ class Verbs {
       case "обнаружил":
       case "обнаружила":
       case "обнаружили":
-        return ufiniteVerb(var, 'DISCOVER', 'PAST', (declOrQuestionComp):[head:var]) + unomArg(var)
+        return ufiniteVerb(var, 'DISCOVER', 'PAST', (declOrQuestionComp):[head:var, rel:'theme']) + unomArg(var)
       case "улыбнулась":
         return ufiniteVerb(var, 'SMILE', 'PAST') + unomArg(var)
       case "сказал":
       case "сказала":
         return ufiniteVerb(var, 'SAY', 'PAST') + unomArg(var) + uarg(var, dat, datAddressee) +
-               u(declOrQuestionComp(head:var)).xor(directSpeech(head:var))
+               u(declOrQuestionComp(head:var, rel:'message')).xor(directSpeech(head:var))
       case "вынул":
       case "вынула":
         return ufiniteVerb(var, 'TAKE_OUT', 'PAST') + unomArg(var) + uaccArg(var) + uarg(var, izGen, izGenSource)

@@ -73,9 +73,9 @@ D.conj=and
 D.member=E
 E.type=ASK
 E.time=PAST
+E.arg2=F
 E.arg1=A
 F.type=THEY
-E.arg2=F
 -- 2:
 E@1.question=A
 B.type=wh
@@ -124,11 +124,11 @@ B.arg1=C
 D.type=RECALL
 D.arg2=E
 E.type=ORDER
+E.criterion=F
 B.theme=D
 A.type=fact
 A.content=B
 F.type=COUNTING
-E.criterion=F
 B.dot=true
 """
   }
@@ -164,11 +164,11 @@ B.arg1=C
 D.type=RECALL
 D.arg2=E
 E.type=ORDER
+E.criterion=F
 B.theme=D
 A.type=fact
 A.content=B
 F.type=COUNTING
-E.criterion=F
 B.dot=true
 -- 4:
 A.type=1
@@ -233,12 +233,12 @@ A.type=location
 A.arg1=B
 A.arg2=C
 C.type=CORNER
-D.type=STREET
-D.name=знаменская
-C.arg1=E
-E.member=D
-E.conj=and
-E.member=F
+C.arg1=D
+E.type=STREET
+E.name=знаменская
+D.member=E
+D.conj=and
+D.member=F
 F.type=STREET
 F.name=бассейная
 -- 3:
@@ -247,9 +247,9 @@ A.conj=and
 A.member=B
 B.type=ASK
 B.time=PAST
+B.arg2=C
 B.arg1=A@1
 C.type=CASHIER
-B.arg2=C
 D.type=WE
 E.type=PREDICAMENT
 E.arg1=D
@@ -269,13 +269,13 @@ B.arg1=A
 A.type=TAKE_OUT
 A.time=PAST
 A.arg1=A@1
-B.member=B@1
-B.member=A
-C.type=MOUTH
-A.source=C
-D.size=LITTLE
-D.type=HAMMER
-A.arg2=D
+A.arg2=B
+C.member=B@1
+C.member=A
+D.type=MOUTH
+A.source=D
+B.size=LITTLE
+B.type=HAMMER
 -- 3:
 A.manner=SLIGHTLY
 A.type=MOVE
@@ -283,8 +283,8 @@ B.type=NOSE
 A.arg2=B
 C.perfectBackground=A
 -- 4:
-B@2.conj=and
-B@2.member=C@3
+C@2.conj=and
+C@2.member=C@3
 C@3.type=SAY
 C@3.time=PAST
 C@3.arg1=A@1
@@ -337,13 +337,13 @@ B.arg1=A
 A.type=TAKE_OUT
 A.time=PAST
 A.arg1=A@1
-B.member=B@1
-B.member=A
-C.type=MOUTH
-A.source=C
-D.size=LITTLE
-D.type=HAMMER
-A.arg2=D
+A.arg2=B
+C.member=B@1
+C.member=A
+D.type=MOUTH
+A.source=D
+B.size=LITTLE
+B.type=HAMMER
 -- 3:
 A.manner=SLIGHTLY
 A.type=MOVE
@@ -351,8 +351,8 @@ B.type=NOSE
 A.arg2=B
 C.perfectBackground=A
 -- 4:
-B@2.conj=and
-B@2.member=C@3
+C@2.conj=and
+C@2.member=C@3
 C@3.type=SAY
 C@3.time=PAST
 C@3.arg1=A@1
@@ -393,9 +393,9 @@ A.anchor=C
 A.type=WE
 B.type=THANK
 B.time=PAST
+B.arg2=C
 B.arg1=A
 C.type=CASHIER
-B.arg2=C
 D.type=JOY
 E.member=B
 E.conj=and
@@ -492,9 +492,9 @@ A.arg1=C
 D.type=WE
 E.type=LACK
 A.theme=E
+E.arg2=F
 F.determiner=ANY
 F.type=MEANING
-E.arg2=F
 A.dot=true
 '''
   }
@@ -541,8 +541,8 @@ E.time=PAST
 E.arg1=A
 F.type=COUNT
 E.theme=F
-G.type=TREES
 F.arg2=G
+G.type=TREES
 '''
   }
 
@@ -575,30 +575,30 @@ D.type=ARGUE
 C.theme=D
 -- 3:
 A.type=OPINION
-B.opinion_of=A
-C.type=SOME
-A.arg1=C
-B.type=COME_SCALARLY
-B.order=AFTER
-B.time=PAST
-B.arg1=D
+A.arg1=B
+C.opinion_of=A
+B.type=SOME
+C.type=COME_SCALARLY
+C.order=AFTER
+C.time=PAST
+C.arg1=D
 D.type=7
 D.number=true
 -- 4:
 A.type=OPINION
-B.opinion_of=A
-C.type=OTHERS
-A.arg1=C
+A.arg1=B
+C.opinion_of=A
+B.type=OTHERS
 -- 5:
 A.type=ellipsis
 <A>
 B.type=NEXT
-C.member=B@3
-C.member=B@4
-B@4.type=COME_SCALARLY
-B@4.order=AFTER
-B@4.time=PAST
-B@4.arg1=D
+C.member=C@3
+C.member=C@4
+C@4.type=COME_SCALARLY
+C@4.order=AFTER
+C@4.time=PAST
+C@4.arg1=D
 D@2.elaboration=C
 </A>
 D.type=8
@@ -639,15 +639,15 @@ C.member=D
 D.type=BREAK
 D.time=PAST
 D.arg1=B
+D.arg2=E
 B.gender=masc
-E.member=B@1
-E.conj=but
-E.member=C
-F.type=BOTH
-G.arg1=B
-G.quantifier=F
-G.type=JAWS
-D.arg2=G
+F.member=B@1
+F.conj=but
+F.member=C
+G.type=BOTH
+E.arg1=B
+E.quantifier=G
+E.type=JAWS
 """
   }
 
@@ -685,6 +685,7 @@ A.type=DISPERSE
 A.time=PAST
 A.arg1=B
 C.type=HOMES
+C.owner=D
 A.goal=C
 '''
   }

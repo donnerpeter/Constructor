@@ -128,6 +128,7 @@ class StatefulGenerator {
         out 'moving'
         np(bg.f('arg2'), false)
         emitMoveTail(bg)
+        out ','
       } else if (bg.type == 'THINK') {
         out ','
         out 'thinking'

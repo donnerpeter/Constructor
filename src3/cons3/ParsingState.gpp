@@ -159,6 +159,7 @@ class ParsingState {
   }
 
   private static ParsingState processAlternatives(ParsingState state, LinkedHashSet<Mite> fullUpdate) {
+    Set<Set<Mite>> tried = [state.network.chosenExecutable]
     for (cxt in state.visibleMites.keySet()) {
       if (!(cxt in state.visibleMites)) continue
 
@@ -170,7 +171,7 @@ class ParsingState {
 
       for (toAdd in toCheck.reverse()) {
         if (!state.network.isChosen(toAdd)) {
-          state = tryAlternative(state, toAdd)
+          state = tryAlternative(state, toAdd, tried)
         }
       }
     }
@@ -275,8 +276,10 @@ class ParsingState {
     return link?.cxt?.showPrev(link, prevState, null, true) ?: link?.cxt?.showPrev(link, prevState, null, false)
   }
 
-  private static ParsingState tryAlternative(ParsingState state, Mite preferred) {
+  private static ParsingState tryAlternative(ParsingState state, Mite preferred, Set<Set<Mite>> tried) {
     def anotherActive = state.network.choose([preferred]).maximizeSatisfiedness([preferred])
+    if (!tried.add(anotherActive.chosenExecutable)) return state
+
     def alternative = state.activate(anotherActive)
     try {
       if (new Domination(alternative, state).dominatesSemantically()) {

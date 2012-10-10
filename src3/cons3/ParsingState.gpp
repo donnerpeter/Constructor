@@ -257,14 +257,19 @@ class ParsingState {
     fullUpdate
   }
 
+  private List<ParsingState> cachedHierarchy
   List<ParsingState> getHierarchy() {
+    if (cachedHierarchy != null) {
+      return cachedHierarchy
+    }
+
     List<ParsingState> result = [this]
     Mite link = findLink()
     def prev = getPrevHierarchyFromLink(link) ?: prevState?.hierarchy
     if (prev) {
       result.addAll(prev)
     }
-    return result
+    return cachedHierarchy = result
   }
 
   private List<Mite> findMitesAlongParsingRoute(ParsingState original) {

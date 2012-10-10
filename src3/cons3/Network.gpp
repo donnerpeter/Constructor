@@ -4,12 +4,13 @@ import groovy.transform.TupleConstructor
 /**
  * @author peter
  */
-@TupleConstructor
+@TupleConstructor(includeFields = true)
 class Network {
   final Map<Mite, Collection<Mite>> contradictors = [:]
   final Map<Object, Collection<Mite>> groups = [:]
   final Map<Mite, Collection<ExternalContradiction>> externalGroups = [:]
   final LinkedHashSet<Mite> _chosen = []
+  private final Map<Mite, LinkedHashSet<Object>> groupCache = [:]
 
   Network maximizeSatisfiedness(List<Mite> fixed) {
     Network net = this
@@ -111,7 +112,6 @@ class Network {
     return null
   }
 
-  private Map<Mite, LinkedHashSet<Object>> groupCache = [:]
   private LinkedHashSet<Object> allGroups(Mite mite) {
     LinkedHashSet<Object> result = groupCache[mite]
     if (result != null) return result
@@ -221,7 +221,7 @@ class Network {
       processed.addAll(allGroups(best))
     }
 
-    new Network(contradictors, groups, externalGroups, result)
+    new Network(contradictors, groups, externalGroups, result, groupCache)
   }
 
   LinkedHashSet<Mite> getChosenUnsatisfied() { return _chosen.findAll { !it.satisfied } }

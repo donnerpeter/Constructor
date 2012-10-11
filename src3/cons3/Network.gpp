@@ -191,7 +191,7 @@ class Network {
     LinkedHashSet<Object> groupsToProcess = []
     LinkedHashSet<Object> processed = []
 
-    for (mite in filterNonContradicting(rearrangeUpdatedMites(preferred as List))) {
+    for (mite in filterNonContradicting(rearrangeUpdatedMites(new ArrayList<Mite>(preferred)))) {
       result << mite
       processed.addAll(allGroups(mite))
       for (displaced in Util.intersect(contradictors[mite], result)) {
@@ -202,12 +202,18 @@ class Network {
     groupsToProcess.removeAll(processed)
 
     while (groupsToProcess) {
-      LinkedHashSet<Mite> mitesToProcess = groupsToProcess.collect { groups[it] }.flatten() as LinkedHashSet
-      LinkedHashSet<Mite> unprocessed = mitesToProcess.findAll { !Util.intersects(allGroups(it), processed) }
+      LinkedHashSet<Mite> unprocessed = []
+      for (group in groupsToProcess) {
+        for (elem in groups[group]) {
+          if (!(elem in unprocessed) && !Util.intersects(allGroups(elem), processed)) {
+            unprocessed << elem
+          }
+        }
+      }
 
       Mite best = findBest(unprocessed, result, groupsToProcess)
       if (!best) {
-         break
+        break
       }
 
       for (victim in Util.intersect(contradictors[best], result)) {

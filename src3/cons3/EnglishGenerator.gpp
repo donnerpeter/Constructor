@@ -200,31 +200,32 @@ class StatefulGenerator {
   }
 
   private void generateConjuncts(List<ClauseGenerator> conjuncts, Function2<ClauseGenerator,Boolean,Void> generator) {
-    boolean wasBut = false
-
+    Frame seq = conjuncts[0].frame.usages('member')[0]
     for (int j in 0..<conjuncts.size()) {
-      def cur = conjuncts[j]
-      def last = j == conjuncts.size() - 1
-      if (j > 0) {
-        def prev = conjuncts[j - 1]
-        List<Frame> seqs = prev.frame?.usages('member') ?: [] //todo infer
-        def but = seqs.any { conj -> conj.s('conj') == 'but' && conj.allAssignments('member')[-1].value == cur.frame }
-        def noConj = seqs && seqs.every { conj -> !conj.s('conj') }
-        wasBut |= but
-        def opposition = (noConj || but) && prev.frame?.f('opinion_of')
-        if (last && (!cur.frame?.f('perfectBackground') || cur.frame) || opposition) {
-          def negated = cur.frame?.s('negated')
-          if ((but || noConj) && !negated) {
-            out(opposition ? ';' : ',')
+      ClauseGenerator cur = conjuncts[j]
+      if (j > 0 && j == conjuncts.size() - 1) {
+        String conj = seq?.s('conj')
+        if (conj == 'but') {
+          if (cur.frame.s('negated')) {
+            out 'and'
+          } else {
+            def prev = conjuncts[j - 1]
+            out(prev.frame.f('opinion_of') && cur.frame.f('opinion_of') ? ';' : ',')
+            out(prev.frame.s('irrealis') == 'true' ? 'when' : 'but')
           }
-          else if (!wasBut && j > 1 || cur.frame?.f('perfectBackground')) out ","
-
-          out(but || opposition ? negated ? 'and' : prev.frame?.s('irrealis') == 'true' ? 'when' : 'but' : "and")
-        } else {
-          out ","
+        } else if (conj == 'and' || !seq) {
+          if (conjuncts.size() > 2 || cur.frame.f('perfectBackground')) {
+            out ','
+          }
+          out 'and'
+        } else if (!conj) {
+          out ';'
+          out 'but'
         }
+      } else if (j > 0) {
+        out ","
       }
-      generator(cur, last)
+      generator(cur, j == conjuncts.size() - 1)
     }
   }
 

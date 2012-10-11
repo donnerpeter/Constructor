@@ -94,8 +94,11 @@ class Verbs {
         return ufiniteVerb(var, 'SMILE', 'PAST') + unomArg(var)
       case "сказал":
       case "сказала":
+      case "сказали":
         return ufiniteVerb(var, 'SAY', 'PAST') + unomArg(var) + uarg(var, dat, datAddressee) +
-               u(declOrQuestionComp(head:var, rel:'message')).xor(directSpeech(head:var))
+               u(declOrQuestionComp(head:var, rel:'message', xor:t.ab),
+                       directSpeech(head:var, xor:t.ab),
+                       acc(head:var, noun:v[acc].lightVar, wh:true, xor:t.a), accArg2(head:var, noun:v[acc], xor:t.b))
       case "вынул":
       case "вынула":
         return ufiniteVerb(var, 'TAKE_OUT', 'PAST') + unomArg(var) + uaccArg(var) + uarg(var, izGen, izGenSource)

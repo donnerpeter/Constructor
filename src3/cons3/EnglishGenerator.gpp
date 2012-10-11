@@ -510,7 +510,7 @@ class StatefulGenerator {
         out 'to'
       }
 
-      out(mainVerb(verb))
+      out mainVerb(verb, imperative || aux && findQuestioned(verb) && topLevel)
     }
 
     Frame addressee = verb.f('addressee')
@@ -733,7 +733,7 @@ class StatefulGenerator {
     }
   }
 
-  private String mainVerb(Frame verb) {
+  private String mainVerb(Frame verb, boolean infinitive) {
     def type = verb.type
     def verbs = [HAPPEN: 'happened', FORGET: 'forgot', GO_OFF: 'went',
             ASK: (verb.f('topic')?.type == 'PREDICAMENT' ? 'consulted' : (past ? 'asked' : 'ask')),
@@ -741,7 +741,7 @@ class StatefulGenerator {
             SAY:(verb.f('addressee') ? 'told' : 'said'),
             REMEMBER: (past ? 'remembered' : verb.f('arg1')?.typeInferred in ['HE', 'SHE'] ? 'remembers' : 'remember'), GO: (past ? 'went' : 'goes'),
             RUN_OUT: 'ran', THANK: 'thanked',
-            GET_SAD: 'got sad', DO: 'do', NEED:'need',
+            GET_SAD: 'got sad', DO:(past && !infinitive ? 'did' : 'do'), NEED:'need',
             BEGIN:'started', STOP:'stopped',
             MOVE:'moved',
             ARGUE:'were arguing', 'FALL':'fell', BREAK:'broke',

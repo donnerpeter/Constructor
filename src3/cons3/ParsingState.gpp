@@ -322,7 +322,7 @@ class ParsingState {
   private static ParsingState applyConstructions(LinkedHashSet<Mite> toApply, ParsingState state) {
     Chart chart = state.chart
     for (mite in toApply) {
-      if (state.network.isChosen(mite) && mite.contents && mite.cxt.isExecutable(mite)) {
+      if (state.network.isChosen(mite) && mite.contents && mite.executable) {
         ParsingState next = state.clone(currentGeneration:state.miteGenerations[mite]?: state.currentGeneration, chart:chart.startMeta(mite))
         next = mite.cxt.action.call(next, mite.contents)
         chart = next.chart.finishMeta(mite)

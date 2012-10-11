@@ -232,7 +232,7 @@ class Network {
 
   LinkedHashSet<Mite> getChosenUnsatisfied() { return _chosen.findAll { !it.satisfied } }
 
-  LinkedHashSet<Mite> getChosenExecutable() { return _chosen.findAll { it.cxt.isExecutable(it) } }
+  LinkedHashSet<Mite> getChosenExecutable() { return _chosen.findAll { it.executable } }
 
 
 }

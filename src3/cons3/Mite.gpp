@@ -10,6 +10,7 @@ class Mite {
   final Mite src1, src2
   final FList<Mite> prerequisites
   final List<Mite> primaries
+  final boolean executable
 
   Mite(Map contents, Construction cxt, FList<Pair<Variable, Variable>> unifications = FList.emptyList, Mite src1 = null, Mite src2 = null, FList<Mite> prerequisites = FList.emptyList) {
     this.cxt = cxt
@@ -19,6 +20,7 @@ class Mite {
     this.src2 = src2
     this.prerequisites = prerequisites
     primaries = !src1 ? [this] : src1.primaries + src2.primaries
+    executable = cxt.isExecutable(this)
   }
 
   LinkedHashSet getXor() {

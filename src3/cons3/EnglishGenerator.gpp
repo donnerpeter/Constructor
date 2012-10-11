@@ -46,7 +46,7 @@ class StatefulGenerator {
     Map<String, Frame> preAdjuncts = [:]
     Map<String, Frame> postAdjuncts = [:]
     List<ClauseGenerator> members = []
-    boolean fact = true
+    Frame wrapper
 
     ClauseGenerator(Frame frame, boolean topLevel, Frame comp) {
       this.frame = frame
@@ -360,12 +360,12 @@ class StatefulGenerator {
       }
       return sitPast ? 'was': 'am'
     }
+    if (verb.s('progressive') && !skipAlreadyMentionedArgument(verb, 'progressive')) {
+      return subj.type == 'HE' ? 'was' : 'were'
+    }
     def questioned = findQuestioned(verb)
     if (questioned && questioned != subj) {
       return sitPast ? 'did' : 'do'
-    }
-    if (verb.s('progressive') && !skipAlreadyMentionedArgument(verb, 'progressive')) {
-      return subj.type == 'HE' ? 'was' : 'were'
     }
 
     return null
@@ -577,40 +577,14 @@ class StatefulGenerator {
       out 'for a long time'
     }
 
-    def question = verb.f('question')?.f('content')
-    if (question) {
-      if (question.type == 'THINK') {
-        out 'about'
-        def exp = question.f('arg1')
-        if (exp?.type == 'THEY') {
-          out 'their'
-        }
-        out 'opinion'
-        out 'on'
-        np(question.f('topic'), false)
-      } else {
-        new ClauseGenerator(question, false, null).generate(true)
-      }
+    def questionComp = verb.f('question')
+    if (questionComp) {
+      generateQuestionComp(questionComp)
     }
 
     def theme = verb.type == 'FORGET' && !nounDObj ? verb.f('arg2') : verb.f('theme')
     if (theme && verb.type in ['FORGET', 'DISCOVER']) {
-      List<ClauseGenerator> clauses = theme.flatten().collect {
-        def generator = new ClauseGenerator(it.f('content'), false, null)
-        if (it.type == 'question') {
-          generator.fact = false
-        }
-        generator
-      }
-      if (clauses[0].fact) {
-        out ","
-      }
-      generateConjuncts(clauses)  { conj, last ->
-        if (conj.fact) {
-          out 'that'
-        }
-        conj.generate(last)
-      }
+      generateComplement(theme)
     } else if (theme && verb.type in ['CAN']) {
       clauseInner(theme, false, false, false)
     } else if (theme && verb.type == 'BEGIN') {
@@ -621,6 +595,42 @@ class StatefulGenerator {
       }
     }
     return subj
+  }
+
+  private void generateQuestionComp(Frame questionComp) {
+    def question = questionComp?.f('content')
+    if (question?.type == 'THINK') {
+      out 'about'
+      def exp = question.f('arg1')
+      if (exp?.type == 'THEY') {
+        out 'their'
+      }
+      out 'opinion'
+      out 'on'
+      np(question.f('topic'), false)
+      return
+    }
+    generateComplement(questionComp)
+  }
+
+  private void generateComplement(Frame comp) {
+    List<ClauseGenerator> clauses = comp.flatten().collect {
+      def generator = new ClauseGenerator(it.f('content'), false, null)
+      generator.wrapper = it
+      generator
+    }
+    if (clauses[0].wrapper.type == 'fact') {
+      out ","
+    }
+    generateConjuncts(clauses) { conj, last ->
+      if (conj.wrapper.type == 'fact') {
+        out 'that'
+      }
+      else if (conj.wrapper.s('negated')) {
+        out 'not'
+      }
+      conj.generate(last)
+    }
   }
 
   boolean isCompleteСlauseEllipsis(Frame verb) {

@@ -70,9 +70,9 @@ class SonnetVariationsTest extends TestCase {
     doTranslateTest "Я спросил, что они сказали.",
                     "I asked what they said."
   }
-  public void _test2_WhatThinkNotWhatSaid() throws Exception {
+  public void test2_WhatThinkNotWhatSaid() throws Exception {
     doTranslateTest "Я спросил, что они думают, а не что они сказали.",
-                    "I asked what they think and not what they said."
+                    "I asked what they were thinking and not what they said."
   }
   public void test2_ThinkingNotSitting_He() throws Exception {
     doTranslateTest "Я забыл, что он думает, а не просто сидит.",

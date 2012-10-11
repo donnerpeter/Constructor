@@ -233,9 +233,15 @@ interface RussianConstructions {
   Construction negation = cxt('negation', ['negated']) { ParsingState state, Map args ->
     state.assign(args.negated, 'negated', 'true')
   }.enrichingMites { mite, contribution, state ->
-    def vh = contribution.find { it.cxt == verbHolder && ((Variable) it.contents.head)?.hard }
-    if (vh && !mite.contents.negated) {
-      return [mite.unify(new Mite(negation, negated:vh.contents.head))]
+    if (!mite.contents.negated) {
+      def vh = contribution.find { it.cxt == verbHolder && ((Variable) it.contents.head)?.hard }
+      if (vh) {
+        return [mite.unify(new Mite(negation, negated:vh.contents.head))]
+      }
+      def comp = contribution.find { it.cxt == declOrQuestionComp && ((Variable) it.contents.comp)?.hard }
+      if (comp) {
+        return [mite.unify(new Mite(negation, negated:comp.contents.comp))]
+      }
     }
     []
   }

@@ -365,7 +365,7 @@ class StatefulGenerator {
       return sitPast ? 'did' : 'do'
     }
     if (verb.s('progressive') && !skipAlreadyMentionedArgument(verb, 'progressive')) {
-      return 'were'
+      return subj.type == 'HE' ? 'was' : 'were'
     }
 
     return null

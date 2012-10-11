@@ -14,11 +14,13 @@ class Verbs {
     switch (word) {
       case "остановились":
         return ufiniteVerb(var, 'STOP', 'PAST') + unomArg(var)
+      case "думает":
       case "думают":
         return ufiniteVerb(var, 'THINK', 'PRESENT') + uarg(var, poDat, poDatTopic) +
-               unomArg(var, [agrNumber:'pl']) + uaccArg(var).xor(noArg(head:var))
+               unomArg(var, [agrNumber:(word == "думает" ? 'sg' : 'pl')]) + uaccArg(var).xor(noArg(head:var))
+      case "сидит":
       case "сидят":
-        return ufiniteVerb(var, 'SIT', 'PRESENT') + unomArg(var, [agrNumber:'pl'])
+        return ufiniteVerb(var, 'SIT', 'PRESENT') + unomArg(var, [agrNumber:(word == "сидит" ? 'sg' : 'pl')])
       case "спросил":
       case "спросили":
         return ufiniteVerb(var, 'ASK', 'PAST') + uaccArg(var) + unomArg(var) + u(declOrQuestionComp(head:var, rel:'question')) + uarg(var, oPrep, oPrepTopic)

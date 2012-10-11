@@ -320,14 +320,15 @@ class ParsingState {
   }
 
   private static ParsingState applyConstructions(LinkedHashSet<Mite> toApply, ParsingState state) {
+    Chart chart = state.chart
     for (mite in toApply) {
       if (state.network.isChosen(mite) && mite.contents && mite.cxt.isExecutable(mite)) {
-        ParsingState next = state.clone(currentGeneration:state.miteGenerations[mite]?: state.currentGeneration, chart:state.chart.startMeta(mite))
+        ParsingState next = state.clone(currentGeneration:state.miteGenerations[mite]?: state.currentGeneration, chart:chart.startMeta(mite))
         next = mite.cxt.action.call(next, mite.contents)
-        state = next.clone(currentGeneration:state.currentGeneration, chart:next.chart.finishMeta(mite))
+        chart = next.chart.finishMeta(mite)
       }
     }
-    return state
+    return state.clone(chart:chart, currentGeneration:state.currentGeneration)
   }
 
   private static Chart addNewUnifications(ParsingState state, LinkedHashSet<Mite> toApply) {

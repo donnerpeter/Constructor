@@ -46,6 +46,7 @@ class StatefulGenerator {
     Map<String, Frame> preAdjuncts = [:]
     Map<String, Frame> postAdjuncts = [:]
     List<ClauseGenerator> members = []
+    boolean fact = true
 
     ClauseGenerator(Frame frame, boolean topLevel, Frame comp) {
       this.frame = frame
@@ -593,13 +594,18 @@ class StatefulGenerator {
 
     def theme = verb.type == 'FORGET' && !nounDObj ? verb.f('arg2') : verb.f('theme')
     if (theme && verb.type in ['FORGET', 'DISCOVER']) {
-      def that = theme.flatten().find { it.type == 'fact' }
-      if (that) {
+      List<ClauseGenerator> clauses = theme.flatten().collect {
+        def generator = new ClauseGenerator(it.f('content'), false, null)
+        if (it.type == 'question') {
+          generator.fact = false
+        }
+        generator
+      }
+      if (clauses[0].fact) {
         out ","
       }
-      List<ClauseGenerator> clauses = theme.flatten().collect { new ClauseGenerator(it.f('content'), false, null) }
       generateConjuncts(clauses)  { conj, last ->
-        if (that) {
+        if (conj.fact) {
           out 'that'
         }
         conj.generate(last)

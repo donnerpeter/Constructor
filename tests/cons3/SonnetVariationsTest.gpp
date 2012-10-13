@@ -291,9 +291,9 @@ B.number=true
     doTranslateTest 'Кассирша сказала, подвигав носом, что, по ее мнению, семь идет после восьми в том случае, когда восемь идет после семи',
                     "The cashier said, moving her nose back and forth, that in her opinion, a seven comes after an eight, only if an eight comes after a seven"
   }
-  public void _test6_7_DirectNoConditions() throws Exception {
+  public void test6_7_DirectNoConditions() throws Exception {
     doTranslateTest 'Кассирша сказала, подвигав носом:\n - Семь идет после восьми.',
-                    "The cashier said, moving her nose back and forth:\nA seven comes after an eight."
+                    "The cashier said, moving her nose back and forth:\n- A seven comes after an eight."
   }
   public void ___test6_7_IndirectShe() throws Exception {
     doTranslateTest 'Я забыл, по чьему мнению семь идет после восьми.',

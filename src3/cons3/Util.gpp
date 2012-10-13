@@ -1,5 +1,6 @@
 package cons3
 import static cons3.Construction.cxt
+import static cons3.RussianConstructions.colon
 import static cons3.RussianConstructions.posleGen
 import static cons3.RussianConstructions.preposition
 import static cons3.RussianConstructions.ransheGen
@@ -86,7 +87,7 @@ class Util {
 
   static Construction commaSurrounded(Construction cxt) {
     cxt.
-            enrichingMites { mite, contribution, state -> handleCommaEnrichments(mite, contribution) }.
+            enrichingMites { mite, contribution, state -> handleCommaEnrichments(mite, contribution, state) }.
             structural { mite, state, via, up -> getPrevStateForCommaSurrounded(mite, state)
     }
   }
@@ -108,9 +109,19 @@ class Util {
     return null
   }
 
-  static List<Mite> handleCommaEnrichments(Mite mite, List<Mite> contribution) {
+  static List<Mite> handleCommaEnrichments(Mite mite, List<Mite> contribution, ParsingState state) {
     boolean wantContent = mite.contents.comma1 && !mite.contents.content
     boolean wantComma2 = mite.contents.content && !mite.contents.comma2
+    if (wantComma2 && mite.contents.comma1 && contribution.find { it.cxt == colon }) {
+      def firstAtom = mite.firstAtom
+      if (firstAtom?.contents?.comma1) {
+        def beforeState = state.findState(firstAtom).prevState
+        if (beforeState) {
+          return beforeState.enrichUpdate(contribution, state) as List
+        }
+      }
+    }
+
     return mite.unifyWherePossible(contribution.findAll {
       it.cxt == mite.cxt &&
       (wantContent && it.contents.content ||

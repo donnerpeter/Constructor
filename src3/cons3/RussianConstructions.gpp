@@ -438,6 +438,7 @@ interface RussianConstructions {
     state.assign(args.head, 'dot', 'true')
   }.enrichingMites { mite, contribution, state -> [] }.structural { mite, state, via, up -> [ParsingState.EMPTY] }
   Construction comma = emptyCxt('comma').enrichingMites { mite, contribution, state -> [] }
+  Construction colon = emptyCxt('comma').enrichingMites { mite, contribution, state -> [] }
   Construction word = emptyCxt('word')
   Construction quote = emptyCxt('quote').enrichingMites { mite, contribution, state -> [] }
 

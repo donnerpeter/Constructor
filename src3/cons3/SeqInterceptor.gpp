@@ -35,15 +35,23 @@ class SeqInterceptor {
       return []
     }
 
-    def similar = findBestSimilarContribution()
-    if (!similar) return []
+    def xor = new Tokens().a
+    List<Mite> result = []
+    def allSimilar = findSimilarContributions()
+    for (similar in allSimilar) {
+      def variant = mergeWithSimilarState(similar, xor)
+      result.addAll(variant)
+    }
+    return result
+  }
 
+  private List<Mite> mergeWithSimilarState(ParsingState similar, Object xor) {
     List<Mite> result = []
 
     Map<Pair<Variable, Variable>, Variable> seqs = [:]
 
     ParsingState mergePoint = null
-    LinkedHashSet newXors = []
+    LinkedHashSet newXors = [xor]
 
     for (mite in constructions) {
       Mite oldMite = similar.ownMites.reverse().find { it.atom && it.isSimilarTo(mite) }
@@ -108,28 +116,25 @@ class SeqInterceptor {
     return newXors
   }
 
-  private ParsingState findBestSimilarContribution() {
-    def states = findAllSimilarContributions()
-    if (!states) return null
+  private List<ParsingState> findSimilarContributions() {
+    List<ParsingState> states = before.hierarchy.findAll { state -> hasSimilarOwnMite(state) }
+    if (!states) return []
 
     def closest = states[0]
     Mite numQ = closest.ownMites.find { it.cxt == numQuantifier && it.contents.num && ((Variable) it.contents.noun).hard }
     if (numQ) {
       def better = closest.prevVisibleState
       if (better in states) {
-        return better
+        return states[states.indexOf(better)..<states.size()]
       }
     }
 
-    return closest
-  }
-  private List<ParsingState> findAllSimilarContributions() {
-    before.hierarchy.findAll { state -> hasSimilarOwnMite(state) }
+    return states
   }
 
   private boolean hasSimilarOwnMite(ParsingState state) {
-    def similar = constructions.find { findSimilarOwnMite(it, state) }
-    if (similar != null) {
+    def similar = constructions.findAll { findSimilarOwnMite(it, state) }
+    if (similar) {
       return true
     }
     return false
@@ -137,7 +142,8 @@ class SeqInterceptor {
 
   private static Mite findSimilarOwnMite(Mite mite, ParsingState inState) {
     if (mite.cxt in [nom, acc, gen, genArg1] && mite.contents.head) return null
-    if (mite.cxt in [sentenceHolder, noArg, verbalModifier, verbHolder, quotedName]) return null
+    if (mite.cxt in [dat] && mite.contents.head && inState.ownMites.find { it.cxt == preposition }) return null
+    if (mite.cxt in [sentenceHolder, noArg, verbalModifier, verbHolder, quotedName, preposition, poDat]) return null
     return inState.ownMites.find { it.isSimilarTo(mite) }
   }
 

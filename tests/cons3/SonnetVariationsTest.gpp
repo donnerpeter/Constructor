@@ -653,7 +653,7 @@ B.number=true
     doTranslateTest 'По мнению кассирши магазина, семь идет раньше восьми',
                     'In the opinion of the store cashier, a seven comes before an eight'
   }
-  public void _test12_StoreCashierAndOthers() throws Exception {
+  public void test12_StoreCashierAndOthers() throws Exception {
     doTranslateTest 'По мнению кассирши магазина и других, 7 идет раньше 8',
                     'In the opinion of the store cashier and others, a 7 comes before an 8'
   }

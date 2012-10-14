@@ -689,7 +689,7 @@ class StatefulGenerator {
     def variants = subj?.f('variants')
     if (variants) {
       out '-'
-      npseq(variants)
+      npseq(variants, true)
     }
   }
 
@@ -780,8 +780,8 @@ class StatefulGenerator {
     return verbs[type]
   }
 
-  def npseq(Frame _seq) {
-    seq(_seq) { np(it, true, !isNumber(it)) }
+  def npseq(Frame _seq, boolean mayHaveDeterminer) {
+    seq(_seq) { np(it, true, mayHaveDeterminer && !isNumber(it)) }
   }
 
   def seq(Frame seq, Function1<Frame, Void> action) {
@@ -853,7 +853,7 @@ class StatefulGenerator {
     }
 
     if (n.f('member')) { //todo a type for seq frames
-      npseq(n)
+      npseq(n, mayHaveDeterminer)
       return
     }
 
@@ -879,7 +879,7 @@ class StatefulGenerator {
     if (criterion) {
       out noun(criterion)
     }
-    if (type == 'CASHIER' && n.f('arg1')?.type) {
+    if (type == 'CASHIER' && n.f('arg1')?.flatten()?.getAt(0)?.type) {
       np(n.f('arg1'), false, false)
     }
 

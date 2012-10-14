@@ -25,8 +25,8 @@ class Domination {
       if (frame.allAssignments('opinion_of').size() > 1) {
         result << problem(frame, 'several accordingTo assignments')
       }
-      if (frame.type == 'CASHIER' && frame.f('arg1')?.s('number') == 'true') {
-        result << problem(frame, 'cashier of a number')
+      if (frame.type == 'CASHIER' && frame.f('arg1')?.flatten()?.any { it.type && it.type != 'SHOP' }) {
+        result << problem(frame, 'cashier of something strange')
       }
       if (frame.f('member') && frame.flatten().any { it.s('number') == 'true' } && frame.flatten().any { !it.s('number') }) {
         result << problem(frame, 'number and non-number conjunction')

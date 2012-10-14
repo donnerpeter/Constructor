@@ -1,9 +1,6 @@
 package cons3
-
 import groovy.transform.EqualsAndHashCode
-import groovy.transform.ToString
 import groovy.transform.TupleConstructor
-
 /**
  * @author peter
  */
@@ -38,6 +35,9 @@ class Domination {
       if (frame.type == 'COME_SCALARLY' && frame.f('arg1')?.canBeHuman() && frame.f('anchor')?.definitelyNonHuman()) {
         result << problem(frame, 'human comes after non-human')
       }
+      if (frame.type == 'COME_SCALARLY' && frame.f('arg1')?.definitelyNonHuman() && frame.f('anchor')?.canBeHuman()) {
+        result << problem(frame, 'non-human comes after human')
+      }
     }
 
     result
@@ -53,11 +53,6 @@ class Domination {
     }
 
     if (findPair { verb, alternative ->
-      verb.type == 'COME_SCALARLY' && verb.f('anchor')?.definitelyNonHuman() && verb.f('arg1')?.definitelyNonHuman() && alternative.type == 'GO'
-    }) {
-      return true
-    }
-    if (findPair { verb, alternative ->
       verb.type == 'GO' && alternative.type == 'COME_SCALARLY' && alternative.f('anchor')?.canBeHuman()
     }) {
       return true
@@ -68,7 +63,9 @@ class Domination {
       return true
     }
 
-    if (getProblems(self).size() < getProblems(other).size()) {
+    def problems1 = getProblems(self)
+    def problems2 = getProblems(other)
+    if (problems1.size() < problems2.size()) {
       return true
     }
 
@@ -95,8 +92,12 @@ class Domination {
 
 @TupleConstructor
 @EqualsAndHashCode
-@ToString
 class Problem {
   Frame frame
   String description
+
+  @Override
+  public String toString() {
+    return "$description: $frame";
+  }
 }

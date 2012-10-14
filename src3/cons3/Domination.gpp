@@ -6,7 +6,6 @@ import groovy.transform.TupleConstructor
  */
 @TupleConstructor
 class Domination {
-  private static final Set<String> nonHumanVerbs = ['COME_SCALARLY', 'fact', 'question']
   ParsingState self
   ParsingState other
 
@@ -48,10 +47,6 @@ class Domination {
   }
 
   boolean dominatesSemantically() {
-    if (checkIncompleteSequences()) {
-      return false
-    }
-
     if (findPair { verb, alternative ->
       verb.type == 'GO' && alternative.type == 'COME_SCALARLY' && alternative.f('anchor')?.canBeHuman()
     }) {
@@ -83,13 +78,7 @@ class Domination {
     return false
   }
 
-  private boolean checkIncompleteSequences() {
-    return findPair { frame, alternative ->
-      frame.f('member') && alternative.flatten().every { it.type != null } && !frame.flatten().every { it.type != null }
-    } != null
-  }
 }
-
 @TupleConstructor
 @EqualsAndHashCode
 class Problem {

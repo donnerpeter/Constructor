@@ -136,7 +136,7 @@ class SeqInterceptor {
   }
 
   private static Mite findSimilarOwnMite(Mite mite, ParsingState inState) {
-    if (mite.cxt in [nom, acc, gen] && mite.contents.head) return null
+    if (mite.cxt in [nom, acc, gen, genArg1] && mite.contents.head) return null
     if (mite.cxt in [sentenceHolder, noArg, verbalModifier, verbHolder, quotedName]) return null
     return inState.ownMites.find { it.isSimilarTo(mite) }
   }

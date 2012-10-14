@@ -122,20 +122,20 @@ B.type=CAN
 B.time=PRESENT
 B.arg1=C
 D.type=RECALL
+B.theme=D
 D.arg2=E
 E.type=ORDER
 E.criterion=F
-B.theme=D
+F.type=COUNTING
 A.type=fact
 A.content=B
-F.type=COUNTING
 B.dot=true
 """
   }
 
   public void testParse3_4() throws Exception {
-    doParseTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета. 1, 2, 3, 4, 5 и 6 помнят, а дальше забыли.", """
-A.type=wh
+    doParseTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета. " +
+                "1, 2, 3, 4, 5 и 6 помнят, а дальше забыли.", """A.type=wh
 B.type=degree
 B.arg1=C
 B.arg2=A
@@ -162,13 +162,13 @@ B.type=CAN
 B.time=PRESENT
 B.arg1=C
 D.type=RECALL
+B.theme=D
 D.arg2=E
 E.type=ORDER
 E.criterion=F
-B.theme=D
+F.type=COUNTING
 A.type=fact
 A.content=B
-F.type=COUNTING
 B.dot=true
 -- 4:
 A.type=1

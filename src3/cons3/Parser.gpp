@@ -321,7 +321,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return unoun(prep, var, 'CORNER') + uarg(var, gen, genArg1)
       case "кассир": return unoun(nom, var, null) + uv(var, type:'CASHIER', gender:'masc')
       case "кассирша": return unoun(nom, var, null) + uv(var, type:'CASHIER', gender:'fem')
-      case "кассирши": return unoun(gen, var, 'CASHIER')
+      case "кассирши": return unoun(gen, var, 'CASHIER') + uarg(var, gen, genArg1).optional()
       case "одних": return unoun(gen, var, 'SOME')
       case "других":
         return unoun(gen, var, 'OTHERS')
@@ -351,7 +351,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return u(comeScalarly(order:'AFTER'), posleGen(noun:noun)).xor(absTime(rel:'AFTER', noun:noun)) + u(gen(noun:noun.lightVar, head:var))
       case "раньше":
         Variable noun = new Variable()
-        return u(comeScalarly(order:'EARLIER'), ransheGen(noun:noun)).xor(relTime(relTime:'BEFORE', noun:noun)) + u(gen(noun:noun.lightVar, head:var))
+        return u(comeScalarly(order:'EARLIER'), ransheGen(noun:noun)).xor(relTime(relTime:'BEFORE', xor:t.a)) + u(gen(noun:noun.lightVar, head:var, xor:t.a))
       case "что":
         def comp = new Variable()
         def nextVerb = new Variable()

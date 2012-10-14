@@ -29,6 +29,15 @@ class Domination {
       if (frame.allAssignments('opinion_of').size() > 1) {
         result << problem(frame, 'several accordingTo assignments')
       }
+      if (frame.type == 'CASHIER' && frame.f('arg1')?.s('number') == 'true') {
+        result << problem(frame, 'cashier of a number')
+      }
+      if (frame.f('member') && frame.flatten().any { it.s('number') == 'true' } && frame.flatten().any { !it.s('number') }) {
+        result << problem(frame, 'number and non-number conjunction')
+      }
+      if (frame.type == 'COME_SCALARLY' && frame.f('arg1')?.canBeHuman() && frame.f('anchor')?.definitelyNonHuman()) {
+        result << problem(frame, 'human comes after non-human')
+      }
     }
 
     result
@@ -63,22 +72,13 @@ class Domination {
       return true
     }
 
-    for (verb in self.chart.frames.findAll { it.humanAction || it.type in nonHumanVerbs }) {
+    for (verb in self.chart.frames.findAll { it.humanAction }) {
       def alternative = verb.unifiedVar.frame(other.chart)
 
-      if (verb.humanAction ||
-          verb.type == 'COME_SCALARLY' && verb.f('anchor')?.canBeHuman() && alternative.type == 'COME_SCALARLY' && alternative.f('anchor')?.canBeHuman()) {
-        boolean meHuman = !verb.f('arg1')?.definitelyNonHuman()
-        def otherHuman = !alternative.f('arg1')?.definitelyNonHuman()
-        if (meHuman != otherHuman && verb.f('arg1')?.type && alternative.f('arg1')?.type) {
-          return meHuman
-        }
-      }
-
-      if (verb.type && alternative.type &&
-          ((Frame) verb?.definedAttributeValue('arg1'))?.definedAttributeValue('type') &&
-          !((Frame) alternative?.definedAttributeValue('arg1'))?.definedAttributeValue('type')) {
-        return true
+      boolean meHuman = !verb.f('arg1')?.definitelyNonHuman()
+      def otherHuman = !alternative.f('arg1')?.definitelyNonHuman()
+      if (meHuman != otherHuman && verb.f('arg1')?.type && alternative.f('arg1')?.type) {
+        return meHuman
       }
 
     }

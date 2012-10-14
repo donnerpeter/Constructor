@@ -879,7 +879,7 @@ class StatefulGenerator {
     if (criterion) {
       out noun(criterion)
     }
-    if (type == 'CASHIER' && n.f('arg1')) {
+    if (type == 'CASHIER' && n.f('arg1')?.type) {
       np(n.f('arg1'), false, false)
     }
 

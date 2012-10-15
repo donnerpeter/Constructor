@@ -144,7 +144,7 @@ class SeqInterceptor {
           if (!canJoinSeq(prevSeq)) {
             mergePoint = oldState
             Variable first = prevSeq?.contents?.second ?: oldMite.contents.head
-            def newMulti = obtainMergedVariable(first, (Variable) mite.contents.head, seqs)
+            def newMulti = obtainMergedVariable(first, (Variable) mite.contents.head, seqs, false)
             if (prevSeq) {
               Variable veryFirst = prevSeq.contents.first
               result << prevSeq.firstAtom.unify(seq(mergedWith:prevSeq.contents.mergedWith, multi:createMergedVar(veryFirst, newMulti), second:newMulti, first:veryFirst, xor:prevSeq.contents.xor))
@@ -152,7 +152,7 @@ class SeqInterceptor {
           } else {
             mergePoint = prevSeq.firstMemberState
             Variable first = prevSeq.contents.multi
-            obtainMergedVariable(first, (Variable) mite.contents.head, seqs)
+            obtainMergedVariable(first, (Variable) mite.contents.head, seqs, true)
           }
         }
       }
@@ -256,7 +256,7 @@ class SeqInterceptor {
   private static Mite findPrevSeq(ParsingState state, Mite mite, String property, boolean topLevel) {
     return state.ownMites.find {
       it.cxt == seq &&
-      it.contents.mergedWith && it.contents.multi &&
+      it.contents.multi &&
       (topLevel ? it.contents.second : it.contents.multi) == mite.contents[property]
     }
   }
@@ -300,8 +300,8 @@ class SeqInterceptor {
       def newAccording = newBoxed.find { it.cxt == accordingTo }
       def mergePoint = suggestMergePoint(oldMite, 'boxed')
       if (oldAccording && newAccording && mergePoint) {
-        update << boxedForPreposition(prep:oldArgs.prep, boxed:[createMergedMite(oldAccording, 'content', newAccording.contents, seqs)])
-        return mergePoint
+        update << boxedForPreposition(prep:oldArgs.prep, boxed:[createMergedMite(oldAccording, 'content', newAccording.contents, seqs, mergePoint.joining)])
+        return mergePoint.mergedWith
       }
     }
     if (cxt == accordingTo && oldArgs.content && newArgs.content) {
@@ -315,44 +315,39 @@ class SeqInterceptor {
     return null
   }
 
-  private ParsingState suggestMergePoint(Mite oldMite, String prop) {
+  private MergePoint suggestMergePoint(Mite oldMite, String prop) {
     def oldMiteState = before.findState(oldMite)
     def prevSeq = findPrevSeq(oldMiteState, oldMite, prop, false)
-    if (prevSeq && !canJoinSeq(prevSeq)) {
-      return null
+    if (prevSeq) {
+      if (!canJoinSeq(prevSeq)) {
+        return null
+      }
+      return new MergePoint(prevSeq.firstMemberState ?: oldMiteState, true)
     }
-    return prevSeq?.firstMemberState ?: oldMiteState
+    return new MergePoint(oldMiteState, false)
   }
 
   private ParsingState doMerge(Mite oldMite, Map newArgs, String prop, List<Mite> update, Map<Pair<Variable, Variable>, Variable> seqs) {
     def mPoint = suggestMergePoint(oldMite, prop)
     if (mPoint) {
-      update << createMergedMite(oldMite, prop, newArgs, seqs)
+      update << createMergedMite(oldMite, prop, newArgs, seqs, mPoint.joining)
     }
-    return mPoint
+    return mPoint.mergedWith
   }
 
-  private Mite createMergedMite(Mite oldMite, String prop, Map newArgs, Map<Pair<Variable, Variable>, Variable> seqs) {
+  private Mite createMergedMite(Mite oldMite, String prop, Map newArgs, Map<Pair<Variable, Variable>, Variable> seqs, boolean joining) {
     Variable first = (Variable) oldMite.contents[prop]
     Variable second = newArgs[prop]
-    Variable multi = obtainMergedVariable(first, second, seqs)
+    Variable multi = obtainMergedVariable(first, second, seqs, joining)
     return oldMite.cxt(newArgs + [(prop):multi, xor:Mite.mergeXor(oldMite.contents, newArgs)])
   }
 
-  private Variable obtainMergedVariable(Variable first, Variable second, Map<Pair<Variable, Variable>, Variable> seqs) {
-    Variable multi = first.frame(state.chart).f('member') ? first : null
-    if (multi) {
-      def pair = new Pair(multi, second)
-      if (!seqs[pair]) {
-        seqs[pair] = multi
-      }
-    } else {
-      multi = seqs[new Pair(first, second)] ?: createMergedVar(first, second)
-      seqs[new Pair(first, second)] = multi
-    }
+  private Variable obtainMergedVariable(Variable first, Variable second, Map<Pair<Variable, Variable>, Variable> seqs, boolean joining) {
+    def pair = new Pair(first, second)
+    Variable multi = joining ? first : seqs[pair] ?: createMergedVar(first, second)
+    seqs[pair] = multi
     return multi
   }
-
 
   private static ParsingState getFirstMemberState(Mite prevSeq) {
     return prevSeq.contents.mergedWith
@@ -367,4 +362,10 @@ class SeqInterceptor {
   public String toString() {
     return "SeqInterceptor{" + "before=" + before + '}';
   }
+}
+
+@TupleConstructor
+class MergePoint {
+  ParsingState mergedWith
+  boolean joining
 }

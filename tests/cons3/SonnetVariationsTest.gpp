@@ -106,6 +106,7 @@ C.arg1=B
 B.person=3
 C.type=COME_SCALARLY
 C.order=EARLIER
+C.anchor=D
 -- 3:
 B@2.variants=A
 B.type=7

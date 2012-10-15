@@ -19,7 +19,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     def tokenizer = new StringTokenizer(text, """ '":,.?!""", true)
     for (String w in tokenizer) {
       if (w != ' ') {
-        def logged = state.appendLog("$w ${System.currentTimeMillis()} ${'-' * (100 - w.size())}\n")
+        def logged = state.appendLog("$w ${'-' * (100 - w.size())}\n")
         state = handleWord(w.toLowerCase().trim(), logged)
         log = state.log
       }

@@ -168,9 +168,9 @@ class Util {
   }
 
   static Construction commonArg(String name, String rel) {
-    cxt(name + rel.capitalize(), ['+noun', '*head']) { ParsingState state, Map args ->
+    cxt(name + rel.capitalize(), ['noun', 'head']) { ParsingState state, Map args ->
       def nf = ((Variable) args.noun).frame(state.chart)
-      nf.type || nf.s('name') ? state.assign(args.head, rel, args.noun) : state
+      nf.type ? state.assign(args.head, rel, args.noun) : state
     }
   }
 }

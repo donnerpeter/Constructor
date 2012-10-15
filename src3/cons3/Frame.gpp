@@ -70,13 +70,13 @@ class Frame {
     return null
   }
 
-  private boolean mayReference(Frame ref, Frame target) {
+  private static boolean mayReference(Frame ref, Frame target) {
     if (ref.s('person') == '3' && target.type == 'ME') return false
     return true
   }
 
   boolean definitelyNonHuman() {
-    !canBeHuman()
+    type && !canBeHuman()
   }
 
   boolean canBeHuman() {
@@ -158,6 +158,7 @@ class Frame {
     if (attr == 'type') {
       if (f('member')) return null
       if (s('rusNumber') == 'pl') return 'THEY'
+      if (s('name') == 'Вася') return 'MAN'
       if (s('person') == '3' && infer) {
         if (usages('arg1').find { it.humanAction }) {
           return s('gender') == 'fem' ? 'SHE' : 'HE'

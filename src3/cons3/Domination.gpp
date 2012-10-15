@@ -34,7 +34,7 @@ class Domination {
       if (frame.type == 'COME_SCALARLY' && frame.f('arg1')?.canBeHuman() && frame.f('anchor')?.definitelyNonHuman()) {
         result << problem(frame, 'human comes after non-human')
       }
-      if (frame.type == 'COME_SCALARLY' && frame.f('arg1')?.definitelyNonHuman() && frame.f('anchor')?.canBeHuman()) {
+      if (frame.type == 'COME_SCALARLY' && frame.f('arg1')?.definitelyNonHuman() && frame.f('anchor')?.type && frame.f('anchor')?.canBeHuman()) {
         result << problem(frame, 'non-human comes after human')
       }
     }
@@ -48,7 +48,7 @@ class Domination {
 
   boolean dominatesSemantically() {
     if (findPair { verb, alternative ->
-      verb.type == 'GO' && alternative.type == 'COME_SCALARLY' && alternative.f('anchor')?.canBeHuman()
+      verb.type == 'GO' && alternative.type == 'COME_SCALARLY' && alternative.f('anchor')?.type && alternative.f('anchor')?.canBeHuman()
     }) {
       return true
     }

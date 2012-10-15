@@ -494,14 +494,14 @@ class StatefulGenerator {
       out(verb.s('time') == 'PAST' ? 'went' : 'comes')
       def anchor = verb.f('anchor')
       if (verb.s('order') == 'EARLIER') {
-        if (anchor) {
+        if (anchor?.type) {
           out 'before'
           np(anchor, false)
         } else {
           out 'first'
         }
       } else if (verb.s('order') == 'AFTER') {
-        if (anchor) {
+        if (anchor?.type) {
           out 'after'
           np(anchor, false)
         } else {
@@ -940,6 +940,10 @@ class StatefulGenerator {
   }
 
   private void determiner(Frame n, boolean an) {
+    if (n.s('name') && n.type == 'MAN') {
+      return
+    }
+
     def det = n.s('determiner')
     if (det == 'THIS') {
       out 'this'

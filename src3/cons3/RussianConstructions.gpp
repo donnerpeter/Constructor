@@ -44,7 +44,7 @@ interface RussianConstructions {
   Construction sInstrExperiencer = commonSimpleArg('sInstr', 'experiencer')
   Construction sInstrMood = commonSimpleArg('sInstr', 'mood')
   Construction sGen = commonPrep('s', gen)
-  Construction sGenSource = commonArg('sGen', 'source')
+  Construction sGenSource = commonSimpleArg('sGen', 'source')
   Construction poDat = commonPrep('po', dat)
   Construction poDatTopic = commonArg('poDat', 'topic')
   Construction poDatGoal = commonSimpleArg('poDat', 'goal')

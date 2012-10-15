@@ -11,83 +11,83 @@ import static cons3.SonnetTest.doTranslateTest
  */
 class SonnetVariationsTest extends TestCase {
 
-  public void test3_Short() throws Exception {
+  public void test3_Short() {
     doTranslateTest "Каково же было их и мое удивление",
                     "Great was their and my amazement"
   }
 
-  public void test3_My() throws Exception {
+  public void test3_My() {
     doTranslateTest "Каково же было мое удивление",
                     "Great was my amazement"
   }
-  public void test3_Their() throws Exception {
+  public void test3_Their() {
     doTranslateTest "Каково же было их удивление",
                     "Great was their amazement"
   }
 
-  public void test3_He() throws Exception {
+  public void test3_He() {
     doTranslateTest "Он вдруг обнаружил, что не может вспомнить порядок счета",
             "He suddenly discovered, that he couldn't recall the counting order"
   }
-  public void test3_She() throws Exception {
+  public void test3_She() {
     doTranslateTest "Она вдруг обнаружила, что не может вспомнить порядок счета",
             "She suddenly discovered, that she couldn't recall the counting order"
   }
 
-  public void test1_Question() throws Exception {
+  public void test1_Question() {
     doTranslateTest "Что идёт раньше - 7 или 8?",
                     "What comes first - 7 or 8?"
   }
-  public void testHeForgotThatGoesAfterVasya() throws Exception {
+  public void testHeForgotThatGoesAfterVasya() {
     doTranslateTest "Он забыл, что идет после Васи.",
                     "He forgot, that he went after Vasya."
   }
-  public void testSheForgotThatGoesAfterVasya() throws Exception {
+  public void testSheForgotThatGoesAfterVasya() {
     doTranslateTest "Она забыла, что идет после Васи.",
                     "She forgot, that she went after Vasya."
   }
-  public void testHeForgotThatBrokeHisJaw() throws Exception {
+  public void testHeForgotThatBrokeHisJaw() {
     doTranslateTest "Он забыл, что сломал себе челюсть.",
                     "He forgot, that he broke his jaw."
   }
-  public void testHeForgotThatSheBrokeHisJaw() throws Exception {
+  public void testHeForgotThatSheBrokeHisJaw() {
     doTranslateTest "Он забыл, что она сломала ему челюсть.",
                     "He forgot, that she broke his jaw."
   }
-  public void testSheForgotThatBrokeHerJaw() throws Exception {
+  public void testSheForgotThatBrokeHerJaw() {
     doTranslateTest "Она забыла, что сломала себе челюсть.",
                     "She forgot, that she broke her jaw."
   }
-  public void test2_Question() throws Exception {
+  public void test2_Question() {
     doTranslateTest "Что они думают по этому поводу?",
                     "What do they think on this matter?"
   }
-  public void test2_ThinkingNotSitting() throws Exception {
+  public void test2_ThinkingNotSitting() {
     doTranslateTest "Я забыл, что они думают, а не просто сидят.",
                     "I forgot, that they were thinking and not just sitting."
   }
-  public void test2_AskWhatTheySaid() throws Exception {
+  public void test2_AskWhatTheySaid() {
     doTranslateTest "Я спросил, что они сказали.",
                     "I asked what they said."
   }
-  public void test2_WhatThinkNotWhatSaid() throws Exception {
+  public void test2_WhatThinkNotWhatSaid() {
     doTranslateTest "Я спросил, что они думают, а не что они сказали.",
                     "I asked what they were thinking and not what they said."
   }
-  public void test2_ThinkingNotSitting_He() throws Exception {
+  public void test2_ThinkingNotSitting_He() {
     doTranslateTest "Я забыл, что он думает, а не просто сидит.",
                     "I forgot, that he was thinking and not just sitting."
   }
-  public void test2_NotSittingThinking() throws Exception {
+  public void test2_NotSittingThinking() {
     doTranslateTest "Я забыл, что они не просто сидят, а думают.",
                     "I forgot, that they were not just sitting, but thinking."
   }
-  public void test2_NotThinkingSitting() throws Exception {
+  public void test2_NotThinkingSitting() {
     doTranslateTest "Я забыл, что они не думают, а просто сидят.",
                     "I forgot, that they were not thinking, but just sitting."
   }
 
-  public void test1_789() throws Exception {
+  public void test1_789() {
     doParseTest "Я забыл, что идёт раньше - 7, 8 или 9", """
 A.type=ME
 B.type=FORGET
@@ -122,220 +122,220 @@ B.number=true
 """
   }
 
-  public void test1_789_Translation() throws Exception {
+  public void test1_789_Translation() {
     doTranslateTest "Я забыл, что идёт раньше - 7, 8 или 9.", "I forgot what comes first - 7, 8 or 9."
   }
 
-  public void test1_ForgetFact() throws Exception {
+  public void test1_ForgetFact() {
     doTranslateTest "Я забыл, что 7 идёт раньше 8.", "I forgot, that a 7 comes before an 8."
   }
-  public void test1_Forget2Facts() throws Exception {
+  public void test1_Forget2Facts() {
     doTranslateTest "Я забыл, что 7 идёт раньше 8 и что 4 идёт после 3.", "I forgot, that a 7 comes before an 8 and that a 4 comes after a 3."
   }
-  public void test1_ForgetRecursive() throws Exception {
+  public void test1_ForgetRecursive() {
     doTranslateTest "Я забыл, что я это забыл", "I forgot, that I forgot that"
   }
-  public void test1_ForgetRecursiveVO() throws Exception {
+  public void test1_ForgetRecursiveVO() {
     doTranslateTest "Я забыл, что я забыл это", "I forgot, that I forgot that"
   }
-  public void test1_ForgetRecursive2() throws Exception {
+  public void test1_ForgetRecursive2() {
     doTranslateTest "Я забыл, что я забыл", "I forgot what I forgot"
   }
-  public void test1_ForgetRecursive3Fact() throws Exception {
+  public void test1_ForgetRecursive3Fact() {
     doTranslateTest "Я забыл, что я забыл, что 7 идет раньше 8", "I forgot, that I forgot, that a 7 comes before an 8"
   }
-  public void test1_ForgetRecursive3Question() throws Exception {
+  public void test1_ForgetRecursive3Question() {
     doTranslateTest "Я забыл, что я забыл, что идет после 8", "I forgot, that I forgot what comes after an 8"
   }
-  public void test1_ForgetWhatIDid() throws Exception {
+  public void test1_ForgetWhatIDid() {
     doTranslateTest "Я забыл, что я делал.",
                     "I forgot what I did."
   }
-  public void test1_ForgetRecursiveEnumeration() throws Exception {
+  public void test1_ForgetRecursiveEnumeration() {
     doTranslateTest "Я забыл, что я делал, что идет после 8 и что идет раньше 7.",
                     "I forgot what I did, what comes after an 8, and what comes before a 7."
   }
-  public void test1_ForgetRecursive2Questions() throws Exception {
+  public void test1_ForgetRecursive2Questions() {
     doTranslateTest "Я забыл, что я забыл, что идет после 8 и что идет раньше 7",
                     "I forgot, that I forgot what comes after an 8 and what comes before a 7"
   }
-  public void test1_Forget2Questions() throws Exception {
+  public void test1_Forget2Questions() {
     doTranslateTest "Я забыл, что идёт после 7 и что идёт раньше 8.", "I forgot what comes after a 7 and what comes before an 8."
   }
 
-  public void test1_ForgetQuestionAndFact() throws Exception {
+  public void test1_ForgetQuestionAndFact() {
     doTranslateTest "Я забыл, что 8 идёт после 7 и что идёт раньше 5.",
             "I forgot, that an 8 comes after a 7 and what comes before a 5."
   }
-  public void test1_ForgetFactAndQuestion() throws Exception {
+  public void test1_ForgetFactAndQuestion() {
     doTranslateTest "Я забыл, что идёт после 7 и что 4 идёт раньше 5.",
             "I forgot what comes after a 7 and that a 4 comes before a 5."
   }
 
-  public void test4_123TheyRemember() throws Exception {
+  public void test4_123TheyRemember() {
     doTranslateTest "1, 2 и 3 они помнят", "They remember 1, 2 and 3"
   }
-  public void test4_HeRemembers() throws Exception {
+  public void test4_HeRemembers() {
     doTranslateTest "1, 2 и 3 помнит, а дальше забыл", "He remembers 1, 2 and 3, but forgot what comes next"
   }
-  public void test4_SheRemembers() throws Exception {
+  public void test4_SheRemembers() {
     doTranslateTest "1, 2 и 3 помнит, а дальше забыла", "She remembers 1, 2 and 3, but forgot what comes next"
   }
 
-  public void test4_TheyRemember123() throws Exception {
+  public void test4_TheyRemember123() {
     doTranslateTest "Они помнят 1, 2 и 3", "They remember 1, 2 and 3"
   }
 
-  public void test4_TheyRemember78() throws Exception {
+  public void test4_TheyRemember78() {
     doTranslateTest "Они помнят семь и восемь", "They remember a seven and an eight"
   }
 
-  public void test4_4() throws Exception {
+  public void test4_4() {
     doTranslateTest "2 и 3 они помнят, а 4 забыли", "They remember 2 and 3, but forgot 4"
   }
 
-  public void test4_45() throws Exception {
+  public void test4_45() {
     doTranslateTest "2 и 3 они помнят, а 4 и 5 забыли", "They remember 2 and 3, but forgot 4 and 5"
   }
 
-  public void test4_TheyForgot45() throws Exception {
+  public void test4_TheyForgot45() {
     doTranslateTest "Они забыли 4 и 5", "They forgot 4 and 5"
   }
 
-  public void test5_Shorter() throws Exception {
+  public void test5_Shorter() {
     doTranslateTest 'Мы пошли в магазин "Гастроном", что на углу, и спросили кассиршу о нашем недоумении',
                     "We went to a grocery store, the one that's on the corner to consult a cashier on our predicament"
   }
 
-  public void test5_NonameStore() throws Exception {
+  public void test5_NonameStore() {
     doTranslateTest 'Мы пошли в магазин.',
                     "We went to a store."
   }
 
-  public void test5_OnTheCornerOf() throws Exception {
+  public void test5_OnTheCornerOf() {
     doTranslateTest 'Мы все пошли в коммерческий магазин "Гастроном" на углу Знаменской и Бассейной улицы и спросили кассиршу о нашем недоумении',
                     "We all went to a commercial grocery store on the corner of Znamenskaya and Basseinaya streets to consult a cashier on our predicament"
   }
 
-  public void test5_OnTheCorner() throws Exception {
+  public void test5_OnTheCorner() {
     doTranslateTest 'Мы все пошли в коммерческий магазин "Гастроном" на углу и спросили кассиршу о нашем недоумении',
                     "We all went to a commercial grocery store on the corner to consult a cashier on our predicament"
   }
 
-  public void test5_ShopWasOnTheCorner() throws Exception {
+  public void test5_ShopWasOnTheCorner() {
     doTranslateTest 'Магазин был на углу.',
                     'The store was on the corner.'
   }
 
-  public void test5_TheCashier() throws Exception {
+  public void test5_TheCashier() {
     doTranslateTest 'Мы спросили кассиршу о нашем недоумении',
                     "We consulted the cashier on our predicament"
   }
 
-  public void test5_OnTheCornerOfStreets() throws Exception {
+  public void test5_OnTheCornerOfStreets() {
     doTranslateTest 'Мы все пошли в коммерческий магазин "Гастроном", что на углу Знаменской и Бассейной улиц, и спросили кассиршу о нашем недоумении',
                     "We all went to a commercial grocery store, the one that's on the corner of Znamenskaya and Basseinaya streets to consult a cashier on our predicament"
   }
 
 
-  public void test6_Shorter() throws Exception {
+  public void test6_Shorter() {
     doTranslateTest 'Кассирша улыбнулась, вынула изо рта молоточек и сказала:',
                     "The cashier gave us a smile, took a hammer out of her mouth, and said:"
   }
 
-  public void test6_1and3Clauses() throws Exception {
+  public void test6_1and3Clauses() {
     doTranslateTest 'Кассирша улыбнулась и сказала:',
                     "The cashier gave us a smile and said:"
   }
 
-  public void test6_2and3Clauses() throws Exception {
+  public void test6_2and3Clauses() {
     doTranslateTest 'Кассирша вынула изо рта молоточек и, подвигав носом, сказала:',
                     "The cashier took a hammer out of her mouth, and moving her nose back and forth, she said:"
   }
-  public void test6_2and3Clauses_He() throws Exception {
+  public void test6_2and3Clauses_He() {
     doTranslateTest 'Кассир вынул изо рта молоточек и, подвигав носом, сказал:',
                     "The cashier took a hammer out of his mouth, and moving his nose back and forth, he said:"
   }
 
-  public void test6_WithoutBackgrounded() throws Exception {
+  public void test6_WithoutBackgrounded() {
     doTranslateTest 'Кассирша грустно улыбнулась, слегка подвигала носом и сказала:',
                     "The cashier gave us a sad smile, moved her nose slightly back and forth, and said:"
   }
 
-  public void test6_3ClauseOnly() throws Exception {
+  public void test6_3ClauseOnly() {
     doTranslateTest 'Кассирша, слегка подвигав носом, сказала:',
                     "Moving her nose slightly back and forth, the cashier said:"
   }
 
-  public void test6_MaleCashier() throws Exception {
+  public void test6_MaleCashier() {
     doTranslateTest 'Кассир, слегка подвигав носом, сказал:',
                     "Moving his nose slightly back and forth, the cashier said:"
   }
-  public void test6_Jaw() throws Exception {
+  public void test6_Jaw() {
     doTranslateTest 'Кассирша, слегка подвигав челюстью, сказала:',
                     "Moving her jaw slightly back and forth, the cashier said:"
   }
-  public void test6_7_IndirectSheShort() throws Exception {
+  public void test6_7_IndirectSheShort() {
     doTranslateTest 'Кассирша сказала, что семь идет после восьми',
                     "The cashier said that a seven comes after an eight"
   }
-  public void test6_7_IndirectNoOpinion() throws Exception {
+  public void test6_7_IndirectNoOpinion() {
     doTranslateTest 'Кассирша сказала, что семь идет после восьми в том случае, когда восемь идет после семи',
                     "The cashier said that a seven comes after an eight, only if an eight comes after a seven"
   }
-  public void test6_7_IndirectShe() throws Exception {
+  public void test6_7_IndirectShe() {
     doTranslateTest 'Кассирша сказала, что, по ее мнению, семь идет после восьми в том случае, когда восемь идет после семи',
                     "The cashier said that in her opinion, a seven comes after an eight, only if an eight comes after a seven"
   }
-  public void test6_7_IndirectSheMovingNose() throws Exception {
+  public void test6_7_IndirectSheMovingNose() {
     doTranslateTest 'Кассирша сказала, подвигав носом, что, по ее мнению, семь идет после восьми в том случае, когда восемь идет после семи',
                     "The cashier said, moving her nose back and forth, that in her opinion, a seven comes after an eight, only if an eight comes after a seven"
   }
-  public void test6_7_DirectNoConditions() throws Exception {
+  public void test6_7_DirectNoConditions() {
     doTranslateTest 'Кассирша сказала, подвигав носом:\n - Семь идет после восьми.',
                     "The cashier said, moving her nose back and forth:\n- A seven comes after an eight."
   }
-  public void _testWhoseOpinion() throws Exception {
+  public void _testWhoseOpinion() {
     doTranslateTest 'Я забыл, по чьему мнению семь идет после восьми.',
                     "I forgot in whose opinion a seven comes after an eight."
   }
-  public void _testAccordingToWhom() throws Exception {
+  public void _testAccordingToWhom() {
     doTranslateTest 'Я забыл, по чьим словам семь идет после восьми.',
                     "I forgot according to whom a seven comes after an eight."
   }
-  public void _testAccorgindToAndInOpinionOfWhomPossessive() throws Exception {
+  public void _testAccorgindToAndInOpinionOfWhomPossessive() {
     doTranslateTest 'Я забыл, по чьим словам и мнению семь идет после восьми.',
                     "I forgot according to and in the opinion of who a seven comes after an eight."
   }
-  public void _testAccordingToWordsOfWho() throws Exception {
+  public void _testAccordingToWordsOfWho() {
     doTranslateTest 'Я забыл, по словам кого семь идет после восьми.',
                     "I forgot according to whom a seven comes after an eight."
   }
-  public void _testAccorgindToAndInOpinionOfWhomGenitive() throws Exception {
+  public void _testAccorgindToAndInOpinionOfWhomGenitive() {
     doTranslateTest 'Я забыл, по словам и мнению кого семь идет после восьми.',
                     "I forgot according to and in the opinion of who a seven comes after an eight."
   }
-  public void test6_7_IndirectHeOpinion() throws Exception {
+  public void test6_7_IndirectHeOpinion() {
     doTranslateTest 'Кассир сказал, что, по его мнению, семь идет после восьми в том случае, когда восемь идет после семи',
                     "The cashier said that in his opinion, a seven comes after an eight, only if an eight comes after a seven"
   }
-  public void test6_7_IndirectHeSevenOpinion() throws Exception {
+  public void test6_7_IndirectHeSevenOpinion() {
     doTranslateTest 'Кассир сказал, что семь, по его мнению, идет после восьми в том случае, когда восемь идет после семи',
                     "The cashier said that in his opinion, a seven comes after an eight, only if an eight comes after a seven"
   }
-  public void test6_7_IndirectHe() throws Exception {
+  public void test6_7_IndirectHe() {
     doTranslateTest 'Кассир сказал, что семь идет после восьми в том случае, когда восемь идет после семи',
                     "The cashier said that a seven comes after an eight, only if an eight comes after a seven"
   }
-  public void test6_7_IndirectHeWhatOpinion() throws Exception {
+  public void test6_7_IndirectHeWhatOpinion() {
     doTranslateTest 'Кассир сказал нам, что, по его мнению, идет после восьми',
                     "The cashier told us, what, in his opinion, comes after an eight"
   }
-  public void test6_7_IndirectHeWhat() throws Exception {
+  public void test6_7_IndirectHeWhat() {
     doTranslateTest 'Кассир сказал нам, что идет после восьми',
                     "The cashier told us what comes after an eight"
   }
-  public void test6_7_IndirectHeShort() throws Exception {
+  public void test6_7_IndirectHeShort() {
     doTranslateTest 'Кассир сказал, что семь идет после восьми',
                     "The cashier said that a seven comes after an eight"
   }
@@ -348,456 +348,456 @@ B.number=true
     return suite;
   }
 
-  public void test7_IMO_AfterSubject() throws Exception {
+  public void test7_IMO_AfterSubject() {
     doTranslateTest 'Семь, по-моему, идет после восьми в том случае, когда восемь идет после семи',
                     "In my opinion, a seven comes after an eight, only if an eight comes after a seven"
   }
 
-  public void test7_IMO_End1Clause() throws Exception {
+  public void test7_IMO_End1Clause() {
     doTranslateTest 'Семь идет после восьми в том случае, по-моему, когда восемь идет после семи',
                     "In my opinion, a seven comes after an eight, only if an eight comes after a seven"
   }
 
-  public void test7_Earlier() throws Exception {
+  public void test7_Earlier() {
     doTranslateTest 'Семь идет раньше восьми в том случае, когда восемь идет раньше семи',
                     "A seven comes before an eight, only if an eight comes before a seven"
   }
 
-  public void test7_JustCaseNotThat() throws Exception {
+  public void test7_JustCaseNotThat() {
     doTranslateTest 'Семь идет раньше восьми в случае, когда восемь идет раньше семи',
                     "A seven comes before an eight, only if an eight comes before a seven"
   }
 
-  public void test7_If() throws Exception {
+  public void test7_If() {
     doTranslateTest 'Семь идет раньше восьми в случае, если восемь идет раньше семи',
                     "A seven comes before an eight, only if an eight comes before a seven"
   }
 
-  public void test7_NoCaseWhen() throws Exception {
+  public void test7_NoCaseWhen() {
     doTranslateTest 'Семь идет раньше восьми, когда восемь идет раньше семи',
                     "A seven comes before an eight, when an eight comes before a seven"
   }
 
-  public void test7_NoCaseIf() throws Exception {
+  public void test7_NoCaseIf() {
     doTranslateTest 'Семь идет раньше восьми, если восемь идет раньше семи',
                     "A seven comes before an eight, if an eight comes before a seven"
   }
 
-  public void test8_GreatJoy() throws Exception {
+  public void test8_GreatJoy() {
     doTranslateTest 'Мы поблагодарили кассиршу и с большой радостью выбежали из магазина',
                     "We thanked the cashier and ran out of the store with great joy"
   }
 
-  public void test8_Relieved() throws Exception {
+  public void test8_Relieved() {
     doTranslateTest 'Мы поблагодарили кассиршу и с облегчением выбежали из магазина',
                     "We thanked the cashier and ran out of the store with relief"
   }
 
-  public void test8_GreatRelieve() throws Exception {
+  public void test8_GreatRelieve() {
     doTranslateTest 'Мы поблагодарили кассиршу и с большим облегчением выбежали из магазина',
                     "We thanked the cashier and ran out of the store with great relief"
   }
 
-  public void test8_Her() throws Exception {
+  public void test8_Her() {
     doTranslateTest 'Мы поблагодарили её и с радостью выбежали из магазина',
                     "We thanked her and ran cheerfully out of the store"
   }
 
-  public void test8_HerPostfixJoy() throws Exception {
+  public void test8_HerPostfixJoy() {
     doTranslateTest 'Мы поблагодарили ее и выбежали из магазина с радостью',
                     "We thanked her and ran out of the store cheerfully"
   }
 
-  public void test9_Short1() throws Exception {
+  public void test9_Short1() {
     doTranslateTest 'Но тут мы опять приуныли',
                     "But there we got sad again"
   }
-  public void test9_Short1Then() throws Exception {
+  public void test9_Short1Then() {
     doTranslateTest 'Но потом мы опять приуныли',
                     "But then we got sad again"
   }
-  public void test9_ThenNotBut() throws Exception {
+  public void test9_ThenNotBut() {
     doTranslateTest 'Потом мы опять приуныли',
                     "Then we got sad again"
   }
-  public void test9_ThereNotBut() throws Exception {
+  public void test9_ThereNotBut() {
     doTranslateTest 'Тут мы опять приуныли',
                     "There we got sad again"
   }
 
-  public void test9_ThinkingGotSad() throws Exception {
+  public void test9_ThinkingGotSad() {
     doTranslateTest 'Вдумываясь в слова кассирши, мы опять приуныли',
                     "Thinking carefully about cashier's words, we got sad again"
   }
-  public void test9_GotSadThinking() throws Exception {
+  public void test9_GotSadThinking() {
     doTranslateTest 'Мы опять приуныли, вдумываясь в слова кассирши',
                     "We got sad again, thinking carefully about cashier's words"
   }
-  public void test9_2Only() throws Exception {
+  public void test9_2Only() {
     doTranslateTest 'Ее слова нам показались лишенными всякого смысла',
                     "Her words were void of any meaning"
   }
-  public void test9_2WePrefix() throws Exception {
+  public void test9_2WePrefix() {
     doTranslateTest 'Нам ее слова показались лишенными всякого смысла',
                     "Her words were void of any meaning"
   }
 
-  public void test9_JustMeaning() throws Exception {
+  public void test9_JustMeaning() {
     doTranslateTest 'Ее слова нам показались лишенными смысла',
                     "Her words were void of meaning"
   }
 
-  public void test9_Meaningless() throws Exception {
+  public void test9_Meaningless() {
     doTranslateTest 'Ее слова нам показались бессмысленными',
                     "Her words were meaningless"
   }
 
-  public void test10_WhatToDo() throws Exception {
+  public void test10_WhatToDo() {
     doTranslateTest 'Что делать?',
                     'What to do?'
   }
-  public void test10_WhatToDo_Me() throws Exception {
+  public void test10_WhatToDo_Me() {
     doTranslateTest 'Что мне делать?',
                     'What am I supposed to do?'
   }
-  public void test10_WhatToAsk() throws Exception {
+  public void test10_WhatToAsk() {
     doTranslateTest 'Что спросить?',
                     'What to ask?'
   }
-  public void test10_WhatToAsk_Me() throws Exception {
+  public void test10_WhatToAsk_Me() {
     doTranslateTest 'Что мне спросить?',
                     'What am I supposed to ask?'
   }
-  public void test10_Me() throws Exception {
+  public void test10_Me() {
     doTranslateTest 'Что мне было делать?',
                     'What was I supposed to do?'
   }
-  public void test10_INeedPresent() throws Exception {
+  public void test10_INeedPresent() {
     doTranslateTest 'Что мне нужно?',
                     'What do I need?'
   }
-  public void test10_INeedPast() throws Exception {
+  public void test10_INeedPast() {
     doTranslateTest 'Что мне было нужно?',
                     'What did I need?'
   }
-  public void test10_WhatDidWeDo() throws Exception {
+  public void test10_WhatDidWeDo() {
     doTranslateTest 'Что мы делали?',
                     'What did we do?'
   }
-  public void test10_WhatDidIDo() throws Exception {
+  public void test10_WhatDidIDo() {
     doTranslateTest 'Что я делал?',
                     'What did I do?'
   }
-  public void test10_Subordinate() throws Exception {
+  public void test10_Subordinate() {
     doTranslateTest 'Я спросил, что делать.',
                     'I asked what to do.'
   }
 
-  public void test11_JustGarden() throws Exception {
+  public void test11_JustGarden() {
     doTranslateTest 'Мы пошли в сад',
                     'We went to the garden'
   }
-  public void test11_LittleGardenOnTheCorner() throws Exception {
+  public void test11_LittleGardenOnTheCorner() {
     doTranslateTest 'Мы пошли в маленький сад на углу',
                     'We went to the small garden on the corner'
   }
-  public void test11_BigGardenOnTheCorner() throws Exception {
+  public void test11_BigGardenOnTheCorner() {
     doTranslateTest 'Мы пошли в большой сад, что на углу Знаменской и Бассейной улиц',
                     "We went to the big garden, the one that's on the corner of Znamenskaya and Basseinaya streets"
   }
-  public void test11_CountMouney() throws Exception {
+  public void test11_CountMouney() {
     doTranslateTest 'Мы стали считать деньги',
                     'We started counting money'
   }
-  public void test11_WaterTrees() throws Exception {
+  public void test11_WaterTrees() {
     doTranslateTest 'Мы стали поливать деревья',
                     'We started watering trees'
   }
-  public void test11_Dance() throws Exception {
+  public void test11_Dance() {
     doTranslateTest 'Мы стали танцевать',
                     'We started dancing'
   }
-  public void test12_StartedCounting() throws Exception {
+  public void test12_StartedCounting() {
     doTranslateTest 'Мы начали считать деревья',
                     'We started counting trees'
   }
-  public void test12_ReachingGardenStartedCounting() throws Exception {
+  public void test12_ReachingGardenStartedCounting() {
     doTranslateTest 'Дойдя до сада, мы начали считать деревья',
                     'Reaching the garden, we started counting trees'
   }
-  public void test12_Reaching5() throws Exception {
+  public void test12_Reaching5() {
     doTranslateTest 'Дойдя до 5-ти, мы начали спорить',
                     'Reaching a five, we started arguing'
   }
-  public void test12_ButReachingFive() throws Exception {
+  public void test12_ButReachingFive() {
     doTranslateTest 'Но, дойдя до 5, мы начали спорить',
                     'But reaching a 5, we started arguing'
   }
-  public void test12_ReachingFivePostfix() throws Exception {
+  public void test12_ReachingFivePostfix() {
     doTranslateTest 'Но мы начали спорить, дойдя до 5',
                     'But we started arguing, reaching a 5'
   }
-  public void test12_ReachingSixInLetters() throws Exception {
+  public void test12_ReachingSixInLetters() {
     doTranslateTest 'Дойдя до шести, мы начали спорить',
                     'Reaching a six, we started arguing'
   }
-  public void test12_MyTheirOpinion() throws Exception {
+  public void test12_MyTheirOpinion() {
     doTranslateTest 'По моему мнению, раньше идет 7, а по их мнению - 8',
                     'In my opinion, a 7 comes first; but in their opinion an 8 does'
   }
-  public void test12_HumbleOpinions() throws Exception {
+  public void test12_HumbleOpinions() {
     doTranslateTest 'По моему скромному мнению, раньше идет 7, а по их скромному мнению - 8',
                     'In my humble opinion, a 7 comes first; but in their humble opinion an 8 does'
   }
-  public void test12_ImhoVsCashier() throws Exception {
+  public void test12_ImhoVsCashier() {
     doTranslateTest 'По-моему, раньше идет 7, а по мнению кассирши - 8',
                     'In my opinion, a 7 comes first; but in the opinion of the cashier an 8 does'
   }
-  public void test12_ImhoVsCashierFront7() throws Exception {
+  public void test12_ImhoVsCashierFront7() {
     doTranslateTest 'По-моему, 7 идет раньше, а по мнению кассирши - 8',
                     'In my opinion, a 7 comes first; but in the opinion of the cashier an 8 does'
   }
-  public void test12_ImhoVsCashierLater() throws Exception {
+  public void test12_ImhoVsCashierLater() {
     doTranslateTest 'По-моему, 7 идет раньше, а по мнению кассирши - потом',
                     'In my opinion, a 7 comes first; but in the opinion of the cashier, it comes next'
   }
-  public void test12_AccordingCashier() throws Exception {
+  public void test12_AccordingCashier() {
     doTranslateTest 'По словам кассирши, раньше идет 7',
                     'According to the cashier, a 7 comes first'
   }
-  public void test12_7Next() throws Exception {
+  public void test12_7Next() {
     doTranslateTest 'По словам кассирши, потом идет 7',
                     'According to the cashier, a 7 comes next'
   }
-  public void test12_ShortNoEllipsis() throws Exception {
+  public void test12_ShortNoEllipsis() {
     doTranslateTest 'По мнению одних дальше следовало 7, по мнению других дальше следовало 8',
                     'In the opinion of some, a 7 went next; but in opinion of others, an 8 went next'
   }
-  public void test12_Before7Followed() throws Exception {
+  public void test12_Before7Followed() {
     doTranslateTest 'Раньше потом следовало 7',
                     'Before, a 7 went next'
   }
-  public void test12_7After8() throws Exception {
+  public void test12_7After8() {
     doTranslateTest 'По словам кассирши, после 8 идет 7',
                     'According to the cashier, a 7 comes after an 8'
   }
-  public void test12_7After6() throws Exception {
+  public void test12_7After6() {
     doTranslateTest 'После 6-ти идет 7',
                     'A 7 comes after a six'
   }
-  public void test12_7WentAfter6() throws Exception {
+  public void test12_7WentAfter6() {
     doTranslateTest 'После 6 следовало 7',
                     'A 7 went after a 6'
   }
-  public void testCashierGoesToTheShop() throws Exception {
+  public void testCashierGoesToTheShop() {
     doTranslateTest 'Кассирша идет в магазин',
                     'The cashier goes to the store'
   }
-  public void _testCashierFromBasseinayaGoesToTheShop() throws Exception {
+  public void _testCashierFromBasseinayaGoesToTheShop() {
     doTranslateTest 'Кассирша с Бассейной идет в магазин',
                     'The cashier from Basseinaya street goes to the store'
   }
-  public void _testCashierFromBasseinayaStreetGoesToTheShop() throws Exception {
+  public void _testCashierFromBasseinayaStreetGoesToTheShop() {
     doTranslateTest 'Кассирша с Бассейной улицы идет в магазин',
                     'The cashier from Basseinaya street goes to the store'
   }
-  public void _testCashierFromStreetBasseinayaGoesToTheShop() throws Exception {
+  public void _testCashierFromStreetBasseinayaGoesToTheShop() {
     doTranslateTest 'Кассирша с улицы Бассейной идет в магазин',
                     'The cashier from the street Basseinaya goes to the store'
   }
-  public void _testCashierGoesFromStreetBasseinayaToTheShop() throws Exception {
+  public void _testCashierGoesFromStreetBasseinayaToTheShop() {
     doTranslateTest 'Кассирша идет с улицы Бассейной в магазин',
                     'The cashier goes from the street Basseinaya to the store'
   }
-  public void _testFemaleCashierGoesToTheShopMaleToGarden() throws Exception {
+  public void _testFemaleCashierGoesToTheShopMaleToGarden() {
     doTranslateTest 'Кассирша идет в магазин, а кассир - в сад',
                     'The female cashier goes to the store, and the male cashier - to the garden'
   }
-  public void testAfterWorkCashierGoesToTheGarden() throws Exception {
+  public void testAfterWorkCashierGoesToTheGarden() {
     doTranslateTest 'После работы кассирша идет в сад',
                     'After the work, the cashier goes to the garden'
   }
-  public void testCashierGoesToTheGardenAfterWork() throws Exception {
+  public void testCashierGoesToTheGardenAfterWork() {
     doTranslateTest 'Кассир идет в сад после работы',
                     'The cashier goes to the garden after the work'
   }
-  public void testAfterVasyaGoesCashier() throws Exception {
+  public void testAfterVasyaGoesCashier() {
     doTranslateTest 'После Васи идет кассир',
                     'After Vasya, the cashier goes'
   }
-  public void testCashierGoesAfterVasya() throws Exception {
+  public void testCashierGoesAfterVasya() {
     doTranslateTest 'Кассир идет после Васи',
                     'The cashier goes after Vasya'
   }
-  public void test12_7Before8() throws Exception {
+  public void test12_7Before8() {
     doTranslateTest '7 идет раньше 8',
                     'A 7 comes before an 8'
   }
-  public void test12_InOpinionCoordination() throws Exception {
+  public void test12_InOpinionCoordination() {
     doTranslateTest 'По мнению кассирши и по мнению других, семь идет раньше восьми',
                     'In the opinion of the cashier and in opinion of others, a seven comes before an eight'
   }
-  public void test12_InOpinionCoordinationNumbers() throws Exception {
+  public void test12_InOpinionCoordinationNumbers() {
     doTranslateTest 'По мнению кассирши и по мнению других, 7 идет раньше 8',
                     'In the opinion of the cashier and in opinion of others, a 7 comes before an 8'
   }
-  public void test12_OpinionCoordination() throws Exception {
+  public void test12_OpinionCoordination() {
     doTranslateTest 'По мнению кассирши и мнению других, семь идет раньше восьми',
                     'In the opinion of the cashier and opinion of others, a seven comes before an eight'
   }
-  public void test12_OpinionCoordinationNumbers() throws Exception {
+  public void test12_OpinionCoordinationNumbers() {
     doTranslateTest 'По мнению кассирши и мнению других, 7 идет раньше 8',
                     'In the opinion of the cashier and opinion of others, a 7 comes before an 8'
   }
-  public void test12_OpinionantCoordination() throws Exception {
+  public void test12_OpinionantCoordination() {
     doTranslateTest 'По мнению кассирши и других, 7 идет раньше 8',
                     'In the opinion of the cashier and others, a 7 comes before an 8'
   }
-  public void test12_StoreCashier() throws Exception {
+  public void test12_StoreCashier() {
     doTranslateTest 'По мнению кассирши магазина, семь идет раньше восьми',
                     'In the opinion of the store cashier, a seven comes before an eight'
   }
-  public void test12_StoreCashierAndOthers() throws Exception {
+  public void test12_StoreCashierAndOthers() {
     doTranslateTest 'По мнению кассирши магазина и других, 7 идет раньше 8',
                     'In the opinion of the store cashier and others, a 7 comes before an 8'
   }
-  public void test12_OpinionCoordinationWithWords_SamePerson() throws Exception {
+  public void test12_OpinionCoordinationWithWords_SamePerson() {
     doTranslateTest 'По словам и мнению кассирши, семь идет раньше восьми',
                     'According to and in the opinion of the cashier, a seven comes before an eight'
   }
-  public void test12_OpinionCoordinationWithWords_SamePersonNumbers() throws Exception {
+  public void test12_OpinionCoordinationWithWords_SamePersonNumbers() {
     doTranslateTest 'По словам и мнению кассирши, 7 идет раньше 8',
                     'According to and in the opinion of the cashier, a 7 comes before an 8'
   }
-  public void test12_OpinionCoordinationWithWords() throws Exception {
+  public void test12_OpinionCoordinationWithWords() {
     doTranslateTest 'По словам кассирши и по мнению других, 7 идет раньше 8',
                     'According to the cashier and in opinion of others, a 7 comes before an 8'
   }
-  public void test12_OpinionCoordinationWithWords_SamePerson_RepeatedPreposition() throws Exception {
+  public void test12_OpinionCoordinationWithWords_SamePerson_RepeatedPreposition() {
     doTranslateTest 'По словам и по мнению кассирши, 7 идет раньше 8',
                     'According to and in the opinion of the cashier, a 7 comes before an 8'
   }
 
-  public void test13_LuckMissingNoCommas() throws Exception {
+  public void test13_LuckMissingNoCommas() {
     doTranslateTest 'Мы спорили бы очень долго, но по счастию тут со скамейки свалился какой-то ребенок и сломал себе обе челюсти',
             'We were arguing for a long time, when by some sheer luck, a child fell off a bench and broke both of his jaws'
   }
-  public void test13_LuckMissingComma1() throws Exception {
+  public void test13_LuckMissingComma1() {
     doTranslateTest 'Мы спорили бы очень долго, но по счастию, тут со скамейки свалился какой-то ребенок и сломал себе обе челюсти',
             'We were arguing for a long time, when by some sheer luck, a child fell off a bench and broke both of his jaws'
   }
-  public void test13_InnerClause() throws Exception {
+  public void test13_InnerClause() {
     doTranslateTest 'По счастию, тут со скамейки свалился какой-то ребенок',
             'By some sheer luck, a child fell off a bench'
   }
-  public void test13_InnerClauseLuckMissingComma2() throws Exception {
+  public void test13_InnerClauseLuckMissingComma2() {
     doTranslateTest 'По счастию тут со скамейки свалился какой-то ребенок',
             'By some sheer luck, a child fell off a bench'
   }
-  public void _test13_LuckMissingComma2() throws Exception {
+  public void _test13_LuckMissingComma2() {
     doTranslateTest 'Мы спорили бы очень долго, но, по счастию тут со скамейки свалился какой-то ребенок',
             'We were arguing for a long time, when by some sheer luck, a child fell off a bench'
   }
 
-  public void test13_OneJaw() throws Exception {
+  public void test13_OneJaw() {
     doTranslateTest 'Ребенок свалился и сломал себе челюсть',
                     'The child fell and broke his jaw'
   }
-  public void test13_ManyJaws() throws Exception {
+  public void test13_ManyJaws() {
     doTranslateTest 'Ребенок свалился и сломал себе челюсти',
                     'The child fell and broke his jaws'
   }
-  public void test13_EightFingers() throws Exception {
+  public void test13_EightFingers() {
     doTranslateTest 'Ребенок сломал себе восемь пальцев',
                     'The child broke eight of his fingers'
   }
-  public void test13_8Fingers() throws Exception {
+  public void test13_8Fingers() {
     doTranslateTest 'Ребенок сломал себе 8 пальцев',
                     'The child broke 8 of his fingers'
   }
-  public void test13_BothJawsAndEightFingers() throws Exception {
+  public void test13_BothJawsAndEightFingers() {
     doTranslateTest 'Ребенок сломал себе обе челюсти и восемь пальцев',
                     'The child broke both of his jaws and eight fingers'
   }
-  public void test13_BothJawsAnd8Fingers() throws Exception {
+  public void test13_BothJawsAnd8Fingers() {
     doTranslateTest 'Ребенок сломал себе обе челюсти и 8 пальцев',
                     'The child broke both of his jaws and 8 fingers'
   }
-  public void test13_BothJawsAndTwoFingers() throws Exception {
+  public void test13_BothJawsAndTwoFingers() {
     doTranslateTest 'Ребенок сломал себе обе челюсти и два пальца',
                     'The child broke both of his jaws and two fingers'
   }
-  public void test13_ThreeJaws() throws Exception {
+  public void test13_ThreeJaws() {
     doTranslateTest 'Ребенок сломал себе 3 челюсти',
                     'The child broke 3 of his jaws'
   }
-  public void test13_2Fingers() throws Exception {
+  public void test13_2Fingers() {
     doTranslateTest 'Ребенок сломал себе 2 пальца',
                     'The child broke 2 of his fingers'
   }
-  public void test13_ThreeJawsAnd2Fingers() throws Exception {
+  public void test13_ThreeJawsAnd2Fingers() {
     doTranslateTest 'Ребенок сломал себе 3 челюсти и 2 пальца',
                     'The child broke 3 of his jaws and 2 fingers'
   }
-  public void test13_2FingersAndAJaw() throws Exception {
+  public void test13_2FingersAndAJaw() {
     doTranslateTest 'Ребенок сломал себе 2 пальца и челюсть',
                     'The child broke 2 of his fingers and a jaw'
   }
-  public void test13_BothJawsAndOneFinger() throws Exception {
+  public void test13_BothJawsAndOneFinger() {
     doTranslateTest 'Ребенок сломал себе обе челюсти и один палец',
                     'The child broke both of his jaws and one finger'
   }
-  public void test13_BothJawsAndFinger() throws Exception {
+  public void test13_BothJawsAndFinger() {
     doTranslateTest 'Ребенок сломал себе обе челюсти и палец',
                     'The child broke both of his jaws and a finger'
   }
-  public void test13_MeFingers() throws Exception {
+  public void test13_MeFingers() {
     doTranslateTest 'Ребенок сломал мне три пальца',
                     'The child broke three of my fingers'
   }
-  public void test13_FemaleCashierFingers() throws Exception {
+  public void test13_FemaleCashierFingers() {
     doTranslateTest 'Кассирша сломала себе 8 пальцев',
                     'The cashier broke 8 of her fingers'
   }
-  public void test13_MaleCashierFingers() throws Exception {
+  public void test13_MaleCashierFingers() {
     doTranslateTest 'Кассир сломал себе 2 пальца',
                     'The cashier broke 2 of his fingers'
   }
-  public void test14_Argument() throws Exception {
+  public void test14_Argument() {
     doTranslateTest 'Это отвлекло нас от спора',
             'That distracted us from the argument'
   }
-  public void test14_TheirArgument() throws Exception {
+  public void test14_TheirArgument() {
     doTranslateTest 'Это отвлекло их от их спора',
             'That distracted them from their argument'
   }
 
-  public void test15_They() throws Exception {
+  public void test15_They() {
     doTranslateTest 'А потом они разошлись по домам.',
             'And then they all went home.'
   }
 
-  public void test15_ThenThey() throws Exception {
+  public void test15_ThenThey() {
     doTranslateTest 'Потом они разошлись по домам.',
             'Then they all went home.'
   }
-  public void test15_AndThey() throws Exception {
+  public void test15_AndThey() {
     doTranslateTest 'А они разошлись по домам.',
             'And they all went home.'
   }
-  public void test15_Rooms() throws Exception {
+  public void test15_Rooms() {
     doTranslateTest 'А они разошлись по своим комнатам.',
             'And they all went to their rooms.'
   }
-  public void test15_RoomsApartments() throws Exception {
+  public void test15_RoomsApartments() {
     doTranslateTest 'А они разошлись по своим комнатам и квартирам',
             'And they all went to their rooms and apartments'
   }
-  public void test15_RoomsApartmentsOffices() throws Exception {
+  public void test15_RoomsApartmentsOffices() {
     doTranslateTest 'А они разошлись по своим комнатам, квартирам и офисам.',
             'And they all went to their rooms, apartments and offices.'
   }
-  public void test15_TheirOffices() throws Exception {
+  public void test15_TheirOffices() {
     doTranslateTest 'Мы разошлись по их офисам.',
             'We all went to their offices.'
   }

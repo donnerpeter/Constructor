@@ -11,17 +11,17 @@ class UtilTest extends TestCase {
     return Util.lcs(l1, l2) { a, b -> a == b}
   }
 
-  public void testLcsEmpty() throws Exception {
+  public void testLcsEmpty() {
     assert lcs([], []) == []
     assert lcs([1,2], []) == []
     assert lcs([], [3,4]) == []
   }
 
-  public void testLcsEquals() throws Exception {
+  public void testLcsEquals() {
     assert lcs([1,2], [1,2]) == [1,2]
   }
 
-  public void testLcsInteresting() throws Exception {
+  public void testLcsInteresting() {
     assert lcs([1,2], [2,3]) == [2]
     assert lcs([1,2], [2,1]) == [1]
     assert lcs([1,2], [2,3,9]) == [2]
@@ -30,7 +30,7 @@ class UtilTest extends TestCase {
     assert lcs([0,1,0,0,0,0,2], [-1,2,3,9]) == [2]
   }
 
-  public void testEagerLcs() throws Exception {
+  public void testEagerLcs() {
     def src = [[1], [2], [1]]
     def result = lcs(src, [[1]])
     assert result == [[1]]

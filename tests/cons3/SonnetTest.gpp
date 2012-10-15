@@ -76,6 +76,7 @@ E.type=ASK
 E.time=PAST
 E.arg2=F
 E.arg1=A
+E.topic=G
 F.type=THEY
 -- 2:
 E@1.question=A
@@ -253,11 +254,11 @@ B.type=ASK
 B.time=PAST
 B.arg2=C
 B.arg1=A@1
+B.topic=D
 C.type=CASHIER
-D.type=WE
-E.type=PREDICAMENT
-E.arg1=D
-B.topic=E
+E.type=WE
+D.type=PREDICAMENT
+D.arg1=E
 """
   }
 

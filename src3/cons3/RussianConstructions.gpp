@@ -1,11 +1,6 @@
 package cons3
 import static cons3.Construction.cxt
-import static cons3.Util.commaSurrounded
-import static cons3.Util.commonArg
-import static cons3.Util.commonCase
-import static cons3.Util.commonPrep
-import static cons3.Util.commonSimpleArg
-import static cons3.Util.emptyCxt
+import static cons3.Util.*
 /**
  * @author peter
  */
@@ -52,7 +47,7 @@ interface RussianConstructions {
     state.assign(args.content, 'topic', args.head)
   })
   Construction oPrep = commonPrep('o', prep)
-  Construction oPrepTopic = commonArg('oPrep', 'topic')
+  Construction oPrepTopic = commonSimpleArg('oPrep', 'topic')
   Construction kDat = commonPrep('k', dat)
   Construction kDatGoal = commonSimpleArg('kDat', 'goal')
   Construction uGen = cxt('uGen', ['head', 'noun']) { ParsingState state, Map args ->

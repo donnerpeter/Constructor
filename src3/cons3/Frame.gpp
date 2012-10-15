@@ -240,4 +240,17 @@ class Frame {
   boolean hasType() {
     return flatten()[0].type
   }
+
+  Frame resolve() {
+    if (!hasType()) {
+      def master = usages('arg1')[0]
+      if (master?.type == 'JAW') {
+        def verb = chart.frames.find { it.definedAttributeValue('arg1') }
+        if (verb) {
+          return (Frame) verb.definedAttributeValue('arg1')
+        }
+      }
+    }
+    return this
+  }
 }

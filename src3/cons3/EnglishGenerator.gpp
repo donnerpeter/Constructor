@@ -537,7 +537,7 @@ class StatefulGenerator {
     }
 
     def dobj = verb.f('arg2')
-    def nounDObj = dobj && dobj.flatten().every { !isVerb(it) && !(it.type in ['fact', 'question']) } && dobj.flatten()[0].type
+    def nounDObj = dobj && dobj.flatten().every { !isVerb(it) && !(it.type in ['fact', 'question']) } && dobj.hasType()
     if (nounDObj && dobj.type != 'wh') {
       np(dobj, false, !isNumber(dobj))
     }
@@ -879,7 +879,7 @@ class StatefulGenerator {
     if (criterion) {
       out noun(criterion)
     }
-    if (type == 'CASHIER' && n.f('arg1')?.flatten()?.getAt(0)?.type) {
+    if (type == 'CASHIER' && n.f('arg1')?.hasType()) {
       np(n.f('arg1'), false, false)
     }
 
@@ -909,7 +909,7 @@ class StatefulGenerator {
 
     if (n.type == 'CORNER') {
       def arg1 = n.f('arg1')
-      if (arg1?.flatten()[0]?.type) {
+      if (arg1?.hasType()) {
         out 'of'
         seq(arg1) { out it.s('name') == 'знаменская' ? 'Znamenskaya' : 'Basseinaya' }
         out 'streets'
@@ -970,13 +970,12 @@ class StatefulGenerator {
     }
 
     if (n.type in ['AMAZE', 'PREDICAMENT', 'NEIGHBOURS', 'MOUTH', 'NOSE', 'JAW', 'JAWS', 'FINGERS', 'ARGUE'] &&
-        n.f('arg1') &&
-        n.f('arg1').flatten()[0]?.type &&
+        n.f('arg1')?.resolve()?.hasType() &&
         !skipAlreadyMentionedArgument(n, 'arg1')) {
       if (hasQuantifier) {
         out 'of'
       }
-      possessive(n.f('arg1'), n)
+      possessive(n.f('arg1').resolve(), n)
       return
     }
     if (hasQuantifier) {

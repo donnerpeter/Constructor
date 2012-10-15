@@ -60,7 +60,7 @@ interface RussianConstructions {
     state
   }
   Construction dativePart = cxt('dativePart', ['head', 'dat', 'acc']) { state, args ->
-    ((Variable) args.dat).frame(state.chart).type ? state.assign(args.acc, 'arg1', args.dat) : state
+    state.assign(args.acc, 'arg1', args.dat)
   }.enrichingMites { mite, contribution, state ->
     if (!mite.contents.acc) {
       def realAcc = contribution.find { it.cxt == acc && !it.contents.head && it.contents.noun }

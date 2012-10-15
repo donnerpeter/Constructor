@@ -125,9 +125,10 @@ B.arg1=C
 D.type=RECALL
 B.theme=D
 D.arg2=E
+D.arg1=F
 E.type=ORDER
-E.criterion=F
-F.type=COUNTING
+E.criterion=G
+G.type=COUNTING
 A.type=fact
 A.content=B
 B.dot=true
@@ -136,7 +137,8 @@ B.dot=true
 
   public void testParse3_4() {
     doParseTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета. " +
-                "1, 2, 3, 4, 5 и 6 помнят, а дальше забыли.", """A.type=wh
+                "1, 2, 3, 4, 5 и 6 помнят, а дальше забыли.", """
+A.type=wh
 B.type=degree
 B.arg1=C
 B.arg2=A
@@ -165,9 +167,10 @@ B.arg1=C
 D.type=RECALL
 B.theme=D
 D.arg2=E
+D.arg1=F
 E.type=ORDER
-E.criterion=F
-F.type=COUNTING
+E.criterion=G
+G.type=COUNTING
 A.type=fact
 A.content=B
 B.dot=true
@@ -543,6 +546,7 @@ E.arg1=A
 F.type=COUNT
 E.theme=F
 F.arg2=G
+F.arg1=H
 G.type=TREES
 '''
   }
@@ -574,6 +578,7 @@ C.time=PAST
 C.arg1=A
 D.type=ARGUE
 C.theme=D
+D.arg1=E
 -- 3:
 A.type=OPINION
 A.arg1=B

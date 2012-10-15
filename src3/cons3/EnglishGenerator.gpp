@@ -372,7 +372,7 @@ class StatefulGenerator {
 
   private String aux(Frame verb, Frame subj, boolean imperative) {
     def sitPast = past
-    if (imperative && subj) {
+    if (imperative && subj.hasType()) {
       if (subj.type == 'WE') {
         return sitPast ? 'were': 'are'
       }
@@ -408,7 +408,7 @@ class StatefulGenerator {
     def imperative = verb.type == 'modality'
     if (imperative) {
       verb = verb.f('arg1')
-      shouldHaveSubject = verb.f('arg1') != null
+      shouldHaveSubject = verb.f('arg1')?.hasType()
     }
 
     def subj = verb.f('arg1')
@@ -454,7 +454,7 @@ class StatefulGenerator {
       }
     }
 
-    def aux = subj ? aux(verb, subj, imperative) : null
+    def aux = subj?.hasType() ? aux(verb, subj, imperative) : null
     if (topLevel && aux) {
       out aux
     }
@@ -522,7 +522,7 @@ class StatefulGenerator {
     }
     else {
       if (imperative) {
-        if (subj) {
+        if (subj?.hasType()) {
           out 'supposed'
         }
         out 'to'

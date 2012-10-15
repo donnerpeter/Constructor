@@ -236,4 +236,8 @@ class Frame {
   boolean isHumanAction() {
     type in ['GO', 'BREAK', 'CAN', 'REMEMBER', 'FORGET']
   }
+
+  boolean hasType() {
+    return flatten()[0].type
+  }
 }

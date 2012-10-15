@@ -11,11 +11,11 @@ class SonnetTest extends TestCase {
     doParseTest("Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8", """
 A.property=AMAZING
 A.type=THING
+B.experiencer=C
 B.arg1=A
 B.type=HAPPEN
 B.time=PAST
 C.type=ME
-B.experiencer=C
 -- 2:
 A.type=ME
 B.manner=SUDDENLY
@@ -67,8 +67,8 @@ A.type=ME
 B.type=GO_OFF
 B.time=PAST
 B.arg1=A
-C.type=NEIGHBOURS
 B.goal=C
+C.type=NEIGHBOURS
 D.member=B
 D.conj=and
 D.member=E
@@ -223,9 +223,9 @@ A.quantifier=ALL
 B.type=GO
 B.time=PAST
 B.arg1=A
+B.goal=C
 C.kind=COMMERCIAL
 C.type=SHOP
-B.goal=C
 C.name=гастроном
 -- 2:
 C@1.relative=A
@@ -271,21 +271,21 @@ A.type=TAKE_OUT
 A.time=PAST
 A.arg1=A@1
 A.arg2=B
-C.member=B@1
-C.member=A
-D.type=MOUTH
-A.source=D
+A.source=C
+D.member=B@1
+D.member=A
+C.type=MOUTH
 B.size=LITTLE
 B.type=HAMMER
 -- 3:
 A.manner=SLIGHTLY
 A.type=MOVE
-B.type=NOSE
 A.arg2=B
+B.type=NOSE
 C.perfectBackground=A
 -- 4:
-C@2.conj=and
-C@2.member=C@3
+D@2.conj=and
+D@2.member=C@3
 C@3.type=SAY
 C@3.time=PAST
 C@3.arg1=A@1
@@ -309,9 +309,9 @@ B.type=8
 C@1.type=COME_SCALARLY
 C@1.order=AFTER
 C@1.anchor=B
+C@1.condition=C
 C.determiner=THAT
 C.type=CASE
-C@1.condition=C
 -- 3:
 C@2.whenCondition=A
 B.type=8
@@ -339,21 +339,21 @@ A.type=TAKE_OUT
 A.time=PAST
 A.arg1=A@1
 A.arg2=B
-C.member=B@1
-C.member=A
-D.type=MOUTH
-A.source=D
+A.source=C
+D.member=B@1
+D.member=A
+C.type=MOUTH
 B.size=LITTLE
 B.type=HAMMER
 -- 3:
 A.manner=SLIGHTLY
 A.type=MOVE
-B.type=NOSE
 A.arg2=B
+B.type=NOSE
 C.perfectBackground=A
 -- 4:
-C@2.conj=and
-C@2.member=C@3
+D@2.conj=and
+D@2.member=C@3
 C@3.type=SAY
 C@3.time=PAST
 C@3.arg1=A@1
@@ -373,9 +373,9 @@ B.type=8
 A@6.type=COME_SCALARLY
 A@6.order=AFTER
 A@6.anchor=B
+A@6.condition=C
 C.determiner=THAT
 C.type=CASE
-A@6.condition=C
 -- 8:
 C@7.whenCondition=A
 B.type=8
@@ -403,10 +403,10 @@ E.conj=and
 E.member=F
 F.type=RUN_OUT
 F.time=PAST
+F.source=G
 F.arg1=A
 F.mood=D
 G.type=SHOP
-F.source=G
 """
   }
 
@@ -471,9 +471,9 @@ A.butEmphasis=true
 A.emphasis=true
 -- 2:
 A.type=THINK
+A.theme=B
 B.type=WORDS
 B.author=C
-A.theme=B
 C.type=CASHIER
 A@1.perfectBackground=A
 -- 3:
@@ -531,9 +531,9 @@ A.type=WE
 B.type=GO
 B.time=PAST
 B.arg1=A
+B.goal=C
 C.name=Летний сад
 C.type=GARDEN
-B.goal=C
 D.member=B
 D.conj=and
 D.member=E
@@ -556,10 +556,10 @@ G.type=TREES
     doParseTest 'Но дойдя в счете до 6-ти, мы остановились и начали спорить: по мнению одних дальше следовало 7, по мнению других - 8', '''
 A.butEmphasis=true
 B.type=COME_TO
-C.type=COUNTING
 B.domain=C
-D.type=6
 B.goal=D
+C.type=COUNTING
+D.type=6
 A.perfectBackground=B
 -- 2:
 A.type=WE
@@ -662,13 +662,13 @@ E.type=JAWS
 A.type=THAT
 B.type=DISTRACT
 B.time=PAST
+B.theme=C
 B.arg1=A
-B.arg2=C
-C.type=WE
+B.arg2=D
 D.type=WE
-E.type=ARGUE
-E.arg1=D
-B.theme=E
+E.type=WE
+C.type=ARGUE
+C.arg1=E
 '''
   }
 
@@ -685,9 +685,9 @@ A.relTime=AFTER
 A.type=DISPERSE
 A.time=PAST
 A.arg1=B
+A.goal=C
 C.type=HOMES
 C.owner=D
-A.goal=C
 '''
   }
 

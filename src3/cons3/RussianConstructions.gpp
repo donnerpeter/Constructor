@@ -37,24 +37,24 @@ interface RussianConstructions {
   Construction genArg2 = commonSimpleArg('gen', 'arg2')
   Construction genCriterion = commonSimpleArg('gen', 'criterion')
   Construction genAuthor = commonSimpleArg('gen', 'author')
-  Construction instrArg2 = commonArg('instr', 'arg2')
+  Construction instrArg2 = commonSimpleArg('instr', 'arg2')
   Construction datArg1 = commonArg('dat', 'arg1')
   Construction datAddressee = commonArg('dat', 'addressee')
   Construction sInstr = commonPrep('s', instr)
-  Construction sInstrExperiencer = commonArg('sInstr', 'experiencer')
-  Construction sInstrMood = commonArg('sInstr', 'mood')
+  Construction sInstrExperiencer = commonSimpleArg('sInstr', 'experiencer')
+  Construction sInstrMood = commonSimpleArg('sInstr', 'mood')
   Construction sGen = commonPrep('s', gen)
   Construction sGenSource = commonArg('sGen', 'source')
   Construction poDat = commonPrep('po', dat)
   Construction poDatTopic = commonArg('poDat', 'topic')
-  Construction poDatGoal = commonArg('poDat', 'goal')
+  Construction poDatGoal = commonSimpleArg('poDat', 'goal')
   Construction poDatLuck = commaSurrounded(cxt("poDatLuck", ['content', 'head']) { ParsingState state, Map args ->
     state.assign(args.content, 'topic', args.head)
   })
   Construction oPrep = commonPrep('o', prep)
   Construction oPrepTopic = commonArg('oPrep', 'topic')
   Construction kDat = commonPrep('k', dat)
-  Construction kDatGoal = commonArg('kDat', 'goal')
+  Construction kDatGoal = commonSimpleArg('kDat', 'goal')
   Construction uGen = cxt('uGen', ['head', 'noun']) { ParsingState state, Map args ->
     if (args.copula) {
       def location = args.copula
@@ -213,10 +213,10 @@ interface RussianConstructions {
     state.assign(args.head, 'also', 'true')
   }
   Construction vAcc = commonPrep('v', acc)
-  Construction vAccGoal = commonArg('vAcc', 'goal')
-  Construction vAccTheme = commonArg('vAcc', 'theme')
-  Construction vPrepDomain = commonArg('vPrep', 'domain')
-  Construction vPrepCondition = commonArg('vPrep', 'condition')
+  Construction vAccGoal = commonSimpleArg('vAcc', 'goal')
+  Construction vAccTheme = commonSimpleArg('vAcc', 'theme')
+  Construction vPrepDomain = commonSimpleArg('vPrep', 'domain')
+  Construction vPrepCondition = commonSimpleArg('vPrep', 'condition')
   Construction vPrep = commonPrep('v', prep)
   Construction posleGen = commonSimpleArg('posleGen', 'anchor').satisfiedWhen { it.contents.noun && it.contents.head }
   Construction ransheGen = commonSimpleArg('ransheGen', 'anchor').satisfiedWhen { it.contents.noun && it.contents.head }
@@ -230,11 +230,11 @@ interface RussianConstructions {
     return state
   }
   Construction izGen = commonPrep('iz', gen)
-  Construction izGenSource = commonArg('izGen', 'source')
+  Construction izGenSource = commonSimpleArg('izGen', 'source')
   Construction doGen = commonPrep('do', gen)
-  Construction doGenGoal = commonArg('doGen', 'goal')
+  Construction doGenGoal = commonSimpleArg('doGen', 'goal')
   Construction otGen = commonPrep('ot', gen)
-  Construction otGenTheme = commonArg('otGen', 'theme')
+  Construction otGenTheme = commonSimpleArg('otGen', 'theme')
   Construction participleArg = cxt('participleArg', ['participle', 'head']) { ParsingState state, Map args ->
     args.head && args.participle ? state.assign(args.head, 'theme', args.participle) : state
   }

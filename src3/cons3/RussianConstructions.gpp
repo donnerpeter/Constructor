@@ -229,7 +229,7 @@ interface RussianConstructions {
   Construction vPrepCondition = commonArg('vPrep', 'condition')
   Construction vPrep = commonPrep('v', prep)
   Construction posleGen = cxt('posleGen', ['+noun', '*head']) { ParsingState state, Map args ->
-    ((Variable) args.noun).frame(state.chart)?.type ? state.assign(args.head, 'anchor', args.noun) : state
+    state.assign(args.head, 'anchor', args.noun)
   }
   Construction ransheGen = cxt('ransheGen', ['+noun', '*head']) { ParsingState state, Map args ->
     state.assign(args.head, 'anchor', args.noun)

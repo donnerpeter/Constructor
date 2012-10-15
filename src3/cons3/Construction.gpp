@@ -7,28 +7,16 @@ class Construction {
   private Function2<ParsingState, Map, ParsingState> action = { state, args -> state }
   final String name
   private final List<String> requiredAttrs
-  private String beingMissedAttr
   private Function4<Mite, ParsingState, Mite, Boolean, List<ParsingState>> showPrev = { mite, state, via, up -> null }
   private Function2<Mite, ParsingState, Boolean> wrongRoute = { mite, update -> false }
   private Function3<Mite, List<Mite>, ParsingState, Collection<Mite>> enrichAction = { mite, contribution, state ->
     return mite.unifyWherePossible(contribution)
   }
-  private Predicate1<Mite> isSatisfied = { mite ->
-    def cxt = mite.cxt
-    return !(cxt.beingMissedAttr && !mite.contents[cxt.beingMissedAttr])
-  }
+  private Predicate1<Mite> isSatisfied = { mite -> true }
 
   protected Construction(String name, List<String> requiredAttrs = []) {
-    this.action = action
     this.name = name
-    this.requiredAttrs = []
-    for (attr in requiredAttrs) {
-      if (attr.startsWith('*')) {
-        attr = attr.substring(1)
-        beingMissedAttr = attr
-      }
-      this.requiredAttrs << attr
-    }
+    this.requiredAttrs = requiredAttrs
   }
 
   ParsingState applySemantics(Mite mite, ParsingState state) { action(state, mite.contents) }

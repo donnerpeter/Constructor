@@ -48,7 +48,7 @@ interface RussianConstructions {
   Construction poDat = commonPrep('po', dat)
   Construction poDatTopic = commonArg('poDat', 'topic')
   Construction poDatGoal = commonArg('poDat', 'goal')
-  Construction poDatLuck = commaSurrounded(cxt("poDatLuck", ['content', '*head']) { ParsingState state, Map args ->
+  Construction poDatLuck = commaSurrounded(cxt("poDatLuck", ['content', 'head']) { ParsingState state, Map args ->
     state.assign(args.content, 'topic', args.head)
   })
   Construction oPrep = commonPrep('o', prep)
@@ -254,9 +254,9 @@ interface RussianConstructions {
   Construction verbEmphasis = cxt('verbEmphasis', ['verb', 'emphasis']) { ParsingState state, Map args ->
     state.assign(args.verb, (String)args.emphasis, 'true')
   }
-  Construction relTime = cxt('relTime', ['relTime', '*head']) { ParsingState state, Map args ->
+  Construction relTime = cxt('relTime', ['relTime', 'head']) { ParsingState state, Map args ->
     state.assign(args.head, 'relTime', args.relTime)
-  }
+  }.satisfiedWhen { it.contents.head }
   Construction absTime = cxt('absTime', ['rel', 'head', 'noun']) { ParsingState state, Map args ->
     state.assign(args.head, 'relTime_after', args.noun)
   }
@@ -292,7 +292,7 @@ interface RussianConstructions {
     state.findState(mite, 'frame')?.hierarchy } { mite, fresh ->
     fresh.cxt != verbHolder
   }.satisfiedWhen { mite -> mite.contents.content && mite.contents.frame }
-  Construction directSpeech = cxt('directSpeech', ['*head', 'message']) { ParsingState state, Map args ->
+  Construction directSpeech = cxt('directSpeech', ['head', 'message']) { ParsingState state, Map args ->
     state.assign(args.head, 'message', args.message).assign(args.message, 'directSpeech', 'true')
   }.structural { mite, state, via, up -> mite.contents.head ? [ParsingState.EMPTY] : null }.satisfiedWhen { mite ->
     mite.contents.head && mite.contents.message

@@ -335,14 +335,14 @@ class SeqInterceptor {
     return mPoint.mergedWith
   }
 
-  private Mite createMergedMite(Mite oldMite, String prop, Map newArgs, Map<Pair<Variable, Variable>, Variable> seqs, boolean joining) {
+  private static Mite createMergedMite(Mite oldMite, String prop, Map newArgs, Map<Pair<Variable, Variable>, Variable> seqs, boolean joining) {
     Variable first = (Variable) oldMite.contents[prop]
     Variable second = newArgs[prop]
     Variable multi = obtainMergedVariable(first, second, seqs, joining)
     return oldMite.cxt(newArgs + [(prop):multi, xor:Mite.mergeXor(oldMite.contents, newArgs)])
   }
 
-  private Variable obtainMergedVariable(Variable first, Variable second, Map<Pair<Variable, Variable>, Variable> seqs, boolean joining) {
+  private static Variable obtainMergedVariable(Variable first, Variable second, Map<Pair<Variable, Variable>, Variable> seqs, boolean joining) {
     def pair = new Pair(first, second)
     Variable multi = joining ? first : seqs[pair] ?: createMergedVar(first, second)
     seqs[pair] = multi

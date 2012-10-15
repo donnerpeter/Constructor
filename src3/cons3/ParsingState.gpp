@@ -219,7 +219,7 @@ class ParsingState {
     for (mite in ownMites) {
       if (!network.isChosen(mite)) continue
 
-      def history = mite.cxt.showPrev(mite, prevState, null, up)
+      def history = mite.cxt.showPreviousHierarchy(mite, prevState, up)
       if (!history) continue
 
       ParsingState somePrev = history[0]
@@ -251,7 +251,7 @@ class ParsingState {
     LinkedHashSet<Mite> fullUpdate = []
     for (state in hierarchy) {
       for (mite in state.findMitesAlongParsingRoute(original)) {
-        fullUpdate.addAll((mite.cxt.enrichAction(mite, update, original) as List<Mite>).reverse())
+        fullUpdate.addAll((mite.cxt.enrichUpdate(mite, update, original) as List<Mite>).reverse())
       }
     }
     fullUpdate
@@ -278,7 +278,7 @@ class ParsingState {
   }
 
   List<ParsingState> getPrevHierarchyFromLink(Mite link) {
-    return link?.cxt?.showPrev(link, prevState, null, true) ?: link?.cxt?.showPrev(link, prevState, null, false)
+    return link?.cxt?.showPreviousHierarchy(link, prevState, true) ?: link?.cxt?.showPreviousHierarchy(link, prevState, false)
   }
 
   private static ParsingState tryAlternative(ParsingState state, Mite preferred, Set<Set<Mite>> tried) {
@@ -324,7 +324,7 @@ class ParsingState {
     for (mite in toApply) {
       if (state.network.isChosen(mite) && mite.contents && mite.executable) {
         ParsingState next = state.clone(currentGeneration:state.miteGenerations[mite]?: state.currentGeneration, chart:chart.startMeta(mite))
-        next = mite.cxt.action.call(next, mite.contents)
+        next = mite.cxt.applySemantics(mite, next)
         chart = next.chart.finishMeta(mite)
       }
     }

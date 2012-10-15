@@ -150,31 +150,7 @@ interface RussianConstructions {
     return state
   }.structural { mite, state, via, up -> state.findState(mite, 'value')?.hierarchy }
   Construction parenthetical = emptyCxt('parenthetical')
-  Construction preposition = emptyCxt('preposition').structural { mite, state, via, up ->
-    if (via?.cxt in cases && via.contents.noun && via.contents.head && state.findState(mite) == state.findState(via.firstAtom)) {
-      return null
-    }
-
-    return [ParsingState.EMPTY]
-  }.enrichingMites { self, update, state ->
-    def result = []
-    for (newMite in update) {
-      if (newMite.cxt == boxedForPreposition && newMite.contents.prep == self.contents.prep) {
-        for (boxed in (List<Mite>) newMite.contents.boxed) {
-          result << new Mite(boxed.contents + [head:self.contents.head], boxed.cxt)
-        }
-      }
-    }
-    if (result) {
-      def prepState = state.findState(self)
-      result.addAll(prepState.prevState.enrichUpdate(result, state))
-    }
-    List<Mite> refl = update.findAll { it.cxt == reflexiveHolder }
-    if (refl) {
-      result.addAll(state.findState(self).prevState.enrichUpdate(refl, state))
-    }
-    result
-  }
+  Construction preposition = new Preposition()
   Construction boxedForPreposition = emptyCxt('boxedForPreposition')
   Construction possArg1 = cxt('possArg1', ['+head', 'possessor']) { ParsingState state, Map args ->
     state.assign(args.head, 'arg1', args.possessor)

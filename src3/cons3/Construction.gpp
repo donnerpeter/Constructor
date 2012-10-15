@@ -10,7 +10,7 @@ class Construction {
   private String headAttr
   private String beingMissedAttr
   private Function4<Mite, ParsingState, Mite, Boolean, List<ParsingState>> showPrev = { mite, state, via, up -> null }
-  Function2<Mite, ParsingState, Boolean> wrongRoute = { mite, update -> false }
+  private Function2<Mite, ParsingState, Boolean> wrongRoute = { mite, update -> false }
   private Function3<Mite, List<Mite>, ParsingState, Collection<Mite>> enrichAction = { mite, contribution, state ->
     return mite.unifyWherePossible(contribution)
   }
@@ -20,7 +20,7 @@ class Construction {
              cxt.headAttr && (!mite.contents[cxt.headAttr] || ((Variable) mite.contents[cxt.headAttr]).light))
   }
 
-  protected Construction(String name, List<String> requiredAttrs) {
+  protected Construction(String name, List<String> requiredAttrs = []) {
     this.action = action
     this.name = name
     this.requiredAttrs = []
@@ -42,6 +42,8 @@ class Construction {
   Collection<Mite> enrichUpdate(Mite self, List<Mite> update, ParsingState state) { enrichAction(self, update, state) }
 
   List<ParsingState> showPreviousHierarchy(Mite self, ParsingState state, boolean up) { showPrev(self, state, null, up) }
+
+  boolean isRouteWrong(Mite self, ParsingState state) { wrongRoute(self, state) }
 
   Construction withAction(Function2<ParsingState, Map, ParsingState> action) {
     this.action = action

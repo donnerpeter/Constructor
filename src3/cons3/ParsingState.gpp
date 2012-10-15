@@ -198,7 +198,7 @@ class ParsingState {
   }
 
   private Mite findTraitor() {
-    miteList.find { it.cxt.wrongRoute(it, this) }
+    miteList.find { it.cxt.isRouteWrong(it, this) }
   }
 
   ParsingState getPrevVisibleState() {

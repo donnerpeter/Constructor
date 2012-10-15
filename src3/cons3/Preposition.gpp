@@ -7,7 +7,7 @@ import static cons3.RussianConstructions.*
  */
 class Preposition extends Construction {
   def Preposition() {
-    super('preposition', [])
+    super('preposition')
   }
 
   @Override

@@ -7,6 +7,84 @@ import static cons3.RussianConstructions.*
 /**
  * @author peter
  */
+class SeqConstruction extends Construction {
+  SeqConstruction() {
+    super('seq')
+  }
+
+  @Override
+  ParsingState applySemantics(Mite mite, ParsingState state) {
+    def args = mite.contents
+    String conj = args.conj
+    if (args.second) {
+      if (args.first) {
+        state = state.assign(args.multi, 'member', args.first)
+      }
+      if (conj && conj != ',') {
+        state = state.assign(args.multi, 'conj', conj)
+      }
+      if (args.distinguish) {
+        state = state.assign(args.second, 'distinguished_in', args.multi)
+      }
+      state = state.assign(args.multi, 'member', args.second)
+    }
+    return state
+  }
+
+  @Override
+  Collection<Mite> enrichUpdate(Mite self, List<Mite> update, ParsingState state) {
+    new SeqInterceptor(self, update, state).enrichUpdate()
+  }
+
+  @Override
+  List<ParsingState> showPreviousHierarchy(Mite mite, ParsingState state, boolean up) {
+    if (mite.contents.mergedWith) {
+      def mergePointHierarchy = ((ParsingState) mite.contents.mergedWith).hierarchy
+      return mergePointHierarchy[1..<mergePointHierarchy.size()]
+    }
+    if (mite.contents.conj && !mite.contents.first && !mite.lastAtom.contents.questionLevel) {
+      return [ParsingState.EMPTY]
+    }
+    return null
+  }
+
+  @Override
+  boolean isRouteWrong(Mite mite, ParsingState state) {
+    if (mite.contents.mergedWith) {
+      if (state.ownMites.find { it.cxt == nomSubject && it.atom && it.contents.head }) {
+        def nomArg = state.miteList.find { it.cxt == nom && it.contents.noun == mite.contents.second }
+        if (nomArg && !state.network.isChosen(nomArg)) {
+          return true
+        }
+      }
+      return false
+    }
+    if (mite.contents.conj == ',') {
+      for (c in [adverbialPhrase, poDatLuck, accordingTo]) {
+        if (state.ownMites.find { it.cxt == c && it.atom && it.contents.content } &&
+            !state.miteList.find { it.cxt == c && it.contents.comma1 && it.contents.content }) {
+          return true
+        }
+      }
+      if (state.ownMites.find { it.cxt == nomSubject && it.atom && it.contents.head }) {
+        def advp = state.miteList.find { it.cxt == adverbialPhrase && it.contents.comma2 && it.contents.content }
+        if (advp && !state.network.isChosen(advp)) {
+          return true
+        }
+      }
+    } else {
+      if (state.ownMites.find { it.cxt == nomSubject && it.atom && it.contents.head }) {
+        ParsingState prev = state.findState(mite.firstAtom).prevState?.ownMites?.find { it.cxt == afterRelativeClause }?.contents?.beforeComma
+        if (prev && prev.visibleMites[nomSubject]?.find { it.atom && it.contents.head }) {
+          return true
+        }
+      }
+
+    }
+    return false
+  }
+}
+
 @TupleConstructor
 class SeqInterceptor {
   final ParsingState before

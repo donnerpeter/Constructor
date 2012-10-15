@@ -147,7 +147,7 @@ class SeqInterceptor {
             def newMulti = obtainMergedVariable(first, (Variable) mite.contents.head, seqs)
             if (prevSeq) {
               Variable veryFirst = prevSeq.contents.first
-              result << prevSeq.firstAtom.unify(seq(mergedWith:prevSeq.contents.mergedWith, multi:joinedVar([:], veryFirst, newMulti), second:newMulti, first:veryFirst, xor:prevSeq.contents.xor))
+              result << prevSeq.firstAtom.unify(seq(mergedWith:prevSeq.contents.mergedWith, multi:createMergedVar(veryFirst, newMulti), second:newMulti, first:veryFirst, xor:prevSeq.contents.xor))
             }
           } else {
             mergePoint = prevSeq.firstMemberState
@@ -342,15 +342,13 @@ class SeqInterceptor {
   private Variable obtainMergedVariable(Variable first, Variable second, Map<Pair<Variable, Variable>, Variable> seqs) {
     Variable multi = first.frame(state.chart).f('member') ? first : null
     if (multi) {
-      def oldConj = multi.frame(state.chart).s('conj')
-      if (!oldConj || oldConj == state[seq]?.conj) {
-        def pair = new Pair(multi, second)
-        if (!seqs[pair]) {
-          seqs[pair] = multi
-        }
+      def pair = new Pair(multi, second)
+      if (!seqs[pair]) {
+        seqs[pair] = multi
       }
     } else {
-      multi = joinedVar(seqs, first, second)
+      multi = seqs[new Pair(first, second)] ?: createMergedVar(first, second)
+      seqs[new Pair(first, second)] = multi
     }
     return multi
   }
@@ -360,13 +358,9 @@ class SeqInterceptor {
     return prevSeq.contents.mergedWith
   }
 
-  private static Variable joinedVar(Map<Pair<Variable, Variable>, Variable> seqs, Variable first, Variable second) {
-    Variable multi = seqs[new Pair(first, second)] ?: new Variable("$first&$second")
-    seqs[new Pair(first, second)] = multi
-    if (first.light && second.light) {
-      multi = multi.lightVar
-    }
-    return multi
+
+  private static Variable createMergedVar(Variable first, Variable second) {
+    return new Variable("$first&$second")
   }
 
   @Override

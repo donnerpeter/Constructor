@@ -7,7 +7,6 @@ class Construction {
   private Function2<ParsingState, Map, ParsingState> action = { state, args -> state }
   final String name
   private final List<String> requiredAttrs
-  private String headAttr
   private String beingMissedAttr
   private Function4<Mite, ParsingState, Mite, Boolean, List<ParsingState>> showPrev = { mite, state, via, up -> null }
   private Function2<Mite, ParsingState, Boolean> wrongRoute = { mite, update -> false }
@@ -16,8 +15,7 @@ class Construction {
   }
   private Predicate1<Mite> isSatisfied = { mite ->
     def cxt = mite.cxt
-    return !(cxt.beingMissedAttr && !mite.contents[cxt.beingMissedAttr] ||
-             cxt.headAttr && (!mite.contents[cxt.headAttr] || ((Variable) mite.contents[cxt.headAttr]).light))
+    return !(cxt.beingMissedAttr && !mite.contents[cxt.beingMissedAttr])
   }
 
   protected Construction(String name, List<String> requiredAttrs = []) {
@@ -25,10 +23,6 @@ class Construction {
     this.name = name
     this.requiredAttrs = []
     for (attr in requiredAttrs) {
-      if (attr.startsWith('+')) {
-        attr = attr.substring(1)
-        headAttr = attr
-      }
       if (attr.startsWith('*')) {
         attr = attr.substring(1)
         beingMissedAttr = attr

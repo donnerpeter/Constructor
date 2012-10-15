@@ -4,6 +4,7 @@ import static cons3.Util.commaSurrounded
 import static cons3.Util.commonArg
 import static cons3.Util.commonCase
 import static cons3.Util.commonPrep
+import static cons3.Util.commonSimpleArg
 import static cons3.Util.emptyCxt
 /**
  * @author peter
@@ -28,25 +29,14 @@ interface RussianConstructions {
   Construction gen = commonCase('gen')
 
   Construction adjective = cxt('adjective') { ParsingState state, Map args -> state.assign(args.nounFrame, (String)args.rel, args.val) }
-  Construction nomSubject = cxt('nomSubject', ['+head', 'noun']) { ParsingState state, Map args ->
+  Construction nomSubject = cxt('nomSubject', ['head', 'noun']) { ParsingState state, Map args ->
     state.assign(args.head, 'arg1', args.noun)
   }
-  Construction accArg2 = cxt('accArg2', ['+head', 'noun']) { ParsingState state, Map args ->
-    state.assign(args.head, 'arg2', args.noun)
-  }
-  Construction genArg1 = cxt('genArg1', ['+head', 'noun']) { ParsingState state, Map args ->
-    state.assign(args.head, 'arg1', args.noun)
-  }
-  Construction genArg2 = cxt('genArg2', ['+head', 'noun']) { ParsingState state, Map args ->
-    state.assign(args.head, 'arg2', args.noun)
-  }
-  Construction genCriterion = cxt('genCriterion', ['+head', 'noun']) { ParsingState state, Map args ->
-    state = state.assign(args.head, 'criterion', args.noun)
-    return state
-  }
-  Construction genAuthor = cxt('genAuthor', ['+head', 'noun']) { ParsingState state, Map args ->
-    state.assign(args.head, 'author', args.noun)
-  }
+  Construction accArg2 = commonSimpleArg('acc', 'arg2')
+  Construction genArg1 = commonSimpleArg('gen', 'arg1')
+  Construction genArg2 = commonSimpleArg('gen', 'arg2')
+  Construction genCriterion = commonSimpleArg('gen', 'criterion')
+  Construction genAuthor = commonSimpleArg('gen', 'author')
   Construction instrArg2 = commonArg('instr', 'arg2')
   Construction datArg1 = commonArg('dat', 'arg1')
   Construction datAddressee = commonArg('dat', 'addressee')
@@ -65,7 +55,7 @@ interface RussianConstructions {
   Construction oPrepTopic = commonArg('oPrep', 'topic')
   Construction kDat = commonPrep('k', dat)
   Construction kDatGoal = commonArg('kDat', 'goal')
-  Construction uGen = cxt('uGen', ['+head', 'noun']) { ParsingState state, Map args ->
+  Construction uGen = cxt('uGen', ['head', 'noun']) { ParsingState state, Map args ->
     if (args.copula) {
       def location = args.copula
       state = state.assign(location, 'type', 'location').assign(location, 'arg2', args.head).assign(location, 'arg1', args.noun)
@@ -170,7 +160,7 @@ interface RussianConstructions {
     }
     return mite.unifyWherePossible(contribution)
   }.satisfiedWhen { it.v('possessor')?.hard && it.contents.head }
-  Construction control = cxt('control', ['+head', 'slave']) { ParsingState state, Map args ->
+  Construction control = cxt('control', ['head', 'slave']) { ParsingState state, Map args ->
     return args.head && args.slave ? state.assign(args.head, 'theme', args.slave) : state
   }.structural { mite, state, via, up -> state.findState(mite, 'head')?.hierarchy } { mite, fresh -> fresh.cxt != verbHolder }
   Construction conditionComp = cxt('conditionComp', ['hasComma', 'head', 'wh']) { ParsingState state, Map args ->
@@ -201,7 +191,7 @@ interface RussianConstructions {
       return [ParsingState.EMPTY]
     }
   }
-  Construction numQuantifier = cxt('numQuantifier', ['+num', 'noun']) { ParsingState state, Map args ->
+  Construction numQuantifier = cxt('numQuantifier', ['num', 'noun']) { ParsingState state, Map args ->
     state.assign(args.noun, 'quantifier', args.num)
   }.enrichingMites { mite, contribution, state -> NumQuantifier.enrichUpdate(mite, contribution, state) }
   Construction negation = cxt('negation', ['negated']) { ParsingState state, Map args ->
@@ -228,13 +218,9 @@ interface RussianConstructions {
   Construction vPrepDomain = commonArg('vPrep', 'domain')
   Construction vPrepCondition = commonArg('vPrep', 'condition')
   Construction vPrep = commonPrep('v', prep)
-  Construction posleGen = cxt('posleGen', ['noun', 'head']) { ParsingState state, Map args ->
-    state.assign(args.head, 'anchor', args.noun)
-  }.satisfiedWhen { it.contents.noun && it.contents.head }
-  Construction ransheGen = cxt('ransheGen', ['noun', 'head']) { ParsingState state, Map args ->
-    state.assign(args.head, 'anchor', args.noun)
-  }.satisfiedWhen { it.contents.noun && it.contents.head }
-  Construction naPrep = cxt('naPrep', ['+noun', '*head']) { ParsingState state, Map args ->
+  Construction posleGen = commonSimpleArg('posleGen', 'anchor').satisfiedWhen { it.contents.noun && it.contents.head }
+  Construction ransheGen = commonSimpleArg('ransheGen', 'anchor').satisfiedWhen { it.contents.noun && it.contents.head }
+  Construction naPrep = cxt('naPrep', ['noun', 'head']) { ParsingState state, Map args ->
     if (args.copula) {
       def location = args.copula
       state = state.assign(location, 'type', 'location').assign(location, 'arg1', args.head).assign(location, 'arg2', args.noun)

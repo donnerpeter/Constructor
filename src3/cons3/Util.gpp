@@ -173,4 +173,9 @@ class Util {
       nf.type ? state.assign(args.head, rel, args.noun) : state
     }
   }
+  static Construction commonSimpleArg(String name, String rel) {
+    cxt(name + rel.capitalize(), ['noun', 'head']) { ParsingState state, Map args ->
+      state.assign(args.head, rel, args.noun)
+    }
+  }
 }

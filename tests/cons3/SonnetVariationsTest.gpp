@@ -605,6 +605,10 @@ B.number=true
     doTranslateTest 'Кассирша с улицы Бассейной идет в магазин',
                     'The cashier from the street Basseinaya goes to the store'
   }
+  public void _testCashierGoesFromStreetBasseinayaToTheShop() throws Exception {
+    doTranslateTest 'Кассирша идет с улицы Бассейной в магазин',
+                    'The cashier goes from the street Basseinaya to the store'
+  }
   public void _testFemaleCashierGoesToTheShopMaleToGarden() throws Exception {
     doTranslateTest 'Кассирша идет в магазин, а кассир - в сад',
                     'The female cashier goes to the store, and the male cashier - to the garden'

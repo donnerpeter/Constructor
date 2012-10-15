@@ -292,8 +292,9 @@ D@2.member=C@3
 C@3.type=SAY
 C@3.time=PAST
 C@3.arg1=A@1
-C@3.message=A
-A.directSpeech=true
+C@3.addressee=A
+C@3.message=B
+B.directSpeech=true
 """
   }
 
@@ -360,6 +361,7 @@ D@2.member=C@3
 C@3.type=SAY
 C@3.time=PAST
 C@3.arg1=A@1
+C@3.addressee=A
 -- 6:
 C@3.message=A
 A.directSpeech=true

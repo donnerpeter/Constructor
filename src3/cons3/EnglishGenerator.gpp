@@ -532,7 +532,7 @@ class StatefulGenerator {
     }
 
     Frame addressee = verb.f('addressee')
-    if (addressee) {
+    if (addressee?.hasType()) {
       np(addressee, false, true)
     }
 
@@ -766,7 +766,7 @@ class StatefulGenerator {
     def verbs = [HAPPEN: 'happened', FORGET: 'forgot', GO_OFF: 'went',
             ASK: (verb.f('topic')?.type == 'PREDICAMENT' ? 'consulted' : (past ? 'asked' : 'ask')),
             DISCOVER: 'discovered', CAN: "couldn't", RECALL: 'recall', TAKE_OUT: "took",
-            SAY:(verb.f('addressee') ? 'told' : 'said'),
+            SAY:(verb.f('addressee')?.hasType() ? 'told' : 'said'),
             REMEMBER: (past ? 'remembered' : verb.f('arg1')?.typeInferred in ['HE', 'SHE'] ? 'remembers' : 'remember'), GO: (past ? 'went' : 'goes'),
             RUN_OUT: 'ran', THANK: 'thanked',
             GET_SAD: 'got sad', DO:(past && !infinitive ? 'did' : 'do'), NEED:'need',

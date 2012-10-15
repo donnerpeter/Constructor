@@ -39,7 +39,7 @@ interface RussianConstructions {
   Construction genAuthor = commonSimpleArg('gen', 'author')
   Construction instrArg2 = commonSimpleArg('instr', 'arg2')
   Construction datArg1 = commonSimpleArg('dat', 'arg1')
-  Construction datAddressee = commonArg('dat', 'addressee')
+  Construction datAddressee = commonSimpleArg('dat', 'addressee')
   Construction sInstr = commonPrep('s', instr)
   Construction sInstrExperiencer = commonSimpleArg('sInstr', 'experiencer')
   Construction sInstrMood = commonSimpleArg('sInstr', 'mood')

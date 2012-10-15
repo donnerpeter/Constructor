@@ -144,7 +144,7 @@ class Mite {
   }
 
   boolean isSatisfied() {
-    return cxt.isSatisfied(this)
+    return cxt.isMiteSatisfied(this)
   }
 
   Mite getLastAtom() {

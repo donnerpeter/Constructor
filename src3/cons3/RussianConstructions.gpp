@@ -27,8 +27,6 @@ interface RussianConstructions {
   Construction instr = commonCase('instr')
   Construction gen = commonCase('gen')
 
-  Set<Construction> cases = [nom, gen, dat, acc, instr, prep] as Set
-
   Construction adjective = cxt('adjective') { ParsingState state, Map args -> state.assign(args.nounFrame, (String)args.rel, args.val) }
   Construction nomSubject = cxt('nomSubject', ['+head', 'noun']) { ParsingState state, Map args ->
     state.assign(args.head, 'arg1', args.noun)
@@ -292,11 +290,7 @@ interface RussianConstructions {
     }
     return []
   }
-  Construction relativeClause = cxt('relativeClause', ['noun', 'relative', 'wh']) { ParsingState state, Map args ->
-    state.assign(args.noun, 'relative', args.relative).assign(args.wh, 'relativized', 'true')
-  }.enrichingMites { mite, contribution, state ->
-    RelativeClause.enrichUpdate(mite, contribution, state)
-  }.satisfiedWhen { mite -> mite.contents.noun }
+  Construction relativeClause = new RelativeClause()
   Construction afterRelativeClause = cxt('afterRelativeClause', ['beforeComma', 'noun']) { ParsingState state, Map args ->
     state
   }.structural { mite, state, via, up -> ((ParsingState) mite.contents.beforeComma).hierarchy }

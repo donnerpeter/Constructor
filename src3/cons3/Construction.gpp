@@ -14,7 +14,7 @@ class Construction {
   private Function3<Mite, List<Mite>, ParsingState, Collection<Mite>> enrichAction = { mite, contribution, state ->
     return mite.unifyWherePossible(contribution)
   }
-  Predicate1<Mite> isSatisfied = { mite ->
+  private Predicate1<Mite> isSatisfied = { mite ->
     def cxt = mite.cxt
     return !(cxt.beingMissedAttr && !mite.contents[cxt.beingMissedAttr] ||
              cxt.headAttr && (!mite.contents[cxt.headAttr] || ((Variable) mite.contents[cxt.headAttr]).light))
@@ -44,6 +44,8 @@ class Construction {
   List<ParsingState> showPreviousHierarchy(Mite self, ParsingState state, boolean up) { showPrev(self, state, null, up) }
 
   boolean isRouteWrong(Mite self, ParsingState state) { wrongRoute(self, state) }
+
+  boolean isMiteSatisfied(Mite self) { this.isSatisfied(self) }
 
   Construction withAction(Function2<ParsingState, Map, ParsingState> action) {
     this.action = action

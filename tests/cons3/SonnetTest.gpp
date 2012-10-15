@@ -86,11 +86,11 @@ A.type=question
 A.questioned=B
 D.type=THINK
 D.time=PRESENT
+D.topic=E
 D.arg1=C
 D.arg2=B
 E.determiner=THIS
 E.type=MATTER
-D.topic=E
 """
   }
 

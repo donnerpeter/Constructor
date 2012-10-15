@@ -46,7 +46,7 @@ interface RussianConstructions {
   Construction sGen = commonPrep('s', gen)
   Construction sGenSource = commonSimpleArg('sGen', 'source')
   Construction poDat = commonPrep('po', dat)
-  Construction poDatTopic = commonArg('poDat', 'topic')
+  Construction poDatTopic = commonSimpleArg('poDat', 'topic')
   Construction poDatGoal = commonSimpleArg('poDat', 'goal')
   Construction poDatLuck = commaSurrounded(cxt("poDatLuck", ['content', 'head']) { ParsingState state, Map args ->
     state.assign(args.content, 'topic', args.head)

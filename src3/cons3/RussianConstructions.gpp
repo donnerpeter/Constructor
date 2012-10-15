@@ -150,26 +150,26 @@ interface RussianConstructions {
   Construction parenthetical = emptyCxt('parenthetical')
   Construction preposition = new Preposition()
   Construction boxedForPreposition = emptyCxt('boxedForPreposition')
-  Construction possArg1 = cxt('possArg1', ['+head', 'possessor']) { ParsingState state, Map args ->
+  Construction possArg1 = cxt('possArg1', ['head', 'possessor']) { ParsingState state, Map args ->
     state.assign(args.head, 'arg1', args.possessor)
   }
-  Construction possOwner = cxt('possOwner', ['+head', 'possessor']) { ParsingState state, Map args ->
+  Construction possOwner = cxt('possOwner', ['head', 'possessor']) { ParsingState state, Map args ->
     state.assign(args.head, 'owner', args.possessor)
   }
-  Construction possAuthor = cxt('possAuthor', ['+head', 'possessor']) { ParsingState state, Map args ->
+  Construction possAuthor = cxt('possAuthor', ['head', 'possessor']) { ParsingState state, Map args ->
     state.assign(args.head, 'author', args.possessor)
   }
-  Construction possessive = cxt('possessive', ['+possessor', '*head']) { ParsingState state, Map args ->
+  Construction possessive = cxt('possessive', ['possessor', 'head']) { ParsingState state, Map args ->
     state
   }.enrichingMites { mite, contribution, state ->
-    if (!((Variable) mite.contents.head)?.hard && !contribution.find { it.cxt == possessive }) {
+    if (!mite.v('head')?.hard && !contribution.find { it.cxt == possessive }) {
       def nounFrame = contribution.find { it.cxt == adjective }?.contents?.nounFrame
       if (nounFrame) {
         return [mite.unify(new Mite(possessive, head:nounFrame))]
       }
     }
     return mite.unifyWherePossible(contribution)
-  }
+  }.satisfiedWhen { it.v('possessor')?.hard && it.contents.head }
   Construction control = cxt('control', ['+head', 'slave']) { ParsingState state, Map args ->
     return args.head && args.slave ? state.assign(args.head, 'theme', args.slave) : state
   }.structural { mite, state, via, up -> state.findState(mite, 'head')?.hierarchy } { mite, fresh -> fresh.cxt != verbHolder }

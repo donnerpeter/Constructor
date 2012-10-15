@@ -130,7 +130,7 @@ class Util {
   }
 
   static Construction commonCase(String name) {
-    cxt(name, ['+noun', '*head']) { ParsingState state, Map args ->
+    cxt(name, ['noun', 'head']) { ParsingState state, Map args ->
       state
     }.structural { mite, state, via, up ->
       if (up) {
@@ -152,19 +152,19 @@ class Util {
         return []
       }
       mite.unifyWherePossible(contribution)
-    }
+    }.satisfiedWhen { it.v('noun')?.hard && it.contents.head }
   }
 
   static Construction emptyCxt(String name) {
     cxt(name, ['X']) { state, args -> state }
   }
   static Construction commonPrep(String prep, Construction caze) {
-    cxt(prep + caze.name.capitalize(), ['+noun', '*head']) { ParsingState state, Map args ->
+    cxt(prep + caze.name.capitalize(), ['noun', 'head']) { ParsingState state, Map args ->
       state
     }.structural { mite, state, via, up ->
       def parentState = state.findState(mite, 'head')
       return up ? parentState?.hierarchy : state.findState(mite.firstAtom)?.prevState?.hierarchy
-    }
+    }.satisfiedWhen { it.v('noun')?.hard && it.contents.head }
   }
 
   static Construction commonArg(String name, String rel) {

@@ -6,7 +6,6 @@ package cons3
 class ParsingState {
   static final ParsingState EMPTY = new ParsingState()
   final Chart chart
-  private final FLinkedMap<Mite, Integer> miteGenerations
   final List<Mite> contribution
   final List<Mite> currentContribution
   final Network network
@@ -24,7 +23,6 @@ class ParsingState {
     chart = map.chart ?: base.chart
     currentGeneration = map.currentGeneration ?: base?.currentGeneration ?: 0
     network = map.network ?: base.network
-    miteGenerations = map.miteGenerations ?: base?.miteGenerations ?: FLinkedMap.emptyMap
     contribution = map.contribution ?: base?.contribution ?: []
     currentContribution = map.currentContribution ?: []
     ownMites = map.ownMites ?: base?.ownMites ?: []
@@ -124,9 +122,8 @@ class ParsingState {
     fullUpdate.addAll(state.enrichUpdate(update, state.clone(currentContribution:update)))
     assert fullUpdate
 
-    def newMiteGenerations = registerGeneration(fullUpdate, state.miteGenerations, state.currentGeneration)
     state = state.clone(ownMites:fullUpdate as List, prevState:state,
-            miteGenerations:newMiteGenerations, network:state.network.addMites(fullUpdate),
+            network:state.network.addMites(fullUpdate),
             contribution:update, currentGeneration:state.currentGeneration + 1)
     state = applyConstructions(fullUpdate, state)
     state = state.clone(chart:state.chart.nextUnit(new Object(), [], true))
@@ -151,13 +148,6 @@ class ParsingState {
 
   ParsingState appendLog(String entry) {
     clone(log:log + entry)
-  }
-
-  private static FLinkedMap<Mite, Integer> registerGeneration(LinkedHashSet<Mite> fullUpdate, FLinkedMap<Mite, Integer> newMiteGenerations, int generation) {
-    for (mite in fullUpdate) {
-      newMiteGenerations = newMiteGenerations.putValue(mite, generation)
-    }
-    return newMiteGenerations
   }
 
   private static ParsingState processAlternatives(ParsingState state, LinkedHashSet<Mite> fullUpdate) {

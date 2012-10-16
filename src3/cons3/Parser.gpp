@@ -21,9 +21,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       if (w != ' ') {
         def logged = state.appendLog("$w ${'-' * (100 - w.size())}\n")
         state = handleWord(w.toLowerCase().trim(), logged)
-        log = state.log
       }
     }
+    log = state.logString
     return state.chart
   }
 

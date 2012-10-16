@@ -13,7 +13,7 @@ class ParsingState {
   private Map<Construction, List<Mite>> vmCache
   final List<Mite> ownMites
   final ParsingState prevState
-  final String log
+  private final List log
 
   ParsingState() {
     this([chart: new Chart(), prevState:EMPTY, network:new Network([:], [:], [:], [])], null)
@@ -27,7 +27,7 @@ class ParsingState {
     currentContribution = map.currentContribution ?: []
     ownMites = map.ownMites ?: base?.ownMites ?: []
     prevState = map.prevState ?: base?.prevState
-    log = map.log ?: base?.log ?: ''
+    log = map.log ?: base?.log ?: []
   }
 
   List<Mite> getMiteList() {
@@ -134,19 +134,19 @@ class ParsingState {
 
     state = processAlternatives(state, fullUpdate)
 
-    state = state.appendLog(state.presentable())
+    state = state.appendLog(state)
 
     if (mayCorrectRoute) {
       def traitor = state.findTraitor()
       if (traitor) {
-        state = correctRoute(state.prevState, FList.fromListReverse([state]), state.log + "changing route because of $traitor\n") ?: state
+        state = correctRoute(state.prevState, FList.fromListReverse([state]), state.log + ["changing route because of $traitor\n"] as List) ?: state
       }
     }
 
     return state
   }
 
-  ParsingState appendLog(String entry) {
+  ParsingState appendLog(entry) {
     clone(log:log + entry)
   }
 
@@ -170,7 +170,7 @@ class ParsingState {
     return state
   }
 
-  private static ParsingState correctRoute(ParsingState state, FList<ParsingState> reapply, String log) {
+  private static ParsingState correctRoute(ParsingState state, FList<ParsingState> reapply, List log) {
     for (mite in state.miteList) {
       if (mite in state.miteList && !state.network.isChosen(mite)) {
         def anotherActive = state.network.choose([mite]).maximizeSatisfiedness([mite])
@@ -359,6 +359,10 @@ class ParsingState {
       }
     }
     result
+  }
+
+  String getLogString() {
+    log.collect { it instanceof ParsingState ? it.presentable() : it.toString() }.join('')
   }
 
 }

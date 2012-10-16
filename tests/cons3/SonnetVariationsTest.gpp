@@ -96,30 +96,30 @@ B.arg1=A
 A.gender=masc
 A.person=3
 -- 2:
-B@1.arg2=A
-B.type=wh
-A.content=C
-A.type=question
-A.questioned=B
+A.type=wh
+B@1.arg2=B
 C.time=PRESENT
-C.arg1=B
-B.person=3
+C.arg1=A
+A.person=3
+B.content=C
+B.type=question
+B.questioned=A
 C.type=COME_SCALARLY
 C.order=EARLIER
 C.anchor=D
 -- 3:
-B@2.variants=A
+A@2.variants=A
 B.type=7
 B.number=true
 A.member=B
 -- 4:
-A@3.member=A
 A.type=8
 A.number=true
-A@3.conj=or
-A@3.member=B
+A@3.member=A
 B.type=9
 B.number=true
+A@3.conj=or
+A@3.member=B
 """
   }
 

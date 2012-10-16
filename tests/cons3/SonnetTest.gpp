@@ -18,34 +18,34 @@ B.time=PAST
 C.type=ME
 -- 2:
 A.type=ME
-B.manner=SUDDENLY
-B@1.elaboration=B
 B.type=FORGET
 B.time=PAST
 B.arg1=A
 A.gender=masc
 A.person=3
+B.manner=SUDDENLY
+B@1.elaboration=B
 -- 3:
-B@2.arg2=A
-B.type=wh
-A.content=C
-A.type=question
-A.questioned=B
+A.type=wh
+B@2.arg2=B
 C.time=PRESENT
-C.arg1=B
-B.person=3
+C.arg1=A
+A.person=3
+B.content=C
+B.type=question
+B.questioned=A
 C.type=COME_SCALARLY
 C.order=EARLIER
 C.anchor=D
 -- 4:
-B@3.variants=A
+A@3.variants=A
 B.type=7
 B.number=true
 A.member=B
-A.conj=or
-A.member=C
 C.type=8
 C.number=true
+A.conj=or
+A.member=C
 """)
   }
 
@@ -69,27 +69,27 @@ B.time=PAST
 B.arg1=A
 B.goal=C
 C.type=NEIGHBOURS
-D.member=B
-D.conj=and
-D.member=E
-E.type=ASK
-E.time=PAST
-E.arg2=F
-E.arg1=A
-E.topic=G
-F.type=THEY
+D.type=ASK
+D.time=PAST
+D.arg2=E
+D.arg1=A
+D.topic=F
+G.member=B
+G.conj=and
+G.member=D
+E.type=THEY
 -- 2:
-E@1.question=A
-B.type=wh
+A.type=wh
+D@1.question=B
 C.type=THEY
-A.content=D
-A.type=question
-A.questioned=B
 D.type=THINK
 D.time=PRESENT
 D.topic=E
 D.arg1=C
-D.arg2=B
+D.arg2=A
+B.content=D
+B.type=question
+B.questioned=A
 E.determiner=THIS
 E.type=MATTER
 """
@@ -103,35 +103,35 @@ B.arg1=C
 B.arg2=A
 B.time=PAST
 D.type=THEY
-E.member=D
-E.conj=and
-E.member=F
-F.type=ME
+E.type=ME
+F.member=D
+F.conj=and
+F.member=E
 C.type=AMAZE
-C.arg1=E
+C.arg1=F
 -- 2:
 A.type=THEY
-B.manner=SUDDENLY
 B.type=DISCOVER
 B.time=PAST
 B.arg1=A
+B.manner=SUDDENLY
 B@1.whenCondition=B
 -- 3:
 B@2.theme=A
-B.negated=true
-B.also=true
 B.type=CAN
 B.time=PRESENT
 B.arg1=C
+B.negated=true
+B.also=true
+A.type=fact
+A.content=B
 D.type=RECALL
-B.theme=D
 D.arg2=E
 D.arg1=F
+B.theme=D
 E.type=ORDER
 E.criterion=G
 G.type=COUNTING
-A.type=fact
-A.content=B
 B.dot=true
 """
   }
@@ -145,77 +145,77 @@ B.arg1=C
 B.arg2=A
 B.time=PAST
 D.type=THEY
-E.member=D
-E.conj=and
-E.member=F
-F.type=ME
+E.type=ME
+F.member=D
+F.conj=and
+F.member=E
 C.type=AMAZE
-C.arg1=E
+C.arg1=F
 -- 2:
 A.type=THEY
-B.manner=SUDDENLY
 B.type=DISCOVER
 B.time=PAST
 B.arg1=A
+B.manner=SUDDENLY
 B@1.whenCondition=B
 -- 3:
 B@2.theme=A
-B.negated=true
-B.also=true
 B.type=CAN
 B.time=PRESENT
 B.arg1=C
+B.negated=true
+B.also=true
+A.type=fact
+A.content=B
 D.type=RECALL
-B.theme=D
 D.arg2=E
 D.arg1=F
+B.theme=D
 E.type=ORDER
 E.criterion=G
 G.type=COUNTING
-A.type=fact
-A.content=B
 B.dot=true
 -- 4:
 A.type=1
 A.number=true
 -- 5:
-A.member=A@4
-A.member=B
-B.type=2
-B.number=true
+A.type=2
+A.number=true
+B.member=A@4
+B.member=A
 -- 6:
-A@5.member=A
 A.type=3
 A.number=true
+B@5.member=A
 -- 7:
-A@5.member=A
 A.type=4
 A.number=true
+B@5.member=A
 -- 8:
-A@5.member=A
 A.type=5
 A.number=true
-A@5.conj=and
-A@5.member=B
+B@5.member=A
 B.type=6
 B.number=true
+B@5.conj=and
+B@5.member=B
 C.type=REMEMBER
 C.time=PRESENT
 C.arg1=D
 D.rusNumber=pl
 D.person=3
-C.arg2=A@5
+C.arg2=B@5
 -- 9:
 A.andEmphasis=true
 B.type=NEXT
-A.arg2=B
-C.member=C@8
-C.conj=but
-C.member=A
 A.type=FORGET
 A.time=PAST
 A.arg1=D@8
 D@8.gender=pl
+A.arg2=B
+C.member=C@8
+C.conj=but
+C.member=A
 A.dot=true
 """
   }
@@ -241,24 +241,24 @@ C.type=CORNER
 C.arg1=D
 E.type=STREET
 E.name=знаменская
+F.type=STREET
+F.name=бассейная
 D.member=E
 D.conj=and
 D.member=F
-F.type=STREET
-F.name=бассейная
 -- 3:
-A.member=B@1
-A.conj=and
-A.member=B
-B.type=ASK
-B.time=PAST
-B.arg2=C
-B.arg1=A@1
-B.topic=D
-C.type=CASHIER
+A.type=ASK
+A.time=PAST
+A.arg2=B
+A.arg1=A@1
+A.topic=C
+D.member=B@1
+D.conj=and
+D.member=A
+B.type=CASHIER
 E.type=WE
-D.type=PREDICAMENT
-D.arg1=E
+C.type=PREDICAMENT
+C.arg1=E
 """
   }
 
@@ -266,10 +266,10 @@ D.arg1=E
     doParseTest "Кассирша грустно улыбнулась, вынула изо рта маленький молоточек и, слегка подвигав носом, сказала:", """
 A.type=CASHIER
 A.gender=fem
-B.manner=SADLY
 B.type=SMILE
 B.time=PAST
 B.arg1=A
+B.manner=SADLY
 -- 2:
 A.type=TAKE_OUT
 A.time=PAST
@@ -282,18 +282,18 @@ C.type=MOUTH
 B.size=LITTLE
 B.type=HAMMER
 -- 3:
-A.manner=SLIGHTLY
 A.type=MOVE
 A.arg2=B
+A.manner=SLIGHTLY
 B.type=NOSE
 C.perfectBackground=A
 -- 4:
-D@2.conj=and
-D@2.member=C@3
 C@3.type=SAY
 C@3.time=PAST
 C@3.arg1=A@1
 C@3.addressee=A
+D@2.conj=and
+D@2.member=C@3
 C@3.message=B
 B.directSpeech=true
 """
@@ -308,25 +308,25 @@ C.opinion_of=A
 -- 2:
 A.type=7
 C@1.time=PRESENT
+C@1.condition=B
 C@1.arg1=A
 A.person=3
-B.type=8
 C@1.type=COME_SCALARLY
 C@1.order=AFTER
-C@1.anchor=B
-C@1.condition=C
-C.determiner=THAT
-C.type=CASE
+C@1.anchor=C
+C.type=8
+B.determiner=THAT
+B.type=CASE
 -- 3:
-C@2.whenCondition=A
+B@2.whenCondition=A
 B.type=8
 A.time=PRESENT
 A.arg1=B
 B.person=3
-C.type=7
 A.type=COME_SCALARLY
 A.order=AFTER
 A.anchor=C
+C.type=7
 """
   }
 
@@ -335,10 +335,10 @@ A.anchor=C
 - По-моему, семь идет после восьми в том случае, когда восемь идет после семи""", """
 A.type=CASHIER
 A.gender=fem
-B.manner=SADLY
 B.type=SMILE
 B.time=PAST
 B.arg1=A
+B.manner=SADLY
 -- 2:
 A.type=TAKE_OUT
 A.time=PAST
@@ -351,18 +351,18 @@ C.type=MOUTH
 B.size=LITTLE
 B.type=HAMMER
 -- 3:
-A.manner=SLIGHTLY
 A.type=MOVE
 A.arg2=B
+A.manner=SLIGHTLY
 B.type=NOSE
 C.perfectBackground=A
 -- 4:
-D@2.conj=and
-D@2.member=C@3
 C@3.type=SAY
 C@3.time=PAST
 C@3.arg1=A@1
 C@3.addressee=A
+D@2.conj=and
+D@2.member=C@3
 -- 6:
 C@3.message=A
 A.directSpeech=true
@@ -373,25 +373,25 @@ A.opinion_of=B
 -- 7:
 A.type=7
 A@6.time=PRESENT
+A@6.condition=B
 A@6.arg1=A
 A.person=3
-B.type=8
 A@6.type=COME_SCALARLY
 A@6.order=AFTER
-A@6.anchor=B
-A@6.condition=C
-C.determiner=THAT
-C.type=CASE
+A@6.anchor=C
+C.type=8
+B.determiner=THAT
+B.type=CASE
 -- 8:
-C@7.whenCondition=A
+B@7.whenCondition=A
 B.type=8
 A.time=PRESENT
 A.arg1=B
 B.person=3
-C.type=7
 A.type=COME_SCALARLY
 A.order=AFTER
 A.anchor=C
+C.type=7
 """
   }
 
@@ -404,15 +404,15 @@ B.arg2=C
 B.arg1=A
 C.type=CASHIER
 D.type=JOY
-E.member=B
-E.conj=and
-E.member=F
-F.type=RUN_OUT
-F.time=PAST
-F.source=G
-F.arg1=A
-F.mood=D
-G.type=SHOP
+E.type=RUN_OUT
+E.time=PAST
+E.source=F
+E.arg1=A
+E.mood=D
+G.member=B
+G.conj=and
+G.member=E
+F.type=SHOP
 """
   }
 
@@ -472,8 +472,7 @@ G.type=SHOP
   }
 
   public void testParse9() {
-    doParseTest 'Но тут, вдумываясь в слова кассирши, мы опять приуныли, так как ее слова показались нам лишенными всякого смысла.', '''
-A.butEmphasis=true
+    doParseTest 'Но тут, вдумываясь в слова кассирши, мы опять приуныли, так как ее слова показались нам лишенными всякого смысла.', '''A.butEmphasis=true
 A.emphasis=true
 -- 2:
 A.type=THINK
@@ -484,10 +483,10 @@ C.type=CASHIER
 A@1.perfectBackground=A
 -- 3:
 A.type=WE
-A@1.anchor=AGAIN
 A@1.type=GET_SAD
 A@1.time=PAST
 A@1.arg1=A
+A@1.anchor=AGAIN
 -- 4:
 A@1.reason=A
 B.type=SHE
@@ -498,8 +497,8 @@ A.time=PAST
 A.arg1=C
 D.type=WE
 E.type=LACK
-A.theme=E
 E.arg2=F
+A.theme=E
 F.determiner=ANY
 F.type=MEANING
 A.dot=true
@@ -516,11 +515,11 @@ A.dot=true
 A.type=wh
 B.type=WE
 C.type=DO
+C.arg2=A
+C.arg1=B
 D.time=PAST
 D.type=modality
 D.arg1=C
-C.arg2=A
-C.arg1=B
 E.content=D
 E.type=question
 E.questioned=A
@@ -538,18 +537,18 @@ B.type=GO
 B.time=PAST
 B.arg1=A
 B.goal=C
-C.name=Летний сад
 C.type=GARDEN
-D.member=B
-D.conj=and
-D.member=E
-E.type=BEGIN
-E.time=PAST
-E.arg1=A
+C.name=Летний сад
+D.type=BEGIN
+D.time=PAST
+D.arg1=A
+E.member=B
+E.conj=and
+E.member=D
 F.type=COUNT
-E.theme=F
 F.arg2=G
 F.arg1=H
+D.theme=F
 G.type=TREES
 '''
   }
@@ -573,24 +572,24 @@ A.type=WE
 A@1.type=STOP
 A@1.time=PAST
 A@1.arg1=A
-B.member=A@1
-B.conj=and
-B.member=C
-C.type=BEGIN
-C.time=PAST
-C.arg1=A
+B.type=BEGIN
+B.time=PAST
+B.arg1=A
+C.member=A@1
+C.conj=and
+C.member=B
 D.type=ARGUE
-C.theme=D
 D.arg1=E
+B.theme=D
 -- 3:
 A.type=OPINION
 A.arg1=B
 C.opinion_of=A
 B.type=SOME
-C.type=COME_SCALARLY
-C.order=AFTER
 C.time=PAST
 C.arg1=D
+C.type=COME_SCALARLY
+C.order=AFTER
 D.type=7
 D.number=true
 -- 4:
@@ -601,17 +600,16 @@ B.type=OTHERS
 -- 5:
 A.type=ellipsis
 <A>
-B.type=NEXT
-C.member=C@3
-C.member=C@4
+C@4.time=PAST
+C@4.arg1=B
 C@4.type=COME_SCALARLY
 C@4.order=AFTER
-C@4.time=PAST
-C@4.arg1=D
 D@2.elaboration=C
+C.member=C@3
+C.member=C@4
 </A>
-D.type=8
-D.number=true
+B.type=8
+B.number=true
 '''
   }
 
@@ -642,21 +640,21 @@ A@2.arg1=B
 A@2.source=A
 B.determiner=SOME
 B.type=CHILD
-C.member=A@2
-C.conj=and
-C.member=D
-D.type=BREAK
-D.time=PAST
-D.arg1=B
-D.arg2=E
+C.type=BREAK
+C.time=PAST
+C.arg1=B
+C.arg2=D
 B.gender=masc
-F.member=B@1
-F.conj=but
+E.member=B@1
+E.conj=but
+E.member=F
+F.member=A@2
+F.conj=and
 F.member=C
 G.type=BOTH
-E.arg1=B
-E.quantifier=G
-E.type=JAWS
+D.arg1=B
+D.type=JAWS
+D.quantifier=G
 """
   }
 
@@ -689,11 +687,11 @@ C.arg1=E
     doParseTest 'А потом мы разошлись по домам', '''
 A.andEmphasis=true
 B.type=WE
-A.relTime=AFTER
 A.type=DISPERSE
 A.time=PAST
 A.arg1=B
 A.goal=C
+A.relTime=AFTER
 C.type=HOMES
 C.owner=D
 '''

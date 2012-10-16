@@ -1,28 +1,75 @@
 package cons3
 
+import groovy.transform.Canonical
 import groovy.transform.EqualsAndHashCode
+import groovy.transform.TupleConstructor
 
 /**
  * @author peter
  */
 @EqualsAndHashCode
 class Chart {
-  final List<Assignment<Variable>> __assignments
   private final FList<Object> currentMetas
   final IdentityHashMap<Assignment<Variable>, FList<Object>> __metas
-  final FLinkedMap<Set<Variable>, Integer> __unifications
-  private final Map<Variable, Variable> __baseVars
   private final FLinkedMap<Object, List<Set<Variable>>> metaUnifications
   final int section
+  final LinkedHashMap<Key, Unit> allUnits
+  final Set<Key> activeKeys
+  final Key currentKey
+
+  @TupleConstructor
+  private static class Unit {
+    final List<Assignment<Variable>> assignments
+    final List<Pair<Variable, Variable>> unifications
+
+    @Override
+    public String toString() {
+      return "Unit{" + "assignments=" + assignments + ", unifications=" + unifications + '}';
+    }
+
+    boolean equals(o) {
+      if (is(o)) return true
+      if (!(o instanceof Unit)) return false
+
+      Unit unit = (Unit) o
+      return assignments == unit.assignments && unifications == unit.unifications
+    }
+
+    private Integer cachedHC
+    int hashCode() {
+      if (cachedHC == null) {
+        int result = assignments.hashCode()
+        result = 31 * result + unifications.hashCode()
+        cachedHC = result
+      }
+      return cachedHC
+    }
+  }
+
+  @Canonical
+  private static class Key {
+    final Object object
+
+    @Override
+    String toString() {
+      return object.toString()
+    }
+
+  }
 
   private Chart(Map args, Chart base) {
-    __assignments = args.getOrElse('assignments', base?.__assignments)
-    currentMetas = args.getOrElse('currentMetas', base?.currentMetas)
-    __metas = args.getOrElse('metas', base?.__metas)
-    __unifications = args.getOrElse('unifications', base?.__unifications)
-    __baseVars = args.getOrElse('baseVars', base?.__baseVars)
-    metaUnifications = args.getOrElse('metaUnifications', base?.metaUnifications)
-    section = args.getOrElse('section', base?.section)
+    currentMetas = args.getOrElse('currentMetas', base.currentMetas)
+    __metas = args.getOrElse('metas', base.__metas)
+    metaUnifications = args.getOrElse('metaUnifications', base.metaUnifications)
+    section = args.getOrElse('section', base.section)
+    allUnits = args.getOrElse('allUnits', base.allUnits)
+    activeKeys = args.getOrElse('activeKeys', base.activeKeys)
+    currentKey = args.getOrElse('currentKey', base.currentKey)
+
+    assert allUnits.containsKey(currentKey)
+    if (allUnits.size() < activeKeys.size()) {
+      assert false
+    }
   }
 
   private static <T> T getOrElse(Map m, String key, T defaultValue) {
@@ -32,19 +79,93 @@ class Chart {
   }
 
   Chart() {
-    this([assignments:[],
-            currentMetas:FList.emptyList, metas:new IdentityHashMap(),
-            metaUnifications:FLinkedMap.emptyMap,
-            section:1,
-            unifications:FLinkedMap.emptyMap, baseVars:[:]], null)
+    currentMetas = FList.emptyList
+    __metas = new IdentityHashMap()
+    metaUnifications = FLinkedMap.emptyMap
+    section = 1
+
+    def key = new Key(new Object())
+    currentKey = key
+    allUnits = [(key):new Unit([], [])]
+    activeKeys = [key]
+  }
+
+  boolean equals(o) {
+    if (is(o)) return true
+    if (!(o instanceof Chart)) return false
+
+    Chart chart = (Chart) o
+    return currentMetas == chart.currentMetas &&
+           __metas == chart.__metas &&
+           metaUnifications == chart.metaUnifications &&
+           section == chart.section &&
+           currentKey == chart.currentKey &&
+           allUnits == chart.allUnits &&
+           activeKeys == chart.activeKeys
+  }
+
+  private Integer cachedHC
+  int hashCode() {
+    if (cachedHC == null) {
+      int result = currentMetas.hashCode()
+      result = 31 * result + __metas.hashCode()
+      result = 31 * result + metaUnifications.hashCode()
+      result = 31 * result + currentKey.hashCode()
+      result = 31 * result + allUnits.hashCode()
+      result = 31 * result + activeKeys.hashCode()
+      result = 31 * result + section
+      cachedHC = result
+    }
+    return cachedHC
+  }
+
+
+  Chart nextUnit(Object id, List<Pair<Variable, Variable>> unifications, boolean activate) {
+    def key = new Key(id)
+    def newActive = activate ? activeKeys + [key] : activeKeys
+    def newAll = allUnits + [(key):new Unit([], unifications)]
+
+    def oldUnit = allUnits[currentKey]
+    if (!oldUnit.assignments && !oldUnit.unifications && currentKey.object.class == Object) {
+      newActive = new HashSet(newActive)
+      newActive.remove(currentKey)
+      newAll.remove(currentKey)
+    }
+    clone(currentKey:key, allUnits:newAll, activeKeys:newActive)
+  }
+
+  Chart changeActiveUnits(Collection deactivated, Collection activated) {
+    Set<Key> minusKeys = deactivated.collect { new Key(it) } as Set
+    Set<Key> plusKeys = activated.collect { new Key(it) } as Set
+    clone(activeKeys:Util.minus(activeKeys, minusKeys) + plusKeys)
   }
 
   Chart clone(Map update) {
     return new Chart(update, this)
   }
 
+  List<Pair<Variable, Variable>> getActiveUnifications() {
+    def result = []
+    for (key in allUnits.keySet()) {
+      if (key in activeKeys) {
+        result.addAll(allUnits[key].unifications)
+      }
+    }
+    result
+  }
+
+  private List<Assignment<Variable>> cachedActiveAssignments
   List<Assignment<Variable>> getActiveAssignments() {
-    return __assignments
+    if (cachedActiveAssignments == null) {
+      LinkedHashSet<Assignment<Variable>> result = []
+      for (key in allUnits.keySet()) {
+        if (key in activeKeys) {
+          result.addAll(allUnits[key].assignments)
+        }
+      }
+      cachedActiveAssignments = result as List
+    }
+    return cachedActiveAssignments
   }
 
   private List<Frame> cachedFrames
@@ -105,15 +226,14 @@ class Chart {
     assert var
 
     def assignment = new Assignment(var, property, value, generation, section)
-    if (getActiveAssignments().contains(assignment)) {
-      return this
-    }
-
-    List<Assignment<Variable>> newAsss = __assignments + assignment
-
     def newMetas = new IdentityHashMap<Assignment<Variable>, FList<Object>>(__metas)
     newMetas[assignment] = currentMetas
-    return clone(assignments:newAsss, metas:newMetas)
+
+    Unit oldUnit = allUnits[currentKey]
+    List<Assignment<Variable>> newUnitAss = oldUnit.assignments + assignment
+    def newUnit = new Unit(newUnitAss, oldUnit.unifications)
+
+    return clone(metas:newMetas, allUnits:allUnits + [(currentKey):newUnit])
   }
 
   private Function2<Variable, Integer, String> createNamer() {
@@ -175,89 +295,32 @@ class Chart {
     return clone(currentMetas: currentMetas - meta)
   }
 
-  Chart removeDifference(diffMeta) {
-    List<Assignment<Variable>> newAssignments = __assignments
-    newAssignments = newAssignments.findAll { __metas[it] != [diffMeta] }
-    def sets = metaUnifications[diffMeta]
-    def result = clone(metaUnifications:metaUnifications.removeKey(diffMeta))
-    if (sets) {
-      for (pair in sets) {
-        result = result.removeUnificationConstraint(pair.iterator().next(), (pair as List<Variable>)[1])
-      }
-    }
+  private Map<Variable, Variable> __baseVars
+  Variable getUnifiedVar(Variable var) {
+    if (__baseVars == null) {
+      __baseVars = [:]
+      Map<Variable, Set<Variable>> groups = [:]
 
-    final def newMetas = new IdentityHashMap<Assignment<Variable>, FList<Object>>()
-    for (a in __metas.keySet()) {
-      newMetas[a] = __metas[a] - diffMeta
-    }
-    if (newMetas != __metas) {
-      result = result.clone(metas:newMetas)
-    }
-
-    if (newAssignments == __assignments) {
-      return result
-    }
-    return result.clone(assignments:newAssignments)
-  }
-
-  private void fillGroup(List<Set<Variable>> pairs, Variable current, LinkedHashSet<Variable> result) {
-    if (!result.add(current)) {
-      return
-    }
-
-    for (p in pairs) {
-      if (current in p) {
-        for (var in p) {
-          fillGroup(pairs, var, result)
+      for (set in activeUnifications) {
+        def v1 = set.first.base
+        def v2 = set.second.base
+        Set<Variable> group = groups[v1] ?: new LinkedHashSet<Variable>([v1])
+        group.addAll(groups[v2] ?: new LinkedHashSet<Variable>([v2]))
+        group << v1
+        group << v2
+        for (v in group) {
+          groups[v] = group
         }
       }
-    }
-  }
 
-  private Map<Variable, Variable> updateGroup(FLinkedMap<Set<Variable>, Integer> newUnifications, Variable var1, Map<Variable, Variable> newBaseVars) {
-    LinkedHashSet<Variable> group = []
-    fillGroup(newUnifications.keyList(), var1, group)
-    Variable base = group.iterator().next()
-    for (var in group) {
-      assert !var.light
-      newBaseVars = newBaseVars + [(var):base]
-    }
-    return newBaseVars
-  }
+      for (set in groups.values()) {
+        Variable main = set.iterator().next()
+        for (v in set) {
+          __baseVars[v] = main
+        }
 
-  Chart addUnificationConstraint(Variable var1, Variable var2) {
-    assert var1 != var2
-    def pair = [var1, var2] as LinkedHashSet<Variable>
-    def oldCount = __unifications[pair] ?: 0
-    def newUnifications = __unifications.putValue(pair, oldCount + 1)
-    Map<Variable, Variable> newBaseVars = __baseVars
-    if (oldCount == 0) {
-      newBaseVars = updateGroup(newUnifications, var1, newBaseVars)
+      }
     }
-
-    def newMetaUnifications = metaUnifications
-    for (meta in currentMetas) {
-      List<Set<Variable>> newValue = new ArrayList<Set<Variable>>(newMetaUnifications[meta] ?: [])
-      newValue.add(pair)
-      newMetaUnifications = newMetaUnifications.putValue(meta, newValue)
-    }
-    clone(unifications:newUnifications, baseVars:newBaseVars, metaUnifications:newMetaUnifications)
-  }
-
-  Chart removeUnificationConstraint(Variable var1, Variable var2) {
-    def pair = [var1, var2] as LinkedHashSet<Variable>
-    def oldCount = __unifications[pair]
-    assert oldCount : "$pair $__unifications"
-    def newUnifications = oldCount > 1 ? __unifications.putValue(pair, oldCount - 1) : __unifications.removeKey(pair)
-    Map<Variable, Variable> newBaseVars = __baseVars
-    if (oldCount == 1) {
-      newBaseVars = updateGroup(newUnifications, var1, newBaseVars)
-      newBaseVars = updateGroup(newUnifications, var2, newBaseVars)
-    }
-    clone(unifications:newUnifications, baseVars:newBaseVars)
-  }
-
-  Variable getUnifiedVar(Variable var) {
     return __baseVars[var.base] ?: var.base
   }
 

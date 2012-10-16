@@ -128,6 +128,8 @@ class ParsingState {
     state = state.clone(ownMites:fullUpdate as List, prevState:state,
             miteGenerations:newMiteGenerations, network:state.network.addMites(fullUpdate),
             contribution:update, currentGeneration:state.currentGeneration + 1)
+    state = applyConstructions(fullUpdate, state)
+    state = state.clone(chart:state.chart.nextUnit(new Object(), [], true))
 
     def newActive = state.network.choose(fullUpdate as List)
     def sat = newActive.maximizeSatisfiedness([])
@@ -203,7 +205,7 @@ class ParsingState {
 
   ParsingState getPrevVisibleState() {
     def h = hierarchy
-    return hierarchy.size() == 1 ? null : hierarchy[1]
+    return h.size() == 1 ? null : h[1]
   }
 
   boolean isLinkUp() {
@@ -300,53 +302,18 @@ class ParsingState {
 
   private static ParsingState activate(ParsingState state, Network newActive) {
     def oldActive = state.network
-    state = state.clone(network:newActive)
-
     def toRemove = Util.minus(oldActive._chosen, newActive._chosen)
-
     LinkedHashSet<Mite> toApply = Util.minus(newActive._chosen, oldActive._chosen)
-    toApply = Util.intersect(toApply, state.ownMites) + toApply + Util.intersect(state.miteList, newActive._chosen)
 
-    state = state.undoChanges(toRemove)
-    state = state.clone(chart:addNewUnifications(state, toApply))
-
-    while (true) {
-      ParsingState result = applyConstructions(toApply, state)
-      if (result.chart == state.chart) {
-        return result
-      }
-      state = result
-    }
+    return state.clone(network:newActive, chart:state.chart.changeActiveUnits(toRemove, toApply))
   }
 
   private static ParsingState applyConstructions(LinkedHashSet<Mite> toApply, ParsingState state) {
-    Chart chart = state.chart
     for (mite in toApply) {
-      if (state.network.isChosen(mite) && mite.contents && mite.executable) {
-        ParsingState next = state.clone(currentGeneration:state.miteGenerations[mite]?: state.currentGeneration, chart:chart.startMeta(mite))
-        next = mite.cxt.applySemantics(mite, next)
-        chart = next.chart.finishMeta(mite)
+      state = state.clone(chart:state.chart.nextUnit(mite, mite.unifications, false))
+      if (mite.executable) {
+        state = mite.cxt.applySemantics(mite, state)
       }
-    }
-    return state.clone(chart:chart, currentGeneration:state.currentGeneration)
-  }
-
-  private static Chart addNewUnifications(ParsingState state, LinkedHashSet<Mite> toApply) {
-    def ch = state.chart
-    for (mite in toApply) {
-      ch = ch.startMeta(mite)
-      for (pair in mite.unifications) {
-        ch = ch.addUnificationConstraint(pair.first.base, pair.second.base)
-      }
-      ch = ch.finishMeta(mite)
-    }
-    return ch
-  }
-
-  private ParsingState undoChanges(Collection<Mite> toRemove) {
-    ParsingState state = this
-    for (mite in toRemove) {
-      state = state.clone(chart:state.chart.removeDifference(mite))
     }
     return state
   }
@@ -355,7 +322,7 @@ class ParsingState {
     def log = ""
     def mites = visibleMites
     def links = findAllLinks()
-    log += "$this->${prevVisibleState},  uni: " + chart.__unifications.keySet().collect { "${it.iterator().next()}=" + (it as List)[1] }.join(", ") + "\n"
+    log += "$this->${prevVisibleState},  uni: " + chart.activeUnifications.collect { "$it.first=$it.second" }.join(", ") + "\n"
     for (k in mites.keySet()) {
       log += "    $k: " + mites[k].collect {
         (it in links ? '!!' : '') + (network.isChosen(it) ? '*' : '') + (it.satisfied ? '' : '@') +

@@ -27,23 +27,6 @@ class Chart {
       return "Unit{" + "assignments=" + assignments + ", unifications=" + unifications + '}';
     }
 
-    boolean equals(o) {
-      if (is(o)) return true
-      if (!(o instanceof Unit)) return false
-
-      Unit unit = (Unit) o
-      return assignments == unit.assignments && unifications == unit.unifications
-    }
-
-    private Integer cachedHC
-    int hashCode() {
-      if (cachedHC == null) {
-        int result = assignments.hashCode()
-        result = 31 * result + unifications.hashCode()
-        cachedHC = result
-      }
-      return cachedHC
-    }
   }
 
   @Canonical
@@ -89,36 +72,6 @@ class Chart {
     allUnits = [(key):new Unit([], [])]
     activeKeys = [key]
   }
-
-  boolean equals(o) {
-    if (is(o)) return true
-    if (!(o instanceof Chart)) return false
-
-    Chart chart = (Chart) o
-    return currentMetas == chart.currentMetas &&
-           __metas == chart.__metas &&
-           metaUnifications == chart.metaUnifications &&
-           section == chart.section &&
-           currentKey == chart.currentKey &&
-           allUnits == chart.allUnits &&
-           activeKeys == chart.activeKeys
-  }
-
-  private Integer cachedHC
-  int hashCode() {
-    if (cachedHC == null) {
-      int result = currentMetas.hashCode()
-      result = 31 * result + __metas.hashCode()
-      result = 31 * result + metaUnifications.hashCode()
-      result = 31 * result + currentKey.hashCode()
-      result = 31 * result + allUnits.hashCode()
-      result = 31 * result + activeKeys.hashCode()
-      result = 31 * result + section
-      cachedHC = result
-    }
-    return cachedHC
-  }
-
 
   Chart nextUnit(Object id, List<Pair<Variable, Variable>> unifications, boolean activate) {
     def key = new Key(id)

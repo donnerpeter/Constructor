@@ -34,10 +34,6 @@ class SonnetVariationsTest extends TestCase {
             "She suddenly discovered, that she couldn't recall the counting order"
   }
 
-  public void test1_Question() {
-    doTranslateTest "Что идёт раньше - 7 или 8?",
-                    "What comes first - 7 or 8?"
-  }
   public void testHeForgotThatGoesAfterVasya() {
     doTranslateTest "Он забыл, что идет после Васи.",
                     "He forgot, that he went after Vasya."
@@ -57,10 +53,6 @@ class SonnetVariationsTest extends TestCase {
   public void testSheForgotThatBrokeHerJaw() {
     doTranslateTest "Она забыла, что сломала себе челюсть.",
                     "She forgot, that she broke her jaw."
-  }
-  public void test2_Question() {
-    doTranslateTest "Что они думают по этому поводу?",
-                    "What do they think on this matter?"
   }
   public void test2_ThinkingNotSitting() {
     doTranslateTest "Я забыл, что они думают, а не просто сидят.",

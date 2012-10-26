@@ -277,6 +277,10 @@ class ParsingState {
     def anotherActive = state.network.choose([preferred]).maximizeSatisfiedness([preferred])
     if (!tried.add(anotherActive.chosenExecutable)) return state
 
+    return doTryAlternative(state, anotherActive)
+  }
+
+  private static ParsingState doTryAlternative(ParsingState state, Network anotherActive) {
     def alternative = state.activate(anotherActive)
     try {
       if (new Domination(alternative, state).dominatesSemantically()) {

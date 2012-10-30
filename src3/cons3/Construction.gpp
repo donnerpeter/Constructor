@@ -38,7 +38,7 @@ class Construction {
     return this
   }
 
-  Construction structural(Function4<Mite, ParsingState, Mite, Boolean, List<ParsingState>> action, Function2<Mite, Mite, Boolean> filterUpdate = { mite, update -> true }) {
+  Construction structural(Function4<Mite, ParsingState, Mite, Boolean, List<ParsingState>> action) {
     showPrev = action
     return this
   }

@@ -132,7 +132,7 @@ class SeqInterceptor {
     LinkedHashSet newXors = [xor]
 
     for (mite in constructions) {
-      Mite oldMite = similar.ownMites.reverse().find { it.atom && it.isSimilarTo(mite) }
+      Mite oldMite = findSimilarOwnMite(mite, similar)
       if (oldMite) {
         def nextPoint = merge(oldMite, mite, result, seqs)
         if (nextPoint) {
@@ -218,11 +218,13 @@ class SeqInterceptor {
     return false
   }
 
-  private static Mite findSimilarOwnMite(Mite mite, ParsingState inState) {
+  private Mite findSimilarOwnMite(Mite mite, ParsingState inState) {
+    def wh = constructions.find { it.cxt == filler } || inState.ownMites.find { it.cxt == filler }
+    if (mite.cxt in [nom, acc, gen, genArg1] && wh) return null
     if (mite.cxt in [nom, acc, gen, genArg1] && mite.contents.head) return null
     if (mite.cxt in [dat] && mite.contents.head && inState.ownMites.find { it.cxt == preposition }) return null
     if (mite.cxt in [sentenceHolder, noArg, verbalModifier, verbHolder, quotedName, preposition, poDat]) return null
-    return inState.ownMites.find { it.isSimilarTo(mite) }
+    return inState.ownMites.reverse().find { it.atom && it.isSimilarTo(mite) }
   }
 
   private List<Mite> unifyHeadsWithMergePoint(ParsingState mergePoint) {

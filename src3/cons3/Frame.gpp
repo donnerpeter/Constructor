@@ -25,7 +25,9 @@ class Frame {
       return null
     }
 
-    return clause.findClauseController()
+    def controller = clause.findClauseController()
+    assert controller != this
+    return controller
   }
 
   Frame findClauseController() {

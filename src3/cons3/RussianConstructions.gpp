@@ -108,7 +108,9 @@ interface RussianConstructions {
       return [dash.unify(new Mite(questionVariants, questioned:questioned))]
     }
     return mite.unifyWherePossible(contribution)
-  }.satisfiedWhen { mite -> mite.contents.content && mite.contents.frame }
+  }.satisfiedWhen { mite -> mite.contents.content && mite.contents.frame }.structural { mite, state, via, up ->
+    up ? state.findState(mite, 'frame')?.hierarchy : null
+  }
   Construction comeScalarly = cxt('comeScalarly', ['verb']) { ParsingState state, Map args ->
     state = state.assign(args.verb, 'type', 'COME_SCALARLY')
     args.order ? state.assign(args.verb, 'order', args.order) : state
@@ -156,8 +158,8 @@ interface RussianConstructions {
     return mite.unifyWherePossible(contribution)
   }.satisfiedWhen { it.v('possessor')?.hard && it.contents.head }
   Construction control = cxt('control', ['head', 'slave']) { ParsingState state, Map args ->
-    return args.head && args.slave ? state.assign(args.head, 'theme', args.slave) : state
-  }.structural { mite, state, via, up -> state.findState(mite, 'head')?.hierarchy } { mite, fresh -> fresh.cxt != verbHolder }
+    state.assign(args.head, 'theme', args.slave)
+  }.structural { mite, state, via, up -> state.findState(mite, 'head')?.hierarchy }
   Construction conditionComp = cxt('conditionComp', ['hasComma', 'head', 'wh']) { ParsingState state, Map args ->
     state.assign(args.head, "${args.wh}Condition", args.comp)
   }.enrichingMites { mite, contribution, state ->
@@ -284,8 +286,7 @@ interface RussianConstructions {
     state = state.assign(args.frame, 'content', args.content)
     return state
   }.structural { mite, state, via, up ->
-    state.findState(mite, 'frame')?.hierarchy } { mite, fresh ->
-    fresh.cxt != verbHolder
+    state.findState(mite, 'frame')?.hierarchy
   }.satisfiedWhen { mite -> mite.contents.content && mite.contents.frame }
   Construction directSpeech = cxt('directSpeech', ['head', 'message']) { ParsingState state, Map args ->
     state.assign(args.head, 'message', args.message).assign(args.message, 'directSpeech', 'true')
@@ -347,5 +348,13 @@ interface RussianConstructions {
   }
 
   Construction argSharing = emptyCxt('argSharing')
+  Construction filler = emptyCxt('filler').enrichingMites { mite, contribution, state ->
+    List<Mite> fillerContent = state.findState(mite).contribution.findAll { it.cxt in [nom, acc] }
+    if (!mite.contents.filled && contribution.find { it.unifyWherePossible(fillerContent) }) {
+      return [mite.unify(mite.cxt(filled:true))]
+    }
+    return []
+  }.satisfiedWhen { mite -> mite.contents.filled }
+
 
 }

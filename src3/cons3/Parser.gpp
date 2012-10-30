@@ -1,9 +1,6 @@
 package cons3
-
 import static cons3.Construction.cxt
 import static cons3.RussianConstructions.*
-import static cons3.Util.emptyCxt
-
 /**
  * @author peter
  */
@@ -355,21 +352,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "что":
         def comp = new Variable()
         def nextVerb = new Variable()
-        def fillerContent = [acc(noun:var, xor:t.g), nom(noun:var, xor:t.g, agrNumber:'sg', agrGender:'neu')]
 
-        def filler = emptyCxt('filler nom/acc').enrichingMites { mite, contribution, state ->
-          def result = fillerContent.collect { it.unifyWherePossible(contribution) }.flatten()
-          if (result) {
-            //todo try harder that any xor group has a representative
-            def unsatisfied = emptyCxt('unsatisfied hack').satisfiedWhen { any -> false }
-            return result +
-                   question(questioned:var, frame:comp, xor:t.e).unifyWherePossible(contribution) +
-                   [unsatisfied(xor:t.g)]
-          }
-          return []
-        }
-
-        Update update = u(filler(xor:t.a)) +
+        Update update = u(filler(xor:t.a), acc(noun:var, xor:t.g), nom(noun:var, xor:t.g, agrNumber:'sg', agrGender:'neu')) +
+                        u(question(questioned:var, frame:comp, xor:t.e)) +
                         u(naPrep(head:var, copula:nextVerb.lightVar)).xor(noArg(head:var))
         return update + [
                 (declOrQuestionComp):[comp:comp], (relativeClause):[wh:var, relative:nextVerb, xor:t.f],
@@ -431,9 +416,10 @@ class Parser { //todo alex implements cons3.RussianConstructions
   private static ParsingState infinitive(Map<Construction, Map> args, ParsingState state, Variable verb, String type) {
     def mod = new Variable()
     def datNoun = new Variable().lightVar
+    Tokens t = new Tokens()
     return state.assign(verb, 'type', type).apply(args +
-            [(dat):[noun:datNoun], (datArg1):[head:verb, noun:datNoun], (control): [slave: verb],
-                    (question): [content:mod], (modality):[modality:mod, infinitive:verb], (timedModality):[modality:mod],
+            [(dat):[noun:datNoun], (datArg1):[head:verb, noun:datNoun], (control): [slave: verb, xor:t.a],
+                    (question): [content:mod, xor:t.a], (modality):[modality:mod, infinitive:verb], (timedModality):[modality:mod],
                     (verbHolder):[head:verb]])
   }
 

@@ -67,9 +67,11 @@ class Domination {
     for (verb in self.chart.frames.findAll { it.humanAction }) {
       def alternative = verb.unifiedVar.frame(other.chart)
 
-      boolean meHuman = !verb.f('arg1')?.definitelyNonHuman()
-      def otherHuman = !alternative.f('arg1')?.definitelyNonHuman()
-      if (meHuman != otherHuman && verb.f('arg1')?.type && alternative.f('arg1')?.type) {
+      def mySubj = verb.f('arg1')
+      def otherSubj = alternative.f('arg1')
+      boolean meHuman = !mySubj?.definitelyNonHuman()
+      def otherHuman = !otherSubj?.definitelyNonHuman()
+      if (meHuman && !otherHuman && mySubj?.type && otherSubj?.type) {
         return meHuman
       }
 

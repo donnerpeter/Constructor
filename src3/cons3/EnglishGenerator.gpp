@@ -772,7 +772,7 @@ class StatefulGenerator {
             GET_SAD: 'got sad', DO:(past && !infinitive ? 'did' : 'do'), NEED:'need',
             BEGIN:'started', STOP:'stopped',
             MOVE:'moved',
-            ARGUE:'were arguing', 'FALL':'fell', BREAK:'broke',
+            ARGUE:'were arguing', 'FALL':'fell', BREAK:(past && !infinitive ? 'broke' : 'break'),
             THINK:(verb.s('progressive') ? 'thinking' : 'think'), SIT:(verb.s('progressive') ? 'sitting' : 'sit'),
             DISTRACT:'distracted',
             DISPERSE:'went'

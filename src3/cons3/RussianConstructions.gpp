@@ -53,7 +53,7 @@ interface RussianConstructions {
   Construction uGen = cxt('uGen', ['head', 'noun']) { ParsingState state, Map args ->
     if (args.copula) {
       def location = args.copula
-      state = state.assign(location, 'type', 'location').assign(location, 'arg2', args.head).assign(location, 'arg1', args.noun)
+      state = state.assign(location, 'type', 'copula').assign(location, 'location', args.head).assign(location, 'arg1', args.noun)
     } else {
       state = state.assign(args.head, 'location', args.noun)
     }
@@ -220,7 +220,7 @@ interface RussianConstructions {
   Construction naPrep = cxt('naPrep', ['noun', 'head']) { ParsingState state, Map args ->
     if (args.copula) {
       def location = args.copula
-      state = state.assign(location, 'type', 'location').assign(location, 'arg1', args.head).assign(location, 'arg2', args.noun)
+      state = state.assign(location, 'type', 'copula').assign(location, 'arg1', args.head).assign(location, 'location', args.noun)
     } else {
       state = state.assign(args.head, 'location', args.noun)
     }

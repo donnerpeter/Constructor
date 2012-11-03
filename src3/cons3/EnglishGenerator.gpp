@@ -325,7 +325,7 @@ class StatefulGenerator {
             'modality', 'DO', 'NEED',
             'BEGIN', 'STOP', 'COME_TO',
             'ARGUE', 'FALL', 'BREAK',
-            'DISTRACT', 'DISPERSE', 'degree', 'location'
+            'DISTRACT', 'DISPERSE', 'degree', 'copula'
     ]
   }
 
@@ -436,11 +436,11 @@ class StatefulGenerator {
       }
     }
 
-    if (verb.type == 'location') {
+    if (verb.type == 'copula') {
       if (subj.canBeHuman() && !subj.s('relativized')) {
         np(subj, true)
         out(verb.s('time') == 'PAST' ? 'had' : 'have')
-        np(verb.f('arg2'), false)
+        np(verb.f('location'), false)
         return subj
       } else {
 
@@ -451,7 +451,7 @@ class StatefulGenerator {
           out(verb.s('time') == 'PAST' ? 'was' : 'is')
         }
         out 'on'
-        np(verb.f('arg2'), false)
+        np(verb.f('location'), false)
         return subj
       }
     }

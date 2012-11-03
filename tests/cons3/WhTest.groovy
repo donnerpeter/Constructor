@@ -40,5 +40,17 @@ class WhTest extends TestCase {
     doTranslateTest "Я спросил про дом, что он увидел",
             "What do they think on this matter?"
   }
+  public void "_____a_test what do they think on this matter"() {
+    doTranslateTest "Кому он велел помочь?",
+            "What do they think on this matter?"
+  }
+  public void "__ы___a_test what do they think on this matter"() {
+    doTranslateTest "Кому он велел ей помочь?",
+            "What do they think on this matter?"
+  }
+  public void "__ы___a_test what do вthey think on this matter"() {
+    doTranslateTest "Кому он велел помочь, ей?",
+            "What do they think on this matter?"
+  }
 
 }

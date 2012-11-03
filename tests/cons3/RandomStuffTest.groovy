@@ -54,4 +54,12 @@ class RandomStuffTest extends TestCase {
     doTranslateTest 'Он увидел их семью своими глазами',
             "To drink tea is to live long"
   }
+  public void "safdыв"() {
+    doTranslateTest 'Он велел ей помочь',
+            "To drink tea is to live long"
+  }
+  public void "вsafdыв"() {
+    doTranslateTest 'Он велел помочь ей',
+            "To drink tea is to live long"
+  }
 }

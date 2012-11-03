@@ -393,6 +393,7 @@ class StatefulGenerator {
     if (!verb) return null
     if (verb.f('arg1')?.type == 'wh') return verb.f('arg1')
     if (verb.f('arg2')?.type == 'wh') return verb.f('arg2')
+    if (verb.f('arg2')?.f('arg1')?.type == 'wh') return verb.f('arg2')
     return null
   }
 
@@ -419,13 +420,14 @@ class StatefulGenerator {
       return subj
     }
 
-    if (findQuestioned(verb)) {
-      out 'what'
+    def questioned = findQuestioned(verb)
+    if (questioned) {
+      np(questioned, false, true)
     }
 
     def opinion = verb.f('opinion_of')
     if (opinion) {
-      if (findQuestioned(verb)) {
+      if (questioned) {
         out ','
       }
       opinionOf(opinion, null, null)
@@ -528,7 +530,7 @@ class StatefulGenerator {
         out 'to'
       }
 
-      out mainVerb(verb, imperative || aux && findQuestioned(verb) && topLevel)
+      out mainVerb(verb, imperative || aux && questioned && topLevel)
     }
 
     Frame addressee = verb.f('addressee')
@@ -538,7 +540,7 @@ class StatefulGenerator {
 
     def dobj = verb.f('arg2')
     def nounDObj = dobj && dobj.flatten().every { !isVerb(it) && !(it.type in ['fact', 'question']) } && dobj.hasType()
-    if (nounDObj && dobj.type != 'wh') {
+    if (nounDObj && dobj != questioned) {
       np(dobj, false, !isNumber(dobj))
     }
 
@@ -1032,6 +1034,7 @@ class StatefulGenerator {
     else if (poss.type == 'THEY') out 'their'
     else if (poss.type == 'HE') out 'his'
     else if (poss.type == 'SHE') out 'her'
+    else if (poss.type == 'wh') out 'whose'
     else {
       if (poss.usages('arg1')) {
         out(poss.s('gender') == 'fem' ? 'her' : 'his')

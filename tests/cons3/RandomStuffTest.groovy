@@ -38,4 +38,20 @@ class RandomStuffTest extends TestCase {
     doTranslateTest 'Чай пить - долго жить',
             "To drink tea is to live long"
   }
+  public void "фsafd"() {
+    doTranslateTest 'Он увидел их',
+            "To drink tea is to live long"
+  }
+  public void "фsafdвыф"() {
+    doTranslateTest 'Он увидел их семью',
+            "To drink tea is to live long"
+  }
+  public void "safd"() {
+    doTranslateTest 'Он увидел их своими глазами',
+            "To drink tea is to live long"
+  }
+  public void "safdы"() {
+    doTranslateTest 'Он увидел их семью своими глазами',
+            "To drink tea is to live long"
+  }
 }

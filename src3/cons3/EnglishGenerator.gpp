@@ -782,7 +782,7 @@ class StatefulGenerator {
   private String mainVerb(Frame verb, boolean infinitive) {
     def type = verb.type
     def verbs = [HAPPEN: 'happened', FORGET: 'forgot', GO_OFF: 'went',
-            ASK: (verb.f('topic')?.type == 'PREDICAMENT' ? 'consulted' : (past ? 'asked' : 'ask')),
+            ASK: (verb.f('topic')?.type == 'PREDICAMENT' ? 'consulted' : (past && !infinitive ? 'asked' : 'ask')),
             DISCOVER: 'discovered', CAN: "couldn't", RECALL: 'recall', TAKE_OUT: "took",
             SAY:(verb.f('addressee')?.hasType() ? 'told' : 'said'),
             REMEMBER: (past ? 'remembered' : verb.f('arg1')?.typeInferred in ['HE', 'SHE'] ? 'remembers' : 'remember'), GO: (past ? 'went' : 'goes'),
@@ -847,7 +847,7 @@ class StatefulGenerator {
     }
 
     if (type == 'wh') {
-      out 'what'
+      out(n.s('animate') ? 'who' : 'what')
       return
     }
     if (type == 'THAT') {

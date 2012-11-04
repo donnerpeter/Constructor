@@ -332,9 +332,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
         Variable noun = new Variable()
         return u(comeScalarly(order:'EARLIER'), ransheGen(noun:noun)).xor(relTime(relTime:'BEFORE', xor:t.a)) + u(gen(noun:noun.lightVar, head:var, xor:t.a))
       case "что":
-        return whWord(var, acc(noun:var, xor:t.g), nom(noun:var, xor:t.g, agrNumber:'sg', agrGender:'neu'))
+        return whWord(var, false, acc(noun:var, xor:t.g), nom(noun:var, xor:t.g, agrNumber:'sg', agrGender:'neu'))
       case "кому":
-        return whWord(var, dat(noun:var, xor:t.g))
+        return whWord(var, true, dat(noun:var, xor:t.g))
+      case "кого":
+        return whWord(var, true, acc(noun:var, xor:t.g))
       case 'по':
         Variable verb = new Variable()
         return u(preposition(prep:'по', head:verb.lightVar),
@@ -362,17 +364,21 @@ class Parser { //todo alex implements cons3.RussianConstructions
     return null
   }
 
-  private static Update whWord(Variable var, Mite... syn) {
+  private static Update whWord(Variable var, boolean animate, Mite... syn) {
     Tokens t = new Tokens()
     def comp = new Variable()
     def nextVerb = new Variable()
 
     Update update = u(filler(xor:t.a), question(questioned:var, frame:comp, xor:t.e)) + u(syn)
+    def attrs = [type:'wh']
+    if (animate) {
+      attrs['animate'] = 'true'
+    }
     return update + [
             (declOrQuestionComp):[comp:comp], (relativeClause):[wh:var, relative:nextVerb, xor:t.f],
             (verbHolder):[head:nextVerb.lightVar, newClause:true],
             (sentenceHolder):[head:nextVerb.lightVar],
-            (typeCxt('wh')):[var:var, xor:t.f],
+            (varCxt(attrs)):[var:var, xor:t.f],
             (modality):[questioned:var, xor:t.d], (complementizer):[xor:t.adef + (Set) syn[0].contents.xor, frame:comp]]
   }
 

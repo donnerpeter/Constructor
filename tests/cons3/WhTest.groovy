@@ -24,9 +24,9 @@ class WhTest extends TestCase {
     doTranslateTest "Что она ему сломала?",
             "What did she break?"
   }
-  public void "___test what do they think on this matter"() {
+  public void "test who did he ask?"() {
     doTranslateTest "Кого он спросил?",
-            "What do they think on this matter?"
+            "Who did he ask?"
   }
   public void "____test what do they think on this matter"() {
     doTranslateTest "О чём он спросил соседей?",

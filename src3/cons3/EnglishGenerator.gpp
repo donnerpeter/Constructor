@@ -438,9 +438,9 @@ class StatefulGenerator {
 
     if (verb.type == 'copula') {
       if (subj.canBeHuman() && !subj.s('relativized')) {
-        np(subj, true)
+        np(verb.f('location'), true)
         out(verb.s('time') == 'PAST' ? 'had' : 'have')
-        np(verb.f('location'), false)
+        np(subj, false)
         return subj
       } else {
 

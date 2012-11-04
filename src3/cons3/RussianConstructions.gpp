@@ -6,7 +6,9 @@ import static cons3.Util.*
  */
 interface RussianConstructions {
 
-  Construction nom = commonCase('nom').satisfiedWhen { mite ->
+  Construction nom = cxt('nom', ['noun', 'head']) { ParsingState state, Map args ->
+    state
+  }.satisfiedWhen { mite ->
     mite.contents.head && mite.contents.noun
   }.routeWrong { mite, state ->
     if (mite.contents.head && !mite.v('noun')?.hard && state.network.isChosen(mite)) {
@@ -16,6 +18,10 @@ interface RussianConstructions {
         return true
       }
     }
+  }.enrichingMites { mite, contribution, state ->
+    mite.unifyWherePossible(contribution)
+  }.structural { mite, state, via, up ->
+    Util.showCommonCaseHierarchy(up, state, mite)
   }
   Construction acc = commonCase('acc')
   Construction dat = commonCase('dat')
@@ -50,15 +56,7 @@ interface RussianConstructions {
   Construction oPrepTopic = commonSimpleArg('oPrep', 'topic')
   Construction kDat = commonPrep('k', dat)
   Construction kDatGoal = commonSimpleArg('kDat', 'goal')
-  Construction uGen = cxt('uGen', ['head', 'noun']) { ParsingState state, Map args ->
-    if (args.copula) {
-      def location = args.copula
-      state = state.assign(location, 'type', 'copula').assign(location, 'location', args.head).assign(location, 'arg1', args.noun)
-    } else {
-      state = state.assign(args.head, 'location', args.noun)
-    }
-    state
-  }
+  Construction uGen = commonSimpleArg('uGen', 'location')
   Construction dativePart = cxt('dativePart', ['head', 'dat', 'acc']) { state, args ->
     state.assign(args.acc, 'arg1', args.dat)
   }.enrichingMites { mite, contribution, state ->
@@ -217,15 +215,7 @@ interface RussianConstructions {
   Construction vPrep = commonPrep('v', prep)
   Construction posleGen = commonSimpleArg('posleGen', 'anchor').satisfiedWhen { it.contents.noun && it.contents.head }
   Construction ransheGen = commonSimpleArg('ransheGen', 'anchor').satisfiedWhen { it.contents.noun && it.contents.head }
-  Construction naPrep = cxt('naPrep', ['noun', 'head']) { ParsingState state, Map args ->
-    if (args.copula) {
-      def location = args.copula
-      state = state.assign(location, 'type', 'copula').assign(location, 'arg1', args.head).assign(location, 'location', args.noun)
-    } else {
-      state = state.assign(args.head, 'location', args.noun)
-    }
-    return state
-  }
+  Construction naPrep = commonSimpleArg('naPrep', 'location').satisfiedWhen { it.contents.noun && it.contents.head }
   Construction izGen = commonPrep('iz', gen)
   Construction izGenSource = commonSimpleArg('izGen', 'source')
   Construction doGen = commonPrep('do', gen)
@@ -355,6 +345,9 @@ interface RussianConstructions {
     }
     return []
   }.satisfiedWhen { mite -> mite.contents.filled }
+  Construction copula = cxt('copula', ['head']) { ParsingState state, Map args ->
+    state.assign(args.head, 'type', 'copula')
+  }
 
 
 }

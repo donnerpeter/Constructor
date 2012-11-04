@@ -234,9 +234,9 @@ C.name=гастроном
 -- 2:
 C@1.relative=A
 B.relativized=true
+A.location=C
 A.type=copula
 A.arg1=B
-A.location=C
 C.type=CORNER
 C.arg1=D
 E.type=STREET

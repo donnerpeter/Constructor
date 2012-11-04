@@ -335,8 +335,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
         def nextVerb = new Variable()
 
         Update update = u(filler(xor:t.a), acc(noun:var, xor:t.g), nom(noun:var, xor:t.g, agrNumber:'sg', agrGender:'neu')) +
-                        u(question(questioned:var, frame:comp, xor:t.e)) +
-                        u(naPrep(head:var, copula:nextVerb.lightVar)).xor(noArg(head:var))
+                        u(question(questioned:var, frame:comp, xor:t.e))
         return update + [
                 (declOrQuestionComp):[comp:comp], (relativeClause):[wh:var, relative:nextVerb, xor:t.f],
                 (verbHolder):[head:nextVerb.lightVar, newClause:true],
@@ -374,7 +373,8 @@ class Parser { //todo alex implements cons3.RussianConstructions
                u(vAcc(noun:var), acc(noun:var.lightVar, head:var)).xor(vPrep(noun:var), prep(noun:var.lightVar, head:var))
       case 'из':
       case 'изо': return uPreposition(var, 'из', izGen, gen)
-      case 'на': return uPreposition(var, 'на', naPrep, prep)
+      case 'на':
+        return uPreposition(var, 'на', naPrep, prep)
       case "и": return u(seq(conj:'and'))
       case "или": return u(seq(conj:'or'))
     }
@@ -382,7 +382,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
   }
 
   static Update uPreposition(Variable var, String prep, Construction prepCxt, Construction caseCxt) {
-    u(preposition(prep:prep), prepCxt(noun:var), caseCxt(noun:var.lightVar, head:var))
+    def verb = new Variable()
+    return u(preposition(prep:prep), caseCxt(noun:var.lightVar, head:var)) +
+           u(prepCxt(noun:var)).xor(u(prepCxt(noun:var, head:verb), verbHolder(head:verb), sentenceHolder(head:verb), copula(head:verb)) + Verbs.unomArg(verb))
   }
 
   static Update optional(Update u) {

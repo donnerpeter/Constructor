@@ -221,6 +221,10 @@ class SeqInterceptor {
   private Mite findSimilarOwnMite(Mite mite, ParsingState inState) {
     def wh = constructions.find { it.cxt == filler } || inState.ownMites.find { it.cxt == filler }
     if (mite.cxt in [nom, acc, gen, genArg1] && wh) return null
+
+    def hasCopula = constructions.find { it.cxt == copula } || inState.ownMites.find { it.cxt == copula }
+    if (mite.cxt == nomSubject && hasCopula) return null
+
     if (mite.cxt in [nom, acc, gen, genArg1] && mite.contents.head) return null
     if (mite.cxt in [dat] && mite.contents.head && inState.ownMites.find { it.cxt == preposition }) return null
     if (mite.cxt in [sentenceHolder, noArg, verbalModifier, verbHolder, quotedName, preposition, poDat]) return null

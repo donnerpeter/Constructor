@@ -133,26 +133,27 @@ class Util {
     cxt(name, ['noun', 'head']) { ParsingState state, Map args ->
       state
     }.structural { mite, state, via, up ->
-      if (up) {
-        def headState = state.findState(mite, 'head')
-        if (headState) {
-          if (headState.ownMites.find { it.cxt == preposition }) {
-            return [headState] + headState.prevState.hierarchy
-          }
-          return headState.hierarchy
-        }
-        return null
-      }
-      return state.findState(mite.firstAtom)?.prevVisibleState?.hierarchy
+      return showCommonCaseHierarchy(up, state, mite)
     }.enrichingMites { mite, contribution, state ->
       if (contribution.find { it.cxt == preposition || it.cxt in [ransheGen, posleGen] && it.contents.noun && !it.contents.head }) {
         return []
       }
-      if (mite.contents.inferred) {
-        return []
-      }
       mite.unifyWherePossible(contribution)
     }.satisfiedWhen { it.v('noun')?.hard && it.contents.head }
+  }
+
+  static Collection<ParsingState> showCommonCaseHierarchy(boolean up, ParsingState state, Mite mite) {
+    if (up) {
+      def headState = state.findState(mite, 'head')
+      if (headState) {
+        if (headState.ownMites.find { it.cxt == preposition }) {
+          return [headState] + headState.prevState.hierarchy
+        }
+        return headState.hierarchy
+      }
+      return null
+    }
+    return state.findState(mite.firstAtom)?.prevVisibleState?.hierarchy
   }
 
   static Construction emptyCxt(String name) {

@@ -62,4 +62,12 @@ class RandomStuffTest extends TestCase {
     doTranslateTest 'Он велел помочь ей',
             "To drink tea is to live long"
   }
+  public void "_test I'm on the corner"() {
+    doTranslateTest 'Я на углу',
+            "I'm on the corner"
+  }
+  public void "_test I'm already on the corner of Znamenskaya and Basseynaya streets"() {
+    doTranslateTest 'Я уже на углу Бассейной и Знаменской улицы',
+            "I'm already on the corner of Znamenskaya and Basseynaya streets"
+  }
 }

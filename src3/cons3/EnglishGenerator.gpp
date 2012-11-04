@@ -39,6 +39,11 @@ class StatefulGenerator {
       return
     }
 
+    if (word.startsWith("'")) {
+      output[-1] = output[-1] + word
+      return
+    }
+
     output << (capitalize ? word.capitalize() : word)
     capitalize = false
   }
@@ -437,23 +442,8 @@ class StatefulGenerator {
     }
 
     if (verb.type == 'copula') {
-      if (subj.canBeHuman() && !subj.s('relativized')) {
-        np(verb.f('location'), true)
-        out(verb.s('time') == 'PAST' ? 'had' : 'have')
-        np(subj, false)
-        return subj
-      } else {
-
-        if (subj.s('relativized') == 'true') {
-          out(verb.s('time') == 'PAST' ? 'that was' : "that's")
-        } else {
-          np(subj, true)
-          out(verb.s('time') == 'PAST' ? 'was' : 'is')
-        }
-        out 'on'
-        np(verb.f('location'), false)
-        return subj
-      }
+      generateCopula(verb, subj)
+      return subj
     }
 
     def aux = subj?.hasType() ? aux(verb, subj, imperative) : null
@@ -589,13 +579,7 @@ class StatefulGenerator {
     if (verb.type == 'HAPPEN') {
       out "today"
     }
-    if (verb.s('anchor') == 'AGAIN') {
-      out 'again'
-    }
-
-    if (verb.s('duration') == 'LONG') {
-      out 'for a long time'
-    }
+    generateTimeAdverbs(verb)
 
     def questionComp = verb.f('question')
     if (questionComp) {
@@ -615,6 +599,38 @@ class StatefulGenerator {
       }
     }
     return subj
+  }
+
+  private void generateCopula(Frame verb, Frame subj) {
+    if (verb.f('owner') && !subj.s('relativized')) {
+      np(verb.f('owner'), true)
+      out(verb.s('time') == 'PAST' ? 'had' : 'have')
+      np(subj, false)
+    } else {
+
+      if (subj.s('relativized') == 'true') {
+        out(verb.s('time') == 'PAST' ? 'that was' : "that's")
+      } else {
+        np(subj, true)
+        out(subj.type == 'ME' ? "'m" : verb.s('time') == 'PAST' ? 'was' : 'is')
+      }
+      generateTimeAdverbs(verb)
+      out 'on'
+      np(verb.f('location'), false)
+    }
+  }
+
+  private void generateTimeAdverbs(Frame verb) {
+    if (verb.s('anchor') == 'AGAIN') {
+      out 'again'
+    }
+    else if (verb.s('anchor') == 'ALREADY') {
+      out 'already'
+    }
+
+    if (verb.s('duration') == 'LONG') {
+      out 'for a long time'
+    }
   }
 
   private void generateQuestionComp(Frame questionComp) {

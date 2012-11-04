@@ -56,7 +56,7 @@ interface RussianConstructions {
   Construction oPrepTopic = commonSimpleArg('oPrep', 'topic')
   Construction kDat = commonPrep('k', dat)
   Construction kDatGoal = commonSimpleArg('kDat', 'goal')
-  Construction uGen = commonSimpleArg('uGen', 'location')
+  Construction uGen = commonSimpleArg('uGen', 'owner')
   Construction dativePart = cxt('dativePart', ['head', 'dat', 'acc']) { state, args ->
     state.assign(args.acc, 'arg1', args.dat)
   }.enrichingMites { mite, contribution, state ->

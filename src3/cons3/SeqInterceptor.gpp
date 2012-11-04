@@ -114,13 +114,13 @@ class SeqInterceptor {
     }
 
     def xor = new Tokens().a
-    List<Mite> result = []
+    Update result = new Update()
     def allSimilar = findSimilarContributions()
     for (similar in allSimilar) {
       def variant = mergeWithSimilarState(similar, xor)
-      result.addAll(variant)
+      result = result.xor(variant as Mite[])
     }
-    return result
+    return result.mites.reverse()
   }
 
   private List<Mite> mergeWithSimilarState(ParsingState similar, Object xor) {

@@ -76,25 +76,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "магазина":
         return state.apply((typeCxt('SHOP')):[var:var], (gen):[noun:var],
                 (naPrep):[head:var], (quotedName):[noun:var], (relativeClause):[noun:var])
-      case 'со':
-      case 'с':
-        return state.apply((preposition):[prep:'с'],
-                (sInstr):[noun:var, xor:t.ac], (sGen):[noun:var, xor:t.ab],
-                (instr):[noun:var.lightVar, xor:t.bd, head:var], (gen):[noun:var.lightVar, xor:t.cd, head:var])
-      case 'о': return state.apply((preposition):[prep:'о'], (oPrep):[noun:var], (prep):[noun:var.lightVar, head:var])
-      case 'к': return state.apply((preposition):[prep:'к'], (kDat):[noun:var], (dat):[noun:var.lightVar, head:var])
-      case 'у': return state.apply((preposition):[prep:'у'], (uGen):[noun:var], (gen):[noun:var.lightVar, head:var])
-      case 'до':
-        return state.apply((preposition):[prep:'до'], (doGen):[noun:var], (gen):[noun:var.lightVar, head:var])
-      case 'от':
-        return state.apply((preposition):[prep:'от'], (otGen):[noun:var], (gen):[noun:var.lightVar, head:var])
-      case 'в':
-        return state.apply((preposition):[prep:'в'],
-                (vAcc):[noun:var, xor:t.ac], (vPrep):[noun:var, xor:t.ab],
-                (acc):[noun:var.lightVar, xor:t.bd, head:var], (prep):[noun:var.lightVar, xor:t.cd, head:var])
-      case 'из':
-      case 'изо': return state.apply((preposition):[prep:'из'], (izGen):[noun:var], (gen):[noun:var.lightVar, head:var])
-      case 'на': return state.apply((preposition):[prep:'на'], (naPrep):[noun:var], (prep):[noun:var.lightVar, head:var])
       case "мной":
         return noun(state, instr, 'ME')
       case "меня": return noun(state, gen, 'ME')
@@ -379,10 +360,29 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return u(preposition(prep:'по', head:verb.lightVar),
                 poDat(noun:var), dat(noun:var.lightVar, head:var),
                 verbalModifier(head:verb.lightVar, hasModifier:true))
+      case 'со':
+      case 'с':
+        return u(preposition(prep:'с')) +
+               u(sInstr(noun:var), instr(noun:var.lightVar, head:var)).xor(sGen(noun:var), gen(noun:var.lightVar, head:var))
+      case 'о': return uPreposition(var, 'о', oPrep, prep)
+      case 'к': return uPreposition(var, 'к', kDat, dat)
+      case 'у': return uPreposition(var, 'у', uGen, gen)
+      case 'до': return uPreposition(var, 'до', doGen, gen)
+      case 'от': return uPreposition(var, 'от', otGen, gen)
+      case 'в':
+        return u(preposition(prep:'в')) +
+               u(vAcc(noun:var), acc(noun:var.lightVar, head:var)).xor(vPrep(noun:var), prep(noun:var.lightVar, head:var))
+      case 'из':
+      case 'изо': return uPreposition(var, 'из', izGen, gen)
+      case 'на': return uPreposition(var, 'на', naPrep, prep)
       case "и": return u(seq(conj:'and'))
       case "или": return u(seq(conj:'or'))
     }
     return null
+  }
+
+  static Update uPreposition(Variable var, String prep, Construction prepCxt, Construction caseCxt) {
+    u(preposition(prep:prep), prepCxt(noun:var), caseCxt(noun:var.lightVar, head:var))
   }
 
   static Update optional(Update u) {
@@ -469,7 +469,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
     return u(cxt(var:var))
   }
 
-  static Construction varCxt(Map<String, Object> attrs) {
+  static Construction varCxt(Map<String, ? extends Object> attrs) {
     return cxt("var_${attrs.collect { k, v -> k + "_" + v}.join("_")}") { st, a ->
       for (attr in attrs.keySet()) {
         st = st.assign(a.var, attr, attrs[attr])

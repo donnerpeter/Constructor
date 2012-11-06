@@ -95,20 +95,7 @@ interface RussianConstructions {
     state = state.assign(args.modality, 'time', args.time)
     return state
   }
-  Construction question = cxt('question', ['questioned', 'frame', 'content']) { ParsingState state, Map args ->
-    state = state.assign(args.frame, 'content', args.content)
-    state = state.assign(args.frame, 'type', 'question').assign(args.frame, 'questioned', args.questioned)
-    return state
-  }.enrichingMites { mite, contribution, state ->
-    def dash = contribution.find { it.cxt == questionVariants && it.contents.hasDash }
-    def questioned = mite.contents.questioned
-    if (questioned && dash) {
-      return [dash.unify(new Mite(questionVariants, questioned:questioned))]
-    }
-    return mite.unifyWherePossible(contribution)
-  }.satisfiedWhen { mite -> mite.contents.content && mite.contents.frame }.structural { mite, state, via, up ->
-    up ? state.findState(mite, 'frame')?.hierarchy : null
-  }
+  Construction question = new Question()
   Construction comeScalarly = cxt('comeScalarly', ['verb']) { ParsingState state, Map args ->
     state = state.assign(args.verb, 'type', 'COME_SCALARLY')
     args.order ? state.assign(args.verb, 'order', args.order) : state
@@ -271,13 +258,7 @@ interface RussianConstructions {
   Construction afterRelativeClause = cxt('afterRelativeClause', ['beforeComma', 'noun']) { ParsingState state, Map args ->
     state
   }.structural { mite, state, via, up -> ((ParsingState) mite.contents.beforeComma).hierarchy }
-  Construction complementizer = cxt('complementizer', ['frame', 'content']) { ParsingState state, Map args ->
-    state = state.assign(args.frame, 'type', 'fact')
-    state = state.assign(args.frame, 'content', args.content)
-    return state
-  }.structural { mite, state, via, up ->
-    state.findState(mite, 'frame')?.hierarchy
-  }.satisfiedWhen { mite -> mite.contents.content && mite.contents.frame }
+  Construction complementizer = new Complementizer()
   Construction directSpeech = cxt('directSpeech', ['head', 'message']) { ParsingState state, Map args ->
     state.assign(args.head, 'message', args.message).assign(args.message, 'directSpeech', 'true')
   }.structural { mite, state, via, up -> mite.contents.head ? [ParsingState.EMPTY] : null }.satisfiedWhen { mite ->

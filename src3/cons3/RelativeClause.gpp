@@ -25,10 +25,17 @@ class RelativeClause extends Construction implements RussianConstructions {
         return [self.unify(relativeClause(comma1:true, beforeComma:state))]
       }
       if (self.contents.beforeComma) {
-        return [afterRelativeClause(beforeComma:self.contents.beforeComma, noun:self.contents.noun, xor:constructions.find { it.cxt == seq }.contents.xor)]
+        return [self.unify(relativeClause(finished:true, xor:constructions.find { it.cxt == seq }.contents.xor))]
       }
     }
     return self.unifyWherePossible(constructions)
+  }
+
+  @Override
+  List<ParsingState> showPreviousHierarchy(Mite self, ParsingState state, boolean up) {
+    if (self.contents.finished) {
+      return ((ParsingState) self.contents.beforeComma).hierarchy
+    }
   }
 
   @Override

@@ -31,6 +31,7 @@ class StatefulGenerator {
   boolean past
 
   private void out(String word) {
+    assert word
     if (word == ',') {
       if (output.empty || output[-1] == ',') return
     }
@@ -1122,7 +1123,7 @@ class StatefulGenerator {
       case 'APARTMENTS': return 'apartments'
       case 'OFFICES': return 'offices'
       case 'WATER_MELON': return 'water melon'
-      default: return type
+      default: return type ?: '???'
     }
 
   }

@@ -232,13 +232,11 @@ C.kind=COMMERCIAL
 C.type=SHOP
 C.name=гастроном
 -- 2:
-C@1.relative=A
-B.relativized=true
-A.location=C
+A.location=B
 A.type=copula
-A.arg1=B
-C.type=CORNER
-C.arg1=D
+A.arg1=C
+B.type=CORNER
+B.arg1=D
 E.type=STREET
 E.name=знаменская
 F.type=STREET
@@ -246,6 +244,8 @@ F.name=бассейная
 D.member=E
 D.conj=and
 D.member=F
+C@1.relative=A
+C.relativized=true
 -- 3:
 A.type=ASK
 A.time=PAST

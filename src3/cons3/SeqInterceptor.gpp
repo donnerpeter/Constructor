@@ -74,7 +74,8 @@ class SeqConstruction extends Construction {
       }
     } else {
       if (state.ownMites.find { it.cxt == nomSubject && it.atom && it.contents.head }) {
-        ParsingState prev = state.findState(mite.firstAtom).prevState?.ownMites?.find { it.cxt == afterRelativeClause }?.contents?.beforeComma
+        def relClause = state.findState(mite.firstAtom).prevState?.ownMites?.find { it.cxt == relativeClause && it.contents.finished }
+        ParsingState prev = relClause?.contents?.beforeComma
         if (prev && prev.visibleMites[nomSubject]?.find { it.atom && it.contents.head }) {
           return true
         }

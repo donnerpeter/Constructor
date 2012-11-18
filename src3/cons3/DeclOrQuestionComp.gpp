@@ -1,0 +1,37 @@
+package cons3
+
+/**
+ * @author peter
+ */
+class DeclOrQuestionComp extends Construction implements RussianConstructions {
+
+  def DeclOrQuestionComp() {
+    super('declOrQuestionComp', ['head', 'comp', 'hasComma', 'rel'])
+  }
+
+  @Override
+  ParsingState applySemantics(Mite mite, ParsingState state) {
+    def args = mite.contents
+    state.assign(args.head, (String)args.rel, args.comp)
+  }
+
+  Collection<Mite> enrichUpdate(Mite mite, List<Mite> contribution, ParsingState state) {
+    if (mite.contents.head && contribution.find { it.cxt == declOrQuestionComp && it.contents.hasComma } ||
+        mite.contents.head && mite.contents.hasComma && contribution.find { it.cxt == declOrQuestionComp && it.contents.comp }) {
+      return mite.unifyWherePossible(contribution)
+    }
+    return []
+  }
+
+  @Override
+  List<ParsingState> showPreviousHierarchy(Mite self, ParsingState state, boolean up) {
+    if (self.contents.hasComma) {
+      return [ParsingState.EMPTY]
+    }
+  }
+
+  @Override
+  boolean isMiteSatisfied(Mite mite) {
+    return mite.contents.head && mite.contents.comp
+  }
+}

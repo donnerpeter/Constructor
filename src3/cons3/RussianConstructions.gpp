@@ -74,19 +74,7 @@ interface RussianConstructions {
     }
     return []
   }
-  Construction declOrQuestionComp = cxt('declOrQuestionComp', ['head', 'comp', 'hasComma', 'rel']) { ParsingState state, Map args ->
-    state.assign(args.head, (String)args.rel, args.comp)
-  }.enrichingMites { mite, contribution, state ->
-    if (mite.contents.head && contribution.find { it.cxt == declOrQuestionComp && it.contents.hasComma } ||
-        mite.contents.head && mite.contents.hasComma && contribution.find { it.cxt == declOrQuestionComp && it.contents.comp }) {
-      return mite.unifyWherePossible(contribution)
-    }
-    return []
-  }.structural { mite, state, via, up ->
-    if (mite.contents.hasComma) {
-      return [ParsingState.EMPTY]
-    }
-  }.satisfiedWhen { mite -> mite.contents.head && mite.contents.comp }
+  Construction declOrQuestionComp = new DeclOrQuestionComp()
   Construction modality = cxt('modality', ['modality', 'infinitive', 'questioned']) { ParsingState state, Map args ->
     state = state.assign(args.modality, 'type', 'modality').assign(args.modality, 'arg1', args.infinitive)
     return state

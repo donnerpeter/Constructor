@@ -95,6 +95,10 @@ class Mite {
     mites.find { isSimilarTo(it) }
   }
 
+  Mite unify(Map args) {
+    return unify(cxt(args))
+  }
+
   Mite unify(Mite another) {
     def before = contents
     def newArgs = another.contents
@@ -134,7 +138,7 @@ class Mite {
     if (mites) {
       result.addAll mites.
               findAll { isUnifiable(it) }.
-              collect { before ? this.unify(it) : it.unify(this) }
+              collect { before ? this.unify(it) : it.unify((Mite)this) }
     }
     return result
   }

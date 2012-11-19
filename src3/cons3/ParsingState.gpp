@@ -316,7 +316,8 @@ class ParsingState {
     def log = ""
     def mites = visibleMites
     def links = findAllLinks()
-    log += "$this->${prevVisibleState},  uni: " + chart.activeUnifications.collect { "$it.first=$it.second" }.join(", ") + "\n"
+    def prevHierarchy = hierarchy[1..<hierarchy.size()-1]
+    log += "$this->${prevHierarchy.join(",")},  uni: " + chart.activeUnifications.collect { "$it.first=$it.second" }.join(", ") + "\n"
     for (k in mites.keySet()) {
       log += "    $k: " + mites[k].collect {
         (it in links ? '!!' : '') + (network.isChosen(it) ? '*' : '') + (it.satisfied ? '' : '@') +

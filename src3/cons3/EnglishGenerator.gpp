@@ -796,7 +796,7 @@ class StatefulGenerator {
             DISTRACT:'distracted',
             DISPERSE:'went'
     ]
-    return verbs[type]
+    return verbs[type] ?: '???'
   }
 
   def npseq(Frame _seq, boolean mayHaveDeterminer) {

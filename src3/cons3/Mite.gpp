@@ -47,6 +47,10 @@ class Mite {
     return args
   }
 
+  boolean isPartOf(Mite another) {
+    return another == this || !another.atom && (isPartOf(another.src1) || isPartOf(another.src2))
+  }
+
   static Collection mergeXor(Map oldArgs, Map newArgs) {
     Set xor1 = oldArgs?.xor ?: Collections.emptySet()
     Set xor2 = newArgs?.xor ?: Collections.emptySet()

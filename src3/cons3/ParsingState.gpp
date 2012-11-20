@@ -333,7 +333,7 @@ class ParsingState {
   }
 
   ParsingState findState(Mite mite, String attr) {
-    findState(mite.primaries.find { it.contents[attr] })
+    history.reverse().find { it.ownMites.find { it.contents[attr] && it.isPartOf(mite) } }
   }
   ParsingState findState(Mite mite) {
     if (mite in ownMites) {

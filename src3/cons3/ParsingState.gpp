@@ -288,6 +288,7 @@ class ParsingState {
       }
     } catch (Throwable e) {
       println alternative.chart.presentable() + "\n\n"
+      println alternative.logString + "\n\n"
       println alternative.presentable() + "\n\n"
       throw e
     }

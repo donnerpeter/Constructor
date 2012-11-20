@@ -6,7 +6,7 @@ package cons3
 class DeclOrQuestionComp extends Construction implements RussianConstructions {
 
   def DeclOrQuestionComp() {
-    super('declOrQuestionComp', ['head', 'comp', 'hasComma', 'rel'])
+    super('declOrQuestionComp', ['head', 'comp', 'rel'])
   }
 
   @Override
@@ -16,16 +16,33 @@ class DeclOrQuestionComp extends Construction implements RussianConstructions {
   }
 
   Collection<Mite> enrichUpdate(Mite mite, List<Mite> contribution, ParsingState state) {
-    if (mite.contents.head && contribution.find { it.cxt == declOrQuestionComp && it.contents.hasComma } ||
-        mite.contents.head && mite.contents.hasComma && contribution.find { it.cxt == declOrQuestionComp && it.contents.comp }) {
+    if (!mite.contents.head) {
+      return []
+    }
+
+    if (contribution.find { it.cxt == comma }) {
+      def xor = contribution.find { it.cxt == reasonComp }.contents.xor
+      if (!mite.contents.comma1) {
+        return [mite.unify(comma1:true, beforeComma1:state, xor:xor)]
+      }
+      else if (!mite.contents.comma2 && mite.contents.comp) {
+        return [mite.unify(comma2:true)]
+      }
+    }
+
+    if (!mite.contents.comp && contribution.find { it.cxt == declOrQuestionComp && it.v('comp') }) {
       return mite.unifyWherePossible(contribution)
     }
+
     return []
   }
 
   @Override
   List<ParsingState> showPreviousHierarchy(Mite self, ParsingState state, boolean up) {
-    if (self.contents.hasComma) {
+    if (self.contents.comma2) {
+//      return [state.findState(self, 'comma1')] + ((ParsingState) self.contents.beforeComma1).hierarchy
+    }
+    else if (self.contents.comma1) {
       return [ParsingState.EMPTY]
     }
   }

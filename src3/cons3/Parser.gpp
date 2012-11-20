@@ -178,7 +178,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
                 verbHolder(hasComma:true),
                 verbalModifier(head:verb, xor:t.b),
                 reasonComp(hasComma:true, xor:t.a),
-                declOrQuestionComp(hasComma:true, xor:t.a),
                 adverbialPhrase(comma1:true, xor:t.a), adverbialPhrase(comma2:true, xor:t.a),
                 poDatLuck(comma1:true, xor:t.a, head:verb), poDatLuck(comma2:true, xor:t.a, head:verb),
                 accordingTo(comma1:true, xor:t.a, head:verb), accordingTo(comma2:true, xor:t.a, head:verb),

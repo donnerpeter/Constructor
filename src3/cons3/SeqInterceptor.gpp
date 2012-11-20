@@ -72,10 +72,19 @@ class SeqConstruction extends Construction {
           return true
         }
       }
+/*
+      if (state.ownMites.find { it.cxt == acc && it.atom && !it.contents.head }) {
+        def comp = state.miteList.find { it.cxt == declOrQuestionComp && it.contents.comma2 && it.contents.comp }
+        if (comp && !state.network.isChosen(comp)) {
+          return true
+        }
+      }
+*/
     } else {
       if (state.ownMites.find { it.cxt == nomSubject && it.atom && it.contents.head }) {
-        def relClause = state.findState(mite.firstAtom).prevState?.ownMites?.find { it.cxt == relativeClause && it.contents.finished }
-        ParsingState prev = relClause?.contents?.beforeComma
+        def beforeMites = state.findState(mite.firstAtom).prevState?.ownMites
+        ParsingState prev = beforeMites?.find { it.cxt == relativeClause && it.contents.finished }?.contents?.beforeComma
+        prev = prev ?: beforeMites?.find { it.cxt == declOrQuestionComp && it.contents.comma2 }?.contents?.beforeComma1
         if (prev && prev.visibleMites[nomSubject]?.find { it.atom && it.contents.head }) {
           return true
         }
@@ -102,12 +111,12 @@ class SeqInterceptor {
 
   private boolean isButAfterComma() {
     return self.contents.conj == ',' && !self.contents.multi &&
-           constructions.find { it.cxt == seq && it.contents.conj == 'but' }
+           constructions.find { it.cxt == seq && it.contents.conj == 'but' && !it.contents.mergedWith }
   }
 
   Collection<Mite> enrichUpdate() {
     if (isButAfterComma()) {
-      return seq(beforeComma:before).unifyWherePossible(constructions, false, false)
+      return seq(beforeComma:before, xor:self.contents.xor).unifyWherePossible(constructions, false, false)
     }
 
     if (self.contents.mergedWith) {

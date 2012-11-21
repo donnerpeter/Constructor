@@ -171,8 +171,8 @@ class ParsingState {
   }
 
   private static ParsingState correctRoute(ParsingState state, FList<ParsingState> reapply, List log) {
-    for (mite in state.miteList) {
-      if (mite in state.miteList && !state.network.isChosen(mite)) {
+    for (mite in state.ownMites) {
+      if (!state.network.isChosen(mite)) {
         def anotherActive = state.network.choose([mite]).maximizeSatisfiedness([mite])
         def alternative = state.clone(log:log).activate(anotherActive)
         for (step in reapply) {

@@ -98,11 +98,10 @@ class Util {
     }
     if (mite.contents.content) {
       def firstAtom = mite.firstAtom
-      if (firstAtom?.contents?.comma1) {
-        def beforeState = state.findState(firstAtom)
-        def beforeComma = beforeState.prevState?.hierarchy
+      if (firstAtom.contents.comma1) {
+        def beforeComma = state.findState(firstAtom).prevState?.hierarchy
         if (beforeComma) {
-          return [beforeState] + beforeComma
+          return beforeComma
         }
       }
     }

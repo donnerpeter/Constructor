@@ -21,12 +21,12 @@ class DeclOrQuestionComp extends Construction implements RussianConstructions {
     }
 
     if (contribution.find { it.cxt == comma }) {
-      def xor = contribution.find { it.cxt == reasonComp }.contents.xor
+      def xor = contribution.find { it.cxt == seq }.contents.xor
       if (!mite.contents.comma1) {
         return [mite.unify(comma1:true, beforeComma1:state, xor:xor)]
       }
       else if (!mite.contents.comma2 && mite.contents.comp) {
-        return [mite.unify(comma2:true)]
+        return [mite.unify(comma2:true, xor:xor)]
       }
     }
 
@@ -40,7 +40,7 @@ class DeclOrQuestionComp extends Construction implements RussianConstructions {
   @Override
   List<ParsingState> showPreviousHierarchy(Mite self, ParsingState state, boolean up) {
     if (self.contents.comma2) {
-//      return [state.findState(self, 'comma1')] + ((ParsingState) self.contents.beforeComma1).hierarchy
+      return ((ParsingState) self.contents.beforeComma1).hierarchy
     }
     else if (self.contents.comma1) {
       return [ParsingState.EMPTY]

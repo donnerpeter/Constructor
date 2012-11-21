@@ -272,6 +272,14 @@ A@3.member=B
     doTranslateTest 'Кассирша сказала, что семь идет после восьми',
                     "The cashier said that a seven comes after an eight"
   }
+  public void test6_7_IndirectSheShortConjunct() {
+    doTranslateTest 'Кассирша сказала, что семь идет после восьми, и грустно улыбнулась',
+                    "The cashier said that a seven comes after an eight and gave us a sad smile"
+  }
+  public void testIAskedWhatToDoThem() {
+    doTranslateTest 'Я спросил, что делать, их',
+                    "I asked them what to do"
+  }
   public void test6_7_IndirectNoOpinion() {
     doTranslateTest 'Кассирша сказала, что семь идет после восьми в том случае, когда восемь идет после семи',
                     "The cashier said that a seven comes after an eight, only if an eight comes after a seven"

@@ -205,7 +205,11 @@ interface RussianConstructions {
   })
   Construction accordingTo = commaSurrounded(cxt('accordingTo', ['content', 'head']) { ParsingState state, Map args ->
     state.assign(args.head, 'opinion_of', args.content)
-  })
+  }).routeWrong { mite, state ->
+    if (mite.v('head').frame(state.chart).allAssignments('opinion_of').size() > 1) {
+      return true
+    }
+  }.satisfiedWhen { mite -> mite.contents.head && mite.contents.content }
   Construction seq = new SeqConstruction()
   Construction advObj = cxt('advObj', ['adv', 'head']) { ParsingState state, Map args ->
     if (args.head && args.adv) {
@@ -298,7 +302,7 @@ interface RussianConstructions {
   Construction noArg = emptyCxt('noArg')
 
   Construction verbalModifier = emptyCxt('verbalModifier').structural { mite, state, via, up ->
-    if (((Variable) mite.lastAtom.contents.head)?.hard) {
+    if (!up && ((Variable) mite.lastAtom.contents.head)?.hard) {
       return state.findState(mite, 'hasModifier')?.prevVisibleState?.hierarchy
     }
   }

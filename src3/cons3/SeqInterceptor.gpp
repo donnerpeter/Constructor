@@ -72,14 +72,6 @@ class SeqConstruction extends Construction {
           return true
         }
       }
-/*
-      if (state.ownMites.find { it.cxt == acc && it.atom && !it.contents.head }) {
-        def comp = state.miteList.find { it.cxt == declOrQuestionComp && it.contents.comma2 && it.contents.comp }
-        if (comp && !state.network.isChosen(comp)) {
-          return true
-        }
-      }
-*/
     } else {
       if (state.ownMites.find { it.cxt == nomSubject && it.atom && it.contents.head }) {
         def beforeMites = state.findState(mite.firstAtom).prevState?.ownMites
@@ -89,7 +81,6 @@ class SeqConstruction extends Construction {
           return true
         }
       }
-
     }
     return false
   }

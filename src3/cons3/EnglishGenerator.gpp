@@ -406,6 +406,7 @@ class StatefulGenerator {
   private Frame clauseInner(Frame verb, boolean shouldHaveSubject, boolean forceSubject, boolean topLevel) {
     assert verb
 
+    def mainFrame = verb
     if (verb.type == 'question') {
       verb = verb.f('content')
     }
@@ -427,7 +428,7 @@ class StatefulGenerator {
     }
 
     def questioned = findQuestioned(verb)
-    if (questioned) {
+    if (questioned && !mainFrame.usages('relative')) {
       np(questioned, false, true)
     }
 

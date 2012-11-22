@@ -246,7 +246,6 @@ interface RussianConstructions {
     }
     return []
   }
-  Construction relativeClause = new RelativeClause()
   Construction complementizer = new Complementizer()
   Construction directSpeech = cxt('directSpeech', ['head', 'message']) { ParsingState state, Map args ->
     state.assign(args.head, 'message', args.message).assign(args.message, 'directSpeech', 'true')

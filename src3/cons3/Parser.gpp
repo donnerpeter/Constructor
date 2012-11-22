@@ -70,12 +70,12 @@ class Parser { //todo alex implements cons3.RussianConstructions
 
         state = state.apply((typeCxt('GARDEN')):[var:var],
                 (nom):[noun:var, xor:t.a], (acc):[noun:var, xor:t.a],
-                (summerGarden):[garden:var], (naPrep):[head:var], (relativeClause):[noun:var])
+                (summerGarden):[garden:var], (naPrep):[head:var], (declOrQuestionComp):[head:var, rel:'relative'])
         return state //todo one noun frame - several cases
       case "сада": return noun(state, gen, 'GARDEN')
       case "магазина":
         return state.apply((typeCxt('SHOP')):[var:var], (gen):[noun:var],
-                (naPrep):[head:var], (quotedName):[noun:var], (relativeClause):[noun:var])
+                (naPrep):[head:var], (quotedName):[noun:var], (declOrQuestionComp):[head:var, rel:'relative'])
       case "мной":
         return noun(state, instr, 'ME')
       case "меня": return noun(state, gen, 'ME')
@@ -281,7 +281,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case '5-ти':
         return unoun(gen, var, '5')
       case "магазин":
-        return uv(var, type:'SHOP') + u(nom(noun:var)).xor(acc(noun:var)) + u(naPrep(head:var), quotedName(noun:var), relativeClause(noun:var))
+        return uv(var, type:'SHOP') + u(nom(noun:var)).xor(acc(noun:var)) + u(naPrep(head:var), quotedName(noun:var), declOrQuestionComp(head:var, rel:'relative'))
       case "счета": return unoun(gen, var, 'COUNTING')
       case "вдруг": return uadv('manner', 'SUDDENLY')
       case "уже": return uadv('anchor', 'ALREADY')
@@ -374,7 +374,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       attrs['animate'] = 'true'
     }
     return update + [
-            (declOrQuestionComp):[comp:comp], (relativeClause):[wh:var, verb:nextVerb, relative:comp, xor:t.f],
+            (declOrQuestionComp):[comp:comp],
             (verbHolder):[head:nextVerb.lightVar, newClause:true],
             (sentenceHolder):[head:nextVerb.lightVar],
             (varCxt(attrs)):[var:var, xor:t.f],
@@ -383,8 +383,11 @@ class Parser { //todo alex implements cons3.RussianConstructions
 
   static Update uPreposition(Variable var, String prep, Construction prepCxt, Construction caseCxt) {
     def verb = new Variable()
+    def copulaVariant = u(prepCxt(noun:var, head:verb), verbHolder(head:verb), sentenceHolder(head:verb), copula(head:verb), adverb(head:verb)) +
+                       Verbs.unomArg(verb) +
+                       u(complementizer(content:verb)).xor(question(content:verb))
     return u(preposition(prep:prep), caseCxt(noun:var.lightVar, head:var)) +
-           u(prepCxt(noun:var)).xor(u(prepCxt(noun:var, head:verb), verbHolder(head:verb), sentenceHolder(head:verb), copula(head:verb), adverb(head:verb)) + Verbs.unomArg(verb))
+           u(prepCxt(noun:var)).xor(copulaVariant)
   }
 
   static Update optional(Update u) {

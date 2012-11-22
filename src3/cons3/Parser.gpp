@@ -366,17 +366,14 @@ class Parser { //todo alex implements cons3.RussianConstructions
   private static Update whWord(Variable var, boolean animate, Mite... syn) {
     Tokens t = new Tokens()
     def comp = new Variable()
-    def nextVerb = new Variable()
 
-    Update update = u(filler(xor:t.a), question(questioned:var, frame:comp, xor:t.e)) + u(syn)
     def attrs = [type:'wh']
     if (animate) {
       attrs['animate'] = 'true'
     }
+    Update update = u(filler(xor:t.a), question(questioned:var, frame:comp, xor:t.e)) + u(syn)
     return update + [
             (declOrQuestionComp):[comp:comp],
-            (verbHolder):[head:nextVerb.lightVar, newClause:true],
-            (sentenceHolder):[head:nextVerb.lightVar],
             (varCxt(attrs)):[var:var, xor:t.f],
             (modality):[questioned:var, xor:t.d], (complementizer):[xor:t.adef + (Set) syn[0].contents.xor, frame:comp]]
   }
@@ -435,9 +432,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
     def datNoun = new Variable().lightVar
     Tokens t = new Tokens()
     return state.assign(verb, 'type', type).apply(args +
-            [(dat):[noun:datNoun], (datArg1):[head:verb, noun:datNoun], (control): [slave: verb, xor:t.a],
+            [(dat):[noun:datNoun], (datArg1):[head:verb, noun:datNoun], (control): [slave: verb, xor:t.ab],
                     (question): [content:mod, xor:t.a], (modality):[modality:mod, infinitive:verb], (timedModality):[modality:mod],
-                    (verbHolder):[head:verb]])
+                    (verbHolder):[head:verb], (sentenceHolder):[head:verb, xor:t.b]])
   }
 
   private static ParsingState noun(ParsingState state, Construction caze, String type) {

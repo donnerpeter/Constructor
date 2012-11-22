@@ -244,8 +244,10 @@ F.name=бассейная
 D.member=E
 D.conj=and
 D.member=F
-C@1.relative=A
-C.relativized=true
+C@1.relative=G
+G.type=question
+G.content=A
+G.questioned=C
 -- 3:
 A.type=ASK
 A.time=PAST

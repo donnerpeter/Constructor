@@ -603,13 +603,14 @@ class StatefulGenerator {
   }
 
   private void generateCopula(Frame verb, Frame subj) {
-    if (verb.f('owner') && !subj.s('relativized')) {
+    def question = subj.usages('questioned')[0]
+    if (verb.f('owner') && !question) {
       np(verb.f('owner'), true)
       out(verb.s('time') == 'PAST' ? 'had' : 'have')
       np(subj, false)
     } else {
 
-      if (subj.s('relativized') == 'true') {
+      if (question) {
         out(verb.s('time') == 'PAST' ? 'that was' : "that's")
       } else {
         np(subj, true)

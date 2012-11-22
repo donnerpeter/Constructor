@@ -6,13 +6,13 @@ package cons3
 class RelativeClause extends Construction implements RussianConstructions {
 
   def RelativeClause() {
-    super('relativeClause', ['noun', 'relative', 'wh'])
+    super('relativeClause', ['noun', 'relative', 'wh', 'verb'])
   }
 
   @Override
   ParsingState applySemantics(Mite mite, ParsingState state) {
     def args = mite.contents
-    state.assign(args.noun, 'relative', args.relative).assign(args.wh, 'relativized', 'true')
+    state.assign(args.noun, 'relative', args.relative).assign(args.relative, 'type', 'question').assign(args.relative, 'content', args.verb).assign(args.relative, 'questioned', args.wh)
   }
 
   Collection<Mite> enrichUpdate(Mite self, List<Mite> constructions, ParsingState state) {

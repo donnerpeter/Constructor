@@ -374,7 +374,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       attrs['animate'] = 'true'
     }
     return update + [
-            (declOrQuestionComp):[comp:comp], (relativeClause):[wh:var, relative:nextVerb, xor:t.f],
+            (declOrQuestionComp):[comp:comp], (relativeClause):[wh:var, verb:nextVerb, relative:comp, xor:t.f],
             (verbHolder):[head:nextVerb.lightVar, newClause:true],
             (sentenceHolder):[head:nextVerb.lightVar],
             (varCxt(attrs)):[var:var, xor:t.f],

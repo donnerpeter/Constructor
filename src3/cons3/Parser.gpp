@@ -331,11 +331,12 @@ class Parser { //todo alex implements cons3.RussianConstructions
         Variable noun = new Variable()
         return u(comeScalarly(order:'EARLIER'), ransheGen(noun:noun)).xor(relTime(relTime:'BEFORE', xor:t.a)) + u(gen(noun:noun.lightVar, head:var, xor:t.a))
       case "что":
-        return whWord(var, false, acc(noun:var, xor:t.g), nom(noun:var, xor:t.g, agrNumber:'sg', agrGender:'neu'))
+        return u(declOrQuestionComp(comp:v[v])) +
+               (whWord(var, v[v], false) + u(acc(noun:var)).xor(nom(noun:var, agrNumber:'sg', agrGender:'neu'))).xor(complementizer(frame:v[v]))
       case "кому":
-        return whWord(var, true, dat(noun:var, xor:t.g))
+        return u(declOrQuestionComp(comp:v[v])) + whWord(var, v[v], true) + u(dat(noun:var))
       case "кого":
-        return whWord(var, true, acc(noun:var, xor:t.g))
+        return u(declOrQuestionComp(comp:v[v])) + whWord(var, v[v], true) + u(acc(noun:var))
       case 'по':
         Variable verb = new Variable()
         return u(preposition(prep:'по', head:verb.lightVar),
@@ -363,19 +364,12 @@ class Parser { //todo alex implements cons3.RussianConstructions
     return null
   }
 
-  private static Update whWord(Variable var, boolean animate, Mite... syn) {
-    Tokens t = new Tokens()
-    def comp = new Variable()
-
+  private static Update whWord(Variable var, Variable comp, boolean animate) {
     def attrs = [type:'wh']
     if (animate) {
       attrs['animate'] = 'true'
     }
-    Update update = u(filler(xor:t.a), question(questioned:var, frame:comp, xor:t.e)) + u(syn)
-    return update + [
-            (declOrQuestionComp):[comp:comp],
-            (varCxt(attrs)):[var:var, xor:t.f],
-            (modality):[questioned:var, xor:t.d], (complementizer):[xor:t.adef + (Set) syn[0].contents.xor, frame:comp]]
+    return u(filler([:]), question(questioned:var, frame:comp), modality(questioned:var)) + uv(attrs, var)
   }
 
   static Update uPreposition(Variable var, String prep, Construction prepCxt, Construction caseCxt) {

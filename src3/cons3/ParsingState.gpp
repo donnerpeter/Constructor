@@ -77,7 +77,7 @@ class ParsingState {
 
   @Override
   String toString() {
-    return "#$currentGeneration"
+    return this == EMPTY ? "##" : "#$currentGeneration"
   }
 
   ParsingState startMeta(Variable meta) {
@@ -369,6 +369,10 @@ class ParsingState {
 
   String getLogString() {
     log.collect { it instanceof ParsingState ? it.presentable() : it.toString() }.join('')
+  }
+
+  boolean isEmpty() {
+    return prevState == null
   }
 
 }

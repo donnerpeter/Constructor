@@ -54,7 +54,8 @@ class Frame {
 
     if (attr == 'arg1') {
       if (type == 'NEIGHBOURS') {
-        return mockFrame(type:'ME')
+        def verb = usages('arg2')[0] ?: usages('goal')[0]
+        return verb?.f('arg1')
       }
       if (type in ['MOUTH', 'NOSE', 'JAW', 'JAWS']) {
         def verb = chart.frames.find { it.definedAttributeValue('arg1') }
@@ -102,19 +103,6 @@ class Frame {
       }
     }
     return null
-  }
-
-  private Frame mockFrame(Map attrs) {
-    return new Frame(new Variable(), chart) {
-
-      @Override
-      String s(String attr, boolean infer = false) {
-        def s = attrs[attr]
-        return s instanceof String ? (String) s : null
-      }
-
-    }
-
   }
 
   List<Frame> flatten() {

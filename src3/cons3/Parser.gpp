@@ -12,7 +12,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
   }
 
   Chart parse(String text) {
-    ParsingState state = new ParsingState()
+    ParsingState state = ParsingState.EMPTY
     def tokenizer = new StringTokenizer(text, """ '":,.?!""", true)
     for (String w in tokenizer) {
       if (w != ' ') {
@@ -106,6 +106,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case "он": return pronoun(state, nom, 'HE')
       case "она": return pronoun(state, nom, 'SHE')
       case "они": return pronoun(state, nom, 'THEY')
+      case "соседей": return noun(state, acc, 'NEIGHBOURS')
       case "соседям": return noun(state, dat, 'NEIGHBOURS')
       case "арбуз": return noun(state, nom, 'WATER_MELON')
       case "кассиршу": return noun(state, acc, 'CASHIER')
@@ -337,6 +338,9 @@ class Parser { //todo alex implements cons3.RussianConstructions
         return u(declOrQuestionComp(comp:v[v])) + whWord(var, v[v], true) + u(dat(noun:var))
       case "кого":
         return u(declOrQuestionComp(comp:v[v])) + whWord(var, v[v], true) + u(acc(noun:var))
+      case "чем":
+      case "чём":
+        return u(declOrQuestionComp(comp:v[v])) + whWord(var, v[v], false) + u(prep(noun:var))
       case 'по':
         Variable verb = new Variable()
         return u(preposition(prep:'по', head:verb.lightVar),
@@ -346,7 +350,7 @@ class Parser { //todo alex implements cons3.RussianConstructions
       case 'с':
         return u(preposition(prep:'с')) +
                u(sInstr(noun:var), instr(noun:var.lightVar, head:var)).xor(sGen(noun:var), gen(noun:var.lightVar, head:var))
-      case 'о': return uPreposition(var, 'о', oPrep, prep)
+      case 'о': return uPreposition(var, 'о', oPrep, prep, false)
       case 'к': return uPreposition(var, 'к', kDat, dat)
       case 'у': return uPreposition(var, 'у', uGen, gen)
       case 'до': return uPreposition(var, 'до', doGen, gen)
@@ -372,13 +376,14 @@ class Parser { //todo alex implements cons3.RussianConstructions
     return u(filler([:]), question(questioned:var, frame:comp), modality(questioned:var)) + uv(attrs, var)
   }
 
-  static Update uPreposition(Variable var, String prep, Construction prepCxt, Construction caseCxt) {
+  static Update uPreposition(Variable var, String prep, Construction prepCxt, Construction caseCxt, boolean withCopula = true) {
     def verb = new Variable()
     def copulaVariant = u(prepCxt(noun:var, head:verb), verbHolder(head:verb), sentenceHolder(head:verb), copula(head:verb), adverb(head:verb)) +
                        Verbs.unomArg(verb) +
                        u(complementizer(content:verb)).xor(question(content:verb))
+    def justPrep = u(prepCxt(noun:var))
     return u(preposition(prep:prep), caseCxt(noun:var.lightVar, head:var)) +
-           u(prepCxt(noun:var)).xor(copulaVariant)
+           (withCopula ? justPrep.xor(copulaVariant) : justPrep)
   }
 
   static Update optional(Update u) {

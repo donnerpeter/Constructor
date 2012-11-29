@@ -399,6 +399,7 @@ class StatefulGenerator {
     if (!verb) return null
     if (verb.f('arg1')?.type == 'wh') return verb.f('arg1')
     if (verb.f('arg2')?.type == 'wh') return verb.f('arg2')
+    if (verb.f('topic')?.type == 'wh') return verb.f('topic')
     if (verb.f('arg2')?.f('arg1')?.type == 'wh') return verb.f('arg2')
     return null
   }
@@ -556,8 +557,10 @@ class StatefulGenerator {
             verb.type in ['DISTRACT'] ? verb.f('theme') :
               verb.type == 'FALL' ? verb.f('source') : null
       if (io?.hasType()) {
-        out(verb.type == 'DISTRACT' ? 'from' : verb.type == 'FALL' ? 'off' : verb.type in ['ASK', 'THINK'] ? 'on' : "to")
-        np(io, false)
+        out(verb.type == 'DISTRACT' ? 'from' : verb.type == 'FALL' ? 'off' : verb.type in ['ASK', 'THINK'] ? (io == questioned ? 'about' : 'on') : "to")
+        if (io != questioned) {
+          np(io, false)
+        }
       }
     }
 

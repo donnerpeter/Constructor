@@ -307,21 +307,7 @@ interface RussianConstructions {
   }
 
   Construction argSharing = emptyCxt('argSharing')
-  Construction filler = emptyCxt('filler').enrichingMites { mite, contribution, state ->
-    def whState = state.findState(mite)
-    while (true) {
-      def prev = whState.prevVisibleState
-      if (prev.empty || prev.ownMites.find { it.cxt == comma }) {
-        break
-      }
-      whState = prev
-    }
-    List<Mite> fillerContent = whState.contribution.findAll { it.cxt in [nom, acc, oPrep] }
-    if (!mite.contents.filled && contribution.find { it.unifyWherePossible(fillerContent) }) {
-      return [mite.unify(mite.cxt(filled:true))]
-    }
-    return []
-  }.satisfiedWhen { mite -> mite.contents.filled }
+  Construction filler = new Filler()
   Construction copula = cxt('copula', ['head']) { ParsingState state, Map args ->
     state.assign(args.head, 'type', 'copula')
   }

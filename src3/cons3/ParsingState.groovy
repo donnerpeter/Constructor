@@ -16,7 +16,7 @@ class ParsingState {
   private final List log
 
   ParsingState() {
-    this([chart: new Chart(), prevState:EMPTY, network:new Network([:], [:], [:], [])], null)
+    this([chart: new Chart(), prevState:EMPTY, network:new Network([:], [:], [:], [] as LinkedHashSet)], null)
   }
 
   private ParsingState(Map map, ParsingState base) {
@@ -112,7 +112,7 @@ class ParsingState {
 
     def interceptor = nextInterceptor(null)
     if (interceptor) {
-      return ((Interceptor) interceptor.contents.interceptor).intercept(constructions, this, { c, s -> baseApply(s, c, true) })
+      return ((Interceptor) interceptor.contents.interceptor).intercept(constructions, this, { c, s -> baseApply(s, c, true) } as Function2)
     }
     return baseApply(this, constructions, true)
   }
@@ -130,7 +130,7 @@ class ParsingState {
 
     def newActive = state.network.choose(fullUpdate as List)
     def sat = newActive.maximizeSatisfiedness([])
-    state = state.activate(sat)
+    state = activate(state, sat)
 
     state = processAlternatives(state, fullUpdate)
 
@@ -174,7 +174,7 @@ class ParsingState {
     for (mite in state.ownMites) {
       if (!state.network.isChosen(mite)) {
         def anotherActive = state.network.choose([mite]).maximizeSatisfiedness([mite])
-        def alternative = state.clone(log:log).activate(anotherActive)
+        def alternative = activate(state.clone(log:log), anotherActive)
         for (step in reapply) {
           alternative = baseApply(alternative, step.contribution, false)
         }
@@ -281,7 +281,7 @@ class ParsingState {
   }
 
   private static ParsingState doTryAlternative(ParsingState state, Network anotherActive) {
-    def alternative = state.activate(anotherActive)
+    def alternative = activate(state, anotherActive)
     try {
       if (new Domination(alternative, state).dominatesSemantically()) {
         return alternative

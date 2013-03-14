@@ -31,7 +31,9 @@ class Construction {
 
   boolean isRouteWrong(Mite self, ParsingState state) { wrongRoute.call(self, state) }
 
-  boolean isMiteSatisfied(Mite self) { this.isSatisfied.call(self) }
+  boolean isMiteSatisfied(Mite self) {
+    isSatisfied.call(self)
+  }
 
   Construction withAction(Function2<ParsingState, Map, ParsingState> action) {
     this.action = action
@@ -52,6 +54,9 @@ class Construction {
     return this
   }
 
+  Construction satisfiedWhen(Closure condition) {
+    satisfiedWhen({ condition.call(it) as boolean } as Predicate1)
+  }
   Construction satisfiedWhen(Predicate1<Mite> condition) {
     isSatisfied = condition
     return this

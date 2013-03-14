@@ -12,8 +12,10 @@ public class ParsingStateTest extends TestCase {
   Construction ac2 = attrCxt('ac2')
   Construction ec2 = emptyCxt('ec2')
   Construction ec3 = emptyCxt('ec3')
-  Construction myAcc = Construction.cxt('myAcc', ['head', 'noun']) { state, args -> state.assign(args.head, 'arg2', args.noun) }.satisfiedWhen { it.contents.head }
-  Construction myNom = Construction.cxt('myNom', ['head', 'noun']) { state, args -> state.assign(args.head, 'arg1', args.noun) }.satisfiedWhen { it.contents.head }
+  Construction myAcc = Construction.cxt('myAcc', ['head', 'noun']) { state, args ->
+    state.assign(args.head, 'arg2', args.noun) }.satisfiedWhen { it.contents.head }
+  Construction myNom = Construction.cxt('myNom', ['head', 'noun']) { state, args ->
+    state.assign(args.head, 'arg1', args.noun) }.satisfiedWhen { it.contents.head }
   Tokens t = new Tokens()
 
   Construction attrCxt(String name) {

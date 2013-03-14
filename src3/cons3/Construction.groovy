@@ -39,16 +39,19 @@ class Construction {
     this.action = action
     return this
   }
+  Construction enrichingMites(Closure action) { enrichingMites(action as Function3) }
   Construction enrichingMites(Function3<Mite, List<Mite>, ParsingState, Collection<Mite>> action) {
     enrichAction = action
     return this
   }
 
+  Construction structural(Closure action) { structural(action as Function4) }
   Construction structural(Function4<Mite, ParsingState, Mite, Boolean, List<ParsingState>> action) {
     showPrev = action
     return this
   }
 
+  Construction routeWrong(Closure action) { routeWrong(action as Function2) }
   Construction routeWrong(Function2<Mite, ParsingState, Boolean> condition) {
     wrongRoute = condition
     return this

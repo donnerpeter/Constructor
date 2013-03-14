@@ -9,7 +9,7 @@ class Domination {
   ParsingState self
   ParsingState other
 
-  private Pair<Frame, Frame> findPair(Predicate2<Frame, Frame> condition) {
+  private Pair<Frame, Frame> findPair(Closure condition) {
     for (frame in self.chart.frames) {
       Frame alternative = frame.unifiedVar.frame(other.chart)
       if (condition(frame, alternative)) {

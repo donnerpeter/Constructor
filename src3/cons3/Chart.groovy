@@ -41,13 +41,13 @@ class Chart {
   }
 
   private Chart(Map args, Chart base) {
-    currentMetas = args.getOrElse('currentMetas', base.currentMetas)
-    __metas = args.getOrElse('metas', base.__metas)
-    metaUnifications = args.getOrElse('metaUnifications', base.metaUnifications)
-    section = args.getOrElse('section', base.section)
-    allUnits = args.getOrElse('allUnits', base.allUnits)
-    activeKeys = args.getOrElse('activeKeys', base.activeKeys)
-    currentKey = args.getOrElse('currentKey', base.currentKey)
+    currentMetas = getOrElse(args, 'currentMetas', base.currentMetas)
+    __metas = getOrElse(args, 'metas', base.__metas)
+    metaUnifications = getOrElse(args, 'metaUnifications', base.metaUnifications)
+    section = getOrElse(args, 'section', base.section)
+    allUnits = getOrElse(args, 'allUnits', base.allUnits)
+    activeKeys = getOrElse(args, 'activeKeys', base.activeKeys)
+    currentKey = getOrElse(args, 'currentKey', base.currentKey)
 
     assert allUnits.containsKey(currentKey)
     if (allUnits.size() < activeKeys.size()) {
@@ -203,7 +203,7 @@ class Chart {
       }
       if (currentSection == sections[var]) return shortNames[var]
       return shortNames[var] + "@" + sections[var]
-    }
+    } as Function2
   }
 
   String presentable() {

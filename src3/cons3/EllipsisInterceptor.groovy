@@ -63,7 +63,7 @@ class EllipsisInterceptor extends Interceptor {
       if (mite.contents.xor) {
         newArgs.xor = ((Set) mite.contents.xor).collect { xorMapping.get(it, new TokenWrapper(it)) } as LinkedHashSet
       }
-      newContribution = newContribution + mite.cxt(newArgs)
+      newContribution = newContribution + mite.cxt.call(newArgs)
     }
     return newContribution
   }

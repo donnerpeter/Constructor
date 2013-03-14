@@ -48,7 +48,7 @@ class Update {
       if (it.atom) {
         new Mite(it.contents + [xor:xors], it.cxt, it.unifications)
       } else {
-        it.unify(it.cxt(xor:xors))
+        it.unify(it.cxt.call(xor:xors))
       }
     }
     newMites.addAll mites1.collect(addXors)

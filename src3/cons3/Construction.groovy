@@ -5,15 +5,18 @@ package cons3
  */
 class Construction {
   public static final Construction noArg = Util.emptyCxt('noArg')
-  private Function2<ParsingState, Map, ParsingState> action = { state, args -> state }
+  private Function2<ParsingState, Map, ParsingState> action =
+    { state, args -> state } as Function2
   final String name
   private final List<String> requiredAttrs
-  private Function4<Mite, ParsingState, Mite, Boolean, List<ParsingState>> showPrev = { mite, state, via, up -> null }
-  private Function2<Mite, ParsingState, Boolean> wrongRoute = { mite, update -> false }
+  private Function4<Mite, ParsingState, Mite, Boolean, List<ParsingState>> showPrev =
+    { mite, state, via, up -> null } as Function4
+  private Function2<Mite, ParsingState, Boolean> wrongRoute =
+    { mite, update -> false } as Function2
   private Function3<Mite, List<Mite>, ParsingState, Collection<Mite>> enrichAction = { mite, contribution, state ->
     return mite.unifyWherePossible(contribution)
-  }
-  private Predicate1<Mite> isSatisfied = { mite -> true }
+  } as Function3
+  private Predicate1<Mite> isSatisfied = { mite -> true } as Predicate1
 
   protected Construction(String name, List<String> requiredAttrs = []) {
     this.name = name
@@ -26,9 +29,9 @@ class Construction {
 
   List<ParsingState> showPreviousHierarchy(Mite self, ParsingState state, boolean up) { showPrev(self, state, null, up) }
 
-  boolean isRouteWrong(Mite self, ParsingState state) { wrongRoute(self, state) }
+  boolean isRouteWrong(Mite self, ParsingState state) { wrongRoute.call(self, state) }
 
-  boolean isMiteSatisfied(Mite self) { this.isSatisfied(self) }
+  boolean isMiteSatisfied(Mite self) { this.isSatisfied.call(self) }
 
   Construction withAction(Function2<ParsingState, Map, ParsingState> action) {
     this.action = action

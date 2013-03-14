@@ -19,7 +19,6 @@ package cons3
 /**
  * Simple implementation of one-directional immutable functional list
  */
-@Typed
 abstract class FList<T> extends AbstractList<T> implements Serializable {
   /**
    * Singleton for empty list
@@ -178,7 +177,7 @@ abstract class FList<T> extends AbstractList<T> implements Serializable {
               hasNext:{false},
               next:{throw new NoSuchElementException()},
               remove:{throw new UnsupportedOperationException()}
-      ]
+      ] as Iterator
     }
 
     @Override
@@ -225,7 +224,7 @@ abstract class FList<T> extends AbstractList<T> implements Serializable {
     }
 
     public Iterator<T> iterator() {
-      head.singleton().iterator()
+      [head].iterator()
     }
 
     public FList<T> getTail() {
@@ -254,32 +253,39 @@ abstract class FList<T> extends AbstractList<T> implements Serializable {
     }
 
     Iterator<T> iterator () {
-      [
-              cur:     (FList<T>)this,
-              hasNext: { cur.size },
-              next:    {
-                def that = cur;
-                cur = cur.tail;
-                that.head
-              },
-              remove:  { throw new UnsupportedOperationException() }
-      ]
+      def list = (FList<T>) this
+      return new Iterator<T>() {
+        def cur = list
+        boolean hasNext() {
+          return cur.size
+        }
+
+        T next() {
+          def that = cur;
+          cur = cur.tail;
+          that.head
+        }
+
+        void remove() {
+          throw new UnsupportedOperationException()
+        }
+      }
     }
 
     String toString () {
       def sb = new StringBuilder ()
       sb << "["
-      toString(sb)
+      _toString(sb)
       sb << "]"
       sb.toString()
     }
 
-    private void toString (StringBuilder sb) {
+    private void _toString(StringBuilder sb) {
       sb << head
       if (!tail.empty) {
         sb << ", "
         if (tail instanceof MoreThanOneElementList)
-          ((MoreThanOneElementList)tail).toString(sb)
+          ((MoreThanOneElementList)tail)._toString(sb)
         else
           sb << ((OneElementList)tail).head.toString()
       }

@@ -150,7 +150,7 @@ class SeqInterceptor {
               result << prevSeq.firstAtom.unify(seq(mergedWith:prevSeq.contents.mergedWith, multi:createMergedVar(veryFirst, newMulti), second:newMulti, first:veryFirst, xor:prevSeq.contents.xor))
             }
           } else {
-            mergePoint = prevSeq.firstMemberState
+            mergePoint = getFirstMemberState(prevSeq)
             Variable first = prevSeq.contents.multi
             obtainMergedVariable(first, (Variable) mite.contents.head, seqs, true)
           }
@@ -328,7 +328,7 @@ class SeqInterceptor {
       if (!canJoinSeq(prevSeq)) {
         return null
       }
-      return new MergePoint(prevSeq.firstMemberState ?: oldMiteState, true)
+      return new MergePoint(getFirstMemberState(prevSeq) ?: oldMiteState, true)
     }
     return new MergePoint(oldMiteState, false)
   }
@@ -345,7 +345,7 @@ class SeqInterceptor {
     Variable first = (Variable) oldMite.contents[prop]
     Variable second = newArgs[prop]
     Variable multi = obtainMergedVariable(first, second, seqs, joining)
-    return oldMite.cxt(newArgs + [(prop):multi, xor:Mite.mergeXor(oldMite.contents, newArgs)])
+    return oldMite.cxt.call(newArgs + [(prop):multi, xor:Mite.mergeXor(oldMite.contents, newArgs)])
   }
 
   private static Variable obtainMergedVariable(Variable first, Variable second, Map<Pair<Variable, Variable>, Variable> seqs, boolean joining) {

@@ -32,6 +32,10 @@ class WhTest extends TestCase {
     doTranslateTest "О чём он спросил соседей?",
             "What did he ask his neighbors about?"
   }
+  public void "_test I forgot what he asked the neighbors about"() {
+    doTranslateTest "Я забыл, о чём он спросил соседей.",
+            "I forgot what he asked his neighbors about."
+  }
   public void "_test what was I talking about"() {
     doTranslateTest "О чём я?",
             "What was I talking about?"

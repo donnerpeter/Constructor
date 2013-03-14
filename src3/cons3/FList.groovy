@@ -78,10 +78,6 @@ abstract class FList<T> extends AbstractList<T> implements Serializable {
     contains(element) ? doRemove(element, FList.emptyList) : this
   }
 
-  final FList<T> withoutAll(Collection<T> toRemove) {
-    toRemove.foldLeft(this) { v, l -> l.minus(v) }
-  }
-
   /**
    * Creates new list containing all elements of this list except given one
    */

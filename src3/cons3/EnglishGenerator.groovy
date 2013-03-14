@@ -223,7 +223,7 @@ class StatefulGenerator {
     }
   }
 
-  private void generateConjuncts(List<ClauseGenerator> conjuncts, Function2<ClauseGenerator,Boolean,Void> generator) {
+  private void generateConjuncts(List<ClauseGenerator> conjuncts, Closure generator) {
     Frame seq = conjuncts[0].frame.usages('member')[0]
     for (int j in 0..<conjuncts.size()) {
       ClauseGenerator cur = conjuncts[j]
@@ -808,7 +808,7 @@ class StatefulGenerator {
     seq(_seq) { np(it, true, mayHaveDeterminer && !isNumber(it)) }
   }
 
-  def seq(Frame seq, Function1<Frame, Void> action) {
+  def seq(Frame seq, Closure action) {
     def members = seq.flatten()
     members.eachWithIndex { Frame frame, int index ->
       if (index == members.size() - 1) out seq.s('conj')

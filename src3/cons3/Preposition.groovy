@@ -1,10 +1,13 @@
 package cons3
 
+import groovy.transform.CompileStatic
+
 import static cons3.RussianConstructions.*
 
 /**
  * @author peter
  */
+@CompileStatic
 class Preposition extends Construction {
   def Preposition() {
     super('preposition')
@@ -29,7 +32,7 @@ class Preposition extends Construction {
       def prepState = state.findState(self)
       result.addAll(prepState.prevState.enrichUpdate(result, state))
     }
-    List<Mite> refl = update.findAll { it.cxt == reflexiveHolder }
+    List<Mite> refl = update.findAll { Mite mite -> mite.cxt == reflexiveHolder } as List
     if (refl) {
       result.addAll(state.findState(self).prevState.enrichUpdate(refl, state))
     }

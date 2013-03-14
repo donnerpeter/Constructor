@@ -26,7 +26,7 @@ class Network {
     Network best = net
     for (mite in net.chosenUnsatisfied) {
       for (alt in net.contradictors[mite]) {
-        if (!alt.satisfied || fixed.find { net.contradict(it, alt) }) continue
+        if (!alt.satisfied || fixed.find { Mite eachFixed -> net.contradict(eachFixed, alt) }) continue
 
         def appended = (fixed + [alt]) as List<Mite>
 
@@ -59,13 +59,13 @@ class Network {
     for (mite in mites) {
       for (id in calcInternalGroups(mite)) {
         if (id instanceof ExternalContradiction) {
-          List<Mite> members = ((ExternalContradiction) id).contradictsTo + mite
+          List<Mite> members = ((ExternalContradiction) id).contradictsTo + mite as List
           for (Mite contr in members) {
-            newExternal[contr] = (newExternal[contr] ?: []) + id
+            newExternal[contr] = (newExternal[contr] ?: []) + [id] as List
           }
-          newGroups[id] = (newGroups[id] ?: []) + members
+          newGroups[id] = (newGroups[id] ?: []) + members as List
         } else {
-          newGroups[id] = (newGroups[id] ?: []) + mite
+          newGroups[id] = (newGroups[id] ?: []) + [mite] as List
         }
       }
     }
@@ -128,7 +128,7 @@ class Network {
   private static LinkedHashSet<Object> calcInternalGroups(Mite mite) {
     LinkedHashSet<Object> result
     result = new LinkedHashSet<Object>(mite.primaries)
-    Set xor = mite.contents.xor
+    Set xor = (Set) mite.contents.xor
     if (xor) {
       result += xor
     }
@@ -174,14 +174,14 @@ class Network {
   }
   private LinkedHashSet<Mite> rearrangeUpdatedMites(List<Mite> updated) {
     LinkedHashSet<Mite> preferred = []
-    preferred.addAll(updated.findAll { findChosenAncestor(it, _chosen) })
-    preferred.addAll(updated.findAll { !it.atom && !hasChosenMergedContradictors(it) })
+    preferred.addAll(updated.findAll { Mite mite -> findChosenAncestor(mite, _chosen) })
+    preferred.addAll(updated.findAll { Mite mite -> !mite.atom && !hasChosenMergedContradictors(mite) })
     preferred.addAll(updated)
     return preferred
   }
 
   private boolean hasChosenMergedContradictors(Mite mite) {
-    return contradictors[mite].any { !it.atom && isChosen(it) }
+    return contradictors[mite].any { Mite m -> !m.atom && isChosen(m) }
   }
 
 
@@ -220,7 +220,7 @@ class Network {
         result.remove(victim)
         def more = allGroups(victim)
         assert !Util.intersects(more, processed)
-        groupsToProcess = new LinkedHashSet<Object>(more) + groupsToProcess
+        groupsToProcess = (LinkedHashSet<Object>) new LinkedHashSet<Object>(more) + groupsToProcess
       }
       result << best
       groupsToProcess.removeAll(allGroups(best))
@@ -230,9 +230,9 @@ class Network {
     new Network(contradictors, groups, externalGroups, result, groupCache)
   }
 
-  LinkedHashSet<Mite> getChosenUnsatisfied() { return _chosen.findAll { !it.satisfied } }
+  LinkedHashSet<Mite> getChosenUnsatisfied() { return _chosen.findAll { Mite mite -> !mite.satisfied } }
 
-  LinkedHashSet<Mite> getChosenExecutable() { return _chosen.findAll { it.executable } }
+  LinkedHashSet<Mite> getChosenExecutable() { return _chosen.findAll { Mite mite -> mite.executable } }
 
 
 }

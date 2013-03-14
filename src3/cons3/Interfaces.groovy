@@ -1,5 +1,8 @@
 package cons3
 
+import groovy.transform.Canonical
+import groovy.transform.TupleConstructor
+
 /**
  * @author peter
  */
@@ -17,4 +20,10 @@ interface Function4<T1,T2,T3,T4,V> {
 }
 interface Function1<T1,V> {
   V call(T1 t1)
+}
+@Canonical
+class Pair<T,V> {
+  T first
+  V second
+
 }

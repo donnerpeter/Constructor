@@ -1,10 +1,11 @@
 package cons3
 import static cons3.Construction.cxt
+import static cons3.Construction.noArg
 import static cons3.RussianConstructions.*
 /**
  * @author peter
  */
-class Parser { //todo alex implements cons3.RussianConstructions
+class Parser {
   String log = ""
 
   void printLog() {
@@ -384,10 +385,6 @@ class Parser { //todo alex implements cons3.RussianConstructions
     def justPrep = u(prepCxt(noun:var))
     return u(preposition(prep:prep), caseCxt(noun:var.lightVar, head:var)) +
            (withCopula ? justPrep.xor(copulaVariant) : justPrep)
-  }
-
-  static Update optional(Update u) {
-    u.xor(noArg(reason:u.mites.reverse()[0].cxt.name))
   }
 
   static Update uadv(String rel, String adv) {

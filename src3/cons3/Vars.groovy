@@ -6,7 +6,13 @@ package cons3
 class Vars {
   private final Map<Object, Variable> allocated = [:]
 
-  public Variable getAt(Object name) {
+  Variable getProperty(String name) { getVar(name) }
+
+  Variable getAt(Object name) {
+    return getVar(name)
+  }
+
+  private Variable getVar(name) {
     def var = allocated.get(name)
     if (!var) {
       allocated.put(name, var = new Variable())

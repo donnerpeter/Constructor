@@ -227,7 +227,7 @@ class SeqInterceptor {
 
     if (mite.cxt in [nom, acc, gen, genArg1] && mite.contents.head) return null
     if (mite.cxt in [dat] && mite.contents.head && inState.ownMites.find { it.cxt == preposition }) return null
-    if (mite.cxt in [sentenceHolder, noArg, verbalModifier, verbHolder, quotedName, preposition, poDat]) return null
+    if (mite.cxt in [sentenceHolder, Construction.noArg, verbalModifier, verbHolder, quotedName, preposition, poDat]) return null
     return inState.ownMites.reverse().find { it.atom && it.isSimilarTo(mite) }
   }
 

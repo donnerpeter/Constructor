@@ -63,4 +63,9 @@ class Update {
   ParsingState apply(ParsingState state) {
     return state.apply(mites.reverse())
   }
+
+  Update optional() {
+    xor(Construction.noArg(reason:mites.reverse()[0].cxt.name))
+  }
+
 }

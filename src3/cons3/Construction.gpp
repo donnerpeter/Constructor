@@ -4,6 +4,7 @@ package cons3
  * @author peter
  */
 class Construction {
+  public static final Construction noArg = Util.emptyCxt('noArg')
   private Function2<ParsingState, Map, ParsingState> action = { state, args -> state }
   final String name
   private final List<String> requiredAttrs

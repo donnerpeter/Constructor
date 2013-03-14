@@ -298,7 +298,6 @@ interface RussianConstructions {
   Construction word = emptyCxt('word')
   Construction quote = emptyCxt('quote').enrichingMites { mite, contribution, state -> [] }
 
-  Construction noArg = emptyCxt('noArg')
 
   Construction verbalModifier = emptyCxt('verbalModifier').structural { mite, state, via, up ->
     if (!up && ((Variable) mite.lastAtom.contents.head)?.hard) {

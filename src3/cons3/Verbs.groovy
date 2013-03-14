@@ -1,5 +1,6 @@
 package cons3
 
+import static cons3.Construction.noArg
 import static cons3.Parser.*
 import static cons3.RussianConstructions.*
 

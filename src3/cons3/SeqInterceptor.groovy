@@ -120,7 +120,7 @@ class SeqInterceptor {
       def variant = mergeWithSimilarState(similar, xor)
       result = result.xor(variant as Mite[])
     }
-    return result.mites.reverse()
+    return Util.reverse(result.mites)
   }
 
   private List<Mite> mergeWithSimilarState(ParsingState similar, Object xor) {

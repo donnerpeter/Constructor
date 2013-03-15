@@ -1,20 +1,23 @@
 package cons3
 
+import org.pcollections.ConsPStack
+import org.pcollections.PStack
+
 /**
  * @author peter
  */
 class Update {
-  FList<Mite> mites
+  PStack<Mite> mites
 
   Update(Mite... mites) {
     this(mites as List)
   }
   Update(List<Mite> mites) {
-    this.mites = mites instanceof FList ? mites : FList.fromListReverse(mites)
+    this.mites = mites instanceof PStack ? mites : ConsPStack.from(mites.reverse())
   }
 
   Update plus(Update update) {
-    return addMites(update.mites.reverse() as Mite[])
+    return addMites(Util.reverse(update.mites) as Mite[])
   }
   Update plus(Map<Construction, Map> constructions) {
     return addMites((constructions.keySet() as List<Construction>).collect { it(constructions[it]) } as Mite[])
@@ -24,10 +27,10 @@ class Update {
     return addMites(name(newArgs))
   }
 
-  Update xor(Update another) { xor(another.mites.reverse() as Mite[]) }
+  Update xor(Update another) { xor(Util.reverse(another.mites) as Mite[]) }
   Update xor(Mite... mites2) {
     Tokens t = new Tokens()
-    List<Mite> mites1 = this.mites.reverse()
+    List<Mite> mites1 = Util.reverse(this.mites)
     char c = 'a'
     Map<Mite, LinkedHashSet<Object>> newXors = [:]
     for (m1 in mites1) {
@@ -57,15 +60,15 @@ class Update {
   }
 
   Update addMites(Mite... mites) {
-    return new Update(this.mites.prependAll(mites.findAll { !(it in this.mites) }))
+    return new Update(this.mites.plusAll(mites.findAll { !(it in this.mites) }))
   }
 
   ParsingState apply(ParsingState state) {
-    return state.apply(mites.reverse())
+    return state.apply(Util.reverse(mites))
   }
 
   Update optional() {
-    xor(Construction.noArg(reason:mites.reverse()[0].cxt.name))
+    xor(Construction.noArg(reason:Util.reverse(mites)[0].cxt.name))
   }
 
 }

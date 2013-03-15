@@ -1,5 +1,8 @@
 package cons3
 
+import org.pcollections.ConsPStack
+import org.pcollections.PStack
+
 /**
  * @author peter
  */
@@ -139,7 +142,7 @@ class ParsingState {
     if (mayCorrectRoute) {
       def traitor = state.findTraitor()
       if (traitor) {
-        state = correctRoute(state.prevState, FList.fromListReverse([state]), state.log + ["changing route because of $traitor\n"] as List) ?: state
+        state = correctRoute(state.prevState, ConsPStack.from([state]), state.log + ["changing route because of $traitor\n"] as List) ?: state
       }
     }
 
@@ -170,7 +173,7 @@ class ParsingState {
     return state
   }
 
-  private static ParsingState correctRoute(ParsingState state, FList<ParsingState> reapply, List log) {
+  private static ParsingState correctRoute(ParsingState state, PStack<ParsingState> reapply, List log) {
     for (mite in state.ownMites) {
       if (!state.network.isChosen(mite)) {
         def anotherActive = state.network.choose([mite]).maximizeSatisfiedness([mite])
@@ -184,7 +187,7 @@ class ParsingState {
       }
     }
     if (state.prevState) {
-      return correctRoute(state.prevState, reapply.prepend(state), log)
+      return correctRoute(state.prevState, reapply + state, log)
     }
     return null
   }
@@ -243,7 +246,7 @@ class ParsingState {
     LinkedHashSet<Mite> fullUpdate = []
     for (state in hierarchy) {
       for (mite in state.findMitesAlongParsingRoute(original)) {
-        fullUpdate.addAll((mite.cxt.enrichUpdate(mite, update, original) as List<Mite>).reverse())
+        fullUpdate.addAll(Util.reverse(mite.cxt.enrichUpdate(mite, update, original)))
       }
     }
     fullUpdate

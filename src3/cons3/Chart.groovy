@@ -3,14 +3,17 @@ package cons3
 import groovy.transform.Canonical
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.TupleConstructor
+import org.pcollections.Empty
+import org.pcollections.PCollection
+import org.pcollections.PSequence
 
 /**
  * @author peter
  */
 @EqualsAndHashCode
 class Chart {
-  private final FList<Object> currentMetas
-  final IdentityHashMap<Assignment<Variable>, FList<Object>> __metas
+  private final PSequence<Object> currentMetas
+  final IdentityHashMap<Assignment<Variable>, PSequence<Object>> __metas
   private final FLinkedMap<Object, List<Set<Variable>>> metaUnifications
   final int section
   final LinkedHashMap<Key, Unit> allUnits
@@ -62,7 +65,7 @@ class Chart {
   }
 
   Chart() {
-    currentMetas = FList.emptyList
+    currentMetas = Empty.stack()
     __metas = new IdentityHashMap()
     metaUnifications = FLinkedMap.emptyMap
     section = 1
@@ -179,7 +182,7 @@ class Chart {
     assert var
 
     def assignment = new Assignment(var, property, value, generation, section)
-    def newMetas = new IdentityHashMap<Assignment<Variable>, FList<Object>>(__metas)
+    def newMetas = new IdentityHashMap<Assignment<Variable>, PSequence<Object>>(__metas)
     newMetas[assignment] = currentMetas
 
     Unit oldUnit = allUnits[currentKey]

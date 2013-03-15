@@ -1,6 +1,9 @@
 package cons3
 
 import groovy.transform.TupleConstructor
+import org.pcollections.ConsPStack
+import org.pcollections.PStack
+
 import static cons3.RussianConstructions.*
 
 /**
@@ -29,7 +32,7 @@ class EllipsisInterceptor extends Interceptor {
       return base(constructions, state)
     }
 
-    FList<ParsingState> precedent = FList.fromListReverse(old[0..startPrecedent-1])
+    PStack<ParsingState> precedent = ConsPStack.from(old[0..startPrecedent-1].reverse())
 
     Map<Variable, Variable> mapping = buildMapping(old[startPrecedent], precedent, update)
 

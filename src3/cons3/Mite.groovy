@@ -1,18 +1,21 @@
 package cons3
 
+import org.pcollections.Empty
+import org.pcollections.PStack
+
 /**
  * @author peter
  */
 class Mite {
   final Construction cxt
   final FLinkedMap contents
-  final FList<Pair<Variable, Variable>> unifications
+  final PStack<Pair<Variable, Variable>> unifications
   final Mite src1, src2
-  final FList<Mite> prerequisites
+  final PStack<Mite> prerequisites
   final List<Mite> primaries
   final boolean executable
 
-  Mite(Map contents, Construction cxt, FList<Pair<Variable, Variable>> unifications = FList.emptyList, Mite src1 = null, Mite src2 = null, FList<Mite> prerequisites = FList.emptyList) {
+  Mite(Map contents, Construction cxt, PStack<Pair<Variable, Variable>> unifications = Empty.stack(), Mite src1 = null, Mite src2 = null, PStack<Mite> prerequisites = Empty.stack()) {
     this.cxt = cxt
     this.contents = contents instanceof FLinkedMap ? contents : FLinkedMap.fromMapReverse(contents)
     this.unifications = unifications
@@ -107,23 +110,23 @@ class Mite {
     def before = contents
     def newArgs = another.contents
     assert !overwrites(before, newArgs)
-    def newUnifications = unifications.prependAll(another.unifications)
+    def newUnifications = unifications.plusAll(another.unifications)
     for (arg in before.keySet().intersect(newArgs.keySet())) {
       def val1 = before[arg]
       def val2 = newArgs[arg]
       if (areUnifiableVars(val1, val2)) {
         def pair = new Pair(val1, val2)
         if (!(pair in newUnifications)) {
-          newUnifications = newUnifications.prepend(pair)
+          newUnifications = newUnifications + pair
         }
       }
     }
 
-    return new Mite(unify(before, newArgs), cxt, newUnifications, this, another, FList.fromListReverse((this.prerequisites + another.prerequisites) as LinkedHashSet<Mite>))
+    return new Mite(unify(before, newArgs), cxt, newUnifications, this, another, Util.reverse((this.prerequisites + another.prerequisites) as LinkedHashSet<Mite>))
   }
 
   Mite withPrerequisite(Mite m) {
-    new Mite(contents, cxt, unifications, src1, src2, m in prerequisites ? prerequisites : prerequisites.prepend(m))
+    new Mite(contents, cxt, unifications, src1, src2, m in prerequisites ? prerequisites : prerequisites + m)
   }
 
   boolean isAtom() {

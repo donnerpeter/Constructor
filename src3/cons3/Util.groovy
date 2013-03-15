@@ -1,4 +1,9 @@
 package cons3
+
+import groovy.transform.CompileStatic
+import org.pcollections.Empty
+import org.pcollections.PStack
+
 import static cons3.Construction.cxt
 import static cons3.RussianConstructions.colon
 import static cons3.RussianConstructions.posleGen
@@ -134,5 +139,13 @@ class Util {
     cxt(name + rel.capitalize(), ['noun', 'head']) { ParsingState state, Map args ->
       state.assign(args.head, rel, args.noun)
     }
+  }
+
+  static <T> PStack<T> reverse(Iterable<T> list) {
+    PStack<T> result = Empty.stack()
+    for (e in list) {
+      result += e
+    }
+    return result
   }
 }

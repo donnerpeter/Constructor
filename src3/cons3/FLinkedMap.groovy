@@ -1,31 +1,31 @@
 package cons3
 
+import org.pcollections.Empty
+import org.pcollections.PSequence
+
 /**
  * @author peter
  */
 final class FLinkedMap<K,V> implements Map<K,V> {
-  private static final FLinkedMap empty = new FLinkedMap(FList.emptyList)
-  private final FList<MyEntry<K, V>> list
+  private static final FLinkedMap empty = new FLinkedMap(Empty.stack())
+  private final PSequence<MyEntry<K, V>> list
 
   static <K, V> FLinkedMap<K, V> getEmptyMap() {
     empty
   }
 
-  private FLinkedMap(FList<MyEntry<K, V>> list) {
+  private FLinkedMap(PSequence<MyEntry<K, V>> list) {
     this.list = list
-  }
-
-  private FList<MyEntry<K, V>> getList() {
-    return list
   }
 
   FLinkedMap<K, V> putValue(K key, V value) {
     def newEntry = new MyEntry(key, value)
+    def newList = list
     def existing = list.find { it.key == key }
     if (existing) {
-      return new FLinkedMap<K,V>(list.replace(existing, newEntry))
+      newList -= existing;
     }
-    return new FLinkedMap<K,V>(list + newEntry)
+    return new FLinkedMap<K,V>(newList + newEntry)
   }
 
   FLinkedMap<K, V> minus(K key) {
@@ -58,15 +58,8 @@ final class FLinkedMap<K,V> implements Map<K,V> {
   }
 
   V get(Object key) {
-    //todo find { it.key == key } slow: DefaultTypeTranformation.castToBoolean
-    FList<MyEntry<K,V>> cur = list
-    while (!cur.empty) {
-      if (cur.head.key == key) {
-        return cur.head.value
-      }
-      cur = cur.tail
-    }
-    return null
+    def entry = list.find { it.key == key }
+    return entry?.value
   }
 
   V getAt(K key) {
@@ -131,7 +124,7 @@ final class FLinkedMap<K,V> implements Map<K,V> {
   }
 
   FLinkedMap<K, V> reverse() {
-    return new FLinkedMap(list.reverse())
+    return new FLinkedMap(Util.reverse(list))
   }
 
   private static class MyEntry<K, V> implements Map.Entry<K, V> {

@@ -11,6 +11,7 @@ import org.pcollections.PSequence
 final class FLinkedMap<K,V> implements Map<K,V> {
   private static final FLinkedMap empty = new FLinkedMap(Empty.stack(), Empty.map())
   private final PSequence<K> list
+  @Delegate(interfaces = false)
   private final PMap<K, V> map
 
   static <K, V> FLinkedMap<K, V> getEmptyMap() {
@@ -36,10 +37,6 @@ final class FLinkedMap<K,V> implements Map<K,V> {
     return new FLinkedMap<K, V>(list - key, map - key)
   }
 
-  FLinkedMap<K, V> removeAll(Collection<K> key) {
-    return new FLinkedMap<K, V>(list.minusAll(key), map.minusAll(key))
-  }
-
   FLinkedMap<K, V> plus(Map<K, V> map) {
     FLinkedMap<K, V> result = this
     map.each { k, v -> result = result.putValue(k, v) }
@@ -48,46 +45,6 @@ final class FLinkedMap<K,V> implements Map<K,V> {
 
   static <K, V> FLinkedMap<K, V> fromMapReverse(Map<K, V> map) {
     return emptyMap + map
-  }
-
-  V get(Object key) {
-    return map.get(key)
-  }
-
-  V getAt(K key) {
-    return get(key)
-  }
-
-  V getUnresolvedProperty(K key) {
-    return get(key)
-  }
-
-  int size() {
-    map.size()
-  }
-
-  boolean isEmpty() {
-    map.isEmpty()
-  }
-
-  boolean containsKey(Object o) {
-    map.containsKey(o)
-  }
-
-  boolean containsValue(Object o) {
-    map.containsValue(o)
-  }
-
-  V remove(Object o) {
-    throw new UnsupportedOperationException("remove is not implemented")
-  }
-
-  void putAll(Map<? extends K, ? extends V> map) {
-    throw new UnsupportedOperationException("putAll is not implemented")
-  }
-
-  void clear() {
-    throw new UnsupportedOperationException("clear is not implemented")
   }
 
   Set<K> keySet() {
@@ -105,10 +62,6 @@ final class FLinkedMap<K,V> implements Map<K,V> {
       ordered[key] = map.get(key)
     }
     Collections.unmodifiableSet(ordered.entrySet())
-  }
-
-  V put(K k, V v) {
-    throw new UnsupportedOperationException("put is not implemented")
   }
 
   FLinkedMap<K, V> reverse() {

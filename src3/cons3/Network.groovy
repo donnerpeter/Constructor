@@ -1,10 +1,12 @@
 package cons3
 
+import groovy.transform.CompileStatic
 import groovy.transform.TupleConstructor
 /**
  * @author peter
  */
 @TupleConstructor(includeFields = true)
+@CompileStatic
 class Network {
   final Map<Mite, Collection<Mite>> contradictors = [:]
   final Map<Object, Collection<Mite>> groups = [:]

@@ -8,9 +8,9 @@ interface RussianConstructions {
 
   Construction nom = cxt('nom', ['noun', 'head']) { ParsingState state, Map args ->
     state
-  }.satisfiedWhen { mite ->
+  }.satisfiedWhen { Mite mite ->
     mite.contents.head && mite.contents.noun
-  }.routeWrong { mite, state ->
+  }.routeWrong { Mite mite, ParsingState state ->
     if (mite.contents.head && !mite.v('noun')?.hard && state.network.isChosen(mite)) {
       def prev = state.findState(mite).prevState
       def subj = prev?.miteList?.find { mite.isUnifiable(it) && it.v('noun')?.hard }
@@ -18,7 +18,7 @@ interface RussianConstructions {
         return true
       }
     }
-  }.enrichingMites { mite, contribution, state ->
+  }.enrichingMites { Mite mite, List<Mite> contribution, ParsingState state ->
     mite.unifyWherePossible(contribution)
   }.structural { mite, state, via, up ->
     Util.showCommonCaseHierarchy(up, state, mite)
@@ -59,7 +59,7 @@ interface RussianConstructions {
   Construction uGen = commonSimpleArg('uGen', 'owner')
   Construction dativePart = cxt('dativePart', ['head', 'dat', 'acc']) { state, args ->
     state.assign(args.acc, 'arg1', args.dat)
-  }.enrichingMites { mite, contribution, state ->
+  }.enrichingMites { Mite mite, List<Mite> contribution, ParsingState state ->
     if (!mite.contents.acc) {
       def realAcc = contribution.find { it.cxt == acc && !it.contents.head && it.contents.noun }
       if (realAcc) {
@@ -68,7 +68,7 @@ interface RussianConstructions {
     }
     return []
   }
-  Construction clauseEllipsis = emptyCxt('clauseEllipsis').enrichingMites { mite, contribution, state ->
+  Construction clauseEllipsis = emptyCxt('clauseEllipsis').enrichingMites { Mite mite, List<Mite> contribution, ParsingState state ->
     if (mite.contents.prevHistory && contribution.find { it.cxt == clauseEllipsis && (it.contents.interceptor || it.contents.but) }) {
       return mite.unifyWherePossible(contribution)
     }
@@ -87,10 +87,10 @@ interface RussianConstructions {
   Construction comeScalarly = cxt('comeScalarly', ['verb']) { ParsingState state, Map args ->
     state = state.assign(args.verb, 'type', 'COME_SCALARLY')
     args.order ? state.assign(args.verb, 'order', args.order) : state
-  }.satisfiedWhen { mite -> !mite.contents.order || mite.contents.verb }
+  }.satisfiedWhen { Mite mite -> !mite.contents.order || mite.contents.verb }
   Construction questionVariants = cxt('questionVariants', ['seq', 'questioned']) { ParsingState state, Map args ->
     state.assign(args.questioned, 'variants', args.seq)
-  }.enrichingMites { mite, contribution, state ->
+  }.enrichingMites { Mite mite, List<Mite> contribution, ParsingState state ->
     def sh = contribution.find { it.cxt == sentenceHolder }
     if (sh) {
       return sh.unifyWherePossible(state.findState(mite.firstAtom).prevState)
@@ -121,7 +121,7 @@ interface RussianConstructions {
   }
   Construction possessive = cxt('possessive', ['possessor', 'head']) { ParsingState state, Map args ->
     state
-  }.enrichingMites { mite, contribution, state ->
+  }.enrichingMites { Mite mite, List<Mite> contribution, ParsingState state ->
     if (!mite.v('head')?.hard && !contribution.find { it.cxt == possessive }) {
       def nounFrame = contribution.find { it.cxt == adjective }?.contents?.nounFrame
       if (nounFrame) {
@@ -135,7 +135,7 @@ interface RussianConstructions {
   }.structural { mite, state, via, up -> state.findState(mite, 'head')?.hierarchy }
   Construction conditionComp = cxt('conditionComp', ['hasComma', 'head', 'wh']) { ParsingState state, Map args ->
     state.assign(args.head, "${args.wh}Condition", args.comp)
-  }.enrichingMites { mite, contribution, state ->
+  }.enrichingMites { Mite mite, List<Mite> contribution, ParsingState state ->
     if (contribution.find { it.cxt == comma }) {
       return [mite.unify(new Mite(conditionComp, hasComma:true))]
     }
@@ -150,7 +150,7 @@ interface RussianConstructions {
   }
   Construction reasonComp = cxt('reasonComp', ['reason', 'head']) { ParsingState state, Map args ->
     return state.assign(args.head, 'reason', args.reason)
-  }.enrichingMites { mite, contribution, state ->
+  }.enrichingMites { Mite mite, List<Mite> contribution, ParsingState state ->
     if (mite.contents.head && contribution.find { it.cxt == reasonComp && it.contents.hasComma } ||
         mite.contents.head && mite.contents.hasComma && contribution.find { it.cxt == reasonComp && it.contents.reason }) {
       return mite.unifyWherePossible(contribution)
@@ -163,10 +163,10 @@ interface RussianConstructions {
   }
   Construction numQuantifier = cxt('numQuantifier', ['num', 'noun']) { ParsingState state, Map args ->
     state.assign(args.noun, 'quantifier', args.num)
-  }.enrichingMites { mite, contribution, state -> NumQuantifier.enrichUpdate(mite, contribution, state) }
+  }.enrichingMites { Mite mite, List<Mite> contribution, ParsingState state -> NumQuantifier.enrichUpdate(mite, contribution, state) }
   Construction negation = cxt('negation', ['negated']) { ParsingState state, Map args ->
     state.assign(args.negated, 'negated', 'true')
-  }.enrichingMites { mite, contribution, state ->
+  }.enrichingMites { Mite mite, List<Mite> contribution, ParsingState state ->
     if (!mite.contents.negated) {
       def vh = contribution.find { it.cxt == verbHolder && ((Variable) it.contents.head)?.hard }
       if (vh) {
@@ -205,11 +205,11 @@ interface RussianConstructions {
   })
   Construction accordingTo = commaSurrounded(cxt('accordingTo', ['content', 'head']) { ParsingState state, Map args ->
     state.assign(args.head, 'opinion_of', args.content)
-  }).routeWrong { mite, state ->
+  }).routeWrong { Mite mite, ParsingState state ->
     if (mite.v('head').frame(state.chart).allAssignments('opinion_of').size() > 1) {
       return true
     }
-  }.satisfiedWhen { mite -> mite.contents.head && mite.contents.content }
+  }.satisfiedWhen { Mite mite -> mite.contents.head && mite.contents.content }
   Construction seq = new SeqConstruction()
   Construction advObj = cxt('advObj', ['adv', 'head']) { ParsingState state, Map args ->
     if (args.head && args.adv) {
@@ -231,7 +231,7 @@ interface RussianConstructions {
   }
   Construction quotedName = cxt('quotedName', ['noun', 'name']) { ParsingState state, Map args ->
     state.assign(args.noun, 'name', args.name)
-  }.enrichingMites { mite, contribution, state ->
+  }.enrichingMites { Mite mite, List<Mite> contribution, ParsingState state ->
     if (contribution.find { it.cxt == quote }) {
       if (mite.contents.noun && !mite.contents.quote1) {
         return [mite.unify(RussianConstructions.quotedName(quote1:true))]
@@ -249,7 +249,7 @@ interface RussianConstructions {
   Construction complementizer = new Complementizer()
   Construction directSpeech = cxt('directSpeech', ['head', 'message']) { ParsingState state, Map args ->
     state.assign(args.head, 'message', args.message).assign(args.message, 'directSpeech', 'true')
-  }.structural { mite, state, via, up -> mite.contents.head ? [ParsingState.EMPTY] : null }.satisfiedWhen { mite ->
+  }.structural { mite, state, via, up -> mite.contents.head ? [ParsingState.EMPTY] : null }.satisfiedWhen { Mite mite ->
     mite.contents.head && mite.contents.message
   }
   Construction summerGarden = cxt('summerGarden', ['summer', 'garden']) { ParsingState state, Map args ->
@@ -261,7 +261,7 @@ interface RussianConstructions {
   Construction adverbPred = cxt('adverbPred', ['adverb', 'time']) { ParsingState state, Map args ->
     state.assign(args.adverb, 'time', args.time)
   }
-  Construction verbHolder = emptyCxt('verbHolder').enrichingMites { mite, contribution, state ->
+  Construction verbHolder = emptyCxt('verbHolder').enrichingMites { Mite mite, List<Mite> contribution, ParsingState state ->
     if (mite.atom && !state.network.isChosen(mite) && state.visibleMites[verbHolder]?.find { !it.atom }) return []
     if (mite.contents.hasColon) return []
 
@@ -275,7 +275,7 @@ interface RussianConstructions {
     return mite.unifyWherePossible(contribution)
   }
   Construction sentenceHolder = emptyCxt('sentenceHolder').
-          enrichingMites { mite, contribution, state ->
+          enrichingMites { Mite mite, List<Mite> contribution, ParsingState state ->
             if (mite.contents.mustFinish) {
               return []
             }
@@ -292,11 +292,11 @@ interface RussianConstructions {
   }
   Construction dot = cxt('dot', ['head']) { ParsingState state, Map args ->
     state.assign(args.head, 'dot', 'true')
-  }.enrichingMites { mite, contribution, state -> [] }.structural { mite, state, via, up -> [ParsingState.EMPTY] }
-  Construction comma = emptyCxt('comma').enrichingMites { mite, contribution, state -> [] }
-  Construction colon = emptyCxt('comma').enrichingMites { mite, contribution, state -> [] }
+  }.enrichingMites { Mite mite, List<Mite> contribution, ParsingState state -> [] }.structural { mite, state, via, up -> [ParsingState.EMPTY] }
+  Construction comma = emptyCxt('comma').enrichingMites { Mite mite, List<Mite> contribution, ParsingState state -> [] }
+  Construction colon = emptyCxt('comma').enrichingMites { Mite mite, List<Mite> contribution, ParsingState state -> [] }
   Construction word = emptyCxt('word')
-  Construction quote = emptyCxt('quote').enrichingMites { mite, contribution, state -> [] }
+  Construction quote = emptyCxt('quote').enrichingMites { Mite mite, List<Mite> contribution, ParsingState state -> [] }
 
 
   Construction verbalModifier = emptyCxt('verbalModifier').structural { mite, state, via, up ->

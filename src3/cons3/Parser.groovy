@@ -48,15 +48,6 @@ class Parser {
         return state.apply((possessive):[possessor:var])
       case "своим":
         return state.apply((reflexiveHolder):[noun:var.lightVar], (possessive):[possessor:var])
-      case "случай": return noun(state, nom, 'THING') //todo случай=CASE or THING
-      case "поводу": return noun(state, dat, 'MATTER')
-      case "рта": return noun(state, gen, 'MOUTH')
-      case "молоточек": return noun(state, acc, 'HAMMER')
-      case "радостью": return noun(state, instr, 'JOY')
-      case "облегчением": return noun(state, instr, 'RELIEF')
-      //case "улицы": return noun(state, gen, 'STREET') todo улицы in conj
-      case "скамейки": return noun(state, gen, 'BENCH')
-      case "ребенок": return noun(state, nom, 'CHILD')
       case "гастроном": return state.apply((RussianConstructions.word):[word:word])
       case "сад":
 
@@ -64,19 +55,13 @@ class Parser {
                 (nom):[noun:var, xor:t.a], (acc):[noun:var, xor:t.a],
                 (summerGarden):[garden:var], (naPrep):[head:var], (declOrQuestionComp):[head:var, rel:'relative'])
         return state //todo one noun frame - several cases
-      case "сада": return noun(state, gen, 'GARDEN')
       case "магазина":
         return state.apply((typeCxt('SHOP')):[var:var], (gen):[noun:var],
                 (naPrep):[head:var], (quotedName):[noun:var], (declOrQuestionComp):[head:var, rel:'relative'])
-      case "мной":
-        return noun(state, instr, 'ME')
-      case "меня": return noun(state, gen, 'ME')
       case ":":
         Variable newVerb = new Variable()
         return state.apply(verbHolder(head:var.lightVar, hasColon:true), sentenceHolder(mustStart:true, head:newVerb.lightVar),
                 directSpeech(xor:t.a, message:newVerb), elaboration(head:var, xor:t.a), colon([:])).advanceSection()
-      case "я": return pronoun(state, nom, 'ME')
-      case "нас": return pronoun(state, acc, 'WE')
       case "мое": return state.apply((typeCxt('ME')):[var:var], (possessive):[possessor:var, xor:t.a])
       case "моему": return state.apply((typeCxt('ME')):[var:var], (possessive):[possessor:var])
       case "нашего": return state.apply((typeCxt('WE')):[var:var], (possessive):[possessor:var])
@@ -95,41 +80,8 @@ class Parser {
         return state.apply((typeCxt('THEY')):[var:var], (possessive):[possessor:var, xor:t.a], (acc):[noun:var, xor:t.a])
       case "его":
         return state.apply((typeCxt('HE')):[var:var], (possessive):[possessor:var, xor:t.a], (acc):[noun:var, xor:t.a])
-      case "он": return pronoun(state, nom, 'HE')
-      case "она": return pronoun(state, nom, 'SHE')
-      case "они": return pronoun(state, nom, 'THEY')
-      case "соседей": return noun(state, acc, 'NEIGHBOURS')
-      case "соседям": return noun(state, dat, 'NEIGHBOURS')
-      case "арбуз": return noun(state, nom, 'WATER_MELON')
-      case "кассиршу": return noun(state, acc, 'CASHIER')
-      case "деревья": return noun(state, acc, 'TREES')
-      case "деньги": return noun(state, acc, 'MONEY')
-      case "ее":
-      case "её":
-        return state.apply((typeCxt('SHE')):[var:var], (possessive):[possessor:var], (acc):[noun:var])
-      case "носом": return noun(state, instr, 'NOSE')
-      case "пальцев": return noun(state, gen, 'FINGERS')
-      case "пальца": return noun(state, gen, 'FINGERS')
-      case "палец": return noun(state, acc, 'FINGER')
-      case "челюсти":
-        return state.apply((gen):[noun:var, xor:t.ab], (acc):[noun:var, xor:t.a], (typeCxt('JAWS')):[var:var])
-      case "челюстью": return noun(state, instr, 'JAW')
-      case "челюсть":
-        return state.apply((acc):[noun:var], (typeCxt('JAW')):[var:var])
-      case "семь": return numeral(state, t, '7')
-      case "семи": return noun(state, gen, '7')
-      case "восемь": return numeral(state, t, '8')
-      case "восьми":
-        return noun(state, gen, '8')
-      case "два": return numeral(state, t, '2')
-      case "три": return numeral(state, t, '3')
-      case "один": return numeral(state, t, '1')
       case "порядок":
         return state.apply((typeCxt('ORDER')):[var:var], (acc):[noun:var], (gen):[noun:v[gen].lightVar, head:var], (genCriterion):[head:var, noun:v[gen]])
-      case "счете": return noun(state, prep, 'COUNTING')
-      case "работы":
-        state = noun(state, gen, 'WORK')
-        return state//.apply(absTime, noun:state[posleGen].noun)
       case "тоже":
         return state.apply((also):[hasAlso:true])
       case "не":
@@ -263,6 +215,16 @@ class Parser {
         return upronoun(dat, var, 'ME')
       case "мы": return upronoun(nom, var, 'WE')
       case "нам": return upronoun(dat, var, 'WE')
+      case "я": return upronoun(nom, var, 'ME')
+      case "нас": return upronoun(acc, var, 'WE')
+      case "он": return upronoun(nom, var, 'HE')
+      case "она": return upronoun(nom, var, 'SHE')
+      case "они": return upronoun(nom, var, 'THEY')
+      case "семь": return numeral(t, '7')
+      case "восемь": return numeral(t, '8')
+      case "два": return numeral(t, '2')
+      case "три": return numeral(t, '3')
+      case "один": return numeral(t, '1')
       case '6-ти':
       case 'шести':
         return unoun(gen, var, '6')
@@ -271,6 +233,40 @@ class Parser {
       case "магазин":
         return uv(var, type:'SHOP') + u(nom(noun:var)).xor(acc(noun:var)) + u(naPrep(head:var), quotedName(noun:var), declOrQuestionComp(head:var, rel:'relative'))
       case "счета": return unoun(gen, var, 'COUNTING')
+      case "случай": return unoun(nom, var, 'THING') //todo случай=CASE or THING
+      case "поводу": return unoun(dat, var, 'MATTER')
+      case "рта": return unoun(gen, var, 'MOUTH')
+      case "молоточек": return unoun(acc, var, 'HAMMER')
+      case "радостью": return unoun( instr, var, 'JOY')
+      case "облегчением": return unoun(instr, var, 'RELIEF')
+    //case "улицы": return unoun(gen, var, 'STREET') todo улицы in conj
+      case "скамейки": return unoun(gen, var, 'BENCH')
+      case "ребенок": return unoun(nom, var, 'CHILD')
+      case "сада": return unoun(gen, var, 'GARDEN')
+      case "мной": return unoun(instr, var, 'ME')
+      case "меня": return unoun(gen, var, 'ME')
+      case "соседей": return unoun(acc, var, 'NEIGHBOURS')
+      case "соседям": return unoun(dat, var, 'NEIGHBOURS')
+      case "арбуз": return unoun(nom, var, 'WATER_MELON')
+      case "кассиршу": return unoun(acc, var, 'CASHIER')
+      case "деревья": return unoun(acc, var, 'TREES')
+      case "деньги": return unoun(acc, var, 'MONEY')
+      case "ее":
+      case "её":
+        return uv(type:'SHE', var) + u(possessive(possessor:var), acc(noun:var))
+      case "семи": return unoun(gen, var, '7')
+      case "восьми": return unoun(gen, var, '8')
+      case "счете": return unoun(prep, var, 'COUNTING')
+      case "работы": return unoun(gen, var, 'WORK')
+      case "носом": return unoun(instr, var, 'NOSE')
+      case "пальцев": return unoun(gen, var, 'FINGERS')
+      case "пальца": return unoun(gen, var, 'FINGERS')
+      case "палец": return unoun(acc, var, 'FINGER')
+      case "челюсти":
+        return u(gen(noun:var, xor:t.ab), acc(noun:var, xor:t.a)) + uv(type:'JAWS', var)
+      case "челюстью": return unoun(instr, var, 'JAW')
+      case "челюсть":
+        return u(acc(noun:var)) + uv(type:'JAW', var)
       case "вдруг": return uadv('manner', 'SUDDENLY')
       case "уже": return uadv('anchor', 'ALREADY')
       case "опять": return uadv('anchor', 'AGAIN')
@@ -408,15 +404,14 @@ class Parser {
     return u(adjective(nounFrame:noun, rel:rel, val:val), caze(noun:noun))
   }
 
-  static ParsingState numeral(ParsingState state, Tokens t, String number) {
+  static Update numeral(Tokens t, String number) {
     def noun = new Variable()
     def num = new Variable()
-    return state.apply((nom):[noun:noun, xor:t.a], (acc):[noun:noun, xor:t.a],
-                    (typeCxt(number)):[xor:t.bd, var:noun],
-                    (numQuantifier):[num:num, xor:t.b, noun:noun.lightVar, outerNoun:noun,
-                            prev:state, innerCase:(number == '1' ? acc : gen)],
-                    (typeCxt(number)):[xor:t.d, var:num]
-    )
+    return u(nom(noun:noun, xor:t.a), acc(noun:noun, xor:t.a),
+                    (typeCxt(number))(xor:t.bd, var:noun),
+                    numQuantifier(num:num, xor:t.b, noun:noun.lightVar, outerNoun:noun,
+                            innerCase:(number == '1' ? acc : gen)),
+                    (typeCxt(number))(xor:t.d, var:num))
   }
 
   private static Construction numberTypeCxt(Variable var, String word) {
@@ -433,11 +428,6 @@ class Parser {
                     (verbHolder):[head:verb], (sentenceHolder):[head:verb, xor:t.b]]
   }
 
-  private static ParsingState noun(ParsingState state, Construction caze, String type) {
-    Variable noun = new Variable()
-    return unoun(caze, noun, null, (typeCxt(type)):[var:noun]).apply(state)
-  }
-
   private static Update unoun(Map<Construction, Map> mites = [:], Construction caze, Variable noun, String type) {
     def update = upronoun(mites, caze, noun, type)
     update + [(quotedName):[noun:noun]]
@@ -452,10 +442,6 @@ class Parser {
 
   private static Update commonCase(Construction caze, Variable var) {
     u(caze(noun:var, xor:new Tokens().a))
-  }
-
-  private static ParsingState pronoun(ParsingState state, Construction caze, String type) {
-    return upronoun(caze, new Variable(), type).apply(state)
   }
 
   private static Construction typeCxt(String type) {

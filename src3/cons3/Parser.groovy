@@ -145,25 +145,11 @@ class Parser {
         return state.apply((vAcc):[noun:v[vAcc].lightVar, head:var],
                 (vAccTheme):[head:var, noun:v[vAcc]],
                 (adverbialPhrase):[content:var, head:v[verbHolder]], (verbalModifier):[head:v[verbHolder].lightVar, hasModifier:true])
-      case "вспомнить":
-        return infinitive(state, var, 'RECALL', (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]])
-      case "делать":
-        return infinitive(state, var, 'DO', (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]])
-      case "спорить":
-        return infinitive([:], state, var, 'ARGUE')
-      case "считать":
-        return infinitive(state, var, 'COUNT', (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]])
-      case "поливать":
-        return infinitive(state, var, 'TO_WATER', (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]])
-      case "танцевать":
-        return infinitive([:], state, var, 'DANCE')
       case "нужно":
         return state.assign(var, 'type', 'NEED').apply((acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]],
                 (datArg1):[head:var, noun:v[dat]], (dat):[noun:v[dat].lightVar],
                 (adverbPred):[adverb:var],
                 (verbHolder):[head:var], (question):[content:var])
-      case "спросить":
-        return infinitive(state, var, 'ASK', (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]])
       case ",":
         def verb = v[verbHolder].lightVar
         return state.apply(
@@ -342,6 +328,20 @@ class Parser {
       case "чем":
       case "чём":
         return u(declOrQuestionComp(comp:v[v])) + whWord(var, v[v], false) + u(prep(noun:var))
+      case "вспомнить":
+        return infinitive(var, 'RECALL', (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]])
+      case "делать":
+        return infinitive(var, 'DO', (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]])
+      case "спорить":
+        return infinitive([:], var, 'ARGUE')
+      case "считать":
+        return infinitive(var, 'COUNT', (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]])
+      case "поливать":
+        return infinitive(var, 'TO_WATER', (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]])
+      case "танцевать":
+        return infinitive([:], var, 'DANCE')
+      case "спросить":
+        return infinitive(var, 'ASK', (acc):[noun:v[acc].lightVar, head:var], (accArg2):[head:var, noun:v[acc]])
       case 'по':
         Variable verb = new Variable()
         return u(preposition(prep:'по', head:verb.lightVar),
@@ -423,14 +423,14 @@ class Parser {
     return cxt("sem_number_${var}_$word") { ParsingState st, Map args -> st.assign(args.var, 'type', word).assign(args.var, 'number', 'true') }
   }
 
-  private static ParsingState infinitive(Map<Construction, Map> args, ParsingState state, Variable verb, String type) {
+  private static Update infinitive(Map<Construction, Map> args, Variable verb, String type) {
     def mod = new Variable()
     def datNoun = new Variable().lightVar
     Tokens t = new Tokens()
-    return state.assign(verb, 'type', type).apply(args +
-            [(dat):[noun:datNoun], (datArg1):[head:verb, noun:datNoun], (control): [slave: verb, xor:t.ab],
+    return u() + args +
+            [(typeCxt(type)):[var:verb], (dat):[noun:datNoun], (datArg1):[head:verb, noun:datNoun], (control): [slave: verb, xor:t.ab],
                     (question): [content:mod, xor:t.a], (modality):[modality:mod, infinitive:verb], (timedModality):[modality:mod],
-                    (verbHolder):[head:verb], (sentenceHolder):[head:verb, xor:t.b]])
+                    (verbHolder):[head:verb], (sentenceHolder):[head:verb, xor:t.b]]
   }
 
   private static ParsingState noun(ParsingState state, Construction caze, String type) {

@@ -39,13 +39,8 @@ class Parser {
     Variable var = new Variable()
 
     switch (word) {
-      case "удивительный": return adj(state, nom, 'property', 'AMAZING')
-      case "коммерческий": return adj(state, acc, 'kind', 'COMMERCIAL')
-      case "маленький": return adj(state, acc, 'size', 'LITTLE')
       case "летний":
         return state.apply((adjective):[nounFrame:var.lightVar, rel:'timeAnchor', val:'SUMMER', xor:t.a], (acc):[noun:var.lightVar], (summerGarden):[summer:true, xor:t.a])
-      case "какой-то": return adj(state, nom, 'determiner', 'SOME')
-      case "большим": return adj(state, instr, 'size', 'BIG')
       case "большой":
         return state.apply((adjective):[nounFrame:var.lightVar, rel:'size', val:'BIG'], (instr):[noun:var.lightVar], (acc):[noun:var.lightVar])
       case "нашем":
@@ -53,10 +48,6 @@ class Parser {
         return state.apply((possessive):[possessor:var])
       case "своим":
         return state.apply((reflexiveHolder):[noun:var.lightVar], (possessive):[possessor:var])
-      case "этому": return adj(state, dat, 'determiner', 'THIS')
-      case "всякого": return adj(state, gen, 'determiner', 'ANY')
-      case "скромному": return adj(state, dat, 'quality', 'HUMBLE')
-      case "том": return adj(state, prep, 'determiner', 'THAT')
       case "случай": return noun(state, nom, 'THING') //todo случай=CASE or THING
       case "поводу": return noun(state, dat, 'MATTER')
       case "рта": return noun(state, gen, 'MOUTH')
@@ -266,6 +257,15 @@ class Parser {
     Variable var = new Variable()
     Vars v = new Vars()
     switch (word) {
+      case "удивительный": return adj(nom, 'property', 'AMAZING')
+      case "коммерческий": return adj(acc, 'kind', 'COMMERCIAL')
+      case "маленький": return adj(acc, 'size', 'LITTLE')
+      case "какой-то": return adj(nom, 'determiner', 'SOME')
+      case "большим": return adj(instr, 'size', 'BIG')
+      case "этому": return adj(dat, 'determiner', 'THIS')
+      case "всякого": return adj(gen, 'determiner', 'ANY')
+      case "скромному": return adj(dat, 'quality', 'HUMBLE')
+      case "том": return adj(prep, 'determiner', 'THAT')
       case "васи":
         return unoun(gen, var, null) + uv(var, name:'Вася')
       case "знаменской": // todo a unified treatment for street names
@@ -403,9 +403,9 @@ class Parser {
     new Update(mites)
   }
 
-  static ParsingState adj(ParsingState state, Construction caze, String rel, String val) {
+  static Update adj(Construction caze, String rel, String val) {
     def noun = new Variable().lightVar
-    return state.apply((adjective):[nounFrame:noun, rel:rel, val:val], (caze):[noun:noun])
+    return u(adjective(nounFrame:noun, rel:rel, val:val), caze(noun:noun))
   }
 
   static ParsingState numeral(ParsingState state, Tokens t, String number) {

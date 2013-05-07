@@ -11,17 +11,15 @@ class Mite {
   final FLinkedMap contents
   final PStack<Pair<Variable, Variable>> unifications
   final Mite src1, src2
-  final PStack<Mite> prerequisites
   final List<Mite> primaries
   final boolean executable
 
-  Mite(Map contents, Construction cxt, PStack<Pair<Variable, Variable>> unifications = Empty.stack(), Mite src1 = null, Mite src2 = null, PStack<Mite> prerequisites = Empty.stack()) {
+  Mite(Map contents, Construction cxt, PStack<Pair<Variable, Variable>> unifications = Empty.stack(), Mite src1 = null, Mite src2 = null) {
     this.cxt = cxt
     this.contents = contents instanceof FLinkedMap ? contents : FLinkedMap.fromMapReverse(contents)
     this.unifications = unifications
     this.src1 = src1
     this.src2 = src2
-    this.prerequisites = prerequisites
     primaries = !src1 ? [this] : src1.primaries + src2.primaries
     executable = cxt.isExecutable(this)
   }
@@ -90,8 +88,7 @@ class Mite {
   @Override
   public String toString() {
     return "$cxt$contents" +
-            (unifications ? unifications.collect { "<$it.first=$it.second>" }.join("") : '') +
-            (prerequisites ? "<=$prerequisites" : '')
+            (unifications ? unifications.collect { "<$it.first=$it.second>" }.join("") : '')
   }
 
   boolean isSimilarTo(Mite another) {
@@ -122,11 +119,7 @@ class Mite {
       }
     }
 
-    return new Mite(unify(before, newArgs), cxt, newUnifications, this, another, Util.reverse((this.prerequisites + another.prerequisites) as LinkedHashSet<Mite>))
-  }
-
-  Mite withPrerequisite(Mite m) {
-    new Mite(contents, cxt, unifications, src1, src2, m in prerequisites ? prerequisites : prerequisites + m)
+    return new Mite(unify(before, newArgs), cxt, newUnifications, this, another)
   }
 
   boolean isAtom() {

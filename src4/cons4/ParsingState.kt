@@ -2,12 +2,29 @@ package cons4
 
 import java.util.ArrayList
 import cons4.enrichment.*
+import cons4.constructions.*
+import java.util.LinkedHashSet
 
 public data class ParsingState(
-        val chart: Chart = Chart(),
         val log: String = "",
         private val mites: List<List<Construction>> = ArrayList()
   ) {
+
+  fun getChart(): Chart {
+    val assignments = ArrayList<Assignment>()
+    for (mite in getActiveMites()) {
+      if (mite is sem) {
+        assignments.add(Assignment(mite.frame, mite.attr, mite.value))
+      }
+    }
+    return Chart(assignments)
+  }
+
+  fun getActiveMites(): LinkedHashSet<Construction> {
+    val result = LinkedHashSet<Construction>()
+    result.addAll(mites.flatMap { it })
+    return result
+  }
 
   fun appendLog(newLog : String) : ParsingState {
     return copy(log = log + newLog)

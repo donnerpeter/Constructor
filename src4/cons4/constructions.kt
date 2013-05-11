@@ -5,6 +5,7 @@ import cons4.Variable
 import java.util.LinkedHashMap
 
 data class word(val word: String? = null): Construction()
+data class sem(val frame: Variable, val attr: String, val value: Any): Construction()
 
 data class nom(val noun: Variable? = null, val head: Variable? = null): Construction() {
   override fun copyWithArgs(args : Map<String, Any?>): Construction {

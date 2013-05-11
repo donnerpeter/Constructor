@@ -9,7 +9,7 @@ public class Tester {
     Tokens.counter = 0
 
     val state = Parser().parse(input)
-    val chart = state.chart
+    val chart = state.getChart()
 
     val actual : String
     try {

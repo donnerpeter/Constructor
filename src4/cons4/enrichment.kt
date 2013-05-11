@@ -17,8 +17,8 @@ fun enrich(cxt: Construction): List<Construction> {
 fun handleWord(w: String): List<Construction> {
   val v = Variable()
   return when (w) {
-    "удивительный" -> listOf(nom(noun = v))
     "случай" -> listOf(nom(noun = v))
+    "удивительный" -> listOf(nom(noun = v.lightVar))
     else -> ArrayList()
   }
 }

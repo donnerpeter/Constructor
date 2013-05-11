@@ -18,18 +18,41 @@ public data class ParsingState(
   }
 
   fun apply(vararg cxts : Construction) : ParsingState {
-    var state = this
+    var state = this.copy(mites = mites + arrayListOf(ArrayList()))
     var added = cxts.toList()
-    state = state.copy(mites = mites + arrayListOf(added))
     while (added.notEmpty()) {
-      added = enrichMites(added)
-
-      val newMites = ArrayList(state.mites)
-      newMites[newMites.lastIndex] += added
-
-      state = state.copy(mites = newMites)
+      state = state.addMites(added)
+      val merged = state.mergeMites(added)
+      state = state.addMites(merged)
+      added = enrichMites(added + merged)
     }
     return state.appendLog(" ${state.mites.last}\n")
+  }
+
+  private fun addMites(added: List<Construction>): ParsingState {
+    if (mites.empty) {
+      return this
+    }
+
+    val newMites = ArrayList(mites)
+    newMites[newMites.lastIndex] += added
+    return copy(mites = newMites)
+  }
+
+  private fun mergeMites(newMites: List<Construction>): List<Construction> {
+    val result: ArrayList<Construction> = ArrayList()
+    if (mites.size <= 1) return result
+
+    for (right in newMites) {
+      val visible = mites[mites.lastIndex - 1]
+      for (left in visible) {
+        val merged = left.unify(right)
+        if (merged != null) {
+          result.add(merged)
+        }
+      }
+    }
+    return result
   }
 
 }

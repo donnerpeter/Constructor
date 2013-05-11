@@ -11,7 +11,8 @@ public class Parser {
     for (_w in tokenizer) {
       val w = _w as String
       if (w != " ") {
-        val logged = state.appendLog("$w ${'-' * (100 - w.length())}\n")
+        val separator: String = "-".repeat(100 - w.length())
+        val logged = state.appendLog("$w $separator\n")
         try {
           state = handleWord(w.toLowerCase().trim(), logged)
         } catch(e: Throwable) {
@@ -25,7 +26,7 @@ public class Parser {
   }
 
   fun handleWord(w: String, state: ParsingState) : ParsingState {
-    return state.apply(word(word=w), word(word="2"))
+    return state.apply(word(word=w))
   }
 
 

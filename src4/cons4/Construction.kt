@@ -37,16 +37,12 @@ open data class Construction {
       return null
     }
 
-    val list: List<Class<out Any?>> = orderedFields().map { it.getType() }
-    val types: Array<Class<out Any?>> = list.toArray()
+    val list: List<Class<out Any?>> = orderedFields().map { it.getType()!! }
+    val types: Array<Class<out Any?>> = list.toArray(Array(0, { throw RuntimeException() }))
     val constructor = javaClass.getConstructor(types)
     val args = mergedMap.values().toArray()
     return constructor.newInstance(args)
   }
 */
 
-}
-
-class Mite(val cxt: Construction) {
-  fun toString():String = cxt.name + "[]"
 }

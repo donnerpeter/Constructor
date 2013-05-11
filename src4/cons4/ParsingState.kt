@@ -1,8 +1,12 @@
 package cons4
 
+import java.util.ArrayList
+import cons4.enrichment.*
+
 public data class ParsingState(
         val chart: Chart = Chart(),
-        val log: String = ""
+        val log: String = "",
+        private val mites: List<List<Construction>> = ArrayList()
   ) {
 
   fun appendLog(newLog : String) : ParsingState {
@@ -14,7 +18,18 @@ public data class ParsingState(
   }
 
   fun apply(vararg cxts : Construction) : ParsingState {
-    return appendLog("added ${cxts.toList()}\n")
+    var state = this
+    var added = cxts.toList()
+    state = state.copy(mites = mites + arrayListOf(added))
+    while (added.notEmpty()) {
+      added = enrichMites(added)
+
+      val newMites = ArrayList(state.mites)
+      newMites[newMites.lastIndex] += added
+
+      state = state.copy(mites = newMites)
+    }
+    return state.appendLog(" ${state.mites.last}\n")
   }
 
 }

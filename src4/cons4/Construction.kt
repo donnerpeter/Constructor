@@ -8,7 +8,7 @@ open data class Construction {
 
   private fun orderedFields() : List<Field> = javaClass.getDeclaredFields().sortBy { it.getName()!! }
 
-  private fun toMap(): LinkedHashMap<String, Any?> {
+  fun toMap(): LinkedHashMap<String, Any?> {
     val result = LinkedHashMap<String, Any?>()
     for (field in orderedFields()) {
       field.setAccessible(true)

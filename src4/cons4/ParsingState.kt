@@ -4,6 +4,7 @@ import java.util.ArrayList
 import cons4.enrichment.*
 import cons4.constructions.*
 import java.util.LinkedHashSet
+import java.util.LinkedHashMap
 
 public data class ParsingState(
         val log: String = "",
@@ -43,7 +44,31 @@ public data class ParsingState(
       state = state.addMites(merged)
       added = enrichMites(added + merged)
     }
-    return state.appendLog(" ${state.mites.last}\n")
+    return state.appendLog(state.presentable() + "\n")
+  }
+
+  fun presentable(): String {
+    if (mites.empty) return ""
+
+    val map = LinkedHashMap<String, ArrayList<Construction>?>()
+    for (mite in mites.last!!) {
+      var list = map[mite.name]
+      if (list == null) {
+        list = ArrayList()
+        map[mite.name] = list
+      }
+      list!!.add(mite) //todo kotlin remove !!
+    }
+
+    var result = ""
+    for ((key, values) in map) {
+      result += "  $key: "
+      for (mite in values!!) {
+        result += mite.toMap().toString() + " "
+      }
+      result += "\n"
+    }
+    return result
   }
 
   private fun addMites(added: List<Construction>): ParsingState {

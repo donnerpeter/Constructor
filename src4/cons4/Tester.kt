@@ -5,7 +5,7 @@ import junit.framework.Assert
 public class Tester {
 
   public fun doTranslateTest(input: String, expected: String) {
-    Variable.counter = 0
+    Variable.resetCounter()
     Tokens.counter = 0
 
     val state = Parser().parse(input)

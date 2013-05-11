@@ -21,10 +21,13 @@ open data class Construction {
     val merged = LinkedHashMap<String, Any?>()
     for ((key, myValue) in myMap) {
       val hisValue = hisMap[key]
-      if (myValue != null && hisValue != null && myValue != hisValue) {
+      if (myValue is Variable && hisValue is Variable && (!myValue.hard || !hisValue.hard)) {
+        merged[key] = Variable.mergeVars(myValue, hisValue)
+      } else if (myValue != null && hisValue != null && myValue != hisValue) {
         return null
+      } else {
+        merged[key] = if (myValue != null) myValue else hisValue
       }
-      merged[key] = if (myValue != null) myValue else hisValue
     }
     return merged
   }

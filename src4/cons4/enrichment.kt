@@ -18,6 +18,7 @@ fun handleWord(w: String): List<Construction> {
   val v = Variable()
   return when (w) {
     "случай" -> listOf(nom(noun = v))
+    "случился" -> listOf(nom(head = v))
     "удивительный" -> listOf(nom(noun = v.lightVar))
     else -> ArrayList()
   }

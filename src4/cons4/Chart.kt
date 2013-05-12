@@ -4,19 +4,24 @@ import cons4.constructions.sem
 import java.util.ArrayList
 import java.util.HashMap
 
+private fun createFrames(activeMites: Collection<Mite>, chart: Chart): Map<Variable, Frame> {
+  val frames = HashMap<Variable, Frame>()
+  for (mite in activeMites) {
+    for (value in mite.args.values()) {
+      if (value is Variable) {
+        frames.put(value, Frame(chart, value))
+      }
+    }
+  }
+  return frames
+}
+
 public class Chart(activeMites: Collection<Mite>) {
+  val frames : Map<Variable, Frame> = createFrames(activeMites, this)
   val assignments : List<Assignment>
-  val frames : Map<Variable, Frame>
   {
     val assignments = ArrayList<Assignment>()
-    val frames = HashMap<Variable, Frame>()
     for (mite in activeMites) {
-      for (value in mite.args.values()) {
-        if (value is Variable) {
-          frames.put(value, Frame(this, value))
-        }
-      }
-
       if (mite.cxt == sem) {
         val value = mite["value"]
         val convertedValue: Any? = if (value is Variable) frames[value] else value
@@ -25,7 +30,6 @@ public class Chart(activeMites: Collection<Mite>) {
     }
 
     this.assignments = assignments
-    this.frames = frames
   }
 
   fun presentable(): String {

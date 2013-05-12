@@ -1,7 +1,7 @@
 package cons4
 
 import java.util.LinkedHashMap
-import java.lang.reflect.Field
+import java.util.LinkedHashSet
 
 open data class Construction {
   val name = this.javaClass.getSimpleName()
@@ -10,7 +10,9 @@ open data class Construction {
 
 }
 
-data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>) {
+data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, primaries: List<Mite>? = null) {
+  val primaries: LinkedHashSet<Mite> = LinkedHashSet(if (primaries == null) listOf(this) else primaries)
+
   private fun mergeMaps(myMap: Map<String, Any>, hisMap: Map<String, Any>): LinkedHashMap<String, Any>? {
     val merged = LinkedHashMap<String, Any>()
     for ((key, myValue) in myMap) {
@@ -40,7 +42,7 @@ data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>) {
     if (mergedMap == null) {
       return null
     }
-    return copy(args = mergedMap)
+    return copy(args = mergedMap, primaries = this.primaries + right.primaries)
   }
 
   fun get(attr: String) = args[attr]

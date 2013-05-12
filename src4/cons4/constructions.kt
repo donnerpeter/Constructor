@@ -2,7 +2,7 @@ package cons4.constructions
 
 import cons4.Construction
 import cons4.Variable
-import java.util.LinkedHashMap
+import cons4.Mite
 
 object word: Construction()
 object sem: Construction() {
@@ -11,3 +11,10 @@ object sem: Construction() {
 }
 
 object nom: Construction()
+
+fun happy(mite: Mite): Boolean {
+  return when(mite.cxt) {
+    nom -> mite["noun"] != null && mite["head"] != null
+    else -> true
+  }
+}

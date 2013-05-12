@@ -4,7 +4,10 @@ import cons4.Construction
 import cons4.Variable
 import java.util.LinkedHashMap
 
-data class word(val word: String? = null): Construction()
-data class sem(val frame: Variable, val attr: String, val value: Any): Construction()
+object word: Construction()
+object sem: Construction() {
+  fun invoke(frame: Variable, attr: String, value: Any) = invoke("frame" to frame, "attr" to attr, "value" to value)
+  fun t(frame: Variable, value: String) = invoke(frame, "type", value)
+}
 
-data class nom(val head: Variable? = null, val noun: Variable? = null): Construction()
+object nom: Construction()

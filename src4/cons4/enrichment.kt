@@ -4,23 +4,24 @@ import cons4.constructions.*
 import java.util.ArrayList
 import cons4.Construction
 import cons4.Variable
+import cons4.Mite
 
-fun enrichMites(cxts: List<Construction>) = cxts.flatMap { enrich(it) }
+fun enrichMites(cxts: List<Mite>) = cxts.flatMap { enrich(it) }
 
-fun enrich(cxt: Construction): List<Construction> {
-  return when (cxt) {
-    is word -> handleWord(cxt.word!!)
+fun enrich(mite: Mite): List<Mite> {
+  return when (mite.cxt) {
+    word -> handleWord(mite["word"] as String)
     else -> ArrayList()
   }
 }
 
-fun handleWord(w: String): List<Construction> {
+fun handleWord(w: String): List<Mite> {
   val v = Variable()
   val v2 = Variable()
   return when (w) {
-    "случай" -> listOf(nom(noun = v), sem(v, "type", "THING"))
-    "случился" -> listOf(nom(head = v, noun = v2.lightVar), sem(v, "type", "HAPPEN"), sem(v, "arg1", v2))
-    "удивительный" -> listOf(nom(noun = v.lightVar), sem(v, "property", "AMAZING"))
+    "случай" -> listOf(nom("noun" to v), sem.t(v, "THING"))
+    "случился" -> listOf(nom("head" to v, "noun" to v2.lightVar), sem.t(v, "HAPPEN"), sem(v, "arg1", v2))
+    "удивительный" -> listOf(nom("noun" to v.lightVar), sem(v, "property", "AMAZING"))
     else -> ArrayList()
   }
 }

@@ -8,17 +8,12 @@ import java.util.LinkedHashMap
 public data class ParsingState(
         val log: String = "",
         private val mites: List<List<Mite>> = ArrayList(),
-        private val mergeParents: Map<Mite, Set<Mite>> = LinkedHashMap()
+        private val mergeParents: Map<Mite, Set<Mite>> = LinkedHashMap(),
+        private val activeMites: Set<Mite> = LinkedHashSet()
   ) {
 
   fun getChart(): Chart {
-    return Chart(getActiveMites())
-  }
-
-  fun getActiveMites(): LinkedHashSet<Mite> {
-    val result = LinkedHashSet<Mite>()
-    result.addAll(mites.flatMap { it })
-    return result
+    return Chart(activeMites)
   }
 
   fun appendLog(newLog : String) : ParsingState {
@@ -32,10 +27,13 @@ public data class ParsingState(
   fun apply(vararg cxts : Mite) : ParsingState {
     var state = this.copy(mites = mites + arrayListOf(ArrayList()))
     var added = cxts.toList()
+    val totalAdded = LinkedHashSet<Mite>()
     while (added.notEmpty()) {
+      totalAdded.addAll(added)
       state = state.addMites(added)
 
       val merged = state.mergeMites(added)
+      totalAdded.addAll(merged.keySet())
       val newParents = LinkedHashMap(state.mergeParents)
       for ((mite, parents) in merged) {
         newParents[mite] = LinkedHashSet(listOf(parents.first, parents.second))
@@ -46,7 +44,22 @@ public data class ParsingState(
 
       added = enrichMites(added + merged.keySet())
     }
+
+    state = state.copy(activeMites = state.suggestActive(totalAdded))
+
     return state.appendLog(state.presentable() + "\n")
+  }
+
+  fun contradictors(mite: Mite) = mergeParents[mite] ?: listOf<Mite>()
+
+  fun suggestActive(free: Collection<Mite>): Set<Mite> {
+    val result = LinkedHashSet<Mite>(activeMites)
+    for (mite in free) {
+      if (contradictors(mite).all { it !in result }) {
+        result.add(mite)
+      }
+    }
+    return result
   }
 
   fun presentable(): String {
@@ -62,13 +75,11 @@ public data class ParsingState(
       list!!.add(mite) //todo kotlin remove !!
     }
 
-    val active = getActiveMites()
-
     var result = ""
     for ((key, values) in map) {
       result += "  $key: "
       for (mite in values!!) {
-        result += (if (mite in active) "*" else "") + "${mite.args} "
+        result += (if (mite in activeMites) "*" else "") + "${mite.args} "
       }
       result += "\n"
     }

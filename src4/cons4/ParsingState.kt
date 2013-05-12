@@ -25,33 +25,7 @@ public data class ParsingState(
     println("Log:\n\n$log\n")
   }
 
-  fun apply(vararg cxts : Mite) : ParsingState {
-    var state = this.copy(mites = mites + arrayListOf(ArrayList()))
-    var added = cxts.toList()
-    val totalAdded = LinkedHashSet<Mite>()
-    while (added.notEmpty()) {
-      totalAdded.addAll(added)
-      state = state.addMites(added)
-
-      val merged = state.mergeMites(added)
-      totalAdded.addAll(merged.keySet())
-      val newParents = LinkedHashMap(state.mergeParents)
-      for ((mite, parents) in merged) {
-        newParents[mite] = LinkedHashSet(listOf(parents.first, parents.second))
-        newParents[parents.first] = LinkedHashSet<Mite>((newParents[parents.first] ?: listOf<Mite>()) + mite)
-        newParents[parents.second] = LinkedHashSet<Mite>((newParents[parents.second] ?: listOf<Mite>()) + mite)
-      }
-      state = state.copy(mergeParents = newParents).addMites(merged.keySet())
-
-      added = enrichMites(added + merged.keySet())
-    }
-
-    val initialActive = state.suggestActive(state.activeMites, totalAdded)
-    val improved = state.improveActive(initialActive, totalAdded)
-    state = state.copy(activeMites = improved)
-
-    return state.appendLog(state.presentable() + "\n")
-  }
+  fun apply(vararg cxts : Mite) = _apply(this, *cxts)
 
   fun contradictors(mite: Mite) = mergeParents[mite] ?: listOf<Mite>()
 
@@ -134,6 +108,37 @@ public data class ParsingState(
       }
     }
     return result
+  }
+
+  class object {
+    fun _apply(_state: ParsingState, vararg cxts : Mite) : ParsingState {
+      var state = _state.copy(mites = _state.mites + arrayListOf(ArrayList()))
+      var added = cxts.toList()
+      val totalAdded = LinkedHashSet<Mite>()
+      while (added.notEmpty()) {
+        totalAdded.addAll(added)
+        state = state.addMites(added)
+
+        val merged = state.mergeMites(added)
+        totalAdded.addAll(merged.keySet())
+        val newParents = LinkedHashMap(state.mergeParents)
+        for ((mite, parents) in merged) {
+          newParents[mite] = LinkedHashSet(listOf(parents.first, parents.second))
+          newParents[parents.first] = LinkedHashSet<Mite>((newParents[parents.first] ?: listOf<Mite>()) + mite)
+          newParents[parents.second] = LinkedHashSet<Mite>((newParents[parents.second] ?: listOf<Mite>()) + mite)
+        }
+        state = state.copy(mergeParents = newParents).addMites(merged.keySet())
+
+        added = enrichMites(added + merged.keySet())
+      }
+
+      val initialActive = state.suggestActive(state.activeMites, totalAdded)
+      val improved = state.improveActive(initialActive, totalAdded)
+      state = state.copy(activeMites = improved)
+
+      return state.appendLog(state.presentable() + "\n")
+    }
+
   }
 
 }

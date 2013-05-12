@@ -16,11 +16,11 @@ fun enrich(mite: Mite): List<Mite> {
 }
 
 fun handleWord(w: String): List<Mite> {
-  val v = Vars()
-  val vr = v["main"]
+  val vars = Vars()
+  val vr = vars["main"]
   return when (w) {
     "случай" -> listOf(nom("noun" to vr), sem.t(vr, "THING"))
-    "случился" -> listOf(nom("head" to vr, "noun" to v[nom].lightVar), sem.t(vr, "HAPPEN"), sem(vr, "arg1", v[nom]))
+    "случился" -> listOf(nom("head" to vr, "noun" to vars[nom].lightVar), sem.t(vr, "HAPPEN"), sem(vr, "arg1", vars[nom]))
     "удивительный" -> listOf(nom("noun" to vr.lightVar), sem(vr, "property", "AMAZING"))
     else -> ArrayList()
   }

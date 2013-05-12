@@ -16,7 +16,7 @@ public class Variable(
   val hard: Boolean
     get() = base == this
 
-  fun toString():String = "V$comment${if (hard) "" else "_light"}"
+  fun toString():String = "${if (hard) "V" else "v"}$comment"
 
   class object {
 

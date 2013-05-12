@@ -1,5 +1,7 @@
 package cons4
 
+import java.util.HashMap
+
 private var counter : Int = 0
 
 public class Variable(
@@ -30,3 +32,15 @@ public class Variable(
   }
 }
 
+class Vars {
+  private var allocated = HashMap<Any, Variable>()
+
+  fun get(key: Any): Variable {
+    var result = allocated[key]
+    if (result == null) {
+      result = Variable()
+      allocated[key] = result!!
+    }
+    return result!!
+  }
+}

@@ -5,6 +5,7 @@ import cons4.enrichment.*
 import cons4.constructions.*
 import java.util.LinkedHashSet
 import java.util.LinkedHashMap
+import java.util.HashMap
 
 public data class ParsingState(
         val log: String = "",
@@ -12,13 +13,7 @@ public data class ParsingState(
   ) {
 
   fun getChart(): Chart {
-    val assignments = ArrayList<Assignment>()
-    for (mite in getActiveMites()) {
-      if (mite.cxt == sem) {
-        assignments.add(Assignment(mite["frame"] as Variable, mite["attr"] as String, mite["value"]!!))
-      }
-    }
-    return Chart(assignments)
+    return Chart(getActiveMites())
   }
 
   fun getActiveMites(): LinkedHashSet<Mite> {

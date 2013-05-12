@@ -44,16 +44,12 @@ open data class Construction {
     return copyWithArgs(mergedMap)
   }
 
-  open fun copyWithArgs(args : Map<String, Any?>): Construction {
-    throw RuntimeException()
-
-/*
-    val list: List<Class<out Any?>> = orderedFields().map { it.getType()!! }
-    val types: Array<Class<out Any?>> = list.toArray(Array(0, { throw RuntimeException() }))
-    val constructor = javaClass.getConstructor(types)
-    val args = mergedMap.values().toArray()
-    return constructor.newInstance(args)
-*/
+  fun copyWithArgs(args : Map<String, Any?>): Construction {
+    val classList: List<Class<out Any?>> = orderedFields().map { it.getType()!! }
+    val classArray: Array<Class<out Any?>> = classList.toArray(arrayOfNulls<Class<out Any?>>(0) as Array<Class<*>>)
+    val constructor = javaClass.getConstructor(*classArray)
+    val args = args.values().toArray()
+    return constructor.newInstance(*args)!!
 
   }
 

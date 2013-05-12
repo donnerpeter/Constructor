@@ -3,15 +3,34 @@ package cons4
 import cons4.constructions.sem
 import java.util.ArrayList
 import java.util.HashMap
+import java.util.LinkedHashSet
 
 private fun createFrames(activeMites: Collection<Mite>, chart: Chart): Map<Variable, Frame> {
-  val frames = HashMap<Variable, Frame>()
+  val allVars = LinkedHashSet<Variable>()
   for (mite in activeMites) {
     for (value in mite.args.values()) {
       if (value is Variable) {
-        frames.put(value, Frame(chart, value))
+        allVars.add(value.base)
       }
     }
+  }
+
+  val unifications = HashMap<Variable, LinkedHashSet<Variable>>()
+  for (v in allVars) {
+    val primaries = v.primaries
+    val existingKey = primaries.find { unifications.containsKey(it) }
+    val group: LinkedHashSet<Variable> = if (existingKey != null) unifications[existingKey]!! else LinkedHashSet()
+    group.addAll(primaries)
+    unifications[v] = group
+    primaries.forEach { unifications[it] = group }
+  }
+
+  val frames = HashMap<Variable, Frame>()
+  for (v in allVars) {
+    val base = unifications[v]!!.toList()[0]
+    val frame = frames[base] ?: Frame(chart, base)
+    frames[base] = frame
+    frames[v] = frame
   }
   return frames
 }

@@ -18,7 +18,9 @@ public class Chart(activeMites: Collection<Mite>) {
       }
 
       if (mite.cxt == sem) {
-        assignments.add(Assignment(frames[mite["frame"] as Variable]!!, mite["attr"] as String, mite["value"]!!))
+        val value = mite["value"]
+        val convertedValue: Any? = if (value is Variable) frames[value] else value
+        assignments.add(Assignment(frames[mite["frame"] as Variable]!!, mite["attr"] as String, convertedValue!!))
       }
     }
 
@@ -26,7 +28,26 @@ public class Chart(activeMites: Collection<Mite>) {
     this.frames = frames
   }
 
-  fun presentable(): String = assignments.map { it.toString() }.toString() + "\n"
+  fun presentable(): String {
+    val frameId = HashMap<Frame, String>()
+    var counter = 'A'
+    val namer = { (frame: Frame) ->
+      var id = frameId[frame]
+      if (id == null) {
+        id = "${counter++}"
+        frameId[frame] = id!!
+      }
+      id
+    }
+
+    var result = ""
+    for (a in assignments) {
+      result += namer(a.frame) + ".${a.property}="
+      result += if (a.value is Frame) namer(a.value) else a.value as String
+      result += "\n"
+    }
+    return result
+  }
 
 }
 

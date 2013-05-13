@@ -8,6 +8,7 @@ open data class Construction {
 
   fun invoke(vararg args: Pair<String, Any>) = Mite(this, linkedMapOf(*args))
 
+  fun toString() = name
 }
 
 data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, primaries: List<Mite>? = null) {

@@ -5,15 +5,17 @@ import cons4.enrichment.*
 import java.util.LinkedHashSet
 import java.util.LinkedHashMap
 import cons4.constructions.happy
+import java.util.HashSet
+import java.util.HashMap
 
 public data class ParsingState(
         val log: String = "",
         private val mites: List<List<Mite>> = ArrayList(),
-        private val activeMites: Set<Mite> = LinkedHashSet()
+        private val active: Set<Mite> = HashSet()
   ) {
 
   fun getChart(): Chart {
-    return Chart(activeMites)
+    return Chart(getActiveMites())
   }
 
   fun appendLog(newLog : String) : ParsingState {
@@ -26,49 +28,32 @@ public data class ParsingState(
 
   fun apply(vararg cxts : Mite) = _apply(this, *cxts)
 
-  fun getAllMites(): LinkedHashSet<Mite> {
-    val result = LinkedHashSet<Mite>()
-    result.addAll(mites.flatMap { it })
-    return result
-  }
+  fun getAllMites(): LinkedHashSet<Mite> = LinkedHashSet(mites.flatMap { it })
+  fun getActiveMites(): LinkedHashSet<Mite> = LinkedHashSet(getAllMites().filter { it in active })
 
-  fun contradictors(mite: Mite) = getAllMites().filter { it.primaries.any { it in mite.primaries } }
+  fun contradicts(mite1: Mite, mite2: Mite) = mite1.primaries.any { it in mite2.primaries }
+  fun findContradictors(mite: Mite, among: Collection<Mite>) = among.filter { contradicts(mite, it) }
 
   fun unhappyCount(mites: Collection<Mite>) = mites.filter { !happy(it) }.size
 
-  fun improveActive(active: Set<Mite>, totalAdded: Collection<Mite>): Set<Mite> {
-    var bestActive = active
-    while (true) {
-      var changed = false
-      for (mite in active) {
-        if (mite in bestActive && !happy(mite)) {
-          val toRemove = contradictors(mite)
-          for (contr in toRemove) {
-            val frozen = LinkedHashSet(activeMites)
-            frozen.removeAll(contradictors(contr))
-            frozen.add(contr)
-            val alternative = suggestActive(frozen, totalAdded)
-            if (unhappyCount(alternative) < unhappyCount(bestActive)) {
-              bestActive = alternative
-              changed = true
-            }
-          }
+  fun updateActive(): ParsingState {
+    val allMites = getAllMites()
+
+    val byWeight = HashMap<Int, ArrayList<Mite>>()
+    allMites.forEach { mite ->
+      val weight = findContradictors(mite, allMites).filter { !happy(it) }.size + (if (happy(mite)) 1 else 0)
+      byWeight.getOrPut(weight, { ArrayList<Mite>() }).add(mite)
+    }
+
+    val newActive = HashSet<Mite>()
+    byWeight.keySet().toSortedList().reverse().forEach {
+      byWeight[it]!!.forEach { mite ->
+        if (findContradictors(mite, newActive).empty) {
+          newActive.add(mite)
         }
       }
-      if (!changed) {
-        return bestActive
-      }
     }
-  }
-
-  fun suggestActive(frozen: Collection<Mite>, free: Collection<Mite>): Set<Mite> {
-    val result = LinkedHashSet<Mite>(frozen)
-    for (mite in free) {
-      if (contradictors(mite).all { it !in result }) {
-        result.add(mite)
-      }
-    }
-    return result
+    return copy(active = newActive)
   }
 
   fun presentable(): String {
@@ -88,7 +73,7 @@ public data class ParsingState(
     for ((key, values) in map) {
       result += "  $key: "
       for (mite in values!!) {
-        result += (if (mite in activeMites) "*" else "") + "${mite.args} "
+        result += (if (mite in active) "*" else "") + "${mite.args} "
       }
       result += "\n"
     }
@@ -137,9 +122,7 @@ public data class ParsingState(
         added = enrichMites(added + merged)
       }
 
-      val initialActive = state.suggestActive(state.activeMites, totalAdded)
-      val improved = state.improveActive(initialActive, totalAdded)
-      state = state.copy(activeMites = improved)
+      state = state.updateActive()
 
       return state.appendLog(state.presentable() + "\n")
     }

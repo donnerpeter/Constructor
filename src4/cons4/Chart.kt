@@ -54,14 +54,7 @@ public class Chart(activeMites: Collection<Mite>) {
   fun presentable(): String {
     val frameId = HashMap<Frame, String>()
     var counter = 'A'
-    val namer = { (frame: Frame) ->
-      var id = frameId[frame]
-      if (id == null) {
-        id = "${counter++}"
-        frameId[frame] = id!!
-      }
-      id
-    }
+    val namer = { (frame: Frame) -> frameId.getOrPut(frame) { "${counter++}" } }
 
     var result = ""
     for (a in assignments) {

@@ -59,20 +59,15 @@ public data class ParsingState(
   fun presentable(): String {
     if (mites.empty) return ""
 
-    val map = LinkedHashMap<String, ArrayList<Mite>?>()
+    val map = LinkedHashMap<String, ArrayList<Mite>>()
     for (mite in mites.last!!) {
-      var list = map[mite.cxt.name]
-      if (list == null) {
-        list = ArrayList()
-        map[mite.cxt.name] = list
-      }
-      list!!.add(mite) //todo kotlin remove !!
+      map.getOrPut(mite.cxt.name) { ArrayList() }.add(mite)
     }
 
     var result = ""
     for ((key, values) in map) {
       result += "  $key: "
-      for (mite in values!!) {
+      for (mite in values) {
         result += (if (mite in active) "*" else "") + "${mite.args} "
       }
       result += "\n"

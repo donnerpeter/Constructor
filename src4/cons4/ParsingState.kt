@@ -66,11 +66,7 @@ public data class ParsingState(
 
     var result = ""
     for ((key, values) in map) {
-      result += "  $key: "
-      for (mite in values) {
-        result += (if (mite in active) "*" else "") + "${mite.args} "
-      }
-      result += "\n"
+      result += "  $key: " + values.map { (if (it in active) "*" else "") + it.args }.makeString(" ") + "\n"
     }
     return result
   }

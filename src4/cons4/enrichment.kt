@@ -21,9 +21,8 @@ fun handleWord(w: String): List<Mite> {
   return when (w) {
     "мной" -> listOf(instr("noun" to vr), sem.t(vr, "ME"))
     "случай" -> listOf(nom("noun" to vr), sem.t(vr, "THING"))
-    "случился" -> listOf(
-            nom("head" to vr, "noun" to vars[nom].lightVar), sInstr("head" to vr, "noun" to vars[sInstr].lightVar),
-            sem.t(vr, "HAPPEN"), sem(vr, "time", "PAST"), sem(vr, "arg1", vars[nom]), sem(vr, "experiencer", vars[sInstr]))
+    "случился" -> listOf(nom("head" to vr, "noun" to vars[nom].lightVar), sInstr("head" to vr, "noun" to vars[sInstr].lightVar)) +
+      sem(vr, "type" to "HAPPEN", "time" to "PAST", "arg1" to vars[nom], "experiencer" to vars[sInstr])
     "со" -> listOf(sInstr("noun" to vr), instr("noun" to vr.lightVar))
     "удивительный" -> listOf(nom("noun" to vr.lightVar), sem(vr, "property", "AMAZING"))
     else -> ArrayList()

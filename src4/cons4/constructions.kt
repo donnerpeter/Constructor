@@ -8,6 +8,8 @@ object word: Construction()
 object sem: Construction() {
   fun invoke(frame: Variable, attr: String, value: Any) = invoke("frame" to frame, "attr" to attr, "value" to value)
   fun t(frame: Variable, value: String) = invoke(frame, "type", value)
+
+  fun invoke(frame: Variable, vararg args: Pair<String, Any>): List<Mite> = args.map { invoke(frame, it.first, it.second) }
 }
 
 object nom: Construction()

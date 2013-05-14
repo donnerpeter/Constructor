@@ -11,10 +11,13 @@ object sem: Construction() {
 }
 
 object nom: Construction()
+object instr: Construction()
+
+object sInstr: Construction()
 
 fun happy(mite: Mite): Boolean {
   return when(mite.cxt) {
-    nom -> mite["noun"] != null && mite["head"] != null
+    nom, instr, sInstr -> mite["noun"] != null && mite["head"] != null
     else -> true
   }
 }

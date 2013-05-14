@@ -66,7 +66,7 @@ public data class ParsingState(
 
     var result = ""
     for ((key, values) in map) {
-      result += "  $key: " + values.map { (if (it in active) "*" else "") + it.args }.makeString(" ") + "\n"
+      result += "  $key: " + values.map { (if (it in active) "*" else "") + (if (happy(it)) "" else "!") + it.args }.makeString(" ") + "\n"
     }
     return result
   }

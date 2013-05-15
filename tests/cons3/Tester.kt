@@ -1,5 +1,6 @@
-package cons4
+package cons3
 
+import cons4.*
 import junit.framework.Assert
 
 public class Tester {
@@ -13,7 +14,7 @@ public class Tester {
 
     val actual : String
     try {
-      actual = EnglishGenerator().generate(chart)
+      actual = EnglishGenerator().generate(chart)!!
     } catch (e : Throwable) {
       println("\nChart:\n\n${chart.presentable()}")
       state.printLog()

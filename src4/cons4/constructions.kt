@@ -17,6 +17,9 @@ object instr: Construction()
 
 object sInstr: Construction()
 
+object verb: Construction()
+object elaboration: Construction()
+
 fun happy(mite: Mite): Boolean {
   return when(mite.cxt) {
     nom, instr, sInstr -> mite["noun"] != null && mite["head"] != null

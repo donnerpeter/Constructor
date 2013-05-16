@@ -9,6 +9,10 @@ import cons4.Vars
 fun enrichMites(cxts: List<Mite>) = cxts.flatMap { enrich(it) }
 
 fun enrich(mite: Mite): List<Mite> {
+  if (mite.cxt == verb && (mite["verb"] as Variable?)?.hard == true) {
+    return listOf(elaboration("head" to mite["verb"]!!))
+  }
+
   return when (mite.cxt) {
     word -> handleWord(mite["word"] as String)
     else -> ArrayList()
@@ -16,15 +20,16 @@ fun enrich(mite: Mite): List<Mite> {
 }
 
 fun handleWord(w: String): List<Mite> {
-  val vars = Vars()
-  val vr = vars["main"]
+  val v = Vars()
+  val v0 = v[0]
   return when (w) {
-    "мной" -> listOf(instr("noun" to vr), sem.t(vr, "ME"))
-    "случай" -> listOf(nom("noun" to vr), sem.t(vr, "THING"))
-    "случился" -> listOf(nom("head" to vr, "noun" to vars[nom].lightVar), sInstr("head" to vr, "noun" to vars[sInstr].lightVar)) +
-      sem(vr, "type" to "HAPPEN", "time" to "PAST", "arg1" to vars[nom], "experiencer" to vars[sInstr])
-    "со" -> listOf(sInstr("noun" to vr), instr("noun" to vr.lightVar, "head" to Any()))
-    "удивительный" -> listOf(nom("noun" to vr.lightVar), sem(vr, "property", "AMAZING"))
+    "мной" -> listOf(instr("noun" to v0), sem.t(v0, "ME"))
+    "случай" -> listOf(nom("noun" to v0), sem.t(v0, "THING"))
+    "случился" -> listOf(verb("verb" to v0), nom("head" to v0, "noun" to v[nom].lightVar), sInstr("head" to v0, "noun" to v[sInstr].lightVar)) +
+      sem(v0, "type" to "HAPPEN", "time" to "PAST", "arg1" to v[nom], "experiencer" to v[sInstr])
+    "со" -> listOf(sInstr("noun" to v0), instr("noun" to v0.lightVar, "head" to Any()))
+    "удивительный" -> listOf(nom("noun" to v0.lightVar), sem(v0, "property", "AMAZING"))
+    ":" -> listOf(elaboration("hasColon" to "true"))
     else -> ArrayList()
   }
 }

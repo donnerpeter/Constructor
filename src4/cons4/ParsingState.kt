@@ -101,13 +101,10 @@ public data class ParsingState(
     fun _apply(_state: ParsingState, vararg cxts : Mite) : ParsingState {
       var state = _state.copy(mites = _state.mites + arrayListOf(ArrayList()))
       var added = cxts.toList()
-      val totalAdded = LinkedHashSet<Mite>()
       while (added.notEmpty()) {
-        totalAdded.addAll(added)
         state = state.addMites(added)
 
         val merged = state.mergeMites(added)
-        totalAdded.addAll(merged)
         state = state.addMites(merged)
 
         added = enrichMites(added + merged)

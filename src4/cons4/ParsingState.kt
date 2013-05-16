@@ -81,12 +81,17 @@ public data class ParsingState(
     return copy(mites = newMites)
   }
 
-  private fun mergeMites(newMites: List<Mite>): Set<Mite> {
-    val result = LinkedHashSet<Mite>()
-    if (mites.size <= 1) return result
+  fun getVisibleMites(position: Int): Set<Mite> {
+    if (position < 0) return LinkedHashSet<Mite>()
 
+    return LinkedHashSet<Mite>(mites[position])
+  }
+
+  private fun mergeMites(newMites: List<Mite>): Set<Mite> {
+    val visible = getVisibleMites(mites.lastIndex - 1)
+
+    val result = LinkedHashSet<Mite>()
     for (right in newMites) {
-      val visible = mites[mites.lastIndex - 1]
       for (left in visible) {
         val merged = left.unify(right)
         if (merged != null) {

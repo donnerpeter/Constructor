@@ -7,10 +7,11 @@ import java.util.LinkedHashMap
 import cons4.constructions.happy
 import java.util.HashSet
 import java.util.HashMap
+import cons4.constructions.showMoreMites
 
 public data class ParsingState(
         val log: String = "",
-        private val mites: List<List<Mite>> = ArrayList(),
+        val mites: List<List<Mite>> = ArrayList(),
         private val active: Set<Mite> = HashSet()
   ) {
 
@@ -82,9 +83,25 @@ public data class ParsingState(
   }
 
   fun getVisibleMites(position: Int): Set<Mite> {
-    if (position < 0) return LinkedHashSet<Mite>()
+    val result = LinkedHashSet<Mite>()
+    if (position < 0) return result
 
-    return LinkedHashSet<Mite>(mites[position])
+    var part = mites[position]
+    while (part.notEmpty()) {
+      result.addAll(part)
+      part = part.filter { it in active }.flatMap { showMoreMites(it, this) }.filter { it !in result }
+    }
+
+    return result
+  }
+
+  fun getAtomIndex(atom: Mite): Int {
+    for (i in 0..mites.lastIndex) {
+      if (atom in mites[i]) {
+        return i
+      }
+    }
+    return -1
   }
 
   private fun mergeMites(newMites: List<Mite>): Set<Mite> {

@@ -1,20 +1,28 @@
 package cons4
 
 import java.util.HashMap
+import java.util.LinkedHashSet
 
 private var counter : Int = 0
 
 public class Variable(
         hardBase: Variable? = null,
         private val comment: String = "${counter++}",
-        primaries: List<Variable>? = null
+        primaries: Set<Variable>? = null
 ) {
   val base : Variable = if (hardBase == null) this else hardBase
   val lightVar : Variable = if (hardBase == null) Variable(this, comment, primaries) else this
-  val primaries : List<Variable> = if (primaries == null) listOf(base) else primaries
+  val primaries : Set<Variable> = if (primaries == null) LinkedHashSet(listOf(base)) else primaries
 
-  val hard: Boolean
-    get() = base == this
+  fun hashCode(): Int = comment.hashCode()
+  fun equals(o: Any): Boolean {
+    if (o is Variable) {
+      return if (primaries.size() == 1) o === this else primaries == o.primaries
+    }
+    return false
+  }
+
+  val hard: Boolean get() = base == this
 
   fun toString():String = "${if (hard) "V" else "v"}$comment"
 
@@ -28,7 +36,7 @@ public class Variable(
 
     fun mergeVars(v1:Variable, v2:Variable): Variable {
       assert(!v1.hard || !v2.hard)
-      val newVar = Variable(null, "${v1.comment}_${v2.comment}", v1.primaries + v2.primaries)
+      val newVar = Variable(null, "${v1.comment}_${v2.comment}", LinkedHashSet(v1.primaries + v2.primaries))
       return if (v1.hard || v2.hard) newVar else newVar.lightVar
     }
   }

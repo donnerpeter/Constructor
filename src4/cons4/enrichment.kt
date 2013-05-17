@@ -6,7 +6,7 @@ import cons4.Variable
 import cons4.Mite
 import cons4.Vars
 
-fun enrichMites(cxts: List<Mite>) = cxts.flatMap { enrich(it) }
+fun enrichMites(cxts: Collection<Mite>) = cxts.flatMap { enrich(it) }
 
 fun enrich(mite: Mite): List<Mite> {
   if (mite.cxt == verb && (mite["verb"] as Variable?)?.hard == true) {

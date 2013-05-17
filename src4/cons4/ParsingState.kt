@@ -11,7 +11,7 @@ import cons4.constructions.showMoreMites
 
 public data class ParsingState(
         val log: String = "",
-        val mites: List<List<Mite>> = ArrayList(),
+        val mites: List<Set<Mite>> = ArrayList(),
         private val active: Set<Mite> = HashSet()
   ) {
 
@@ -78,7 +78,7 @@ public data class ParsingState(
     }
 
     val newMites = ArrayList(mites)
-    newMites[newMites.lastIndex] += added.toList()
+    newMites[newMites.lastIndex] = LinkedHashSet(newMites[newMites.lastIndex] + added)
     return copy(mites = newMites)
   }
 
@@ -86,7 +86,7 @@ public data class ParsingState(
     val result = LinkedHashSet<Mite>()
     if (position < 0) return result
 
-    var part = mites[position]
+    var part = mites[position].toList()
     while (part.notEmpty()) {
       result.addAll(part)
       part = part.filter { it in active }.flatMap { showMoreMites(it, this) }.filter { it !in result }
@@ -104,7 +104,7 @@ public data class ParsingState(
     return -1
   }
 
-  private fun mergeMites(newMites: List<Mite>): Set<Mite> {
+  private fun mergeMites(newMites: Collection<Mite>): Set<Mite> {
     val visible = getVisibleMites(mites.lastIndex - 1)
 
     val result = LinkedHashSet<Mite>()
@@ -121,10 +121,10 @@ public data class ParsingState(
 
   class object {
     fun _apply(_state: ParsingState, vararg cxts : Mite) : ParsingState {
-      var state = _state.copy(mites = _state.mites + arrayListOf(ArrayList()))
+      var state = _state.copy(mites = _state.mites + arrayListOf(LinkedHashSet()))
       var added = cxts.toList()
       while (added.notEmpty()) {
-        state = state.addMites(added)
+        state = state.addMites(added).updateActive()
 
         val merged = state.mergeMites(added)
         state = state.addMites(merged)

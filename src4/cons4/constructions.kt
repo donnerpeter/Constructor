@@ -29,7 +29,7 @@ fun happy(mite: Mite): Boolean {
   }
 }
 
-fun showMoreMites(mite: Mite, state: ParsingState): List<Mite> {
+fun showMoreMites(mite: Mite, state: ParsingState): Collection<Mite> {
   if ((mite.cxt == instr || mite.cxt == sInstr) && mite["head"] != null) {
     val head = mite.primaries.find { it["head"] != null }!!
     val headIndex = state.getAtomIndex(head)

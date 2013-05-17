@@ -24,6 +24,7 @@ object elaboration: Construction()
 fun happy(mite: Mite): Boolean {
   return when(mite.cxt) {
     nom, instr, sInstr -> mite["noun"] != null && mite["head"] != null
+    verb -> (mite["verb"] as Variable?)?.hard == true
     else -> true
   }
 }

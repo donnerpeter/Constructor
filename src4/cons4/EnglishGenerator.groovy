@@ -273,9 +273,11 @@ class StatefulGenerator {
     }
     allVerbs.removeAll(subordinates)
 
+/*
     allVerbs.sort({ Frame f1, Frame f2 ->
       chart.earlier(f1, 'type', f2, 'type') ? -1 : f1 == f2 ? 0 : 1
     } as Comparator)
+*/
 
     List<ClauseGenerator> clauses = []
     int i = 0

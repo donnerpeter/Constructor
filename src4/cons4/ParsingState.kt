@@ -104,14 +104,19 @@ public data class ParsingState(
     return -1
   }
 
-  private fun mergeMites(newMites: Collection<Mite>): Set<Mite> {
-    val visible = getVisibleMites(mites.lastIndex - 1)
-
+  private fun mergeMites(): Set<Mite> {
     val result = LinkedHashSet<Mite>()
-    for (right in newMites) {
+    if (mites.empty) return result
+
+    val lastMites = mites.last!!
+    val start = lastMites.filter { it in active }.map { getAtomIndex(it.firstAtom) }.fold(mites.lastIndex) { i1, i2 -> Math.min(i1, i2) } //todo kotlin
+
+    val visible = getVisibleMites(start - 1)
+
+    for (right in lastMites) {
       for (left in visible) {
         val merged = left.unify(right)
-        if (merged != null) {
+        if (merged != null && merged !in lastMites) {
           result.add(merged)
         }
       }
@@ -126,7 +131,7 @@ public data class ParsingState(
       while (added.notEmpty()) {
         state = state.addMites(added).updateActive()
 
-        val merged = state.mergeMites(added)
+        val merged = state.mergeMites()
         state = state.addMites(merged)
 
         added = enrichMites(added + merged)

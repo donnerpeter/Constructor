@@ -48,4 +48,6 @@ data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, pri
 
   fun get(attr: String) = args[attr]
 
+  val firstAtom: Mite get() = primaries.iterator().next()
+
 }

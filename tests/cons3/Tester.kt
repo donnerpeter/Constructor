@@ -10,7 +10,13 @@ public class Tester {
     Tokens.counter = 0
 
     val state = Parser().parse(input)
-    val chart = state.getChart()
+    val chart: Chart
+    try {
+      chart = state.getChart()
+    } catch(e: Throwable) {
+      state.printLog()
+      throw e
+    }
 
     val actual : String
     try {

@@ -44,8 +44,8 @@ public class Chart(activeMites: Collection<Mite>) {
     for (mite in activeMites) {
       if (mite.cxt == sem) {
         val value = mite["value"]
-        val convertedValue: Any? = if (value is Variable) var2Frames[value] else value
-        assignments.add(Assignment(var2Frames[mite["frame"] as Variable]!!, mite["attr"] as String, convertedValue!!))
+        val convertedValue: Any? = if (value is Variable) var2Frames[value.base] else value
+        assignments.add(Assignment(var2Frames[(mite["frame"] as Variable).base]!!, mite["attr"] as String, convertedValue!!))
       }
     }
 

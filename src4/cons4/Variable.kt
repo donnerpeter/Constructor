@@ -11,7 +11,7 @@ fun Variable() = HardVariable()
 
 abstract class Variable(private val comment: String) {
   abstract val base: Variable
-  abstract val lightVar: LightVariable
+  abstract val lv: LightVariable
   abstract val primaries: Set<Variable>
   abstract val hard: Boolean
 
@@ -21,14 +21,14 @@ abstract class Variable(private val comment: String) {
     override val base: Variable get() = this
     override val primaries: Set<Variable> = LinkedHashSet(listOf(this))
     override val hard: Boolean get() = true
-    override val lightVar = LightVariable(this)
+    override val lv = LightVariable(this)
   }
 
   class LightVariable(override val base: Variable): Variable(base.comment) {
     {
       assert(base.hard)
     }
-    override val lightVar: Variable.LightVariable get() = this
+    override val lv: Variable.LightVariable get() = this
     override val primaries: Set<Variable> get() = base.primaries
     override val hard: Boolean get() = false
 
@@ -37,7 +37,7 @@ abstract class Variable(private val comment: String) {
   }
 
   class MergedVariable(override val primaries: Set<Variable>) : Variable(primaries.map { it.comment }.makeString("_")) {
-    override val lightVar = LightVariable(this)
+    override val lv = LightVariable(this)
     override val base: Variable get() = this
     override val hard: Boolean get() = true
 
@@ -54,7 +54,7 @@ abstract class Variable(private val comment: String) {
     fun mergeVars(v1:Variable, v2:Variable): Variable {
       assert(!v1.hard || !v2.hard)
       val newVar = MergedVariable(LinkedHashSet(v1.primaries + v2.primaries))
-      return if (v1.hard || v2.hard) newVar else newVar.lightVar
+      return if (v1.hard || v2.hard) newVar else newVar.lv
     }
   }
 }

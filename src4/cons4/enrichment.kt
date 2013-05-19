@@ -6,19 +6,6 @@ import cons4.Variable
 import cons4.Mite
 import cons4.Vars
 
-fun enrichMites(cxts: Collection<Mite>) = cxts.flatMap { enrich(it) }
-
-fun enrich(mite: Mite): List<Mite> {
-  if (mite.cxt == verb && (mite["verb"] as Variable?)?.hard == true) {
-    return listOf(elaboration("head" to mite["verb"]!!))
-  }
-
-  return when (mite.cxt) {
-    word -> handleWord(mite["word"] as String)
-    else -> ArrayList()
-  }
-}
-
 fun handleWord(w: String): List<Mite> {
   val v = Vars()
   val v0 = v[0]
@@ -32,7 +19,7 @@ fun handleWord(w: String): List<Mite> {
       sem(v0, "type" to "HAPPEN", "time" to "PAST", "arg1" to v[nom], "experiencer" to v[sInstr])
     "со" -> listOf(sInstr("noun" to v0), instr("noun" to v0.lightVar, "head" to Any()))
     "удивительный" -> listOf(nom("noun" to v0.lightVar), sem(v0, "property", "AMAZING"))
-    ":" -> listOf(elaboration("hasColon" to "true"))
+    ":" -> listOf(verb("verb" to v0.lightVar, "last" to true), verb("verb" to v[1].lightVar, "first" to true), sem(v0, "elaboration", v[1]))
     "я" -> listOf(nom("noun" to v0), sem.t(v0, "ME"))
     else -> ArrayList()
   }

@@ -2,31 +2,48 @@ package cons4
 
 import java.util.HashMap
 import java.util.LinkedHashSet
+import cons4.Variable.HardVariable
+import cons4.Variable.MergedVariable
 
 private var counter : Int = 0
 
-public class Variable(
-        hardBase: Variable? = null,
-        private val comment: String = "${counter++}",
-        primaries: Set<Variable>? = null
-) {
-  val base : Variable = if (hardBase == null) this else hardBase
-  val lightVar : Variable = if (hardBase == null) Variable(this, comment, primaries) else this
-  val primaries : Set<Variable> = if (primaries == null) LinkedHashSet(listOf(base)) else primaries
+fun Variable() = HardVariable()
 
-  fun hashCode(): Int = comment.hashCode()
-  fun equals(o: Any): Boolean {
-    if (o is Variable) {
-      return if (primaries.size() == 1) o === this else primaries == o.primaries
-    }
-    return false
-  }
-
-  val hard: Boolean get() = base == this
+abstract class Variable(private val comment: String) {
+  abstract val base: Variable
+  abstract val lightVar: LightVariable
+  abstract val primaries: Set<Variable>
+  abstract val hard: Boolean
 
   fun toString():String = "${if (hard) "V" else "v"}$comment"
 
-  fun hardPrimary(): Variable? = primaries.find { it.hard }
+  class HardVariable(comment: String = "${counter++}"): Variable(comment) {
+    override val base: Variable get() = this
+    override val primaries: Set<Variable> = LinkedHashSet(listOf(this))
+    override val hard: Boolean get() = true
+    override val lightVar = LightVariable(this)
+  }
+
+  class LightVariable(override val base: Variable): Variable(base.comment) {
+    {
+      assert(base.hard)
+    }
+    override val lightVar: Variable.LightVariable get() = this
+    override val primaries: Set<Variable> get() = base.primaries
+    override val hard: Boolean get() = false
+
+    fun equals(o: Any) = o is LightVariable && o.base == base
+    fun hashCode() = base.hashCode()
+  }
+
+  class MergedVariable(override val primaries: Set<Variable>) : Variable(primaries.map { it.comment }.makeString("_")) {
+    override val lightVar = LightVariable(this)
+    override val base: Variable get() = this
+    override val hard: Boolean get() = true
+
+    fun equals(o: Any) = o is MergedVariable && o.primaries == primaries
+    fun hashCode() = primaries.hashCode()
+  }
 
   class object {
 
@@ -36,7 +53,7 @@ public class Variable(
 
     fun mergeVars(v1:Variable, v2:Variable): Variable {
       assert(!v1.hard || !v2.hard)
-      val newVar = Variable(null, "${v1.comment}_${v2.comment}", LinkedHashSet(v1.primaries + v2.primaries))
+      val newVar = MergedVariable(LinkedHashSet(v1.primaries + v2.primaries))
       return if (v1.hard || v2.hard) newVar else newVar.lightVar
     }
   }

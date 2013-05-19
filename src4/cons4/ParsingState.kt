@@ -1,13 +1,13 @@
 package cons4
 
 import java.util.ArrayList
-import cons4.enrichment.*
 import java.util.LinkedHashSet
 import java.util.LinkedHashMap
 import cons4.constructions.happy
 import java.util.HashSet
 import java.util.HashMap
 import cons4.constructions.showMoreMites
+import cons4.constructions.enrich
 
 public data class ParsingState(
         val log: String = "",
@@ -131,17 +131,21 @@ public data class ParsingState(
       while (added.notEmpty()) {
         state = state.addMites(added).updateActive()
 
-        val merged = state.mergeMites()
-        state = state.addMites(merged)
+        while (true) {
+          val merged = state.mergeMites()
+          if (merged.isEmpty()) break
+          added += merged
+          state = state.addMites(merged).updateActive()
+        }
 
-        added = enrichMites(added + merged)
+        added = added.flatMap { enrich(it) }
       }
-
-      state = state.updateActive()
 
       return state.appendLog(state.presentable() + "\n")
     }
 
   }
+
+  fun toString() = "#${mites.size}"
 
 }

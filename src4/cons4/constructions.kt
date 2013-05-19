@@ -4,6 +4,8 @@ import cons4.Construction
 import cons4.Variable
 import cons4.Mite
 import cons4.ParsingState
+import java.util.ArrayList
+import cons4.enrichment.handleWord
 
 object word: Construction()
 object sem: Construction() {
@@ -37,4 +39,16 @@ fun showMoreMites(mite: Mite, state: ParsingState): Collection<Mite> {
   }
 
   return listOf()
+}
+
+fun canUnify(left: Mite, right: Mite): Boolean {
+  if (left.cxt == verb && (left["last"] == true || right["first"] == true)) return false
+  return true
+}
+
+fun enrich(mite: Mite): List<Mite> {
+  return when (mite.cxt) {
+    word -> handleWord(mite["word"] as String)
+    else -> ArrayList()
+  }
 }

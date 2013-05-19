@@ -2,6 +2,7 @@ package cons4
 
 import java.util.LinkedHashMap
 import java.util.LinkedHashSet
+import cons4.constructions.canUnify
 
 open data class Construction {
   val name = this.javaClass.getSimpleName()
@@ -35,7 +36,7 @@ data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, pri
   }
 
   fun unify(right: Mite): Mite? {
-    if (cxt != right.cxt) {
+    if (cxt != right.cxt || !canUnify(this, right)) {
       return null
     }
     val myMap = args

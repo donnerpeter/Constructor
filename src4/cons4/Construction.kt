@@ -16,6 +16,8 @@ data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, pri
   val primaries: LinkedHashSet<Mite> = LinkedHashSet(if (primaries == null) listOf(this) else primaries)
 
   fun has(vararg attrs: String) = attrs.all { args[it] != null }
+  fun hasHard(vararg attrs: String) = attrs.all { args[it] is Variable && (args[it] as Variable).hard }
+  fun v(attr: String) = args[attr] as Variable
 
   private fun mergeMaps(myMap: Map<String, Any>, hisMap: Map<String, Any>): LinkedHashMap<String, Any>? {
     val merged = LinkedHashMap<String, Any>()

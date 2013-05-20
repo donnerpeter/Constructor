@@ -11,7 +11,7 @@ fun handleWord(w: String): List<Mite> {
   val v0 = v[0]
   return when (w) {
     "вдруг" -> l(verb("verb" to v0.lv)) + sem(v0, "manner" to "SUDDENLY")
-    "забыл" -> finiteVerb(v, "PAST") + sem(v0, "type" to "FORGET")
+    "забыл" -> finiteVerb(v, "PAST") + sem(v0, "type" to "FORGET") + l(comp("head" to v0, "comp" to v[1].lv), sem(v0, "arg2", v[1]))
     "идет" -> finiteVerb(v, "PRESENT") + l(comeScalarly("verb" to v0))
     "мной" -> pronoun(v, instr, "ME")
     "раньше" -> l(comeScalarly("verb" to v0.lv, "order" to "EARLIER"))
@@ -19,8 +19,9 @@ fun handleWord(w: String): List<Mite> {
     "случился" -> finiteVerb(v, "PAST") + l(sInstr("head" to v0, "noun" to v[sInstr].lv)) + sem(v0, "type" to "HAPPEN", "experiencer" to v[sInstr])
     "со" -> l(sInstr("noun" to v0), instr("noun" to v0.lv, "head" to Any()))
     "удивительный" -> l(nom("noun" to v0.lv), sem(v0, "property", "AMAZING"))
-    "что" -> pronoun(v, nom, "wh")
+    "что" -> pronoun(v, nom, "wh") + l(comp("comp" to v[2]), question("frame" to v[2], "content" to v[1]), verb("verb" to v[1].lv))
     "я" -> pronoun(v, nom, "ME")
+    "," -> l(comp())
     ":" -> l(verb("verb" to v0.lv, "last" to true), verb("verb" to v[1].lv, "first" to true), sem(v0, "elaboration", v[1]))
     else -> l()
   }

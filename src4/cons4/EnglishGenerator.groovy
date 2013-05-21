@@ -715,7 +715,7 @@ class StatefulGenerator {
     def variants = subj?.f('variants')
     if (variants) {
       out '-'
-      npseq(variants, true)
+      np(variants, true)
     }
   }
 

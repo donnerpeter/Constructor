@@ -1,7 +1,7 @@
 package cons3
 
+import cons4.*
 import junit.framework.TestCase
-
 /**
  * @author peter
  */
@@ -706,32 +706,7 @@ C.owner=D
   }
 
   static void doTranslateTest(String input, String expected) {
-    Variable.counter = 0
-    Tokens.counter = 0
-    def parser = new Parser()
+    new Tester().doTranslateTest(input, expected)
 
-    Chart chart
-    try {
-      chart = parser.parse(input)
-    } catch (Throwable e) {
-      parser.printLog()
-      throw e
-    }
-
-    String actual
-    try {
-      actual = new EnglishGenerator().generate(chart)
-    } catch (Throwable e) {
-      println "\nChart:\n\n${chart.presentable()}"
-      parser.printLog()
-      throw e
-    }
-
-    if (actual != expected) {
-      println "\nChart:\n\n${chart.presentable()}"
-      parser.printLog()
-    }
-
-    assertEquals expected, actual
   }
 }

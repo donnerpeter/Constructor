@@ -9,8 +9,21 @@ class Frame(val chart: Chart, val variable: Variable) {
 
   fun definedAttributeValue(attr: String) = allAssignments(attr).firstOrNull()?.value
 
-  fun s(attr: String) = definedAttributeValue(attr) as String?
   fun f(attr: String) = definedAttributeValue(attr) as Frame?
+
+  fun s(attr: String): String? {
+    val defined = definedAttributeValue(attr)
+    if (defined is String) return defined
+
+    if (attr == "given") {
+      when (getType()) {
+        "THING", "HAMMER", "BENCH", "FINGER", "JAW", "WATER_MELON" -> return "false"
+        else -> return "true"
+      }
+    }
+
+    return null
+  }
 
   fun getType() = definedAttributeValue("type")
   fun getTypeInferred() = getType()

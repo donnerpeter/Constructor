@@ -36,4 +36,26 @@ public class Tester {
 
   }
 
+  public fun doParseTest(input: String, expected: String) {
+    Variable.resetCounter()
+    Tokens.counter = 0
+
+    val state = Parser().parse(input)
+    val chart: Chart
+    try {
+      chart = state.getChart()
+    } catch(e: Throwable) {
+      state.printLog()
+      throw e
+    }
+
+    val actual = chart.presentable()
+    if (actual != expected.trim()) {
+      state.printLog()
+    }
+
+    Assert.assertEquals(expected.trim() + "\n", actual + "\n")
+
+  }
+
 }

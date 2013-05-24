@@ -1,6 +1,5 @@
 package cons3
 
-import cons4.*
 import junit.framework.TestCase
 /**
  * @author peter
@@ -50,15 +49,7 @@ A.member=C
   }
 
   static void doParseTest(String input, String expected) {
-    Variable.counter = 0
-    Tokens.counter = 0
-    def parser = new Parser()
-    def chart = parser.parse(input)
-    def result = chart.presentable()
-    if (expected.trim() != result) {
-      parser.printLog()
-      assertEquals expected.trim() + "\n", result + "\n"
-    }
+    new Tester().doParseTest(input, expected)
   }
 
   public void testParse2() {

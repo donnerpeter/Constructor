@@ -1,14 +1,19 @@
 package cons4.enrichment
 
 import cons4.constructions.*
-import java.util.ArrayList
 import cons4.Mite
 import cons4.Vars
 import cons4.Construction
+import cons4.Util
 
 fun handleWord(w: String): List<Mite> {
   val v = Vars()
   val v0 = v[0]
+
+  if (Util.parseNumber(w) != null) {
+    return noun(v, nom, w) + sem(v0, "number" to "true")
+  }
+
   return when (w) {
     "7", "8" -> noun(v, nom, w)
     "вдруг" -> l(verb("verb" to v0.lv)) + sem(v0, "manner" to "SUDDENLY")

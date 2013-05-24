@@ -962,7 +962,7 @@ class StatefulGenerator {
   }
 
   private boolean isNumber(Frame n) {
-    return n.s('number') == 'true' && Util.parseNumber(n.type)
+    return n.s('number') == 'true' && Util.instance$.parseNumber(n.type)
   }
 
   private void determiner(Frame n, boolean an) {

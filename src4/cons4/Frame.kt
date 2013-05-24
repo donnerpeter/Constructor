@@ -17,7 +17,12 @@ class Frame(val chart: Chart, val variable: Variable) {
 
   fun usages(attr: String) = chart.assignments.filter { it.value == this && it.property == attr }.map { it.frame }
 
-  fun flatten() = listOf(this)
+  fun flatten(): List<Frame> {
+    val members = allAssignments("member")
+    if (members.notEmpty()) return members.map { it.value as Frame }
+
+    return listOf(this)
+  }
 
   fun hasType() = flatten()[0].getType() != null
 

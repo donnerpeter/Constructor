@@ -12,8 +12,8 @@ open data class Construction {
   fun toString() = name
 }
 
-data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, primaries: List<Mite>? = null) {
-  val primaries: LinkedHashSet<Mite> = LinkedHashSet(if (primaries == null) listOf(this) else primaries)
+data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, private val _primaries: List<Mite>? = null) {
+  val primaries: LinkedHashSet<Mite> = LinkedHashSet(if (_primaries == null) listOf(this) else _primaries)
 
   fun has(vararg attrs: String) = attrs.all { args[it] != null }
   fun hasHard(vararg attrs: String) = attrs.all { args[it] is Variable && (args[it] as Variable).hard }
@@ -48,11 +48,13 @@ data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, pri
     if (mergedMap == null) {
       return null
     }
-    return copy(args = mergedMap, primaries = this.primaries + right.primaries)
+    return copy(args = mergedMap, _primaries = this.primaries + right.primaries)
   }
 
   fun get(attr: String) = args[attr]
 
   val firstAtom: Mite get() = primaries.iterator().next()
+  val atom: Boolean get() = primaries.size == 1
 
+  fun toString() = cxt.name + args.toString()
 }

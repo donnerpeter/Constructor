@@ -19,11 +19,16 @@ private fun createFrames(activeMites: Collection<Mite>, chart: Chart): Map<Varia
   val unifications = HashMap<Variable, LinkedHashSet<Variable>>()
   for (v in allVars) {
     val primaries = v.primaries
-    val existingKey = primaries.find { unifications.containsKey(it) }
-    val group: LinkedHashSet<Variable> = if (existingKey != null) unifications[existingKey]!! else LinkedHashSet()
-    group.addAll(primaries)
+    val group = LinkedHashSet(primaries)
+    for (atom in primaries) {
+      val existingGroup = unifications[atom]
+      if (existingGroup != null) {
+        group.addAll(existingGroup)
+      }
+    }
+
     unifications[v] = group
-    primaries.forEach { unifications[it] = group }
+    group.forEach { unifications[it] = group }
   }
 
   val frames = LinkedHashMap<Variable, Frame>()

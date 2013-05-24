@@ -5,8 +5,7 @@ import java.util.LinkedHashSet
 import java.util.LinkedHashMap
 import cons4.constructions.happy
 import java.util.HashSet
-import java.util.HashMap
-import cons4.constructions.showMoreMites
+import cons4.constructions.hasHead
 import cons4.constructions.enrich
 
 public data class ParsingState(
@@ -35,23 +34,27 @@ public data class ParsingState(
   fun contradicts(mite1: Mite, mite2: Mite) = mite1.primaries.any { it in mite2.primaries }
   fun findContradictors(mite: Mite, among: Collection<Mite>) = among.filter { contradicts(mite, it) }
 
-  fun unhappyCount(mites: Collection<Mite>) = mites.filter { !happy(it) }.size
-
   fun updateActive(): ParsingState {
     val allMites = getAllMites()
 
-    val byWeight = HashMap<Int, ArrayList<Mite>>()
+    val miteWeights = LinkedHashMap<Mite, Double>()
+    allMites.forEach { miteWeights[it] = 0.0 }
     allMites.forEach { mite ->
-      val weight = findContradictors(mite, allMites).filter { !happy(it) }.size + (if (happy(mite)) 1 else 0)
-      byWeight.getOrPut(weight, { ArrayList<Mite>() }).add(mite)
+      if (!happy(mite)) {
+        val contradictors = findContradictors(mite, allMites)
+        for (contr in contradictors) {
+          miteWeights[contr] = miteWeights[contr]!! + 1.0/contradictors.size.toDouble()
+        }
+      } else {
+        miteWeights[mite] = miteWeights[mite]!! + 1
+      }
     }
 
     val newActive = HashSet<Mite>()
-    byWeight.keySet().toSortedList().reverse().forEach {
-      byWeight[it]!!.forEach { mite ->
-        if (findContradictors(mite, newActive).empty) {
-          newActive.add(mite)
-        }
+    miteWeights.entrySet().sortBy { -it.value }.forEach {
+      val mite = it.key
+      if (findContradictors(mite, newActive).empty) {
+        newActive.add(mite)
       }
     }
     return copy(active = newActive)
@@ -60,14 +63,26 @@ public data class ParsingState(
   fun presentable(): String {
     if (mites.empty) return ""
 
+    var result = "${this}"
+
+    val link = findPrevLink(mites.lastIndex)
+    if (link != null) {
+      result += " ${if (link.up) "/" else "-"}> #${link.prevIndex}                via ${link.mite}"
+    }
+    result += "\n"
+
     val map = LinkedHashMap<String, ArrayList<Mite>>()
     for (mite in mites.last!!) {
       map.getOrPut(mite.cxt.name) { ArrayList() }.add(mite)
     }
 
-    var result = ""
     for ((key, values) in map) {
       result += "  $key: " + values.map { (if (it in active) "*" else "") + (if (happy(it)) "" else "!") + it.args }.makeString(" ") + "\n"
+    }
+
+    val unhappy = getAllMites().filter { it in active && it !in mites.last!! && !happy(it) }
+    if (unhappy.notEmpty()) {
+      result += "\n  unhappy: " + unhappy.makeString(" ") + "\n"
     }
     return result
   }
@@ -82,25 +97,65 @@ public data class ParsingState(
     return copy(mites = newMites)
   }
 
-  fun getVisibleMites(index: Int): Set<Mite> {
+  fun findPhraseStart(index: Int): Mite? {
+    if (index < 0) return null
+
     val lastMites = mites[index]
-    val start = lastMites.filter { it in active }.map { getAtomIndex(it.firstAtom) }.fold(index) { i1, i2 -> Math.min(i1, i2) } - 1 //todo kotlin
+    val allHeads = lastMites.filter { it in active && it.primaries.any { hasHead(it) && it in lastMites } }
 
-    val result = LinkedHashSet<Mite>()
-    if (start < 0) return result
+    var earliestHead: Mite? = null
+    for (head in allHeads) {
+      val start = getAtomIndex(head.firstAtom)
+      if (earliestHead == null || start < getAtomIndex(earliestHead!!)) earliestHead = head.firstAtom
+    }
+    if (earliestHead == null) return null
 
-    var part = mites[start].toList()
-    while (part.notEmpty()) {
-      result.addAll(part)
-      part = part.filter { it in active }.flatMap { showMoreMites(it, this) }.filter { it !in result }
+    val earliestStart = getAtomIndex(earliestHead!!)
+    if (earliestStart == index) return null
+
+    val childStart = findPhraseStart(earliestStart)
+    return childStart ?: earliestHead
+  }
+
+  data class Link(val prevIndex: Int, val mite: Mite?, val up: Boolean)
+
+  fun findPrevLink(index: Int): Link? {
+    if (index <= 0) return null
+
+    val lastMites = mites[index]
+    val upLink = lastMites.find { it in active && hasHead(it) && !it.primaries.any { hasHead(it) && it in lastMites } }
+    if (upLink != null) {
+      val headAtom = upLink.primaries.find { hasHead(it) }!!
+      return Link(getAtomIndex(headAtom), headAtom, true)
     }
 
+    val phraseStart = findPhraseStart(index)
+    if (phraseStart == null) {
+      return if (index == 0) null else Link(index - 1, null, false)
+    }
+
+    return Link(getAtomIndex(phraseStart) - 1, phraseStart, false)
+  }
+
+  fun getVisibleMites(index: Int, includeStart: Boolean, goingUp: Boolean = false): Set<Mite> {
+    val result = LinkedHashSet<Mite>()
+    if (index < 0) return result
+
+    if (includeStart) {
+      result.addAll(mites[index])
+    }
+
+    val link = findPrevLink(index)
+    if (link == null || !link.up && goingUp) return result
+
+    result.addAll(getVisibleMites(link.prevIndex, true, true))
     return result
   }
 
-  fun getAtomIndex(atom: Mite): Int {
+  fun getAtomIndex(mite: Mite): Int {
+    assert(mite.atom)
     for (i in 0..mites.lastIndex) {
-      if (atom in mites[i]) {
+      if (mite in mites[i]) {
         return i
       }
     }
@@ -109,9 +164,7 @@ public data class ParsingState(
 
   private fun mergeMites(): Set<Mite> {
     val result = LinkedHashSet<Mite>()
-    if (mites.empty) return result
-
-    val visible = getVisibleMites(mites.lastIndex)
+    val visible = getVisibleMites(mites.lastIndex, false)
     for (right in mites.last!!) {
       for (left in visible) {
         val merged = left.unify(right)
@@ -125,19 +178,20 @@ public data class ParsingState(
 
   class object {
     fun _apply(_state: ParsingState, vararg cxts : Mite) : ParsingState {
-      var state = _state.copy(mites = _state.mites + arrayListOf(LinkedHashSet()))
-      var added = cxts.toList()
-      while (added.notEmpty()) {
-        state = state.addMites(added).updateActive()
+      var state = _state.copy(mites = _state.mites + arrayListOf(LinkedHashSet(cxts.toList()))).updateActive()
+      var toEnrich = cxts.toList()
+      while (toEnrich.notEmpty()) {
+        while (toEnrich.notEmpty()) {
+          toEnrich = toEnrich.flatMap { enrich(state, it) }
+          state = state.addMites(toEnrich).updateActive()
+        }
 
         while (true) {
           val merged = state.mergeMites()
           if (merged.isEmpty()) break
-          added += merged
+          toEnrich += merged
           state = state.addMites(merged).updateActive()
         }
-
-        added = added.flatMap { enrich(it) }
       }
 
       return state.appendLog(state.presentable() + "\n")
@@ -145,6 +199,6 @@ public data class ParsingState(
 
   }
 
-  fun toString() = "#${mites.size}"
+  fun toString() = "#${mites.lastIndex}"
 
 }

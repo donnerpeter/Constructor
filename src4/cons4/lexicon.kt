@@ -5,6 +5,7 @@ import cons4.Mite
 import cons4.Vars
 import cons4.Construction
 import cons4.Util
+import java.util.ArrayList
 
 fun handleWord(w: String): List<Mite> {
   val v = Vars()
@@ -17,14 +18,17 @@ fun handleWord(w: String): List<Mite> {
   return when (w) {
     "7", "8" -> noun(v, nom, w)
     "вдруг" -> l(verb("verb" to v0.lv)) + sem(v0, "manner" to "SUDDENLY")
-    "забыл" -> finiteVerb(v, "PAST") + sem(v0, "type" to "FORGET") + l(comp("head" to v0, "comp" to v[1].lv), sem(v0, "arg2", v[1]))
-    "идет" -> finiteVerb(v, "PRESENT") + l(comeScalarly("head" to v0))
+    "забыл" -> finiteVerb(v, "PAST", agrGender="m", agrNumber="sg") + sem(v0, "type" to "FORGET") + l(comp("head" to v0, "comp" to v[1].lv), sem(v0, "arg2", v[1]))
+    "идет" -> finiteVerb(v, "PRESENT", agrGender="m", agrNumber="sg", agrPerson=3) + l(comeScalarly("head" to v0))
     "или" -> l(seq("conj" to "or", "seqVar" to v0, "left" to v[1], "right" to v[2]))
+    "к" -> l(kDat("noun" to v0), dat("noun" to v0.lv, "head" to v[1]))
     "мной" -> pronoun(v, instr, "ME")
+    "отправился" -> finiteVerb(v, "PAST", agrGender="m", agrNumber="sg") + l(kDat("head" to v0, "noun" to v[kDat].lv)) + sem(v0, "type" to "GO_OFF", "goal" to v[kDat])
     "раньше" -> l(comeScalarly("head" to v0.lv, "order" to "EARLIER"))
     "случай" -> noun(v, nom, "THING")
-    "случился" -> finiteVerb(v, "PAST") + l(sInstr("head" to v0, "noun" to v[sInstr].lv)) + sem(v0, "type" to "HAPPEN", "experiencer" to v[sInstr])
+    "случился" -> finiteVerb(v, "PAST", agrGender="m", agrNumber="sg") + l(sInstr("head" to v0, "noun" to v[sInstr].lv)) + sem(v0, "type" to "HAPPEN", "experiencer" to v[sInstr])
     "со" -> l(sInstr("noun" to v0), instr("noun" to v0.lv, "head" to v[1]))
+    "соседям" -> noun(v, dat, "NEIGHBOURS")
     "удивительный" -> l(nom("noun" to v0.lv), sem(v0, "property", "AMAZING"))
     "что" -> pronoun(v, nom, "wh") + l(comp("comp" to v[2]), question("head" to v[2], "first" to true), questionVariants("wh" to v0))
     "я" -> pronoun(v, nom, "ME")
@@ -38,4 +42,12 @@ fun handleWord(w: String): List<Mite> {
 fun l(vararg mites: Mite) = listOf(*mites)
 fun noun(v: Vars, case: Construction, typ: String) = l(case("noun" to v[0]), sem.t(v[0], typ))
 fun pronoun(v: Vars, case: Construction, typ: String) = noun(v, case, typ)
-fun finiteVerb(v: Vars, time: String) = l(verb("verb" to v[0]), nom("head" to v[0], "noun" to v[nom].lv)) + sem(v[0], "time" to time, "arg1" to v[nom])
+
+fun finiteVerb(v: Vars, time: String, agrGender: String? = null, agrNumber: String? = null, agrPerson: Int? = null): List<Mite> {
+  val nomArgs : ArrayList<Pair<String, Any>> = arrayListOf("head" to v[0], "noun" to v[nom].lv)
+  if (agrGender != null) nomArgs.add("agrGender" to agrGender!!)
+  if (agrNumber != null) nomArgs.add("agrNumber" to agrNumber!!)
+  if (agrPerson != null) nomArgs.add("agrPerson" to agrPerson!!)
+  return l(verb("verb" to v[0]), nom(nomArgs)) + sem(v[0], "time" to time, "arg1" to v[nom])
+}
+

@@ -7,6 +7,7 @@ import cons4.constructions.canUnify
 open data class Construction {
   val name = this.javaClass.getSimpleName()
 
+  fun invoke(args: List<Pair<String, Any>>) = Mite(this, linkedMapOf(*args.toArray(arrayOfNulls<Pair<String, Any>>(0) as Array<Pair<String, Any>>)))
   fun invoke(vararg args: Pair<String, Any>) = Mite(this, linkedMapOf(*args))
 
   fun toString() = name

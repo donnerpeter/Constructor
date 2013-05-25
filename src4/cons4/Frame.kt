@@ -9,7 +9,20 @@ class Frame(val chart: Chart, val variable: Variable) {
 
   fun definedAttributeValue(attr: String) = allAssignments(attr).firstOrNull()?.value
 
-  fun f(attr: String) = definedAttributeValue(attr) as Frame?
+  fun f(attr: String): Frame? {
+    val defined = definedAttributeValue(attr)
+    if (defined is Frame) return defined
+
+    if (attr == "arg1") {
+      if (getType() == "NEIGHBOURS") {
+        val verb = usages("arg2").firstOrNull() ?: usages("goal").firstOrNull()
+        return verb?.f("arg1")
+      }
+
+    }
+
+    return null
+  }
 
   fun s(attr: String): String? {
     val defined = definedAttributeValue(attr)
@@ -27,6 +40,8 @@ class Frame(val chart: Chart, val variable: Variable) {
 
   fun getType() = definedAttributeValue("type")
   fun getTypeInferred() = getType()
+
+  fun resolve() = this
 
   fun usages(attr: String) = chart.assignments.filter { it.value == this && it.property == attr }.map { it.frame }
 

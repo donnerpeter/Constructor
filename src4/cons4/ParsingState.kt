@@ -11,6 +11,7 @@ import cons4.constructions.enrich
 public data class ParsingState(
         val log: String = "",
         val mites: List<Set<Mite>> = ArrayList(),
+        val creators: Map<Mite, Set<Mite>> = LinkedHashMap(),
         private val active: Set<Mite> = HashSet()
   ) {
 
@@ -54,11 +55,29 @@ public data class ParsingState(
     miteWeights.entrySet().sortBy { -it.value }.forEach {
       val mite = it.key
       if (findContradictors(mite, newActive).empty) {
-        newActive.add(mite)
+        val preconditions = findPreconditions(mite, newActive, miteWeights)
+        if (preconditions != null) {
+          newActive.addAll(preconditions)
+          newActive.add(mite)
+        }
       }
     }
     return copy(active = newActive)
   }
+
+  private fun findPreconditions(mite: Mite, active: Set<Mite>, miteWeights: Map<Mite, Double>) : List<Mite>? {
+    val parents = LinkedHashSet<Mite>(mite.primaries.flatMap { creators.getOrElse(it) { listOf<Mite>() } })
+    if (parents.empty) return listOf()
+
+    for (p in parents.sortBy { -miteWeights[it]!! }) {
+      if (p in active || findContradictors(p, active).empty) {
+        val tail = findPreconditions(p, active, miteWeights)
+        if (tail != null) return listOf(p) + tail
+      }
+    }
+    return null
+  }
+
 
   fun presentable(): String {
     if (mites.empty) return ""
@@ -182,8 +201,16 @@ public data class ParsingState(
       var toEnrich = cxts.toList()
       while (toEnrich.notEmpty()) {
         while (toEnrich.notEmpty()) {
-          toEnrich = toEnrich.flatMap { enrich(state, it) }
-          state = state.addMites(toEnrich).updateActive()
+          val newCreators = LinkedHashMap(state.creators)
+          val enriched = LinkedHashSet<Mite>()
+          for (creator in toEnrich) {
+            for (created in enrich(state, creator)) {
+              newCreators[created] = LinkedHashSet(newCreators.getOrElse(created) { listOf<Mite>() } + creator)
+              enriched.add(created)
+            }
+          }
+          state = state.addMites(enriched).copy(creators = newCreators).updateActive()
+          toEnrich = enriched.toList()
         }
 
         while (true) {

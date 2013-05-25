@@ -9,6 +9,7 @@ import cons4.enrichment.handleWord
 import cons4.enrichment.l
 
 object word: Construction()
+object semSectionEnd: Construction()
 object sem: Construction() {
   fun invoke(frame: Variable, attr: String, value: Any) = invoke("frame" to frame, "attr" to attr, "value" to value)
   fun t(frame: Variable, value: String) = invoke(frame, "type", value)

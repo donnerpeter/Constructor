@@ -28,9 +28,9 @@ fun handleWord(w: String): List<Mite> {
     "удивительный" -> l(nom("noun" to v0.lv), sem(v0, "property", "AMAZING"))
     "что" -> pronoun(v, nom, "wh") + l(comp("comp" to v[2]), question("head" to v[2], "first" to true), questionVariants("wh" to v0))
     "я" -> pronoun(v, nom, "ME")
-    "," -> l(comp())
-    ":" -> l(verb("verb" to v0.lv, "last" to true), elaboration("head" to v0, "elaboration" to v[1].lv, "first" to true), sem(v0, "elaboration", v[1]))
-    "-" -> l(questionVariants("variants" to v0, "dummyHead" to v[1]))
+    "," -> l(comp(), semSectionEnd("id" to v0))
+    ":" -> l(semSectionEnd("id" to v0), verb("verb" to v0.lv, "last" to true), elaboration("head" to v0, "elaboration" to v[1].lv, "first" to true), sem(v0, "elaboration", v[1]))
+    "-" -> l(questionVariants("variants" to v0, "dummyHead" to v[1]), semSectionEnd("id" to v0))
     else -> l()
   }
 }

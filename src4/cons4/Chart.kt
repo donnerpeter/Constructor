@@ -5,6 +5,7 @@ import java.util.ArrayList
 import java.util.HashMap
 import java.util.LinkedHashSet
 import java.util.LinkedHashMap
+import cons4.constructions.semSectionEnd
 
 private fun createFrames(activeMites: Collection<Mite>, chart: Chart): Map<Variable, Frame> {
   val allVars = LinkedHashSet<Variable>()
@@ -43,18 +44,30 @@ private fun createFrames(activeMites: Collection<Mite>, chart: Chart): Map<Varia
 
 public class Chart(activeMites: Collection<Mite>) {
   val var2Frames: Map<Variable, Frame> = createFrames(activeMites, this)
-  val assignments : List<Assignment>
+  val frameSections = HashMap<Frame, Int>()
+  val assignmentSections = HashMap<Assignment, Int>()
+  val assignments = ArrayList<Assignment>();
   {
-    val assignments = ArrayList<Assignment>()
+    var section = 1
     for (mite in activeMites) {
       if (mite.cxt == sem) {
         val value = mite["value"]
         val convertedValue: Any? = if (value is Variable) var2Frames[value.base] else value
-        assignments.add(Assignment(var2Frames[(mite["frame"] as Variable).base]!!, mite["attr"] as String, convertedValue!!))
+        val frame = var2Frames[(mite["frame"] as Variable).base]!!
+
+        frameSections.getOrPut(frame, { section })
+        if (convertedValue is Frame) {
+          frameSections.getOrPut(convertedValue as Frame, { section })
+        }
+
+        val assignment = Assignment(frame, mite["attr"] as String, convertedValue!!)
+        assignments.add(assignment)
+        assignmentSections[assignment] = section
+      }
+      else if (mite.cxt == semSectionEnd) {
+        section++
       }
     }
-
-    this.assignments = assignments
   }
 
   fun getFrames() = var2Frames.values().toList()
@@ -62,12 +75,24 @@ public class Chart(activeMites: Collection<Mite>) {
   fun presentable(): String {
     val frameId = HashMap<Frame, String>()
     var counter = 'A'
-    val namer = { (frame: Frame) -> frameId.getOrPut(frame) { "${counter++}" } }
+    val namer = { (frame: Frame, curSection: Int) ->
+      val letter = frameId.getOrPut(frame) { "${counter++}" }
+      val frameSection = frameSections[frame]!!
+      if (frameSection == curSection) letter else letter + "@" + frameSection
+    }
 
     var result = ""
+    var lastSection = 1
     for (a in assignments) {
-      result += namer(a.frame) + ".${a.property}="
-      result += if (a.value is Frame) namer(a.value) else a.value as String
+      val section = assignmentSections[a]!!
+      if (section != lastSection) {
+        counter = 'A'
+        result += "-- $section:\n"
+        lastSection = section
+      }
+
+      result += namer(a.frame, section) + ".${a.property}="
+      result += if (a.value is Frame) namer(a.value, section) else a.value as String
       result += "\n"
     }
     return result

@@ -61,45 +61,44 @@ public data class ParsingState(
     val queue = LinkedList(allMites.sortBy { -miteWeights[it]!! })
     while (queue.notEmpty()) {
       val mite = queue.removeFirst()
-      if (mite in processed) continue
+      if (!processed.add(mite)) continue
 
-      if (findContradictors(mite, newActive).notEmpty()) {
-        processed.add(mite)
-        continue
-      }
+      if (findContradictors(mite, newActive).notEmpty()) continue
 
-      val preconditions = LinkedHashSet<Mite>()
-      var allCreatorsActive = true
-      var hasChance = true
-      for (atom in mite.primaries) {
-        val creators = findPossibleAtomCreators(atom)
-        if (creators.empty || creators.any { it in newActive }) continue
-        allCreatorsActive = false
-        val toProcess = creators.filter { it !in processed }
-        if (toProcess.empty) hasChance = false
-        preconditions.addAll(toProcess)
-      }
+      val preconditions = findUnprocessedPreconditions(mite, newActive, processed)
+      if (preconditions == null) continue
 
-      if (allCreatorsActive) {
+      if (preconditions.empty) {
         newActive.add(mite)
-        processed.add(mite)
         continue
       }
 
-      if (hasChance) {
-        queue.addFirst(mite)
-        queue.addAll(0, preconditions.sortBy { -miteWeights[it]!! })
-      }
+      queue.addFirst(mite)
+      processed.remove(mite)
+      queue.addAll(0, preconditions.sortBy { -miteWeights[it]!! })
     }
 
     return copy(active = newActive)
   }
 
+  private fun findUnprocessedPreconditions(mite: Mite, active: Set<Mite>, processed: Set<Mite>): Collection<Mite>? {
+    val preconditions = LinkedHashSet<Mite>()
+    for (atom in mite.primaries) {
+      val creators = findPossibleAtomCreators(atom)
+      if (creators.empty || creators.any { it in active }) continue
+
+      val toProcess = creators.filter { it !in processed }
+      if (toProcess.empty) return null
+
+      preconditions.addAll(toProcess)
+    }
+    return preconditions
+  }
+
   private fun findPossibleAtomCreators(mite: Mite): List<Mite> {
     assert(mite.atom)
     val directCreators = creators[mite]
-    if (directCreators == null) return listOf()
-    return directCreators.toList()//getAllMites().filter { candidate -> directCreators.any { dc -> candidate.descendsFrom(dc) } }
+    return if (directCreators == null) listOf() else directCreators.toList()
   }
 
   fun presentable(): String {

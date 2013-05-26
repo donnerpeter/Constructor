@@ -26,6 +26,7 @@ object prep: Construction()
 
 object sInstr: Construction()
 object kDat: Construction()
+object poDat: Construction()
 
 object seq: Construction()
 
@@ -40,7 +41,7 @@ object comeScalarly: Construction()
 
 fun happy(mite: Mite): Boolean {
   return when(mite.cxt) {
-    nom, gen, dat, acc, instr, prep, sInstr, kDat -> mite.hasHard("noun", "head")
+    nom, gen, dat, acc, instr, prep, sInstr, kDat, poDat -> mite.hasHard("noun", "head")
     verb -> mite.hasHard("verb")
     comeScalarly -> mite.has("head", "order")
     comp -> mite.hasHard("head", "comp")

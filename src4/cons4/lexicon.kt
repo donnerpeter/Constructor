@@ -31,8 +31,10 @@ fun handleWord(w: String): List<Mite> {
     "их" -> pronoun(v, acc, "THEY").xor(l(possessive("possessor" to v0), sem.t(v0, "THEY")))
     "к" -> preposition(v, kDat, dat)
     "каково" -> sem(v0, "type" to "degree", "arg1" to v[1], "arg2" to v[2]) + sem.t(v[2], "wh") + l(nom("head" to v0.lv, "noun" to v[1].lv), phrase(v0.lv, "verb"), phrase(v[2], "shortAdj"))
+    "когда" -> l(conditionComp("comp" to v0), phrase(v0.lv, "verb"))
     "мной" -> pronoun(v, instr, "ME")
     "мое" -> l(possessive("possessor" to v0), sem.t(v0, "ME"))
+    "обнаружили" -> finiteVerb(v, "PAST", "DISCOVER", agrNumber="pl")
     "они" -> pronoun(v, nom, "THEY")
     "отправился" -> finiteVerb(v, "PAST", "GO_OFF", agrGender="m", agrNumber="sg") + arg(v, kDat, "goal")
     "по" -> preposition(v, poDat, dat)
@@ -48,7 +50,7 @@ fun handleWord(w: String): List<Mite> {
     "что" -> pronoun(v, nom, "wh").xor(pronoun(v, acc, "wh")) + l(comp("comp" to v[2]), question("head" to v[2], "first" to true), questionVariants("wh" to v0))
     "этому" -> adj(v, dat, "determiner", "THIS")
     "я" -> pronoun(v, nom, "ME")
-    "," -> l(comp(), semSectionEnd("id" to v0))
+    "," -> l(phrase("head" to v0.lv, "kind" to "verb", "last" to true)) + l(comp()).xor(l(conditionComp("head" to v0))) + l(semSectionEnd("id" to v0))
     ":" -> l(semSectionEnd("id" to v0), phrase("head" to v0.lv, "kind" to "verb", "last" to true), elaboration("head" to v0, "elaboration" to v[1].lv, "first" to true), sem(v0, "elaboration", v[1]))
     "-" -> l(questionVariants("variants" to v0, "dummyHead" to v[1]), semSectionEnd("id" to v0))
     else -> l()
@@ -88,7 +90,7 @@ fun List<Mite>.xor(list2: List<Mite>): List<Mite> {
   val common = list1.filter { it in list2 }
   val map = HashMap<Mite, LinkedHashSet<Token>>()
   var id = 'a'
-  val t = Tokens()
+  val t = Tokens(this to list2)
   for (m1 in list1.filter { it !in common }) {
     for (m2 in list2.filter { it !in common}) {
       val token = t["${id}"]

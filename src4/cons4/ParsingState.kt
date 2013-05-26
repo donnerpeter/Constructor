@@ -7,6 +7,8 @@ import cons4.constructions.happy
 import java.util.HashSet
 import cons4.constructions.hasHead
 import cons4.constructions.enrich
+import cons4.constructions.canUnify
+import java.util.LinkedList
 
 public data class ParsingState(
         val log: String = "",
@@ -34,9 +36,7 @@ public data class ParsingState(
 
   fun findContradictors(mite: Mite, among: Collection<Mite>) = among.filter { mite.contradicts(it) }
 
-  fun updateActive(): ParsingState {
-    val allMites = getAllMites()
-
+  fun calcMiteWeights(allMites: Collection<Mite>): Map<Mite, Double> {
     val miteWeights = LinkedHashMap<Mite, Double>()
     allMites.forEach { miteWeights[it] = 0.0 }
     allMites.forEach { mite ->
@@ -49,34 +49,58 @@ public data class ParsingState(
         miteWeights[mite] = miteWeights[mite]!! + 1
       }
     }
+    return miteWeights
+  }
+
+  fun updateActive(): ParsingState {
+    val allMites = getAllMites()
+    val miteWeights = calcMiteWeights(allMites)
 
     val newActive = HashSet<Mite>()
-    miteWeights.entrySet().sortBy { -it.value }.forEach {
-      val mite = it.key
-      if (findContradictors(mite, newActive).empty) {
-        val preconditions = findPreconditions(mite, newActive, miteWeights)
-        if (preconditions != null) {
-          newActive.addAll(preconditions)
-          newActive.add(mite)
-        }
+    val processed = HashSet<Mite>()
+    val queue = LinkedList(allMites.sortBy { -miteWeights[it]!! })
+    while (queue.notEmpty()) {
+      val mite = queue.removeFirst()
+      if (mite in processed) continue
+
+      if (findContradictors(mite, newActive).notEmpty()) {
+        processed.add(mite)
+        continue
+      }
+
+      val preconditions = LinkedHashSet<Mite>()
+      var allCreatorsActive = true
+      var hasChance = true
+      for (atom in mite.primaries) {
+        val creators = findPossibleAtomCreators(atom)
+        if (creators.empty || creators.any { it in newActive }) continue
+        allCreatorsActive = false
+        val toProcess = creators.filter { it !in processed }
+        if (toProcess.empty) hasChance = false
+        preconditions.addAll(toProcess)
+      }
+
+      if (allCreatorsActive) {
+        newActive.add(mite)
+        processed.add(mite)
+        continue
+      }
+
+      if (hasChance) {
+        queue.addFirst(mite)
+        queue.addAll(0, preconditions.sortBy { -miteWeights[it]!! })
       }
     }
+
     return copy(active = newActive)
   }
 
-  private fun findPreconditions(mite: Mite, active: Set<Mite>, miteWeights: Map<Mite, Double>) : List<Mite>? {
-    val parents = LinkedHashSet<Mite>(mite.primaries.flatMap { creators.getOrElse(it) { listOf<Mite>() } })
-    if (parents.empty) return listOf()
-
-    for (p in parents.sortBy { -miteWeights[it]!! }) {
-      if (p in active || findContradictors(p, active).empty) {
-        val tail = findPreconditions(p, active, miteWeights)
-        if (tail != null) return listOf(p) + tail
-      }
-    }
-    return null
+  private fun findPossibleAtomCreators(mite: Mite): List<Mite> {
+    assert(mite.atom)
+    val directCreators = creators[mite]
+    if (directCreators == null) return listOf()
+    return directCreators.toList()//getAllMites().filter { candidate -> directCreators.any { dc -> candidate.descendsFrom(dc) } }
   }
-
 
   fun presentable(): String {
     if (mites.empty) return ""
@@ -185,9 +209,11 @@ public data class ParsingState(
     val visible = getVisibleMites(mites.lastIndex, false)
     for (right in mites.last!!) {
       for (left in visible) {
-        val merged = left.unify(right)
-        if (merged != null && merged !in mites.last!!) {
-          result.add(merged)
+        if (canUnify(left, right)) {
+          val merged = left.unify(right)
+          if (merged != null && merged !in mites.last!!) {
+            result.add(merged)
+          }
         }
       }
     }

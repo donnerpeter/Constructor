@@ -7,7 +7,7 @@ public class Tester {
 
   public fun doTranslateTest(input: String, expected: String) {
     Variable.resetCounter()
-    Tokens.counter = 0
+    Tokens.resetCounter()
 
     val state = Parser().parse(input)
     val chart: Chart
@@ -38,7 +38,7 @@ public class Tester {
 
   public fun doParseTest(input: String, expected: String) {
     Variable.resetCounter()
-    Tokens.counter = 0
+    Tokens.resetCounter()
 
     val state = Parser().parse(input)
     val chart: Chart

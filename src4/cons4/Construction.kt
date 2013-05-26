@@ -2,7 +2,6 @@ package cons4
 
 import java.util.LinkedHashMap
 import java.util.LinkedHashSet
-import cons4.constructions.canUnify
 
 open data class Construction {
   val name = this.javaClass.getSimpleName()
@@ -14,6 +13,7 @@ open data class Construction {
 }
 
 data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, private val _primaries: List<Mite>? = null) {
+  private val hc = (cxt.hashCode() * 31 + args.hashCode()) * 31 + (_primaries?.hashCode() ?: 0)
   val primaries: LinkedHashSet<Mite> = LinkedHashSet(if (_primaries == null) listOf(this) else _primaries)
 
   fun has(vararg attrs: String) = attrs.all { args[it] != null }
@@ -21,7 +21,9 @@ data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, pri
   fun v(attr: String) = args[attr] as Variable
 
   fun contradicts(another: Mite): Boolean {
-    if (primaries.any { it in another.primaries }) return true
+    if (another.cxt == cxt) {
+      if (primaries.any { it in another.primaries }) return true
+    }
 
     val xor1 = this["xor"] as LinkedHashSet<Token>?
     val xor2 = another["xor"] as LinkedHashSet<Token>?
@@ -56,7 +58,7 @@ data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, pri
   fun descendsFrom(mite: Mite) = primaries.containsAll(mite.primaries)
 
   fun unify(right: Mite): Mite? {
-    if (cxt != right.cxt || !canUnify(this, right) || descendsFrom(right) || right.descendsFrom(this)) {
+    if (cxt != right.cxt || descendsFrom(right) || right.descendsFrom(this)) {
       return null
     }
     val myMap = args
@@ -73,4 +75,5 @@ data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, pri
   val atom: Boolean get() = primaries.size == 1
 
   fun toString() = cxt.name + args.toString()
+  fun hashCode() = hc
 }

@@ -2,14 +2,17 @@ package cons4
 
 import java.util.HashMap
 
-class Tokens {
-  val number = counter++
-  private var allocated = HashMap<Any, Token>()
+private val numbers = HashMap<Any, Int>()
+
+class Tokens(val eqKey: Any = Any()) {
+  val number = numbers.getOrPut(eqKey) { numbers.size() }
 
   fun get(key: String) = Token("$key$number")
 
   class object {
-    var counter : Int = 0
+    fun resetCounter() {
+      numbers.clear()
+    }
   }
 
 }

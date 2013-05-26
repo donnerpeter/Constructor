@@ -7,6 +7,8 @@ import cons4.ParsingState
 import java.util.ArrayList
 import cons4.enrichment.handleWord
 import cons4.enrichment.l
+import cons4.enrichment.optional
+import cons4.Tokens
 
 object emptyCxt: Construction()
 object word: Construction()
@@ -69,6 +71,7 @@ fun hasHead(mite: Mite): Boolean {
 }
 
 fun canUnify(left: Mite, right: Mite): Boolean {
+  if (left.cxt == emptyCxt) return false
   if (left["last"] == true || right["first"] == true) return false
   return true
 }
@@ -111,8 +114,12 @@ fun enrich(state: ParsingState, mite: Mite): List<Mite> {
     }
     return result
   }
-  if (mite.cxt == phrase && mite.atom && mite.hasHard("head") && mite["kind"] == "verb") {
-    return l(elaboration("elaboration" to mite.v("head")), question("content" to mite.v("head")))
+  if (mite.cxt == phrase && mite.hasHard("head") && mite["kind"] == "verb") {
+    val head = mite.primaries.find { it.hasHard("head") }!!.v("head")
+    return l(elaboration("elaboration" to head)).optional() + l(question("content" to head)).optional()
+  }
+  if (mite.cxt == conditionComp && happy(mite)) {
+    return sem(mite.v("head"), "whenCondition" to mite.v("comp"))
   }
 
   return when (mite.cxt) {

@@ -16,7 +16,6 @@ fun handleWord(w: String): List<Mite> {
   }
 
   return when (w) {
-    "7", "8" -> noun(v, nom, w)
     "вдруг" -> l(verb("verb" to v0.lv)) + sem(v0, "manner" to "SUDDENLY")
     "думают" -> finiteVerb(v, "PRESENT", "THINK", agrNumber="pl", agrPerson=3) + arg(v, poDat, "topic") + accArg(v)
     "забыл" -> finiteVerb(v, "PAST", "FORGET", agrGender="m", agrNumber="sg") + arg(v, comp, "arg2", "comp")

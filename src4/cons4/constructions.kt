@@ -17,16 +17,20 @@ object sem: Construction() {
   fun invoke(frame: Variable, vararg args: Pair<String, Any?>): List<Mite> = args.map { invoke(frame, it.first, it.second!!) }
 }
 
-object nom: Construction()
-object gen: Construction()
-object dat: Construction()
-object acc: Construction()
-object instr: Construction()
-object prep: Construction()
+open class CaseConstruction: Construction()
 
-object sInstr: Construction()
-object kDat: Construction()
-object poDat: Construction()
+object nom: CaseConstruction()
+object gen: CaseConstruction()
+object dat: CaseConstruction()
+object acc: CaseConstruction()
+object instr: CaseConstruction()
+object prep: CaseConstruction()
+
+open class PPConstruction: Construction()
+
+object sInstr: PPConstruction()
+object kDat: PPConstruction()
+object poDat: PPConstruction()
 
 object seq: Construction()
 
@@ -41,7 +45,7 @@ object comeScalarly: Construction()
 
 fun happy(mite: Mite): Boolean {
   return when(mite.cxt) {
-    nom, gen, dat, acc, instr, prep, sInstr, kDat, poDat -> mite.hasHard("noun", "head")
+    is CaseConstruction, is PPConstruction -> mite.hasHard("noun", "head")
     verb -> mite.hasHard("verb")
     comeScalarly -> mite.has("head", "order")
     comp -> mite.hasHard("head", "comp")

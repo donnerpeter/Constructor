@@ -23,13 +23,13 @@ fun handleWord(w: String): List<Mite> {
     "идет" -> finiteVerb(v, "PRESENT", agrGender="m", agrNumber="sg", agrPerson=3) + l(comeScalarly("head" to v0))
     "или" -> l(seq("conj" to "or", "seqVar" to v0, "left" to v[1], "right" to v[2]))
     "их" -> pronoun(v, acc, "THEY")
-    "к" -> l(kDat("noun" to v0), dat("noun" to v0.lv, "head" to v[1]))
+    "к" -> preposition(v, kDat, dat)
     "мной" -> pronoun(v, instr, "ME")
     "отправился" -> finiteVerb(v, "PAST", agrGender="m", agrNumber="sg") + l(kDat("head" to v0, "noun" to v[kDat].lv)) + sem(v0, "type" to "GO_OFF", "goal" to v[kDat])
     "раньше" -> l(comeScalarly("head" to v0.lv, "order" to "EARLIER"))
     "случай" -> noun(v, nom, "THING")
     "случился" -> finiteVerb(v, "PAST", agrGender="m", agrNumber="sg") + l(sInstr("head" to v0, "noun" to v[sInstr].lv)) + sem(v0, "type" to "HAPPEN", "experiencer" to v[sInstr])
-    "со" -> l(sInstr("noun" to v0), instr("noun" to v0.lv, "head" to v[1]))
+    "со" -> preposition(v, sInstr, instr)
     "соседям" -> noun(v, dat, "NEIGHBOURS")
     "спросил" -> finiteVerb(v, "PAST", agrGender="m", agrNumber="sg") + l(acc("head" to v0, "noun" to v[acc].lv)) + sem(v0, "type" to "ASK", "arg2" to v[acc])
     "удивительный" -> l(nom("noun" to v0.lv), sem(v0, "property", "AMAZING"))
@@ -43,6 +43,7 @@ fun handleWord(w: String): List<Mite> {
 }
 
 fun l(vararg mites: Mite) = listOf(*mites)
+fun preposition(v: Vars, prepCxt: Construction, nounCxt: Construction) = l(prepCxt("noun" to v[0]), nounCxt("noun" to v[0].lv, "head" to v[1]))
 fun noun(v: Vars, case: Construction, typ: String) = l(case("noun" to v[0]), sem.t(v[0], typ))
 fun pronoun(v: Vars, case: Construction, typ: String) = noun(v, case, typ)
 

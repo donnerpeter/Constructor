@@ -43,7 +43,6 @@ object seq: Construction()
 
 object comp: Construction()
 object conditionComp: Construction()
-object emphasis: Construction()
 object question: Construction()
 object questionVariants: Construction()
 
@@ -58,7 +57,6 @@ fun happy(mite: Mite): Boolean {
     comeScalarly -> mite.has("head", "order")
     comp, conditionComp -> mite.hasHard("head", "comp")
     possessive -> mite.hasHard("head", "possessor")
-    emphasis -> mite.hasHard("head")
     elaboration -> mite.hasHard("head", "elaboration")
     questionVariants -> mite.has("wh", "variants")
     question -> mite.hasHard("head", "content")

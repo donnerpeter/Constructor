@@ -20,8 +20,8 @@ fun handleWord(w: String): List<Mite> {
   }
 
   return when (w) {
-    "было" -> l(verb("verb" to v0), nom("head" to v0, "noun" to v[1].lv)) + sem(v0, "time" to "PAST")
-    "вдруг" -> l(verb("verb" to v0.lv)) + sem(v0, "manner" to "SUDDENLY")
+    "было" -> l(phrase(v0, "verb"), nom("head" to v0, "noun" to v[1].lv)) + sem(v0, "time" to "PAST")
+    "вдруг" -> l(phrase(v0.lv, "verb")) + sem(v0, "manner" to "SUDDENLY")
     "думают" -> finiteVerb(v, "PRESENT", "THINK", agrNumber="pl", agrPerson=3) + arg(v, poDat, "topic") + accArg(v)
     "же" -> l(emphasis("head" to v0.lv)) //todo a common modifier treatment
     "забыл" -> finiteVerb(v, "PAST", "FORGET", agrGender="m", agrNumber="sg") + arg(v, comp, "arg2", "comp")
@@ -30,7 +30,7 @@ fun handleWord(w: String): List<Mite> {
     "или" -> l(seq("conj" to "or", "seqVar" to v0, "left" to v[1], "right" to v[2]))
     "их" -> pronoun(v, acc, "THEY").xor(l(possessive("possessor" to v0), sem.t(v0, "THEY")))
     "к" -> preposition(v, kDat, dat)
-    "каково" -> sem(v0, "type" to "degree", "arg1" to v[1], "arg2" to v[2]) + sem.t(v[2], "wh") + l(nom("head" to v0.lv, "noun" to v[1].lv), verb("verb" to v0.lv), emphasis("head" to v0))
+    "каково" -> sem(v0, "type" to "degree", "arg1" to v[1], "arg2" to v[2]) + sem.t(v[2], "wh") + l(nom("head" to v0.lv, "noun" to v[1].lv), phrase(v0.lv, "verb"), emphasis("head" to v0))
     "мной" -> pronoun(v, instr, "ME")
     "мое" -> l(possessive("possessor" to v0), sem.t(v0, "ME"))
     "они" -> pronoun(v, nom, "THEY")
@@ -49,7 +49,7 @@ fun handleWord(w: String): List<Mite> {
     "этому" -> adj(v, dat, "determiner", "THIS")
     "я" -> pronoun(v, nom, "ME")
     "," -> l(comp(), semSectionEnd("id" to v0))
-    ":" -> l(semSectionEnd("id" to v0), verb("verb" to v0.lv, "last" to true), elaboration("head" to v0, "elaboration" to v[1].lv, "first" to true), sem(v0, "elaboration", v[1]))
+    ":" -> l(semSectionEnd("id" to v0), phrase("head" to v0.lv, "kind" to "verb", "last" to true), elaboration("head" to v0, "elaboration" to v[1].lv, "first" to true), sem(v0, "elaboration", v[1]))
     "-" -> l(questionVariants("variants" to v0, "dummyHead" to v[1]), semSectionEnd("id" to v0))
     else -> l()
   }
@@ -76,7 +76,7 @@ fun finiteVerb(v: Vars, time: String, typ: String? = null, agrGender: String? = 
   if (agrGender != null) nomArgs.add("agrGender" to agrGender!!)
   if (agrNumber != null) nomArgs.add("agrNumber" to agrNumber!!)
   if (agrPerson != null) nomArgs.add("agrPerson" to agrPerson!!)
-  val result = arrayListOf(verb("verb" to v[0]), nom(nomArgs))
+  val result = arrayListOf(phrase(v[0], "verb"), nom(nomArgs))
   if (typ != null) result.add(sem.t(v[0], typ))
   return result + sem(v[0], "time" to time, "arg1" to v[nom])
 }

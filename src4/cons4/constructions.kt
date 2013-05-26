@@ -17,6 +17,10 @@ object sem: Construction() {
 
   fun invoke(frame: Variable, vararg args: Pair<String, Any?>): List<Mite> = args.map { invoke(frame, it.first, it.second!!) }
 }
+object phrase: Construction() {
+  fun invoke(head: Variable, kind: String) = invoke("head" to head, "kind" to kind)
+  fun invoke(head: Variable) = invoke("head" to head)
+}
 
 open class CaseConstruction: Construction()
 
@@ -43,7 +47,6 @@ object emphasis: Construction()
 object question: Construction()
 object questionVariants: Construction()
 
-object verb: Construction()
 object elaboration: Construction()
 
 object comeScalarly: Construction()
@@ -51,7 +54,7 @@ object comeScalarly: Construction()
 fun happy(mite: Mite): Boolean {
   return when(mite.cxt) {
     is CaseConstruction, is PPConstruction -> mite.hasHard("noun", "head")
-    verb -> mite.hasHard("verb")
+    phrase -> mite.hasHard("head")
     comeScalarly -> mite.has("head", "order")
     comp, conditionComp -> mite.hasHard("head", "comp")
     possessive -> mite.hasHard("head", "possessor")
@@ -64,7 +67,6 @@ fun happy(mite: Mite): Boolean {
 }
 
 fun hasHead(mite: Mite): Boolean {
-  if (mite.cxt == verb) return mite.hasHard("verb")
   return mite.hasHard("head")
 }
 
@@ -100,19 +102,19 @@ fun enrich(state: ParsingState, mite: Mite): List<Mite> {
         result.addAll(l(possessive("head" to seqVar, "possessor" to left.lv, "last" to true), possessive("head" to seqVar, "possessor" to right.lv, "first" to true)))
         result.addAll(l(sem(seqVar, "conj", mite["conj"]!!), sem(seqVar, "member", left), sem(seqVar, "member", right)))
       }
-      else if (visible.cxt == verb && visible.hasHard("verb")) {
-        val nomArg = visibleMites.find { it.atom && it.cxt == nom && it.hasHard("head") && it.has("noun") && !it.hasHard("noun") && it.v("head") == visible.v("verb") }
+      else if (visible.cxt == phrase && visible.hasHard("head") && visible["kind"] == "verb") {
+        val nomArg = visibleMites.find { it.atom && it.cxt == nom && it.hasHard("head") && it.has("noun") && !it.hasHard("noun") && it.v("head") == visible.v("head") }
         if (nomArg != null) {
           result.addAll(l(nom("head" to right.lv, "noun" to nomArg.v("noun").base, "first" to true)))
         }
-        result.addAll(l(verb("verb" to left.lv, "last" to true), verb("verb" to right.lv, "first" to true)))
+        result.addAll(l(phrase("head" to left.lv, "kind" to "verb", "last" to true), phrase("head" to right.lv, "kind" to "verb", "first" to true)))
         result.addAll(l(sem(seqVar, "conj", mite["conj"]!!), sem(seqVar, "member", left), sem(seqVar, "member", right)))
       }
     }
     return result
   }
-  if (mite.cxt == verb && mite.atom && mite.hasHard("verb")) {
-    return l(elaboration("elaboration" to mite.v("verb")), question("content" to mite.v("verb")))
+  if (mite.cxt == phrase && mite.atom && mite.hasHard("head") && mite["kind"] == "verb") {
+    return l(elaboration("elaboration" to mite.v("head")), question("content" to mite.v("head")))
   }
 
   return when (mite.cxt) {

@@ -8,6 +8,7 @@ import java.util.ArrayList
 import cons4.enrichment.handleWord
 import cons4.enrichment.l
 
+object emptyCxt: Construction()
 object word: Construction()
 object semSectionEnd: Construction()
 object sem: Construction() {
@@ -32,9 +33,13 @@ object sInstr: PPConstruction()
 object kDat: PPConstruction()
 object poDat: PPConstruction()
 
+object possessive: Construction()
+
 object seq: Construction()
 
 object comp: Construction()
+object conditionComp: Construction()
+object emphasis: Construction()
 object question: Construction()
 object questionVariants: Construction()
 
@@ -48,7 +53,9 @@ fun happy(mite: Mite): Boolean {
     is CaseConstruction, is PPConstruction -> mite.hasHard("noun", "head")
     verb -> mite.hasHard("verb")
     comeScalarly -> mite.has("head", "order")
-    comp -> mite.hasHard("head", "comp")
+    comp, conditionComp -> mite.hasHard("head", "comp")
+    possessive -> mite.hasHard("head", "possessor")
+    emphasis -> mite.hasHard("head")
     elaboration -> mite.hasHard("head", "elaboration")
     questionVariants -> mite.has("wh", "variants")
     question -> mite.hasHard("head", "content")
@@ -87,7 +94,13 @@ fun enrich(state: ParsingState, mite: Mite): List<Mite> {
         result.add(nom("noun" to seqVar))
         result.addAll(l(nom("head" to seqVar, "noun" to left.lv, "last" to true), nom("head" to seqVar, "noun" to right.lv, "first" to true)))
         result.addAll(l(sem(seqVar, "conj", mite["conj"]!!), sem(seqVar, "member", left), sem(seqVar, "member", right)))
-      } else if (visible.cxt == verb && visible.hasHard("verb")) {
+      }
+      else if (visible.cxt == possessive && visible.has("possessor") && !visible.has("head")) {
+        result.add(possessive("possessor" to seqVar))
+        result.addAll(l(possessive("head" to seqVar, "possessor" to left.lv, "last" to true), possessive("head" to seqVar, "possessor" to right.lv, "first" to true)))
+        result.addAll(l(sem(seqVar, "conj", mite["conj"]!!), sem(seqVar, "member", left), sem(seqVar, "member", right)))
+      }
+      else if (visible.cxt == verb && visible.hasHard("verb")) {
         val nomArg = visibleMites.find { it.atom && it.cxt == nom && it.hasHard("head") && it.has("noun") && !it.hasHard("noun") && it.v("head") == visible.v("verb") }
         if (nomArg != null) {
           result.addAll(l(nom("head" to right.lv, "noun" to nomArg.v("noun").base, "first" to true)))

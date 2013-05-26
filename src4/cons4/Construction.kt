@@ -30,28 +30,33 @@ data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, pri
     return xor1.any { it in xor2 }
   }
 
-  private fun mergeMaps(myMap: Map<String, Any>, hisMap: Map<String, Any>): LinkedHashMap<String, Any>? {
-    val merged = LinkedHashMap<String, Any>()
-    for ((key, myValue) in myMap) {
-      val hisValue = hisMap[key]
-      if (myValue is Variable && hisValue is Variable && (!myValue.hard || !hisValue.hard)) {
-        merged[key] = Variable.mergeVars(myValue, hisValue)
-      } else if (hisValue != null && myValue != hisValue) {
-        return null
-      } else {
-        merged[key] = myValue
-      }
-    }
-    for ((key, hisValue) in hisMap) {
-      if (merged[key] == null) {
-        merged[key] = hisValue
-      }
-    }
-    return merged
+  private fun mergeValues(key: String, myValue: Any?, hisValue: Any?): Any? {
+    if (key == "xor") return unifyXor(myValue as LinkedHashSet<Token>?, hisValue as LinkedHashSet<Token>?)
+    if (myValue is Variable && hisValue is Variable && (!myValue.hard || !hisValue.hard)) return Variable.mergeVars(myValue, hisValue)
+    if (hisValue != null && myValue != null && myValue != hisValue) return null
+    return myValue ?: hisValue
   }
 
+  private fun mergeMaps(myMap: Map<String, Any>, hisMap: Map<String, Any>): LinkedHashMap<String, Any>? {
+    val result = LinkedHashMap<String, Any>()
+    for (key in LinkedHashSet(myMap.keySet() + hisMap.keySet())) {
+      val merged = mergeValues(key, myMap[key], hisMap[key])
+      if (merged == null) return null
+      result.put(key, merged)
+    }
+    return result
+  }
+
+  fun unifyXor(xor1: Collection<Token>?, xor2: Collection<Token>?): Collection<Token>? {
+    if (xor2 == null) return xor1
+    if (xor1 == null) return xor2
+    return LinkedHashSet(xor1 + xor2)
+  }
+
+  fun descendsFrom(mite: Mite) = primaries.containsAll(mite.primaries)
+
   fun unify(right: Mite): Mite? {
-    if (cxt != right.cxt || !canUnify(this, right)) {
+    if (cxt != right.cxt || !canUnify(this, right) || descendsFrom(right) || right.descendsFrom(this)) {
       return null
     }
     val myMap = args

@@ -70,16 +70,25 @@ fun enrich(state: ParsingState, mite: Mite): List<Mite> {
     return sem(mite.v("wh"), "variants" to mite["variants"]) + listOf(nom("head" to mite.v("dummyHead"), "noun" to mite.v("variants").lv))
   }
   if (mite.cxt == seq && mite.atom && mite.has("conj")) {
+    val seqVar = mite.v("seqVar")
+    val left = mite.v("left")
+    val right = mite.v("right")
+
+    val visibleMites = state.getVisibleMites(state.getAtomIndex(mite), true)
+
     val result = ArrayList<Mite>()
-    for (visible in state.getVisibleMites(state.getAtomIndex(mite), true)) {
+    for (visible in visibleMites) {
       if (visible.cxt == nom && visible.has("noun") && !visible.has("head")) {
-        val seqVar = mite.v("seqVar")
-        result.add(nom("head" to seqVar, "noun" to mite.v("left").lv, "last" to true))
         result.add(nom("noun" to seqVar))
-        result.add(nom("head" to seqVar, "noun" to mite.v("right").lv, "first" to true))
-        result.add(sem(seqVar, "conj", mite["conj"]!!))
-        result.add(sem(seqVar, "member", mite.v("left")))
-        result.add(sem(seqVar, "member", mite.v("right")))
+        result.addAll(l(nom("head" to seqVar, "noun" to left.lv, "last" to true), nom("head" to seqVar, "noun" to right.lv, "first" to true)))
+        result.addAll(l(sem(seqVar, "conj", mite["conj"]!!), sem(seqVar, "member", left), sem(seqVar, "member", right)))
+      } else if (visible.cxt == verb && visible.hasHard("verb")) {
+        val nomArg = visibleMites.find { it.atom && it.cxt == nom && it.hasHard("head") && it.has("noun") && !it.hasHard("noun") && it.v("head") == visible.v("verb") }
+        if (nomArg != null) {
+          result.addAll(l(nom("head" to right.lv, "noun" to nomArg.v("noun"), "first" to true)))
+        }
+        result.addAll(l(verb("verb" to left.lv, "last" to true), verb("verb" to right.lv, "first" to true)))
+        result.addAll(l(sem(seqVar, "conj", mite["conj"]!!), sem(seqVar, "member", left), sem(seqVar, "member", right)))
       }
     }
     return result

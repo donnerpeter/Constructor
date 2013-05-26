@@ -18,8 +18,8 @@ fun handleWord(w: String): List<Mite> {
   return when (w) {
     "7", "8" -> noun(v, nom, w)
     "вдруг" -> l(verb("verb" to v0.lv)) + sem(v0, "manner" to "SUDDENLY")
-    "думают" -> finiteVerb(v, "PRESENT", agrNumber="pl", agrPerson=3) + sem.t(v0, "THINK") + arg(v, poDat, "topic") + accArg(v)
-    "забыл" -> finiteVerb(v, "PAST", agrGender="m", agrNumber="sg") + sem.t(v0, "FORGET") + arg(v, comp, "arg2", "comp")
+    "думают" -> finiteVerb(v, "PRESENT", "THINK", agrNumber="pl", agrPerson=3) + arg(v, poDat, "topic") + accArg(v)
+    "забыл" -> finiteVerb(v, "PAST", "FORGET", agrGender="m", agrNumber="sg") + arg(v, comp, "arg2", "comp")
     "и" -> l(seq("conj" to "and", "seqVar" to v0, "left" to v[1], "right" to v[2]))
     "идет" -> finiteVerb(v, "PRESENT", agrGender="m", agrNumber="sg", agrPerson=3) + l(comeScalarly("head" to v0))
     "или" -> l(seq("conj" to "or", "seqVar" to v0, "left" to v[1], "right" to v[2]))
@@ -27,15 +27,15 @@ fun handleWord(w: String): List<Mite> {
     "к" -> preposition(v, kDat, dat)
     "мной" -> pronoun(v, instr, "ME")
     "они" -> pronoun(v, nom, "THEY")
-    "отправился" -> finiteVerb(v, "PAST", agrGender="m", agrNumber="sg") + sem.t(v0, "GO_OFF") + arg(v, kDat, "goal")
+    "отправился" -> finiteVerb(v, "PAST", "GO_OFF", agrGender="m", agrNumber="sg") + arg(v, kDat, "goal")
     "по" -> preposition(v, poDat, dat)
     "поводу" -> noun(v, dat, "MATTER")
     "раньше" -> l(comeScalarly("head" to v0.lv, "order" to "EARLIER"))
     "случай" -> noun(v, nom, "THING")
-    "случился" -> finiteVerb(v, "PAST", agrGender="m", agrNumber="sg") + sem.t(v0, "HAPPEN") + arg(v, sInstr, "experiencer")
+    "случился" -> finiteVerb(v, "PAST", "HAPPEN", agrGender="m", agrNumber="sg") + arg(v, sInstr, "experiencer")
     "со" -> preposition(v, sInstr, instr)
     "соседям" -> noun(v, dat, "NEIGHBOURS")
-    "спросил" -> finiteVerb(v, "PAST", agrGender="m", agrNumber="sg") + sem.t(v0, "ASK") + accArg(v) + arg(v, comp, "question", "comp")
+    "спросил" -> finiteVerb(v, "PAST", "ASK", agrGender="m", agrNumber="sg") + accArg(v) + arg(v, comp, "question", "comp")
     "удивительный" -> adj(v, nom, "property", "AMAZING")
     "что" -> pronoun(v, nom, "wh") + pronoun(v, acc, "wh") + l(comp("comp" to v[2]), question("head" to v[2], "first" to true), questionVariants("wh" to v0))
     "этому" -> adj(v, dat, "determiner", "THIS")
@@ -55,11 +55,13 @@ fun arg(v: Vars, argCxt: Construction, relation: String, childAttr: String = "no
 fun accArg(v: Vars) = arg(v, acc, "arg2")
 fun adj(v: Vars, case: Construction, rel: String, value: String) = l(case("noun" to v[0].lv), sem(v[0], rel, value))
 
-fun finiteVerb(v: Vars, time: String, agrGender: String? = null, agrNumber: String? = null, agrPerson: Int? = null): List<Mite> {
+fun finiteVerb(v: Vars, time: String, typ: String? = null, agrGender: String? = null, agrNumber: String? = null, agrPerson: Int? = null): List<Mite> {
   val nomArgs : ArrayList<Pair<String, Any>> = arrayListOf("head" to v[0], "noun" to v[nom].lv)
   if (agrGender != null) nomArgs.add("agrGender" to agrGender!!)
   if (agrNumber != null) nomArgs.add("agrNumber" to agrNumber!!)
   if (agrPerson != null) nomArgs.add("agrPerson" to agrPerson!!)
-  return l(verb("verb" to v[0]), nom(nomArgs)) + sem(v[0], "time" to time, "arg1" to v[nom])
+  val result = arrayListOf(verb("verb" to v[0]), nom(nomArgs))
+  if (typ != null) result.add(sem.t(v[0], typ))
+  return result + sem(v[0], "time" to time, "arg1" to v[nom])
 }
 

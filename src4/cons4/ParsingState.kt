@@ -32,8 +32,7 @@ public data class ParsingState(
   fun getAllMites(): LinkedHashSet<Mite> = LinkedHashSet(mites.flatMap { it })
   fun getActiveMites(): LinkedHashSet<Mite> = LinkedHashSet(getAllMites().filter { it in active })
 
-  fun contradicts(mite1: Mite, mite2: Mite) = mite1.primaries.any { it in mite2.primaries }
-  fun findContradictors(mite: Mite, among: Collection<Mite>) = among.filter { contradicts(mite, it) }
+  fun findContradictors(mite: Mite, among: Collection<Mite>) = among.filter { mite.contradicts(it) }
 
   fun updateActive(): ParsingState {
     val allMites = getAllMites()

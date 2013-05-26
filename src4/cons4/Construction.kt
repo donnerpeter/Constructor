@@ -20,6 +20,16 @@ data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, pri
   fun hasHard(vararg attrs: String) = attrs.all { args[it] is Variable && (args[it] as Variable).hard }
   fun v(attr: String) = args[attr] as Variable
 
+  fun contradicts(another: Mite): Boolean {
+    if (primaries.any { it in another.primaries }) return true
+
+    val xor1 = this["xor"] as LinkedHashSet<Token>?
+    val xor2 = another["xor"] as LinkedHashSet<Token>?
+    if (xor1 == null || xor2 == null) return false
+
+    return xor1.any { it in xor2 }
+  }
+
   private fun mergeMaps(myMap: Map<String, Any>, hisMap: Map<String, Any>): LinkedHashMap<String, Any>? {
     val merged = LinkedHashMap<String, Any>()
     for ((key, myValue) in myMap) {

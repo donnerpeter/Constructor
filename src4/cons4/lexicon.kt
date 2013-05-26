@@ -6,6 +6,10 @@ import cons4.Vars
 import cons4.Construction
 import cons4.Util
 import java.util.ArrayList
+import cons4.Token
+import java.util.HashMap
+import java.util.LinkedHashSet
+import cons4.Tokens
 
 fun handleWord(w: String): List<Mite> {
   val v = Vars()
@@ -36,7 +40,7 @@ fun handleWord(w: String): List<Mite> {
     "соседям" -> noun(v, dat, "NEIGHBOURS")
     "спросил" -> finiteVerb(v, "PAST", "ASK", agrGender="m", agrNumber="sg") + accArg(v) + arg(v, comp, "question", "comp")
     "удивительный" -> adj(v, nom, "property", "AMAZING")
-    "что" -> pronoun(v, nom, "wh") + pronoun(v, acc, "wh") + l(comp("comp" to v[2]), question("head" to v[2], "first" to true), questionVariants("wh" to v0))
+    "что" -> pronoun(v, nom, "wh").xor(pronoun(v, acc, "wh")) + l(comp("comp" to v[2]), question("head" to v[2], "first" to true), questionVariants("wh" to v0))
     "этому" -> adj(v, dat, "determiner", "THIS")
     "я" -> pronoun(v, nom, "ME")
     "," -> l(comp(), semSectionEnd("id" to v0))
@@ -64,3 +68,27 @@ fun finiteVerb(v: Vars, time: String, typ: String? = null, agrGender: String? = 
   return result + sem(v[0], "time" to time, "arg1" to v[nom])
 }
 
+fun List<Mite>.xor(list2: List<Mite>): List<Mite> {
+  val list1 = this
+  val common = list1.filter { it in list2 }
+  val map = HashMap<Mite, LinkedHashSet<Token>>()
+  var id = 'a'
+  val t = Tokens()
+  for (m1 in list1.filter { it !in common }) {
+    for (m2 in list2.filter { it !in common}) {
+      val token = t["${id}"]
+      id++
+      map.getOrPut(m1) { LinkedHashSet<Token>() }.add(token)
+      map.getOrPut(m2) { LinkedHashSet<Token>() }.add(token)
+    }
+  }
+  val result = ArrayList<Mite>()
+  for (mite in list1 + list2.filter { it !in common}) {
+    if (mite in common) {
+      result.add(mite)
+    } else {
+      result.add(mite.unify(mite.cxt("xor" to map[mite]!!))!!)
+    }
+  }
+  return result
+}

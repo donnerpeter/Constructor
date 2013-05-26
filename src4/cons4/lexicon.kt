@@ -36,9 +36,9 @@ fun handleWord(w: String): List<Mite> {
     "со" -> preposition(v, sInstr, instr)
     "соседям" -> noun(v, dat, "NEIGHBOURS")
     "спросил" -> finiteVerb(v, "PAST", agrGender="m", agrNumber="sg") + sem.t(v0, "ASK") + accArg(v) + arg(v, comp, "question", "comp")
-    "удивительный" -> l(nom("noun" to v0.lv), sem(v0, "property", "AMAZING"))
+    "удивительный" -> adj(v, nom, "property", "AMAZING")
     "что" -> pronoun(v, nom, "wh") + pronoun(v, acc, "wh") + l(comp("comp" to v[2]), question("head" to v[2], "first" to true), questionVariants("wh" to v0))
-    "этому" -> l(dat("noun" to v0.lv), sem(v0, "determiner", "THIS"))
+    "этому" -> adj(v, dat, "determiner", "THIS")
     "я" -> pronoun(v, nom, "ME")
     "," -> l(comp(), semSectionEnd("id" to v0))
     ":" -> l(semSectionEnd("id" to v0), verb("verb" to v0.lv, "last" to true), elaboration("head" to v0, "elaboration" to v[1].lv, "first" to true), sem(v0, "elaboration", v[1]))
@@ -53,6 +53,7 @@ fun noun(v: Vars, case: Construction, typ: String) = l(case("noun" to v[0]), sem
 fun pronoun(v: Vars, case: Construction, typ: String) = noun(v, case, typ)
 fun arg(v: Vars, argCxt: Construction, relation: String, childAttr: String = "noun") = l(argCxt("head" to v[0], childAttr to v[argCxt].lv), sem(v[0], relation, v[argCxt]))
 fun accArg(v: Vars) = arg(v, acc, "arg2")
+fun adj(v: Vars, case: Construction, rel: String, value: String) = l(case("noun" to v[0].lv), sem(v[0], rel, value))
 
 fun finiteVerb(v: Vars, time: String, agrGender: String? = null, agrNumber: String? = null, agrPerson: Int? = null): List<Mite> {
   val nomArgs : ArrayList<Pair<String, Any>> = arrayListOf("head" to v[0], "noun" to v[nom].lv)

@@ -230,10 +230,11 @@ public data class ParsingState(
         while (toEnrich.notEmpty()) {
           val newCreators = LinkedHashMap(state.creators)
           val enriched = LinkedHashSet<Mite>()
+          val allMites = state.getAllMites()
           for (creator in toEnrich) {
             for (created in enrich(state, creator)) {
               newCreators[created] = LinkedHashSet(newCreators.getOrElse(created) { listOf<Mite>() } + creator)
-              enriched.add(created)
+              if (created !in allMites) enriched.add(created)
             }
           }
           state = state.addMites(enriched).copy(creators = newCreators).updateActive()

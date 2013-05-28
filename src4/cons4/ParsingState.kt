@@ -9,6 +9,7 @@ import cons4.constructions.hasHead
 import cons4.constructions.enrich
 import cons4.constructions.canUnify
 import java.util.LinkedList
+import cons4.constructions.isPenetrable
 
 public data class ParsingState(
         val log: String = "",
@@ -166,6 +167,8 @@ public data class ParsingState(
     val lastMites = mites[index]
     val upLink = lastMites.find { it in active && hasHead(it) && !it.primaries.any { hasHead(it) && it in lastMites } }
     if (upLink != null) {
+      if (!isPenetrable(upLink)) return Link(-1, upLink, true)
+
       val headAtom = upLink.primaries.find { hasHead(it) }!!
       return Link(getAtomIndex(headAtom), headAtom, true)
     }

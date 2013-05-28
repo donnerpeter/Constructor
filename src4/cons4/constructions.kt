@@ -70,6 +70,8 @@ fun hasHead(mite: Mite): Boolean {
   return mite.hasHard("head")
 }
 
+fun isPenetrable(mite: Mite) = !(mite.cxt == phrase && mite["kind"] == "verb")
+
 fun canUnify(left: Mite, right: Mite): Boolean {
   if (left.cxt == emptyCxt) return false
   if (left["last"] == true || right["first"] == true) return false

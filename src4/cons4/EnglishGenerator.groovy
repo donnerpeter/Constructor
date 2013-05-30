@@ -178,44 +178,8 @@ class StatefulGenerator {
     }
   }
 
-  private Frame findLastVerb(ClauseGenerator clause) {
-    def last = clause.frame
-    while (true) {
-      if (last?.type in ['DISCOVER'] && last.f('theme')) {
-        last = last.f('theme')
-      }
-      else if (last?.type in ['FORGET'] && last.f('arg2') && last.f('arg2').flatten().any { it.type in ['fact', 'question']}) {
-        last = last.f('arg2')
-      }
-      else if (last?.type in ['ASK']) {
-        last = last.f('question')
-      }
-      else if (last?.type == 'modality') {
-        last = last.f('arg1')
-      }
-      else if (last?.type in ['fact', 'question']) {
-        last = last.f('content')
-      }
-      else if (last?.f('member')) {
-        last = last.f('member')
-      }
-      else if (last?.f('whenCondition')) {
-        last = last.f('whenCondition')
-      }
-      else if (last?.f('reason')) {
-        last = last.f('reason')
-      }
-      else if (last?.f('ifCondition')) {
-        last = last.f('ifCondition')
-      }
-      else break
-    }
-    return last
-  }
-
   private void finishSentence(ClauseGenerator clause) {
-    Frame last = findLastVerb(clause)
-    if (last?.s('dot') == 'true') {
+    if (clause.frame?.s('dot') == 'true') {
       out '.'
     }
     else if (clause.frame?.type == 'question' || findQuestioned(clause.frame) && clause.frame.type != 'degree') {

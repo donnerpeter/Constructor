@@ -48,6 +48,7 @@ object conditionComp: Construction()
 object question: Construction()
 object questionVariants: Construction()
 object clauseType: Construction()
+object sentence: Construction()
 object control: Construction()
 object complementizer: Construction()
 
@@ -66,7 +67,8 @@ fun happy(mite: Mite): Boolean {
     elaboration -> mite.hasHard("head", "elaboration")
     questionVariants -> mite.has("wh", "variants")
     question, complementizer -> mite.hasHard("head", "content")
-    clauseType -> mite.hasHard("clauseParent") && mite.has("hasComma")
+    clauseType -> mite.hasHard("clauseParent", "head")
+    sentence -> mite.hasHard("head", "verb")
     else -> true
   }
 }
@@ -78,7 +80,7 @@ fun hasHead(mite: Mite): Boolean {
 fun isPenetrable(mite: Mite) = !(mite.cxt == phrase && mite["kind"] == "verb")
 
 fun canUnify(left: Mite, right: Mite): Boolean {
-  if (left.cxt == emptyCxt || left.cxt == sem) return false
+  if (left.cxt == emptyCxt || left.cxt == sem || left.cxt == semSectionEnd) return false
   if (left["last"] == true || right["first"] == true) return false
   return true
 }
@@ -127,8 +129,8 @@ fun enrich(state: ParsingState, mite: Mite): List<Mite> {
   }
   if (mite.cxt == phrase && mite.hasHard("head") && mite["kind"] == "verb") {
     val head = mite.primaries.find { it.hasHard("head") }!!.v("head")
-    return l(elaboration("elaboration" to head)).optional() +
-           l(question("content" to head)).xor(l(complementizer("content" to head))).optional()
+    return (l(elaboration("elaboration" to head)).optional() +
+           l(question("content" to head)).xor(l(complementizer("content" to head))).optional()).xor(l(sentence("verb" to head, "first" to true)))
   }
   if (mite.cxt == conditionComp && happy(mite)) {
     return sem(mite.v("head"), "whenCondition" to mite.v("comp"))

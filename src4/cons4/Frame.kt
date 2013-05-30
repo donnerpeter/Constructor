@@ -9,6 +9,28 @@ class Frame(val chart: Chart, val variable: Variable) {
 
   fun definedAttributeValue(attr: String) = allAssignments(attr).firstOrNull()?.value
 
+  private fun findController(): Frame? {
+    val group = usages("member").firstOrNull() ?: this
+    val clause = group.usages("content").firstOrNull()
+    if (clause == null || clause.getType() != "fact" && clause.getType() != "question") {
+      return null
+    }
+
+    val controller = clause.findClauseController()
+    assert(controller != this)
+    return controller
+  }
+
+  fun findClauseController(): Frame? {
+    val group = usages("member").firstOrNull() ?: this
+    var controller = group.usages("arg2").firstOrNull()
+    controller = controller ?: group.usages("theme").firstOrNull()
+    controller = controller ?: group.usages("message").firstOrNull()
+    controller = controller ?: group.usages("question").firstOrNull()
+    return controller
+  }
+
+
   fun f(attr: String): Frame? {
     val defined = definedAttributeValue(attr)
     if (defined is Frame) return defined
@@ -41,7 +63,24 @@ class Frame(val chart: Chart, val variable: Variable) {
   fun getType() = definedAttributeValue("type")
   fun getTypeInferred() = getType()
 
-  fun resolve() = this
+  fun resolve(): Frame {
+    if (!hasType()) {
+      val master = usages("arg1").firstOrNull()
+      if (master?.getType() == "JAW") {
+        val verb = chart.getFrames().find { it.definedAttributeValue("arg1") != null }
+        if (verb != null) {
+          return verb.definedAttributeValue("arg1") as Frame
+        }
+      }
+      val controller = master?.findController()
+      val cArg1 = controller?.f("arg1")
+      if (cArg1 != null) {
+        return cArg1
+      }
+
+    }
+    return this
+  }
 
   fun usages(attr: String) = chart.assignments.filter { it.value == this && it.property == attr }.map { it.frame }
 

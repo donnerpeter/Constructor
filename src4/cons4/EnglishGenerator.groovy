@@ -224,7 +224,9 @@ class StatefulGenerator {
   }
 
   private void generateConjuncts(List<ClauseGenerator> conjuncts, Closure generator) {
-    Frame seq = conjuncts[0].frame.usages('member')[0]
+    if (!conjuncts) return
+
+    Frame seq = conjuncts[0].frame?.usages('member')?.getAt(0)
     for (int j in 0..<conjuncts.size()) {
       ClauseGenerator cur = conjuncts[j]
       if (j > 0 && j == conjuncts.size() - 1) {
@@ -422,7 +424,7 @@ class StatefulGenerator {
       shouldHaveSubject = verb.f('arg1')?.hasType()
     }
 
-    def subj = verb.f('arg1')
+    def subj = verb.f('arg1')?.resolve()
     if (verb.type == 'degree') {
       out 'great'
       out 'was'

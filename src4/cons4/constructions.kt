@@ -8,7 +8,7 @@ import java.util.ArrayList
 import cons4.enrichment.handleWord
 import cons4.enrichment.l
 import cons4.enrichment.optional
-import cons4.Tokens
+import cons4.enrichment.xor
 
 object emptyCxt: Construction()
 object word: Construction()
@@ -47,6 +47,9 @@ object comp: Construction()
 object conditionComp: Construction()
 object question: Construction()
 object questionVariants: Construction()
+object clauseType: Construction()
+object control: Construction()
+object complementizer: Construction()
 
 object elaboration: Construction()
 
@@ -56,12 +59,14 @@ fun happy(mite: Mite): Boolean {
   return when(mite.cxt) {
     is CaseConstruction, is PPConstruction -> mite.hasHard("noun", "head")
     phrase -> mite.hasHard("head")
-    comeScalarly -> mite.has("head", "order")
+    comeScalarly -> mite.has("order") && mite.hasHard("head")
     comp, conditionComp -> mite.hasHard("head", "comp")
     possessive -> mite.hasHard("head", "possessor")
+    control -> mite.hasHard("head", "slave")
     elaboration -> mite.hasHard("head", "elaboration")
     questionVariants -> mite.has("wh", "variants")
-    question -> mite.hasHard("head", "content")
+    question, complementizer -> mite.hasHard("head", "content")
+    clauseType -> mite.hasHard("clauseParent") && mite.has("hasComma")
     else -> true
   }
 }
@@ -73,7 +78,7 @@ fun hasHead(mite: Mite): Boolean {
 fun isPenetrable(mite: Mite) = !(mite.cxt == phrase && mite["kind"] == "verb")
 
 fun canUnify(left: Mite, right: Mite): Boolean {
-  if (left.cxt == emptyCxt) return false
+  if (left.cxt == emptyCxt || left.cxt == sem) return false
   if (left["last"] == true || right["first"] == true) return false
   return true
 }
@@ -82,7 +87,11 @@ fun enrich(state: ParsingState, mite: Mite): List<Mite> {
   if (mite.cxt == comeScalarly && mite.has("head", "order")) {
     return sem(mite.v("head"), "type" to "COME_SCALARLY", "order" to mite["order"])
   }
-  if (mite.cxt == question && mite.has("head", "content")) return sem(mite.v("head"), "type" to "question", "content" to mite["content"])
+  if (mite.cxt == question && happy(mite)) {
+    return sem(mite.v("head"), "type" to "question", "content" to mite["content"]) + l(questionVariants("wh" to mite.v("questioned"))).optional()
+  }
+  if (mite.cxt == complementizer && happy(mite)) return sem(mite.v("head"), "type" to "fact", "content" to mite["content"])
+
   if (mite.cxt == questionVariants && mite.has("wh", "variants")) {
     return sem(mite.v("wh"), "variants" to mite["variants"]) + listOf(nom("head" to mite.v("dummyHead"), "noun" to mite.v("variants").lv))
   }
@@ -118,7 +127,8 @@ fun enrich(state: ParsingState, mite: Mite): List<Mite> {
   }
   if (mite.cxt == phrase && mite.hasHard("head") && mite["kind"] == "verb") {
     val head = mite.primaries.find { it.hasHard("head") }!!.v("head")
-    return l(elaboration("elaboration" to head)).optional() + l(question("content" to head)).optional()
+    return l(elaboration("elaboration" to head)).optional() +
+           l(question("content" to head)).xor(l(complementizer("content" to head))).optional()
   }
   if (mite.cxt == conditionComp && happy(mite)) {
     return sem(mite.v("head"), "whenCondition" to mite.v("comp"))

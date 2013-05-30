@@ -42,7 +42,7 @@ public data class ParsingState(
     allMites.forEach { miteWeights[it] = 0.0 }
     allMites.forEach { mite ->
       if (!happy(mite)) {
-        val contradictors = findContradictors(mite, allMites)
+        val contradictors = findContradictors(mite, allMites).filter { it != mite }
         for (contr in contradictors) {
           miteWeights[contr] = miteWeights[contr]!! + 1.0/contradictors.size.toDouble()
         }
@@ -118,8 +118,10 @@ public data class ParsingState(
       map.getOrPut(mite.cxt.name) { ArrayList() }.add(mite)
     }
 
+    val weights = calcMiteWeights(getAllMites())
+
     for ((key, values) in map) {
-      result += "  $key: " + values.map { (if (it in active) "*" else "") + (if (happy(it)) "" else "!") + it.args }.makeString(" ") + "\n"
+      result += "  $key: " + values.map { (if (it in active) "*" else "") + (if (happy(it)) "" else "!") + it.args + "(" + weights[it] + ")" }.makeString(" ") + "\n"
     }
 
     val unhappy = getAllMites().filter { it in active && it !in mites.last!! && !happy(it) }
@@ -166,9 +168,7 @@ public data class ParsingState(
 
     val lastMites = mites[index]
     val upLink = lastMites.find { it in active && hasHead(it) && !it.primaries.any { hasHead(it) && it in lastMites } }
-    if (upLink != null) {
-      if (!isPenetrable(upLink)) return Link(-1, upLink, true)
-
+    if (upLink != null && isPenetrable(upLink)) {
       val headAtom = upLink.primaries.find { hasHead(it) }!!
       return Link(getAtomIndex(headAtom), headAtom, true)
     }

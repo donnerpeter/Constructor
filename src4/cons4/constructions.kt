@@ -6,9 +6,9 @@ import cons4.Mite
 import cons4.ParsingState
 import java.util.ArrayList
 import cons4.enrichment.handleWord
-import cons4.enrichment.l
-import cons4.enrichment.optional
-import cons4.enrichment.xor
+import cons4.l
+import cons4.optional
+import cons4.xor
 
 object emptyCxt: Construction()
 object word: Construction()

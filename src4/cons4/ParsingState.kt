@@ -10,6 +10,7 @@ import cons4.constructions.enrich
 import cons4.constructions.canUnify
 import java.util.LinkedList
 import cons4.constructions.isPenetrable
+import java.util.HashMap
 
 public data class ParsingState(
         val log: String = "",
@@ -38,18 +39,27 @@ public data class ParsingState(
   fun findContradictors(mite: Mite, among: Collection<Mite>) = among.filter { mite.contradicts(it) }
 
   fun calcMiteWeights(allMites: Collection<Mite>): Map<Mite, Double> {
+    val groups = HashSet<Set<Mite>>()
+    val miteGroups = HashMap<Mite, Int>()
     val miteWeights = LinkedHashMap<Mite, Double>()
-    allMites.forEach { miteWeights[it] = 0.0 }
-    allMites.forEach { mite ->
-      if (!happy(mite)) {
-        val contradictors = findContradictors(mite, allMites).filter { it != mite }
-        for (contr in contradictors) {
-          miteWeights[contr] = miteWeights[contr]!! + 1.0/contradictors.size.toDouble()
-        }
-      } else {
-        miteWeights[mite] = miteWeights[mite]!! + 1
+    for (mite in allMites) {
+      miteWeights[mite] = 0.0
+      val group = findContradictors(mite, allMites).toSet()
+      if (groups.add(group)) {
+        group.forEach { miteGroups[it] = (miteGroups[it] ?: 0) + 1 }
       }
     }
+
+    for (group in groups) {
+      val happyMites = group.filter { happy(it) }
+      if (happyMites.notEmpty()) {
+        happyMites.forEach { miteWeights[it] = miteWeights[it]!! + 1/happyMites.size.toDouble() }
+      }
+    }
+    for (it in allMites) {
+      miteWeights[it] = miteWeights[it]!!/miteGroups[it]!!
+    }
+
     return miteWeights
   }
 
@@ -59,6 +69,7 @@ public data class ParsingState(
 
     val newActive = HashSet<Mite>()
     val processed = HashSet<Mite>()
+    val delayed = HashMap<Mite, ArrayList<Mite>>()
     val queue = LinkedList(allMites.sortBy { -miteWeights[it]!! })
     while (queue.notEmpty()) {
       val mite = queue.removeFirst()
@@ -71,12 +82,15 @@ public data class ParsingState(
 
       if (preconditions.empty) {
         newActive.add(mite)
+        val released = delayed.remove(mite)
+        if (released != null) {
+          queue.addAll(0, released)
+        }
         continue
       }
 
-      queue.addFirst(mite)
       processed.remove(mite)
-      queue.addAll(0, preconditions.sortBy { -miteWeights[it]!! })
+      preconditions.forEach { delayed.getOrPut(it, { ArrayList() }).add(mite) }
     }
 
     return copy(active = newActive)

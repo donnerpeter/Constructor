@@ -54,7 +54,7 @@ fun handleWord(w: String): List<Mite> {
     "этому" -> adj(v, dat, "determiner", "THIS")
     "я" -> pronoun(v, nom, "ME")
     "," -> l(phrase("head" to v0.lv, "kind" to "verb", "last" to true), sentence("verb" to v[1].lv)) +
-           (l(comp("comp" to v[2])) + l(clauseType("clauseParent" to v[2].lv, "head" to v0))).xor(l(conditionComp("head" to v0))) +
+           (l(comp("comp" to v[2]), clauseType("clauseParent" to v[2].lv, "head" to v0))).xor(l(conditionComp("head" to v0))) +
            l(semSectionEnd("id" to v0))
     ":" -> l(semSectionEnd("id" to v0), phrase("head" to v0.lv, "kind" to "verb", "last" to true), elaboration("head" to v0, "elaboration" to v[1].lv, "first" to true), sem(v0, "elaboration", v[1]))
     "-" -> l(questionVariants("variants" to v0, "dummyHead" to v[1]), semSectionEnd("id" to v0))

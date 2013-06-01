@@ -87,7 +87,7 @@ fun canUnify(left: Mite, right: Mite): Boolean {
 }
 
 fun enrich(state: ParsingState, mite: Mite): List<Mite> {
-  if (mite.cxt == comeScalarly && mite.has("head", "order")) {
+  if (mite.cxt == comeScalarly && happy(mite)) {
     return sem(mite.v("head"), "type" to "COME_SCALARLY", "order" to mite["order"])
   }
   if (mite.cxt == question && happy(mite)) {

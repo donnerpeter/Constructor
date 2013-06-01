@@ -9,6 +9,7 @@ import cons4.enrichment.handleWord
 import cons4.l
 import cons4.optional
 import cons4.xor
+import cons4.multiXor
 
 object emptyCxt: Construction()
 object word: Construction()
@@ -129,8 +130,10 @@ fun enrich(state: ParsingState, mite: Mite): List<Mite> {
   }
   if (mite.cxt == phrase && mite.hasHard("head") && mite["kind"] == "verb") {
     val head = mite.primaries.find { it.hasHard("head") }!!.v("head")
-    return (l(elaboration("elaboration" to head)).optional() +
-           l(question("content" to head)).xor(l(complementizer("content" to head))).optional()).xor(l(sentence("verb" to head, "first" to true)))
+    return multiXor(listOf(l(elaboration("elaboration" to head)),
+            l(question("content" to head)),
+            l(complementizer("content" to head)),
+            l(sentence("verb" to head, "first" to true))))
   }
   if (mite.cxt == conditionComp && happy(mite)) {
     return sem(mite.v("head"), "whenCondition" to mite.v("comp"))

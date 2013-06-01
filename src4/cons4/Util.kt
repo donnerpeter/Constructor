@@ -4,6 +4,7 @@ import cons4.constructions.*
 import java.util.ArrayList
 import java.util.HashMap
 import java.util.LinkedHashSet
+import java.util.HashSet
 
 object Util {
   fun parseNumber(word: String?): Int? {
@@ -52,29 +53,61 @@ fun finiteVerb(v: Vars, time: String, typ: String? = null, agrGender: String? = 
 
 fun List<Mite>.optional(): List<Mite> = xor(l(emptyCxt()))
 
-fun List<Mite>.xor(list2: List<Mite>): List<Mite> {
-  val list1 = this
-  val common = list1.filter { it in list2 }
-  val map = HashMap<Mite, LinkedHashSet<Token>>()
-  var id = 'a'
-  val t = Tokens(this to list2)
-  for (m1 in list1.filter { it !in common }) {
-    for (m2 in list2.filter { it !in common}) {
-      val token = t["${id}"]
-      id++
-      map.getOrPut(m1) { LinkedHashSet<Token>() }.add(token)
-      map.getOrPut(m2) { LinkedHashSet<Token>() }.add(token)
+private fun allCombinations(updates: List<List<Mite>>): Set<Set<Mite>> {
+  if (updates.empty) return LinkedHashSet()
+  if (updates.size == 1) return LinkedHashSet(updates[0].map { setOf(it) })
+
+  val next = allCombinations(updates.subList(1, updates.size))
+  val result = LinkedHashSet<Set<Mite>>()
+  val commonMites = HashSet<Mite>()
+  for (mite in updates[0]) {
+    val existingGroup = next.find { mite in it }
+    if (existingGroup != null) {
+      result.add(existingGroup)
+      commonMites.add(mite)
     }
   }
-  val result = ArrayList<Mite>()
-  for (mite in list1 + list2.filter { it !in common}) {
-    if (mite in common) {
-      result.add(mite)
-    } else {
-      val mockMite = mite.unify(mite.cxt("xor" to map[mite]!!))!!
-      result.add(mite.copy(args=mockMite.args))
+  for (mite in updates[0].filter { it !in commonMites }) {
+    if (mite in commonMites) continue
+    for (rest in next.filter { it !in result }) {
+      val merged = LinkedHashSet<Mite>()
+      merged.add(mite)
+      merged.addAll(rest)
+      result.add(merged)
     }
   }
   return result
 }
 
+fun multiXor(updates: List<List<Mite>>): List<Mite> {
+  var id = 'a'
+  val t = Tokens(updates)
+  val map = HashMap<Mite, LinkedHashSet<Token>>()
+  for (combo in allCombinations(updates)) {
+    if (combo.size == 1) continue
+
+    val token = t["${id}"]
+    id++
+    for (mite in combo) {
+      map.getOrPut(mite) { LinkedHashSet<Token>() }.add(token)
+    }
+  }
+  val processed = HashSet<Mite>()
+  val result = ArrayList<Mite>()
+  for (update in updates) {
+    for (mite in update) {
+      if (processed.add(mite)) {
+        val xors = map[mite]
+        if (xors == null) {
+          result.add(mite)
+        } else {
+          val mockMite = mite.unify(mite.cxt("xor" to xors!!))!!
+          result.add(mite.copy(args=mockMite.args))
+        }
+      }
+    }
+  }
+  return result
+}
+
+fun List<Mite>.xor(list2: List<Mite>): List<Mite> = multiXor(listOf(this, list2))

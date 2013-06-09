@@ -36,7 +36,29 @@ public data class ParsingState(
   fun getAllMites(): LinkedHashSet<Mite> = LinkedHashSet(mites.flatMap { it })
   fun getActiveMites(): LinkedHashSet<Mite> = LinkedHashSet(getAllMites().filter { it in active })
 
-  fun findContradictors(mite: Mite, among: Collection<Mite>) = among.filter { mite.contradicts(it) }
+  fun findContradictors(mite: Mite, among: Collection<Mite>) = among.filter { it == mite || contradict(mite, it) }
+
+  private val contrCache = HashMap<Pair<Mite, Mite>, Boolean>()
+  fun contradict(mite1: Mite, mite2: Mite): Boolean {
+    return contrCache.getOrPut(mite1 to mite2) { _contradict(mite1, mite2) }
+  }
+  private fun _contradict(mite1: Mite, mite2: Mite): Boolean {
+    if (mite1.contradicts(mite2)) return true
+
+/*
+    for (group in getDirectPreconditionGroups(mite1)) {
+      if (group.all { contradict(it, mite2) }) return true
+    }
+
+    for (group in getDirectPreconditionGroups(mite2)) {
+      if (group.all { contradict(mite1, it) }) return true
+    }
+*/
+
+    return false
+  }
+
+  private fun getDirectPreconditionGroups(mite: Mite): List<List<Mite>> = mite.primaries.map { findPossibleAtomCreators(it) }.filter { it.notEmpty() }
 
   fun calcMiteWeights(allMites: Collection<Mite>): Map<Mite, Double> {
     val groups = HashSet<Set<Mite>>()

@@ -1,9 +1,6 @@
 package cons4.enrichment
 
 import cons4.constructions.*
-import cons4.Mite
-import cons4.Vars
-import cons4.Util
 import cons4.*
 
 fun handleWord(w: String): List<Mite> {
@@ -11,7 +8,7 @@ fun handleWord(w: String): List<Mite> {
   val v0 = v[0]
 
   if (Util.parseNumber(w) != null) {
-    return noun(v, nom, w) + sem(v0, "number" to "true")
+    return multiXor(listOf(noun(v, nom, w), noun(v, gen, w), noun(v, acc, w))) + sem(v0, "number" to "true")
   }
 
   return when (w) {
@@ -20,7 +17,8 @@ fun handleWord(w: String): List<Mite> {
     "вспомнить" -> l(phrase(v0, "infinitive")) + sem.t(v0, "RECALL") + control("slave" to v0) + accArg(v)
     "думают" -> finiteVerb(v, "PRESENT", "THINK", agrNumber="pl", agrPerson=3) + arg(v, poDat, "topic") + accArg(v)
     "же" -> l(phrase("head" to v0.lv, "last" to true))
-    "забыл" -> finiteVerb(v, "PAST", "FORGET", agrGender="m", agrNumber="sg") + arg(v, comp, "arg2", "comp")
+    "забыл" -> finiteVerb(v, "PAST", "FORGET", agrGender="m", agrNumber="sg") + accArg(v).xor(arg(v, comp, "arg2", "comp"))
+    "забыли" -> finiteVerb(v, "PAST", "FORGET", agrNumber="pl") + accArg(v).xor(arg(v, comp, "arg2", "comp"))
     "и" -> l(seq("conj" to "and", "seqVar" to v0, "left" to v[1], "right" to v[2]))
     "идет" -> finiteVerb(v, "PRESENT", agrNumber="sg", agrPerson=3) + l(comeScalarly("head" to v0))
     "или" -> l(seq("conj" to "or", "seqVar" to v0, "left" to v[1], "right" to v[2]))
@@ -37,6 +35,7 @@ fun handleWord(w: String): List<Mite> {
     "отправился" -> finiteVerb(v, "PAST", "GO_OFF", agrGender="m", agrNumber="sg") + arg(v, kDat, "goal")
     "по" -> preposition(v, poDat, dat)
     "поводу" -> noun(v, dat, "MATTER")
+    "помнят" -> finiteVerb(v, "PRESENT", "REMEMBER", agrNumber="pl") + accArg(v)
     "порядок" -> noun(v, acc, "ORDER") + arg(v, gen, "criterion")
     "раньше" -> l(comeScalarly("head" to v0.lv, "order" to "EARLIER"))
     "случай" -> noun(v, nom, "THING")
@@ -54,7 +53,11 @@ fun handleWord(w: String): List<Mite> {
     "этому" -> adj(v, dat, "determiner", "THIS")
     "я" -> pronoun(v, nom, "ME")
     "," -> l(phrase("head" to v0.lv, "kind" to "verb", "last" to true), sentence("verb" to v[1].lv)) +
-           (l(comp("comp" to v[2]), clauseType("clauseParent" to v[2].lv, "head" to v0))).xor(l(conditionComp("head" to v0))) +
+           multiXor(listOf(
+                   l(comp("comp" to v[2]), clauseType("clauseParent" to v[2].lv, "head" to v0)),
+                   l(conditionComp("head" to v0))//,
+                   //l(seq("conj" to ",", "seqVar" to v0, "left" to v[3], "right" to v[4]))
+           )) +
            l(semSectionEnd("id" to v0))
     ":" -> l(semSectionEnd("id" to v0), phrase("head" to v0.lv, "kind" to "verb", "last" to true), elaboration("head" to v0, "elaboration" to v[1].lv, "first" to true), sem(v0, "elaboration", v[1]))
     "-" -> l(questionVariants("variants" to v0, "dummyHead" to v[1]), semSectionEnd("id" to v0))

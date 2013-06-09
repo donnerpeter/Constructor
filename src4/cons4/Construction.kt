@@ -21,6 +21,8 @@ data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, pri
   fun v(attr: String) = args[attr] as Variable
 
   fun contradicts(another: Mite): Boolean {
+    if (this == another) return false
+
     if (another.cxt == cxt) {
       if (primaries.any { it in another.primaries }) return true
     }

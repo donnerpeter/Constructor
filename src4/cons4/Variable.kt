@@ -41,7 +41,7 @@ abstract class Variable(private val comment: String) {
     override val base: Variable get() = this
     override val hard: Boolean get() = true
 
-    fun equals(o: Any) = o is MergedVariable && o.primaries == primaries
+    fun equals(o: Any?) = o is MergedVariable && o.primaries == primaries
     fun hashCode() = primaries.hashCode()
   }
 

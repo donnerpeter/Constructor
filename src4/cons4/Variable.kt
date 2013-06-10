@@ -32,7 +32,7 @@ abstract class Variable(private val comment: String) {
     override val primaries: Set<Variable> get() = base.primaries
     override val hard: Boolean get() = false
 
-    fun equals(o: Any) = o is LightVariable && o.base == base
+    fun equals(o: Any?) = o is LightVariable && o.base == base
     fun hashCode() = base.hashCode()
   }
 

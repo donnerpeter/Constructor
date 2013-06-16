@@ -43,6 +43,7 @@ object poDat: PPConstruction()
 object possessive: Construction()
 
 object seq: Construction()
+object mergedMite: Construction()
 
 object comp: Construction()
 object conditionComp: Construction()
@@ -101,33 +102,42 @@ fun enrich(state: ParsingState, mite: Mite): List<Mite> {
     return sem(mite.v("wh"), "variants" to mite["variants"]) + listOf(nom("head" to mite.v("dummyHead"), "noun" to mite.v("variants").lv))
   }
   if (mite.cxt == seq && mite.atom && mite.has("conj")) {
-    val seqVar = mite.v("seqVar")
-    val left = mite.v("left")
-    val right = mite.v("right")
-
     val visibleMites = state.getVisibleMites(state.getAtomIndex(mite), true)
 
-    val result = ArrayList<Mite>()
+    val result = ArrayList<List<Mite>>()
     for (visible in visibleMites) {
-      if (visible.cxt == nom && visible.has("noun") && !visible.has("head")) {
-        result.add(nom("noun" to seqVar))
-        result.addAll(l(nom("head" to seqVar, "noun" to left.lv, "last" to true), nom("head" to seqVar, "noun" to right.lv, "first" to true)))
-        result.addAll(l(sem(seqVar, "conj", mite["conj"]!!), sem(seqVar, "member", left), sem(seqVar, "member", right)))
-      }
-      else if (visible.cxt == possessive && visible.has("possessor") && !visible.has("head")) {
-        result.add(possessive("possessor" to seqVar))
-        result.addAll(l(possessive("head" to seqVar, "possessor" to left.lv, "last" to true), possessive("head" to seqVar, "possessor" to right.lv, "first" to true)))
-        result.addAll(l(sem(seqVar, "conj", mite["conj"]!!), sem(seqVar, "member", left), sem(seqVar, "member", right)))
-      }
-      else if (visible.cxt == phrase && visible.hasHard("head") && visible["kind"] == "verb") {
-        val nomArg = visibleMites.find { it.atom && it.cxt == nom && it.hasHard("head") && it.has("noun") && !it.hasHard("noun") && it.v("head") == visible.v("head") }
-        if (nomArg != null) {
-          result.addAll(l(nom("head" to right.lv, "noun" to nomArg.v("noun").base, "first" to true)))
-        }
-        result.addAll(l(phrase("head" to left.lv, "kind" to "verb", "last" to true), phrase("head" to right.lv, "kind" to "verb", "first" to true)))
-        result.addAll(l(sem(seqVar, "conj", mite["conj"]!!), sem(seqVar, "member", left), sem(seqVar, "member", right)))
+      if (visible.cxt == nom && visible.has("noun") && !visible.has("head") ||
+          visible.cxt == possessive && visible.has("possessor") && !visible.has("head") ||
+          visible.cxt == phrase && visible.hasHard("head") && visible["kind"] == "verb") {
+        result.add(l(mergedMite("mergedMite" to visible, "seqMite" to mite)))
       }
     }
+    return multiXor(result)
+  }
+  if (mite.cxt == mergedMite) {
+    val merged = mite["mergedMite"] as Mite
+    val seqMite = mite["seqMite"] as Mite
+    val seqVar = seqMite.v("seqVar")
+    val left = seqMite.v("left")
+    val right = seqMite.v("right")
+
+    val visibleMites = state.getVisibleMites(state.getAtomIndex(mite), true)
+    val result = ArrayList<Mite>()
+    if (merged.cxt == nom) {
+      result.add(nom("noun" to seqVar))
+      result.addAll(l(nom("head" to seqVar, "noun" to left.lv, "last" to true), nom("head" to seqVar, "noun" to right.lv, "first" to true)))
+    } else if (merged.cxt == possessive) {
+      result.add(possessive("possessor" to seqVar))
+      result.addAll(l(possessive("head" to seqVar, "possessor" to left.lv, "last" to true), possessive("head" to seqVar, "possessor" to right.lv, "first" to true)))
+    } else if (merged.cxt == phrase) {
+      val nomArg = visibleMites.find { it.atom && it.cxt == nom && it.hasHard("head") && it.has("noun") && !it.hasHard("noun") && it.v("head") == merged.v("head") }
+      if (nomArg != null) {
+        result.addAll(l(nom("head" to right.lv, "noun" to nomArg.v("noun").base, "first" to true)))
+      }
+      result.addAll(l(phrase("head" to left.lv, "kind" to "verb", "last" to true), phrase("head" to right.lv, "kind" to "verb", "first" to true)))
+    }
+
+    result.addAll(l(sem(seqVar, "conj", seqMite["conj"]!!), sem(seqVar, "member", left), sem(seqVar, "member", right)))
     return result
   }
   if (mite.cxt == phrase && mite.hasHard("head")) {

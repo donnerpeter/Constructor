@@ -1,6 +1,8 @@
 package cons3
 
+import junit.framework.Test
 import junit.framework.TestCase
+import junit.framework.TestSuite
 /**
  * @author peter
  */
@@ -414,6 +416,14 @@ F.type=SHOP
   public void testTranslate1() {
     doTranslateTest "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8",
                     "An amazing thing happened to me today, I suddenly forgot what comes first - 7 or 8"
+  }
+
+  public static Test suite() {
+    final TestSuite suite = new TestSuite();
+    for (i in 0..0) {
+      suite.addTestSuite(SonnetTest.class);
+    }
+    return suite;
   }
 
   public void testTranslate2() {

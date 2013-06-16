@@ -25,7 +25,7 @@ fun handleWord(w: String): List<Mite> {
     "их" -> pronoun(v, acc, "THEY").xor(l(possessive("possessor" to v0), sem.t(v0, "THEY")))
     "к" -> preposition(v, kDat, dat)
     "каково" -> sem(v0, "type" to "degree", "arg1" to v[1], "arg2" to v[2]) + sem.t(v[2], "wh") + l(nom("head" to v0.lv, "noun" to v[1].lv), phrase(v0.lv, "verb"), phrase(v[2], "shortAdj"))
-    "когда" -> l(conditionComp("comp" to v0), phrase(v0.lv, "verb"))
+    "когда" -> l(conditionComp("comp" to v[1]), question("head" to v[1], "questioned" to v0))
     "мной" -> pronoun(v, instr, "ME")
     "могут" -> finiteVerb(v, "PAST", "CAN", agrPerson=3, agrNumber="pl") + arg(v, control, "theme", "slave")
     "мое" -> l(possessive("possessor" to v0), sem.t(v0, "ME"))

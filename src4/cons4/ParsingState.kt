@@ -239,50 +239,61 @@ public data class ParsingState(
 
 }
 
-data class CandidateSet(val set: Set<Mite>, val weight : Int = set.filter { !happy(it) }.size) {
+data class Delta(
+        val state: ParsingState,
+        val addedMite: Mite,
+        val freeCandidates: List<Mite>,
+        val fixedMites: List<Mite>,
+        val affectedMites : Set<Mite>,
+        val weightOutside: Int
+) {
 
-  fun hasContradictors(addedMite: Mite, state: ParsingState) = addedMite !in set && state.findContradictors(addedMite, set).notEmpty()
-
-  fun enlarge(addedMite: Mite, state: ParsingState, maxWeight: Int): List<CandidateSet> {
-    val allMites = state.getAllMites()
-    val toRemove = LinkedHashSet(state.findContradictors(addedMite, set))
-
-    val newSet = LinkedHashSet(set)
-    newSet.removeAll(toRemove)
-    newSet.add(addedMite)
-
-    val _contras2 = allMites.filter { it != addedMite && it !in toRemove && state.findContradictors(it, toRemove).notEmpty() && state.findContradictors(it, newSet).empty }
-    assert(_contras2.all { it !in set })
-    assert(addedMite !in _contras2)
-
-    val candidateWeight = newSet.filter { !happy(it) }.size
-    val maxRemaining = maxWeight - candidateWeight
+  fun enumerateBestConfigurations(maxWeight: Int): List<List<Mite>> {
+    val maxRemaining = maxWeight - weightOutside - fixedMites.count { !happy(it) }
     if (maxRemaining < 0) return listOf()
-
-    val freeCandidates = _contras2.filter { happy(it) } + _contras2.filter { !happy(it) }
-    return enumerateBestConfigurations(newSet.toList(), freeCandidates, maxRemaining, state)
+    return _enumerateBestConfigurations(fixedMites, freeCandidates.filter { happy(it) } + freeCandidates.filter { !happy(it) }, maxRemaining)
   }
 
-  private fun enumerateBestConfigurations(fixed: List<Mite>, freeMites: List<Mite>, maxUnhappy: Int, state: ParsingState): List<CandidateSet> {
-    if (freeMites.empty) {
-      return listOf(CandidateSet(LinkedHashSet(fixed)))
-    }
+  private fun _enumerateBestConfigurations(fixed: List<Mite>, freeMites: List<Mite>, maxUnhappy: Int): List<List<Mite>> {
+    if (freeMites.empty) return listOf(fixed)
 
-    val result = ArrayList<CandidateSet>()
+    val result = ArrayList<List<Mite>>()
 
     val head = freeMites[0]
     val tail = freeMites.subList(1, freeMites.size)
 
     val maxTailWeight = maxUnhappy - (if (happy(head)) 0 else 1)
     if (maxTailWeight >= 0 && state.findContradictors(head, fixed).empty) {
-      result.addAll(enumerateBestConfigurations(fixed + head, tail, maxTailWeight, state))
+      result.addAll(_enumerateBestConfigurations(fixed + head, tail, maxTailWeight))
     }
 
     if (state.findContradictors(head, fixed + tail).notEmpty()) {
-      result.addAll(enumerateBestConfigurations(fixed, tail, maxUnhappy, state).filter { state.findContradictors(head, it.set).notEmpty() } )
+      result.addAll(_enumerateBestConfigurations(fixed, tail, maxUnhappy).filter { state.findContradictors(head, it).notEmpty() } )
     }
 
     return result
+  }
+
+}
+
+data class CandidateSet(val set: Set<Mite>, val weight : Int = set.count { !happy(it) }) {
+
+  fun hasContradictors(addedMite: Mite, state: ParsingState) = addedMite !in set && state.findContradictors(addedMite, set).notEmpty()
+
+  fun enlarge(addedMite: Mite, state: ParsingState, maxWeight: Int): List<CandidateSet> {
+    val extruded = LinkedHashSet(state.findContradictors(addedMite, set))
+
+    val newSet = LinkedHashSet(set)
+    newSet.removeAll(extruded)
+    newSet.add(addedMite)
+
+    val allMites = state.getAllMites()
+    val freeCandidates = allMites.filter { it !in extruded && state.findContradictors(it, extruded).notEmpty() && state.findContradictors(it, newSet).empty }
+    val affectedMites = LinkedHashSet(allMites.filter { state.findContradictors(it, freeCandidates).notEmpty() } + extruded + addedMite)
+    val delta = Delta(state, addedMite, freeCandidates, newSet.filter { it in affectedMites }, affectedMites, weight - extruded.size + 1)
+
+    val inertMites = set.filter { it !in delta.affectedMites }
+    return delta.enumerateBestConfigurations(maxWeight).map { CandidateSet(LinkedHashSet(inertMites + it))}
   }
 
   fun toString() = "$weight ${set.filter { !happy(it) }}"

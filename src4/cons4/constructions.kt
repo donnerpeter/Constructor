@@ -106,7 +106,7 @@ fun enrich(state: ParsingState, mite: Mite): List<Mite> {
 
     val result = ArrayList<List<Mite>>()
     for (visible in visibleMites) {
-      if (visible.cxt == nom && visible.has("noun") && !visible.has("head") ||
+      if (visible.cxt is CaseConstruction && visible.has("noun") && !visible.has("head") ||
           visible.cxt == possessive && visible.has("possessor") && !visible.has("head") ||
           visible.cxt == phrase && visible.hasHard("head") && visible["kind"] == "verb") {
         result.add(l(mergedMite("mergedMite" to visible, "seqMite" to mite)))
@@ -123,9 +123,9 @@ fun enrich(state: ParsingState, mite: Mite): List<Mite> {
 
     val visibleMites = state.getVisibleMites(state.getAtomIndex(mite), true)
     val result = ArrayList<Mite>()
-    if (merged.cxt == nom) {
-      result.add(nom("noun" to seqVar))
-      result.addAll(l(nom("head" to seqVar, "noun" to left.lv, "last" to true), nom("head" to seqVar, "noun" to right.lv, "first" to true)))
+    if (merged.cxt is CaseConstruction) {
+      result.add(merged.cxt("noun" to seqVar))
+      result.addAll(l(merged.cxt("head" to seqVar, "noun" to left.lv, "last" to true), merged.cxt("head" to seqVar, "noun" to right.lv, "first" to true)))
     } else if (merged.cxt == possessive) {
       result.add(possessive("possessor" to seqVar))
       result.addAll(l(possessive("head" to seqVar, "possessor" to left.lv, "last" to true), possessive("head" to seqVar, "possessor" to right.lv, "first" to true)))

@@ -22,22 +22,13 @@ public data class ParsingState(
   fun equals(o: Any?) = this === o
   fun hashCode() = System.identityHashCode(this)
 
-  fun getChart(): Chart {
-    return Chart(getActiveMites())
-  }
-
-  fun appendLog(newLog : String) : ParsingState {
-    return copy(log = log + newLog)
-  }
-
-  fun printLog() {
-    println("Log:\n\n$log\n")
-  }
-
-  fun apply(vararg cxts : Mite) = _apply(this, *cxts)
-
+  fun getChart() = Chart(getActiveMites())
+  fun appendLog(newLog : String) = copy(log = log + newLog)
   fun getAllMites(): LinkedHashSet<Mite> = LinkedHashSet(mites.flatMap { it })
   fun getActiveMites(): LinkedHashSet<Mite> = LinkedHashSet(getAllMites().filter { it in active })
+
+  fun printLog() = println("Log:\n\n$log\n")
+  fun apply(vararg cxts : Mite) = _apply(this, *cxts)
 
   fun findContradictors(mite: Mite, among: Collection<Mite>) = network.findContradictors(mite, among)
 

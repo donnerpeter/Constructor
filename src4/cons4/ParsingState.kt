@@ -181,6 +181,7 @@ public data class ParsingState(
     val window = 2
     var bestWeight = Integer.MAX_VALUE - window
     val newBest = LinkedHashSet<CandidateSet>()
+    newBest.addAll(bestConfigurations.filter { it.hasContradictors(addedMite, this) })
     for (set in bestConfigurations) {
       for (better in set.enlarge(addedMite, this, bestWeight + window)) {
         newBest.add(better)
@@ -239,12 +240,10 @@ public data class ParsingState(
 }
 
 data class CandidateSet(val set: Set<Mite>, val weight : Int = set.filter { !happy(it) }.size) {
-  fun enlarge(addedMite: Mite, state: ParsingState, maxWeight: Int): List<CandidateSet> {
-    val result = ArrayList<CandidateSet>()
-    if (addedMite !in set && state.findContradictors(addedMite, set).notEmpty()) {
-      result.add(this)
-    }
 
+  fun hasContradictors(addedMite: Mite, state: ParsingState) = addedMite !in set && state.findContradictors(addedMite, set).notEmpty()
+
+  fun enlarge(addedMite: Mite, state: ParsingState, maxWeight: Int): List<CandidateSet> {
     val allMites = state.getAllMites()
     val toRemove = LinkedHashSet(state.findContradictors(addedMite, set))
 
@@ -258,11 +257,10 @@ data class CandidateSet(val set: Set<Mite>, val weight : Int = set.filter { !hap
 
     val candidateWeight = newSet.filter { !happy(it) }.size
     val maxRemaining = maxWeight - candidateWeight
-    if (maxRemaining < 0) return result
+    if (maxRemaining < 0) return listOf()
 
     val freeCandidates = _contras2.filter { happy(it) } + _contras2.filter { !happy(it) }
-    result.addAll(enumerateBestConfigurations(newSet.toList(), freeCandidates, maxRemaining, state))
-    return result
+    return enumerateBestConfigurations(newSet.toList(), freeCandidates, maxRemaining, state)
   }
 
   private fun enumerateBestConfigurations(fixed: List<Mite>, freeMites: List<Mite>, maxUnhappy: Int, state: ParsingState): List<CandidateSet> {

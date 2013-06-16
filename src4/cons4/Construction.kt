@@ -28,8 +28,8 @@ data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, pri
       if (primaries.any { it in another.primaries }) return true
     }
 
-    val xor1 = this["xor"] as LinkedHashSet<Token>?
-    val xor2 = another["xor"] as LinkedHashSet<Token>?
+    val xor1 = this["xor"] as LinkedHashSet<*>?
+    val xor2 = another["xor"] as LinkedHashSet<*>?
     if (xor1 == null || xor2 == null) return false
 
     return xor1.any { it in xor2 }

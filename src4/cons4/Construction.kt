@@ -2,6 +2,7 @@ package cons4
 
 import java.util.LinkedHashMap
 import java.util.LinkedHashSet
+import cons4.constructions.happy
 
 open data class Construction {
   val name = this.javaClass.getSimpleName()
@@ -12,7 +13,7 @@ open data class Construction {
   fun toString() = name
 }
 
-data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, private val _primaries: List<Mite>? = null) {
+data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, private val _primaries: List<Mite>? = null, val src1: Mite? = null, val src2: Mite? = null) {
   private val hc = (cxt.hashCode() * 31 + args.hashCode()) * 31 + (_primaries?.hashCode() ?: 0)
   val primaries: LinkedHashSet<Mite> = LinkedHashSet(if (_primaries == null) listOf(this) else _primaries)
 
@@ -68,7 +69,7 @@ data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, pri
     if (mergedMap == null) {
       return null
     }
-    return copy(args = mergedMap, _primaries = this.primaries + right.primaries)
+    return copy(args = mergedMap, _primaries = this.primaries + right.primaries, src1 = this, src2 = right)
   }
 
   fun get(attr: String) = args[attr]
@@ -76,6 +77,6 @@ data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, pri
   val firstAtom: Mite get() = primaries.iterator().next()
   val atom: Boolean get() = primaries.size == 1
 
-  fun toString() = cxt.name + args.toString()
+  fun toString() = (if (happy(this)) "" else "!") + cxt.name + args.toString()
   fun hashCode() = hc
 }

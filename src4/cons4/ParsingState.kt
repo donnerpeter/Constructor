@@ -8,16 +8,17 @@ import java.util.HashSet
 import cons4.constructions.hasHead
 import cons4.constructions.enrich
 import cons4.constructions.canUnify
-import java.util.LinkedList
 import cons4.constructions.isPenetrable
 import java.util.HashMap
+import java.util.Collections
 
 public data class ParsingState(
         val log: String = "",
         val mites: List<Set<Mite>> = ArrayList(),
-        val creators: Map<Mite, Set<Mite>> = LinkedHashMap(),
-        private val active: Set<Mite> = HashSet()
-  ) {
+        val creators: Creators = Creators(),
+        private val active: Set<Mite> = HashSet(),
+        private val bestConfigurations: List<CandidateSet> = listOf(CandidateSet(setOf()))
+) {
 
   fun getChart(): Chart {
     return Chart(getActiveMites())
@@ -45,7 +46,6 @@ public data class ParsingState(
   private fun _contradict(mite1: Mite, mite2: Mite): Boolean {
     if (mite1.contradicts(mite2)) return true
 
-/*
     for (group in getDirectPreconditionGroups(mite1)) {
       if (group.all { contradict(it, mite2) }) return true
     }
@@ -53,90 +53,11 @@ public data class ParsingState(
     for (group in getDirectPreconditionGroups(mite2)) {
       if (group.all { contradict(mite1, it) }) return true
     }
-*/
 
     return false
   }
 
-  private fun getDirectPreconditionGroups(mite: Mite): List<List<Mite>> = mite.primaries.map { findPossibleAtomCreators(it) }.filter { it.notEmpty() }
-
-  fun calcMiteWeights(allMites: Collection<Mite>): Map<Mite, Double> {
-    val groups = HashSet<Set<Mite>>()
-    val miteGroups = HashMap<Mite, Int>()
-    val miteWeights = LinkedHashMap<Mite, Double>()
-    for (mite in allMites) {
-      miteWeights[mite] = 0.0
-      val group = findContradictors(mite, allMites).toSet()
-      if (groups.add(group)) {
-        group.forEach { miteGroups[it] = (miteGroups[it] ?: 0) + 1 }
-      }
-    }
-
-    for (group in groups) {
-      val happyMites = group.filter { happy(it) }
-      if (happyMites.notEmpty()) {
-        happyMites.forEach { miteWeights[it] = miteWeights[it]!! + 1/happyMites.size.toDouble() }
-      }
-    }
-    for (it in allMites) {
-      miteWeights[it] = miteWeights[it]!!/miteGroups[it]!!
-    }
-
-    return miteWeights
-  }
-
-  fun updateActive(): ParsingState {
-    val allMites = getAllMites()
-    val miteWeights = calcMiteWeights(allMites)
-
-    val newActive = HashSet<Mite>()
-    val processed = HashSet<Mite>()
-    val delayed = HashMap<Mite, ArrayList<Mite>>()
-    val queue = LinkedList(allMites.sortBy { -miteWeights[it]!! })
-    while (queue.notEmpty()) {
-      val mite = queue.removeFirst()
-      if (!processed.add(mite)) continue
-
-      if (findContradictors(mite, newActive).notEmpty()) continue
-
-      val preconditions = findUnprocessedPreconditions(mite, newActive, processed)
-      if (preconditions == null) continue
-
-      if (preconditions.empty) {
-        newActive.add(mite)
-        val released = delayed.remove(mite)
-        if (released != null) {
-          queue.addAll(0, released)
-        }
-        continue
-      }
-
-      processed.remove(mite)
-      preconditions.forEach { delayed.getOrPut(it, { ArrayList() }).add(mite) }
-    }
-
-    return copy(active = newActive)
-  }
-
-  private fun findUnprocessedPreconditions(mite: Mite, active: Set<Mite>, processed: Set<Mite>): Collection<Mite>? {
-    val preconditions = LinkedHashSet<Mite>()
-    for (atom in mite.primaries) {
-      val creators = findPossibleAtomCreators(atom)
-      if (creators.empty || creators.any { it in active }) continue
-
-      val toProcess = creators.filter { it !in processed }
-      if (toProcess.empty) return null
-
-      preconditions.addAll(toProcess)
-    }
-    return preconditions
-  }
-
-  private fun findPossibleAtomCreators(mite: Mite): List<Mite> {
-    assert(mite.atom)
-    val directCreators = creators[mite]
-    return if (directCreators == null) listOf() else directCreators.toList()
-  }
+  private fun getDirectPreconditionGroups(mite: Mite): List<List<Mite>> = mite.primaries.map { creators.getParents(it) }.filter { it.notEmpty() }
 
   fun presentable(): String {
     if (mites.empty) return ""
@@ -154,10 +75,8 @@ public data class ParsingState(
       map.getOrPut(mite.cxt.name) { ArrayList() }.add(mite)
     }
 
-    val weights = calcMiteWeights(getAllMites())
-
     for ((key, values) in map) {
-      result += "  $key: " + values.map { (if (it in active) "*" else "") + (if (happy(it)) "" else "!") + it.args + "(" + weights[it] + ")" }.makeString(" ") + "\n"
+      result += "  $key: " + values.map { (if (it in active) "*" else "") + (if (happy(it)) "" else "!") + it.args }.makeString(" ") + "\n"
     }
 
     val unhappy = getAllMites().filter { it in active && it !in mites.last!! && !happy(it) }
@@ -167,14 +86,14 @@ public data class ParsingState(
     return result
   }
 
-  private fun addMites(added: Collection<Mite>): ParsingState {
-    if (mites.empty) {
-      return this
-    }
-
+  private fun addMite(added: Mite): ParsingState {
     val newMites = ArrayList(mites)
     newMites[newMites.lastIndex] = LinkedHashSet(newMites[newMites.lastIndex] + added)
     return copy(mites = newMites)
+  }
+
+  private fun addMites(added: Iterable<Mite>): ParsingState {
+    return added.fold(this) { state, mite -> state.addMite(mite).updateActive(mite) }
   }
 
   fun findPhraseStart(index: Int): Mite? {
@@ -258,22 +177,46 @@ public data class ParsingState(
     return result
   }
 
+  private fun updateActive(addedMite: Mite): ParsingState {
+    val window = 2
+    var bestWeight = Integer.MAX_VALUE - window
+    val newBest = LinkedHashSet<CandidateSet>()
+    for (set in bestConfigurations) {
+      for (better in set.enlarge(addedMite, this, bestWeight + window)) {
+        newBest.add(better)
+        bestWeight = Math.min(better.weight, bestWeight)
+      }
+    }
+
+    val representedInConf = HashSet<Mite>()
+    val sortedBest = ArrayList<CandidateSet>()
+    for (conf in newBest.filter { it.weight <= bestWeight + window }.sortBy { it.weight }) {
+      for (activeMite in conf.set) {
+        if (representedInConf.add(activeMite)) {
+          sortedBest.add(conf)
+          break
+        }
+      }
+    }
+    return copy(bestConfigurations = sortedBest, active = sortedBest[0].set)
+  }
+
   class object {
     fun _apply(_state: ParsingState, vararg cxts : Mite) : ParsingState {
-      var state = _state.copy(mites = _state.mites + arrayListOf(LinkedHashSet(cxts.toList()))).updateActive()
+      var state = _state.copy(mites = _state.mites + arrayListOf(LinkedHashSet())).addMites(cxts.toList())
       var toEnrich = cxts.toList()
       while (toEnrich.notEmpty()) {
         while (toEnrich.notEmpty()) {
-          val newCreators = LinkedHashMap(state.creators)
+          var newCreators = state.creators
           val enriched = LinkedHashSet<Mite>()
           val allMites = state.getAllMites()
           for (creator in toEnrich) {
             for (created in enrich(state, creator)) {
-              newCreators[created] = LinkedHashSet(newCreators.getOrElse(created) { listOf<Mite>() } + creator)
+              newCreators = newCreators.addRelation(creator, created)
               if (created !in allMites) enriched.add(created)
             }
           }
-          state = state.addMites(enriched).copy(creators = newCreators).updateActive()
+          state = state.copy(creators = newCreators).addMites(enriched)
           toEnrich = enriched.toList()
         }
 
@@ -281,7 +224,8 @@ public data class ParsingState(
           val merged = state.mergeMites()
           if (merged.isEmpty()) break
           toEnrich += merged
-          state = state.addMites(merged).updateActive()
+          var newCreators = merged.fold(state.creators) { creators, mite -> creators.addMergedMite(mite) }
+          state = state.copy(creators = newCreators).addMites(merged)
         }
       }
 
@@ -291,5 +235,82 @@ public data class ParsingState(
   }
 
   fun toString() = "#${mites.lastIndex}"
+
+}
+
+data class CandidateSet(val set: Set<Mite>, val weight : Int = set.filter { !happy(it) }.size) {
+  fun enlarge(addedMite: Mite, state: ParsingState, maxWeight: Int): List<CandidateSet> {
+    val result = ArrayList<CandidateSet>()
+    if (addedMite !in set && state.findContradictors(addedMite, set).notEmpty()) {
+      result.add(this)
+    }
+
+    val allMites = state.getAllMites()
+    val toRemove = LinkedHashSet(state.findContradictors(addedMite, set))
+
+    val newSet = LinkedHashSet(set)
+    newSet.removeAll(toRemove)
+    newSet.add(addedMite)
+
+    val _contras2 = allMites.filter { it != addedMite && it !in toRemove && state.findContradictors(it, toRemove).notEmpty() && state.findContradictors(it, newSet).empty }
+    assert(_contras2.all { it !in set })
+    assert(addedMite !in _contras2)
+
+    val candidateWeight = newSet.filter { !happy(it) }.size
+    val maxRemaining = maxWeight - candidateWeight
+    if (maxRemaining < 0) return result
+
+    val freeCandidates = _contras2.filter { happy(it) } + _contras2.filter { !happy(it) }
+    result.addAll(enumerateBestConfigurations(newSet.toList(), freeCandidates, maxRemaining, state))
+    return result
+  }
+
+  private fun enumerateBestConfigurations(fixed: List<Mite>, freeMites: List<Mite>, maxUnhappy: Int, state: ParsingState): List<CandidateSet> {
+    if (freeMites.empty) {
+      return listOf(CandidateSet(LinkedHashSet(fixed)))
+    }
+
+    val result = ArrayList<CandidateSet>()
+
+    val head = freeMites[0]
+    val tail = freeMites.subList(1, freeMites.size)
+
+    val maxTailWeight = maxUnhappy - (if (happy(head)) 0 else 1)
+    if (maxTailWeight >= 0 && state.findContradictors(head, fixed).empty) {
+      result.addAll(enumerateBestConfigurations(fixed + head, tail, maxTailWeight, state))
+    }
+
+    if (state.findContradictors(head, fixed + tail).notEmpty()) {
+      result.addAll(enumerateBestConfigurations(fixed, tail, maxUnhappy, state).filter { state.findContradictors(head, it.set).notEmpty() } )
+    }
+
+    return result
+  }
+
+  fun toString() = "$weight ${set.filter { !happy(it) }}"
+
+}
+
+data class Creators(val parents: Map<Mite, List<Mite>> = LinkedHashMap(), val children: Map<Mite, List<Mite>> = LinkedHashMap()) {
+  fun addRelation(parent: Mite, child: Mite): Creators {
+    val newParents = LinkedHashMap(parents)
+    val newChildren = LinkedHashMap(children)
+    newParents[child] = newParents.getOrElse(child) { listOf<Mite>() } + parent
+    newChildren[parent] = newChildren.getOrElse(parent) { listOf<Mite>() } + child
+    return copy(parents = newParents, children = newChildren)
+  }
+
+  fun getParents(mite: Mite): List<Mite> = parents[mite] ?: listOf()
+  fun getChildren(mite: Mite): List<Mite> = children[mite] ?: listOf()
+
+  fun addMergedMite(mite: Mite): Creators {
+    val newParents = LinkedHashMap(parents)
+    val newChildren = LinkedHashMap(children)
+    for (child in LinkedHashSet(getChildren(mite.src1!!) + getChildren(mite.src2!!))) {
+      newParents[child] = newParents.getOrElse(child) { listOf() } + mite
+      newChildren[mite] = newChildren.getOrElse(mite) { listOf() } + child
+    }
+    return copy(parents = newParents, children = newChildren)
+  }
 
 }

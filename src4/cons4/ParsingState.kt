@@ -19,6 +19,8 @@ public data class ParsingState(
         private val active: Set<Mite> = HashSet(),
         private val bestConfigurations: List<CandidateSet> = listOf(CandidateSet(setOf()))
 ) {
+  fun equals(o: Any?) = this === o
+  fun hashCode() = System.identityHashCode(this)
 
   fun getChart(): Chart {
     return Chart(getActiveMites())
@@ -182,10 +184,19 @@ public data class ParsingState(
     var bestWeight = Integer.MAX_VALUE - window
     val newBest = LinkedHashSet<CandidateSet>()
     newBest.addAll(bestConfigurations.filter { it.hasContradictors(addedMite, this) })
+    val byDelta = LinkedHashMap<Delta, ArrayList<CandidateSet>>()
     for (set in bestConfigurations) {
-      for (better in set.enlarge(addedMite, this, bestWeight + window)) {
-        newBest.add(better)
-        bestWeight = Math.min(better.weight, bestWeight)
+      val delta = set.enlarge(addedMite, this)
+      byDelta.getOrPut(delta) { ArrayList() }.add(set)
+    }
+    for ((delta, sets) in byDelta) {
+      for (config in delta.enumerateBestConfigurations(bestWeight + window)) {
+        for (set in sets) {
+          val inertMites = set.set.filter { it !in delta.affectedMites }
+          val better = CandidateSet(LinkedHashSet(inertMites + config))
+          newBest.add(better)
+          bestWeight = Math.min(better.weight, bestWeight)
+        }
       }
     }
 
@@ -280,7 +291,7 @@ data class CandidateSet(val set: Set<Mite>, val weight : Int = set.count { !happ
 
   fun hasContradictors(addedMite: Mite, state: ParsingState) = addedMite !in set && state.findContradictors(addedMite, set).notEmpty()
 
-  fun enlarge(addedMite: Mite, state: ParsingState, maxWeight: Int): List<CandidateSet> {
+  fun enlarge(addedMite: Mite, state: ParsingState): Delta {
     val extruded = LinkedHashSet(state.findContradictors(addedMite, set))
 
     val newSet = LinkedHashSet(set)
@@ -288,12 +299,9 @@ data class CandidateSet(val set: Set<Mite>, val weight : Int = set.count { !happ
     newSet.add(addedMite)
 
     val allMites = state.getAllMites()
-    val freeCandidates = allMites.filter { it !in extruded && state.findContradictors(it, extruded).notEmpty() && state.findContradictors(it, newSet).empty }
+    val freeCandidates = allMites.filter { it !in extruded && state.findContradictors(it, extruded).notEmpty() }
     val affectedMites = LinkedHashSet(allMites.filter { state.findContradictors(it, freeCandidates).notEmpty() } + extruded + addedMite)
-    val delta = Delta(state, addedMite, freeCandidates, newSet.filter { it in affectedMites }, affectedMites, weight - extruded.size + 1)
-
-    val inertMites = set.filter { it !in delta.affectedMites }
-    return delta.enumerateBestConfigurations(maxWeight).map { CandidateSet(LinkedHashSet(inertMites + it))}
+    return Delta(state, addedMite, freeCandidates, newSet.filter { it in affectedMites }, affectedMites, weight - extruded.size + 1)
   }
 
   fun toString() = "$weight ${set.filter { !happy(it) }}"

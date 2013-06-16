@@ -16,7 +16,12 @@ data class Network(val parents: Map<Mite, List<Mite>> = LinkedHashMap(), val chi
   fun getParents(mite: Mite): List<Mite> = parents[mite] ?: listOf()
   fun getChildren(mite: Mite): List<Mite> = children[mite] ?: listOf()
 
-  fun addMergedMite(mite: Mite): Network {
+  fun addMite(mite: Mite): Network {
+    if (mite.src1 == null) return this
+    return addMergedMite(mite)
+  }
+
+  private fun addMergedMite(mite: Mite): Network {
     val newParents = LinkedHashMap(parents)
     val newChildren = LinkedHashMap(children)
     for (child in LinkedHashSet(getChildren(mite.src1!!) + getChildren(mite.src2!!))) {

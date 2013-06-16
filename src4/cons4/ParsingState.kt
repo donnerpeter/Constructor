@@ -62,7 +62,7 @@ public data class ParsingState(
   private fun addMite(added: Mite): ParsingState {
     val newMites = ArrayList(mites)
     newMites[newMites.lastIndex] = LinkedHashSet(newMites[newMites.lastIndex] + added)
-    return copy(mites = newMites)
+    return copy(mites = newMites, network = network.addMite(added))
   }
 
   private fun addMites(added: Iterable<Mite>): ParsingState {
@@ -215,8 +215,7 @@ public data class ParsingState(
           val merged = state.mergeMites()
           if (merged.isEmpty()) break
           toEnrich += merged
-          var newNetwork = merged.fold(state.network) { net, mite -> net.addMergedMite(mite) }
-          state = state.copy(network = newNetwork).addMites(merged)
+          state = state.addMites(merged)
         }
       }
 

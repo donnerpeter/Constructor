@@ -51,6 +51,7 @@ fun finiteVerb(v: Vars, time: String, typ: String? = null, agrGender: String? = 
   return result + sem(v[0], "time" to time, "arg1" to v[nom])
 }
 
+fun Mite.optional(): List<Mite> = l(this).optional()
 fun List<Mite>.optional(): List<Mite> = xor(l(emptyCxt()))
 
 private fun allCombinations(updates: List<List<Mite>>): Set<Set<Mite>> {

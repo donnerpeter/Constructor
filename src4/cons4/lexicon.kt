@@ -16,7 +16,7 @@ fun handleWord(w: String): List<Mite> {
     "вдруг" -> l(phrase(v0.lv, "verb")) + sem(v0, "manner" to "SUDDENLY")
     "вспомнить" -> l(phrase(v0, "infinitive")) + sem.t(v0, "RECALL") + control("slave" to v0) + accArg(v)
     "думают" -> finiteVerb(v, "PRESENT", "THINK", agrNumber="pl", agrPerson=3) + arg(v, poDat, "topic") + accArg(v)
-    "же" -> l(phrase("head" to v0.lv, "last" to true))
+    "же" -> l(contrastiveTopic("active" to true, "last" to true))
     "забыл" -> finiteVerb(v, "PAST", "FORGET", agrGender="m", agrNumber="sg") + accArg(v).xor(arg(v, comp, "arg2", "comp"))
     "забыли" -> finiteVerb(v, "PAST", "FORGET", agrNumber="pl") + accArg(v).xor(arg(v, comp, "arg2", "comp"))
     "и" -> l(seq("conj" to "and", "seqVar" to v0, "left" to v[1], "right" to v[2]))

@@ -54,6 +54,7 @@ object control: Construction()
 object complementizer: Construction()
 
 object elaboration: Construction()
+object contrastiveTopic: Construction()
 
 object comeScalarly: Construction()
 
@@ -70,6 +71,7 @@ fun happy(mite: Mite): Boolean {
     question, complementizer -> mite.hasHard("head", "content")
     clauseType -> mite.hasHard("clauseParent", "head")
     sentence -> mite.hasHard("head", "verb")
+    contrastiveTopic -> mite.has("head", "active")
     else -> true
   }
 }
@@ -128,12 +130,16 @@ fun enrich(state: ParsingState, mite: Mite): List<Mite> {
     }
     return result
   }
-  if (mite.cxt == phrase && mite.hasHard("head") && mite["kind"] == "verb") {
+  if (mite.cxt == phrase && mite.hasHard("head")) {
     val head = mite.primaries.find { it.hasHard("head") }!!.v("head")
-    return multiXor(listOf(l(elaboration("elaboration" to head)),
-            l(question("content" to head)),
-            l(complementizer("content" to head)),
-            l(sentence("verb" to head, "first" to true))))
+    val result = ArrayList(contrastiveTopic("head" to head, "first" to true).optional())
+    if (mite["kind"] == "verb") {
+      result.addAll(multiXor(listOf(l(elaboration("elaboration" to head)),
+              l(question("content" to head)),
+              l(complementizer("content" to head)),
+              l(sentence("verb" to head, "first" to true)))))
+    }
+    return result
   }
   if (mite.cxt == conditionComp && happy(mite)) {
     return sem(mite.v("head"), "whenCondition" to mite.v("comp"))

@@ -15,7 +15,7 @@ import java.util.Collections
 public data class ParsingState(
         val log: String = "",
         val mites: List<Set<Mite>> = ArrayList(),
-        val creators: Creators = Creators(),
+        val network: Network = Network(),
         private val active: Set<Mite> = HashSet(),
         private val bestConfigurations: List<CandidateSet> = listOf(CandidateSet(setOf()))
 ) {
@@ -39,27 +39,7 @@ public data class ParsingState(
   fun getAllMites(): LinkedHashSet<Mite> = LinkedHashSet(mites.flatMap { it })
   fun getActiveMites(): LinkedHashSet<Mite> = LinkedHashSet(getAllMites().filter { it in active })
 
-  fun findContradictors(mite: Mite, among: Collection<Mite>) = among.filter { it == mite || contradict(mite, it) }
-
-  private val contrCache = HashMap<Pair<Mite, Mite>, Boolean>()
-  fun contradict(mite1: Mite, mite2: Mite): Boolean {
-    return contrCache.getOrPut(mite1 to mite2) { _contradict(mite1, mite2) }
-  }
-  private fun _contradict(mite1: Mite, mite2: Mite): Boolean {
-    if (mite1.contradicts(mite2)) return true
-
-    for (group in getDirectPreconditionGroups(mite1)) {
-      if (group.all { contradict(it, mite2) }) return true
-    }
-
-    for (group in getDirectPreconditionGroups(mite2)) {
-      if (group.all { contradict(mite1, it) }) return true
-    }
-
-    return false
-  }
-
-  private fun getDirectPreconditionGroups(mite: Mite): List<List<Mite>> = mite.primaries.map { creators.getParents(it) }.filter { it.notEmpty() }
+  fun findContradictors(mite: Mite, among: Collection<Mite>) = network.findContradictors(mite, among)
 
   fun presentable(): String {
     if (mites.empty) return ""
@@ -227,16 +207,16 @@ public data class ParsingState(
       var toEnrich = cxts.toList()
       while (toEnrich.notEmpty()) {
         while (toEnrich.notEmpty()) {
-          var newCreators = state.creators
+          var newNetwork = state.network
           val enriched = LinkedHashSet<Mite>()
           val allMites = state.getAllMites()
           for (creator in toEnrich) {
             for (created in enrich(state, creator)) {
-              newCreators = newCreators.addRelation(creator, created)
+              newNetwork = newNetwork.addRelation(creator, created)
               if (created !in allMites) enriched.add(created)
             }
           }
-          state = state.copy(creators = newCreators).addMites(enriched)
+          state = state.copy(network = newNetwork).addMites(enriched)
           toEnrich = enriched.toList()
         }
 
@@ -244,8 +224,8 @@ public data class ParsingState(
           val merged = state.mergeMites()
           if (merged.isEmpty()) break
           toEnrich += merged
-          var newCreators = merged.fold(state.creators) { creators, mite -> creators.addMergedMite(mite) }
-          state = state.copy(creators = newCreators).addMites(merged)
+          var newNetwork = merged.fold(state.network) { net, mite -> net.addMergedMite(mite) }
+          state = state.copy(network = newNetwork).addMites(merged)
         }
       }
 
@@ -305,29 +285,5 @@ data class CandidateSet(val set: Set<Mite>, val weight : Int = set.count { !happ
   }
 
   fun toString() = "$weight ${set.filter { !happy(it) }}"
-
-}
-
-data class Creators(val parents: Map<Mite, List<Mite>> = LinkedHashMap(), val children: Map<Mite, List<Mite>> = LinkedHashMap()) {
-  fun addRelation(parent: Mite, child: Mite): Creators {
-    val newParents = LinkedHashMap(parents)
-    val newChildren = LinkedHashMap(children)
-    newParents[child] = newParents.getOrElse(child) { listOf<Mite>() } + parent
-    newChildren[parent] = newChildren.getOrElse(parent) { listOf<Mite>() } + child
-    return copy(parents = newParents, children = newChildren)
-  }
-
-  fun getParents(mite: Mite): List<Mite> = parents[mite] ?: listOf()
-  fun getChildren(mite: Mite): List<Mite> = children[mite] ?: listOf()
-
-  fun addMergedMite(mite: Mite): Creators {
-    val newParents = LinkedHashMap(parents)
-    val newChildren = LinkedHashMap(children)
-    for (child in LinkedHashSet(getChildren(mite.src1!!) + getChildren(mite.src2!!))) {
-      newParents[child] = newParents.getOrElse(child) { listOf() } + mite
-      newChildren[mite] = newChildren.getOrElse(mite) { listOf() } + child
-    }
-    return copy(parents = newParents, children = newChildren)
-  }
 
 }

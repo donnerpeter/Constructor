@@ -158,7 +158,10 @@ public data class ParsingState(
     val allMites = getAllMites()
     val allContradictors = LinkedHashSet(findContradictors(addedMite, allMites))
 
-    newBest.addAll(bestConfigurations.filter { conf -> allContradictors.any { it in conf.set } })
+    for (same in bestConfigurations.filter { conf -> allContradictors.any { it in conf.set } }) {
+      newBest.add(same)
+      bestWeight = Math.min(same.weight, bestWeight)
+    }
 
     val allFreeCandidates = allMites.filter { it !in allContradictors && findContradictors(it, allContradictors).notEmpty() }
     val allAffectedMites = allMites.filter { findContradictors(it, allFreeCandidates).notEmpty() } + allContradictors + addedMite
@@ -271,7 +274,9 @@ data class CandidateSet(val set: Set<Mite>, val weight : Int = set.count { !happ
     val extruded = LinkedHashSet(allExtruded.filter { it in set })
     val freeCandidates = allFreeCandidates.filter { it !in extruded && state.findContradictors(it, extruded).notEmpty() }
     val affectedMites = LinkedHashSet(allAffectedMites.filter { state.findContradictors(it, freeCandidates).notEmpty() } + extruded + addedMite)
-    return Delta(state, addedMite, freeCandidates, set.filter { it !in extruded && it in affectedMites } + addedMite, affectedMites, weight - extruded.size + 1)
+    val weightOutside = set.count { it !in affectedMites && !happy(it) }
+    val fixedMites = set.filter { it !in extruded && it in affectedMites } + addedMite
+    return Delta(state, addedMite, freeCandidates, fixedMites, affectedMites, weightOutside)
   }
 
   fun toString() = "$weight ${set.filter { !happy(it) }}"

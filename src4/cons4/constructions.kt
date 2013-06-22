@@ -44,6 +44,7 @@ object possessive: Construction()
 
 object seq: Construction()
 object mergedMite: Construction()
+object seqContinuation: Construction()
 
 object comp: Construction()
 object conditionComp: Construction()
@@ -73,6 +74,7 @@ fun happy(mite: Mite): Boolean {
     clauseType -> mite.hasHard("clauseParent", "head")
     sentence -> mite.hasHard("head", "verb")
     contrastiveTopic -> mite.has("head", "active")
+    seqContinuation -> mite.has("seqVar", "active")
     else -> true
   }
 }
@@ -137,7 +139,13 @@ fun enrich(state: ParsingState, mite: Mite): List<Mite> {
       result.addAll(l(phrase("head" to left.lv, "kind" to "verb", "last" to true), phrase("head" to right.lv, "kind" to "verb", "first" to true)))
     }
 
-    result.addAll(l(sem(seqVar, "conj", seqMite["conj"]!!), sem(seqVar, "member", left), sem(seqVar, "member", right)))
+    result.addAll(l(sem(seqVar, "member", left))/*.xor(l(seqContinuation("active" to true, "seqVar" to seqVar.lv, "last" to true)))*/ + l(sem(seqVar, "member", right)))
+    val conj = seqMite["conj"] as String
+    if (conj != ",") {
+      result.add(sem(seqVar, "conj", conj))
+    }
+    result.add(sem(seqVar, "member", right))
+//    result.addAll(seqContinuation("seqVar" to seqVar, "first" to true).optional())
     return result
   }
   if (mite.cxt == phrase && mite.hasHard("head")) {

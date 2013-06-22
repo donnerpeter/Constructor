@@ -34,6 +34,16 @@ data class Network(val parents: Map<Mite, List<Mite>> = LinkedHashMap(),
     return result.addMergedMite(mite)
   }
 
+  fun getAtomIndex(mite: Mite): Int {
+    assert(mite.atom)
+    for (i in 0..mites.lastIndex) {
+      if (mite in mites[i]) {
+        return i
+      }
+    }
+    return -1
+  }
+
   private fun addMergedMite(mite: Mite): Network {
     val newParents = LinkedHashMap(parents)
     val newChildren = LinkedHashMap(children)

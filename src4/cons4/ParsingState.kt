@@ -115,15 +115,7 @@ public data class ParsingState(
     return result
   }
 
-  fun getAtomIndex(mite: Mite): Int {
-    assert(mite.atom)
-    for (i in 0..network.mites.lastIndex) {
-      if (mite in network.mites[i]) {
-        return i
-      }
-    }
-    return -1
-  }
+  fun getAtomIndex(mite: Mite) = network.getAtomIndex(mite)
 
   private fun mergeMites(): Set<Mite> {
     val result = LinkedHashSet<Mite>()

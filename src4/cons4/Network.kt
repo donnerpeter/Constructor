@@ -4,13 +4,16 @@ import java.util.LinkedHashMap
 import java.util.LinkedHashSet
 import java.util.HashMap
 import java.util.ArrayList
+import java.util.HashSet
 
 data class Network(val parents: Map<Mite, List<Mite>> = LinkedHashMap(),
                    val children: Map<Mite, List<Mite>> = LinkedHashMap(),
                    val mites: List<Set<Mite>> = ArrayList(),
                    private val contrCache: HashMap<Pair<Mite, Mite>, Boolean> = HashMap()) {
 
-  fun getAllMites(): LinkedHashSet<Mite> = LinkedHashSet(mites.flatMap { it })
+  val allMites: Set<Mite> get() = LinkedHashSet(mites.flatMap { it })
+  val lastMites: Set<Mite> get() = if (mites.empty) setOf() else mites.last!!
+  val lastIndex: Int get() = mites.lastIndex
 
   fun addRelation(parent: Mite, child: Mite): Network {
     val newParents = LinkedHashMap(parents)
@@ -34,9 +37,24 @@ data class Network(val parents: Map<Mite, List<Mite>> = LinkedHashMap(),
     return result.addMergedMite(mite)
   }
 
+  fun getAllIndices(mite: Mite): List<Int> {
+    val result = HashSet<Int>()
+    if (!mite.atom) {
+      result.addAll(getAllIndices(mite.src1!!))
+      result.addAll(getAllIndices(mite.src2!!))
+    } else {
+      val atomIndex = getAtomIndex(mite)
+      if (atomIndex >= 0) result.add(atomIndex)
+    }
+    for (parent in getParents(mite)) {
+      result.addAll(getAllIndices(parent))
+    }
+    return result.toSortedList()
+  }
+
   fun getAtomIndex(mite: Mite): Int {
     assert(mite.atom)
-    for (i in 0..mites.lastIndex) {
+    for (i in 0..lastIndex) {
       if (mite in mites[i]) {
         return i
       }

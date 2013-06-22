@@ -21,7 +21,7 @@ public data class ParsingState(
   fun equals(o: Any?) = this === o
   fun hashCode() = System.identityHashCode(this)
 
-  fun getChart() = Chart(LinkedHashSet(network.getAllMites().filter { it in active }))
+  fun getChart() = Chart(LinkedHashSet(network.allMites.filter { it in active }))
   fun appendLog(newLog : String) = copy(log = log + newLog)
 
   fun printLog() = println("Log:\n\n$log\n")
@@ -30,18 +30,18 @@ public data class ParsingState(
   fun findContradictors(mite: Mite, among: Collection<Mite>) = network.findContradictors(mite, among)
 
   fun presentable(): String {
-    if (network.mites.empty) return ""
+    if (network.lastIndex < 0) return ""
 
     var result = "${this}"
 
-    val link = findPrevLink(network.mites.lastIndex)
+    val link = findPrevLink(network.lastIndex)
     if (link != null) {
       result += " ${if (link.up) "/" else "-"}> #${link.prevIndex}                via ${link.mite}"
     }
     result += "\n"
 
     val map = LinkedHashMap<String, ArrayList<Mite>>()
-    for (mite in network.mites.last!!) {
+    for (mite in network.lastMites) {
       map.getOrPut(mite.cxt.name) { ArrayList() }.add(mite)
     }
 
@@ -49,7 +49,7 @@ public data class ParsingState(
       result += "  $key: " + values.map { (if (it in active) "*" else "") + (if (happy(it)) "" else "!") + it.args }.makeString(" ") + "\n"
     }
 
-    val unhappy = network.getAllMites().filter { it in active && it !in network.mites.last!! && !happy(it) }
+    val unhappy = network.allMites.filter { it in active && it !in network.lastMites && !happy(it) }
     if (unhappy.notEmpty()) {
       result += "\n  unhappy: " + unhappy.makeString(" ") + "\n"
     }
@@ -119,12 +119,12 @@ public data class ParsingState(
 
   private fun mergeMites(): Set<Mite> {
     val result = LinkedHashSet<Mite>()
-    val visible = getVisibleMites(network.mites.lastIndex, false)
-    for (right in network.mites.last!!) {
+    val visible = getVisibleMites(network.lastIndex, false)
+    for (right in network.lastMites) {
       for (left in visible) {
         if (canUnify(left, right)) {
           val merged = left.unify(right)
-          if (merged != null && merged !in network.mites.last!!) {
+          if (merged != null && merged !in network.lastMites) {
             result.add(merged)
           }
         }
@@ -138,7 +138,7 @@ public data class ParsingState(
     var bestWeight = Integer.MAX_VALUE - window
     val newBest = LinkedHashSet<CandidateSet>()
 
-    val allMites = network.getAllMites()
+    val allMites = network.allMites
     val allContradictors = LinkedHashSet(findContradictors(addedMite, allMites))
 
     for (same in bestConfigurations.filter { conf -> allContradictors.any { it in conf.set } }) {
@@ -186,7 +186,7 @@ public data class ParsingState(
         while (toEnrich.notEmpty()) {
           var newNetwork = state.network
           val enriched = LinkedHashSet<Mite>()
-          val allMites = state.network.getAllMites()
+          val allMites = state.network.allMites
           for (creator in toEnrich) {
             for (created in enrich(state, creator)) {
               newNetwork = newNetwork.addRelation(creator, created)
@@ -210,7 +210,7 @@ public data class ParsingState(
 
   }
 
-  fun toString() = "#${network.mites.lastIndex}"
+  fun toString() = "#${network.lastIndex}"
 
 }
 

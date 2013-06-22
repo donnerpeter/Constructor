@@ -3,10 +3,15 @@ package cons4
 import java.util.LinkedHashMap
 import java.util.LinkedHashSet
 import java.util.HashMap
+import java.util.ArrayList
 
 data class Network(val parents: Map<Mite, List<Mite>> = LinkedHashMap(),
                    val children: Map<Mite, List<Mite>> = LinkedHashMap(),
+                   val mites: List<Set<Mite>> = ArrayList(),
                    private val contrCache: HashMap<Pair<Mite, Mite>, Boolean> = HashMap()) {
+
+  fun getAllMites(): LinkedHashSet<Mite> = LinkedHashSet(mites.flatMap { it })
+
   fun addRelation(parent: Mite, child: Mite): Network {
     val newParents = LinkedHashMap(parents)
     val newChildren = LinkedHashMap(children)
@@ -18,9 +23,15 @@ data class Network(val parents: Map<Mite, List<Mite>> = LinkedHashMap(),
   fun getParents(mite: Mite): List<Mite> = parents[mite].orEmpty()
   fun getChildren(mite: Mite): List<Mite> = children[mite].orEmpty()
 
+  fun nextWord() = copy(mites = mites + arrayListOf(LinkedHashSet()))
+
   fun addMite(mite: Mite): Network {
-    if (mite.src1 == null) return this
-    return addMergedMite(mite)
+    val newMites = ArrayList(mites)
+    newMites[newMites.lastIndex] = LinkedHashSet(newMites[newMites.lastIndex] + mite)
+    val result = copy(mites = newMites)
+
+    if (mite.src1 == null) return result
+    return result.addMergedMite(mite)
   }
 
   private fun addMergedMite(mite: Mite): Network {

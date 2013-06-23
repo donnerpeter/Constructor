@@ -20,12 +20,12 @@ object sem: Construction() {
 
   fun invoke(frame: Variable, vararg args: Pair<String, Any?>): List<Mite> = args.map { invoke(frame, it.first, it.second!!) }
 }
-object phrase: Construction() {
+object phrase: Construction("*head") {
   fun invoke(head: Variable, kind: String) = invoke("head" to head, "kind" to kind)
   fun invoke(head: Variable) = invoke("head" to head)
 }
 
-open class CaseConstruction: Construction()
+open class CaseConstruction: Construction("*noun", "*head")
 
 object nom: CaseConstruction()
 object gen: CaseConstruction()
@@ -34,50 +34,31 @@ object acc: CaseConstruction()
 object instr: CaseConstruction()
 object prep: CaseConstruction()
 
-open class PPConstruction: Construction()
+open class PPConstruction: Construction("*noun", "*head")
 
 object sInstr: PPConstruction()
 object kDat: PPConstruction()
 object poDat: PPConstruction()
 
-object possessive: Construction()
+object possessive: Construction("*head", "*possessor")
 
 object seq: Construction()
 object mergedMite: Construction()
-object seqContinuation: Construction()
+object seqContinuation: Construction("seqVar", "active")
 
-object comp: Construction()
-object conditionComp: Construction()
-object question: Construction()
-object questionVariants: Construction()
-object clauseType: Construction()
-object sentence: Construction()
-object control: Construction()
-object complementizer: Construction()
+object comp: Construction("*head", "*comp")
+object conditionComp: Construction("*head", "*comp")
+object question: Construction("*head", "*content")
+object questionVariants: Construction("wh", "variants")
+object clauseType: Construction("*clauseParent", "*head")
+object sentence: Construction("*head", "*verb")
+object control: Construction("*head", "*slave")
+object complementizer: Construction("*head", "*content")
 
-object elaboration: Construction()
-object contrastiveTopic: Construction()
+object elaboration: Construction("*head", "*elaboration")
+object contrastiveTopic: Construction("head", "active")
 
-object comeScalarly: Construction()
-
-fun happy(mite: Mite): Boolean {
-  return when(mite.cxt) {
-    is CaseConstruction, is PPConstruction -> mite.hasHard("noun", "head")
-    phrase -> mite.hasHard("head")
-    comeScalarly -> mite.has("order") && mite.hasHard("head")
-    comp, conditionComp -> mite.hasHard("head", "comp")
-    possessive -> mite.hasHard("head", "possessor")
-    control -> mite.hasHard("head", "slave")
-    elaboration -> mite.hasHard("head", "elaboration")
-    questionVariants -> mite.has("wh", "variants")
-    question, complementizer -> mite.hasHard("head", "content")
-    clauseType -> mite.hasHard("clauseParent", "head")
-    sentence -> mite.hasHard("head", "verb")
-    contrastiveTopic -> mite.has("head", "active")
-    seqContinuation -> mite.has("seqVar", "active")
-    else -> true
-  }
-}
+object comeScalarly: Construction("order", "*head")
 
 fun hasHead(mite: Mite): Boolean {
   return mite.hasHard("head")
@@ -92,13 +73,13 @@ fun canUnify(left: Mite, right: Mite): Boolean {
 }
 
 fun enrich(state: ParsingState, mite: Mite): List<Mite> {
-  if (mite.cxt == comeScalarly && happy(mite)) {
+  if (mite.cxt == comeScalarly && mite.happy) {
     return sem(mite.v("head"), "type" to "COME_SCALARLY", "order" to mite["order"])
   }
-  if (mite.cxt == question && happy(mite)) {
+  if (mite.cxt == question && mite.happy) {
     return sem(mite.v("head"), "type" to "question", "content" to mite["content"]) + l(questionVariants("wh" to mite.v("questioned"))).optional()
   }
-  if (mite.cxt == complementizer && happy(mite)) return sem(mite.v("head"), "type" to "fact", "content" to mite["content"])
+  if (mite.cxt == complementizer && mite.happy) return sem(mite.v("head"), "type" to "fact", "content" to mite["content"])
 
   if (mite.cxt == questionVariants && mite.has("wh", "variants")) {
     return sem(mite.v("wh"), "variants" to mite["variants"]) + listOf(nom("head" to mite.v("dummyHead"), "noun" to mite.v("variants").lv))
@@ -159,7 +140,7 @@ fun enrich(state: ParsingState, mite: Mite): List<Mite> {
     }
     return result
   }
-  if (mite.cxt == conditionComp && happy(mite)) {
+  if (mite.cxt == conditionComp && mite.happy) {
     return sem(mite.v("head"), "whenCondition" to mite.v("comp"))
   }
 

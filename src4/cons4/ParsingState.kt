@@ -3,7 +3,6 @@ package cons4
 import java.util.ArrayList
 import java.util.LinkedHashSet
 import java.util.LinkedHashMap
-import cons4.constructions.happy
 import java.util.HashSet
 import cons4.constructions.hasHead
 import cons4.constructions.enrich
@@ -47,10 +46,10 @@ public data class ParsingState(
     }
 
     for ((key, values) in map) {
-      result += "  $key: " + values.map { (if (it in active) "*" else "") + (if (happy(it)) "" else "!") + it.args }.makeString(" ") + "\n"
+      result += "  $key: " + values.map { (if (it in active) "*" else "") + (if (it.happy) "" else "!") + it.args }.makeString(" ") + "\n"
     }
 
-    val unhappy = network.allMites.filter { it in active && it !in network.lastMites && !happy(it) }
+    val unhappy = network.allMites.filter { it in active && it !in network.lastMites && !it.happy }
     if (unhappy.notEmpty()) {
       result += "\n  unhappy: " + unhappy.makeString(" ") + "\n"
     }
@@ -261,9 +260,9 @@ data class Delta(
 ) {
 
   fun enumerateBestConfigurations(maxWeight: Int): List<List<Mite>> {
-    val maxRemaining = maxWeight - weightOutside - fixedMites.count { !happy(it) }
+    val maxRemaining = maxWeight - weightOutside - fixedMites.count { !it.happy }
     if (maxRemaining < 0) return listOf()
-    return _enumerateBestConfigurations(fixedMites, freeCandidates.filter { happy(it) } + freeCandidates.filter { !happy(it) }, maxRemaining)
+    return _enumerateBestConfigurations(fixedMites, freeCandidates.filter { it.happy } + freeCandidates.filter { !it.happy }, maxRemaining)
   }
 
   private fun _enumerateBestConfigurations(fixed: List<Mite>, freeMites: List<Mite>, maxUnhappy: Int): List<List<Mite>> {
@@ -274,7 +273,7 @@ data class Delta(
     val head = freeMites[0]
     val tail = freeMites.subList(1, freeMites.size)
 
-    val maxTailWeight = maxUnhappy - (if (happy(head)) 0 else 1)
+    val maxTailWeight = maxUnhappy - (if (head.happy) 0 else 1)
     if (maxTailWeight >= 0 && network.findContradictors(head, fixed).empty) {
       result.addAll(_enumerateBestConfigurations(fixed + head, tail, maxTailWeight))
     }
@@ -288,18 +287,18 @@ data class Delta(
 
 }
 
-data class CandidateSet(val set: Set<Mite>, val weight : Int = set.count { !happy(it) }) {
+data class CandidateSet(val set: Set<Mite>, val weight : Int = set.count { !it.happy }) {
 
   fun enlarge(addedMite: Mite, network: Network, allAffectedMites: List<Mite>, allExtruded: Set<Mite>, allFreeCandidates: List<Mite>): Delta {
     val extruded = LinkedHashSet(allExtruded.filter { it in set })
     val freeCandidates = allFreeCandidates.filter { it !in extruded && network.findContradictors(it, extruded).notEmpty() }
     val affectedMites = LinkedHashSet(allAffectedMites.filter { network.findContradictors(it, freeCandidates).notEmpty() } + extruded + addedMite)
-    val weightOutside = set.count { it !in affectedMites && !happy(it) }
+    val weightOutside = set.count { it !in affectedMites && !it.happy }
     val fixedMites = set.filter { it !in extruded && it in affectedMites } + addedMite
     return Delta(network, addedMite, freeCandidates, fixedMites, affectedMites, weightOutside)
   }
 
-  fun toString() = "$weight ${set.filter { !happy(it) }}"
+  fun toString() = "$weight ${set.filter { !it.happy }}"
 
   fun contradicts(another: CandidateSet, network: Network) = set.any { network.findContradictors(it, another.set).notEmpty() }
 

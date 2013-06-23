@@ -2,10 +2,11 @@ package cons4
 
 import java.util.LinkedHashMap
 import java.util.LinkedHashSet
-import cons4.constructions.happy
 
-open data class Construction {
+open data class Construction(vararg requiredArgs: String) {
   val name = this.javaClass.getSimpleName()
+  val simpleRequiredArgs = requiredArgs.filter { !it.startsWith("*") }
+  val hardRequiredArgs = requiredArgs.filter { it.startsWith("*") }.map { it.substring(1) }
 
   fun invoke(args: List<Pair<String, Any>>) = Mite(this, linkedMapOf(*args.toArray(arrayOfNulls<Pair<String, Any>>(0) as Array<Pair<String, Any>>)))
   fun invoke(vararg args: Pair<String, Any>) = Mite(this, linkedMapOf(*args))
@@ -16,6 +17,7 @@ open data class Construction {
 data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, private val _primaries: List<Mite>? = null, val src1: Mite? = null, val src2: Mite? = null) {
   private val hc = (cxt.hashCode() * 31 + args.hashCode()) * 31 + (_primaries?.hashCode() ?: 0)
   val primaries: LinkedHashSet<Mite> = LinkedHashSet(if (_primaries == null) listOf(this) else _primaries)
+  val happy = cxt.simpleRequiredArgs.all { has(it) } && cxt.hardRequiredArgs.all { hasHard(it) }
 
   fun has(vararg attrs: String) = attrs.all { args[it] != null }
   fun hasHard(vararg attrs: String) = attrs.all { args[it] is Variable && (args[it] as Variable).hard }
@@ -77,6 +79,6 @@ data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, pri
   val firstAtom: Mite get() = primaries.iterator().next()
   val atom: Boolean get() = primaries.size == 1
 
-  fun toString() = (if (happy(this)) "" else "!") + cxt.name + args.toString()
+  fun toString() = (if (happy) "" else "!") + cxt.name + args.toString()
   fun hashCode() = hc
 }

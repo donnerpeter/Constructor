@@ -15,7 +15,8 @@ import java.util.Collections
 public data class ParsingState(
         val log: String = "",
         val network: Network = Network(),
-        private val active: Set<Mite> = HashSet(),
+        val active: Set<Mite> = HashSet(),
+        private val chosenColumns: List<CandidateSet> = listOf(),
         private val bestConfigurations: List<CandidateSet> = listOf(CandidateSet(setOf()))
 ) {
   fun equals(o: Any?) = this === o
@@ -133,7 +134,43 @@ public data class ParsingState(
     return result
   }
 
+  private fun enumerateHappierVariants(unhappyColumns: List<Int>): List<Map<Int, CandidateSet>> {
+    val result = ArrayList<Map<Int, CandidateSet>>()
+    fun doEnumerateHappierVariants(index: Int, map: Map<Int, CandidateSet>) {
+      if (index == unhappyColumns.size) {
+        result.add(map)
+        return
+      }
+
+      val cIndex = unhappyColumns[index]
+      val currentWeight = chosenColumns[cIndex].weight
+      for (betterSet in network.columns[cIndex].candidateSets.filter { it.weight <= currentWeight }) {
+
+      }
+    }
+    //    doEnumerateHappierVariants(0)
+    return result
+  }
+
+  private fun getFreeCandidateSets(relatedColumns: List<Int>): Map<Int, List<CandidateSet>> {
+    val activeOutside = active.filter { network.getAllIndices(it).any { it !in relatedColumns } }
+    val result = HashMap<Int, List<CandidateSet>>()
+    for (i in relatedColumns) {
+      result[i] = network.columns[i].candidateSets.filter { it.set.all { network.findContradictors(it, activeOutside).empty } }
+    }
+    return result
+  }
+
   private fun updateActive(addedMite: Mite): ParsingState {
+    val touchedColumns = network.getAllIndices(addedMite)
+    val relatedColumns = HashSet(touchedColumns.flatMap { network.getRelatedIndices(it) }).toSortedList()
+    val unhappyColumns = relatedColumns.filter { chosenColumns[it].weight > 0 }
+    val happierVariants = enumerateHappierVariants(unhappyColumns)
+
+    val fixedColumns = HashSet<Int>()
+
+    val newChosenColumns = chosenColumns
+
     val window = 2
     var bestWeight = Integer.MAX_VALUE - window
     val newBest = LinkedHashSet<CandidateSet>()
@@ -180,7 +217,7 @@ public data class ParsingState(
 
   class object {
     fun _apply(_state: ParsingState, vararg cxts : Mite) : ParsingState {
-      var state = _state.copy(network = _state.network.nextWord()).addMites(cxts.toList())
+      var state = _state.copy(network = _state.network.nextWord(), chosenColumns = _state.chosenColumns + CandidateSet(setOf())).addMites(cxts.toList())
       var toEnrich = cxts.toList()
       while (toEnrich.notEmpty()) {
         while (toEnrich.notEmpty()) {
@@ -263,5 +300,7 @@ data class CandidateSet(val set: Set<Mite>, val weight : Int = set.count { !happ
   }
 
   fun toString() = "$weight ${set.filter { !happy(it) }}"
+
+  fun contradicts(another: CandidateSet, network: Network) = set.any { network.findContradictors(it, another.set).notEmpty() }
 
 }

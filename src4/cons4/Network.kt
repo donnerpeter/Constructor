@@ -62,6 +62,8 @@ data class Network(val parents: Map<Mite, List<Mite>> = LinkedHashMap(),
     return result.toSortedList()
   }
 
+  fun getRelatedIndices(column: Int) = HashSet(columns[column].mites.flatMap { getAllIndices(it) }).toSortedList()
+
   fun getAtomIndex(mite: Mite): Int {
     assert(mite.atom)
     for (i in 0..lastIndex) {
@@ -104,7 +106,7 @@ data class Network(val parents: Map<Mite, List<Mite>> = LinkedHashMap(),
 
 }
 
-data class Column(val mites: Set<Mite> = setOf(), val candidateSets: Set<CandidateSet> = setOf(CandidateSet(setOf()))) {
+data class Column(val mites: Set<Mite> = setOf(), val candidateSets: List<CandidateSet> = listOf(CandidateSet(setOf()))) {
 
   fun addMite(addedMite: Mite, network: Network): Column {
     val allMites = LinkedHashSet(mites + addedMite)
@@ -125,7 +127,7 @@ data class Column(val mites: Set<Mite> = setOf(), val candidateSets: Set<Candida
       }
     }
 
-    return copy(mites = allMites, candidateSets = newSets)
+    return copy(mites = allMites, candidateSets = newSets.sortBy { it.weight })
   }
 
 }

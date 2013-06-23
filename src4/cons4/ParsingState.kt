@@ -15,7 +15,7 @@ public data class ParsingState(
         val log: String = "",
         val network: Network = Network(),
         val active: Set<Mite> = HashSet(),
-        private val chosenColumns: List<CandidateSet> = listOf(),
+        val chosenColumns: List<CandidateSet> = listOf(),
         private val bestConfigurations: List<CandidateSet> = listOf(CandidateSet(setOf()))
 ) {
   fun equals(o: Any?) = this === o
@@ -133,21 +133,24 @@ public data class ParsingState(
     return result
   }
 
-  private fun enumerateHappierVariants(unhappyColumns: List<Int>): List<Map<Int, CandidateSet>> {
+  private fun enumerateVariants(targetColumns: List<Int>, freeCandidateSets: Map<Int, List<CandidateSet>>, fixed: Map<Int, CandidateSet>, maxWeights: Map<Int, Int>): List<Map<Int, CandidateSet>> {
     val result = ArrayList<Map<Int, CandidateSet>>()
     fun doEnumerateHappierVariants(index: Int, map: Map<Int, CandidateSet>) {
-      if (index == unhappyColumns.size) {
+      if (index == targetColumns.size) {
         result.add(map)
         return
       }
 
-      val cIndex = unhappyColumns[index]
-      val currentWeight = chosenColumns[cIndex].weight
-      for (betterSet in network.columns[cIndex].candidateSets.filter { it.weight <= currentWeight }) {
-
+      val cIndex = targetColumns[index]
+      for (betterSet in freeCandidateSets[cIndex]!!.filter { it.weight <= maxWeights[cIndex]!! }) {
+        if (!map.values().any { betterSet.contradicts(it, network) }) {
+          val mapPlus = LinkedHashMap(map)
+          mapPlus[cIndex] = betterSet
+          doEnumerateHappierVariants(index + 1, mapPlus)
+        }
       }
     }
-    //    doEnumerateHappierVariants(0)
+    doEnumerateHappierVariants(0, fixed)
     return result
   }
 
@@ -155,7 +158,7 @@ public data class ParsingState(
     val activeOutside = active.filter { network.getAllIndices(it).any { it !in relatedColumns } }
     val result = HashMap<Int, List<CandidateSet>>()
     for (i in relatedColumns) {
-      result[i] = network.columns[i].candidateSets.filter { it.set.all { network.findContradictors(it, activeOutside).empty } }
+      result[i] = network.columns[i].candidateSets.filter { it.set.all { mite -> network.findContradictors(mite, activeOutside.filter {it != mite }).empty } }
     }
     return result
   }
@@ -163,55 +166,32 @@ public data class ParsingState(
   private fun updateActive(addedMite: Mite): ParsingState {
     val touchedColumns = network.getAllIndices(addedMite)
     val relatedColumns = HashSet(touchedColumns.flatMap { network.getRelatedIndices(it) }).toSortedList()
-    val unhappyColumns = relatedColumns.filter { chosenColumns[it].weight > 0 }
-    val happierVariants = enumerateHappierVariants(unhappyColumns)
 
-    val fixedColumns = HashSet<Int>()
-
-    val newChosenColumns = chosenColumns
-
-    val window = 2
-    var bestWeight = Integer.MAX_VALUE - window
-    val newBest = LinkedHashSet<CandidateSet>()
-
-    val allMites = network.allMites
-    val allContradictors = LinkedHashSet(findContradictors(addedMite, allMites))
-
-    for (same in bestConfigurations.filter { conf -> allContradictors.any { it in conf.set } }) {
-      newBest.add(same)
-      bestWeight = Math.min(same.weight, bestWeight)
+    val maxWeights = HashMap<Int, Int>()
+    for (i in relatedColumns) {
+      maxWeights[i] = chosenColumns[i].weight + (if (!addedMite.happy && i in touchedColumns) 1 else 0)
     }
 
-    val allFreeCandidates = allMites.filter { it !in allContradictors && findContradictors(it, allContradictors).notEmpty() }
-    val allAffectedMites = allMites.filter { findContradictors(it, allFreeCandidates).notEmpty() } + allContradictors + addedMite
+    val unhappyColumns = relatedColumns.filter { maxWeights[it]!! > 0 }
+    val happyColumns = relatedColumns.filter { maxWeights[it]!! == 0 }
 
-    val byDelta = LinkedHashMap<Delta, ArrayList<CandidateSet>>()
-    for (set in bestConfigurations) {
-      val delta = set.enlarge(addedMite, network, allAffectedMites, allContradictors, allFreeCandidates)
-      byDelta.getOrPut(delta) { ArrayList() }.add(set)
-    }
-    for ((delta, sets) in byDelta) {
-      for (config in delta.enumerateBestConfigurations(bestWeight + window)) {
-        for (set in sets) {
-          val inertMites = set.set.filter { it !in delta.affectedMites }
-          val better = CandidateSet(LinkedHashSet(inertMites + config))
-          newBest.add(better)
-          bestWeight = Math.min(better.weight, bestWeight)
+    fun mapWeight(map: Map<Int, CandidateSet>) = map.values().fold(0) { sum, set -> sum + set.weight }
+
+    val freeCandidateSets = getFreeCandidateSets(relatedColumns)
+    val happierVariants = enumerateVariants(unhappyColumns, freeCandidateSets, linkedMapOf(), maxWeights).sortBy { mapWeight(it) }
+    for (map in happierVariants) {
+      val completeVariant = enumerateVariants(happyColumns, freeCandidateSets, map, maxWeights).sortBy { mapWeight(it) }.firstOrNull()
+      if (completeVariant != null) {
+        val newChosenColumns = ArrayList(chosenColumns)
+        for ((idx, set) in completeVariant) {
+          newChosenColumns[idx] = set
         }
+        return copy(chosenColumns = newChosenColumns, active = LinkedHashSet(newChosenColumns.flatMap { it.set }))
       }
+
     }
 
-    val representedInConf = HashSet<Mite>()
-    val sortedBest = ArrayList<CandidateSet>()
-    for (conf in newBest.filter { it.weight <= bestWeight + window }.sortBy { it.weight }) {
-      for (activeMite in conf.set) {
-        if (representedInConf.add(activeMite)) {
-          sortedBest.add(conf)
-          break
-        }
-      }
-    }
-    return copy(bestConfigurations = sortedBest, active = sortedBest[0].set)
+    throw AssertionError(addedMite)
   }
 
   class object {
@@ -287,7 +267,8 @@ data class Delta(
 
 }
 
-data class CandidateSet(val set: Set<Mite>, val weight : Int = set.count { !it.happy }) {
+data class CandidateSet(val set: Set<Mite>) {
+  val weight : Int = set.count { !it.happy }
 
   fun enlarge(addedMite: Mite, network: Network, allAffectedMites: List<Mite>, allExtruded: Set<Mite>, allFreeCandidates: List<Mite>): Delta {
     val extruded = LinkedHashSet(allExtruded.filter { it in set })
@@ -300,6 +281,8 @@ data class CandidateSet(val set: Set<Mite>, val weight : Int = set.count { !it.h
 
   fun toString() = "$weight ${set.filter { !it.happy }}"
 
-  fun contradicts(another: CandidateSet, network: Network) = set.any { network.findContradictors(it, another.set).notEmpty() }
+  fun contradicts(another: CandidateSet, network: Network) : Boolean {
+    return set.any { mite -> network.findContradictors(mite, another.set.filter { it != mite }).notEmpty() }
+  }
 
 }

@@ -9,7 +9,10 @@ import java.util.HashSet
 data class Network(val parents: Map<Mite, List<Mite>> = LinkedHashMap(),
                    val children: Map<Mite, List<Mite>> = LinkedHashMap(),
                    val mites: List<Set<Mite>> = ArrayList(),
+                   val columns: List<Column> = ArrayList(),
                    private val contrCache: HashMap<Pair<Mite, Mite>, Boolean> = HashMap()) {
+  fun equals(o: Any?) = this === o
+  fun hashCode() = System.identityHashCode(this)
 
   val allMites: Set<Mite> get() = LinkedHashSet(mites.flatMap { it })
   val lastMites: Set<Mite> get() = if (mites.empty) setOf() else mites.last!!
@@ -26,15 +29,22 @@ data class Network(val parents: Map<Mite, List<Mite>> = LinkedHashMap(),
   fun getParents(mite: Mite): List<Mite> = parents[mite].orEmpty()
   fun getChildren(mite: Mite): List<Mite> = children[mite].orEmpty()
 
-  fun nextWord() = copy(mites = mites + arrayListOf(LinkedHashSet()))
+  fun nextWord() = copy(mites = mites + arrayListOf(LinkedHashSet()), columns = columns + Column())
 
   fun addMite(mite: Mite): Network {
     val newMites = ArrayList(mites)
     newMites[newMites.lastIndex] = LinkedHashSet(newMites[newMites.lastIndex] + mite)
-    val result = copy(mites = newMites)
+    var result = copy(mites = newMites)
 
-    if (mite.src1 == null) return result
-    return result.addMergedMite(mite)
+    if (!mite.atom) {
+      result = result.addMergedMite(mite)
+    }
+
+    val newColumns = ArrayList(columns)
+    for (cIndex in result.getAllIndices(mite)) {
+      newColumns[cIndex] = newColumns[cIndex].addMite(mite, result)
+    }
+    return result.copy(columns = newColumns)
   }
 
   fun getAllIndices(mite: Mite): List<Int> {
@@ -94,3 +104,28 @@ data class Network(val parents: Map<Mite, List<Mite>> = LinkedHashMap(),
 
 }
 
+data class Column(val mites: Set<Mite> = setOf(), val candidateSets: Set<CandidateSet> = setOf(CandidateSet(setOf()))) {
+
+  fun addMite(addedMite: Mite, network: Network): Column {
+    val allMites = LinkedHashSet(mites + addedMite)
+    val allContradictors = LinkedHashSet(network.findContradictors(addedMite, allMites))
+    val allFreeCandidates = allMites.filter { it !in allContradictors && network.findContradictors(it, allContradictors).notEmpty() }
+    val allAffectedMites = allMites.filter { network.findContradictors(it, allFreeCandidates).notEmpty() } + allContradictors + addedMite
+
+    val newSets = LinkedHashSet<CandidateSet>()
+    for (set in candidateSets) {
+      if (allContradictors.any { it in set.set }) {
+        newSets.add(set)
+      }
+
+      val delta = set.enlarge(addedMite, network, allAffectedMites, allContradictors, allFreeCandidates)
+      val inertMites = set.set.filter { it !in delta.affectedMites }
+      for (config in delta.enumerateBestConfigurations(Integer.MAX_VALUE)) {
+        newSets.add(CandidateSet(LinkedHashSet(inertMites + config)))
+      }
+    }
+
+    return copy(mites = allMites, candidateSets = newSets)
+  }
+
+}

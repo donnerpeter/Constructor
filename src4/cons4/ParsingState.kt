@@ -151,7 +151,7 @@ public data class ParsingState(
 
     val byDelta = LinkedHashMap<Delta, ArrayList<CandidateSet>>()
     for (set in bestConfigurations) {
-      val delta = set.enlarge(addedMite, this, allAffectedMites, allContradictors, allFreeCandidates)
+      val delta = set.enlarge(addedMite, network, allAffectedMites, allContradictors, allFreeCandidates)
       byDelta.getOrPut(delta) { ArrayList() }.add(set)
     }
     for ((delta, sets) in byDelta) {
@@ -215,7 +215,7 @@ public data class ParsingState(
 }
 
 data class Delta(
-        val state: ParsingState,
+        val network: Network,
         val addedMite: Mite,
         val freeCandidates: List<Mite>,
         val fixedMites: List<Mite>,
@@ -238,12 +238,12 @@ data class Delta(
     val tail = freeMites.subList(1, freeMites.size)
 
     val maxTailWeight = maxUnhappy - (if (happy(head)) 0 else 1)
-    if (maxTailWeight >= 0 && state.findContradictors(head, fixed).empty) {
+    if (maxTailWeight >= 0 && network.findContradictors(head, fixed).empty) {
       result.addAll(_enumerateBestConfigurations(fixed + head, tail, maxTailWeight))
     }
 
-    if (state.findContradictors(head, fixed + tail).notEmpty()) {
-      result.addAll(_enumerateBestConfigurations(fixed, tail, maxUnhappy).filter { state.findContradictors(head, it).notEmpty() } )
+    if (network.findContradictors(head, fixed + tail).notEmpty()) {
+      result.addAll(_enumerateBestConfigurations(fixed, tail, maxUnhappy).filter { network.findContradictors(head, it).notEmpty() } )
     }
 
     return result
@@ -253,13 +253,13 @@ data class Delta(
 
 data class CandidateSet(val set: Set<Mite>, val weight : Int = set.count { !happy(it) }) {
 
-  fun enlarge(addedMite: Mite, state: ParsingState, allAffectedMites: List<Mite>, allExtruded: Set<Mite>, allFreeCandidates: List<Mite>): Delta {
+  fun enlarge(addedMite: Mite, network: Network, allAffectedMites: List<Mite>, allExtruded: Set<Mite>, allFreeCandidates: List<Mite>): Delta {
     val extruded = LinkedHashSet(allExtruded.filter { it in set })
-    val freeCandidates = allFreeCandidates.filter { it !in extruded && state.findContradictors(it, extruded).notEmpty() }
-    val affectedMites = LinkedHashSet(allAffectedMites.filter { state.findContradictors(it, freeCandidates).notEmpty() } + extruded + addedMite)
+    val freeCandidates = allFreeCandidates.filter { it !in extruded && network.findContradictors(it, extruded).notEmpty() }
+    val affectedMites = LinkedHashSet(allAffectedMites.filter { network.findContradictors(it, freeCandidates).notEmpty() } + extruded + addedMite)
     val weightOutside = set.count { it !in affectedMites && !happy(it) }
     val fixedMites = set.filter { it !in extruded && it in affectedMites } + addedMite
-    return Delta(state, addedMite, freeCandidates, fixedMites, affectedMites, weightOutside)
+    return Delta(network, addedMite, freeCandidates, fixedMites, affectedMites, weightOutside)
   }
 
   fun toString() = "$weight ${set.filter { !happy(it) }}"

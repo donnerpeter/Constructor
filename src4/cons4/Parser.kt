@@ -26,7 +26,7 @@ public class Parser {
   }
 
   fun handleWord(w: String, state: ParsingState) : ParsingState {
-    return state.apply(word("word" to w))
+    return state.apply(word("word" to w, "id" to Variable()))
   }
 
 

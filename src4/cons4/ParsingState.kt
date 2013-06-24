@@ -142,8 +142,9 @@ public data class ParsingState(
       }
 
       val cIndex = targetColumns[index]
+      val newActive = HashSet(map.values().flatMap { it.set })
       for (betterSet in freeCandidateSets[cIndex]!!.filter { it.weight <= maxWeights[cIndex]!! }) {
-        if (!map.values().any { betterSet.contradicts(it, network) }) {
+        if (betterSet.set.all { network.findContradictors(it, newActive).filter { mite -> mite != it }.empty }) {
           val mapPlus = LinkedHashMap(map)
           mapPlus[cIndex] = betterSet
           doEnumerateHappierVariants(index + 1, mapPlus)
@@ -169,7 +170,7 @@ public data class ParsingState(
 
     val maxWeights = HashMap<Int, Int>()
     for (i in relatedColumns) {
-      maxWeights[i] = chosenColumns[i].weight + (if (!addedMite.happy && i in touchedColumns) 1 else 0)
+      maxWeights[i] = network.columns[i].mites.count { !it.happy && it in active } + (if (!addedMite.happy && i in touchedColumns) 1 else 0)
     }
 
     val unhappyColumns = relatedColumns.filter { maxWeights[it]!! > 0 }

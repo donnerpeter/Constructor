@@ -8,6 +8,7 @@ import java.util.HashSet
 
 data class Network(val parents: Map<Mite, List<Mite>> = LinkedHashMap(),
                    val children: Map<Mite, List<Mite>> = LinkedHashMap(),
+                   val mergeChildren: Map<Mite, List<Mite>> = LinkedHashMap(),
                    val mites: List<Set<Mite>> = ArrayList(),
                    val columns: List<Column> = ArrayList(),
                    private val contrCache: HashMap<Pair<Mite, Mite>, Boolean> = HashMap()) {
@@ -23,11 +24,20 @@ data class Network(val parents: Map<Mite, List<Mite>> = LinkedHashMap(),
     val newChildren = LinkedHashMap(children)
     newParents[child] = newParents.getOrElse(child) { listOf<Mite>() } + parent
     newChildren[parent] = newChildren.getOrElse(parent) { listOf<Mite>() } + child
-    return copy(parents = newParents, children = newChildren)
+    val result = copy(parents = newParents, children = newChildren)
+    if (child !in allMites) return result
+
+    val subHierarchy = getSubHierarchy(child)
+    return subHierarchy.fold(result) { net, touched -> net.updateColumns(touched) }
+  }
+
+  fun getSubHierarchy(mite: Mite): Set<Mite> {
+    return LinkedHashSet(listOf(mite) + getChildren(mite).flatMap { getSubHierarchy(it) } + getMergeChildren(mite).flatMap { getSubHierarchy(it) })
   }
 
   fun getParents(mite: Mite): List<Mite> = parents[mite].orEmpty()
   fun getChildren(mite: Mite): List<Mite> = children[mite].orEmpty()
+  fun getMergeChildren(mite: Mite): List<Mite> = mergeChildren[mite].orEmpty()
 
   fun nextWord() = copy(mites = mites + arrayListOf(LinkedHashSet()), columns = columns + Column())
 
@@ -39,12 +49,15 @@ data class Network(val parents: Map<Mite, List<Mite>> = LinkedHashMap(),
     if (!mite.atom) {
       result = result.addMergedMite(mite)
     }
+    return result.updateColumns(mite)
+  }
 
+  fun updateColumns(addedMite: Mite): Network {
     val newColumns = ArrayList(columns)
-    for (cIndex in result.getAllIndices(mite)) {
-      newColumns[cIndex] = newColumns[cIndex].addMite(mite, result)
+    for (cIndex in getAllIndices(addedMite)) {
+      newColumns[cIndex] = newColumns[cIndex].addMite(addedMite, this)
     }
-    return result.copy(columns = newColumns)
+    return copy(columns = newColumns)
   }
 
   fun getAllIndices(mite: Mite): List<Int> {
@@ -81,7 +94,10 @@ data class Network(val parents: Map<Mite, List<Mite>> = LinkedHashMap(),
       newParents[child] = newParents.getOrElse(child) { listOf() } + mite
       newChildren[mite] = newChildren.getOrElse(mite) { listOf() } + child
     }
-    return copy(parents = newParents, children = newChildren)
+    val newMergeChildren = LinkedHashMap(mergeChildren)
+    newMergeChildren[mite.src1!!] = newMergeChildren.getOrElse(mite.src1!!) { listOf() } + mite
+    newMergeChildren[mite.src2!!] = newMergeChildren.getOrElse(mite.src2!!) { listOf() } + mite
+    return copy(parents = newParents, children = newChildren, mergeChildren = newMergeChildren)
   }
 
   fun findContradictors(mite: Mite, among: Collection<Mite>) = among.filter { it == mite || contradict(mite, it) }
@@ -109,6 +125,8 @@ data class Network(val parents: Map<Mite, List<Mite>> = LinkedHashMap(),
 data class Column(val mites: Set<Mite> = setOf(), val candidateSets: List<CandidateSet> = listOf(CandidateSet(setOf()))) {
 
   fun addMite(addedMite: Mite, network: Network): Column {
+    if (addedMite in mites) return this
+
     val allMites = LinkedHashSet(mites + addedMite)
     val allContradictors = LinkedHashSet(network.findContradictors(addedMite, allMites))
     val allFreeCandidates = allMites.filter { it !in allContradictors && network.findContradictors(it, allContradictors).notEmpty() }

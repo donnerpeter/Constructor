@@ -29,7 +29,6 @@ class ParsingStateTest extends TestCase {
   void "test add mite"() {
     def mite = word(word:'hello')
     apply([mite])
-    assert state.chosenColumns[0].set == [mite] as Set
     assert state.active == [mite] as Set
   }
 
@@ -37,7 +36,6 @@ class ParsingStateTest extends TestCase {
     def m0 = word(word:'x1')
     def m1 = nom(noun:v.get(0))
     apply([m0, m1])
-    assert state.chosenColumns[0].set == [m0, m1] as Set
     assert state.active == [m0, m1] as Set
   }
 
@@ -46,7 +44,6 @@ class ParsingStateTest extends TestCase {
     def m1 = nom(noun:v.get(0))
     def m2 = nom(noun:v.get(1), head:v.get(1))
     apply([m0, m1, m2])
-    assert state.chosenColumns[0].set == [m0, m1, m2] as Set
     assert state.active == [m0, m1, m2] as Set
   }
 

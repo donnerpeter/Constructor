@@ -14,9 +14,7 @@ import java.util.Collections
 public data class ParsingState(
         val log: String = "",
         val network: Network = Network(),
-        val active: Set<Mite> = HashSet(),
-        val chosenColumns: List<CandidateSet> = listOf(),
-        private val bestConfigurations: List<CandidateSet> = listOf(CandidateSet(setOf()))
+        val active: Set<Mite> = HashSet()
 ) {
   fun equals(o: Any?) = this === o
   fun hashCode() = System.identityHashCode(this)
@@ -183,11 +181,14 @@ public data class ParsingState(
     for (map in happierVariants) {
       val completeVariant = enumerateVariants(happyColumns, freeCandidateSets, map, maxWeights).sortBy { mapWeight(it) }.firstOrNull()
       if (completeVariant != null) {
-        val newChosenColumns = ArrayList(chosenColumns)
-        for ((idx, set) in completeVariant) {
-          newChosenColumns[idx] = set
+        val newActive = HashSet(active)
+        for (idx in completeVariant.keySet()) {
+          newActive.removeAll(network.columns[idx].mites)
         }
-        return copy(chosenColumns = newChosenColumns, active = LinkedHashSet(newChosenColumns.flatMap { it.set }), network = network.copy(dirtyColumns = setOf()))
+        for (set in completeVariant.values()) {
+          newActive.addAll(set.set)
+        }
+        return copy(active = newActive, network = network.copy(dirtyColumns = setOf()))
       }
 
     }
@@ -197,7 +198,7 @@ public data class ParsingState(
 
   class object {
     fun _apply(_state: ParsingState, vararg cxts : Mite) : ParsingState {
-      var state = _state.copy(network = _state.network.nextWord(), chosenColumns = _state.chosenColumns + CandidateSet(setOf())).addMites(cxts.toList())
+      var state = _state.copy(network = _state.network.nextWord()).addMites(cxts.toList())
       var toEnrich = cxts.toList()
       while (toEnrich.notEmpty()) {
         while (toEnrich.notEmpty()) {

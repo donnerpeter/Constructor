@@ -6,11 +6,12 @@ import java.util.HashMap
 import java.util.ArrayList
 import java.util.HashSet
 
-data class Network(val parents: Map<Mite, List<Mite>> = LinkedHashMap(),
-                   val children: Map<Mite, List<Mite>> = LinkedHashMap(),
-                   val mergeChildren: Map<Mite, List<Mite>> = LinkedHashMap(),
-                   val mites: List<Set<Mite>> = ArrayList(),
-                   val columns: List<Column> = ArrayList(),
+data class Network(val parents: Map<Mite, List<Mite>> = mapOf(),
+                   val children: Map<Mite, List<Mite>> = mapOf(),
+                   val mergeChildren: Map<Mite, List<Mite>> = mapOf(),
+                   val mites: List<Set<Mite>> = listOf(),
+                   val columns: List<Column> = listOf(),
+                   val dirtyColumns: Set<Int> = setOf(),
                    private val contrCache: HashMap<Pair<Mite, Mite>, Boolean> = HashMap()) {
   fun equals(o: Any?) = this === o
   fun hashCode() = System.identityHashCode(this)
@@ -54,10 +55,14 @@ data class Network(val parents: Map<Mite, List<Mite>> = LinkedHashMap(),
 
   fun updateColumns(addedMite: Mite): Network {
     val newColumns = ArrayList(columns)
+    var newDirtyColumns = dirtyColumns
     for (cIndex in getAllIndices(addedMite)) {
       newColumns[cIndex] = newColumns[cIndex].addMite(addedMite, this)
+      if (cIndex !in newDirtyColumns) {
+        newDirtyColumns = HashSet(newDirtyColumns + cIndex)
+      }
     }
-    return copy(columns = newColumns)
+    return copy(columns = newColumns, dirtyColumns = newDirtyColumns)
   }
 
   fun getAllIndices(mite: Mite): List<Int> {

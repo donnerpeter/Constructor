@@ -165,7 +165,7 @@ public data class ParsingState(
   }
 
   private fun updateActive(addedMite: Mite): ParsingState {
-    val touchedColumns = network.getAllIndices(addedMite)
+    val touchedColumns = network.dirtyColumns
     val relatedColumns = HashSet(touchedColumns.flatMap { network.getRelatedIndices(it) }).toSortedList()
 
     val maxWeights = HashMap<Int, Int>()
@@ -187,7 +187,7 @@ public data class ParsingState(
         for ((idx, set) in completeVariant) {
           newChosenColumns[idx] = set
         }
-        return copy(chosenColumns = newChosenColumns, active = LinkedHashSet(newChosenColumns.flatMap { it.set }))
+        return copy(chosenColumns = newChosenColumns, active = LinkedHashSet(newChosenColumns.flatMap { it.set }), network = network.copy(dirtyColumns = setOf()))
       }
 
     }

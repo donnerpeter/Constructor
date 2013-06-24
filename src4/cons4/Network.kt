@@ -154,3 +154,60 @@ data class Column(val mites: Set<Mite> = setOf(), val candidateSets: List<Candid
   }
 
 }
+
+data class Delta(
+        val network: Network,
+        val addedMite: Mite,
+        val freeCandidates: List<Mite>,
+        val fixedMites: List<Mite>,
+        val affectedMites : Set<Mite>,
+        val weightOutside: Int
+) {
+
+  fun enumerateBestConfigurations(maxWeight: Int): List<List<Mite>> {
+    val maxRemaining = maxWeight - weightOutside - fixedMites.count { !it.happy }
+    if (maxRemaining < 0) return listOf()
+    return _enumerateBestConfigurations(fixedMites, freeCandidates.filter { it.happy } + freeCandidates.filter { !it.happy }, maxRemaining)
+  }
+
+  private fun _enumerateBestConfigurations(fixed: List<Mite>, freeMites: List<Mite>, maxUnhappy: Int): List<List<Mite>> {
+    if (freeMites.empty) return listOf(fixed)
+
+    val result = ArrayList<List<Mite>>()
+
+    val head = freeMites[0]
+    val tail = freeMites.subList(1, freeMites.size)
+
+    val maxTailWeight = maxUnhappy - (if (head.happy) 0 else 1)
+    if (maxTailWeight >= 0 && network.findContradictors(head, fixed).empty) {
+      result.addAll(_enumerateBestConfigurations(fixed + head, tail, maxTailWeight))
+    }
+
+    if (network.findContradictors(head, fixed + tail).notEmpty()) {
+      result.addAll(_enumerateBestConfigurations(fixed, tail, maxUnhappy).filter { network.findContradictors(head, it).notEmpty() } )
+    }
+
+    return result
+  }
+
+}
+
+data class CandidateSet(val set: Set<Mite>) {
+  val weight : Int = set.count { !it.happy }
+
+  fun enlarge(addedMite: Mite, network: Network, allAffectedMites: List<Mite>, allExtruded: Set<Mite>, allFreeCandidates: List<Mite>): Delta {
+    val extruded = LinkedHashSet(allExtruded.filter { it in set })
+    val freeCandidates = allFreeCandidates.filter { it !in extruded && network.findContradictors(it, extruded).notEmpty() }
+    val affectedMites = LinkedHashSet(allAffectedMites.filter { network.findContradictors(it, freeCandidates).notEmpty() } + extruded + addedMite)
+    val weightOutside = set.count { it !in affectedMites && !it.happy }
+    val fixedMites = set.filter { it !in extruded && it in affectedMites } + addedMite
+    return Delta(network, addedMite, freeCandidates, fixedMites, affectedMites, weightOutside)
+  }
+
+  fun toString() = "$weight ${set.filter { !it.happy }}"
+
+  fun contradicts(another: CandidateSet, network: Network) : Boolean {
+    return set.any { mite -> network.findContradictors(mite, another.set.filter { it != mite }).notEmpty() }
+  }
+
+}

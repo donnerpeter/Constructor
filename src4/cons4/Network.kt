@@ -80,7 +80,10 @@ data class Network(val parents: Map<Mite, List<Mite>> = mapOf(),
     return result.toSortedList()
   }
 
-  fun getRelatedIndices(column: Int) = HashSet(columns[column].mites.flatMap { getAllIndices(it) }).toSortedList()
+  private val relatedCache = HashMap<Int, List<Int>>()
+  fun getRelatedIndices(column: Int): List<Int> {
+    return relatedCache.getOrPut(column) { HashSet(columns[column].mites.flatMap { getAllIndices(it) }).toSortedList() }
+  }
 
   fun getAtomIndex(mite: Mite): Int {
     assert(mite.atom)

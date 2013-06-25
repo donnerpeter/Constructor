@@ -132,43 +132,22 @@ public data class ParsingState(
     return result
   }
 
-  private fun enumerateVariantsWide(change: ActiveChange, maxTotalWeight: Int): ActiveChange? {
-    if (change.pendingColumns.empty) return change
-
+  private fun enumerateVariantsWide(initialChange: ActiveChange, maxTotalWeight: Int): ActiveChange? {
     val queue = PriorityQueue<ActiveChange>()
-    queue.offer(change)
+    queue.offer(initialChange)
     while (queue.notEmpty()) {
-      val each = queue.poll()!!
-      if (each.pendingColumns.empty) return each
+      val change = queue.poll()!!
+      if (change.pendingColumns.empty) return change
 
-      val toAdd = each.pendingColumns.toSortedList()[0]
-      for (added in each.addColumn(toAdd, maxTotalWeight - each.weight, network.columns[toAdd].mites.count { !it.happy && it in active })) {
+      val toAdd = change.suggestNextColumn()
+      val maxAddedWeight = maxTotalWeight - change.weight
+      val columnWeight = network.columns[toAdd].mites.count { !it.happy && it in active }
+      val maxColumnWeight = if (toAdd in change.obligatoryColumns) Integer.MAX_VALUE else columnWeight
+      for (added in change.addColumn(toAdd, maxAddedWeight, maxColumnWeight)) {
         queue.offer(added)
       }
     }
     return null
-  }
-  private fun enumerateVariantsDeep(columns: List<Int>, change: ActiveChange, maxDeepWeight: Int, maxTotalWeight: Int): ActiveChange? {
-    if (columns.empty) return enumerateVariantsWide(change.copy(deepWeight = change.weight), maxTotalWeight)
-
-    var bestDeepWeight = maxDeepWeight
-    var bestTotalWeight = maxTotalWeight
-    var bestResult: ActiveChange? = null
-    val tail = columns.subList(1, columns.size())
-    for (withIdx in change.addColumn(columns[0], maxDeepWeight - change.weight, maxTotalWeight)) {
-      if (withIdx.weight > bestDeepWeight) continue
-
-      val result = enumerateVariantsDeep(tail, withIdx, bestDeepWeight, bestTotalWeight)
-      if (result == null) continue
-      if (result.weight == 0) return result
-
-      if (bestResult == null || result.deepWeight <= bestDeepWeight && result.weight <= bestTotalWeight) {
-        bestResult = result
-        bestTotalWeight = result.weight - 1
-        bestDeepWeight = Math.min(result.deepWeight, bestTotalWeight)
-      }
-    }
-    return bestResult
   }
 
   private fun updateActive(addedMite: Mite): ParsingState {
@@ -179,9 +158,8 @@ public data class ParsingState(
 
     val trivialActive = if (network.findContradictors(addedMite, active).empty) HashSet(active + addedMite) else active
     val trivialUnhappy = trivialActive.filter { !it.happy }
-    val deepActiveUnhappy = HashSet(startSet.flatMap { network.columns[it].mites.filter { !it.happy && it in trivialActive } })
 
-    val config = enumerateVariantsDeep(startSet, ActiveChange(this, mapOf(), setOf()), deepActiveUnhappy.size(), trivialUnhappy.size())
+    val config = enumerateVariantsWide(ActiveChange(copy(active = trivialActive), mapOf(), startSet.toSet(), startSet), trivialUnhappy.size())
     if (config == null) {
       throw RuntimeException("$addedMite")
     }
@@ -232,15 +210,20 @@ public data class ParsingState(
 
 }
 
-data class ActiveChange(val state: ParsingState, val changes: Map<Int, CandidateSet>, val pendingColumns: Set<Int>, val deepWeight: Int = 0): Comparable<ActiveChange> {
+data class ActiveChange(val state: ParsingState, val changes: Map<Int, CandidateSet>, val pendingColumns: Set<Int>, val obligatoryColumns: List<Int>): Comparable<ActiveChange> {
   val chosenMites = HashSet(changes.values().flatMap { it.set })
   val weight = chosenMites.filter { !it.happy }.size()
+  val activeOutside = state.active.count { mite -> !mite.happy && (changes.keySet() + pendingColumns).all { idx -> mite !in state.network.columns[idx].mites } }
+  val minPendingWeight = pendingColumns.fold(0) { max, idx -> state.network.columns[idx].getMinimumWeight() }
+  val estimate = weight + minPendingWeight + activeOutside
 
   public override fun compareTo(other: ActiveChange): Int {
-    val diff = weight - other.weight
+    val diff = estimate - other.estimate
     if (diff != 0) return diff
     return pendingColumns.size() - other.pendingColumns.size()
   }
+
+  fun suggestNextColumn() = obligatoryColumns.find { it !in changes.keySet() } ?: pendingColumns.toSortedList()[0]
 
   fun addColumn(idx: Int, maxAddedWeight: Int, maxColumnWeight: Int): List<ActiveChange> {
     val relatedColumns = state.network.getRelatedIndices(idx).filter { idx != it && !changes.containsKey(it) && !pendingColumns.contains(it) }

@@ -132,6 +132,8 @@ data class Network(val parents: Map<Mite, List<Mite>> = mapOf(),
 
 data class Column(val mites: Set<Mite> = setOf(), val candidateSets: List<CandidateSet> = listOf(CandidateSet(setOf()))) {
 
+  fun getMinimumWeight() = candidateSets[0].weight
+
   fun addMite(addedMite: Mite, network: Network): Column {
     if (addedMite in mites) return this
 

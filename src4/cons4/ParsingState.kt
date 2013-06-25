@@ -151,17 +151,18 @@ public data class ParsingState(
   }
 
   private fun updateActive(addedMite: Mite): ParsingState {
-    val touchedColumns = network.dirtyColumns
-    val relatedColumns = HashSet(touchedColumns.flatMap { network.getRelatedIndices(it) })
-    val unhappyColumns = relatedColumns.filter { network.columns[it].mites.any { !it.happy && it in active } }
-    val startSet = HashSet(touchedColumns + unhappyColumns).toSortedList()
-
     val trivialActive = if (network.findContradictors(addedMite, active).empty) HashSet(active + addedMite) else active
-    val trivialUnhappy = trivialActive.filter { !it.happy }
+    return copy(active = trivialActive, network = network.copy(dirtyColumns = setOf())).improveActive(network.dirtyColumns)
+  }
 
-    val config = enumerateVariantsWide(ActiveChange(copy(active = trivialActive), mapOf(), startSet.toSet(), startSet), trivialUnhappy.size())
+  private fun improveActive(dirtyColumns: Set<Int>): ParsingState {
+    val relatedColumns = HashSet(dirtyColumns.flatMap { network.getRelatedIndices(it) })
+    val unhappyColumns = relatedColumns.filter { network.columns[it].mites.any { !it.happy && it in active } }
+    val startSet = unhappyColumns.toSortedList()
+
+    val config = enumerateVariantsWide(ActiveChange(this, mapOf(), startSet.toSet(), startSet), active.count { !it.happy } - 1)
     if (config == null) {
-      throw RuntimeException("$addedMite")
+      return this
     }
 
     val newActive = HashSet(active)
@@ -171,7 +172,7 @@ public data class ParsingState(
     for (set in config.changes.values()) {
       newActive.addAll(set.set)
     }
-    return copy(active = newActive, network = network.copy(dirtyColumns = setOf()))
+    return copy(active = newActive)
   }
 
   class object {

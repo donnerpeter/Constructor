@@ -56,7 +56,7 @@ public data class ParsingState(
   }
 
   private fun addMites(added: Iterable<Mite>): ParsingState {
-    return added.fold(this) { state, mite -> state.copy(network = state.network.addMite(mite)).updateActive(mite) }
+    return added.fold(this) { state, mite -> state.copy(network = state.network.addMite(mite)) }.updateActive(added)
   }
 
   fun findPhraseStart(index: Int): Mite? {
@@ -150,8 +150,13 @@ public data class ParsingState(
     return null
   }
 
-  private fun updateActive(addedMite: Mite): ParsingState {
-    val trivialActive = if (network.findContradictors(addedMite, active).empty) HashSet(active + addedMite) else active
+  private fun updateActive(addedMites: Iterable<Mite>): ParsingState {
+    val trivialActive = HashSet(active)
+    for (mite in addedMites) {
+      if (network.findContradictors(mite, trivialActive).empty) {
+        trivialActive.add(mite)
+      }
+    }
     return copy(active = trivialActive, network = network.copy(dirtyColumns = setOf())).improveActive(network.dirtyColumns)
   }
 

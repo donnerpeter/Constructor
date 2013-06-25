@@ -133,6 +133,8 @@ public data class ParsingState(
   }
 
   private fun enumerateVariantsWide(change: ActiveChange, maxWeight: Int): ActiveChange? {
+    if (change.pendingColumns.empty) return change
+
     val queue = PriorityQueue<ActiveChange>()
     queue.offer(change)
     while (queue.notEmpty()) {
@@ -152,11 +154,14 @@ public data class ParsingState(
     var bestWeight = maxWeight
     var bestResult: ActiveChange? = null
     val tail = columns.subList(1, columns.size())
-    for (withIdx in change.addColumn(columns[0], bestWeight)) {
+    for (withIdx in change.addColumn(columns[0], maxWeight)) {
+      if (withIdx.weight > bestWeight) continue
+
       val result = enumerateVariantsDeep(tail, withIdx, bestWeight)
-      if (result != null && (bestResult == null || result.weight < bestWeight)) {
+      if (result != null && (bestResult == null || result.weight <= bestWeight)) {
+        if (result.weight == 0) return result
         bestResult = result
-        bestWeight = result.weight
+        bestWeight = result.weight - 1
       }
     }
     return bestResult

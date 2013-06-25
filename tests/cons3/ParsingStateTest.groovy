@@ -7,6 +7,7 @@ import cons4.constructions.complementizer
 import cons4.constructions.question
 import cons4.constructions.control
 import cons4.constructions.phrase
+import cons4.constructions.contrastiveTopic
 
 import junit.framework.TestCase
 
@@ -93,6 +94,12 @@ class ParsingStateTest extends TestCase {
     assert state.active.findAll { !it.happy }.collect { it.cxt } == [nom.instance$]
 
     apply([acc(noun:dObj)])
+    assert state.active.findAll { !it.happy }.collect { it.cxt } == [nom.instance$]
+  }
+
+  void "test contrastive topic"() {
+    apply([mite(phrase.instance$, head:v.get(1), kind:"shortAdj"), nom(head:v.get(1))])
+    apply([mite(contrastiveTopic.instance$, active:true)])
     assert state.active.findAll { !it.happy }.collect { it.cxt } == [nom.instance$]
   }
 

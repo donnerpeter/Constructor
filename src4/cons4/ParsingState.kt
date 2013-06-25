@@ -132,7 +132,7 @@ public data class ParsingState(
     return result
   }
 
-  private fun enumerateVariantsWide(change: ActiveChange, maxWeight: Int): ActiveChange? {
+  private fun enumerateVariantsWide(change: ActiveChange, maxTotalWeight: Int): ActiveChange? {
     if (change.pendingColumns.empty) return change
 
     val queue = PriorityQueue<ActiveChange>()
@@ -142,26 +142,30 @@ public data class ParsingState(
       if (each.pendingColumns.empty) return each
 
       val toAdd = each.pendingColumns.toSortedList()[0]
-      for (added in each.addColumn(toAdd, maxWeight)) {
+      for (added in each.addColumn(toAdd, maxTotalWeight - each.weight, network.columns[toAdd].mites.count { !it.happy && it in active })) {
         queue.offer(added)
       }
     }
     return null
   }
-  private fun enumerateVariantsDeep(columns: List<Int>, change: ActiveChange, maxWeight: Int): ActiveChange? {
-    if (columns.empty) return enumerateVariantsWide(change, maxWeight)
+  private fun enumerateVariantsDeep(columns: List<Int>, change: ActiveChange, maxDeepWeight: Int, maxTotalWeight: Int): ActiveChange? {
+    if (columns.empty) return enumerateVariantsWide(change.copy(deepWeight = change.weight), maxTotalWeight)
 
-    var bestWeight = maxWeight
+    var bestDeepWeight = maxDeepWeight
+    var bestTotalWeight = maxTotalWeight
     var bestResult: ActiveChange? = null
     val tail = columns.subList(1, columns.size())
-    for (withIdx in change.addColumn(columns[0], maxWeight)) {
-      if (withIdx.weight > bestWeight) continue
+    for (withIdx in change.addColumn(columns[0], maxDeepWeight - change.weight, maxTotalWeight)) {
+      if (withIdx.weight > bestDeepWeight) continue
 
-      val result = enumerateVariantsDeep(tail, withIdx, bestWeight)
-      if (result != null && (bestResult == null || result.weight <= bestWeight)) {
-        if (result.weight == 0) return result
+      val result = enumerateVariantsDeep(tail, withIdx, bestDeepWeight, bestTotalWeight)
+      if (result == null) continue
+      if (result.weight == 0) return result
+
+      if (bestResult == null || result.deepWeight <= bestDeepWeight && result.weight <= bestTotalWeight) {
         bestResult = result
-        bestWeight = result.weight - 1
+        bestTotalWeight = result.weight - 1
+        bestDeepWeight = Math.min(result.deepWeight, bestTotalWeight)
       }
     }
     return bestResult
@@ -173,9 +177,11 @@ public data class ParsingState(
     val unhappyColumns = relatedColumns.filter { network.columns[it].mites.any { !it.happy && it in active } }
     val startSet = HashSet(touchedColumns + unhappyColumns).toSortedList()
 
-    val maxWeight = active.count { !it.happy } + (if (!addedMite.happy && network.findContradictors(addedMite, active).empty) 1 else 0)
+    val trivialActive = if (network.findContradictors(addedMite, active).empty) HashSet(active + addedMite) else active
+    val trivialUnhappy = trivialActive.filter { !it.happy }
+    val deepActiveUnhappy = HashSet(startSet.flatMap { network.columns[it].mites.filter { !it.happy && it in trivialActive } })
 
-    val config = enumerateVariantsDeep(startSet, ActiveChange(this, mapOf(), setOf()), maxWeight)
+    val config = enumerateVariantsDeep(startSet, ActiveChange(this, mapOf(), setOf()), deepActiveUnhappy.size(), trivialUnhappy.size())
     if (config == null) {
       throw RuntimeException("$addedMite")
     }
@@ -226,7 +232,7 @@ public data class ParsingState(
 
 }
 
-data class ActiveChange(val state: ParsingState, val changes: Map<Int, CandidateSet>, val pendingColumns: Set<Int>): Comparable<ActiveChange> {
+data class ActiveChange(val state: ParsingState, val changes: Map<Int, CandidateSet>, val pendingColumns: Set<Int>, val deepWeight: Int = 0): Comparable<ActiveChange> {
   val chosenMites = HashSet(changes.values().flatMap { it.set })
   val weight = chosenMites.filter { !it.happy }.size()
 
@@ -236,12 +242,13 @@ data class ActiveChange(val state: ParsingState, val changes: Map<Int, Candidate
     return pendingColumns.size() - other.pendingColumns.size()
   }
 
-  fun addColumn(idx: Int, maxTotalWeight: Int): List<ActiveChange> {
+  fun addColumn(idx: Int, maxAddedWeight: Int, maxColumnWeight: Int): List<ActiveChange> {
     val relatedColumns = state.network.getRelatedIndices(idx).filter { idx != it && !changes.containsKey(it) && !pendingColumns.contains(it) }
 
     val result = ArrayList<ActiveChange>()
     for (set in state.network.columns[idx].candidateSets) {
-      if (set.set.count { !it.happy && it !in chosenMites } > maxTotalWeight - weight) continue
+      if (set.weight > maxColumnWeight) continue
+      if (set.set.count { !it.happy && it !in chosenMites } > maxAddedWeight) continue
 
       if (set.set.all { mite -> state.network.findContradictors(mite, chosenMites).filter { it != mite }.empty }) {
         val newChanges = HashMap(changes)

@@ -54,9 +54,10 @@ class ParsingStateTest extends TestCase {
     assert questionMite
 
     apply([mite(phrase.instance$, head:v.get(1).lv)])
-    assert [0, 1] == state.network.getAllIndices(questionMite)
+    assert [0, 1] == state.network.getAllIndices(questionMite, true)
+    assert [0] == state.network.getAllIndices(questionMite, false)
     assert questionMite in state.network.columns[0].mites
-    assert questionMite in state.network.columns[1].mites
+    assert !(questionMite in state.network.columns[1].mites)
   }
 
 
@@ -104,7 +105,7 @@ class ParsingStateTest extends TestCase {
   }
 
   void "test candidate sets in one column"() {
-    def mites = [word(word:'x1')] + Cons4Package.xor([word(word:'x2')], [word(word:'x3')])
+    def mites = [word(word:'x1'), word(word:'x2', xor:t('a')), word(word:'x3', xor:t('a'))]
     state = apply(mites)
     assert state.network.columns[0].candidateSets.size == 2
     assert mites[0] in state.active

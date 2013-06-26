@@ -56,7 +56,7 @@ data class Network(val parents: Map<Mite, List<Mite>> = mapOf(),
   fun updateColumns(addedMite: Mite): Network {
     val newColumns = ArrayList(columns)
     var newDirtyColumns = dirtyColumns
-    for (cIndex in getAllIndices(addedMite)) {
+    for (cIndex in getAllIndices(addedMite, false)) {
       newColumns[cIndex] = newColumns[cIndex].addMite(addedMite, this)
       if (cIndex !in newDirtyColumns) {
         newDirtyColumns = HashSet(newDirtyColumns + cIndex)
@@ -65,24 +65,26 @@ data class Network(val parents: Map<Mite, List<Mite>> = mapOf(),
     return copy(columns = newColumns, dirtyColumns = newDirtyColumns)
   }
 
-  fun getAllIndices(mite: Mite): List<Int> {
+  fun getAllIndices(mite: Mite, includeParents: Boolean): List<Int> {
     val result = HashSet<Int>()
     if (!mite.atom) {
-      result.addAll(getAllIndices(mite.src1!!))
-      result.addAll(getAllIndices(mite.src2!!))
+      result.addAll(getAllIndices(mite.src1!!, includeParents))
+      result.addAll(getAllIndices(mite.src2!!, includeParents))
     } else {
       val atomIndex = getAtomIndex(mite)
       if (atomIndex >= 0) result.add(atomIndex)
     }
-    for (parent in getParents(mite)) {
-      result.addAll(getAllIndices(parent))
+    if (includeParents) {
+      for (parent in getParents(mite)) {
+        result.addAll(getAllIndices(parent, true))
+      }
     }
     return result.toSortedList()
   }
 
   private val relatedCache = HashMap<Int, List<Int>>()
   fun getRelatedIndices(column: Int): List<Int> {
-    return relatedCache.getOrPut(column) { HashSet(columns[column].mites.flatMap { getAllIndices(it) }).toSortedList() }
+    return relatedCache.getOrPut(column) { HashSet(columns[column].mites.flatMap { getAllIndices(it, true) }).toSortedList() }
   }
 
   fun getAtomIndex(mite: Mite): Int {

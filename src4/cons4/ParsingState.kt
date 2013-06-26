@@ -26,8 +26,6 @@ public data class ParsingState(
   fun printLog() = println("Log:\n\n$log\n")
   fun apply(vararg cxts : Mite) = _apply(this, *cxts)
 
-  fun findContradictors(mite: Mite, among: Collection<Mite>) = network.findContradictors(mite, among)
-
   fun presentable(): String {
     if (network.lastIndex < 0) return ""
 
@@ -153,7 +151,7 @@ public data class ParsingState(
   private fun updateActive(addedMites: Iterable<Mite>): ParsingState {
     val trivialActive = HashSet(active)
     for (mite in addedMites) {
-      if (network.findContradictors(mite, trivialActive).empty) {
+      if (network.findContradictors(mite, trivialActive, false).empty) {
         trivialActive.add(mite)
       }
     }
@@ -234,7 +232,7 @@ data class ActiveChange(val state: ParsingState, val changes: Map<Int, Candidate
   fun addColumn(idx: Int, maxAddedWeight: Int, maxColumnWeight: Int): List<ActiveChange> {
     val relatedColumns = state.network.getRelatedIndices(idx).filter { idx != it && !changes.containsKey(it) && !pendingColumns.contains(it) }
 
-    val contradicting = state.network.columns[idx].mites.filter { mite -> state.network.findContradictors(mite, chosenMites).filter { it != mite }.notEmpty() }.toSet()
+    val contradicting = state.network.columns[idx].mites.filter { mite -> state.network.findContradictors(mite, chosenMites, false).notEmpty() }.toSet()
 
     val result = ArrayList<ActiveChange>()
     for (set in state.network.columns[idx].candidateSets) {
@@ -248,7 +246,7 @@ data class ActiveChange(val state: ParsingState, val changes: Map<Int, Candidate
         val newPendingColumns = HashSet(pendingColumns)
         newPendingColumns.remove(idx)
         for (i in relatedColumns) {
-          if (set.set.any { mite ->  state.network.findContradictors(mite, state.network.columns[i].mites).filter { it != mite }.notEmpty() }) {
+          if (set.set.any { mite ->  state.network.findContradictors(mite, state.network.columns[i].mites, false).notEmpty() }) {
             newPendingColumns.add(i)
             continue
           }

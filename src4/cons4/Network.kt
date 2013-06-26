@@ -110,7 +110,7 @@ data class Network(val parents: Map<Mite, List<Mite>> = mapOf(),
     return copy(parents = newParents, children = newChildren, mergeChildren = newMergeChildren)
   }
 
-  fun findContradictors(mite: Mite, among: Collection<Mite>) = among.filter { it == mite || contradict(mite, it) }
+  fun findContradictors(mite: Mite, among: Collection<Mite>, includeSelf: Boolean) = among.filter { includeSelf && it == mite || contradict(mite, it) }
 
   fun contradict(mite1: Mite, mite2: Mite): Boolean {
     return contrCache.getOrPut(mite1 to mite2) { _contradict(mite1, mite2) }
@@ -140,9 +140,9 @@ data class Column(val mites: Set<Mite> = setOf(), val candidateSets: List<Candid
     if (addedMite in mites) return this
 
     val allMites = LinkedHashSet(mites + addedMite)
-    val allContradictors = LinkedHashSet(network.findContradictors(addedMite, allMites))
-    val allFreeCandidates = allMites.filter { it !in allContradictors && network.findContradictors(it, allContradictors).notEmpty() }
-    val allAffectedMites = allMites.filter { network.findContradictors(it, allFreeCandidates).notEmpty() } + allContradictors + addedMite
+    val allContradictors = LinkedHashSet(network.findContradictors(addedMite, allMites, true))
+    val allFreeCandidates = allMites.filter { it !in allContradictors && network.findContradictors(it, allContradictors, true).notEmpty() }
+    val allAffectedMites = allMites.filter { network.findContradictors(it, allFreeCandidates, true).notEmpty() } + allContradictors + addedMite
 
     val newSets = LinkedHashSet<CandidateSet>()
     for (set in candidateSets) {
@@ -186,12 +186,12 @@ data class Delta(
     val tail = freeMites.subList(1, freeMites.size)
 
     val maxTailWeight = maxUnhappy - (if (head.happy) 0 else 1)
-    if (maxTailWeight >= 0 && network.findContradictors(head, fixed).empty) {
+    if (maxTailWeight >= 0 && network.findContradictors(head, fixed, true).empty) {
       result.addAll(_enumerateBestConfigurations(fixed + head, tail, maxTailWeight))
     }
 
-    if (network.findContradictors(head, fixed + tail).notEmpty()) {
-      result.addAll(_enumerateBestConfigurations(fixed, tail, maxUnhappy).filter { network.findContradictors(head, it).notEmpty() } )
+    if (network.findContradictors(head, fixed + tail, true).notEmpty()) {
+      result.addAll(_enumerateBestConfigurations(fixed, tail, maxUnhappy).filter { network.findContradictors(head, it, true).notEmpty() } )
     }
 
     return result
@@ -204,17 +204,13 @@ data class CandidateSet(val set: Set<Mite>) {
 
   fun enlarge(addedMite: Mite, network: Network, allAffectedMites: List<Mite>, allExtruded: Set<Mite>, allFreeCandidates: List<Mite>): Delta {
     val extruded = LinkedHashSet(allExtruded.filter { it in set })
-    val freeCandidates = allFreeCandidates.filter { it !in extruded && network.findContradictors(it, extruded).notEmpty() }
-    val affectedMites = LinkedHashSet(allAffectedMites.filter { network.findContradictors(it, freeCandidates).notEmpty() } + extruded + addedMite)
+    val freeCandidates = allFreeCandidates.filter { it !in extruded && network.findContradictors(it, extruded, true).notEmpty() }
+    val affectedMites = LinkedHashSet(allAffectedMites.filter { network.findContradictors(it, freeCandidates, true).notEmpty() } + extruded + addedMite)
     val weightOutside = set.count { it !in affectedMites && !it.happy }
     val fixedMites = set.filter { it !in extruded && it in affectedMites } + addedMite
     return Delta(network, addedMite, freeCandidates, fixedMites, affectedMites, weightOutside)
   }
 
   fun toString() = "$weight ${set.filter { !it.happy }}"
-
-  fun contradicts(another: CandidateSet, network: Network) : Boolean {
-    return set.any { mite -> network.findContradictors(mite, another.set.filter { it != mite }).notEmpty() }
-  }
 
 }

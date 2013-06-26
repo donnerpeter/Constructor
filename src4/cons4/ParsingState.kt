@@ -234,12 +234,14 @@ data class ActiveChange(val state: ParsingState, val changes: Map<Int, Candidate
   fun addColumn(idx: Int, maxAddedWeight: Int, maxColumnWeight: Int): List<ActiveChange> {
     val relatedColumns = state.network.getRelatedIndices(idx).filter { idx != it && !changes.containsKey(it) && !pendingColumns.contains(it) }
 
+    val contradicting = state.network.columns[idx].mites.filter { mite -> state.network.findContradictors(mite, chosenMites).filter { it != mite }.notEmpty() }.toSet()
+
     val result = ArrayList<ActiveChange>()
     for (set in state.network.columns[idx].candidateSets) {
       if (set.weight > maxColumnWeight) continue
       if (set.set.count { !it.happy && it !in chosenMites } > maxAddedWeight) continue
 
-      if (set.set.all { mite -> state.network.findContradictors(mite, chosenMites).filter { it != mite }.empty }) {
+      if (set.set.all { it !in contradicting }) {
         val newChanges = HashMap(changes)
         newChanges[idx] = set
 

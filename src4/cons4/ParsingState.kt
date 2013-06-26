@@ -142,7 +142,7 @@ public data class ParsingState(
       val toAdd = change.suggestNextColumn()
       val maxAddedWeight = maxTotalWeight - change.weight
       val columnWeight = network.columns[toAdd].mites.count { !it.happy && it in active }
-      val maxColumnWeight = if (toAdd in change.obligatoryColumns) Integer.MAX_VALUE else columnWeight
+      val maxColumnWeight = if (toAdd == network.lastIndex) Integer.MAX_VALUE else columnWeight
       for (added in change.addColumn(toAdd, maxAddedWeight, maxColumnWeight)) {
         queue.offer(added)
       }

@@ -86,7 +86,7 @@ public data class ParsingState(
     val upLink = lastMites.find { it in active && hasHead(it) && !it.primaries.any { hasHead(it) && it in lastMites } }
     if (upLink != null && isPenetrable(upLink)) {
       val headAtom = upLink.primaries.find { hasHead(it) }!!
-      return Link(getAtomIndex(headAtom), headAtom, true)
+      return Link(getAtomIndex(headAtom), upLink, true)
     }
 
     val phraseStart = findPhraseStart(index)

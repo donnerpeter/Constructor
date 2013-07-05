@@ -23,18 +23,12 @@ data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, pri
   fun hasHard(vararg attrs: String) = attrs.all { args[it] is Variable && (args[it] as Variable).hard }
   fun v(attr: String) = args[attr] as Variable
 
-  fun contradicts(another: Mite): Boolean {
-    if (this == another) return false
+  fun hasCommonPrimaries(another: Mite) = another.cxt == cxt && primaries.any { it in another.primaries }
 
-    if (another.cxt == cxt) {
-      if (primaries.any { it in another.primaries }) return true
-    }
-
+  fun contradictsByXor(another: Mite): Boolean {
     val xor1 = this["xor"] as LinkedHashSet<*>?
     val xor2 = another["xor"] as LinkedHashSet<*>?
-    if (xor1 == null || xor2 == null) return false
-
-    return xor1.any { it in xor2 }
+    return xor1 != null && xor2 != null && xor1.any { it in xor2 }
   }
 
   private fun mergeValues(key: String, myValue: Any?, hisValue: Any?): Any? {

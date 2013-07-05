@@ -190,7 +190,7 @@ public data class ParsingState(
           val allMites = state.network.allMites
           for (creator in toEnrich) {
             for (created in enrich(state, creator)) {
-              newNetwork = newNetwork.addRelation(creator, created)
+              newNetwork = newNetwork.addRelation(setOf(creator), created)
               createdMites.add(created)
               if (created !in allMites) newMites.add(created)
             }

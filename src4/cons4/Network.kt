@@ -6,7 +6,7 @@ import java.util.HashMap
 import java.util.ArrayList
 import java.util.HashSet
 
-data class Network(val parents: Map<Mite, List<Mite>> = mapOf(),
+data class Network(val parents: Map<Mite, List<Set<Mite>>> = mapOf(),
                    val children: Map<Mite, List<Mite>> = mapOf(),
                    val mergeChildren: Map<Mite, List<Mite>> = mapOf(),
                    val mites: List<Set<Mite>> = listOf(),
@@ -20,11 +20,13 @@ data class Network(val parents: Map<Mite, List<Mite>> = mapOf(),
   val lastMites: Set<Mite> get() = if (mites.empty) setOf() else mites.last!!
   val lastIndex: Int get() = mites.lastIndex
 
-  fun addRelation(parent: Mite, child: Mite): Network {
-    val newParents = LinkedHashMap(parents)
+  fun addRelation(parents: Set<Mite>, child: Mite): Network {
+    val newParents = LinkedHashMap(this.parents)
     val newChildren = LinkedHashMap(children)
-    newParents[child] = newParents.getOrElse(child) { listOf<Mite>() } + parent
-    newChildren[parent] = newChildren.getOrElse(parent) { listOf<Mite>() } + child
+    newParents[child] = newParents.getOrElse(child) { listOf<Set<Mite>>() } + listOf(parents)
+    for (parent in parents) {
+      newChildren[parent] = newChildren.getOrElse(parent) { listOf<Mite>() } + child
+    }
     val result = copy(parents = newParents, children = newChildren)
     if (child !in allMites) return result
 
@@ -35,8 +37,11 @@ data class Network(val parents: Map<Mite, List<Mite>> = mapOf(),
   fun getSubHierarchy(mite: Mite): Set<Mite> {
     return LinkedHashSet(listOf(mite) + getChildren(mite).flatMap { getSubHierarchy(it) } + getMergeChildren(mite).flatMap { getSubHierarchy(it) })
   }
+  fun getMergeHierarchy(mite: Mite): Set<Mite> {
+    return LinkedHashSet(listOf(mite) + getMergeChildren(mite).flatMap { getMergeHierarchy(it) })
+  }
 
-  fun getParents(mite: Mite): List<Mite> = parents[mite].orEmpty()
+  fun getParents(mite: Mite): List<Set<Mite>> = parents[mite].orEmpty()
   fun getChildren(mite: Mite): List<Mite> = children[mite].orEmpty()
   fun getMergeChildren(mite: Mite): List<Mite> = mergeChildren[mite].orEmpty()
 
@@ -48,7 +53,7 @@ data class Network(val parents: Map<Mite, List<Mite>> = mapOf(),
     var result = copy(mites = newMites)
 
     if (!mite.atom) {
-      result = result.addMergedMite(mite)
+      result = result.addMergedMite(mite, mite.src1!!, mite.src2!!)
     }
     return result.updateColumns(mite)
   }
@@ -75,8 +80,10 @@ data class Network(val parents: Map<Mite, List<Mite>> = mapOf(),
       if (atomIndex >= 0) result.add(atomIndex)
     }
     if (includeParents) {
-      for (parent in getParents(mite)) {
-        result.addAll(getAllIndices(parent, true))
+      for (parent in getParents(mite).flatMap { it }) {
+        for (inheritor in getMergeHierarchy(parent)) {
+          result.addAll(getAllIndices(inheritor, true))
+        }
       }
     }
     return result.toSortedList()
@@ -97,34 +104,34 @@ data class Network(val parents: Map<Mite, List<Mite>> = mapOf(),
     return -1
   }
 
-  private fun addMergedMite(mite: Mite): Network {
-    val newParents = LinkedHashMap(parents)
+  private fun addMergedMite(mite: Mite, src1: Mite, src2: Mite): Network {
     val newChildren = LinkedHashMap(children)
-    for (child in LinkedHashSet(getChildren(mite.src1!!) + getChildren(mite.src2!!))) {
-      newParents[child] = newParents.getOrElse(child) { listOf() } + mite
+    for (child in LinkedHashSet(getChildren(src1) + getChildren(src2))) {
       newChildren[mite] = newChildren.getOrElse(mite) { listOf() } + child
     }
     val newMergeChildren = LinkedHashMap(mergeChildren)
-    newMergeChildren[mite.src1!!] = newMergeChildren.getOrElse(mite.src1!!) { listOf() } + mite
-    newMergeChildren[mite.src2!!] = newMergeChildren.getOrElse(mite.src2!!) { listOf() } + mite
-    return copy(parents = newParents, children = newChildren, mergeChildren = newMergeChildren)
+    newMergeChildren[src1] = newMergeChildren.getOrElse(src1) { listOf() } + mite
+    newMergeChildren[src2] = newMergeChildren.getOrElse(src2) { listOf() } + mite
+    return copy(children = newChildren, mergeChildren = newMergeChildren)
   }
 
   fun findContradictors(mite: Mite, among: Collection<Mite>, includeSelf: Boolean) = among.filter { includeSelf && it == mite || contradict(mite, it) }
 
   fun contradict(mite1: Mite, mite2: Mite): Boolean {
-    return contrCache.getOrPut(mite1 to mite2) { _contradict(mite1, mite2) }
+    return contrCache.getOrPut(mite1 to mite2) { _contradict(mite1, mite2, true) }
   }
-  private fun _contradict(mite1: Mite, mite2: Mite): Boolean {
-    if (mite1.contradicts(mite2)) return true
+  private fun _contradict(mite1: Mite, mite2: Mite, checkCommonPrimaries: Boolean): Boolean {
+    if (mite1 == mite2) return false
+    if (checkCommonPrimaries && mite1.hasCommonPrimaries(mite2)) return true
+    if (mite1.contradictsByXor(mite2)) return true
 
     for (atom in mite1.primaries) {
-      val parents = getParents(atom)
-      if (parents.notEmpty() && parents.all { contradict(it, mite2) }) return true
+      val parentSets = getParents(atom)
+      if (parentSets.notEmpty() && parentSets.all { set -> set.any { _contradict(it, mite2, false) } }) return true
     }
     for (atom in mite2.primaries) {
-      val parents = getParents(atom)
-      if (parents.notEmpty() && parents.all { contradict(mite1, it) }) return true
+      val parentSets = getParents(atom)
+      if (parentSets.notEmpty() && parentSets.all { set -> set.any { _contradict(mite1, it, false) } }) return true
     }
 
     return false

@@ -185,16 +185,18 @@ public data class ParsingState(
       while (toEnrich.notEmpty()) {
         while (toEnrich.notEmpty()) {
           var newNetwork = state.network
-          val enriched = LinkedHashSet<Mite>()
+          val newMites = LinkedHashSet<Mite>()
+          val createdMites = LinkedHashSet<Mite>()
           val allMites = state.network.allMites
           for (creator in toEnrich) {
             for (created in enrich(state, creator)) {
               newNetwork = newNetwork.addRelation(creator, created)
-              if (created !in allMites) enriched.add(created)
+              createdMites.add(created)
+              if (created !in allMites) newMites.add(created)
             }
           }
-          state = state.copy(network = newNetwork).addMites(enriched)
-          toEnrich = enriched.toList()
+          state = state.copy(network = newNetwork).addMites(newMites)
+          toEnrich = createdMites.toList()
         }
 
         while (true) {

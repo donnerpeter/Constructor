@@ -779,7 +779,7 @@ class StatefulGenerator {
   def seq(Frame seq, Closure action) {
     def members = seq.flatten()
     members.eachWithIndex { Frame frame, int index ->
-      if (index == members.size() - 1) out seq.s('conj')
+      if (index == members.size() - 1 && seq.s('conj')) out seq.s('conj')
       else if (index > 0) out ','
       action(frame)
     }

@@ -38,7 +38,7 @@ public data class ParsingState(
     result += "\n"
 
     val map = LinkedHashMap<String, ArrayList<Mite>>()
-    for (mite in network.lastMites) {
+    for (mite in getVisibleMites(network.lastIndex, true)) {
       map.getOrPut(mite.cxt.name) { ArrayList() }.add(mite)
     }
 
@@ -163,7 +163,7 @@ public data class ParsingState(
     val unhappyColumns = relatedColumns.filter { network.columns[it].mites.any { !it.happy && it in active } }
     val startSet = unhappyColumns.toSortedList()
 
-    val config = enumerateVariantsWide(ActiveChange(this, mapOf(), startSet.toSet(), startSet), active.count { !it.happy } - 1)
+    val config = enumerateVariantsWide(ActiveChange(this, mapOf(), startSet.toSet(), startSet), active.count { !it.happy })
     if (config == null) {
       return this
     }

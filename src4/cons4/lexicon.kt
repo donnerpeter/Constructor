@@ -47,18 +47,17 @@ fun handleWord(w: String): List<Mite> {
     "тоже" -> l(phrase(v0.lv, "verb"), sem(v0, "also", "true"))
     "удивительный" -> adj(v, nom, "property", "AMAZING")
     "удивление" -> noun(v, nom, "AMAZE")
-    "что" -> l(clauseType("clauseParent" to v[2])) +
+    "что" -> 
+      l(clauseType("clauseParent" to v[2])) +
            (pronoun(v, nom, "wh", "agrGender" to "n", "agrNumber" to "sg", "agrPerson" to 3).xor(pronoun(v, acc, "wh")) +
            l(question("head" to v[2], "questioned" to v0))).xor(l(complementizer("head" to v[2])))
     "этому" -> adj(v, dat, "determiner", "THIS")
     "я" -> pronoun(v, nom, "ME")
-    "," -> l(phrase("head" to v0.lv, "kind" to "verb", "last" to true), sentence("verb" to v[1].lv)) +
-           multiXor(listOf(
-                   l(comp("comp" to v[2]), clauseType("clauseParent" to v[2].lv, "head" to v0)),
-                   l(conditionComp("head" to v0))//,
-                   //l(seq("conj" to ",", "seqVar" to v0, "left" to v[3], "right" to v[4]))
-           )) +
-           l(semSectionEnd("id" to v0))
+    "," -> multiXor(listOf(
+            l(phrase("head" to v0.lv, "kind" to "verb", "last" to true), sentence("verb" to v[1].lv)) +
+              l(comp("comp" to v[2]), clauseType("clauseParent" to v[2].lv, "head" to v0)).xor(l(conditionComp("head" to v0))),
+            l(seq("conj" to ",", "seqVar" to v0, "left" to v[3], "right" to v[4]))
+      )) + l(semSectionEnd("id" to v0))
     ":" -> l(semSectionEnd("id" to v0), phrase("head" to v0.lv, "kind" to "verb", "last" to true), elaboration("head" to v0, "elaboration" to v[1].lv, "first" to true), sem(v0, "elaboration", v[1]))
     "-" -> l(questionVariants("variants" to v0, "dummyHead" to v[1]), semSectionEnd("id" to v0))
     "." -> l(sentence("head" to v0, "verb" to v[1].lv), sem(v[1], "dot", "true"), semSectionEnd("id" to v0))

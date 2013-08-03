@@ -250,7 +250,6 @@ data class ActiveChange(val state: ParsingState, val changes: Map<Int, Candidate
         for (i in relatedColumns) {
           if (set.set.any { mite ->  state.network.findContradictors(mite, state.network.columns[i].mites, false).notEmpty() }) {
             newPendingColumns.add(i)
-            continue
           }
         }
 

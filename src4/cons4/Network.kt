@@ -12,6 +12,7 @@ data class Network(val parents: Map<Mite, List<Set<Mite>>> = mapOf(),
                    val mites: List<Set<Mite>> = listOf(),
                    val columns: List<Column> = listOf(),
                    val dirtyColumns: Set<Int> = setOf(),
+                   val dirtyMites: Set<Mite> = setOf(),
                    private val contrCache: HashMap<Pair<Mite, Mite>, Boolean> = HashMap()) {
   fun equals(o: Any?) = this === o
   fun hashCode() = System.identityHashCode(this)
@@ -31,7 +32,7 @@ data class Network(val parents: Map<Mite, List<Set<Mite>>> = mapOf(),
     if (child !in allMites) return result
 
     val subHierarchy = getSubHierarchy(child)
-    return subHierarchy.fold(result) { net, touched -> net.updateColumns(touched) }
+    return subHierarchy.fold(result) { net, touched -> net.updateColumns(touched) }.copy(dirtyMites = LinkedHashSet(dirtyMites + child))
   }
 
   fun getSubHierarchy(mite: Mite): Set<Mite> {
@@ -67,7 +68,7 @@ data class Network(val parents: Map<Mite, List<Set<Mite>>> = mapOf(),
         newDirtyColumns = HashSet(newDirtyColumns + cIndex)
       }
     }
-    return copy(columns = newColumns, dirtyColumns = newDirtyColumns)
+    return copy(columns = newColumns, dirtyColumns = newDirtyColumns).copy(dirtyMites = LinkedHashSet(dirtyMites + addedMite))
   }
 
   fun getAllIndices(mite: Mite, includeParents: Boolean): List<Int> {
@@ -115,6 +116,8 @@ data class Network(val parents: Map<Mite, List<Set<Mite>>> = mapOf(),
     return copy(children = newChildren, mergeChildren = newMergeChildren)
   }
 
+  private val allContrCache = HashMap<Mite, List<Mite>>()
+  fun getContradictors(mite: Mite) = allContrCache.getOrPut(mite) { findContradictors(mite, allMites, false) }
   fun findContradictors(mite: Mite, among: Collection<Mite>, includeSelf: Boolean) = among.filter { includeSelf && it == mite || contradict(mite, it) }
 
   fun contradict(mite1: Mite, mite2: Mite): Boolean {

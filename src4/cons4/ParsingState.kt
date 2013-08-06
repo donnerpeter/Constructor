@@ -130,24 +130,6 @@ public data class ParsingState(
     return result
   }
 
-  private fun enumerateVariantsWide(initialChange: ActiveChange, maxTotalWeight: Int): ActiveChange? {
-    val queue = PriorityQueue<ActiveChange>()
-    queue.offer(initialChange)
-    while (queue.notEmpty()) {
-      val change = queue.poll()!!
-      if (change.pendingColumns.empty) return change
-
-      val toAdd = change.suggestNextColumn()
-      val maxAddedWeight = maxTotalWeight - change.weight
-      val columnWeight = network.columns[toAdd].mites.count { !it.happy && it in active }
-      val maxColumnWeight = if (toAdd == network.lastIndex) Integer.MAX_VALUE else columnWeight
-      for (added in change.addColumn(toAdd, maxAddedWeight, maxColumnWeight)) {
-        queue.offer(added)
-      }
-    }
-    return null
-  }
-
   private fun updateActive(addedMites: Iterable<Mite>): ParsingState {
     val trivialActive = HashSet(active)
     for (mite in addedMites) {
@@ -155,26 +137,37 @@ public data class ParsingState(
         trivialActive.add(mite)
       }
     }
-    return copy(active = trivialActive, network = network.copy(dirtyColumns = setOf())).improveActive(network.dirtyColumns)
+    return copy(active = trivialActive, network = network.copy(dirtyColumns = setOf(), dirtyMites = setOf())).improveActive(network.dirtyMites)
   }
 
-  private fun improveActive(dirtyColumns: Set<Int>): ParsingState {
-    val relatedColumns = HashSet(dirtyColumns.flatMap { network.getRelatedIndices(it) })
-    val unhappyColumns = relatedColumns.filter { network.columns[it].mites.any { !it.happy && it in active } }
-    val startSet = unhappyColumns.toSortedList()
+  private fun improveActive(dirtyMites: Set<Mite>): ParsingState {
+    if (dirtyMites.empty) return this
+    
+    var best: ActiveChange? = null
 
-    val config = enumerateVariantsWide(ActiveChange(this, mapOf(), startSet.toSet(), startSet), active.count { !it.happy })
-    if (config == null) {
-      return this
+    val queue = PriorityQueue<ActiveChange>()
+    queue.offer(ActiveChange(this, mapOf(), dirtyMites))
+    while (queue.notEmpty()) {
+      val change = queue.poll()!!
+      if (best != null && best!!.totalWeight <= change.fixedWeight) {
+        continue
+      }
+      if (change.pendingMites.empty) {
+        if (best == null || best!!.totalWeight > change.totalWeight) {
+          best = change
+        }
+        continue
+      }
+      
+      for (next in change.branch()) {
+        queue.offer(next)
+      }
     }
+    val changeMap = best!!.fixed
 
     val newActive = HashSet(active)
-    for (idx in config.changes.keySet()) {
-      newActive.removeAll(network.columns[idx].mites)
-    }
-    for (set in config.changes.values()) {
-      newActive.addAll(set.set)
-    }
+    newActive.removeAll(changeMap.keySet())
+    newActive.addAll(changeMap.keySet().filter { changeMap[it]!! })
     return copy(active = newActive)
   }
 
@@ -216,47 +209,88 @@ public data class ParsingState(
 
 }
 
-data class ActiveChange(val state: ParsingState, val changes: Map<Int, CandidateSet>, val pendingColumns: Set<Int>, val obligatoryColumns: List<Int>): Comparable<ActiveChange> {
-  val chosenMites = HashSet(changes.values().flatMap { it.set })
-  val weight = chosenMites.filter { !it.happy }.size()
-  val activeOutside = state.active.count { mite -> !mite.happy && (changes.keySet() + pendingColumns).all { idx -> mite !in state.network.columns[idx].mites } }
-  val minPendingWeight = pendingColumns.fold(0) { max, idx -> state.network.columns[idx].getMinimumWeight() }
-  val estimate = weight + minPendingWeight + activeOutside
+data class ActiveChange(val state: ParsingState, val fixed: Map<Mite, Boolean>, val pendingMites: Set<Mite>): Comparable<ActiveChange> {
+  val fixedWeight = fixed.keySet().count { !it.happy && fixed[it] == true }
+  val totalWeight = if (pendingMites.empty) fixedWeight + state.active.count { !it.happy && !fixed.containsKey(it) } else 0
 
   public override fun compareTo(other: ActiveChange): Int {
-    val diff = estimate - other.estimate
+    val diff = pendingMites.size() - other.pendingMites.size()
     if (diff != 0) return diff
-    return pendingColumns.size() - other.pendingColumns.size()
+    return fixedWeight - other.fixedWeight
   }
-
-  fun suggestNextColumn() = obligatoryColumns.find { it !in changes.keySet() } ?: pendingColumns.toSortedList()[0]
-
-  fun addColumn(idx: Int, maxAddedWeight: Int, maxColumnWeight: Int): List<ActiveChange> {
-    val relatedColumns = state.network.getRelatedIndices(idx).filter { idx != it && !changes.containsKey(it) && !pendingColumns.contains(it) }
-
-    val contradicting = state.network.columns[idx].mites.filter { mite -> state.network.findContradictors(mite, chosenMites, false).notEmpty() }.toSet()
-
+  
+  fun branch(): List<ActiveChange> {
+    val mite = pendingMites.iterator().next()
+    
     val result = ArrayList<ActiveChange>()
-    for (set in state.network.columns[idx].candidateSets) {
-      if (set.weight > maxColumnWeight) continue
-      if (set.set.count { !it.happy && it !in chosenMites } > maxAddedWeight) continue
+    
+    val takenFixed = HashMap(fixed)
+    val takenPending = LinkedHashSet(pendingMites)
+    if (markForAdd(state, mite, takenFixed, takenPending)) {
+      result.add(ActiveChange(state, takenFixed, takenPending))
+    } 
 
-      if (set.set.all { it !in contradicting }) {
-        val newChanges = HashMap(changes)
-        newChanges[idx] = set
-
-        val newPendingColumns = HashSet(pendingColumns)
-        newPendingColumns.remove(idx)
-        for (i in relatedColumns) {
-          if (set.set.any { mite ->  state.network.findContradictors(mite, state.network.columns[i].mites, false).notEmpty() }) {
-            newPendingColumns.add(i)
-          }
-        }
-
-        result.add(copy(changes = newChanges, pendingColumns = newPendingColumns))
-      }
-    }
+    val omitFixed = HashMap(fixed)
+    val omitPending = LinkedHashSet(pendingMites)
+    if (markForRemove(state, mite, omitFixed, omitPending)) {
+      result.add(ActiveChange(state, omitFixed, omitPending))
+    } 
     return result
   }
 
+}
+
+fun mustBeAdded(state: ParsingState, mite: Mite, fixed: Map<Mite, Boolean>): Boolean {
+  return !fixed.containsKey(mite) && state.network.getContradictors(mite).count { !fixed.containsKey(it) } == 0
+}
+fun isLost(state: ParsingState, mite: Mite, fixed: Map<Mite, Boolean>): Boolean {
+  return fixed[mite] == false && state.network.getContradictors(mite).all { fixed[it] == false }
+}
+fun isFreed(state: ParsingState, mite: Mite, fixed: Map<Mite, Boolean>, pending: Set<Mite>): Boolean {
+  if (fixed.containsKey(mite) || mite in pending) return false
+  val contradictors = state.network.getContradictors(mite)
+  return contradictors.count { it in pending || fixed[it] ?: (it in state.active) } == 0
+}
+
+fun markForRemove(state: ParsingState, mite: Mite, fixed: MutableMap<Mite, Boolean>, pending: MutableSet<Mite>): Boolean {
+  fixed[mite] = false
+  pending.remove(mite)
+  if (isLost(state, mite, fixed)) {
+    return false
+  }
+  
+  val contradictors = state.network.getContradictors(mite)
+  for (c in contradictors) {
+    if (isLost(state, c, fixed)) {
+      return false
+    }
+    if (mustBeAdded(state, c, fixed)) {
+      if (!markForAdd(state, c, fixed, pending)) {
+        return false
+      }
+    }
+    if (isFreed(state, c, fixed, pending)) {
+      isFreed(state, c, fixed, pending)
+      pending.add(c)
+    }
+  }
+  if (!contradictors.any { fixed[it] == true }) {
+    pending.addAll(contradictors.filter { !fixed.containsKey(it) })
+  }
+  return true
+}
+
+fun markForAdd(state: ParsingState, mite: Mite, fixed: MutableMap<Mite, Boolean>, pending: MutableSet<Mite>): Boolean {
+  fixed[mite] = true
+  pending.remove(mite)
+  val contras = state.network.findContradictors(mite, state.network.allMites, false).filter { !fixed.containsKey(it) }
+  for (c in contras) {
+    fixed[c] = false
+  }
+  for (c in contras) {
+    if (!markForRemove(state, c, fixed, pending)) {
+      return false
+    }
+  }
+  return true
 }

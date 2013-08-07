@@ -142,7 +142,24 @@ public data class ParsingState(
         trivialActive.add(mite)
       }
     }
-    return copy(active = trivialActive, network = network.copy(dirtyColumns = setOf(), dirtyMites = setOf())).improveActive(network.dirtyMites)
+    val cp = copy(active = trivialActive, network = network.copy(dirtyColumns = setOf(), dirtyMites = setOf()))
+    
+//    val unhappyChosen = LinkedHashSet(network.allMites.filter { !it.happy && it in trivialActive })
+//    val unhappyNeighbors = LinkedHashSet(network.dirtyMites.filter { !it.happy } + network.dirtyMites.flatMap { network.getContradictors(it).filter { !it.happy && it in trivialActive } } )
+//    val unhappyDirty = LinkedHashSet(network.dirtyMites.filter { !it.happy })
+    val r1 = cp.improveActive(network.dirtyMites)
+/*
+    val r2 = cp.improveActive(if (unhappyDirty.notEmpty()) unhappyDirty else network.dirtyMites)
+    val u1 = r1.active.count { !it.happy }
+    val u2 = r2.active.count { !it.happy }
+    if (u1 != u2) {
+      val d1 = r1.active.filter { it !in r2.active }
+      val d2 = r2.active.filter { it !in r1.active }
+      println("!=")
+      val a = 1
+    }
+*/
+    return r1
   }
 
   private fun improveActive(dirtyMites: Set<Mite>): ParsingState {

@@ -181,9 +181,12 @@ public data class ParsingState(
         continue
       }
 
-      for (next in change.branch()) {
-        queue.offer(next)
-      }
+      val mite = change.pendingMites.iterator().next()
+      val take = change.includeMite(mite)
+      if (take != null) queue.offer(take)
+
+      val omit = change.excludeMite(mite)
+      if (omit != null) queue.offer(omit)
     }
     return best
   }
@@ -253,25 +256,24 @@ data class ActiveChange(val state: ParsingState, val fixed: Map<Mite, Boolean>, 
     return fixedWeight - other.fixedWeight
   }
   
-  fun branch(): List<ActiveChange> {
-    val mite = pendingMites.iterator().next()
-    
-    val result = ArrayList<ActiveChange>()
-    
+  fun includeMite(mite: Mite): ActiveChange? {
     val takenFixed = HashMap(fixed)
     val takenPending = LinkedHashSet(pendingMites)
     if (markForAdd(state, mite, takenFixed, takenPending)) {
-      result.add(ActiveChange(state, takenFixed, takenPending))
-    } 
+      return ActiveChange(state, takenFixed, takenPending)
+    }
+    return null
+  }
 
+  fun excludeMite(mite: Mite): ActiveChange? {
     val omitFixed = HashMap(fixed)
     val omitPending = LinkedHashSet(pendingMites)
     if (markForRemove(state, mite, omitFixed, omitPending)) {
-      result.add(ActiveChange(state, omitFixed, omitPending))
-    } 
-    return result
+      return ActiveChange(state, omitFixed, omitPending)
+    }
+    return null
   }
-
+  
 }
 
 fun mustBeAdded(state: ParsingState, mite: Mite, fixed: Map<Mite, Boolean>): Boolean {

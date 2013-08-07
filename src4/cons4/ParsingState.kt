@@ -53,7 +53,7 @@ public data class ParsingState(
     return result
   }
 
-  private fun addMites(added: Iterable<Mite>): ParsingState {
+  private fun addMites(added: Collection<Mite>): ParsingState {
     return added.fold(this) { state, mite -> state.copy(network = state.network.addMite(mite)) }.updateActive(added)
   }
 
@@ -130,9 +130,14 @@ public data class ParsingState(
     return result
   }
 
-  private fun updateActive(addedMites: Iterable<Mite>): ParsingState {
+  private fun updateActive(addedMites: Collection<Mite>): ParsingState {
     val trivialActive = HashSet(active)
-    for (mite in addedMites) {
+    for (mite in addedMites.filter { it.happy }) {
+      if (network.findContradictors(mite, trivialActive, false).empty) {
+        trivialActive.add(mite)
+      }
+    }
+    for (mite in addedMites.filter { !it.happy }) {
       if (network.findContradictors(mite, trivialActive, false).empty) {
         trivialActive.add(mite)
       }
@@ -144,17 +149,19 @@ public data class ParsingState(
     if (dirtyMites.empty) return this
     
     var best: ActiveChange? = null
+    var bestWeight = active.count { !it.happy }
 
     val queue = PriorityQueue<ActiveChange>()
     queue.offer(ActiveChange(this, mapOf(), dirtyMites))
     while (queue.notEmpty()) {
       val change = queue.poll()!!
-      if (best != null && best!!.totalWeight <= change.fixedWeight) {
+      if (bestWeight <= change.fixedWeight) {
         continue
       }
       if (change.pendingMites.empty) {
-        if (best == null || best!!.totalWeight > change.totalWeight) {
+        if (bestWeight > change.totalWeight) {
           best = change
+          bestWeight = change.totalWeight
         }
         continue
       }
@@ -163,6 +170,11 @@ public data class ParsingState(
         queue.offer(next)
       }
     }
+    
+    if (best == null) {
+      return this
+    }
+    
     val changeMap = best!!.fixed
 
     val newActive = HashSet(active)
@@ -270,7 +282,6 @@ fun markForRemove(state: ParsingState, mite: Mite, fixed: MutableMap<Mite, Boole
       }
     }
     if (isFreed(state, c, fixed, pending)) {
-      isFreed(state, c, fixed, pending)
       pending.add(c)
     }
   }
@@ -283,7 +294,7 @@ fun markForRemove(state: ParsingState, mite: Mite, fixed: MutableMap<Mite, Boole
 fun markForAdd(state: ParsingState, mite: Mite, fixed: MutableMap<Mite, Boolean>, pending: MutableSet<Mite>): Boolean {
   fixed[mite] = true
   pending.remove(mite)
-  val contras = state.network.findContradictors(mite, state.network.allMites, false).filter { !fixed.containsKey(it) }
+  val contras = state.network.getContradictors(mite).filter { !fixed.containsKey(it) }
   for (c in contras) {
     fixed[c] = false
   }

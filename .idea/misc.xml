@@ -23,6 +23,7 @@
     <option name="HEAP_SIZE" />
     <option name="LOCALE" />
     <option name="OPEN_IN_BROWSER" value="true" />
+    <option name="OPTION_INCLUDE_LIBS" value="false" />
   </component>
   <component name="ProjectDetails">
     <option name="projectName" value="constructor" />

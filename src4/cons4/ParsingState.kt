@@ -161,15 +161,13 @@ public data class ParsingState(
 */
     return r1
   }
-
-  private fun improveActive(dirtyMites: Set<Mite>): ParsingState {
-    if (dirtyMites.empty) return this
-    
+  
+  private fun findOptimalChange(initial: ActiveChange): ActiveChange? {
     var best: ActiveChange? = null
     var bestWeight = active.count { !it.happy }
 
     val queue = PriorityQueue<ActiveChange>()
-    queue.offer(ActiveChange(this, mapOf(), dirtyMites))
+    queue.offer(initial)
     while (queue.notEmpty()) {
       val change = queue.poll()!!
       if (bestWeight <= change.fixedWeight) {
@@ -182,12 +180,19 @@ public data class ParsingState(
         }
         continue
       }
-      
+
       for (next in change.branch()) {
         queue.offer(next)
       }
     }
+    return best
+  }
+
+  private fun improveActive(dirtyMites: Set<Mite>): ParsingState {
+    if (dirtyMites.empty) return this
     
+    var best = findOptimalChange(ActiveChange(this, mapOf(), dirtyMites))
+
     if (best == null) {
       return this
     }

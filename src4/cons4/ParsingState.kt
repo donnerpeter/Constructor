@@ -147,7 +147,7 @@ public data class ParsingState(
 //    val unhappyChosen = LinkedHashSet(network.allMites.filter { !it.happy && it in trivialActive })
 //    val unhappyNeighbors = LinkedHashSet(network.dirtyMites.filter { !it.happy } + network.dirtyMites.flatMap { network.getContradictors(it).filter { !it.happy && it in trivialActive } } )
 //    val unhappyDirty = LinkedHashSet(network.dirtyMites.filter { !it.happy })
-    val r1 = cp.improveActive(network.dirtyMites)
+    val r1 = cp.improveActiveLocal(network.dirtyMites)
 /*
     val r2 = cp.improveActive(if (unhappyDirty.notEmpty()) unhappyDirty else network.dirtyMites)
     val u1 = r1.active.count { !it.happy }
@@ -162,7 +162,7 @@ public data class ParsingState(
     return r1
   }
   
-  private fun findOptimalChange(initial: ActiveChange): ActiveChange? {
+  private fun findOptimalChange(initial: ActiveChange, dirtyMites: Set<Mite>): ActiveChange? {
     var best: ActiveChange? = null
     var bestWeight = active.count { !it.happy }
 
@@ -191,21 +191,33 @@ public data class ParsingState(
     return best
   }
 
+  private fun improveActiveLocal(dirtyMites: Set<Mite>): ParsingState {
+    if (dirtyMites.empty) return this
+
+    val emptyChange = ActiveChange(this, mapOf(), setOf())
+    for (unhappy in network.allMites.filter { !it.happy && it in active }) {
+      for (c in network.findContradictors(unhappy, dirtyMites, false)) {
+        if (c.happy) {
+          var change = emptyChange.includeMite(c)
+          change = change!!.excludeMite(unhappy)
+          if (change != null) {
+            change = findOptimalChange(change!!, setOf())
+            if (change != null) {
+              return change!!.applyChange().improveActiveLocal(dirtyMites)
+            }
+          }
+        }
+      }
+    }
+    
+    return this
+  }
+
   private fun improveActive(dirtyMites: Set<Mite>): ParsingState {
     if (dirtyMites.empty) return this
     
-    var best = findOptimalChange(ActiveChange(this, mapOf(), dirtyMites))
-
-    if (best == null) {
-      return this
-    }
-    
-    val changeMap = best!!.fixed
-
-    val newActive = HashSet(active)
-    newActive.removeAll(changeMap.keySet())
-    newActive.addAll(changeMap.keySet().filter { changeMap[it]!! })
-    return copy(active = newActive)
+    var best = findOptimalChange(ActiveChange(this, mapOf(), dirtyMites), dirtyMites)
+    return if (best == null) this else best!!.applyChange()
   }
 
   class object {
@@ -272,6 +284,13 @@ data class ActiveChange(val state: ParsingState, val fixed: Map<Mite, Boolean>, 
       return ActiveChange(state, omitFixed, omitPending)
     }
     return null
+  }
+  
+  fun applyChange(): ParsingState {
+    val newActive = HashSet(state.active)
+    newActive.removeAll(fixed.keySet())
+    newActive.addAll(fixed.keySet().filter { fixed[it]!! })
+    return state.copy(active = newActive)
   }
   
 }

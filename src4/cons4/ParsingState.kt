@@ -162,7 +162,7 @@ public data class ParsingState(
     return r1
   }
   
-  private fun findOptimalChange(initial: ActiveChange, dirtyMites: Set<Mite>): ActiveChange? {
+  private fun findOptimalChange(initial: ActiveChange): ActiveChange? {
     var best: ActiveChange? = null
     var bestWeight = active.count { !it.happy }
 
@@ -180,13 +180,11 @@ public data class ParsingState(
         }
         continue
       }
+      
+      for (next in change.branch()) {
+        queue.offer(next)
+      }
 
-      val mite = change.pendingMites.iterator().next()
-      val take = change.includeMite(mite)
-      if (take != null) queue.offer(take)
-
-      val omit = change.excludeMite(mite)
-      if (omit != null) queue.offer(omit)
     }
     return best
   }
@@ -201,7 +199,7 @@ public data class ParsingState(
           var change = emptyChange.includeMite(c)
           change = change!!.excludeMite(unhappy)
           if (change != null) {
-            change = findOptimalChange(change!!, setOf())
+            change = findOptimalChange(change!!)
             if (change != null) {
               return change!!.applyChange().improveActiveLocal(dirtyMites)
             }
@@ -216,7 +214,7 @@ public data class ParsingState(
   private fun improveActive(dirtyMites: Set<Mite>): ParsingState {
     if (dirtyMites.empty) return this
     
-    var best = findOptimalChange(ActiveChange(this, mapOf(), dirtyMites), dirtyMites)
+    var best = findOptimalChange(ActiveChange(this, mapOf(), dirtyMites))
     return if (best == null) this else best!!.applyChange()
   }
 
@@ -291,6 +289,17 @@ data class ActiveChange(val state: ParsingState, val fixed: Map<Mite, Boolean>, 
     newActive.removeAll(fixed.keySet())
     newActive.addAll(fixed.keySet().filter { fixed[it]!! })
     return state.copy(active = newActive)
+  }
+  
+  fun branch(): List<ActiveChange> {
+    val mite = pendingMites.iterator().next()
+    val result = ArrayList<ActiveChange>()
+    val take = includeMite(mite)
+    if (take != null) result.add(take)
+
+    val omit = excludeMite(mite)
+    if (omit != null) result.add(omit)
+    return result
   }
   
 }

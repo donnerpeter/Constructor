@@ -26,6 +26,7 @@ data class Network(val parents: Map<Mite, List<Set<Mite>>> = mapOf(),
     val newChildren = LinkedHashMap(children)
     newParents[child] = newParents.getOrElse(child) { listOf<Set<Mite>>() } + listOf(parents)
     for (parent in parents) {
+      assert(parent != child)
       newChildren[parent] = newChildren.getOrElse(parent) { listOf<Mite>() } + child
     }
     val result = copy(parents = newParents, children = newChildren)
@@ -106,6 +107,8 @@ data class Network(val parents: Map<Mite, List<Set<Mite>>> = mapOf(),
   }
 
   private fun addMergedMite(mite: Mite, src1: Mite, src2: Mite): Network {
+    assert(mite != src1)
+    assert(mite != src2)
     val newChildren = LinkedHashMap(children)
     for (child in LinkedHashSet(getChildren(src1) + getChildren(src2))) {
       newChildren[mite] = newChildren.getOrElse(mite) { listOf() } + child

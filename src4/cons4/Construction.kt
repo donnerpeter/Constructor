@@ -32,6 +32,7 @@ data class Mite(val cxt: Construction, val args: LinkedHashMap<String, Any>, pri
   }
 
   private fun mergeValues(key: String, myValue: Any?, hisValue: Any?): Any? {
+    if (myValue == hisValue) return myValue
     if (key == "xor") return unifyXor(myValue as LinkedHashSet<Token>?, hisValue as LinkedHashSet<Token>?)
     if (myValue is Variable && hisValue is Variable && (!myValue.hard || !hisValue.hard)) return Variable.mergeVars(myValue, hisValue)
     if (hisValue != null && myValue != null && myValue != hisValue) return null

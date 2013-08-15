@@ -8,6 +8,7 @@ import cons4.constructions.question
 import cons4.constructions.control
 import cons4.constructions.phrase
 import cons4.constructions.contrastiveTopic
+import cons4.constructions.elaboration
 
 import junit.framework.TestCase
 
@@ -103,6 +104,18 @@ class ParsingStateTest extends TestCase {
     apply([mite(contrastiveTopic.instance$, active:true)])
     assert state.active.findAll { !it.happy }.collect { it.cxt } == [nom.instance$]
   }
+
+  void "test great was my amazement"() {
+    apply([mite(phrase.instance$, head:v.get(1).lv, kind:"verb"), nom(head:v.get(1).lv, noun:v.get(2).lv)])
+    assert state.active.findAll { !it.happy }.collect { it.cxt } as Set == [nom.instance$, phrase.instance$] as Set
+
+    apply([mite(phrase.instance$, head:v.get(3), kind:"verb"), nom(head:v.get(3), noun:v.get(4).lv)])
+    assert state.active.findAll { !it.happy }.collect { it.cxt } as Set == [nom.instance$, elaboration.instance$] as Set
+
+    apply([nom(noun:v.get(5))])
+    assert state.active.findAll { !it.happy }.collect { it.cxt } == [elaboration.instance$]
+  }
+
 
   void "test candidate sets in one column"() {
     def mites = [word(word:'x1'), word(word:'x2', xor:t('a')), word(word:'x3', xor:t('a'))]

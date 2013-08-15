@@ -12,8 +12,7 @@ data class Network(val parents: Map<Mite, List<Set<Mite>>> = mapOf(),
                    val mites: List<Set<Mite>> = listOf(),
                    val columns: List<Column> = listOf(),
                    val dirtyColumns: Set<Int> = setOf(),
-                   val dirtyMites: Set<Mite> = setOf(),
-                   private val contrCache: HashMap<Pair<Mite, Mite>, Boolean> = HashMap()) {
+                   val dirtyMites: Set<Mite> = setOf()) {
   fun equals(o: Any?) = this === o
   fun hashCode() = System.identityHashCode(this)
 
@@ -120,9 +119,12 @@ data class Network(val parents: Map<Mite, List<Set<Mite>>> = mapOf(),
   }
 
   private val allContrCache = HashMap<Mite, List<Mite>>()
+  fun getHappyContradictors(mite: Mite) = getContradictors(mite).filter { it.happy }
+  fun getUnhappyContradictors(mite: Mite) = getContradictors(mite).filter { !it.happy }
   fun getContradictors(mite: Mite) = allContrCache.getOrPut(mite) { findContradictors(mite, allMites, false) }
   fun findContradictors(mite: Mite, among: Collection<Mite>, includeSelf: Boolean) = among.filter { includeSelf && it == mite || contradict(mite, it) }
 
+  private val contrCache: HashMap<Pair<Mite, Mite>, Boolean> = HashMap()
   fun contradict(mite1: Mite, mite2: Mite): Boolean {
     return contrCache.getOrPut(mite1 to mite2) { _contradict(mite1, mite2, true) }
   }

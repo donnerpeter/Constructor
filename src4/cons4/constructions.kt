@@ -54,6 +54,7 @@ object clauseType: Construction("*clauseParent", "*head")
 object sentence: Construction("*head", "*verb")
 object control: Construction("*head", "*slave")
 object complementizer: Construction("*head", "*content")
+object mergedClause: Construction("*head", "*child")
 
 object elaboration: Construction("*head", "*elaboration")
 object contrastiveTopic: Construction("head", "active")
@@ -86,7 +87,7 @@ fun enrich(state: ParsingState, mite: Mite): List<Mite> {
   }
   if (mite.cxt == seq && mite.atom && mite.has("conj")) {
     val result = ArrayList<List<Mite>>()
-    for (cxt in listOf(nom, acc, possessive, phrase)) {
+    for (cxt in listOf(nom, acc, possessive, mergedClause)) {
       result.add(l(mergedMite("mergedCxt" to cxt, "seqMite" to mite, "initial" to true)))
       result.add(l(mergedMite("mergedCxt" to cxt, "seqMite" to mite, "initial" to false)))
     }
@@ -114,15 +115,15 @@ fun enrich(state: ParsingState, mite: Mite): List<Mite> {
         result.add(possessive("possessor" to seqVar, "kind" to "seqTop"))
       }
       result.add(possessive("head" to seqVar, "possessor" to right.lv, "first" to true, "kind" to "seqMember"))
-    } else if (mergedCxt == phrase) {
+    } else if (mergedCxt == mergedClause) {
       if (initial) {
-        result.add(phrase("head" to left.lv, "kind" to "verb", "last" to true))
+        result.add(mergedClause("head" to seqVar, "child" to left.lv, "last" to true))
       }
 //      val nomArg = visibleMites.find { it.atom && it.cxt == nom && it.hasHard("head") && it.has("noun") && !it.hasHard("noun") && it.v("head") == merged.v("head") }
 //      if (nomArg != null) {
 //        result.addAll(l(nom("head" to right.lv, "noun" to nomArg.v("noun").base, "first" to true)))
 //      }
-      result.add(phrase("head" to right.lv, "kind" to "verb", "first" to true))
+      result.add(mergedClause("head" to seqVar, "child" to right.lv, "first" to true))
     }
 
     if (initial) {
@@ -146,6 +147,7 @@ fun enrich(state: ParsingState, mite: Mite): List<Mite> {
       result.addAll(multiXor(listOf(l(elaboration("elaboration" to head)),
               l(question("content" to head)),
               l(complementizer("content" to head)),
+              l(mergedClause("child" to head)),
               l(sentence("verb" to head, "first" to true)))))
     }
     return result

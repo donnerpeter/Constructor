@@ -3,7 +3,7 @@
   (:require clojure.string)
   )
 
-(defrecord ParsingState [mites])
+(defrecord ParsingState [stack])
 (defrecord Mite [cxt args])
 
 (defmethod clojure.core/print-method parser.Mite [x writer]
@@ -14,8 +14,30 @@
          ]
     (.write writer (str (name (:cxt x)) "(" arg-string ")"))))
 
+(defn parse-word [word]
+  (case (clojure.string/lower-case word)
+    "удивительный" (list (->Mite :sem {:value "AMAZING"}))
+    '()))
+
+(defn enrich [mite]
+  (case (:cxt mite)
+    :word (parse-word (:word (:args mite)))
+    '()))
+
+(defn add-mites [state mites]
+  (if (empty? mites)
+    state
+    (let [[head & tail] (:stack state)
+          newHead (concat mites head)
+          newStack (cons newHead tail)
+          newState (assoc state :stack newStack)]
+      (add-mites newState (flatten (map enrich mites))))
+    ))
+
 (defn parse-token [state token]
-  (assoc state :mites (cons (->Mite :word {:word token}) (:mites state)))
+  (let [mite (->Mite :word {:word token})
+        newState (assoc state :stack (cons () (:stack state)))]
+    (add-mites newState (list mite)))
   )
 
 (defn parse [input]

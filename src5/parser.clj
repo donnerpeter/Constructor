@@ -20,10 +20,14 @@
 (defn noun [case v type] (cons (mite case :noun v) (sem v "type" type)))
 
 (defn parse-word [word]
-  (case (clojure.string/lower-case word)
-    "случай" (noun :nom nil "THING")
-    "удивительный" (adj :nom nil "property" "AMAZING")
-    '()))
+  (let [v (new cons4.Vars)
+        vh (fn [key] (. v get key))
+        vl (fn [key] (. (. v get key) getLv))
+        var (vh 0)]
+    (case (clojure.string/lower-case word)
+    "случай" (noun :nom var "THING")
+    "удивительный" (adj :nom (vl 0) "property" "AMAZING")
+    '())))
 
 (defn enrich [mite]
   (case (:cxt mite)

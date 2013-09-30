@@ -9,12 +9,10 @@
 (defmethod clojure.core/print-method parser.Mite [x writer]
   (let [args (:args x)
         seq-args (seq args)
-        pair-strings (map (fn [[key value]] (str (name key) "=" (pr-str value))) seq-args)
+        pair-strings (map (fn [[key value]] (str (name key) "=" value)) seq-args)
         arg-string (clojure.string/join "," pair-strings)
          ]
     (.write writer (str (name (:cxt x)) "(" arg-string ")"))))
-(defmethod clojure.core/print-method java.lang.Object [x writer]
-  (.write writer (. x toString)))
 
 (defn mite [cxt & args] (->Mite cxt (apply hash-map args)))
 (defn sem [v attr value] (list (mite :sem :frame v :attr attr :value value)))

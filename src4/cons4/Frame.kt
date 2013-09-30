@@ -86,7 +86,7 @@ class Frame(val chart: Chart, val variable: Variable) {
 
   fun flatten(): List<Frame> {
     val members = allAssignments("member")
-    if (members.notEmpty()) return members.map { it.value as Frame }
+    if (members.notEmpty) return members.map { it.value as Frame }
 
     return listOf(this)
   }

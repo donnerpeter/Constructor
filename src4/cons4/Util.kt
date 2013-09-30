@@ -43,9 +43,9 @@ fun adj(v: Vars, case: Construction, rel: String, value: String) = l(case("noun"
 
 fun finiteVerb(v: Vars, time: String, typ: String? = null, agrGender: String? = null, agrNumber: String? = null, agrPerson: Int? = null): List<Mite> {
   val nomArgs : ArrayList<Pair<String, Any>> = arrayListOf("head" to v[0], "noun" to v[nom].lv)
-  if (agrGender != null) nomArgs.add("agrGender" to agrGender!!)
-  if (agrNumber != null) nomArgs.add("agrNumber" to agrNumber!!)
-  if (agrPerson != null) nomArgs.add("agrPerson" to agrPerson!!)
+  if (agrGender != null) nomArgs.add("agrGender" to agrGender)
+  if (agrNumber != null) nomArgs.add("agrNumber" to agrNumber)
+  if (agrPerson != null) nomArgs.add("agrPerson" to agrPerson)
   val result = arrayListOf(phrase(v[0], "verb"), nom(nomArgs))
   if (typ != null) result.add(sem.t(v[0], typ))
   return result + sem(v[0], "time" to time, "arg1" to v[nom])
@@ -102,7 +102,7 @@ fun multiXor(updates: List<List<Mite>>): List<Mite> {
         if (xors == null) {
           result.add(mite)
         } else {
-          val mockMite = mite.unify(mite.cxt("xor" to xors!!))!!
+          val mockMite = mite.unify(mite.cxt("xor" to xors))!!
           result.add(mite.copy(args=mockMite.args))
         }
       }

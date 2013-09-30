@@ -47,7 +47,7 @@ public data class ParsingState(
     }
 
     val unhappy = network.allMites.filter { it in active && it !in network.lastMites && !it.happy }
-    if (unhappy.notEmpty()) {
+    if (unhappy.notEmpty) {
       result += "\n  unhappy: " + unhappy.makeString(" ") + "\n"
     }
     return result
@@ -168,7 +168,7 @@ public data class ParsingState(
 
     val queue = PriorityQueue<ActiveChange>()
     queue.offer(initial)
-    while (queue.notEmpty()) {
+    while (queue.notEmpty) {
       val change = queue.poll()!!
       if (bestWeight <= change.fixedWeight) {
         continue
@@ -222,8 +222,8 @@ public data class ParsingState(
     fun _apply(_state: ParsingState, vararg cxts : Mite) : ParsingState {
       var state = _state.copy(network = _state.network.nextWord()).addMites(cxts.toList())
       var toEnrich = cxts.toList()
-      while (toEnrich.notEmpty()) {
-        while (toEnrich.notEmpty()) {
+      while (toEnrich.notEmpty) {
+        while (toEnrich.notEmpty) {
           var newNetwork = state.network
           val newMites = LinkedHashSet<Mite>()
           val createdMites = LinkedHashSet<Mite>()

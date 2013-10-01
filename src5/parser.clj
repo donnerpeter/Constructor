@@ -1,5 +1,6 @@
 (ns parser
-  (:import [java.util StringTokenizer])
+  (:import [java.util StringTokenizer]
+           [cons4 Variable])
   (:require clojure.string)
   )
 
@@ -13,6 +14,21 @@
         arg-string (clojure.string/join "," pair-strings)
          ]
     (.write writer (str (name (:cxt x)) "(" arg-string ")"))))
+
+(defn merge-args [args1, args2]
+  (let [all-keys (hash-set (conj (keys args1) (keys args2)))
+        merge-one (fn [key val1 val2]
+                    (cond 
+                      (= val1 nil) val2
+                      (= val2 nil) val1
+                      (= val1 val2) val1
+                      (and (instance? val1 Variable) (instance? val2 Variable) (not (and (.isHard val1) (.isHard val2)))) (. Variable/object$ mergeVars val1 val2)
+                      :else nil
+                      )
+                    )]
+    (reduce #(let [merged (merge-one %2 (%2 args1) (%2 args2))] (if (= nil merged) nil (assoc %1 %2 merged))) {} all-keys) 
+    )
+  )
 
 (defn mite [cxt & args] (->Mite cxt (apply hash-map args)))
 (defn sem [v attr value] (list (mite :sem :frame v :attr attr :value value)))

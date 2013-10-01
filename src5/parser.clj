@@ -16,17 +16,21 @@
     (.write writer (str (name (:cxt x)) "(" arg-string ")"))))
 
 (defn merge-args [args1, args2]
-  (let [all-keys (hash-set (conj (keys args1) (keys args2)))
+  (let [all-keys (apply hash-set (concat (keys args1) (keys args2)))
         merge-one (fn [key val1 val2]
-                    (cond 
+                    (cond
                       (= val1 nil) val2
                       (= val2 nil) val1
                       (= val1 val2) val1
-                      (and (instance? val1 Variable) (instance? val2 Variable) (not (and (.isHard val1) (.isHard val2)))) (. Variable/object$ mergeVars val1 val2)
+                      (and (instance? Variable val1) (instance? Variable val2) (not (and (.getHard val1) (.getHard val2)))) (. Variable/object$ mergeVars val1 val2)
                       :else nil
                       )
                     )]
-    (reduce #(let [merged (merge-one %2 (%2 args1) (%2 args2))] (if (= nil merged) nil (assoc %1 %2 merged))) {} all-keys) 
+    (reduce
+      #(let [merged (merge-one %2 (%2 args1) (%2 args2))]
+               (if (= nil merged) nil
+                 (assoc %1 %2 merged)))
+      {} all-keys)
     )
   )
 
@@ -62,16 +66,22 @@
       )))
 
 (defn execute-mite [mite against]
-  (loop [[candidate & rest] against
-         merged-args (if = (:cxt candidate) (:cxt mite) (merge-args (:args candidate :args mite)) nil)]
-    (if (nil? merged-args) (if (empty? rest) nil (recur rest))
-      (list (->Mite :cxt (:cxt mite) :args merged-args) :replace))
-    ))
+  (mapcat #(let [merged-args (if (= (:cxt %) (:cxt mite)) (merge-args (:args %) (:args mite)) nil)]
+             (if (nil? merged-args) () (list (->Mite (:cxt mite) merged-args))))
+    against))
+
+(defn merge-mites [state]
+  (let [[top & rest] (:stack state)
+        merge-mite (fn [mite]
+                     (if (empty? rest) () (map #(->ParsingState (cons (cons % top) (next rest))) (execute-mite mite (first rest)))))
+        allStates (mapcat merge-mite top)]
+    (if (empty? allStates) state (first allStates))))
 
 (defn parse-token [state token]
   (let [mite (mite :word :word token)
-        newState (assoc state :stack (cons () (:stack state)))]
-    (add-mites newState (list mite)))
+        newState (assoc state :stack (cons () (:stack state)))
+        withAdded (add-mites newState (list mite))]
+    (merge-mites withAdded))
   )
 
 (defn parse [input]

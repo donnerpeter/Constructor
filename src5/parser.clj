@@ -61,6 +61,13 @@
         (recur newState (flatten (map enrich mites))))
       )))
 
+(defn execute-mite [mite against]
+  (loop [[candidate & rest] against
+         merged-args (if = (:cxt candidate) (:cxt mite) (merge-args (:args candidate :args mite)) nil)]
+    (if (nil? merged-args) (if (empty? rest) nil (recur rest))
+      (list (->Mite :cxt (:cxt mite) :args merged-args) :replace))
+    ))
+
 (defn parse-token [state token]
   (let [mite (mite :word :word token)
         newState (assoc state :stack (cons () (:stack state)))]

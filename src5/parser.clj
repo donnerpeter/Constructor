@@ -51,14 +51,15 @@
     '()))
 
 (defn add-mites [state mites]
-  (if (empty? mites)
-    state
-    (let [[head & tail] (:stack state)
-          newHead (concat mites head)
-          newStack (cons newHead tail)
-          newState (assoc state :stack newStack)]
-      (add-mites newState (flatten (map enrich mites))))
-    ))
+  (loop [state state mites mites]
+    (if (empty? mites)
+      state
+      (let [[head & tail] (:stack state)
+            newHead (concat mites head)
+            newStack (cons newHead tail)
+            newState (assoc state :stack newStack)]
+        (recur newState (flatten (map enrich mites))))
+      )))
 
 (defn parse-token [state token]
   (let [mite (mite :word :word token)

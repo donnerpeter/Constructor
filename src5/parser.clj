@@ -16,7 +16,7 @@
     (.write writer (str (name (:cxt x)) "(" arg-string ")"))))
 
 (defn merge-args [args1, args2]
-  (let [all-keys (apply hash-set (concat (keys args1) (keys args2)))
+  (let [all-keys (set (concat (keys args1) (keys args2)))
         merge-one (fn [key val1 val2]
                     (cond
                       (= val1 nil) val2

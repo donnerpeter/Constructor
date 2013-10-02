@@ -36,8 +36,8 @@
 
 (defn mite [cxt & args] (->Mite cxt (apply hash-map args)))
 (defn sem [v attr value] (list (mite :sem :frame v :attr attr :value value)))
-(defn adj [case v rel value] (cons (mite case :noun v) (sem v rel value)))
-(defn noun [case v type] (cons (mite case :noun v) (sem v "type" type)))
+(defn adj [case v rel value] (cons (mite case :child v) (sem v rel value)))
+(defn noun [case v type] (cons (mite case :child v) (sem v "type" type)))
 
 (defn parse-word [word]
   (let [v (new cons4.Vars)

@@ -8,7 +8,7 @@ open data class Construction(vararg requiredArgs: String) {
   val simpleRequiredArgs = requiredArgs.filter { !it.startsWith("*") }
   val hardRequiredArgs = requiredArgs.filter { it.startsWith("*") }.map { it.substring(1) }
 
-  fun invoke(args: List<Pair<String, Any>>) = Mite(this, linkedMapOf(*args.toArray(arrayOfNulls<Pair<String, Any>>(0) as Array<Pair<String, Any>>)))
+  fun invoke(args: List<Pair<String, Any>>) = Mite(this, linkedMapOf(*args.copyToArray()))
   fun invoke(vararg args: Pair<String, Any>) = Mite(this, linkedMapOf(*args))
 
   fun toString() = name

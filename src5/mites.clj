@@ -34,6 +34,11 @@
 (defn mite [cxt & args] (->Mite cxt (apply hash-map args)))
 (defn marg [mite arg-name] (arg-name (:args mite)))
 
+(defn unify [left right]
+  (when-let [merged-args (if (= (:cxt left) (:cxt right)) (merge-args (:args left) (:args right)) nil)]
+    (->Mite (:cxt left) merged-args)))
+
+(defn has-var [mite arg-name]
+  (when-let [var (marg mite arg-name)] (and (instance? Variable var))))
 (defn has-hard [mite arg-name]
-  (when-let [var (marg mite arg-name)]
-    (and (instance? Variable var) (.booleanValue (. var getHard)))))
+  (and (has-var mite arg-name) (.booleanValue (.getHard (marg mite arg-name)))))

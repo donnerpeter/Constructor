@@ -67,7 +67,7 @@
     (if (empty? allStates) state (first allStates))))
 
 (defn parse-token [state token]
-  (let [mite (mite :word :word token)
+  (let [mite (mite :word :word token :id (. (new cons4.Vars) get 0))
         newState (append-log (assoc state :stack (cons () (:stack state))) (str token " ---------------"))
         withAdded (add-mites newState (list mite))
         finalState (merge-mites withAdded)]

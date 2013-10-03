@@ -4,7 +4,7 @@
   (:require clojure.string)
   )
 
-(defrecord ParsingState [stack])
+(defrecord ParsingState [stack log])
 (defrecord Mite [cxt args])
 
 (defmethod clojure.core/print-method parser.Mite [x writer]
@@ -14,6 +14,11 @@
         arg-string (clojure.string/join "," pair-strings)
          ]
     (.write writer (str (name (:cxt x)) "(" arg-string ")"))))
+
+(defn append-log [state newLog] (assoc state :log (str (:log state) newLog "\n")))
+(defn print-log [state] (println (str "Log:\n\n" (:log state))))
+
+(defn presentable [state] (str (:stack state)))
 
 (defn merge-args [args1, args2]
   (let [all-keys (set (concat (keys args1) (keys args2)))
@@ -73,18 +78,19 @@
 (defn merge-mites [state]
   (let [[top & rest] (:stack state)
         merge-mite (fn [mite]
-                     (if (empty? rest) () (map #(->ParsingState (cons (cons % top) (next rest))) (execute-mite mite (first rest)))))
+                     (if (empty? rest) () (map #(assoc state :stack (cons (cons % top) (next rest))) (execute-mite mite (first rest)))))
         allStates (mapcat merge-mite top)]
     (if (empty? allStates) state (first allStates))))
 
 (defn parse-token [state token]
   (let [mite (mite :word :word token)
-        newState (assoc state :stack (cons () (:stack state)))
-        withAdded (add-mites newState (list mite))]
-    (merge-mites withAdded))
+        newState (append-log (assoc state :stack (cons () (:stack state))) (str token " ---------------"))
+        withAdded (add-mites newState (list mite))
+        finalState (merge-mites withAdded)]
+    (append-log finalState (str "  " (presentable finalState))))
   )
 
 (defn parse [input]
   (let [tokenizer (new StringTokenizer input " .,:?!-" true)
         tokens (filter (fn [t] (not= t " ")) (enumeration-seq tokenizer))]
-    (reduce parse-token (->ParsingState '()) tokens)))
+    (reduce parse-token (->ParsingState '() "") tokens)))

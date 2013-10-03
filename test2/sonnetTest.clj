@@ -5,6 +5,6 @@
   (is (= (parse "abc def.") ["abc" "def" "."]))
   )
 
-(println (parse "Удивительный случай случился со мной"))
+(print-log (parse "Удивительный случай случился со мной"))
 
 (run-tests 'SonnetTest)

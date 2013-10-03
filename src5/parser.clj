@@ -40,18 +40,25 @@
   )
 
 (defn mite [cxt & args] (->Mite cxt (apply hash-map args)))
-(defn sem [v attr value] (list (mite :sem :frame v :attr attr :value value)))
-(defn adj [case v rel value] (cons (mite case :child v) (sem v rel value)))
-(defn noun [case v type] (cons (mite case :child v) (sem v "type" type)))
+(defn sem [var & pairs]
+  (if (empty? pairs) ()
+    (cons (mite :sem :frame var :attr (first pairs) :value (nth pairs 1)) (apply sem var (drop 2 pairs)))))
+(defn adj [case var rel value] (cons (mite case :child var) (sem var rel value)))
+(defn noun [case var type] (cons (mite case :child var) (sem var "type" type)))
+(defn finiteVerb [v time type]
+  (concat
+    (list (mite :phrase :head (v 0) :kind "verb") (mite :nom :head (v :nom)))
+    (sem (v 0) "time" time "type" type "arg1" (v :nom))))
 
 (defn parse-word [word]
-  (let [v (new cons4.Vars)
-        vh (fn [key] (. v get key))
-        vl (fn [key] (. (. v get key) getLv))
-        var (vh 0)]
+  (let [_vars (new cons4.Vars)
+        v (fn ([key] (. _vars get key))
+            ([key light] (. (. _vars get key) getLv)))
+        var (v 0)]
     (case (clojure.string/lower-case word)
     "случай" (noun :nom var "THING")
-    "удивительный" (adj :nom (vl 0) "property" "AMAZING")
+    "случился" (finiteVerb v "PAST" "HAPPEN")
+    "удивительный" (adj :nom (v 0 :light) "property" "AMAZING")
     '())))
 
 (defn enrich [mite]

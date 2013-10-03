@@ -32,3 +32,8 @@
   )
 
 (defn mite [cxt & args] (->Mite cxt (apply hash-map args)))
+(defn marg [mite arg-name] (arg-name (:args mite)))
+
+(defn has-hard [mite arg-name]
+  (when-let [var (marg mite arg-name)]
+    (and (instance? Variable var) (.booleanValue (. var getHard)))))

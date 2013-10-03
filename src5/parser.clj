@@ -14,7 +14,7 @@
 (defn arg [v case rel] (cons (mite case :head (v 0) :child (v case :light)) (sem (v 0) rel (v case))))
 (defn finiteVerb [v time type]
   (concat
-    (list (mite :phrase :head (v 0) :kind "verb") (mite :nom :head (v 0) :child (v :nom :light)))
+    (list (mite :phrase :head (v 0) :kind :verb) (mite :nom :head (v 0) :child (v :nom :light)))
     (sem (v 0) "time" time "type" type "arg1" (v :nom))))
 
 (defn parse-word [word]
@@ -30,10 +30,15 @@
       "удивительный" (adj :nom (v 0 :light) "property" "AMAZING")
       '())))
 
-(defn enrich [mite]
-  (case (:cxt mite)
-    :word (parse-word (:word (:args mite)))
-    '()))
+(defn enrich [m]
+  (let [cxt (:cxt m)]
+    (cond
+      (= cxt :word) (parse-word (:word (:args m)))
+      (and (= cxt :phrase) (= (marg m :kind) :verb) (has-hard m :head))
+        [(mite :elaboration :child (marg m :head))]
+      :else ()
+      ))
+  )
 
 (defn parse-token [state token] (add-word state (mite :word :word token :id (. (new cons4.Vars) get 0))))
 

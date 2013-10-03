@@ -19,7 +19,7 @@
         kotlin-mites (map #(new cons4.Mite (kotlin-cxt (:cxt %)) (to-linked-map (:args %)) nil nil nil) all)]
     (new cons4.Chart kotlin-mites)))
 
-(defn presentable [state] (str (:stack state)))
+(defn presentable [state] (clojure.string/join "\n" (map reverse (:stack state))))
 
 (defn add-mites [state mites]
   (loop [state state mites mites]

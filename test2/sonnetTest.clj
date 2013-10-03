@@ -13,6 +13,8 @@
     ))
 
 (defn doTranslateTest [input expected]
+  (. (cons4.Variable/object$) resetCounter)
+  (. (cons4.Tokens/object$) resetCounter)
   (let [state (parse input)
         chart (get-chart state)
         actual (.generate (new cons4.EnglishGenerator) chart)]
@@ -64,7 +66,8 @@ A.member=C
   )
 
 (deftest translate1
-  (doTranslateTest "Удивительный случай случился со мной" "An amazing thing happened to me today")
-  )
+  (doTranslateTest
+    "Удивительный случай случился со мной"
+    "An amazing thing happened to me today"))
 
 (run-tests 'SonnetTest)

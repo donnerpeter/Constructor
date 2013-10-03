@@ -1,7 +1,7 @@
 (ns parser
   (:import [java.util StringTokenizer]
            [cons4 Variable])
-  (:use mites)
+  (:require [mites :refer :all])
   (:require clojure.string)
   )
 

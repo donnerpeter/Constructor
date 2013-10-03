@@ -15,13 +15,8 @@
                                :else (. cons4.constructions.emptyCxt instance$)))
         all (all-mites state)
         to-linked-map (fn [clj-map]
-                        (reduce (fn [map key]
-                                  (do
-                                    (.put map (name key) (get clj-map key))
-                                    map))
-                          (new java.util.LinkedHashMap)
-                          (keys clj-map))
-                        )
+                        (let [str-keys (map #(name %) (keys clj-map))]
+                        (new java.util.LinkedHashMap (zipmap str-keys (vals clj-map)))))
         kotlin-mites (map #(new cons4.Mite (kotlin-cxt (:cxt %)) (to-linked-map (:args %)) nil nil nil) all)]
     (new cons4.Chart kotlin-mites)))
 

@@ -1,6 +1,6 @@
 (ns SonnetTest
   (:import [cons4 EnglishGenerator])
-  (:use clojure.test parser))
+  (:use clojure.test parser parsingState))
 
 (deftest sample
   (is (= (parse "abc def.") ["abc" "def" "."]))

@@ -5,7 +5,7 @@
 (defrecord ParsingState [stack log mites enrich])
 
 (defn append-log [state newLog] (assoc state :log (str (:log state) newLog "\n")))
-(defn print-log [state] (println (str "Log:\n\n" (:log state))))
+(defn print-log [state] (println (str "Log:" (:log state))))
 (defn all-mites [state] (flatten (:mites state)))
 (defn get-chart [state]
   (let [kotlin-cxt (fn [cxt] (cond
@@ -48,3 +48,10 @@
                                             (execute-mite mite (first rest)))))
         allStates (mapcat merge-mite top)]
     (if (empty? allStates) state (first allStates))))
+
+(defn add-word [state mite]
+  (let [newState (append-log (assoc state :stack (cons () (:stack state))) "\n---------------------------------")
+        withAdded (add-mites newState [mite])
+        finalState (merge-mites withAdded)]
+    (append-log finalState (str "  " (presentable finalState))))
+  )

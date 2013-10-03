@@ -35,13 +35,7 @@
     :word (parse-word (:word (:args mite)))
     '()))
 
-(defn parse-token [state token]
-  (let [mite (mite :word :word token :id (. (new cons4.Vars) get 0))
-        newState (append-log (assoc state :stack (cons () (:stack state))) (str token " ---------------"))
-        withAdded (add-mites newState [mite])
-        finalState (merge-mites withAdded)]
-    (append-log finalState (str "  " (presentable finalState))))
-  )
+(defn parse-token [state token] (add-word state (mite :word :word token :id (. (new cons4.Vars) get 0))))
 
 (defn parse [input]
   (let [tokenizer (new java.util.StringTokenizer input " .,:?!-" true)

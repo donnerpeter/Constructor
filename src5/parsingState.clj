@@ -6,7 +6,7 @@
 
 (defn append-log [state newLog] (assoc state :log (str (:log state) newLog "\n")))
 (defn print-log [state] (println (str "Log:" (:log state))))
-(defn all-mites [state] (flatten (:mites state)))
+(defn all-mites [state] (reverse (flatten (:mites state))))
 (defn get-chart [state]
   (let [kotlin-cxt (fn [cxt] (cond
                                (= cxt :sem) (. cons4.constructions.sem instance$)

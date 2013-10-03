@@ -1,10 +1,16 @@
 (ns SonnetTest
+  (:import [cons4 EnglishGenerator])
   (:use clojure.test parser))
 
 (deftest sample
   (is (= (parse "abc def.") ["abc" "def" "."]))
   )
 
-(print-log (parse "Удивительный случай случился со мной"))
+(let [state (parse "Удивительный случай случился со мной")
+      chart (get-chart state)]
+  (print-log state)
+  (println (. chart presentable))
+  (println (. (new EnglishGenerator) generate chart))
+  )
 
 (run-tests 'SonnetTest)

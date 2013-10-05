@@ -16,7 +16,7 @@
   (. (cons4.Variable/object$) resetCounter)
   (. (cons4.Tokens/object$) resetCounter)
   (let [state (parse input)
-        chart (get-chart state)
+        chart (try (get-chart state) (catch Exception e (print-log state) (throw e)))
         actual (.generate (new cons4.EnglishGenerator) chart)]
     (if (not= actual expected) (do (println (.presentable chart)) (print-log state)))
     (is (= expected actual))
@@ -24,7 +24,7 @@
   )
 
 (deftest parse1
-  (doParseTest "Удивительный случай случился со мной" "
+  (doParseTest "Удивительный случай случился со мной:" "
 A.property=AMAZING
 A.type=THING
 B.experiencer=C

@@ -28,6 +28,8 @@
       "случился" (concat (finiteVerb v "PAST" "HAPPEN") (arg v :sInstr "experiencer"))
       "со" (preposition v :sInstr :instr)
       "удивительный" (adj :nom (v 0 :light) "property" "AMAZING")
+      ":" (concat [(mite :semSectionEnda :id var) (mite :phrase :kind :verb :head (v 0 :light)) (mite :elaboration :head (v 0) :elaboration (v 1 :light) :first true)]
+            (sem var "elaboration" (v 1)))
       '())))
 
 (defn enrich [m]

@@ -23,12 +23,15 @@
             ([key light] (. (. _vars get key) getLv)))
         var (v 0)]
     (case (clojure.string/lower-case word)
+      "вдруг" (concat [(mite :phrase :kind :phrase :head (v 0 :light))] (sem var "manner" "SUDDENLY"))
+      "забыл" (concat (finiteVerb v "PAST" "FORGET") (arg v :comp "arg2"))
       "мной" (pronoun :instr var "ME")
       "случай" (noun :nom var "THING")
       "случился" (concat (finiteVerb v "PAST" "HAPPEN") (arg v :sInstr "experiencer"))
       "со" (preposition v :sInstr :instr)
       "удивительный" (adj :nom (v 0 :light) "property" "AMAZING")
-      ":" (concat [(mite :semSectionEnda :id var) (mite :phrase :kind :verb :head (v 0 :light)) (mite :elaboration :head (v 0) :elaboration (v 1 :light) :first true)]
+      "я" (pronoun :nom var "ME")
+      ":" (concat [(mite :semSectionEnd :id var) (mite :phrase :kind :verb :head (v 0 :light)) (mite :elaboration :head (v 0) :elaboration (v 1 :light) :first true)]
             (sem var "elaboration" (v 1)))
       '())))
 

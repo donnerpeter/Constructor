@@ -24,7 +24,7 @@
   )
 
 (deftest parse1
-  (doParseTest "Удивительный случай случился со мной:" "
+  (doParseTest "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8" "
 A.property=AMAZING
 A.type=THING
 B.experiencer=C

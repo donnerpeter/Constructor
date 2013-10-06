@@ -10,6 +10,8 @@
                                  ]
                           (str (name (.cxt x)) "(" arg-string ")"))))
 
+(defmethod clojure.core/print-method mites.Mite [x writer] (.write writer (str x)))
+
 (defn merge-args [args1, args2]
   (let [all-keys (set (concat (keys args1) (keys args2)))
         merge-one (fn [key val1 val2]

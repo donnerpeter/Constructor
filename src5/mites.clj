@@ -2,15 +2,13 @@
   (:import [cons4 Variable])
   (:require clojure.string))
 
-(defrecord Mite [cxt args])
-
-(defmethod clojure.core/print-method mites.Mite [x writer]
-  (let [args (:args x)
-        seq-args (seq args)
-        pair-strings (map (fn [[key value]] (str (name key) "=" value)) seq-args)
-        arg-string (clojure.string/join "," pair-strings)
-        ]
-    (.write writer (str (name (:cxt x)) "(" arg-string ")"))))
+(deftype Mite [cxt args]
+  Object (toString [x] (let [args (.args x)
+                                 seq-args (seq args)
+                                 pair-strings (map (fn [[key value]] (str (name key) "=" value)) seq-args)
+                                 arg-string (clojure.string/join "," pair-strings)
+                                 ]
+                          (str (name (.cxt x)) "(" arg-string ")"))))
 
 (defn merge-args [args1, args2]
   (let [all-keys (set (concat (keys args1) (keys args2)))
@@ -32,7 +30,7 @@
   )
 
 (defn mite [cxt & args] (->Mite cxt (apply hash-map args)))
-(defn marg [mite arg-name] (arg-name (:args mite)))
+(defn marg [mite arg-name] (arg-name (.args mite)))
 
 (defn may-unify [left right]
   (cond
@@ -41,8 +39,8 @@
     :else true))
 
 (defn unify [left right]
-  (when-let [merged-args (if (and (= (:cxt left) (:cxt right)) (may-unify left right)) (merge-args (:args left) (:args right)) nil)]
-    (->Mite (:cxt left) merged-args)))
+  (when-let [merged-args (if (and (= (.cxt left) (.cxt right)) (may-unify left right)) (merge-args (.args left) (.args right)) nil)]
+    (->Mite (.cxt left) merged-args)))
 
 (defn has-var [mite arg-name]
   (when-let [var (marg mite arg-name)] (and (instance? Variable var))))

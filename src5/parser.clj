@@ -36,9 +36,9 @@
       '())))
 
 (defn enrich [m]
-  (let [cxt (:cxt m)]
+  (let [cxt (.cxt m)]
     (cond
-      (= cxt :word) (parse-word (:word (:args m)))
+      (= cxt :word) (parse-word (:word (.args m)))
       (and (= cxt :phrase) (= (marg m :kind) :verb) (has-hard m :head))
         [(mite :elaboration :child (marg m :head))]
       :else ()

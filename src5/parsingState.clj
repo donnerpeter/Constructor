@@ -18,7 +18,7 @@
         to-linked-map (fn [clj-map]
                         (let [str-keys (map #(name %) (keys clj-map))]
                           (new java.util.LinkedHashMap (zipmap str-keys (vals clj-map)))))
-        kotlin-mites (map #(new cons4.Mite (kotlin-cxt (:cxt %)) (to-linked-map (:args %)) nil nil nil) all)]
+        kotlin-mites (map #(new cons4.Mite (kotlin-cxt (.cxt %)) (to-linked-map (.args %)) nil nil nil) all)]
     (new cons4.Chart kotlin-mites)))
 
 (defn presentable [state] (clojure.string/join "\n" (map #(str "  " %) (:stack state))))

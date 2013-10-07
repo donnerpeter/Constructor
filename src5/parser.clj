@@ -45,10 +45,16 @@
       ))
   )
 
+(defn happy? [mite]
+  (case (.cxt mite)
+    (:nom :gen :dat :acc :instr :prep :sInstr) (has-hard mite :child :head)
+    :phrase (has-hard mite :head)
+    true
+    ))
+
 (defn parse-token [state token] (add-word state (mite :word :word token :id (. (new cons4.Vars) get 0))))
 
 (defn parse [input]
   (let [tokenizer (new java.util.StringTokenizer input " .,:?!-" true)
-        tokens (filter (fn [t] (not= t " ")) (enumeration-seq tokenizer))
-        empty-state (->ParsingState () "" () enrich)]
-    (reduce parse-token empty-state tokens)))
+        tokens (filter (fn [t] (not= t " ")) (enumeration-seq tokenizer))]
+    (reduce parse-token (empty-parsing-state enrich happy?) tokens)))

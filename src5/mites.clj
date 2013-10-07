@@ -1,8 +1,8 @@
 (ns mites
   (:import [cons4 Variable])
-  (:require clojure.string))
+  (:require clojure.string clojure.set))
 
-(deftype Mite [cxt args]
+(deftype Mite [cxt args src1 src2]
   Object (toString [x] (let [args (.args x)
                                  seq-args (seq args)
                                  pair-strings (map (fn [[key value]] (str (name key) "=" value)) seq-args)
@@ -31,7 +31,13 @@
     )
   )
 
-(defn mite [cxt & args] (->Mite cxt (apply hash-map args)))
+(defn- primaries [mite]
+  (if (.src1 mite) (concat (primaries (.src1 mite)) (primaries (.src2 mite))) [mite]))
+
+(defn mites-contradict [mite1 mite2]
+  (empty? (clojure.set/intersection (set (primaries mite1)) (set (primaries mite2)))))
+
+(defn mite [cxt & args] (->Mite cxt (apply hash-map args) nil nil))
 (defn marg [mite arg-name] (arg-name (.args mite)))
 
 (defn may-unify [left right]
@@ -42,9 +48,9 @@
 
 (defn unify [left right]
   (when-let [merged-args (if (and (= (.cxt left) (.cxt right)) (may-unify left right)) (merge-args (.args left) (.args right)) nil)]
-    (->Mite (.cxt left) merged-args)))
+    (->Mite (.cxt left) merged-args left right)))
 
-(defn has-var [mite arg-name]
-  (when-let [var (marg mite arg-name)] (and (instance? Variable var))))
-(defn has-hard [mite arg-name]
-  (and (has-var mite arg-name) (.booleanValue (.getHard (marg mite arg-name)))))
+(defn has-var [mite & arg-names]
+  (every? #(when-let [var (marg mite %)] (and (instance? Variable var))) arg-names))
+(defn has-hard [mite & arg-names]
+  (every? #(and (has-var mite %) (.booleanValue (.getHard (marg mite %)))) arg-names))

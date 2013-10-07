@@ -1,3 +1,5 @@
+(alter-var-root #'*compiler-options* assoc :disable-locals-clearing true)
+
 (ns SonnetTest
   (:import [cons4 EnglishGenerator])
   (:use clojure.test parser parsingState))

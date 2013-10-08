@@ -27,14 +27,53 @@
         present-level (fn [level] (clojure.string/join " " (map present-mite level)))]
     (clojure.string/join "\n" (map #(str "  " (present-level %)) (:stack state)))))
 
+(defn find-contradictors [state mite coll] (filter #(and (not= mite %) (mites-contradict mite %)) coll))
+(defn contradictors [state mite] (find-contradictors state mite (all-mites state)))
+(defn happy-contradictors [state mite] (filter #((:happy? state) %) (contradictors state mite)))
+(defn unhappy-contradictors [state mite] (filter #(not ((:happy? state) %)) (contradictors state mite)))
+
+(defn visible-mites [state] (flatten (:stack state)))
+
+(defn suggest-active [state]
+  (let [visible (visible-mites state)
+        invisible (filter #(not (contains? visible %)) (all-mites state))
+        all-unhappy (filter #(not ((:happy? state) %)) (all-mites state))
+        all-happy (filter #((:happy? state) %) (all-mites state))
+        weights (loop [map {}
+                       rest-unhappy all-unhappy]
+                  (if (empty? rest-unhappy) map
+                    (let [contras (happy-contradictors state (first rest-unhappy))
+                          weight-inc (if (empty? contras) 239 (/ 1 (count contras)))
+                          new-map (loop [map map
+                                         rest-contras contras]
+                                    (if (empty? rest-contras) map
+                                      (let [fst (first rest-contras)
+                                            new-map (assoc map fst (max weight-inc (get map fst 0)))]
+                                        (recur new-map (rest rest-contras)))
+                                      )
+                                    )]
+                      (recur new-map (rest rest-unhappy))
+                      )))
+        suggested (loop
+                    [result #{}
+                         rest-happy (sort-by #(get weights % 1) all-happy)]
+                    (if (empty? rest-happy) result
+                      (recur
+                        (if (empty? (find-contradictors state (first rest-happy) result)) (conj result (first rest-happy)) result)
+                        (rest rest-happy)))
+                    )
+        ]
+    suggested)
+  )
+
 (defn raw-add-mites [state mites]
   (let [stack (:stack state)
-        state-mites (:mites state)]
-    (assoc state
-      :stack (cons (vec (concat (first stack) mites)) (next stack))
-      :mites (cons (vec (concat (first state-mites) mites)) (next state-mites))
-      :active (clojure.set/union (:active state) (set mites))
-      )))
+        state-mites (:mites state)
+        new-state (assoc state
+              :stack (cons (vec (concat (first stack) mites)) (next stack))
+              :mites (cons (vec (concat (first state-mites) mites)) (next state-mites))
+              )]
+    (assoc new-state :active (suggest-active new-state))))
 
 (defn add-mites-enriching [state mites]
   (loop [state state mites mites]

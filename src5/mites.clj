@@ -35,7 +35,7 @@
   (if (.src1 mite) (concat (primaries (.src1 mite)) (primaries (.src2 mite))) [mite]))
 
 (defn mites-contradict [mite1 mite2]
-  (empty? (clojure.set/intersection (set (primaries mite1)) (set (primaries mite2)))))
+  (not (empty? (clojure.set/intersection (set (primaries mite1)) (set (primaries mite2))))))
 
 (defn mite [cxt & args] (->Mite cxt (apply hash-map args) nil nil))
 (defn marg [mite arg-name] (arg-name (.args mite)))

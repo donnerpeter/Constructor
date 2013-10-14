@@ -39,7 +39,7 @@
   (not (empty? (clojure.set/intersection (set (primaries mite1)) (set (primaries mite2))))))
 
 (defn mite [cxt & args] (->Mite cxt (apply hash-map args) nil nil))
-(defn marg [mite arg-name] (arg-name (.args mite)))
+(defn marg [^Mite mite arg-name] (arg-name (.args mite)))
 
 (defn may-unify [left right]
   (cond
@@ -51,7 +51,7 @@
   (when-let [merged-args (if (and (= (.cxt left) (.cxt right)) (may-unify left right)) (merge-args (.args left) (.args right)) nil)]
     (->Mite (.cxt left) merged-args left right)))
 
-(defn has-var [mite & arg-names]
+(defn has-var [^Mite mite & arg-names]
   (every? #(when-let [var (marg mite %)] (and (instance? Variable var))) arg-names))
-(defn has-hard [mite & arg-names]
+(defn has-hard [^Mite mite & arg-names]
   (every? #(and (has-var mite %) (.booleanValue (.getHard (marg mite %)))) arg-names))

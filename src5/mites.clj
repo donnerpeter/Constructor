@@ -24,17 +24,18 @@
                       )
                     )]
     (reduce
-      #(let [merged (merge-one %2 (%2 args1) (%2 args2))]
-         (if (= nil merged) nil
-           (assoc %1 %2 merged)))
+      #(if (= nil %1) nil
+         (let [merged (merge-one %2 (%2 args1) (%2 args2))]
+           (if (= nil merged) nil
+           (assoc %1 %2 merged))))
       {} all-keys)
     )
   )
 
-(defn- primaries [mite]
+(defn- primaries [^Mite mite]
   (if (.src1 mite) (concat (primaries (.src1 mite)) (primaries (.src2 mite))) [mite]))
 
-(defn mites-contradict [mite1 mite2]
+(defn mites-contradict [^Mite mite1 ^Mite mite2]
   (not (empty? (clojure.set/intersection (set (primaries mite1)) (set (primaries mite2))))))
 
 (defn mite [cxt & args] (->Mite cxt (apply hash-map args) nil nil))

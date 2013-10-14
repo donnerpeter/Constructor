@@ -8,8 +8,8 @@
   [seq elm]
   (some #(= elm %) seq))
 
-(defrecord ParsingState [stack log mites enrich active happy?])
-(defn empty-parsing-state [enrich happy?] (->ParsingState () "" () enrich #{} happy?))
+(defrecord ParsingState [stack log mites enrich active happy? contradictor-cache])
+(defn empty-parsing-state [enrich happy?] (->ParsingState () "" () enrich #{} happy? {}))
 
 (defn append-log [state newLog]
   (assoc state :log
@@ -39,7 +39,7 @@
     (str (clojure.string/join "\n" (map #(str "  " (present-level %)) (:stack state))) additional-str)))
 
 (defn find-contradictors [state mite coll] (filter #(and (not= mite %) (mites-contradict mite %)) coll))
-(defn contradictors [state mite] (find-contradictors state mite (all-mites state)))
+(defn contradictors [state mite] (get (:contradictor-cache state) mite))
 (defn happy-contradictors [state mite] (filter #((:happy? state) %) (contradictors state mite)))
 (defn unhappy-contradictors [state mite] (filter #(not ((:happy? state) %)) (contradictors state mite)))
 
@@ -70,8 +70,13 @@
         new-active (filter #(or (in? uncovered %) (= true (get (:chosen ac) %))) all)]
     new-active))
 
+(defn build-contradictor-cache [state]
+  (let [all (all-mites state)]
+    (zipmap all (map #(find-contradictors state % all) all))))
+
 (defn suggest-active [state]
-  (let [visible (visible-mites state)
+  (let [state (assoc state :contradictor-cache (build-contradictor-cache state))
+        visible (visible-mites state)
         invisible (filter #(not (in? visible %)) (all-mites state))
         all-unhappy (filter #(not ((:happy? state) %)) (all-mites state))
         all-happy (filter #((:happy? state) %) (all-mites state))

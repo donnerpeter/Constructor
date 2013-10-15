@@ -25,7 +25,7 @@
     (case (clojure.string/lower-case word)
       "7" (concat (noun :nom var "7") (sem var "number" "true"))
       "8" (concat (noun :nom var "8") (sem var "number" "true"))
-      "вдруг" (concat [(mite :phrase :kind :phrase :head (v 0 :light))] (sem var "manner" "SUDDENLY"))
+      "вдруг" (concat [(mite :phrase :kind :verb :head (v 0 :light))] (sem var "manner" "SUDDENLY"))
       "забыл" (concat (finiteVerb v "PAST" "FORGET") (arg v :comp "arg2"))
       "идет" (concat (finiteVerb v "PAST" "COME_SCALARLY") [(mite :order-adverb :head var)])
       "или" [(mite :seq :conj "or" :seqVar var :left (v 1) :right (v 2))]

@@ -10,6 +10,7 @@
 
 (defrecord ParsingState [stack log mites enrich active happy? contradictor-cache])
 (defn empty-parsing-state [enrich happy?] (->ParsingState () "" () enrich #{} happy? {}))
+(defrecord StackLevel [link-up mites])
 
 (defn append-log [state newLog]
   (assoc state :log
@@ -34,7 +35,7 @@
   (let [visible (visible-mites state)
         additional (filter #(and (in? (:active state) %) (not ((:happy? state) %)) (not (in? visible %))) (all-mites state))
         present-mite (fn [mite] (str (if (in? (:active state) mite) "*" "") (if ((:happy? state) mite) "" "!") mite))
-        present-level (fn [level] (clojure.string/join " " (map present-mite level)))
+        present-level (fn [level] (str (if (:link-up level) "/ " "| ") (clojure.string/join " " (map present-mite (:mites level)))))
         additional-str (if (empty? additional) "" (str "\n    unhappy: " (clojure.string/join " " (map present-mite additional))))]
     (str (clojure.string/join "\n" (map #(str "  " (present-level %)) (:stack state))) additional-str)))
 
@@ -106,8 +107,9 @@
 (defn raw-add-mites [state mites]
   (let [stack (:stack state)
         state-mites (:mites state)
+        stack-top (first stack)
         new-state (assoc state
-              :stack (cons (vec (concat (first stack) mites)) (next stack))
+              :stack (cons (assoc stack-top :mites (vec (concat (:mites stack-top) mites))) (next stack))
               :mites (cons (vec (concat (first state-mites) mites)) (next state-mites))
               )
         new-active (suggest-active new-state)]
@@ -126,7 +128,7 @@
   [state top remaining-stack]
   (if (empty? remaining-stack) []
     (let [all-unified (flatten (for [right top
-                                     left (first remaining-stack)]
+                                     left (:mites (first remaining-stack))]
                                  (if-let [unified (unify left right)] [unified] ())
                                  ))
           mites-leaving-stack (filter #(leave-previous-stack (.src1 %) (.src2 %)) all-unified)
@@ -134,21 +136,22 @@
           add-merged-mites (fn [merged-mites leave-stack]
                              (if (empty? merged-mites) nil
                                (let [with-unified (raw-add-mites state merged-mites)
-                                     new-last-mites (first (:stack with-unified))
-                                     new-stack (cons new-last-mites (if leave-stack remaining-stack (next remaining-stack)))]
+                                     new-last-mites (:mites (first (:stack with-unified)))
+                                     new-stack (cons (->StackLevel leave-stack new-last-mites) (if leave-stack remaining-stack (next remaining-stack)))]
                                  [(assoc with-unified :stack new-stack)])))
            all-merges (filter #(not= % nil) [(add-merged-mites mites-leaving-stack true) (add-merged-mites mites-eating-stack false)])]
-      (concat (flatten all-merges) (do-merge-mites state top (next remaining-stack))))))
+      (concat (flatten all-merges)
+        (if (:link-up (first remaining-stack)) (do-merge-mites state top (next remaining-stack)) [])))))
 
 (defn merge-mites [state]
   (let [[top & rest] (:stack state)
-        allStates (do-merge-mites state top rest)]
+        allStates (do-merge-mites state (:mites top) rest)]
     (if (empty? allStates) state (first allStates))))
 
 ;(Thread/sleep 10000)
 
 (defn add-word [state mite]
-  (let [newState (append-log (assoc state :stack (cons () (:stack state)) :mites (cons () (:mites state))) "\n---------------------------------")
+  (let [newState (append-log (assoc state :stack (cons (->StackLevel false []) (:stack state)) :mites (cons () (:mites state))) "\n---------------------------------")
         withAdded (add-mites-enriching newState [mite])
         finalState (merge-mites withAdded)]
     (append-log finalState (presentable finalState)))

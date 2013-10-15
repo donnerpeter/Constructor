@@ -29,14 +29,14 @@
   (doParseTest "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8" "
 A.property=AMAZING
 A.type=THING
-B.experiencer=C
-B.arg1=A
-B.type=HAPPEN
 B.time=PAST
+B.type=HAPPEN
+B.arg1=A
+B.experiencer=C
 C.type=ME
 -- 2:
-A.type=ME
-B.type=FORGET
+B@1.elaboration=A
+B.type=ME
 B.time=PAST
 B.arg1=A
 A.gender=masc

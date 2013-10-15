@@ -43,31 +43,37 @@
 (defn happy-contradictors [state mite] (filter #((:happy? state) %) (contradictors state mite)))
 (defn unhappy-contradictors [state mite] (filter #(not ((:happy? state) %)) (contradictors state mite)))
 
-(defrecord ActiveChange [chosen remaining])
-
-(defn is-complete-change? [ac] (empty? (:remaining ac)))
-(defn fork-change [ac]
-  (let [mite (first (:remaining ac))
-        rest-remaining (rest (:remaining ac))
-        taken (let [to-expel (filter #(mites-contradict mite %) rest-remaining)
-                    expelled-map (reduce #(assoc %1 %2 false) (:chosen ac) to-expel)]
-                (->ActiveChange (assoc expelled-map mite true) (filter #(not (in? to-expel %)) rest-remaining)))
-        omitted (->ActiveChange (assoc (:chosen ac) mite false) rest-remaining)]
-    [taken omitted]))
+(defrecord ActiveChange [chosen remaining uncovered])
 
 (defn is-uncovered? [mite state chosen-map]
   (and
+    (every? #(= false (get chosen-map %)) (happy-contradictors state mite))
     (or
-      (not ((:happy? state) mite))
-      (= false (get chosen-map mite)))
-    (every? #(= false (get chosen-map %)) (happy-contradictors state mite))))
+      (= false (get chosen-map mite))
+      (not ((:happy? state) mite)))
+    ))
 
-(defn get-uncovered [coll state chosen-map] (filter #(is-uncovered? % state chosen-map) coll))
+(defn update-uncovered [expelled-coll state ac]
+  (let [suspicious (clojure.set/union (set (mapcat #(contradictors state %) expelled-coll)) expelled-coll)
+        fresh-uncovered (filter #(is-uncovered? % state (:chosen ac)) suspicious)]
+    (assoc ac :uncovered (clojure.set/union (:uncovered ac) fresh-uncovered))))
+
+(defn is-complete-change? [ac] (empty? (:remaining ac)))
+(defn fork-change [state ac]
+  (let [mite (first (:remaining ac))
+        rest-remaining (rest (:remaining ac))
+        taken (let [to-expel (filter #(mites-contradict mite %) rest-remaining)
+                    expelled-map (reduce #(assoc %1 %2 false) (:chosen ac) to-expel)
+                    ]
+                (update-uncovered to-expel state (assoc ac :chosen (assoc expelled-map mite true) :remaining (filter #(not (in? to-expel %)) rest-remaining))))
+        omitted (update-uncovered [mite] state (assoc ac :chosen (assoc (:chosen ac) mite false) :remaining rest-remaining))]
+    [taken omitted]))
 
 (defn apply-change [ac state]
   (let [all (all-mites state)
-        uncovered (get-uncovered all state (:chosen ac))
-        new-active (filter #(or (in? uncovered %) (= true (get (:chosen ac) %))) all)]
+        uncovered (:uncovered ac)
+        new-active (filter
+                     #(or (in? uncovered %) (= true (get (:chosen ac) %))) all)]
     new-active))
 
 (defn build-contradictor-cache [state]
@@ -77,19 +83,21 @@
 (defn suggest-active [state]
   (let [state (assoc state :contradictor-cache (build-contradictor-cache state))
         visible (visible-mites state)
-        invisible (filter #(not (in? visible %)) (all-mites state))
+        invisible (set (filter #(not (in? visible %)) (all-mites state)))
         all-unhappy (filter #(not ((:happy? state) %)) (all-mites state))
         all-happy (filter #((:happy? state) %) (all-mites state))
-        change-weight (fn [ac] [(count (get-uncovered invisible state (:chosen ac)))
-                                (count (get-uncovered visible state (:chosen ac)))])
-        initial-change (->ActiveChange {} all-happy)
+        change-weight (fn [ac]
+                        (let [uncovered (:uncovered ac)
+                              invisible-uncovered (count (filter #(in? invisible %) uncovered))]
+                          [invisible-uncovered (- (count uncovered) invisible-uncovered)]))
+        initial-change (->ActiveChange {} all-happy #{})
         ]
     (loop [queue (priority-map initial-change (change-weight initial-change))]
       (let [[next-ac & weight] (peek queue)
             queue (pop queue)]
         (if (is-complete-change? next-ac)
           (apply-change next-ac state)
-          (let [forked (fork-change next-ac)
+          (let [forked (fork-change state next-ac)
                 queue (reduce #(assoc %1 %2 (change-weight %2)) queue forked)]
             (recur queue))))
       ))
@@ -136,6 +144,8 @@
   (let [[top & rest] (:stack state)
         allStates (do-merge-mites state top rest)]
     (if (empty? allStates) state (first allStates))))
+
+;(Thread/sleep 10000)
 
 (defn add-word [state mite]
   (let [newState (append-log (assoc state :stack (cons () (:stack state)) :mites (cons () (:mites state))) "\n---------------------------------")

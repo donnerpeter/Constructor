@@ -8,10 +8,11 @@
   [seq elm]
   (some #(= elm %) seq))
 
-(defrecord ParsingState [trees log enrich happy? contradictor-cache])
-(defn empty-parsing-state [enrich happy?] (->ParsingState () "" enrich happy? {}))
+(defrecord ParsingState [trees log enrich happy?])
+(defn empty-parsing-state [enrich happy?] (->ParsingState () "" enrich happy?))
 
-(defrecord Tree [root mites active])
+(defrecord Tree [root mites active contradictor-map])
+(defn empty-tree [root] (->Tree root [] #{} {}))
 
 (defn append-log [state newLog]
   (assoc state :log
@@ -30,7 +31,8 @@
         kotlin-mites (map #(new cons4.Mite (kotlin-cxt (.cxt %)) (to-linked-map (.args %)) nil nil nil) active)]
     (new cons4.Chart kotlin-mites)))
 
-(defn visible-tree-mites [tree] (flatten (:mites tree)))
+(defn all-tree-mites [tree] (:mites tree))
+(defn visible-tree-mites [tree] (:mites tree))
 (defn visible-mites [state] (flatten (map #(:mites %) (:trees state))))
 
 (defn presentable [state]
@@ -42,35 +44,34 @@
         additional-str (if (empty? additional) "" (str "\n    unhappy: " (clojure.string/join " " (map present-mite additional))))]
     (str (clojure.string/join "\n" (map #(str "  " (present-tree %)) (:trees state))) additional-str)))
 
-(defn find-contradictors [state mite coll] (filter #(and (not= mite %) (mites-contradict mite %)) coll))
-(defn contradictors [state mite] (get (:contradictor-cache state) mite))
-(defn happy-contradictors [state mite] (filter #((:happy? state) %) (contradictors state mite)))
-(defn unhappy-contradictors [state mite] (filter #(not ((:happy? state) %)) (contradictors state mite)))
+(defn find-contradictors [mite coll] (filter #(and (not= mite %) (mites-contradict mite %)) coll))
+(defn contradictors [tree mite] (get (:contradictor-map tree) mite))
+(defn happy-contradictors [tree mite] (filter #((:happy? tree) %) (contradictors tree mite)))
 
 (defrecord ActiveChange [chosen remaining uncovered])
 
-(defn is-uncovered? [mite state chosen-map]
+(defn is-uncovered? [mite state tree chosen-map]
   (and
-    (every? #(= false (get chosen-map %)) (happy-contradictors state mite))
+    (every? #(= false (get chosen-map %)) (happy-contradictors tree mite))
     (or
       (= false (get chosen-map mite))
       (not ((:happy? state) mite)))
     ))
 
-(defn update-uncovered [expelled-coll state ac]
-  (let [suspicious (clojure.set/union (set (mapcat #(contradictors state %) expelled-coll)) expelled-coll)
-        fresh-uncovered (filter #(is-uncovered? % state (:chosen ac)) suspicious)]
+(defn update-uncovered [expelled-coll state tree ac]
+  (let [suspicious (clojure.set/union (set (mapcat #(contradictors tree %) expelled-coll)) expelled-coll)
+        fresh-uncovered (filter #(is-uncovered? % state tree (:chosen ac)) suspicious)]
     (assoc ac :uncovered (clojure.set/union (:uncovered ac) fresh-uncovered))))
 
 (defn is-complete-change? [ac] (empty? (:remaining ac)))
-(defn fork-change [state ac]
+(defn fork-change [state tree ac]
   (let [mite (first (:remaining ac))
         rest-remaining (rest (:remaining ac))
         taken (let [to-expel (filter #(mites-contradict mite %) rest-remaining)
                     expelled-map (reduce #(assoc %1 %2 false) (:chosen ac) to-expel)
                     ]
-                (update-uncovered to-expel state (assoc ac :chosen (assoc expelled-map mite true) :remaining (filter #(not (in? to-expel %)) rest-remaining))))
-        omitted (update-uncovered [mite] state (assoc ac :chosen (assoc (:chosen ac) mite false) :remaining rest-remaining))]
+                (update-uncovered to-expel state tree (assoc ac :chosen (assoc expelled-map mite true) :remaining (filter #(not (in? to-expel %)) rest-remaining))))
+        omitted (update-uncovered [mite] state tree (assoc ac :chosen (assoc (:chosen ac) mite false) :remaining rest-remaining))]
     [taken omitted]))
 
 (defn apply-change [ac tree]
@@ -80,13 +81,12 @@
                      #(or (in? uncovered %) (= true (get (:chosen ac) %))) all)]
     new-active))
 
-(defn build-contradictor-cache [state]
-  (let [all (all-mites state)]
-    (zipmap all (map #(find-contradictors state % all) all))))
+(defn build-contradictor-cache [tree]
+  (let [all (all-tree-mites tree)]
+    (zipmap all (map #(find-contradictors % all) all))))
 
 (defn suggest-active [state tree]
-  (let [state (assoc state :contradictor-cache (build-contradictor-cache (assoc state :trees (cons tree (:trees state)))))
-        visible (visible-tree-mites tree)
+  (let [visible (visible-tree-mites tree)
         all (:mites tree)
         invisible (set (filter #(not (in? visible %)) all))
         all-unhappy (filter #(not ((:happy? state) %)) all)
@@ -102,7 +102,7 @@
             queue (pop queue)]
         (if (is-complete-change? next-ac)
           (apply-change next-ac tree)
-          (let [forked (fork-change state next-ac)
+          (let [forked (fork-change state tree next-ac)
                 queue (reduce #(assoc %1 %2 (change-weight %2)) queue forked)]
             (recur queue))))
       ))
@@ -117,7 +117,8 @@
       (recur (raw-add-mites tree mites)
              (flatten (map enrich-fun mites))))))
 (defn new-leaf-tree [^mites.Mite root ^ParsingState state]
-  (let [tree (add-mites-enriching (->Tree root [] #{}) [root] (:enrich state))
+  (let [tree (add-mites-enriching (->Tree root [] #{} {}) [root] (:enrich state))
+        tree (assoc tree :contradictor-map (build-contradictor-cache tree))
         active (suggest-active state tree)]
     (assoc tree :active active)))
 

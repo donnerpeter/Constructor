@@ -34,14 +34,25 @@
 (defn visible-tree-mites [tree] (:mites tree))
 (defn visible-mites [state] (flatten (map #(:mites %) (:trees state))))
 
+(defn present-mite [mite state active] (str (if active "*" "") (if ((:happy? state) mite) "" "!") mite))
+(defn present-tree [tree state]
+  (let [active (.active tree)
+        present-level (fn [prefix tree]
+                        (str prefix
+                                             (clojure.string/join " " (map #(present-mite % state (in? active %)) (.mites tree)))))
+        ]
+    (str (clojure.string/join "\n"
+           (concat (map #(present-level "  / " %) (map #(get % 1) (.right-border tree)))
+                   [(present-level "  | " tree)]
+                   (map #(present-level "  \\ " %) (map #(get % 1) (.left-border tree))))))
+  ))
+
 (defn presentable [state]
   (let [visible (visible-mites state)
-        active (set (mapcat #(:active %) (:trees state)))
+        active (set (mapcat #(.active %) (.trees state)))
         additional (filter #(and (in? active %) (not ((:happy? state) %)) (not (in? visible %))) (all-mites state))
-        present-mite (fn [mite] (str (if (in? active mite) "*" "") (if ((:happy? state) mite) "" "!") mite))
-        present-tree (fn [tree] (str #_(if (:link-up level) "/ " "| ") (clojure.string/join " " (map present-mite (:mites tree)))))
-        additional-str (if (empty? additional) "" (str "\n    unhappy: " (clojure.string/join " " (map present-mite additional))))]
-    (str (clojure.string/join "\n" (map #(str "  " (present-tree %)) (:trees state))) additional-str)))
+        additional-str (if (empty? additional) "" (str "\n    unhappy: " (clojure.string/join " " (map #(present-mite % state (in? active %)) additional))))]
+    (str (clojure.string/join "\n" (map #(present-tree % state) (.trees state))) additional-str)))
 
 (defn find-contradictors [mite coll] (filter #(and (not= mite %) (mites-contradict mite %)) coll))
 (defn contradictors [tree mite] (get (:contradictor-map tree) mite))

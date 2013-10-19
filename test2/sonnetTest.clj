@@ -1,12 +1,12 @@
 (alter-var-root #'*compiler-options* assoc :disable-locals-clearing true)
 
 (ns SonnetTest
-  (:import [cons4 EnglishGenerator])
+  (:import [cons4 EnglishGenerator Variable Tokens])
   (:use clojure.test parser parsingState))
 
 (defn doParseTest [input expected]
-  (. (cons4.Variable/object$) resetCounter)
-  (. (cons4.Tokens/object$) resetCounter)
+  (. (Variable/object$) resetCounter)
+  (. (Tokens/object$) resetCounter)
   (let [state (parse input)
         chart (get-chart state)
         actual (. chart presentable)]
@@ -15,11 +15,11 @@
     ))
 
 (defn doTranslateTest [input expected]
-  (. (cons4.Variable/object$) resetCounter)
-  (. (cons4.Tokens/object$) resetCounter)
+  (. (Variable/object$) resetCounter)
+  (. (Tokens/object$) resetCounter)
   (let [state (parse input)
         chart (try (get-chart state) (catch Exception e (print-log state) (throw e)))
-        actual (.generate (new cons4.EnglishGenerator) chart)]
+        actual (.generate (new EnglishGenerator) chart)]
     (if (not= actual expected) (do (println (.presentable chart)) (print-log state)))
     (is (= expected actual))
     )

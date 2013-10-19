@@ -7,8 +7,8 @@
 
 (defn in? [seq elm] (some #(= elm %) seq))
 
-(defrecord ParsingState [trees log enrich happy?])
-(defn empty-parsing-state [enrich happy?] (->ParsingState () "" enrich happy?))
+(defrecord ParsingState [trees log enrich])
+(defn empty-parsing-state [enrich] (->ParsingState () "" enrich))
 
 (defrecord Tree [root mites active contradictor-map left-border right-border])
 (defn empty-tree [root] (->Tree root [] #{} {} [] []))
@@ -34,12 +34,12 @@
 (defn visible-tree-mites [tree] (:mites tree))
 (defn visible-mites [state] (flatten (map #(:mites %) (:trees state))))
 
-(defn present-mite [mite state active] (str (if active "*" "") (if ((:happy? state) mite) "" "!") mite))
-(defn present-tree [tree state]
+(defn present-mite [mite active] (str (if active "*" "") (if (is-happy? mite) "" "!") mite))
+(defn present-tree [tree]
   (let [active (.active tree)
         present-level (fn [prefix tree]
                         (str prefix
-                                             (clojure.string/join " " (map #(present-mite % state (in? active %)) (.mites tree)))))
+                             (clojure.string/join " " (map #(present-mite % (in? active %)) (.mites tree)))))
         ]
     (str (clojure.string/join "\n"
            (concat (map #(present-level "  / " %) (map #(get % 1) (.right-border tree)))
@@ -50,38 +50,38 @@
 (defn presentable [state]
   (let [visible (visible-mites state)
         active (set (mapcat #(.active %) (.trees state)))
-        additional (filter #(and (in? active %) (not ((:happy? state) %)) (not (in? visible %))) (all-mites state))
-        additional-str (if (empty? additional) "" (str "\n    unhappy: " (clojure.string/join " " (map #(present-mite % state (in? active %)) additional))))]
-    (str (clojure.string/join "\n" (map #(present-tree % state) (.trees state))) additional-str)))
+        additional (filter #(and (in? active %) (not (is-happy? %)) (not (in? visible %))) (all-mites state))
+        additional-str (if (empty? additional) "" (str "\n    unhappy: " (clojure.string/join " " (map #(present-mite % (in? active %)) additional))))]
+    (str (clojure.string/join "\n" (map present-tree (.trees state))) additional-str)))
 
 (defn find-contradictors [mite coll] (filter #(and (not= mite %) (mites-contradict mite %)) coll))
 (defn contradictors [tree mite] (get (:contradictor-map tree) mite))
-(defn happy-contradictors [tree mite] (filter #((:happy? tree) %) (contradictors tree mite)))
+(defn happy-contradictors [tree mite] (filter #(is-happy? %) (contradictors tree mite)))
 
 (defrecord ActiveChange [chosen remaining uncovered])
 
-(defn is-uncovered? [mite state tree chosen-map]
+(defn is-uncovered? [mite tree chosen-map]
   (and
     (every? #(= false (get chosen-map %)) (happy-contradictors tree mite))
     (or
       (= false (get chosen-map mite))
-      (not ((:happy? state) mite)))
+      (not (is-happy? mite)))
     ))
 
-(defn update-uncovered [expelled-coll state tree ac]
+(defn update-uncovered [expelled-coll tree ac]
   (let [suspicious (clojure.set/union (set (mapcat #(contradictors tree %) expelled-coll)) expelled-coll)
-        fresh-uncovered (filter #(is-uncovered? % state tree (:chosen ac)) suspicious)]
+        fresh-uncovered (filter #(is-uncovered? % tree (:chosen ac)) suspicious)]
     (assoc ac :uncovered (clojure.set/union (:uncovered ac) fresh-uncovered))))
 
 (defn is-complete-change? [ac] (empty? (:remaining ac)))
-(defn fork-change [state tree ac]
+(defn fork-change [tree ac]
   (let [mite (first (:remaining ac))
         rest-remaining (rest (:remaining ac))
         taken (let [to-expel (filter #(mites-contradict mite %) rest-remaining)
                     expelled-map (reduce #(assoc %1 %2 false) (:chosen ac) to-expel)
                     ]
-                (update-uncovered to-expel state tree (assoc ac :chosen (assoc expelled-map mite true) :remaining (filter #(not (in? to-expel %)) rest-remaining))))
-        omitted (update-uncovered [mite] state tree (assoc ac :chosen (assoc (:chosen ac) mite false) :remaining rest-remaining))]
+                (update-uncovered to-expel tree (assoc ac :chosen (assoc expelled-map mite true) :remaining (filter #(not (in? to-expel %)) rest-remaining))))
+        omitted (update-uncovered [mite] tree (assoc ac :chosen (assoc (:chosen ac) mite false) :remaining rest-remaining))]
     [taken omitted]))
 
 (defn apply-change [ac tree]
@@ -95,12 +95,12 @@
   (let [all (all-tree-mites tree)]
     (zipmap all (map #(find-contradictors % all) all))))
 
-(defn suggest-active [state tree]
+(defn suggest-active [tree]
   (let [visible (visible-tree-mites tree)
         all (:mites tree)
         invisible (set (filter #(not (in? visible %)) all))
-        all-unhappy (filter #(not ((:happy? state) %)) all)
-        all-happy (filter #((:happy? state) %) all)
+        all-unhappy (filter #(not (is-happy? %)) all)
+        all-happy (filter #(is-happy? %) all)
         change-weight (fn [ac]
                         (let [uncovered (:uncovered ac)
                               invisible-uncovered (count (filter #(in? invisible %) uncovered))]
@@ -112,7 +112,7 @@
             queue (pop queue)]
         (if (is-complete-change? next-ac)
           (apply-change next-ac tree)
-          (let [forked (fork-change state tree next-ac)
+          (let [forked (fork-change tree next-ac)
                 queue (reduce #(assoc %1 %2 (change-weight %2)) queue forked)]
             (recur queue))))
       ))
@@ -128,7 +128,7 @@
 (defn new-leaf-tree [^mites.Mite root ^ParsingState state]
   (let [tree (init-tree root state)
         tree (assoc tree :contradictor-map (build-contradictor-cache tree))
-        active (suggest-active state tree)]
+        active (suggest-active tree)]
     (assoc tree :active active)))
 
 (defn is-left-headed? [mite]
@@ -143,7 +143,7 @@
       (let [left-headed (is-left-headed? merged)
             merged-tree (init-tree merged state)
             merged-tree (assoc merged-tree (if left-headed :right-border :left-border) [[merged (if left-headed right-tree left-tree)]])
-            active (suggest-active state merged-tree)
+            active (suggest-active merged-tree)
             merged-tree (assoc merged-tree :active active)
             ]
         merged-tree))))

@@ -57,7 +57,7 @@
       ))
   )
 
-(defn happy? [mite]
+(defmethod is-happy? mites.Mite [mite]
   (case (.cxt mite)
     (:nom :gen :dat :acc :instr :prep :sInstr :order-adverb :adverb) (has-hard mite :child :head)
     :phrase (has-hard mite :head)
@@ -69,4 +69,4 @@
 (defn parse [input]
   (let [tokenizer (new StringTokenizer input " .,:?!-" true)
         tokens (filter (fn [t] (not= t " ")) (enumeration-seq tokenizer))]
-    (reduce parse-token (empty-parsing-state enrich happy?) tokens)))
+    (reduce parse-token (empty-parsing-state enrich) tokens)))

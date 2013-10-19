@@ -10,6 +10,8 @@
                                  ]
                           (str (name (.cxt x)) "(" arg-string ")"))))
 
+(defmulti is-happy? class)
+
 (defmethod clojure.core/print-method mites.Mite [x writer] (.write writer (str x)))
 
 (defn merge-args [args1, args2]

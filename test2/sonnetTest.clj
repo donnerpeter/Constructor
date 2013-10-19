@@ -72,4 +72,8 @@ A.member=C
     "Удивительный случай случился со мной"
     "An amazing thing happened to me today"))
 
+(def start (System/currentTimeMillis))
+
 (run-tests 'SonnetTest)
+
+(println (str "Time: " (- (System/currentTimeMillis) start)))

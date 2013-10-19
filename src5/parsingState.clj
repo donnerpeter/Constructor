@@ -1,4 +1,6 @@
 (ns parsingState
+  (:import (cons4 Chart)
+           (cons4.constructions sem semSectionEnd emptyCxt))
   (:require [mites :refer :all])
   (:use clojure.data.priority-map)
   )
@@ -21,15 +23,15 @@
 (defn all-mites [state] (flatten (reverse (map #(:mites %) (:trees state)))))
 (defn get-chart [state]
   (let [kotlin-cxt (fn [cxt] (cond
-                               (= cxt :sem) (. cons4.constructions.sem instance$)
-                               (= cxt :semSectionEnd) (. cons4.constructions.semSectionEnd instance$)
-                               :else (. cons4.constructions.emptyCxt instance$)))
+                               (= cxt :sem) (. sem instance$)
+                               (= cxt :semSectionEnd) (. semSectionEnd instance$)
+                               :else (. emptyCxt instance$)))
         active (filter #(in? (:active state) %) (all-mites state))
         to-linked-map (fn [clj-map]
                         (let [str-keys (map #(name %) (keys clj-map))]
                           (new java.util.LinkedHashMap (zipmap str-keys (vals clj-map)))))
         kotlin-mites (map #(new cons4.Mite (kotlin-cxt (.cxt %)) (to-linked-map (.args %)) nil nil nil) active)]
-    (new cons4.Chart kotlin-mites)))
+    (new Chart kotlin-mites)))
 
 (defn all-tree-mites [tree] (:mites tree))
 (defn visible-tree-mites [tree] (:mites tree))
@@ -117,7 +119,7 @@
       (recur (raw-add-mites tree mites)
              (flatten (map enrich-fun mites))))))
 (defn new-leaf-tree [^mites.Mite root ^ParsingState state]
-  (let [tree (add-mites-enriching (->Tree root [] #{} {}) [root] (:enrich state))
+  (let [tree (add-mites-enriching (empty-tree root) [root] (:enrich state))
         tree (assoc tree :contradictor-map (build-contradictor-cache tree))
         active (suggest-active state tree)]
     (assoc tree :active active)))

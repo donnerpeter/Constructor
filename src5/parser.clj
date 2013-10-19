@@ -1,4 +1,6 @@
 (ns parser
+  (:import (cons4 Vars)
+           (java.util StringTokenizer))
   (:require [mites :refer :all])
   (:require [parsingState :refer :all])
   (:require clojure.string)
@@ -18,7 +20,7 @@
     (sem (v 0) "time" time "type" type "arg1" (v :nom))))
 
 (defn parse-word [word]
-  (let [_vars (new cons4.Vars)
+  (let [_vars (new Vars)
         v (fn ([key] (. _vars get key))
             ([key light] (. (. _vars get key) getLv)))
         var (v 0)]
@@ -62,9 +64,9 @@
     true
     ))
 
-(defn parse-token [state token] (println token) (add-word state (mite :word :word token :id (. (new cons4.Vars) get 0))))
+(defn parse-token [state token] (println token) (add-word state (mite :word :word token :id (. (new Vars) get 0))))
 
 (defn parse [input]
-  (let [tokenizer (new java.util.StringTokenizer input " .,:?!-" true)
+  (let [tokenizer (new StringTokenizer input " .,:?!-" true)
         tokens (filter (fn [t] (not= t " ")) (enumeration-seq tokenizer))]
     (reduce parse-token (empty-parsing-state enrich happy?) tokens)))

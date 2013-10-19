@@ -5,20 +5,17 @@
   (:use clojure.data.priority-map)
   )
 
-(defn in?
-  "true if seq contains elm"
-  [seq elm]
-  (some #(= elm %) seq))
+(defn in? [seq elm] (some #(= elm %) seq))
 
 (defrecord ParsingState [trees log enrich happy?])
 (defn empty-parsing-state [enrich happy?] (->ParsingState () "" enrich happy?))
 
-(defrecord Tree [root mites active contradictor-map])
-(defn empty-tree [root] (->Tree root [] #{} {}))
+(defrecord Tree [root mites active contradictor-map left-border right-border])
+(defn empty-tree [root] (->Tree root [] #{} {} [] []))
 
 (defn append-log [state newLog]
   (assoc state :log
-    (str (:log state) newLog "\n")))
+    (str (.log state) newLog "\n")))
 (defn print-log [state] (println (str "Log:" (:log state))))
 (defn all-mites [state] (flatten (reverse (map #(:mites %) (:trees state)))))
 (defn get-chart [state]
@@ -110,54 +107,51 @@
       ))
   )
 
-(defn raw-add-mites [^Tree tree mites] (assoc tree :mites (vec (concat (:mites tree) mites))))
+(defn init-tree [root state]
+  (loop [all-mites [] to-enrich [root]]
+    (if (empty? to-enrich)
+      (assoc (empty-tree root) :mites (vec all-mites))
+      (recur (concat all-mites to-enrich)
+             (flatten (map (.enrich state) to-enrich))))))
 
-(defn add-mites-enriching [tree mites enrich-fun]
-  (loop [tree tree mites mites]
-    (if (empty? mites)
-      tree
-      (recur (raw-add-mites tree mites)
-             (flatten (map enrich-fun mites))))))
 (defn new-leaf-tree [^mites.Mite root ^ParsingState state]
-  (let [tree (add-mites-enriching (empty-tree root) [root] (:enrich state))
+  (let [tree (init-tree root state)
         tree (assoc tree :contradictor-map (build-contradictor-cache tree))
         active (suggest-active state tree)]
     (assoc tree :active active)))
 
-(defn leave-previous-stack [left right]
-  (and (has-hard left :head) (not (has-hard right :head))))
+(defn is-left-headed? [mite]
+  (and (has-hard (.src1 mite) :head) (not (has-hard (.src2 mite) :head))))
 
-#_(defn do-merge-mites
-  [state top remaining-stack]
-  (if (empty? remaining-stack) []
-    (let [all-unified (flatten (for [right top
-                                     left (:mites (first remaining-stack))]
-                                 (if-let [unified (unify left right)] [unified] ())
-                                 ))
-          mites-leaving-stack (filter #(leave-previous-stack (.src1 %) (.src2 %)) all-unified)
-          mites-eating-stack (filter #(not (in? mites-leaving-stack %)) all-unified)
-          add-merged-mites (fn [merged-mites leave-stack]
-                             (if (empty? merged-mites) nil
-                               (let [with-unified (raw-add-mites state merged-mites)
-                                     new-last-mites (:mites (first (:stack with-unified)))
-                                     new-stack (cons (->StackLevel leave-stack new-last-mites) (if leave-stack remaining-stack (next remaining-stack)))]
-                                 [(assoc with-unified :stack new-stack)])))
-           all-merges (filter #(not= % nil) [(add-merged-mites mites-leaving-stack true) (add-merged-mites mites-eating-stack false)])]
-      (concat (flatten all-merges)
-        (if (:link-up (first remaining-stack)) (do-merge-mites state top (next remaining-stack)) [])))))
+(defn do-merge-trees [state ^Tree left-tree ^Tree right-tree]
+  (let [all-unified (flatten (for [right (.mites right-tree)
+                                   left (.mites left-tree)]
+                               (if-let [unified (unify left right)] [unified] ())
+                               ))]
+    (for [merged all-unified]
+      (let [left-headed (is-left-headed? merged)
+            merged-tree (init-tree merged state)
+            merged-tree (assoc merged-tree (if left-headed :right-border :left-border) [[merged (if left-headed right-tree left-tree)]])
+            active (suggest-active state merged-tree)
+            merged-tree (assoc merged-tree :active active)
+            ]
+        merged-tree))))
 
-#_(defn merge-mites [state]
-  (let [[top & rest] (:stack state)]
-    (if (:link-up top)
+(defn merge-trees [state]
+  (let [[right & prev-trees] (:trees state)]
+    (if (empty? prev-trees)
       state
-      (let [allStates (do-merge-mites state (:mites top) rest)]
-        (if (empty? allStates) state (merge-mites (first allStates)))))))
+      (let [all-trees (do-merge-trees state (first prev-trees) right)
+            all-states (map #(assoc state :trees (cons % (rest prev-trees))) all-trees)]
+        (if (empty? all-states) state (merge-trees (first all-states)))))))
 
 ;(Thread/sleep 10000)
 
 (defn add-word [state mite]
-  (let [leaf-tree (new-leaf-tree mite state)
-        state (append-log (assoc state :trees (cons leaf-tree (:trees state))) "\n---------------------------------")
+  (let [state (append-log state "\n---------------------------------")
+        leaf-tree (new-leaf-tree mite state)
+        state (assoc state :trees (cons leaf-tree (.trees state)))
+        state (merge-trees state)
         ]
     (append-log state (presentable state)))
   )

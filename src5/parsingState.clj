@@ -8,9 +8,10 @@
   [seq elm]
   (some #(= elm %) seq))
 
-(defrecord ParsingState [stack log mites enrich active happy? contradictor-cache])
-(defn empty-parsing-state [enrich happy?] (->ParsingState () "" () enrich #{} happy? {}))
-(defrecord StackLevel [link-up mites])
+(defrecord ParsingState [trees log enrich happy? contradictor-cache])
+(defn empty-parsing-state [enrich happy?] (->ParsingState () "" enrich happy? {}))
+
+(defrecord Tree [root mites active])
 
 (defn append-log [state newLog]
   (assoc state :log
@@ -29,15 +30,16 @@
         kotlin-mites (map #(new cons4.Mite (kotlin-cxt (.cxt %)) (to-linked-map (.args %)) nil nil nil) active)]
     (new cons4.Chart kotlin-mites)))
 
-(defn visible-mites [state] (flatten (:stack state)))
+(defn visible-mites [state] (flatten (map #(:mites %) (:trees state))))
 
 (defn presentable [state]
   (let [visible (visible-mites state)
-        additional (filter #(and (in? (:active state) %) (not ((:happy? state) %)) (not (in? visible %))) (all-mites state))
-        present-mite (fn [mite] (str (if (in? (:active state) mite) "*" "") (if ((:happy? state) mite) "" "!") mite))
-        present-level (fn [level] (str (if (:link-up level) "/ " "| ") (clojure.string/join " " (map present-mite (:mites level)))))
+        active #{}
+        additional #{} #_(filter #(and (in? (:active state) %) (not ((:happy? state) %)) (not (in? visible %))) (all-mites state))
+        present-mite (fn [mite] (str (if (in? active mite) "*" "") (if ((:happy? state) mite) "" "!") mite))
+        present-tree (fn [tree] (str #_(if (:link-up level) "/ " "| ") (clojure.string/join " " (map present-mite (:mites tree)))))
         additional-str (if (empty? additional) "" (str "\n    unhappy: " (clojure.string/join " " (map present-mite additional))))]
-    (str (clojure.string/join "\n" (map #(str "  " (present-level %)) (:stack state))) additional-str)))
+    (str (clojure.string/join "\n" (map #(str "  " (present-tree %)) (:trees state))) additional-str)))
 
 (defn find-contradictors [state mite coll] (filter #(and (not= mite %) (mites-contradict mite %)) coll))
 (defn contradictors [state mite] (get (:contradictor-cache state) mite))
@@ -104,27 +106,19 @@
       ))
   )
 
-(defn raw-add-mites [state mites]
-  (let [stack (:stack state)
-        state-mites (:mites state)
-        stack-top (first stack)
-        new-state (assoc state
-              :stack (cons (assoc stack-top :mites (vec (concat (:mites stack-top) mites))) (next stack))
-              :mites (cons (vec (concat (first state-mites) mites)) (next state-mites))
-              )
-        new-active (suggest-active new-state)]
-    (assoc new-state :active new-active)))
+(defn raw-add-mites [^Tree tree mites] (assoc tree :mites (vec (concat (:mites tree) mites))))
 
-(defn add-mites-enriching [state mites]
-  (loop [state state mites mites]
+(defn add-mites-enriching [tree mites enrich-fun]
+  (loop [tree tree mites mites]
     (if (empty? mites)
-      state
-      (recur (raw-add-mites state mites) (flatten (map (:enrich state) mites))))))
+      tree
+      (recur (raw-add-mites tree mites) (flatten (map enrich-fun mites))))))
+(defn new-leaf-tree [root enrich-fun] (add-mites-enriching (->Tree root [] #{}) [root] enrich-fun))
 
 (defn leave-previous-stack [left right]
   (and (has-hard left :head) (not (has-hard right :head))))
 
-(defn do-merge-mites
+#_(defn do-merge-mites
   [state top remaining-stack]
   (if (empty? remaining-stack) []
     (let [all-unified (flatten (for [right top
@@ -143,7 +137,7 @@
       (concat (flatten all-merges)
         (if (:link-up (first remaining-stack)) (do-merge-mites state top (next remaining-stack)) [])))))
 
-(defn merge-mites [state]
+#_(defn merge-mites [state]
   (let [[top & rest] (:stack state)]
     (if (:link-up top)
       state
@@ -153,8 +147,8 @@
 ;(Thread/sleep 10000)
 
 (defn add-word [state mite]
-  (let [newState (append-log (assoc state :stack (cons (->StackLevel false []) (:stack state)) :mites (cons () (:mites state))) "\n---------------------------------")
-        withAdded (add-mites-enriching newState [mite])
-        finalState (merge-mites withAdded)]
-    (append-log finalState (presentable finalState)))
+  (let [leaf-tree (new-leaf-tree mite (:enrich state))
+        state (append-log (assoc state :trees (cons leaf-tree (:trees state))) "\n---------------------------------")
+        ]
+    (append-log state (presentable state)))
   )

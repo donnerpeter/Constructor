@@ -144,9 +144,11 @@
         (if (:link-up (first remaining-stack)) (do-merge-mites state top (next remaining-stack)) [])))))
 
 (defn merge-mites [state]
-  (let [[top & rest] (:stack state)
-        allStates (do-merge-mites state (:mites top) rest)]
-    (if (empty? allStates) state (first allStates))))
+  (let [[top & rest] (:stack state)]
+    (if (:link-up top)
+      state
+      (let [allStates (do-merge-mites state (:mites top) rest)]
+        (if (empty? allStates) state (merge-mites (first allStates)))))))
 
 ;(Thread/sleep 10000)
 

@@ -3,6 +3,7 @@
   <component name="ProjectCodeStyleSettingsManager">
     <option name="PER_PROJECT_SETTINGS">
       <value>
+        <ClojureCodeStyleSettings>{:clojure.core/definline :only-indent, :clojure.core/bound-fn :only-indent, :clojure.core/extend-type 1, :clojure.core/if-not 1, :clojure.core/letfn 1, :clojure.test/testing 1, :clojure.core/when 1, :clojure.core/condp 2, :clojure.core/doseq 1, :clojure.core/when-let 1, :clojure.test/deftest 1, :clojure.core/defn :only-indent, :clojure.core/defmethod 3, :clojure.core/deftype 2, :clojure.core/loop 1, :clojure.core/with-open 1, :clojure.core/defrecord 2, :clojure.core/assoc 1, :clojure.core/defstruct 1, :clojure.core/extend 1, :clojure.core/when-not 1, :clojure.core/proxy 2, :clojure.core/dotimes 1, :clojure.core/let 1, :fn* :only-indent, :clojure.core/defprotocol 1, :clojure.core/doto 1, :clojure.core/reify 1, :clojure.core/ns 1, :clojure.core/extend-protocol 1, :clojure.core/defn- :only-indent, :clojure.core/if-let 1, :clojure.core/with-precision 1, :clojure.core/with-local-vars 1, :clojure.core/defmacro :only-indent, :catch 2, :clojure.core/fn :only-indent, :clojure.core/for 1, :if 1, :clojure.core/case 1, :clojure.test/are 1, :def :only-indent, :clojure.core/struct-map 1, :clojure.core/while 1, :clojure.core/locking 1, :clojure.core/when-first 1, :clojure.core/binding 1}</ClojureCodeStyleSettings>
         <GroovyCodeStyleSettings>
           <option name="SPACE_IN_NAMED_ARGUMENT" value="false" />
         </GroovyCodeStyleSettings>

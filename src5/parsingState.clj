@@ -1,6 +1,7 @@
 (ns parsingState
   (:import (cons4 Chart)
-           (cons4.constructions sem semSectionEnd emptyCxt))
+           (cons4.constructions sem semSectionEnd emptyCxt)
+           (java.util LinkedHashMap))
   (:require [mites :refer :all])
   (:use clojure.data.priority-map)
   )
@@ -26,7 +27,7 @@
         active (filter #(in? (:active state) %) (all-mites state))
         to-linked-map (fn [clj-map]
                         (let [str-keys (map #(name %) (keys clj-map))]
-                          (new java.util.LinkedHashMap (zipmap str-keys (vals clj-map)))))
+                          (new LinkedHashMap (zipmap str-keys (vals clj-map)))))
         kotlin-mites (map #(new cons4.Mite (kotlin-cxt (.cxt %)) (to-linked-map (.args %)) nil nil nil) active)]
     (new Chart kotlin-mites)))
 

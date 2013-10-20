@@ -10,8 +10,8 @@
 (defrecord ParsingState [trees log enrich])
 (defn empty-parsing-state [enrich] (->ParsingState () "" enrich))
 
-(defrecord Tree [root mites active contradictor-map left-border right-border])
-(defn empty-tree [root] (->Tree root [] #{} {} [] []))
+(defrecord Tree [root mites active contradictor-map left-child right-child])
+(defn empty-tree [root] (->Tree root [] #{} {} nil nil))
 
 (defn append-log [state newLog]
   (assoc state :log
@@ -30,21 +30,29 @@
         kotlin-mites (map #(new cons4.Mite (kotlin-cxt (.cxt %)) (to-linked-map (.args %)) nil nil nil) active)]
     (new Chart kotlin-mites)))
 
-(defn all-tree-mites [tree] (:mites tree))
-(defn visible-tree-mites [tree] (:mites tree))
-(defn visible-mites [state] (flatten (map #(:mites %) (:trees state))))
+(defn all-tree-mites [tree] (.mites tree))
+(defn tree-core [tree]
+  (if (.right-child tree)
+    (tree-core (if (is-left-headed? (.root tree)) (.left-child tree) (.right-child tree)))
+    tree))
+(defn visible-simple-trees [tree]
+  (if-let [right (.right-child tree)]
+    (concat (visible-simple-trees right)
+            (if (is-left-headed? (.root tree))
+              [(tree-core tree) tree]
+              [tree]))
+    [tree]))
+(defn visible-tree-mites [tree] (mapcat #(.mites %) (visible-simple-trees tree)))
+(defn visible-mites [state] (visible-tree-mites (first (.trees state))))
 
 (defn present-mite [mite active] (str (if active "*" "") (if (is-happy? mite) "" "!") mite))
 (defn present-tree [tree]
   (let [active (.active tree)
-        present-level (fn [prefix tree]
-                        (str prefix
+        present-level (fn [tree]
+                        (str "  "
                              (clojure.string/join " " (map #(present-mite % (in? active %)) (.mites tree)))))
         ]
-    (str (clojure.string/join "\n"
-           (concat (map #(present-level "  / " %) (map #(get % 1) (.right-border tree)))
-                   [(present-level "  | " tree)]
-                   (map #(present-level "  \\ " %) (map #(get % 1) (.left-border tree))))))
+    (clojure.string/join "\n" (map present-level (visible-simple-trees tree)))
   ))
 
 (defn presentable [state]
@@ -131,18 +139,15 @@
         active (suggest-active tree)]
     (assoc tree :active active)))
 
-(defn is-left-headed? [mite]
-  (and (has-hard (.src1 mite) :head) (not (has-hard (.src2 mite) :head))))
-
 (defn do-merge-trees [state ^Tree left-tree ^Tree right-tree]
-  (let [all-unified (flatten (for [right (.mites right-tree)
-                                   left (.mites left-tree)]
+  (let [all-unified (flatten (for [right (visible-tree-mites right-tree)
+                                   left (visible-tree-mites left-tree)]
                                (if-let [unified (unify left right)] [unified] ())
                                ))]
     (for [merged all-unified]
       (let [left-headed (is-left-headed? merged)
             merged-tree (init-tree merged state)
-            merged-tree (assoc merged-tree (if left-headed :right-border :left-border) [[merged (if left-headed right-tree left-tree)]])
+            merged-tree (assoc merged-tree :left-child left-tree :right-child right-tree)
             active (suggest-active merged-tree)
             merged-tree (assoc merged-tree :active active)
             ]

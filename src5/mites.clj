@@ -58,3 +58,6 @@
   (every? #(when-let [var (marg mite %)] (and (instance? Variable var))) arg-names))
 (defn has-hard [^Mite mite & arg-names]
   (every? #(and (has-var mite %) (.booleanValue (.getHard (marg mite %)))) arg-names))
+
+(defn is-left-headed? [mite]
+  (and (has-hard (.src1 mite) :head) (not (has-hard (.src2 mite) :head))))

@@ -1,6 +1,4 @@
-(alter-var-root #'*compiler-options* assoc :disable-locals-clearing true)
-
-(ns SonnetTest
+(ns sonnetTest
   (:import [cons4 EnglishGenerator Variable Tokens])
   (:use clojure.test parser parsingState))
 
@@ -72,8 +70,3 @@ A.member=C
     "Удивительный случай случился со мной"
     "An amazing thing happened to me today"))
 
-(def start (System/currentTimeMillis))
-
-(run-tests 'SonnetTest)
-
-(println (str "Time: " (- (System/currentTimeMillis) start)))

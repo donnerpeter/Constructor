@@ -2,13 +2,13 @@
   (:import [cons4 Variable])
   (:require clojure.string clojure.set))
 
-(deftype Mite [cxt args src1 src2]
+(defrecord Mite [cxt args src1 src2]
   Object (toString [x] (let [args (.args x)
-                                 seq-args (seq args)
-                                 pair-strings (map (fn [[key value]] (str (name key) "=" value)) seq-args)
-                                 arg-string (clojure.string/join "," pair-strings)
-                                 ]
-                          (str (name (.cxt x)) "(" arg-string ")"))))
+                             seq-args (seq args)
+                             pair-strings (map (fn [[key value]] (str (name key) "=" value)) seq-args)
+                             arg-string (clojure.string/join "," pair-strings)
+                             ]
+                         (str (name (.cxt x)) "(" arg-string ")"))))
 
 (defmulti is-happy? class)
 

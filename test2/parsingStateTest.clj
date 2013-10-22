@@ -35,7 +35,7 @@
         state (add-word state mite2)]
     (is (= [mite2 (unify mite1 mite2) mite1] (visible-mites state)))
     ))
-(deftest right+left
+(deftest right&left
   (let [mite1 (mite :nom :child (v 0))
         mites2 [(mite :nom :head (v 1)) (mite :acc :head (v 1))]
         mite3 (mite :acc :child (v 2))
@@ -44,4 +44,14 @@
         state (add-mites state [mite3])
         ]
     (is (= (concat [mite3 (unify (mites2 1) mite3)] mites2 [(unify mite1 (mites2 0))]) (visible-mites state)))
+    ))
+(deftest left&left-same-head
+  (let [mites1 [(mite :nom :head (v 0)) (mite :acc :head (v 0))]
+        mite2 (mite :nom :child (v 1))
+        mite3 (mite :acc :child (v 2))
+        state (add-mites state mites1)
+        state (add-mites state [mite2])
+        state (add-mites state [mite3])
+        ]
+    (is (= (concat [mite3 (unify (mites1 1) mite3)] mites1) (visible-mites state)))
     ))

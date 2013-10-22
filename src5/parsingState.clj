@@ -39,9 +39,10 @@
 (defn visible-simple-trees [tree]
   (if-let [right (.right-child tree)]
     (concat (visible-simple-trees right)
-            (if (is-left-headed? (.root tree))
-              [tree (tree-core tree)]
-              [tree]))
+            (let [res [tree]
+                  res (if (is-left-headed? (.root tree)) (concat res [(tree-core tree)]) res)
+                  res (if (and (.right-child (.left-child tree)) (not (is-left-headed? (.root (.left-child tree))))) (concat res [(.left-child tree)]) res)]
+              res))
     [tree]))
 (defn visible-tree-mites [tree] (mapcat #(.mites %) (visible-simple-trees tree)))
 (defn visible-mites [state] (visible-tree-mites (first (.trees state))))
@@ -127,15 +128,15 @@
       ))
   )
 
-(defn init-tree [root state]
+(defn init-tree [root enrich]
   (loop [all-mites [] to-enrich [root]]
     (if (empty? to-enrich)
       (assoc (empty-tree root) :mites (vec all-mites))
       (recur (concat all-mites to-enrich)
-             (flatten (map (.enrich state) to-enrich))))))
+             (flatten (map enrich to-enrich))))))
 
-(defn new-leaf-tree [^mites.Mite root ^ParsingState state]
-  (let [tree (init-tree root state)
+(defn new-leaf-tree [^mites.Mite root enrich]
+  (let [tree (init-tree root enrich)
         tree (assoc tree :contradictor-map (build-contradictor-cache tree))
         active (suggest-active tree)]
     (assoc tree :active active)))
@@ -147,7 +148,7 @@
                                ))]
     (for [merged all-unified]
       (let [left-headed (is-left-headed? merged)
-            merged-tree (init-tree merged state)
+            merged-tree (init-tree merged (.enrich state))
             merged-tree (assoc merged-tree :left-child left-tree :right-child right-tree)
             active (suggest-active merged-tree)
             merged-tree (assoc merged-tree :active active)
@@ -162,13 +163,10 @@
             all-states (map #(assoc state :trees (cons % (rest prev-trees))) all-trees)]
         (if (empty? all-states) state (merge-trees (first all-states)))))))
 
-;(Thread/sleep 10000)
-
-(defn add-word [state mite]
+(defn add-tree [state tree]
   (let [state (append-log state "\n---------------------------------")
-        leaf-tree (new-leaf-tree mite state)
-        state (assoc state :trees (cons leaf-tree (.trees state)))
-        state (merge-trees state)
-        ]
-    (append-log state (presentable state)))
-  )
+        state (assoc state :trees (cons tree (.trees state)))
+        state (merge-trees state)]
+    (append-log state (presentable state))))
+
+(defn add-word [state mite] (add-tree state (new-leaf-tree mite (.enrich state))))

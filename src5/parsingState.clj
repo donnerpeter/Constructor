@@ -40,7 +40,7 @@
   (if-let [right (.right-child tree)]
     (concat (visible-simple-trees right)
             (if (is-left-headed? (.root tree))
-              [(tree-core tree) tree]
+              [tree (tree-core tree)]
               [tree]))
     [tree]))
 (defn visible-tree-mites [tree] (mapcat #(.mites %) (visible-simple-trees tree)))

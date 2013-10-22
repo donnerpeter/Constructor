@@ -1,0 +1,21 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="allTests" type="ClojureScriptRunConfiguration" factoryName="Clojure Script">
+    <module name="constructor" />
+    <setting name="path" value="$PROJECT_DIR$/test2/allTests.clj" />
+    <setting name="vmparams" value="-Dclojure.compiler.disable-locals-clearing=true" />
+    <setting name="params" value="" />
+    <setting name="workDir" value="$PROJECT_DIR$/test2" />
+    <setting name="repl" value="false" />
+    <RunnerSettings RunnerId="Debug">
+      <option name="DEBUG_PORT" value="" />
+      <option name="TRANSPORT" value="0" />
+      <option name="LOCAL" value="true" />
+    </RunnerSettings>
+    <RunnerSettings RunnerId="Run" />
+    <ConfigurationWrapper RunnerId="Debug" />
+    <ConfigurationWrapper RunnerId="Run" />
+    <method>
+      <option name="Make" enabled="false" />
+    </method>
+  </configuration>
+</component>

@@ -4,6 +4,6 @@
 
 (def start (System/currentTimeMillis))
 
-(run-tests 'parsingStateTest #_'sonnetTest)
+(run-tests 'parsingStateTest 'sonnetTest)
 
 (println (str "Time: " (- (System/currentTimeMillis) start)))

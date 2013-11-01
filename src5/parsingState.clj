@@ -115,8 +115,8 @@
         omitted (update-uncovered [mite] node (assoc ac :chosen (assoc (:chosen ac) mite false) :remaining rest-remaining))]
     [taken omitted]))
 
-(defn apply-change [ac node]
-  (let [all (.mites node)
+(defn apply-change [ac tree]
+  (let [all (all-tree-mites tree)
         uncovered (:uncovered ac)
         new-active (filter
                      #(or (in? uncovered %) (= true (get (:chosen ac) %))) all)]
@@ -138,8 +138,7 @@
                           [invisible-uncovered (- (count uncovered) invisible-uncovered)]))
         initial-change (->ActiveChange {} all-happy #{})
         ]
-    (set all)
-    #_(loop [queue (priority-map initial-change (change-weight initial-change))]
+    (loop [queue (priority-map initial-change (change-weight initial-change))]
       (let [[next-ac & weight] (peek queue)
             queue (pop queue)]
         (if (is-complete-change? next-ac)

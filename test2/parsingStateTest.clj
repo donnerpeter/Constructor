@@ -10,7 +10,8 @@
            ([key light] (. (. _vars get key) getLv)))))
 
 (defn add-mites [state mites]
-  (let [tree (new-leaf-tree (first mites) (fn [mite] (if (= mite (first mites)) (rest mites) [])))]
+  (let [node  (init-node (first mites) (fn [mite] (if (= mite (first mites)) (rest mites) [])))
+         tree (new-tree node nil nil)]
     (add-tree state tree)))
 
 (deftest headless-merge
@@ -52,7 +53,7 @@
         state (add-mites state [mite2])
         state (add-mites state [mite3])
         ]
-    (is (= (concat [mite3] mites1 [(unify (mites1 1) mite3) (unify (mites1 0) mite2)]) (visible-mites state)))
+    (is (= (concat [mite3] mites1 [(unify (mites1 0) mite2) (unify (mites1 1) mite3)]) (visible-mites state)))
     ))
 (deftest left&left-chaining
   (let [mite1 (mite :nom :head (v 0))

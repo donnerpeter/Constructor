@@ -11,11 +11,11 @@
 (defrecord ParsingState [trees log enrich])
 (defn empty-parsing-state [enrich] (->ParsingState () "" enrich))
 
-(defrecord Node [root mites contradictor-map left right]
+(defrecord Node [root mites left right]
   Object (toString [_] (str root)))
-(defn empty-node [root] (->Node root [] {} [] []))
+(defn empty-node [root] (->Node root [] [] []))
 
-(defrecord Tree [root nodes active]
+(defrecord Tree [root nodes active contradictor-map]
   Object (toString [_] (str root " " nodes)))
 (defn get-node [tree mite]
   (let [result ((.nodes tree) mite)]
@@ -86,33 +86,33 @@
     (str (clojure.string/join "\n" (map present-tree (.trees state))) additional-str)))
 
 (defn find-contradictors [mite coll] (filter #(and (not= mite %) (mites-contradict mite %)) coll))
-(defn contradictors [node mite] (get (:contradictor-map node) mite))
-(defn happy-contradictors [node mite] (filter #(is-happy? %) (contradictors node mite)))
+(defn contradictors [tree mite] (get (:contradictor-map tree) mite))
+(defn happy-contradictors [tree mite] (filter #(is-happy? %) (contradictors tree mite)))
 
 (defrecord ActiveChange [chosen remaining uncovered])
 
-(defn is-uncovered? [mite node chosen-map]
+(defn is-uncovered? [mite tree chosen-map]
   (and
-    (every? #(= false (get chosen-map %)) (happy-contradictors node mite))
+    (every? #(= false (get chosen-map %)) (happy-contradictors tree mite))
     (or
       (= false (get chosen-map mite))
       (not (is-happy? mite)))
     ))
 
-(defn update-uncovered [expelled-coll node ac]
-  (let [suspicious (clojure.set/union (set (mapcat #(contradictors node %) expelled-coll)) expelled-coll)
-        fresh-uncovered (filter #(is-uncovered? % node (:chosen ac)) suspicious)]
+(defn update-uncovered [expelled-coll tree ac]
+  (let [suspicious (clojure.set/union (set (mapcat #(contradictors tree %) expelled-coll)) expelled-coll)
+        fresh-uncovered (filter #(is-uncovered? % tree (:chosen ac)) suspicious)]
     (assoc ac :uncovered (clojure.set/union (:uncovered ac) fresh-uncovered))))
 
 (defn is-complete-change? [ac] (empty? (:remaining ac)))
-(defn fork-change [node ac]
+(defn fork-change [tree ac]
   (let [mite (first (:remaining ac))
         rest-remaining (rest (:remaining ac))
         taken (let [to-expel (filter #(mites-contradict mite %) rest-remaining)
                     expelled-map (reduce #(assoc %1 %2 false) (:chosen ac) to-expel)
                     ]
-                (update-uncovered to-expel node (assoc ac :chosen (assoc expelled-map mite true) :remaining (filter #(not (in? to-expel %)) rest-remaining))))
-        omitted (update-uncovered [mite] node (assoc ac :chosen (assoc (:chosen ac) mite false) :remaining rest-remaining))]
+                (update-uncovered to-expel tree (assoc ac :chosen (assoc expelled-map mite true) :remaining (filter #(not (in? to-expel %)) rest-remaining))))
+        omitted (update-uncovered [mite] tree (assoc ac :chosen (assoc (:chosen ac) mite false) :remaining rest-remaining))]
     [taken omitted]))
 
 (defn apply-change [ac tree]
@@ -122,8 +122,8 @@
                      #(or (in? uncovered %) (= true (get (:chosen ac) %))) all)]
     new-active))
 
-(defn build-contradictor-cache [node]
-  (let [all (.mites node)]
+(defn build-contradictor-cache [tree]
+  (let [all (all-tree-mites tree)]
     (zipmap all (map #(find-contradictors % all) all))))
 
 (defn suggest-active [tree]
@@ -158,8 +158,8 @@
 
 (defn new-leaf-tree [root-mite enrich]
   (let [node (init-node root-mite enrich)
-        node (assoc node :contradictor-map (build-contradictor-cache node))
-        tree (->Tree root-mite {root-mite node} #{})
+        tree (->Tree root-mite {root-mite node} #{} #{})
+        tree (assoc tree :contradictor-map (build-contradictor-cache tree))
         active (suggest-active tree)]
     (assoc tree :active active)))
 

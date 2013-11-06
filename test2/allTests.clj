@@ -1,3 +1,6 @@
+(alter-var-root #'*compiler-options*
+                assoc :disable-locals-clearing true)
+
 (ns allTests (:use clojure.test))
 
 (require 'parsingStateTest 'sonnetTest)

@@ -61,3 +61,7 @@
 
 (defn is-left-headed? [mite]
   (and (has-hard (.src1 mite) :head) (not (has-hard (.src2 mite) :head))))
+
+(defn mite-ancestors [mite]
+  (if (.src1 mite) (concat [(.src1 mite) (.src2 mite)] (ancestors (.src1 mite)) (ancestors (.src2 mite)))
+                   []))

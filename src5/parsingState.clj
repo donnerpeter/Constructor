@@ -95,15 +95,18 @@
     (assoc ac :uncovered (clojure.set/union (:uncovered ac) fresh-uncovered))))
 
 (defn is-complete-change? [ac] (empty? (:remaining ac)))
+(defn include-mite [ac tree mite]
+  (let [rest-remaining (remove (set mite) (.remaining ac))
+        to-expel (filter #(mites-contradict mite %) rest-remaining)
+        expelled-map (reduce #(assoc %1 %2 false) (:chosen ac) to-expel)
+        ]
+    (update-uncovered to-expel tree (assoc ac :chosen (assoc expelled-map mite true) :remaining (filter #(not (in? to-expel %)) rest-remaining)))))
+(defn omit-mite [ac tree mite]
+  (update-uncovered [mite] tree (assoc ac :chosen (assoc (:chosen ac) mite false) :remaining (remove (set mite) (.remaining ac)))))
+
 (defn fork-change [tree ac]
-  (let [mite (first (:remaining ac))
-        rest-remaining (rest (:remaining ac))
-        taken (let [to-expel (filter #(mites-contradict mite %) rest-remaining)
-                    expelled-map (reduce #(assoc %1 %2 false) (:chosen ac) to-expel)
-                    ]
-                (update-uncovered to-expel tree (assoc ac :chosen (assoc expelled-map mite true) :remaining (filter #(not (in? to-expel %)) rest-remaining))))
-        omitted (update-uncovered [mite] tree (assoc ac :chosen (assoc (:chosen ac) mite false) :remaining rest-remaining))]
-    [taken omitted]))
+  (let [mite (first (:remaining ac))]
+    [(include-mite ac tree mite) (omit-mite ac tree mite)]))
 
 (defn apply-change [ac tree]
   (let [all (all-tree-mites tree)
@@ -116,27 +119,44 @@
   (let [all (all-tree-mites tree)]
     (zipmap all (map #(find-contradictors % all) all))))
 
+(defn all-roots [tree]
+  (let [root (.root (.node tree))]
+    (if (.left tree) (concat [root] (all-roots (.left tree)) (all-roots (.right tree))) [root])))
+
 (defn suggest-active [tree]
   (let [visible (visible-tree-mites tree :right)
         all (all-tree-mites tree)
         invisible (set (filter #(not (in? visible %)) all))
         all-unhappy (filter #(not (is-happy? %)) all)
         all-happy (filter #(is-happy? %) all)
+        spine (all-roots tree)
+        spine-ancestors (set (mapcat mite-ancestors spine))
+        spine-independent (remove spine-ancestors spine)
         change-weight (fn [ac]
                         (let [uncovered (:uncovered ac)
                               invisible-uncovered (count (filter #(in? invisible %) uncovered))]
                           [invisible-uncovered (- (count uncovered) invisible-uncovered)]))
         initial-change (->ActiveChange {} all-happy #{})
+        initial-change (loop [ac initial-change
+                              [mite & tail] spine-independent]
+                         (if (nil? mite)
+                           ac
+                           (if (not-empty (find-contradictors mite (filter (.chosen ac) (keys (.chosen ac)))))
+                             nil
+                             (if-let [ac (include-mite ac tree mite)] (recur ac tail))))
+                         )
         ]
-    (loop [queue (priority-map initial-change (change-weight initial-change))]
+    (if (nil? initial-change) nil
+      (loop [queue (priority-map initial-change (change-weight initial-change))]
       (let [[next-ac & weight] (peek queue)
             queue (pop queue)]
         (if (is-complete-change? next-ac)
           (apply-change next-ac tree)
-          (let [forked (fork-change tree next-ac)
+          (let [mite (first (:remaining next-ac))
+                forked [(include-mite next-ac tree mite) (omit-mite next-ac tree mite)]
                 queue (reduce #(assoc %1 %2 (change-weight %2)) queue forked)]
             (recur queue))))
-      ))
+      )))
   )
 
 (defn init-node [root enrich]
@@ -150,7 +170,7 @@
   (let [tree (->Tree node left right {} #{})
         tree (assoc tree :contradictor-map (build-contradictor-cache tree))
         active (suggest-active tree)]
-    (assoc tree :active active)))
+    (if active (assoc tree :active active))))
 
 (defn do-merge-trees [state ^Tree head-tree ^Tree child-tree inverse]
   (let [own-node (.node head-tree)
@@ -160,16 +180,17 @@
                            (for [head-mite head-mites, child-mite child-mites]
                              (if-let [unified (if inverse (unify child-mite head-mite) (unify head-mite child-mite))] [unified] ())
                              ))
-        own-merged-trees (for [merged-mite own-merged-mites]
-                           (new-tree (init-node merged-mite (.enrich state)) (if inverse child-tree head-tree) (if inverse head-tree child-tree)))
+        maybe-new-tree (fn [node left right] (if-let [tree (new-tree node left right)] [tree] []))
+        own-merged-trees (apply concat (for [merged-mite own-merged-mites]
+                           (maybe-new-tree (init-node merged-mite (.enrich state)) (if inverse child-tree head-tree) (if inverse head-tree child-tree))))
         has-children (not (nil? (.left head-tree)))
         left-headed (and has-children (is-left-headed? (.root own-node)))
         branch-direction (if (and has-children (not= left-headed inverse)) (if left-headed :right :left) nil)
         nested-merges (if branch-direction (do-merge-trees state (branch-direction head-tree) child-tree inverse) [])
-        wrapped-nested (for [nested nested-merges]
-                         (new-tree own-node
+        wrapped-nested (apply concat (for [nested nested-merges]
+                         (maybe-new-tree own-node
                                    (if (= :right branch-direction) (.left head-tree) nested)
-                                   (if (= :right branch-direction) nested (.right head-tree))))
+                                   (if (= :right branch-direction) nested (.right head-tree)))))
         ]
     (concat wrapped-nested own-merged-trees)
     )

@@ -36,7 +36,8 @@
                                (= cxt :sem) (. sem instance$)
                                (= cxt :semSectionEnd) (. semSectionEnd instance$)
                                :else (. emptyCxt instance$)))
-        active (filter #(in? (:active state) %) (all-mites state))
+        active-set (set (mapcat #(.active %) (.trees state)))
+        active (filter active-set (all-mites state))
         to-linked-map (fn [clj-map]
                         (let [str-keys (map #(name %) (keys clj-map))]
                           (new LinkedHashMap (zipmap str-keys (vals clj-map)))))

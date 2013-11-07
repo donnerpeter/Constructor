@@ -64,7 +64,7 @@
     true
     ))
 
-(defn parse-token [state token] (println token) (add-word state (mite :word :word token :id (. (new Vars) get 0))))
+(defn parse-token [state token] #_(println token) (add-word state (mite :word :word token :id (. (new Vars) get 0))))
 
 (defn parse [input]
   (let [tokenizer (new StringTokenizer input " .,:?!-" true)

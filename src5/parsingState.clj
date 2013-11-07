@@ -202,7 +202,7 @@
     (if (nil? left)
       state
       (let [all-trees (concat (do-merge-trees state left right false) (do-merge-trees state right left true))
-            all-states (map #(assoc state :trees (cons % (rest prev-trees))) all-trees)]
+            all-states (map #(assoc state :trees (cons % prev-trees)) all-trees)]
         (if (empty? all-states) state (merge-trees (first all-states)))))))
 
 (defn add-tree [state tree]

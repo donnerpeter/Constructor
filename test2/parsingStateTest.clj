@@ -65,6 +65,18 @@
         ]
     (is (= (concat [mite3] mites2 [(unify (mites2 1) mite3) mite1 (unify mite1 (mites2 0))]) (visible-mites state)))
     ))
+(deftest right&right-same-head
+  (let [mite1 (mite :acc :child (v 2))
+        mite2 (mite :nom :child (v 1))
+        mites3 [(mite :nom :head (v 0)) (mite :acc :head (v 1))]
+        state (add-mites state [mite1])
+        state (add-mites state [mite2])
+        state (add-mites state mites3)
+        all (all-mites state)
+        ]
+    (is (in? all (unify mite1 (mites3 1))))
+    (is (in? all (unify mite2 (mites3 0))))
+    ))
 
 (deftest spine-should-not-contradict-itself
   (let [mite1 (mite :nom :child (v 0 :light))

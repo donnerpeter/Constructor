@@ -179,7 +179,8 @@
         child-mites (visible-tree-mites child-tree nil)
         own-merged-mites (apply concat
                            (for [head-mite head-mites, child-mite child-mites]
-                             (if-let [unified (if inverse (unify child-mite head-mite) (unify head-mite child-mite))] [unified] ())
+                             (let [unified (if inverse (unify child-mite head-mite) (unify head-mite child-mite))]
+                               (if (and unified (not= inverse (is-left-headed? unified))) [unified] ()))
                              ))
         maybe-new-tree (fn [node left right] (if-let [tree (new-tree node left right)] [tree] []))
         own-merged-trees (apply concat (for [merged-mite own-merged-mites]

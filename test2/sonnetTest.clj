@@ -62,6 +62,6 @@ A.member=C
 
 (deftest translate1
   (doTranslateTest
-    "Удивительный случай случился со мной"
+    "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8"
     "An amazing thing happened to me today"))
 

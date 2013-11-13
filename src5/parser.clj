@@ -48,13 +48,14 @@
       '())))
 
 (defn enrich [m]
-  (let [cxt (.cxt m)]
+  (let [cxt (.cxt m)
+        head (marg m :head)]
     (cond
       (= cxt :word) (parse-word (:word (.args m)))
       (and (= cxt :phrase) (= (marg m :kind) :verb) (has-hard m :head))
-        [(mite :elaboration :child (marg m :head)) (mite :question :child (marg m :head))]
+        [(mite :elaboration :child head) (mite :question :child head)]
       (and (= cxt :question) (is-happy? m))
-        (concat (sem (marg m :head) "type" "question" "content" (marg m :child)) [(mite :questionVariants :wh (marg m :questioned))])
+        (concat (sem head "type" "question" "content" (marg m :child)) [(mite :questionVariants :wh (marg m :questioned))])
       :else ()
       ))
   )

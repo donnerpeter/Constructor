@@ -35,22 +35,17 @@ C.type=ME
 -- 2:
 B@1.elaboration=A
 B.type=ME
-B.time=PAST
-B.arg1=A
-A.gender=masc
-A.person=3
-B.manner=SUDDENLY
-B@1.elaboration=B
+C.manner=SUDDENLY
+C.time=PAST
+C.type=FORGET
+C.arg1=B
+C.arg2=D
 -- 3:
-A.type=wh
-B@2.arg2=B
-C.time=PRESENT
-C.arg1=A
-A.person=3
-B.content=C
-B.type=question
-B.questioned=A
-C.type=COME_SCALARLY
+D@2.type=question
+D@2.content=A
+B.type=wh
+A.time=PRESENT
+A.type=COME_SCALARLY
 C.order=EARLIER
 C.anchor=D
 -- 4:

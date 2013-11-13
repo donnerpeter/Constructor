@@ -35,19 +35,19 @@ C.type=ME
 -- 2:
 B@1.elaboration=A
 B.type=ME
-C.manner=SUDDENLY
-C.time=PAST
-C.type=FORGET
-C.arg1=B
-C.arg2=D
--- 3:
-D@2.type=question
-D@2.content=A
-B.type=wh
-A.time=PRESENT
-A.type=COME_SCALARLY
+A.manner=SUDDENLY
+A.time=PAST
+A.type=FORGET
 A.arg1=B
-A.order=EARLIER
+A.arg2=C
+-- 3:
+A.type=wh
+B.time=PRESENT
+B.type=COME_SCALARLY
+B.arg1=A
+B.order=EARLIER
+C@2.type=question
+C@2.content=B
 -- 4:
 A@3.variants=A
 B.type=7

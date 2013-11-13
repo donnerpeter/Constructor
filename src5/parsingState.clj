@@ -24,7 +24,7 @@
   )
 (defn all-tree-mites [^Tree tree]
   (let [own (.mites (.node tree))]
-    (if (.left tree) (concat own (all-tree-mites (.left tree)) (all-tree-mites (.right tree))) own)))
+    (if (.left tree) (concat (all-tree-mites (.left tree)) (all-tree-mites (.right tree)) own) own)))
 
 (defn append-log [state newLog]
   (assoc state :log

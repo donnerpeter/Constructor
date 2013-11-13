@@ -65,9 +65,9 @@
         (let [seqVar (marg m :seqVar)
               left (marg m :left)
               right (marg m :right)]
-          (concat [(mite :nom :child (.getLv left) :head seqVar)
+          (concat [(mite :nom :child (.getLv left) :head seqVar :last true)
                    (mite :nom :child seqVar)
-                   (mite :nom :child (.getLv right) :head seqVar)]
+                   (mite :nom :child (.getLv right) :head seqVar :first true)]
                   (sem seqVar "conj" (marg m :conj) "member" left "member" right)))
       (and (= cxt :questionVariants) (has-var m :wh :child))
         (concat (sem (marg m :wh) "variants" (marg m :child))

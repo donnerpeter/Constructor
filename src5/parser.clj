@@ -40,7 +40,9 @@
       "что" (concat [(mite :clauseType :child (v 2))] (pronoun :nom var "wh") [(mite :question :head (v 2) :questioned var)])
       "я" (pronoun :nom var "ME")
       "-" [(mite :questionVariants :child var) (mite :semSectionEnd :id var)]
-      ":" (concat [(mite :semSectionEnd :id var) (mite :phrase :kind :verb :head (v 0 :light)) (mite :elaboration :head (v 0) :elaboration (v 1 :light) :first true)]
+      ":" (concat [(mite :semSectionEnd :id var)
+                   (mite :phrase :kind :verb :head (v 0 :light))
+                   (mite :elaboration :head (v 0) :child (v 1 :light) :first true)]
             (sem var "elaboration" (v 1)))
       "," [(mite :phrase :kind :verb :head (v 0 :light) :last true) (mite :sentence :head (v 1 :light))
            (mite :comp :child (v 2)) (mite :clauseType :head (v 0) :child (v 2 :light))

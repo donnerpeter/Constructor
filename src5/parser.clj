@@ -29,7 +29,7 @@
       "8" (concat (noun :nom var "8") (sem var "number" "true"))
       "вдруг" (concat [(mite :phrase :kind :verb :head (v 0 :light))] (sem var "manner" "SUDDENLY"))
       "забыл" (concat (finiteVerb v "PAST" "FORGET") (arg v :comp "arg2"))
-      "идет" (concat (finiteVerb v "PAST" "COME_SCALARLY") [(mite :order-adverb :head var)])
+      "идет" (concat (finiteVerb v "PRESENT" "COME_SCALARLY") [(mite :order-adverb :head var)])
       "или" [(mite :seq :conj "or" :seqVar var :left (v 1) :right (v 2))]
       "мной" (pronoun :instr var "ME")
       "раньше" (concat [(mite :order-adverb :head (v 1 :light) :child var)] (sem (v 1) "order" "EARLIER"))
@@ -52,14 +52,16 @@
     (cond
       (= cxt :word) (parse-word (:word (.args m)))
       (and (= cxt :phrase) (= (marg m :kind) :verb) (has-hard m :head))
-        [(mite :elaboration :child (marg m :head))]
+        [(mite :elaboration :child (marg m :head)) (mite :question :child (marg m :head))]
+      (and (= cxt :question) (is-happy? m))
+        (concat (sem (marg m :head) "type" "question" "content" (marg m :child)) [(mite :questionVariants :wh (marg m :questioned))])
       :else ()
       ))
   )
 
 (defmethod is-happy? mites.Mite [mite]
   (case (.cxt mite)
-    (:nom :gen :dat :acc :instr :prep :sInstr :order-adverb :adverb) (has-hard mite :child :head)
+    (:nom :gen :dat :acc :instr :prep :sInstr :order-adverb :adverb :question) (has-hard mite :child :head)
     :phrase (has-hard mite :head)
     true
     ))

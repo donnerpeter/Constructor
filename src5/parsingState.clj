@@ -22,7 +22,7 @@
         right-mites (apply concat (map #(.mites (first %)) (.right node)))]
     (concat (.mites node) left-mites right-mites))
   )
-(defn all-tree-mites [tree]
+(defn all-tree-mites [^Tree tree]
   (let [own (.mites (.node tree))]
     (if (.left tree) (concat own (all-tree-mites (.left tree)) (all-tree-mites (.right tree))) own)))
 
@@ -160,12 +160,12 @@
       )))
   )
 
-(defn init-node [root enrich]
+(defn init-node [root enrich head-node child-node]
   (loop [all-mites [] to-enrich [root]]
     (if (empty? to-enrich)
       (->Node root (vec all-mites))
       (recur (concat all-mites to-enrich)
-             (flatten (map enrich to-enrich))))))
+             (flatten (map #(enrich % head-node child-node) to-enrich))))))
 
 (defn new-tree [^Node node ^Tree left ^Tree right]
   (let [tree (->Tree node left right {} #{})
@@ -173,18 +173,23 @@
         active (suggest-active tree)]
     (if active (assoc tree :active active))))
 
+(defn mergeable-combinations [head-tree child-tree inverse]
+  (let [head-mites (visible-tree-mites head-tree nil)
+        child-mites (visible-tree-mites child-tree nil)]
+    (apply concat
+         (for [head-mite head-mites, child-mite child-mites]
+           (let [unified (if inverse (unify child-mite head-mite) (unify head-mite child-mite))]
+             (if (and unified (not= inverse (is-left-headed? unified))) [unified] ()))
+           ))))
+
 (defn do-merge-trees [state ^Tree head-tree ^Tree child-tree inverse]
   (let [own-node (.node head-tree)
-        head-mites (visible-tree-mites head-tree nil)
-        child-mites (visible-tree-mites child-tree nil)
-        own-merged-mites (apply concat
-                           (for [head-mite head-mites, child-mite child-mites]
-                             (let [unified (if inverse (unify child-mite head-mite) (unify head-mite child-mite))]
-                               (if (and unified (not= inverse (is-left-headed? unified))) [unified] ()))
-                             ))
+        own-merged-mites (mergeable-combinations head-tree child-tree inverse)
         maybe-new-tree (fn [node left right] (if-let [tree (new-tree node left right)] [tree] []))
         own-merged-trees (apply concat (for [merged-mite own-merged-mites]
-                           (maybe-new-tree (init-node merged-mite (.enrich state)) (if inverse child-tree head-tree) (if inverse head-tree child-tree))))
+                           (maybe-new-tree (init-node merged-mite (.enrich state) head-tree child-tree)
+                                           (if inverse child-tree head-tree)
+                                           (if inverse head-tree child-tree))))
         has-children (not (nil? (.left head-tree)))
         left-headed (and has-children (is-left-headed? (.root own-node)))
         branch-direction (if (and has-children (not= left-headed inverse)) (if left-headed :right :left) nil)
@@ -212,4 +217,4 @@
         state (merge-trees state)]
     (append-log state (presentable state))))
 
-(defn add-word [state mite] (add-tree state (new-tree (init-node mite (.enrich state)) nil nil)))
+(defn add-word [state mite] (add-tree state (new-tree (init-node mite (.enrich state) nil nil) nil nil)))

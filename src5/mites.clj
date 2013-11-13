@@ -50,7 +50,7 @@
     (marg left :last) false
     :else true))
 
-(defn unify [left right]
+(defn unify [^Mite left ^Mite right]
   (when-let [merged-args (if (and (= (.cxt left) (.cxt right)) (may-unify left right)) (merge-args (.args left) (.args right)) nil)]
     (->Mite (.cxt left) merged-args left right)))
 

@@ -47,7 +47,7 @@
            (mite :semSectionEnd :id var)]
       '())))
 
-(defn enrich [m]
+(defn enrich [m head-tree child-tree]
   (let [cxt (.cxt m)
         head (marg m :head)]
     (cond
@@ -55,7 +55,10 @@
       (and (= cxt :phrase) (= (marg m :kind) :verb) (has-hard m :head))
         [(mite :elaboration :child head) (mite :question :child head)]
       (and (= cxt :question) (is-happy? m))
-        (concat (sem head "type" "question" "content" (marg m :child)) [(mite :questionVariants :wh (marg m :questioned))])
+        (let [mergeable (mergeable-combinations child-tree head-tree true)]
+          (concat mergeable
+                  (sem head "type" "question" "content" (marg m :child))
+                  [(mite :questionVariants :wh (marg m :questioned))]))
       :else ()
       ))
   )

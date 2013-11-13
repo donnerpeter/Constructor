@@ -46,8 +46,8 @@ D@2.content=A
 B.type=wh
 A.time=PRESENT
 A.type=COME_SCALARLY
-C.order=EARLIER
-C.anchor=D
+A.arg1=B
+A.order=EARLIER
 -- 4:
 A@3.variants=A
 B.type=7

@@ -2,7 +2,7 @@
   (:import [cons4 EnglishGenerator Variable Vars])
   (:use clojure.test parsingState mites))
 
-(def state (empty-parsing-state (fn [_] [])))
+(def state (empty-parsing-state (fn [_ _ _] [])))
 
 (def v (let [_vars (new Vars)]
          (fn
@@ -10,7 +10,7 @@
            ([key light] (. (. _vars get key) getLv)))))
 
 (defn add-mites [state mites]
-  (let [node  (init-node (first mites) (fn [mite] (if (= mite (first mites)) (rest mites) [])))
+  (let [node  (init-node (first mites) (fn [mite _ _] (if (= mite (first mites)) (rest mites) [])) nil nil)
          tree (new-tree node nil nil)]
     (add-tree state tree)))
 

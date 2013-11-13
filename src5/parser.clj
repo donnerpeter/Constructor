@@ -59,6 +59,14 @@
           (concat mergeable
                   (sem head "type" "question" "content" (marg m :child))
                   [(mite :questionVariants :wh (marg m :questioned))]))
+      (= cxt :seq)
+        (let [seqVar (marg m :seqVar)
+              left (marg m :left)
+              right (marg m :right)]
+          (concat [(mite :nom :child (.getLv left) :head seqVar)
+                   (mite :nom :child seqVar)
+                   (mite :nom :child (.getLv right) :head seqVar)]
+                  (sem seqVar "conj" (marg m :conj) "member" left "member" right)))
       :else ()
       ))
   )

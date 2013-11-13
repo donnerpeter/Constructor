@@ -39,7 +39,7 @@
       "удивительный" (adj :nom (v 0 :light) "property" "AMAZING")
       "что" (concat [(mite :clauseType :child (v 2))] (pronoun :nom var "wh") [(mite :question :head (v 2) :questioned var)])
       "я" (pronoun :nom var "ME")
-      "-" [(mite :questionVariants :variants var :dummyHead (v 1)) (mite :semSectionEnd :id var)]
+      "-" [(mite :questionVariants :child var) (mite :semSectionEnd :id var)]
       ":" (concat [(mite :semSectionEnd :id var) (mite :phrase :kind :verb :head (v 0 :light)) (mite :elaboration :head (v 0) :elaboration (v 1 :light) :first true)]
             (sem var "elaboration" (v 1)))
       "," [(mite :phrase :kind :verb :head (v 0 :light) :last true) (mite :sentence :head (v 1 :light))
@@ -58,7 +58,7 @@
         (let [mergeable (mergeable-combinations child-tree head-tree true)]
           (concat mergeable
                   (sem head "type" "question" "content" (marg m :child))
-                  [(mite :questionVariants :wh (marg m :questioned))]))
+                  [(mite :questionVariants :wh (marg m :questioned) :head head)]))
       (= cxt :seq)
         (let [seqVar (marg m :seqVar)
               left (marg m :left)
@@ -67,6 +67,9 @@
                    (mite :nom :child seqVar)
                    (mite :nom :child (.getLv right) :head seqVar)]
                   (sem seqVar "conj" (marg m :conj) "member" left "member" right)))
+      (and (= cxt :questionVariants) (has-var m :wh :child))
+        (concat (sem (marg m :wh) "variants" (marg m :child))
+                [(mite :nom :head head :child (.getLv (marg m :child)))])
       :else ()
       ))
   )

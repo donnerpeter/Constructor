@@ -185,7 +185,7 @@
 (defn do-merge-trees [state ^Tree head-tree ^Tree child-tree inverse]
   (let [own-node (.node head-tree)
         own-merged-mites (mergeable-combinations head-tree child-tree inverse)
-        maybe-new-tree (fn [node left right] (if-let [tree (new-tree node left right)] [tree] []))
+        maybe-new-tree (fn [node left right] (if-let [tree (new-tree node left right)] [[tree]] []))
         own-merged-trees (apply concat (for [merged-mite own-merged-mites]
                            (maybe-new-tree (init-node merged-mite (.enrich state) head-tree child-tree)
                                            (if inverse child-tree head-tree)
@@ -194,7 +194,7 @@
         left-headed (and has-children (is-left-headed? (.root own-node)))
         branch-direction (if (and has-children (not= left-headed inverse)) (if left-headed :right :left) nil)
         nested-merges (if branch-direction (do-merge-trees state (branch-direction head-tree) child-tree inverse) [])
-        wrapped-nested (apply concat (for [nested nested-merges]
+        wrapped-nested (apply concat (for [[nested] nested-merges]
                          (maybe-new-tree own-node
                                    (if (= :right branch-direction) (.left head-tree) nested)
                                    (if (= :right branch-direction) nested (.right head-tree)))))
@@ -208,7 +208,7 @@
     (if (nil? left)
       state
       (let [all-trees (concat (do-merge-trees state left right false) (do-merge-trees state right left true))
-            all-states (map #(assoc state :trees (cons % prev-trees)) all-trees)]
+            all-states (map #(assoc state :trees (concat % prev-trees)) all-trees)]
         (if (empty? all-states) state (merge-trees (first all-states)))))))
 
 (defn add-tree [state tree]

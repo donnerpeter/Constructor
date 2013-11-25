@@ -90,3 +90,18 @@
     (is (in? all (unify (unify mite1 mite2) mite3)))
     (is (in? all (unify mite1 mite2)))
     ))
+
+(deftest split-tree-to-have-better-merge
+  (let [mite1 (mite :nom :head (v 0))
+        mite2 (mite :nom :child (v 1))
+        mites3 [(mite :nom :head (v 2)) (mite :nom :child (v 2))]
+        state (add-mites state [mite1])
+        state (add-mites state [mite2])
+        state (add-mites state mites3)
+        all (all-mites state)
+        ]
+    (is (in? all (unify mite1 (mites3 1))))
+    (is (in? all (unify mite2 (mites3 0))))
+    ))
+
+

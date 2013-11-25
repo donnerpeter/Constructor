@@ -3,19 +3,23 @@
            (cons4.constructions sem semSectionEnd emptyCxt)
            (java.util LinkedHashMap))
   (:require [mites :refer :all])
+  (:require [schema.core :as s])
+  (:require [schema.macros :as sm])
   (:use clojure.data.priority-map)
   )
 
 (defn in? [seq elm] (some #(= elm %) seq))
 
-(defrecord ParsingState [trees log enrich])
+(defrecord Tree [node left right active contradictor-map]
+  Object (toString [_] (str node " from " left " and " right)))
+
+(sm/defrecord ParsingState [trees :- [Tree]
+                            log :- String
+                            enrich])
 (defn empty-parsing-state [enrich] (->ParsingState () "" enrich))
 
 (defrecord Node [root mites]
   Object (toString [_] (str root)))
-
-(defrecord Tree [node left right active contradictor-map]
-  Object (toString [_] (str node " from " left " and " right)))
 
 (defn visible-node-mites [^Tree tree ^Node node]
   (let [left-mites (apply concat (map #(.mites (first %)) (.left node)))
@@ -44,7 +48,7 @@
         kotlin-mites (map #(new cons4.Mite (kotlin-cxt (.cxt %)) (to-linked-map (.args %)) nil nil nil) active)]
     (new Chart kotlin-mites)))
 
-(defn visible-nodes [tree direction]
+(sm/defn visible-nodes [tree :- Tree, direction]
   (let [own-node (.node tree)]
     (if (.left tree)
       (let [side-mites (if direction (visible-nodes (direction tree) direction) [])
@@ -56,7 +60,7 @@
     )
   )
 
-(defn visible-tree-mites [tree direction] (mapcat #(.mites %) (visible-nodes tree direction)))
+(sm/defn visible-tree-mites [tree :- Tree, direction] (mapcat #(.mites %) (visible-nodes tree direction)))
 (defn visible-mites [state] (visible-tree-mites (first (.trees state)) :right))
 
 (defn present-mite [mite active] (str (if active "*" "") (if (is-happy? mite) "" "!") mite))
@@ -173,33 +177,48 @@
         active (suggest-active tree)]
     (if active (assoc tree :active active))))
 
-(defn mergeable-combinations [head-tree child-tree inverse]
-  (let [head-mites (visible-tree-mites head-tree nil)
-        child-mites (visible-tree-mites child-tree nil)]
+(defn mergeable-combinations [left-tree right-tree]
+  (let [left-mites (visible-tree-mites left-tree nil)
+        right-mites (visible-tree-mites right-tree nil)]
     (apply concat
-         (for [head-mite head-mites, child-mite child-mites]
-           (let [unified (if inverse (unify child-mite head-mite) (unify head-mite child-mite))]
-             (if (and unified (not= inverse (is-left-headed? unified))) [unified] ()))
+         (for [left-mite left-mites, right-mite right-mites]
+           (if-let [unified (unify left-mite right-mite)] [unified] ())
            ))))
 
-(defn do-merge-trees [state ^Tree head-tree ^Tree child-tree inverse]
-  (let [own-node (.node head-tree)
-        own-merged-mites (mergeable-combinations head-tree child-tree inverse)
+(sm/defn do-merge-trees :- [[Tree]]
+  [state, left-tree :- Tree, right-tree :- Tree, dig-left dig-right take-own-mites]
+  (let [own-merged-mites (if take-own-mites (mergeable-combinations left-tree right-tree) [])
         maybe-new-tree (fn [node left right] (if-let [tree (new-tree node left right)] [[tree]] []))
         own-merged-trees (apply concat (for [merged-mite own-merged-mites]
-                           (maybe-new-tree (init-node merged-mite (.enrich state) head-tree child-tree)
-                                           (if inverse child-tree head-tree)
-                                           (if inverse head-tree child-tree))))
-        has-children (not (nil? (.left head-tree)))
-        left-headed (and has-children (is-left-headed? (.root own-node)))
-        branch-direction (if (and has-children (not= left-headed inverse)) (if left-headed :right :left) nil)
-        nested-merges (if branch-direction (do-merge-trees state (branch-direction head-tree) child-tree inverse) [])
-        wrapped-nested (apply concat (for [[nested] nested-merges]
-                         (maybe-new-tree own-node
-                                   (if (= :right branch-direction) (.left head-tree) nested)
-                                   (if (= :right branch-direction) nested (.right head-tree)))))
+                           (maybe-new-tree (init-node merged-mite (.enrich state) left-tree right-tree) left-tree right-tree)))
+        wrap-fun (sm/fn wrap-fun :- [[Tree]]
+                   [digging-left tree-or-two :- [Tree]]
+                   (let [main-nested (if digging-left (first tree-or-two) (last tree-or-two))
+                         another-nested (if digging-left (second tree-or-two) (second (reverse tree-or-two)))
+                         ]
+                     (if (= digging-left (is-left-headed? (.root (.node main-nested))))
+                       (if-let [tree (new-tree (if digging-left (.node left-tree) (.node right-tree))
+                                               (if digging-left (.left left-tree) (.right right-tree))
+                                               main-nested)]
+                         [(if another-nested
+                            (if digging-left [tree another-nested] [another-nested tree])
+                            [tree])]
+                         [])
+                       (if another-nested
+                         []
+                         [(if digging-left [(.left left-tree) main-nested] [main-nested (.right right-tree)])]
+                         )
+                       )))
+        left-nested (if (and dig-left (.right left-tree))
+                      (do-merge-trees state (.right left-tree) right-tree true false (is-left-headed? (.root (.node left-tree))))
+                      [])
+        left-wrapped (mapcat #(wrap-fun true %) left-nested)
+        right-nested (if (and dig-right (.left right-tree))
+                       (do-merge-trees state left-tree (.left right-tree) false true (not (is-left-headed? (.root (.node right-tree)))))
+                       [])
+        right-wrapped (mapcat #(wrap-fun false %) right-nested)
         ]
-    (concat wrapped-nested own-merged-trees)
+    (concat left-wrapped right-wrapped own-merged-trees)
     )
 )
 
@@ -207,7 +226,7 @@
   (let [[right & [left & prev-trees]] (.trees state)]
     (if (nil? left)
       state
-      (let [all-trees (concat (do-merge-trees state left right false) (do-merge-trees state right left true))
+      (let [all-trees (do-merge-trees state left right true true true)
             all-states (map #(assoc state :trees (concat % prev-trees)) all-trees)]
         (if (empty? all-states) state (merge-trees (first all-states)))))))
 
@@ -218,3 +237,5 @@
     (append-log state (presentable state))))
 
 (defn add-word [state mite] (add-tree state (new-tree (init-node mite (.enrich state) nil nil) nil nil)))
+
+(s/set-fn-validation! true)

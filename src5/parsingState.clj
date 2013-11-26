@@ -192,7 +192,7 @@
         own-merged-trees (apply concat (for [merged-mite own-merged-mites]
                            (maybe-new-tree (init-node merged-mite (.enrich state) left-tree right-tree) left-tree right-tree)))
         wrap-fun (sm/fn wrap-fun :- [[Tree]]
-                   [digging-left tree-or-two :- [Tree]]
+                   [digging-left, tree-or-two :- [Tree]]
                    (let [main-nested (if digging-left (first tree-or-two) (last tree-or-two))
                          another-nested (if digging-left (second tree-or-two) (second (reverse tree-or-two)))
                          ]
@@ -222,13 +222,24 @@
     )
 )
 
-(defn merge-trees [state]
+(defn all-merged-states [state max-count]
   (let [[right & [left & prev-trees]] (.trees state)]
     (if (nil? left)
-      state
+      [state]
       (let [all-trees (do-merge-trees state left right true true true)
-            all-states (map #(assoc state :trees (concat % prev-trees)) all-trees)]
-        (if (empty? all-states) state (merge-trees (first all-states)))))))
+            filtered (filter #(<= (count %) max-count) all-trees)
+            merged-states (apply concat (for [tree-or-two filtered]
+                                          (all-merged-states (assoc state :trees (concat (reverse tree-or-two) prev-trees))
+                                                             (if (= (count tree-or-two) 2) 1 2))
+                                          ))
+            ]
+        (cons state merged-states))
+      )))
+
+(defn merge-trees [state]
+  (let [variants (all-merged-states state 2)
+        sorted (sort-by #(count (.trees %)) variants)]
+    (first sorted)))
 
 (defn add-tree [state tree]
   (let [state (append-log state "\n---------------------------------")

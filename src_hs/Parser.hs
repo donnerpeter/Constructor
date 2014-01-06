@@ -1,6 +1,7 @@
 import Data.Char (toLower)
 import Constructor.Tree
 import Constructor.Lexicon
+import Constructor.Sense
 
 tokenize s = map (\x -> map toLower x) $
              filter (\token -> length token > 0) $
@@ -17,7 +18,4 @@ parse:: String -> [Tree]
 parse s =
   let tokens = tokenize s
       pair = foldl (\(state, index) word -> (addMites state (wordMites word index), index + 1)) ([], 1) tokens
-  in
-    fst pair
-
-main = do putStrLn (show (tokenize "я: Тыы"))
+  in fst pair

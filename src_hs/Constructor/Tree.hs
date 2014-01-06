@@ -16,6 +16,10 @@ instance Show Tree where
             Nothing -> myLine
     in "\n" ++ inner tree ""
 
+allTreeMites tree =
+  if isNothing (left tree) then mites tree
+  else (allTreeMites $ fromJust $ left tree)++(allTreeMites $ fromJust $ right tree)++(mites tree)
+
 headMites tree =
   if isNothing (left tree) then mites tree
   else (mites tree)++(headMites $ fromJust $ (if leftHeaded tree then left tree else right tree))

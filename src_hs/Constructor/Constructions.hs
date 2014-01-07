@@ -3,7 +3,7 @@ module Constructor.Constructions where
 data Variable = Variable Int String deriving (Ord, Eq)
 instance Show Variable where show (Variable i s) = "V"++(show i)++s
 
-data SemValue = StrValue String | VarValue Variable
+data SemValue = StrValue String | VarValue Variable deriving (Eq)
 instance Show SemValue where
   show (StrValue s) = s
   show (VarValue v) = show v

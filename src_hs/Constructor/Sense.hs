@@ -3,6 +3,7 @@ module Constructor.Sense where
 import Constructor.Constructions
 import Constructor.Tree
 import Data.List (intercalate)
+import Data.Maybe (catMaybes)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 
@@ -34,15 +35,35 @@ calcBaseVars mites =
       groups = foldl inner Map.empty mites
   in Map.map (head . Set.elems) groups  
 
-data Fact = Fact { var:: Variable, attr:: String, value:: SemValue }
+data Fact = Fact { variable:: Variable, attrName:: String, value:: SemValue } deriving (Eq)
 instance Show Fact where show (Fact var attr value) = (show var)++"."++attr++"="++(show value)
 
-data Sense = Sense { facts:: [Fact] }
+data Sense = Sense { facts:: [Fact] } deriving (Eq)
 instance Show Sense where show (Sense facts) = Data.List.intercalate "\n" (map show facts)
+
+data Frame = Frame { var:: Variable, sense:: Sense } deriving (Eq, Show)
 
 makeSense trees =
   let allMites = concat (map allTreeMites $ reverse trees)
       baseVars = calcBaseVars allMites
   in Sense (calcFacts allMites baseVars)
 
-allFacts sense v = [fact | fact@(Fact {var=_v}) <- facts sense, v == _v]
+extractValueString (StrValue s) = Just s
+extractValueString _ = Nothing
+
+extractValueVar (VarValue v) = Just v
+extractValueVar _ = Nothing
+
+allFrames sense = [Frame var sense | var <- Set.elems $ Set.fromList allVars ] where
+  allVars = [variable fact | fact <- facts sense ] ++ valueVars
+  valueVars = catMaybes [extractValueVar $ value fact | fact <- facts sense ]
+
+allFrameFacts frame = [fact | fact <- facts (sense frame), var frame == variable fact]
+allValues frame attr = [value fact | fact <- allFrameFacts frame, attrName fact == attr]
+singleValue frame attr = case allValues frame attr of
+  [single] -> Just single
+  _ -> Nothing
+sValue frame attr = singleValue frame attr >>= extractValueString
+fValue frame attr = singleValue frame attr >>= extractValueVar >>= \v -> Just $ Frame v (sense frame)
+hasType frame t = getType frame == Just t
+getType frame = sValue frame "type"

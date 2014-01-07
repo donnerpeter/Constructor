@@ -2,6 +2,7 @@ import Data.Char (toLower)
 import Constructor.Tree
 import Constructor.Lexicon
 import Constructor.Sense
+import Constructor.EnglishGenerator
 
 tokenize s = map (\x -> map toLower x) $
              filter (\token -> length token > 0) $
@@ -19,3 +20,5 @@ parse s =
   let tokens = tokenize s
       pair = foldl (\(state, index) word -> (addMites state (wordMites word index), index + 1)) ([], 1) tokens
   in fst pair
+
+translate s = generate $ makeSense $ parse s

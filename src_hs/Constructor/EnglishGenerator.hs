@@ -37,7 +37,7 @@ sentence frame = clause frame
 
 clause frame =
   let subject = fValue frame "arg1"
-      adverb = case sValue frame "manner" of
+      preAdverb = case sValue frame "manner" of
         Just "SUDDENLY" -> "suddenly"
         Just s -> s
         _ -> ""
@@ -49,7 +49,10 @@ clause frame =
       io = case fValue frame "experiencer" of
         Just smth -> cat "to" (np (Just smth) False)
         _ -> ""
+      finalAdverb = case getType frame of
+        Just "HAPPEN" -> "today"
+        _ -> ""
       elaboration = case fValue frame "elaboration" of
         Just smth -> ":" `cat` (clause smth)
         _ -> ""
-  in (np subject True) `cat` adverb `cat` verb `cat` io ++ elaboration
+  in (np subject True) `cat` preAdverb `cat` verb `cat` io `cat` finalAdverb ++ elaboration

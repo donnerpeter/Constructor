@@ -3,6 +3,7 @@ import Constructor.Tree
 import Constructor.Lexicon
 import Constructor.Sense
 import Constructor.EnglishGenerator
+import Test.HUnit
 
 tokenize s = map (\x -> map toLower x) $
              filter (\token -> length token > 0) $
@@ -22,3 +23,12 @@ parse s =
   in fst pair
 
 translate s = generate $ makeSense $ parse s
+
+translateTest src target = TestCase $ assertEqual (show (parse src)) target (translate src) 
+
+test1Short = translateTest "Удивительный случай случился со мной" 
+                           "An amazing thing happened to me today"
+
+tests = TestList [test1Short]
+
+allTests = runTestTT tests

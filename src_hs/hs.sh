@@ -1,6 +1,6 @@
 #!/bin/sh
 
-ghci "$@" | python3 -c '
+ghci "$@" 2>&1 | python3 -c '
 import sys
 import re
 

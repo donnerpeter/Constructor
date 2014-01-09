@@ -14,6 +14,7 @@ tokenize s = map (\x -> map toLower x) $
     case char of
       ' ' -> (current:tokens, "")
       ':' -> (":":current:tokens, "")
+      ',' -> (",":current:tokens, "")
       _ -> (tokens, current++[char])
 
 parse:: String -> [Tree]
@@ -24,10 +25,11 @@ parse s =
 
 translate s = generate $ makeSense $ parse s
 
-translateTest src target = TestCase $ assertEqual (show (parse src)) target (translate src) 
+translateTest src target = TestLabel src $ TestCase $ assertEqual (show (parse src)) target (translate src) 
 
-test1Short = translateTest "Удивительный случай случился со мной" 
-                           "An amazing thing happened to me today"
+test1Short =
+  translateTest "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8" 
+                "An amazing thing happened to me today, I suddenly forgot what comes first - 7 or 8"
 
 tests = TestList [test1Short]
 

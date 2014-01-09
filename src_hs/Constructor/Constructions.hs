@@ -19,6 +19,11 @@ data Construction = Word Variable String
                   | Argument ArgKind Variable 
                   | Adverb String String
                   | Elaboration Variable
+                  | ComeScalarly Variable
+                  | CompHead Variable
+                  | CompComma Variable
+                  | ScalarAdverb String Variable
+                  | Wh Variable Variable
                   deriving (Show)
 data Mite = Mite { cxt :: Construction, happy :: Bool }
 instance Show Mite where

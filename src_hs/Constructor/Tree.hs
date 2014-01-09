@@ -12,7 +12,7 @@ instance Show Tree where
     let inner = \tree prefix ->
           let myLine = prefix ++ (Data.List.intercalate ", " [show m | m <- headMites tree])++"\n" in
           case rightSubTree tree of
-            Just r -> (inner r (" "++prefix)) ++ myLine
+            Just r -> (inner r ("  "++prefix)) ++ myLine
             Nothing -> myLine
     in "\n" ++ inner tree ""
 

@@ -2,11 +2,12 @@ module Constructor.Tree where
 
 import Data.Maybe
 import Data.List
+import qualified Data.Set as Set
 import Constructor.Constructions
 import Constructor.Lexicon
 import Constructor.Composition
 
-data Tree = Tree {mites::[Mite], left::Maybe Tree, right::Maybe Tree, leftHeaded::Bool}
+data Tree = Tree {mites::[Mite], left::Maybe Tree, right::Maybe Tree, leftHeaded::Bool, baseMites::[Mite]}
 instance Show Tree where
   show tree =
     let inner = \tree prefix ->
@@ -21,8 +22,12 @@ allTreeMites tree =
   else (allTreeMites $ fromJust $ left tree)++(allTreeMites $ fromJust $ right tree)++(mites tree)
 
 headMites tree =
-  if isNothing (left tree) then mites tree
-  else (mites tree)++(headMites $ fromJust $ (if leftHeaded tree then left tree else right tree))
+  let inner tree suppressed =
+        let ownMites = [mite | mite <- mites tree, not $ Set.member mite suppressed] in
+        if isNothing $ left tree then ownMites
+        else ownMites ++ (inner (if leftHeaded tree then fromJust $ left tree else fromJust $ right tree)
+                                (Set.union suppressed $ Set.fromList [mite | mite <- baseMites tree, not $ happy mite]))
+  in inner tree Set.empty
 
 rightSubTree tree =
   if isNothing (left tree) then Nothing
@@ -32,16 +37,21 @@ rightSubTree tree =
 isBranch tree = isJust (left tree)
 isDirectedBranch tree isLeftBranch = isBranch tree && leftHeaded tree == isLeftBranch
 
-createEdges leftTree rightTree leftMites rightMites =
-  let mergeInfos = concat [interactMites (cxt leftMite) (cxt rightMite) | leftMite <- leftMites, rightMite <- rightMites] in
-  [Tree mergedMites (Just leftTree) (Just rightTree) leftHeadedMerge | MergeInfo mergedMites _ leftHeadedMerge <- mergeInfos]
+createEdges:: Tree -> Tree -> [Tree]
+createEdges leftTree rightTree =
+  let createTrees leftMite rightMite =
+        let infos = interactMites (cxt leftMite) (cxt rightMite)
+            createTree mergedMites leftHeadedMerge = Tree mergedMites (Just leftTree) (Just rightTree) leftHeadedMerge [leftMite, rightMite]
+            trees = [createTree mergedMites leftHeadedMerge | MergeInfo mergedMites _ leftHeadedMerge <- infos]
+        in trees
+  in concat [createTrees leftMite rightMite | leftMite <- headMites leftTree, rightMite <- headMites rightTree]
 
+type MergeResult = Either Tree (Tree, Tree)
+integrateSubTree :: Tree -> Tree -> Bool -> MergeResult -> [MergeResult]  
 integrateSubTree leftTree rightTree toLeft subResult =
   let leftLeft = fromJust $ left leftTree
       rightRight = fromJust $ right rightTree
-      newEdges = \ subTree -> createEdges leftLeft subTree 
-                              (headMites (if toLeft then leftLeft else subTree)) 
-                              (headMites (if toLeft then subTree else rightRight))
+      newEdges = \ subTree -> createEdges (if toLeft then leftLeft else subTree) (if toLeft then subTree else rightRight)
   in
   case subResult of
     Left subTree ->
@@ -59,7 +69,7 @@ integrateSubTree leftTree rightTree toLeft subResult =
 optimize:: Tree -> Tree -> Bool -> Bool -> Bool -> [Either Tree (Tree, Tree)]
 optimize leftTree rightTree digLeft digRight useOwnMites =
   let ownResults = if useOwnMites 
-                   then [Left tree | tree <- createEdges leftTree rightTree (headMites leftTree) (headMites rightTree)]
+                   then [Left tree | tree <- createEdges leftTree rightTree]
                    else []
       leftSubResults = if digLeft && isBranch leftTree
                        then optimize (fromJust $ right leftTree) rightTree True False $ isDirectedBranch leftTree True 
@@ -81,4 +91,4 @@ mergeTrees state@(rightTree:leftTree:rest) =
 mergeTrees trees = trees
 
 addMites:: [Tree] -> [Mite] -> [Tree]
-addMites state mites = mergeTrees $ (Tree mites Nothing Nothing True):state
+addMites state mites = mergeTrees $ (Tree mites Nothing Nothing True []):state

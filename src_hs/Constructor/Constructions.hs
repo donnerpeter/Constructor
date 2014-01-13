@@ -3,16 +3,17 @@ module Constructor.Constructions where
 data Variable = Variable Int String deriving (Ord, Eq)
 instance Show Variable where show (Variable i s) = "V"++(show i)++s
 
-data SemValue = StrValue String | VarValue Variable deriving (Eq)
+data SemValue = StrValue String | VarValue Variable deriving (Eq, Ord)
 instance Show SemValue where
   show (StrValue s) = s
   show (VarValue v) = show v
 
-data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | SInstr deriving (Show, Eq)
+data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | SInstr deriving (Show, Eq, Ord)
 data Construction = Word Variable String
                   | Sem Variable String SemValue
                   | Unify Variable Variable
-                  | Adj ArgKind String String
+                  | Adj Variable ArgKind String String
+                  | AdjHead Variable ArgKind
                   | Noun Variable ArgKind
                   | FiniteVerb Variable
                   | ArgHead ArgKind Variable
@@ -24,8 +25,8 @@ data Construction = Word Variable String
                   | CompComma Variable
                   | ScalarAdverb String Variable
                   | Wh Variable Variable
-                  deriving (Show)
-data Mite = Mite { cxt :: Construction, happy :: Bool }
+                  deriving (Show, Ord, Eq)
+data Mite = Mite { cxt :: Construction, happy :: Bool } deriving (Ord, Eq)
 instance Show Mite where
   show (Mite {cxt=c, happy=h}) = (if h then "" else "!")++(show c)
   

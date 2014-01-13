@@ -8,7 +8,7 @@ right mites = MergeInfo mites [] False
 
 interactMites:: Construction -> Construction -> [MergeInfo]
 interactMites leftMite rightMite = case (leftMite, rightMite) of
-  (Adj adjCase property value, Noun var nounCase) | adjCase == nounCase -> [right [semS var property value]]
+  (Adj _ adjCase property value, AdjHead var nounCase) | adjCase == nounCase -> [right [semS var property value]]
   (Noun child Nom, FiniteVerb head) -> [right [semV head "arg1" child]]
   (Adverb attr val, FiniteVerb head) -> [right [semS head attr val]]
   (ArgHead kind1 var1, Argument kind2 var2) | kind1 == kind2 -> [left [mite $ Unify var1 var2]]

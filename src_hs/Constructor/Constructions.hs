@@ -25,6 +25,7 @@ data Construction = Word Variable String
                   | CompComma Variable
                   | ScalarAdverb String Variable
                   | Wh Variable Variable
+                  | QuestionVariants (Maybe Variable) (Maybe String)
                   deriving (Show, Ord, Eq)
 data Mite = Mite { cxt :: Construction, happy :: Bool } deriving (Ord, Eq)
 instance Show Mite where

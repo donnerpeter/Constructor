@@ -27,10 +27,16 @@ translate s = generate $ makeSense $ parse s
 
 translateTest src target = TestLabel src $ TestCase $ assertEqual (show (parse src)) target (translate src) 
 
-test1Short =
-  translateTest "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8" 
-                "An amazing thing happened to me today, I suddenly forgot what comes first - 7 or 8"
+test1 = translateTest "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8" 
+        "An amazing thing happened to me today, I suddenly forgot what comes first - 7 or 8"
 
-tests = TestList [test1Short]
+test1_CommaQuestionVariants = translateTest "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8" 
+        "An amazing thing happened to me today, I suddenly forgot what comes first - 7 or 8"
+test1_MiddleQuestionVariantsDash = translateTest "Я вдруг забыл, что - 7 или 8 - идет раньше" 
+         "I suddenly forgot what comes first - 7 or 8"
+test1_MiddleQuestionVariantsComma = translateTest "Я вдруг забыл, что, 7 или 8, идет раньше" 
+         "I suddenly forgot what comes first - 7 or 8"
+
+tests = TestList [test1]
 
 allTests = runTestTT tests

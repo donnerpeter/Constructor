@@ -15,6 +15,7 @@ wordMites word index =
   "вдруг" -> [mite $ Adverb "manner" "SUDDENLY"]
   "забыл" -> [mite $ FiniteVerb (v 0), mite $ CompHead (v 1), semS (v 0) "type" "FORGET", semS (v 0) "time" "PAST", semV (v 0) "arg2" (v 1)]
   "идет" -> [mite $ FiniteVerb (v 0), mite $ ComeScalarly (v 0), semS (v 0) "time" "PRESENT"]
+  "или" -> [mite $ Conjunction v0 "or", semS v0 "conj" "or"]
   "мной" -> [mite $ Noun (v 0) Instr, mite $ Argument Instr (v 0), semT (v 0) "ME"]
   "удивительный" -> [mite $ Adj v0 Nom "property" "AMAZING"]
   "раньше" -> [mite $ ScalarAdverb "EARLIER" v0]

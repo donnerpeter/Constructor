@@ -20,4 +20,6 @@ interactMites leftMite rightMite = case (leftMite, rightMite) of
   (ComeScalarly verb, ScalarAdverb order _) -> [left [semS verb "order" order, semT verb "COME_SCALARLY"]]
   (QuestionVariants (Just v) Nothing, QuestionVariants Nothing (Just s)) -> [left [mite $ QuestionVariants (Just v) (Just s)]]
   (QuestionVariants (Just v) (Just _), Noun child Nom) -> [left [semV v "variants" child]]
+  (Conjunction v _, Noun child Nom) -> [left [semV v "member" child, mite $ SeqRight v]]
+  (Noun child Nom, SeqRight v) -> [right [semV v "member" child, mite $ SeqFull v, mite $ Noun v Nom]]
   _ -> []

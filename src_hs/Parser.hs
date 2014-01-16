@@ -25,18 +25,24 @@ parse s =
 
 translate s = generate $ makeSense $ parse s
 
-translateTest src target = TestLabel src $ TestCase $ assertEqual (show (parse src)) target (translate src) 
+translateTest src target = TestLabel src $ TestCase $
+  let trees = parse src in
+  assertEqual ((show $ makeSense trees) ++ "\n\n" ++ (show trees)) target (translate src) 
 
-test1 = translateTest "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8" 
-        "An amazing thing happened to me today, I suddenly forgot what comes first - 7 or 8"
+sonnetTests = [
+  translateTest "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8" 
+          "An amazing thing happened to me today, I suddenly forgot what comes first - 7 or 8"
+  ]
 
-test1_CommaQuestionVariants = translateTest "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8" 
-        "An amazing thing happened to me today, I suddenly forgot what comes first - 7 or 8"
-test1_MiddleQuestionVariantsDash = translateTest "Я вдруг забыл, что - 7 или 8 - идет раньше" 
-         "I suddenly forgot what comes first - 7 or 8"
-test1_MiddleQuestionVariantsComma = translateTest "Я вдруг забыл, что, 7 или 8, идет раньше" 
-         "I suddenly forgot what comes first - 7 or 8"
+sonnetVariationTests=[
+--  translateTest "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8" 
+--          "An amazing thing happened to me today, I suddenly forgot what comes first - 7 or 8",
+--  translateTest "Я вдруг забыл, что - 7 или 8 - идет раньше" 
+--         "I suddenly forgot what comes first - 7 or 8",
+--  translateTest "Я вдруг забыл, что, 7 или 8, идет раньше" 
+--         "I suddenly forgot what comes first - 7 or 8"
+  ]
 
-tests = TestList [test1]
+tests = TestList (sonnetTests++sonnetVariationTests)
 
 allTests = runTestTT tests

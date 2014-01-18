@@ -4,6 +4,7 @@ import Control.Monad.State
 import Data.List
 import Data.Char (toUpper)
 import Data.String.Utils (startswith)
+import Data.Maybe
 
 generate:: Sense -> String
 generate sense = 
@@ -17,7 +18,9 @@ isTopFrame frame = hasType frame "HAPPEN"-- || hasType frame "FORGET"
 
 np Nothing _ = "???"
 np (Just frame) nom =
-  if hasType frame "ME" then if nom then "I" else "me"
+  if hasType frame "SEQ" then
+    (np (fValue frame "member1") nom) `cat` (fromMaybe "," $ sValue frame "conj") `cat` (np (fValue frame "member2") nom)
+  else if hasType frame "ME" then if nom then "I" else "me"
   else if hasType frame "WH" then "what"
   else let n = noun (getType frame)
            nbar = case sValue frame "property" of
@@ -38,6 +41,7 @@ noun (Just typ) = case typ of
 
 cat "" t2 = t2
 cat t1 "" = t1
+cat t1 (',':t2) = t1 ++ "," ++ t2
 cat t1 t2 = t1 ++ " " ++ t2
 
 sentence frame = clause frame
@@ -61,7 +65,7 @@ clause fVerb =
         Just "HAPPEN" -> "today"
         _ -> ""
       elaboration = case fValue fVerb "elaboration" of
-        Just smth -> ":" `cat` (clause smth)
+        Just smth -> "," `cat` (clause smth)
         _ -> ""
       fComp = case getType fVerb of
         Just "FORGET" -> fValue fVerb "arg2"
@@ -72,4 +76,4 @@ clause fVerb =
       questionVariants = case subject >>= \subj -> Just (getType subj, fValue subj "variants") of
         Just (Just "WH", Just variants) -> "-" `cat` (np (Just variants) True)
         _ -> ""
-  in (np subject True) `cat` preAdverb `cat` verb `cat` io `cat` finalAdverb `cat` comp `cat` questionVariants ++ elaboration
+  in (np subject True) `cat` preAdverb `cat` verb `cat` io `cat` finalAdverb `cat` comp `cat` questionVariants `cat` elaboration

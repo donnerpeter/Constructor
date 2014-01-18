@@ -65,22 +65,22 @@ singleListElement list = case list of
   _ -> Nothing
 singleValue attr frame = singleListElement $ allValues attr frame
 
-sValue frame attr = singleValue attr frame >>= extractValueString
+sValue attr frame = singleValue attr frame >>= extractValueString
 
-fDeclaredValue frame attr = singleValue attr frame >>= extractValueVar >>= \v -> Just $ Frame v (sense frame)
-fValue frame attr =
-  let declared = fDeclaredValue frame attr in
+fDeclaredValue attr frame = singleValue attr frame >>= extractValueVar >>= \v -> Just $ Frame v (sense frame)
+fValue attr frame =
+  let declared = fDeclaredValue attr frame in
   if isJust declared then declared
   else
     case attr of
       "arg1" ->
-        if hasType frame "NEIGHBORS" then do f <- usage frame "goal"; fValue f "arg1"
+        if hasType "NEIGHBORS" frame then usage "goal" frame >>= fValue "arg1"
         else Nothing
       _ -> Nothing
 
-hasType frame t = getType frame == Just t
-getType frame = sValue frame "type"
+hasType t frame = getType frame == Just t
+getType frame = sValue "type" frame
 
-usages frame attr = [f | f <- allFrames (sense frame), fDeclaredValue f attr == Just frame]
-usage frame attr = singleListElement $ usages frame attr
+usages attr frame = [f | f <- allFrames (sense frame), fDeclaredValue attr f == Just frame]
+usage attr frame = singleListElement $ usages attr frame
   

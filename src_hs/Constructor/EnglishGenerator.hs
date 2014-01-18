@@ -14,33 +14,32 @@ generate sense =
 
 capitalize (c:rest) = (toUpper c):rest
 
-isTopFrame frame = hasType frame "HAPPEN" || hasType frame "GO_OFF"
+isTopFrame frame = hasType "HAPPEN" frame || hasType "GO_OFF" frame
 
 np Nothing _ = "???"
 np (Just frame) nom =
-  if hasType frame "SEQ" then
-    (np (fValue frame "member1") nom) `cat` (fromMaybe "," $ sValue frame "conj") `cat` (np (fValue frame "member2") nom)
-  else if hasType frame "ME" then if nom then "I" else "me"
-  else if hasType frame "HE" then if nom then "He" else "him"
-  else if hasType frame "WH" then "what"
+  if hasType "SEQ" frame then
+    (np (fValue "member1" frame) nom) `cat` (fromMaybe "," $ sValue "conj" frame) `cat` (np (fValue "member2" frame) nom)
+  else if hasType "ME" frame then if nom then "I" else "me"
+  else if hasType "HE" frame then if nom then "He" else "him"
+  else if hasType "WH" frame then "what"
   else let n = noun (getType frame)
-           nbar = case sValue frame "property" of
+           nbar = case sValue "property" frame of
              Just "AMAZING" -> cat "amazing" n
              _ -> n
            in (determiner frame nbar) `cat` nbar
              
 
 determiner frame nbar =
-  let det = if hasType frame "NEIGHBORS" then fValue frame "arg1" else Nothing in
+  let det = if hasType "NEIGHBORS" frame then fValue "arg1" frame else Nothing in
   case det >>= getType of
     Just "ME" -> "my"
     Just "HE" -> "his"
     _ ->
-      case sValue frame "number" of
-       Just "true" -> ""
-       _ ->
-         if startswith "a" nbar then "an"
-         else if isSingular (getType frame) then "a" else ""
+      if sValue "number" frame == Just "true" then ""
+      else if startswith "a" nbar then "an"
+      else if isSingular (getType frame) then "a"
+      else ""
 
 noun Nothing = "??"
 noun (Just typ) = case typ of
@@ -63,8 +62,8 @@ cat t1 t2 = t1 ++ " " ++ t2
 sentence frame = clause frame
 
 clause fVerb =
-  let subject = fValue fVerb "arg1"
-      preAdverb = case sValue fVerb "manner" of
+  let subject = fValue "arg1" fVerb
+      preAdverb = case sValue "manner" fVerb of
         Just "SUDDENLY" -> "suddenly"
         Just s -> s
         _ -> ""
@@ -75,25 +74,25 @@ clause fVerb =
         Just "COME_SCALARLY" -> "comes first"
         Just s -> s
         Nothing -> "???"
-      io = case fValue fVerb "experiencer" of
+      io = case fValue "experiencer" fVerb of
         Just smth -> cat "to" (np (Just smth) False)
         _ ->
-          case fValue fVerb "goal" of
+          case fValue "goal" fVerb of
             Just smth -> cat "to" (np (Just smth) False)
             _ -> ""  
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         _ -> ""
-      elaboration = case fValue fVerb "elaboration" of
+      elaboration = case fValue "elaboration" fVerb of
         Just smth -> "," `cat` (clause smth)
         _ -> ""
       fComp = case getType fVerb of
-        Just "FORGET" -> fValue fVerb "arg2"
+        Just "FORGET" -> fValue "arg2" fVerb
         _ -> Nothing
-      comp = case fComp >>= \cp -> fValue cp "content" of
+      comp = case fComp >>= fValue "content" of
         Just nested -> clause nested
         Nothing -> ""
-      questionVariants = case subject >>= \subj -> Just (getType subj, fValue subj "variants") of
+      questionVariants = case subject >>= \subj -> Just (getType subj, fValue "variants" subj) of
         Just (Just "WH", Just variants) -> "-" `cat` (np (Just variants) True)
         _ -> ""
   in (np subject True) `cat` preAdverb `cat` verb `cat` io `cat` finalAdverb `cat` comp `cat` questionVariants `cat` elaboration

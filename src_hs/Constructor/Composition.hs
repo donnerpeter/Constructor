@@ -17,7 +17,7 @@ interactMites leftMite rightMite = case (leftMite, rightMite) of
   (CompHead head, Word _ ",") -> [left [mite $ CompComma head]]
   (CompComma head, Wh _ cp) -> [left [mite $ Unify head cp]]
   (Wh wh cp, FiniteVerb verb) -> [left [semV cp "content" verb, semV verb "arg1" wh]]
-  (ComeScalarly verb, ScalarAdverb order _) -> [left [semS verb "order" order, semT verb "COME_SCALARLY"]]
+  (ComeScalarly verb, ScalarAdverb order _) -> [left [semS verb "order" order]]
   (QuestionVariants (Just v) Nothing, QuestionVariants Nothing (Just s)) -> [left [mite $ QuestionVariants (Just v) (Just s)]]
   (QuestionVariants (Just v) (Just _), Noun child Nom) -> [left [semV v "variants" child]]
   (Conjunction v _, Noun child Nom) -> [left [semV v "member2" child, mite $ SeqRight v]]

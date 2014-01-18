@@ -5,6 +5,12 @@ import Data.Char (ord, chr)
 readsInt :: String -> [(Int, String)]
 readsInt = reads
 
+noun caze typ v = [mite $ Noun (v 0) caze, semS (v 0) "type" typ, mite $ AdjHead (v 0) Nom, mite $ Argument caze (v 0)]
+pronoun caze typ v = [mite $ Noun (v 0) caze, semS (v 0) "type" typ, mite $ Argument caze (v 0)]
+preposition prepArg nounArg v = [mite $ Argument prepArg (v 0), mite $ ArgHead nounArg (v 0)]
+finVerb typ time v = [mite $ FiniteVerb (v 0), semT (v 0) typ, semS (v 0) "time" time]
+arg argType relation v = [mite $ ArgHead argType (v 1), semV (v 0) relation (v 1)]
+
 wordMites :: String -> Int -> [Mite]  
 wordMites word index =
   let v = \i -> Variable index $ [chr (i+(ord 'a'))]
@@ -13,20 +19,20 @@ wordMites word index =
   case word of
   s | length (readsInt s) == 1 -> [mite $ Noun v0 Nom, semT v0 word, semS v0 "number" "true"]
   "вдруг" -> [mite $ Adverb "manner" "SUDDENLY"]
-  "забыл" -> [mite $ FiniteVerb (v 0), mite $ CompHead (v 1), semS (v 0) "type" "FORGET", semS (v 0) "time" "PAST", semV (v 0) "arg2" (v 1)]
-  "идет" -> [mite $ FiniteVerb (v 0), mite $ ComeScalarly (v 0), semS (v 0) "time" "PRESENT"]
+  "забыл" -> (finVerb "FORGET" "PAST" v) ++ [mite $ CompHead (v 1), semV v0 "arg2" (v 1)]
+  "идет" -> (finVerb "COME_SCALARLY" "PRESENT" v) ++ [mite $ ComeScalarly (v 0)]
   "или" -> [mite $ Conjunction v0 "or", semS v0 "conj" "or", semT v0 "SEQ"]
-  "к" -> [mite $ Argument KDat v0, mite $ ArgHead Dat v0]
-  "мной" -> [mite $ Noun (v 0) Instr, mite $ Argument Instr (v 0), semT (v 0) "ME"]
+  "к" -> preposition KDat Dat v
+  "мной" -> pronoun Instr "ME" v
   "удивительный" -> [mite $ Adj v0 Nom "property" "AMAZING"]
-  "он" -> [mite $ Noun (v 0) Nom, mite $ Argument Instr (v 0), semT (v 0) "HE"]
-  "отправился" -> [mite $ FiniteVerb v0, mite $ ArgHead KDat (v 1), semS v0 "type" "GO_OFF", semS v0 "time" "PAST", semV v0 "goal" (v 1)]
+  "он" -> pronoun Nom "HE" v
+  "отправился" -> (finVerb "GO_OFF" "PAST" v) ++ (arg KDat "goal" v)
   "раньше" -> [mite $ ScalarAdverb "EARLIER" v0]
-  "случай" -> [mite $ Noun (v 0) Nom, semS (v 0) "type" "THING", mite $ AdjHead v0 Nom]
-  "случился" -> [mite $ FiniteVerb (v 0), mite $ ArgHead SInstr (v 1), semS (v 0) "type" "HAPPEN", semS (v 0) "time" "PAST", semV (v 0) "experiencer" (v 1)]
-  "со" -> [mite $ Argument SInstr (v 0), mite $ ArgHead Instr (v 0)]
-  "соседям" -> [mite $ Noun v0 Dat, mite $ Argument Dat v0, semT v0 "NEIGHBORS"]
+  "случай" -> noun Nom "THING" v
+  "случился" -> (finVerb "HAPPEN" "PAST" v) ++ (arg SInstr "experiencer" v)
+  "со" -> preposition SInstr Instr v
+  "соседям" -> noun Dat "NEIGHBORS" v
   "что" -> [mite $ Wh v0 (v 1), mite $ QuestionVariants (Just v0) Nothing,  semT v0 "WH", semT (v 1) "question", semV (v 1) "questioned" v0, mite $ Noun (v 0) Nom]
-  "я" -> [mite $ Noun (v 0) Nom, mite $ Argument Instr (v 0), semT (v 0) "ME"]
+  "я" -> pronoun Nom "ME" v
   "-" -> [mite $ QuestionVariants Nothing (Just "-")]
   _ -> [mite $ Word (v 0) word]

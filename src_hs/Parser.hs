@@ -88,3 +88,6 @@ variationTests2=[
 tests = TestList (sonnetTests++variationTests1++variationTests2)
 
 allTests = runTestTT tests
+
+main :: IO Counts
+main = allTests

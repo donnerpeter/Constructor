@@ -1,4 +1,4 @@
-module Constructor.Sense where
+module Constructor.Sense (Sense(..), fValue, sValue, usage, getType, hasType, allFrames, makeSense) where
 
 import Constructor.Constructions
 import Constructor.Tree
@@ -59,15 +59,15 @@ allFrames sense = [Frame var sense | var <- Set.elems $ Set.fromList allVars ] w
   valueVars = catMaybes [extractValueVar $ value fact | fact <- facts sense ]
 
 allFrameFacts frame = [fact | fact <- facts (sense frame), var frame == variable fact]
-allValues frame attr = [value fact | fact <- allFrameFacts frame, attrName fact == attr]
+allValues attr frame = [value fact | fact <- allFrameFacts frame, attrName fact == attr]
 singleListElement list = case list of
   [single] -> Just single
   _ -> Nothing
-singleValue frame attr = singleListElement $ allValues frame attr
+singleValue attr frame = singleListElement $ allValues attr frame
 
-sValue frame attr = singleValue frame attr >>= extractValueString
+sValue frame attr = singleValue attr frame >>= extractValueString
 
-fDeclaredValue frame attr = singleValue frame attr >>= extractValueVar >>= \v -> Just $ Frame v (sense frame)
+fDeclaredValue frame attr = singleValue attr frame >>= extractValueVar >>= \v -> Just $ Frame v (sense frame)
 fValue frame attr =
   let declared = fDeclaredValue frame attr in
   if isJust declared then declared

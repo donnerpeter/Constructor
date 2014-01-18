@@ -31,7 +31,9 @@ translateTest src target = TestLabel src $ TestCase $
 
 sonnetTests = [
   translateTest "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8" 
-          "An amazing thing happened to me today, I suddenly forgot what comes first - 7 or 8"
+          "An amazing thing happened to me today, I suddenly forgot what comes first - 7 or 8",
+  translateTest "Я отправился к соседям и спросил их, что они думают по этому поводу" 
+          "I went to my neighbors and asked them about their opinion on this matter"
   ]
 
 sonnetVariationTests=[

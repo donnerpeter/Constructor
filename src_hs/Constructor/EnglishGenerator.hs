@@ -14,7 +14,7 @@ generate sense =
 
 capitalize (c:rest) = (toUpper c):rest
 
-isTopFrame frame = hasType frame "HAPPEN"-- || hasType frame "FORGET"
+isTopFrame frame = hasType frame "HAPPEN" || hasType frame "GO_OFF"
 
 np Nothing _ = "???"
 np (Just frame) nom =
@@ -31,13 +31,19 @@ np (Just frame) nom =
                Just "true" -> nbar
                _ ->
                  if startswith "a" nbar then "an" `cat` nbar
-                 else "a" `cat` nbar
+                 else if isSingular (getType frame) then "a" `cat` nbar else nbar
 
 noun Nothing = "??"
 noun (Just typ) = case typ of
   "THING" -> "thing"
   "ME" -> "me"
+  "NEIGHBORS" -> "neighbors"
   _ -> typ
+
+isSingular Nothing = False
+isSingular (Just typ) = case typ of
+  "NEIGHBORS" -> False
+  _ -> True
 
 cat "" t2 = t2
 cat t1 "" = t1
@@ -55,12 +61,16 @@ clause fVerb =
       verb = case getType fVerb of
         Just "HAPPEN" -> "happened"
         Just "FORGET" -> "forgot"
+        Just "GO_OFF" -> "went"
         Just "COME_SCALARLY" -> "comes first"
         Just s -> s
         Nothing -> "???"
       io = case fValue fVerb "experiencer" of
         Just smth -> cat "to" (np (Just smth) False)
-        _ -> ""
+        _ ->
+          case fValue fVerb "goal" of
+            Just smth -> cat "to" (np (Just smth) False)
+            _ -> ""  
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         _ -> ""

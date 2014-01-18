@@ -40,7 +40,9 @@ sonnetVariationTests=[
 --  translateTest "Я вдруг забыл, что - 7 или 8 - идет раньше" 
 --         "I suddenly forgot what comes first - 7 or 8",
 --  translateTest "Я вдруг забыл, что, 7 или 8, идет раньше" 
---         "I suddenly forgot what comes first - 7 or 8"
+--         "I suddenly forgot what comes first - 7 or 8",
+--  translateTest "Я вдруг забыл, кого я видул - кассиршу или соседей" 
+--         "I suddenly forgot who I saw, the cashier or my neighbors"
   ]
 
 tests = TestList (sonnetTests++sonnetVariationTests)

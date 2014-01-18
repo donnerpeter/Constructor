@@ -2,6 +2,7 @@ module Constructor.Tree where
 
 import Data.Maybe
 import Data.List
+import Debug.Trace (traceShow)
 import qualified Data.Set as Set
 import qualified Constructor.LinkedSet as LS
 import Constructor.Constructions
@@ -42,8 +43,9 @@ createEdges:: Tree -> Tree -> [Tree]
 createEdges leftTree rightTree =
   let createTrees leftMite rightMite =
         let infos = interactMites (cxt leftMite) (cxt rightMite)
+            infos2 = infos --if null infos then infos else traceShow infos infos 
             createTree mergedMites leftHeadedMerge = Tree mergedMites (Just leftTree) (Just rightTree) leftHeadedMerge [leftMite, rightMite]
-            trees = [createTree mergedMites leftHeadedMerge | MergeInfo mergedMites _ leftHeadedMerge <- infos]
+            trees = [createTree mergedMites leftHeadedMerge | MergeInfo mergedMites _ leftHeadedMerge <- infos2]
         in trees
   in concat [createTrees leftMite rightMite | leftMite <- headMites leftTree, rightMite <- headMites rightTree]
 
@@ -90,13 +92,14 @@ mergeTrees state =
       case queue of
         [] -> LS.elements result
         state:restQueue ->
-          allMergeVariants (restQueue++immediateMerges) $ LS.addAll (state:immediateMerges) result where
+          allMergeVariants (restQueue++notConsideredMerges) $ LS.addAll (state:notConsideredMerges) result where
             immediateMerges = case state of
               rightTree:leftTree:restTrees -> map toTrees $ optimize leftTree rightTree True True True where
                 toTrees result = case result of
                   Left x -> x:restTrees
                   Right (x, y) -> y:x:restTrees
               _ -> []
+            notConsideredMerges = [m | m <- immediateMerges, not $ LS.member m result]
 
 addMites:: [Tree] -> [Mite] -> [Tree]
 addMites state mites = mergeTrees $ (Tree mites Nothing Nothing True []):state

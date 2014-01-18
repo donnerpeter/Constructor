@@ -3,11 +3,12 @@ module Constructor.Tree where
 import Data.Maybe
 import Data.List
 import qualified Data.Set as Set
+import qualified Constructor.LinkedSet as LS
 import Constructor.Constructions
 import Constructor.Lexicon
 import Constructor.Composition
 
-data Tree = Tree {mites::[Mite], left::Maybe Tree, right::Maybe Tree, leftHeaded::Bool, baseMites::[Mite]}
+data Tree = Tree {mites::[Mite], left::Maybe Tree, right::Maybe Tree, leftHeaded::Bool, baseMites::[Mite]} deriving (Ord, Eq)
 instance Show Tree where
   show tree =
     let inner = \tree prefix ->
@@ -82,13 +83,20 @@ optimize leftTree rightTree digLeft digRight useOwnMites =
       in ownResults ++ dugLeft ++ dugRight
 
 mergeTrees:: [Tree] -> [Tree]
-mergeTrees state@(rightTree:leftTree:rest) =
-  let treeCandidates = optimize leftTree rightTree True True True
-      singleCandidates = filter (\ x -> case x of Left _ -> True; Right _ -> False) treeCandidates
-  in case singleCandidates of
-    Left first:_ -> mergeTrees (first:rest)
-    _ -> state
-mergeTrees trees = trees
+mergeTrees state =
+  head $ sortByLength $ allMergeVariants [state] LS.empty where
+    sortByLength = Data.List.sortBy (\l1 l2 -> compare (length l1) (length l2))
+    allMergeVariants queue result =
+      case queue of
+        [] -> LS.elements result
+        state:restQueue ->
+          allMergeVariants (restQueue++immediateMerges) $ LS.addAll (state:immediateMerges) result where
+            immediateMerges = case state of
+              rightTree:leftTree:restTrees -> map toTrees $ optimize leftTree rightTree True True True where
+                toTrees result = case result of
+                  Left x -> x:restTrees
+                  Right (x, y) -> y:x:restTrees
+              _ -> []
 
 addMites:: [Tree] -> [Mite] -> [Tree]
 addMites state mites = mergeTrees $ (Tree mites Nothing Nothing True []):state

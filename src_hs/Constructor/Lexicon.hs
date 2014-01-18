@@ -19,6 +19,7 @@ wordMites word index =
   "к" -> [mite $ Argument KDat v0, mite $ ArgHead Dat v0]
   "мной" -> [mite $ Noun (v 0) Instr, mite $ Argument Instr (v 0), semT (v 0) "ME"]
   "удивительный" -> [mite $ Adj v0 Nom "property" "AMAZING"]
+  "он" -> [mite $ Noun (v 0) Nom, mite $ Argument Instr (v 0), semT (v 0) "HE"]
   "отправился" -> [mite $ FiniteVerb v0, mite $ ArgHead KDat (v 1), semS v0 "type" "GO_OFF", semS v0 "time" "PAST", semV v0 "goal" (v 1)]
   "раньше" -> [mite $ ScalarAdverb "EARLIER" v0]
   "случай" -> [mite $ Noun (v 0) Nom, semS (v 0) "type" "THING", mite $ AdjHead v0 Nom]

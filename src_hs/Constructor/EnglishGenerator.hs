@@ -21,22 +21,32 @@ np (Just frame) nom =
   if hasType frame "SEQ" then
     (np (fValue frame "member1") nom) `cat` (fromMaybe "," $ sValue frame "conj") `cat` (np (fValue frame "member2") nom)
   else if hasType frame "ME" then if nom then "I" else "me"
+  else if hasType frame "HE" then if nom then "He" else "him"
   else if hasType frame "WH" then "what"
   else let n = noun (getType frame)
            nbar = case sValue frame "property" of
              Just "AMAZING" -> cat "amazing" n
              _ -> n
-           in
-             case sValue frame "number" of
-               Just "true" -> nbar
-               _ ->
-                 if startswith "a" nbar then "an" `cat` nbar
-                 else if isSingular (getType frame) then "a" `cat` nbar else nbar
+           in (determiner frame nbar) `cat` nbar
+             
+
+determiner frame nbar =
+  let det = if hasType frame "NEIGHBORS" then fValue frame "arg1" else Nothing in
+  case det >>= getType of
+    Just "ME" -> "my"
+    Just "HE" -> "his"
+    _ ->
+      case sValue frame "number" of
+       Just "true" -> ""
+       _ ->
+         if startswith "a" nbar then "an"
+         else if isSingular (getType frame) then "a" else ""
 
 noun Nothing = "??"
 noun (Just typ) = case typ of
   "THING" -> "thing"
   "ME" -> "me"
+  "HE" -> "he"
   "NEIGHBORS" -> "neighbors"
   _ -> typ
 

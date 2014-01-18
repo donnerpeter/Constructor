@@ -3,7 +3,7 @@ module Constructor.Sense where
 import Constructor.Constructions
 import Constructor.Tree
 import Data.List (intercalate)
-import Data.Maybe (catMaybes)
+import Data.Maybe
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 
@@ -60,10 +60,27 @@ allFrames sense = [Frame var sense | var <- Set.elems $ Set.fromList allVars ] w
 
 allFrameFacts frame = [fact | fact <- facts (sense frame), var frame == variable fact]
 allValues frame attr = [value fact | fact <- allFrameFacts frame, attrName fact == attr]
-singleValue frame attr = case allValues frame attr of
+singleListElement list = case list of
   [single] -> Just single
   _ -> Nothing
+singleValue frame attr = singleListElement $ allValues frame attr
+
 sValue frame attr = singleValue frame attr >>= extractValueString
-fValue frame attr = singleValue frame attr >>= extractValueVar >>= \v -> Just $ Frame v (sense frame)
+
+fDeclaredValue frame attr = singleValue frame attr >>= extractValueVar >>= \v -> Just $ Frame v (sense frame)
+fValue frame attr =
+  let declared = fDeclaredValue frame attr in
+  if isJust declared then declared
+  else
+    case attr of
+      "arg1" ->
+        if hasType frame "NEIGHBORS" then do f <- usage frame "goal"; fValue f "arg1"
+        else Nothing
+      _ -> Nothing
+
 hasType frame t = getType frame == Just t
 getType frame = sValue frame "type"
+
+usages frame attr = [f | f <- allFrames (sense frame), fDeclaredValue f attr == Just frame]
+usage frame attr = singleListElement $ usages frame attr
+  

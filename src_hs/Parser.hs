@@ -82,8 +82,8 @@ variationTests1=[
 --            "I forgot what comes after a 7 and that a 4 comes before a 5."
   ]
 variationTests2=[
---  translateTest "Он отправился к соседям" 
---                "He went to his neighbors"
+  translateTest "Он отправился к соседям" 
+                "He went to his neighbors"
   ]
 tests = TestList (sonnetTests++variationTests1++variationTests2)
 

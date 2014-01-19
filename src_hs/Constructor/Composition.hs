@@ -12,7 +12,7 @@ interactMites leftMite rightMite = case (leftMite, rightMite) of
   (Noun child Nom, FiniteVerb head) -> [right [semV head "arg1" child]]
   (Adverb attr val, FiniteVerb head) -> [right [semS head attr val]]
   (ArgHead kind1 var1, Argument kind2 var2) | kind1 == kind2 -> [left [mite $ Unify var1 var2]]
-  (FiniteVerb head, Word _ ":") -> [left [Mite (Elaboration head) False]]
+  (FiniteVerb head, Word _ ":") -> [left [mite $ Elaboration head]]
   (Elaboration head, FiniteVerb child) -> [left [semV head "elaboration" child]]
   (CompHead head, Word _ ",") -> [left [mite $ CompComma head]]
   (CompComma head, Wh _ cp) -> [left [mite $ Unify head cp]]

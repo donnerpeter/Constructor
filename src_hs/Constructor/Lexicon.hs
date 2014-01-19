@@ -8,7 +8,10 @@ readsInt = reads
 noun caze typ v = [mite $ Noun (v "") caze, semS (v "") "type" typ, mite $ AdjHead (v "") caze, mite $ Argument caze (v "")]
 pronoun caze typ v = [mite $ Noun (v "") caze, semS (v "") "type" typ, mite $ Argument caze (v "")]
 preposition prepArg nounArg v = [mite $ Argument prepArg (v ""), mite $ ArgHead nounArg (v "")]
-finVerb typ time v = [mite $ FiniteVerb (v ""), semT (v "") typ, semS (v "") "time" time]
+finVerb typ time v = [mite $ FiniteVerb (v ""), semT (v "") typ, semS (v "") "time" time] ++
+  (xor [[mite $ TopLevelClause (v "cp")], [mite $ SubordinateClause (v "cp")]]) ++
+  (xor [[mite $ Fact (v "cp"), semT (v "cp") "fact"], [mite $ Question (v "cp"), semT (v "cp") "question"]]) ++
+  [semV (v "cp") "content" (v "")]
 arg argType relation v = [mite $ ArgHead argType (v relation), semV (v "") relation (v relation)]
 
 wordMites :: String -> Int -> [Mite]  

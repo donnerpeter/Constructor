@@ -1,12 +1,22 @@
-module Constructor.Composition (interactMites, MergeInfo(..)) where
+module Constructor.Composition (interactNodes, MergeInfo(..)) where
 import Constructor.Constructions
 
-data MergeInfo = MergeInfo {mergedMites::[Mite], satisfied::[Construction], leftHeadedMerge::Bool} deriving (Show)
+data MergeInfo = MergeInfo {mergeResult::[Mite], leftHeadedMerge::Bool, mergedMites::[Mite]} deriving (Show)
 
-left mites = MergeInfo mites [] True
-right mites = MergeInfo mites [] False
+left mites = (mites, True)
+right mites = (mites, False)
 
-interactMites:: Construction -> Construction -> [MergeInfo]
+interactNodes:: [Mite] -> [Mite] -> [MergeInfo]
+interactNodes leftMites rightMites =
+  pairResults where
+  pairResults = concat [
+      [
+        MergeInfo mergeResult leftHeaded [leftMite, rightMite] 
+          | (mergeResult, leftHeaded) <- interactMites (cxt leftMite) (cxt rightMite)] 
+      | leftMite <- leftMites, rightMite <- rightMites
+   ]
+
+interactMites:: Construction -> Construction -> [([Mite], Bool)]
 interactMites leftMite rightMite = case (leftMite, rightMite) of
   (Adj _ adjCase property value, AdjHead var nounCase) | adjCase == nounCase -> [right [semS var property value]]
   (Noun child Nom, FiniteVerb head) -> [right [semV head "arg1" child]]

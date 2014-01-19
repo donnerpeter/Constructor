@@ -41,13 +41,10 @@ isDirectedBranch tree isLeftBranch = isBranch tree && leftHeaded tree == isLeftB
 
 createEdges:: Tree -> Tree -> [Tree]
 createEdges leftTree rightTree =
-  let createTrees leftMite rightMite =
-        let infos = interactMites (cxt leftMite) (cxt rightMite)
-            infos2 = infos --if null infos then infos else traceShow infos infos 
-            createTree mergedMites leftHeadedMerge = Tree mergedMites (Just leftTree) (Just rightTree) leftHeadedMerge [leftMite, rightMite]
-            trees = [createTree mergedMites leftHeadedMerge | MergeInfo mergedMites _ leftHeadedMerge <- infos2]
-        in trees
-  in concat [createTrees leftMite rightMite | leftMite <- headMites leftTree, rightMite <- headMites rightTree]
+  let infos = interactNodes (headMites leftTree) (headMites rightTree)
+      infos2 = infos --if null infos then infos else traceShow infos infos 
+      trees = [Tree merged (Just leftTree) (Just rightTree) leftHeadedMerge base | (MergeInfo merged leftHeadedMerge base) <- infos2]
+  in trees
 
 type MergeResult = Either Tree (Tree, Tree)
 integrateSubTree :: Tree -> Tree -> Bool -> MergeResult -> [MergeResult]  

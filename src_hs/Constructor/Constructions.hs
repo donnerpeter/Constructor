@@ -33,6 +33,10 @@ data Construction = Word Variable String
                   | Conjunction Variable String
                   | SeqRight Variable
                   | SeqFull Variable
+                  | TopLevelClause Variable
+                  | SubordinateClause Variable
+                  | Fact Variable
+                  | Question Variable
                   deriving (Show, Ord, Eq)
 data Mite = Mite { cxt :: Construction, happy :: Bool, contradictors :: Set.Set Construction } deriving (Ord, Eq)
 instance Show Mite where

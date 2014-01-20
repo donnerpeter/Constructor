@@ -89,10 +89,8 @@ clause fVerb =
       fComp = case getType fVerb of
         Just "FORGET" -> fValue "arg2" fVerb
         _ -> Nothing
-      comp = case fComp >>= fValue "content" of
-        Just nested -> clause nested
-        Nothing -> ""
-      questionVariants = case subject >>= \subj -> Just (getType subj, fValue "variants" subj) of
+      comp = fromMaybe "" $ fmap clause $ fComp >>= fValue "content"
+      questionVariants = case fmap (\subj -> (getType subj, fValue "variants" subj)) subject of
         Just (Just "WH", Just variants) -> "-" `cat` (np (Just variants) True)
         _ -> ""
   in (np subject True) `cat` preAdverb `cat` verb `cat` io `cat` finalAdverb `cat` comp `cat` questionVariants `cat` elaboration

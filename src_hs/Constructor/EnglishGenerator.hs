@@ -83,7 +83,7 @@ clause fVerb =
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         _ -> ""
-      elaboration = case fValue "elaboration" fVerb of
+      elaboration = case fValue "elaboration" fVerb >>= fValue "content" of
         Just smth -> "," `cat` (clause smth)
         _ -> ""
       fComp = case getType fVerb of

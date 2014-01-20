@@ -8,13 +8,20 @@ right mites = (mites, False)
 
 interactNodes:: [Mite] -> [Mite] -> [MergeInfo]
 interactNodes leftMites rightMites =
-  pairResults where
+  pairResults ++ compoundResults where
   pairResults = concat [
       [
         MergeInfo mergeResult leftHeaded [leftMite, rightMite] 
           | (mergeResult, leftHeaded) <- interactMites (cxt leftMite) (cxt rightMite)] 
       | leftMite <- leftMites, rightMite <- rightMites
-   ]
+    ]
+  compoundResults = leftMites >>= \leftMite1 -> case cxt leftMite1 of
+    Elaboration head -> rightMites >>= \rightMite1 -> case cxt rightMite1 of
+      Fact cp -> rightMites >>= \rightMite2 -> case cxt rightMite2 of
+        SubordinateClause cp2 | cp == cp2 -> [MergeInfo [semV head "elaboration" cp] True [leftMite1, rightMite1, rightMite2]]
+        _ -> []
+      _ -> []
+    _ -> []
 
 interactMites:: Construction -> Construction -> [([Mite], Bool)]
 interactMites leftMite rightMite = case (leftMite, rightMite) of
@@ -23,7 +30,6 @@ interactMites leftMite rightMite = case (leftMite, rightMite) of
   (Adverb attr val, FiniteVerb head) -> [right [semS head attr val]]
   (ArgHead kind1 var1, Argument kind2 var2) | kind1 == kind2 -> [left [mite $ Unify var1 var2]]
   (FiniteVerb head, Word _ ":") -> [left [mite $ Elaboration head]]
-  (Elaboration head, FiniteVerb child) -> [left [semV head "elaboration" child]]
   (CompHead head, Word _ ",") -> [left [mite $ CompComma head]]
   (CompComma head, Wh _ cp) -> [left [mite $ Unify head cp]]
   (Wh wh cp, FiniteVerb verb) -> [left [semV cp "content" verb, semV verb "arg1" wh]]

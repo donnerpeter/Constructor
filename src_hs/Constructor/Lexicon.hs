@@ -2,9 +2,6 @@ module Constructor.Lexicon where
 import Constructor.Constructions
 import Data.Char (ord, chr)
 
-readsInt :: String -> [(Int, String)]
-readsInt = reads
-
 noun caze typ v = [mite $ Noun (v "") caze, semS (v "") "type" typ, mite $ AdjHead (v "") caze, mite $ Argument caze (v "")]
 pronoun caze typ v = [mite $ Noun (v "") caze, semS (v "") "type" typ, mite $ Argument caze (v "")]
 preposition prepArg nounArg v = [mite $ Argument prepArg (v ""), mite $ ArgHead nounArg (v "")]
@@ -20,7 +17,7 @@ wordMites word index =
       v0 = v ""
   in
   case word of
-  s | length (readsInt s) == 1 -> [mite $ Noun v0 Nom, semT v0 word, semS v0 "number" "true"]
+  s | length (reads s :: [(Int, String)]) == 1 -> [mite $ Noun v0 Nom, semT v0 word, semS v0 "number" "true"]
   "вдруг" -> [mite $ Adverb "manner" "SUDDENLY"]
   "думают" -> (finVerb "THINK" "PRESENT" v) ++ (arg Acc "arg2" v) ++ (arg PoDat "topic" v)
   "забыл" -> (finVerb "FORGET" "PAST" v) ++ [mite $ CompHead (v "comp"), semV v0 "arg2" (v "comp")]

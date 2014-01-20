@@ -1,6 +1,7 @@
 module Constructor.Tree where
 
 import Data.Maybe
+import Data.Function (on)
 import Data.List
 import Debug.Trace (traceShow)
 import qualified Data.Set as Set
@@ -84,7 +85,7 @@ optimize leftTree rightTree digLeft digRight useOwnMites =
 mergeTrees:: [Tree] -> [Tree]
 mergeTrees state =
   head $ sortByLength $ allMergeVariants [state] LS.empty where
-    sortByLength = Data.List.sortBy (\l1 l2 -> compare (length l1) (length l2))
+    sortByLength = Data.List.sortBy (compare `on` length)
     allMergeVariants queue result =
       case queue of
         [] -> LS.elements result

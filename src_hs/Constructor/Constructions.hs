@@ -41,7 +41,7 @@ data Construction = Word Variable String
 data Mite = Mite { cxt :: Construction, happy :: Bool, contradictors :: Set.Set Construction } deriving (Ord, Eq)
 instance Show Mite where
   show (Mite {cxt=c, happy=h, contradictors=cc}) =
-    (if h then "" else "!") ++ (show c) ++ (if Set.null cc then "" else "(xor "++(show cc)++")")
+    (if h then "" else "!") ++ (show c)-- ++ (if Set.null cc then "" else "(xor "++(show cc)++")")
   
 isHappy (Noun {}) = False
 isHappy (Adj {}) = False

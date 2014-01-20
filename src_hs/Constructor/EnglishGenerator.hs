@@ -3,7 +3,6 @@ import Constructor.Sense
 import Control.Monad.State
 import Data.List
 import Data.Char (toUpper)
-import Data.String.Utils (startswith)
 import Data.Maybe
 
 generate:: Sense -> String
@@ -37,7 +36,7 @@ determiner frame nbar =
     Just "HE" -> "his"
     _ ->
       if sValue "number" frame == Just "true" then ""
-      else if startswith "a" nbar then "an"
+      else if "a" `isPrefixOf` nbar then "an"
       else if isSingular (getType frame) then "a"
       else ""
 
@@ -56,8 +55,7 @@ isSingular (Just typ) = case typ of
 
 cat "" t2 = t2
 cat t1 "" = t1
-cat t1 (',':t2) = t1 ++ "," ++ t2
-cat t1 t2 = t1 ++ " " ++ t2
+cat t1 t2 = if "," `isPrefixOf` t2 then  t1 ++ t2 else t1 ++ " " ++ t2
 
 sentence frame = clause frame
 

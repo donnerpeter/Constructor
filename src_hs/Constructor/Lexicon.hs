@@ -10,7 +10,7 @@ pronoun caze typ v = [mite $ Noun (v "") caze, semS (v "") "type" typ, mite $ Ar
 preposition prepArg nounArg v = [mite $ Argument prepArg (v ""), mite $ ArgHead nounArg (v "")]
 finVerb typ time v = [mite $ FiniteVerb (v ""), semT (v "") typ, semS (v "") "time" time] ++
   (xor [[mite $ TopLevelClause (v "cp")], [mite $ SubordinateClause (v "cp")]]) ++
-  (xor [[mite $ Fact (v "cp"), semT (v "cp") "fact"], [mite $ Question (v "cp"), semT (v "cp") "question"]]) ++
+  (xor [[mite $ Fact (v "cp"), semT (v "cp") "fact"], [mite $ Question (v "cp") (v ""), semT (v "cp") "question"]]) ++
   [semV (v "cp") "content" (v "")]
 arg argType relation v = [mite $ ArgHead argType (v relation), semV (v "") relation (v relation)]
 
@@ -41,7 +41,7 @@ wordMites word index =
   "спросил" -> (finVerb "ASK" "PAST" v) ++ (arg Acc "arg2" v) ++ [mite $ CompHead (v "comp"), semV v0 "topic" (v "comp")]
   "со" -> preposition SInstr Instr v
   "соседям" -> noun Dat "NEIGHBORS" v
-  "что" -> [mite $ Wh v0 (v "cp"), mite $ QuestionVariants (Just v0) Nothing,  semT v0 "WH", semT (v "cp") "question", semV (v "cp") "questioned" v0, mite $ Noun (v "cp") Nom]
+  "что" -> [mite $ Wh v0 (v "cp"), mite $ QuestionVariants (Just v0) Nothing,  semT v0 "WH", mite $ Noun v0 Nom]
   "этому" -> [mite $ Adj v0 Dat "determiner" "THIS"]
   "я" -> pronoun Nom "ME" v
   "-" -> [mite $ QuestionVariants Nothing (Just "-")]

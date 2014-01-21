@@ -4,6 +4,7 @@ import Data.Maybe
 import Data.List
 import Constructor.Constructions
 import Constructor.Tree
+import Debug.Trace
 import Data.Function (on)
 import qualified Constructor.LinkedSet as LS
 import qualified Data.Set as Set
@@ -87,8 +88,8 @@ suggestActive tree = inner tree True True True Set.empty where
     let candidates = [set | set <- candidateSets (mites tree), all (flip Set.member set) requiredMites]
         requiredMites = filter (flip Set.member spine) (mites tree)
         absolutelyHappy = [set | set <- candidates, all (\mite -> happy mite || Set.member mite spine) (Set.elems set)]
-        anyBorder = leftBorder || rightBorder
-    singleCandidate <- listToMaybe $ if anyBorder || borderHead then candidates else absolutelyHappy 
+        anyBorder = leftBorder || rightBorder || borderHead
+    singleCandidate <- listToMaybe $ if anyBorder then candidates else absolutelyHappy 
     if isBranch tree then do
       let nextSpine = Set.union spine (Set.fromList $ baseMites tree)
       newLeft <- inner (fromJust $ left tree) leftBorder False (leftHeaded tree && anyBorder) nextSpine

@@ -2,6 +2,7 @@ module Constructor.EnglishGenerator (generate) where
 import Constructor.Sense
 import Control.Monad.State
 import Data.List
+import Debug.Trace
 import Data.Char (toUpper)
 import Data.Maybe
 import qualified Data.Set as Set

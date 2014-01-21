@@ -6,6 +6,7 @@ import Data.List (intercalate)
 import Data.Maybe
 import qualified Data.Map as Map
 import qualified Data.Set as Set
+import qualified Constructor.LinkedSet as LS
 
 calcFacts allMites baseVars =
   let mapper mite =
@@ -41,7 +42,8 @@ instance Show Fact where show (Fact var attr value) = (show var)++"."++attr++"="
 data Sense = Sense { facts:: [Fact] } deriving (Eq, Ord)
 instance Show Sense where show (Sense facts) = Data.List.intercalate "\n" (map show facts)
 
-data Frame = Frame { var:: Variable, sense:: Sense } deriving (Eq, Show, Ord)
+data Frame = Frame { var:: Variable, sense:: Sense } deriving (Eq, Ord)
+instance Show Frame where show frame = "{" ++ (Data.List.intercalate "," (map show $ allFrameFacts frame)) ++ "}"
 
 makeSense trees =
   let allMites = concat (map allActiveMites $ reverse trees)
@@ -54,7 +56,7 @@ extractValueString _ = Nothing
 extractValueVar (VarValue v) = Just v
 extractValueVar _ = Nothing
 
-allFrames sense = [Frame var sense | var <- Set.elems $ Set.fromList allVars ] where
+allFrames sense = [Frame var sense | var <- LS.elements $ LS.fromList allVars ] where
   allVars = [variable fact | fact <- facts sense ] ++ valueVars
   valueVars = catMaybes [extractValueVar $ value fact | fact <- facts sense ]
 

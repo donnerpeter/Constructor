@@ -37,6 +37,7 @@ data Construction = Word Variable String
                   | SubordinateClause Variable
                   | Fact Variable
                   | Question Variable Variable
+                  -- | S1 | S2 | S3 | S4
                   deriving (Show, Ord, Eq)
 data Mite = Mite { cxt :: Construction, happy :: Bool, contradictors :: Set.Set Construction } deriving (Ord, Eq)
 instance Show Mite where
@@ -67,3 +68,6 @@ xor miteGroups =
       cxt2Contras = Map.map (\friends -> Set.difference allCxtSet friends) cxt2Friends
       newMites = map (\c -> Mite c (isHappy c) $ Map.findWithDefault Set.empty c cxt2Contras) allCxts
   in newMites
+
+contradict mite1 mite2 = Set.member (cxt mite1) (contradictors mite2)
+hasContradictors mite inList = any (contradict mite) inList

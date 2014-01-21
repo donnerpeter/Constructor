@@ -101,3 +101,13 @@ mergeTrees state =
 
 addMites:: [Tree] -> [Mite] -> [Tree]
 addMites state mites = mergeTrees $ (Tree mites Nothing Nothing True []):state
+
+candidateSets:: [Mite] -> [Set.Set Mite]
+candidateSets mites = enumerate mites [] where
+  enumerate mites chosen = case mites of
+    [] -> [Set.fromList chosen]
+    mite:rest -> includeMite++omitMite where
+      includeMite = if hasContradictors mite chosen then [] 
+                    else enumerate [r | r <- rest, not $ contradict mite r] (mite:chosen)
+      omitMite = if hasContradictors mite rest then enumerate rest chosen else []
+

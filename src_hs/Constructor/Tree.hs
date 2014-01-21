@@ -13,7 +13,7 @@ instance Show Tree where
           case rightSubTree tree of
             Just r -> (inner r ("  "++prefix)) ++ myLine
             Nothing -> myLine
-        allActive = allActiveMites tree
+        allActive = allActiveMiteSet tree
         showMite mite = (if Set.member mite allActive then "*" else "") ++ (show mite)
     in "\n" ++ inner tree ""
 
@@ -37,7 +37,9 @@ rightSubTree tree =
 isBranch tree = isJust (left tree)
 isDirectedBranch tree isLeftBranch = isBranch tree && leftHeaded tree == isLeftBranch
 
-allActiveMites tree =
+allActiveMiteSet tree =
   if isBranch tree 
-  then Set.union (active tree) $ Set.union (allActiveMites $ fromJust $ left tree) (allActiveMites $ fromJust $ right tree)
+  then Set.union (active tree) $ Set.union (allActiveMiteSet $ fromJust $ left tree) (allActiveMiteSet $ fromJust $ right tree)
   else active tree
+
+allActiveMites tree = filter (flip Set.member activeSet) (allTreeMites tree) where activeSet = allActiveMiteSet tree

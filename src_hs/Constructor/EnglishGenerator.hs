@@ -4,16 +4,26 @@ import Control.Monad.State
 import Data.List
 import Data.Char (toUpper)
 import Data.Maybe
+import qualified Data.Set as Set
 
 generate:: Sense -> String
 generate sense = 
   let topFrames = [frame | frame <- allFrames sense, isTopFrame frame]
-      text = Data.List.intercalate " " [capitalize (sentence f) | f <- topFrames]
+      sentenceState :: State (Set.Set Frame) [String]
+      sentenceState = foldM generateSentence [] topFrames
+      generateSentence :: [String] -> Frame -> State (Set.Set Frame) [String]
+      generateSentence output frame = do
+        visited <- get
+        if Set.member frame visited then return output 
+        else do nextSentence <- sentence frame; return $ output++[nextSentence]
+      sentences :: [String]
+      sentences = evalState sentenceState Set.empty  
+      text = Data.List.intercalate " " $ map capitalize sentences
   in text
 
 capitalize (c:rest) = (toUpper c):rest
 
-isTopFrame frame = hasType "HAPPEN" frame || hasType "GO_OFF" frame
+isTopFrame frame = hasType "fact" frame || hasType "question" frame
 
 np Nothing _ = "???"
 np (Just frame) nom =
@@ -57,8 +67,14 @@ cat "" t2 = t2
 cat t1 "" = t1
 cat t1 t2 = if "," `isPrefixOf` t2 then  t1 ++ t2 else t1 ++ " " ++ t2
 
-sentence frame = clause frame
+frameGenerated frame = do visited <- get; put $ Set.insert frame visited 
 
+sentence :: Frame -> State (Set.Set Frame) String
+sentence frame = do
+  frameGenerated frame
+  fromMaybe (return "") $ fmap clause $ fValue "content" frame
+
+clause :: Frame -> State (Set.Set Frame) String
 clause fVerb =
   let subject = fValue "arg1" fVerb
       preAdverb = case sValue "manner" fVerb of
@@ -81,14 +97,16 @@ clause fVerb =
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         _ -> ""
-      elaboration = case fValue "elaboration" fVerb >>= fValue "content" of
-        Just smth -> "," `cat` (clause smth)
-        _ -> ""
-      fComp = case getType fVerb of
-        Just "FORGET" -> fValue "arg2" fVerb
-        _ -> Nothing
-      comp = fromMaybe "" $ fmap clause $ fComp >>= fValue "content"
       questionVariants = case fmap (\subj -> (getType subj, fValue "variants" subj)) subject of
         Just (Just "WH", Just variants) -> "-" `cat` (np (Just variants) True)
         _ -> ""
-  in (np subject True) `cat` preAdverb `cat` verb `cat` io `cat` finalAdverb `cat` comp `cat` questionVariants `cat` elaboration
+  in do
+    frameGenerated fVerb
+    elaboration <- case fValue "elaboration" fVerb of
+      Just smth -> do subClause <- sentence smth; return $ "," `cat` subClause
+      _ -> return ""
+    let fComp = case getType fVerb of
+          Just "FORGET" -> fValue "arg2" fVerb
+          _ -> Nothing
+    comp <- fromMaybe (return "") $ fmap sentence $ fComp
+    return $ (np subject True) `cat` preAdverb `cat` verb `cat` io `cat` finalAdverb `cat` comp `cat` questionVariants `cat` elaboration

@@ -1,4 +1,4 @@
-module Constructor.Sense (Sense(..), fValue, sValue, usage, getType, hasType, allFrames, makeSense) where
+module Constructor.Sense (Sense(..), Frame(..), fValue, sValue, usage, getType, hasType, allFrames, makeSense) where
 
 import Constructor.Constructions (SemValue(..), Construction(Sem, Unify), Mite(..), Variable(..))
 import Constructor.Tree
@@ -35,16 +35,16 @@ calcBaseVars mites =
       groups = foldl inner Map.empty mites
   in Map.map (head . Set.elems) groups  
 
-data Fact = Fact { variable:: Variable, attrName:: String, value:: SemValue } deriving (Eq)
+data Fact = Fact { variable:: Variable, attrName:: String, value:: SemValue } deriving (Eq, Ord)
 instance Show Fact where show (Fact var attr value) = (show var)++"."++attr++"="++(show value)
 
-data Sense = Sense { facts:: [Fact] } deriving (Eq)
+data Sense = Sense { facts:: [Fact] } deriving (Eq, Ord)
 instance Show Sense where show (Sense facts) = Data.List.intercalate "\n" (map show facts)
 
-data Frame = Frame { var:: Variable, sense:: Sense } deriving (Eq, Show)
+data Frame = Frame { var:: Variable, sense:: Sense } deriving (Eq, Show, Ord)
 
 makeSense trees =
-  let allMites = concat (map allTreeMites $ reverse trees)
+  let allMites = concat (map allActiveMites $ reverse trees)
       baseVars = calcBaseVars allMites
   in Sense (calcFacts allMites baseVars)
 

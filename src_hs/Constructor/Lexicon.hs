@@ -2,8 +2,8 @@ module Constructor.Lexicon where
 import Constructor.Constructions
 import Data.Char (ord, chr)
 
-noun caze typ v = [mite $ Noun (v "") caze, semS (v "") "type" typ, mite $ AdjHead (v "") caze, mite $ Argument caze (v "")]
-pronoun caze typ v = [mite $ Noun (v "") caze, semS (v "") "type" typ, mite $ Argument caze (v "")]
+noun caze typ v = [mite $ Argument caze (v ""), semS (v "") "type" typ, mite $ AdjHead (v "") caze]
+pronoun caze typ v = [mite $ Argument caze (v ""), semS (v "") "type" typ]
 preposition prepArg nounArg v = [mite $ Argument prepArg (v ""), mite $ ArgHead nounArg (v "")]
 finVerb typ time v = [mite $ FiniteVerb (v ""), semT (v "") typ, semS (v "") "time" time] ++
   (xor [[mite $ TopLevelClause (v "cp")], [mite $ SubordinateClause (v "cp")]]) ++
@@ -17,7 +17,7 @@ wordMites word index =
       v0 = v ""
   in
   case word of
-  s | length (reads s :: [(Int, String)]) == 1 -> [mite $ Noun v0 Nom, semT v0 word, semS v0 "number" "true"]
+  s | length (reads s :: [(Int, String)]) == 1 -> [mite $ Argument Nom v0, semT v0 word, semS v0 "number" "true"]
   "вдруг" -> [mite $ Adverb "manner" "SUDDENLY"]
   "думают" -> (finVerb "THINK" "PRESENT" v) ++ (arg Acc "arg2" v) ++ (arg PoDat "topic" v)
   "забыл" -> (finVerb "FORGET" "PAST" v) ++ [mite $ CompHead (v "comp"), semV v0 "arg2" (v "comp")]
@@ -38,7 +38,7 @@ wordMites word index =
   "спросил" -> (finVerb "ASK" "PAST" v) ++ (arg Acc "arg2" v) ++ [mite $ CompHead (v "comp"), semV v0 "topic" (v "comp")]
   "со" -> preposition SInstr Instr v
   "соседям" -> noun Dat "NEIGHBORS" v
-  "что" -> [mite $ Wh v0 (v "cp"), mite $ QuestionVariants (Just v0) Nothing,  semT v0 "WH", mite $ Noun v0 Nom]
+  "что" -> [mite $ Wh v0 (v "cp"), mite $ QuestionVariants (Just v0) Nothing,  semT v0 "WH"]
   "этому" -> [mite $ Adj v0 Dat "determiner" "THIS"]
   "я" -> pronoun Nom "ME" v
   "-" -> [mite $ QuestionVariants Nothing (Just "-")]

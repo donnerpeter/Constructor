@@ -18,7 +18,6 @@ data Construction = Word Variable String
                   | Unify Variable Variable
                   | Adj Variable ArgKind String String
                   | AdjHead Variable ArgKind
-                  | Noun Variable ArgKind
                   | FiniteVerb Variable
                   | ArgHead ArgKind Variable
                   | Argument ArgKind Variable 
@@ -44,7 +43,6 @@ instance Show Mite where
   show (Mite {cxt=c, happy=h, contradictors=cc}) =
     (if h then "" else "!") ++ (show c)-- ++ (if Set.null cc then "" else "(xor "++(show cc)++")")
   
-isHappy (Noun {}) = False
 isHappy (Adj {}) = False
 isHappy (Adverb {}) = False
 isHappy (ArgHead {}) = False

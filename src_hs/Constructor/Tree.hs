@@ -10,14 +10,16 @@ import Constructor.Constructions
 import Constructor.Lexicon
 import Constructor.Composition
 
-data Tree = Tree {mites::[Mite], left::Maybe Tree, right::Maybe Tree, leftHeaded::Bool, baseMites::[Mite]} deriving (Ord, Eq)
+data Tree = Tree {mites::[Mite], left::Maybe Tree, right::Maybe Tree, leftHeaded::Bool, baseMites::[Mite], active::Set.Set Mite} deriving (Ord, Eq)
 instance Show Tree where
   show tree =
     let inner = \tree prefix ->
-          let myLine = prefix ++ (Data.List.intercalate ", " [show m | m <- headMites tree])++"\n" in
+          let myLine = prefix ++ (Data.List.intercalate ", " $ map showMite $ headMites tree)++"\n" in
           case rightSubTree tree of
             Just r -> (inner r ("  "++prefix)) ++ myLine
             Nothing -> myLine
+        allActive = allActiveMites tree
+        showMite mite = (if Set.member mite allActive then "*" else "") ++ (show mite)
     in "\n" ++ inner tree ""
 
 allTreeMites tree =
@@ -44,8 +46,8 @@ createEdges:: Tree -> Tree -> [Tree]
 createEdges leftTree rightTree =
   let infos = interactNodes (headMites leftTree) (headMites rightTree)
       infos2 = infos --if null infos then infos else traceShow infos infos 
-      trees = [Tree merged (Just leftTree) (Just rightTree) leftHeadedMerge base | (MergeInfo merged leftHeadedMerge base) <- infos2]
-  in trees
+      trees = [Tree merged (Just leftTree) (Just rightTree) leftHeadedMerge base Set.empty | (MergeInfo merged leftHeadedMerge base) <- infos2]
+  in catMaybes $ map suggestActive trees
 
 type MergeResult = Either Tree (Tree, Tree)
 integrateSubTree :: Tree -> Tree -> Bool -> MergeResult -> [MergeResult]  
@@ -67,7 +69,7 @@ integrateSubTree leftTree rightTree toLeft subResult =
       then []
       else [if toLeft then Right (tree, another) else Right (another, tree) | tree <- newEdges subTree]
   
-optimize:: Tree -> Tree -> Bool -> Bool -> Bool -> [Either Tree (Tree, Tree)]
+optimize:: Tree -> Tree -> Bool -> Bool -> Bool -> [MergeResult]
 optimize leftTree rightTree digLeft digRight useOwnMites =
   let ownResults = if useOwnMites 
                    then [Left tree | tree <- createEdges leftTree rightTree]
@@ -100,10 +102,11 @@ mergeTrees state =
             notConsideredMerges = [m | m <- immediateMerges, not $ LS.member m result]
 
 addMites:: [Tree] -> [Mite] -> [Tree]
-addMites state mites = mergeTrees $ (Tree mites Nothing Nothing True []):state
+addMites state mites = mergeTrees $ (fromJust $ suggestActive $ Tree mites Nothing Nothing True [] Set.empty):state
 
 candidateSets:: [Mite] -> [Set.Set Mite]
 candidateSets mites = enumerate mites [] where
+  enumerate :: [Mite] -> [Mite] -> [Set.Set Mite]
   enumerate mites chosen = case mites of
     [] -> [Set.fromList chosen]
     mite:rest -> includeMite++omitMite where
@@ -111,3 +114,22 @@ candidateSets mites = enumerate mites [] where
                     else enumerate [r | r <- rest, not $ contradict mite r] (mite:chosen)
       omitMite = if hasContradictors mite rest then enumerate rest chosen else []
 
+suggestActive:: Tree -> Maybe Tree
+suggestActive tree = inner tree True True True Set.empty where
+  inner tree leftBorder rightBorder borderHead spine = do
+    let candidates = [set | set <- candidateSets (mites tree), all (flip Set.member set) requiredMites]
+        requiredMites = filter (flip Set.member spine) (mites tree)
+        absolutelyHappy = [set | set <- candidates, all (\mite -> happy mite || Set.member mite spine) (Set.elems set)]
+        anyBorder = leftBorder || rightBorder
+    singleCandidate <- listToMaybe $ if anyBorder || borderHead then candidates else absolutelyHappy 
+    if isBranch tree then do
+      let nextSpine = Set.union spine (Set.fromList $ baseMites tree)
+      newLeft <- inner (fromJust $ left tree) leftBorder False (leftHeaded tree && anyBorder) nextSpine
+      newRight <- inner (fromJust $ right tree) False rightBorder ((not $ leftHeaded tree) && anyBorder) nextSpine
+      Just $ tree { active = singleCandidate, left = Just newLeft, right = Just newRight }
+    else Just $ tree { active = singleCandidate }
+
+allActiveMites tree =
+  if isBranch tree 
+  then Set.union (active tree) $ Set.union (allActiveMites $ fromJust $ left tree) (allActiveMites $ fromJust $ right tree)
+  else active tree

@@ -49,6 +49,7 @@ isHappy (ArgHead {}) = False
 isHappy (Argument {}) = False
 isHappy (Elaboration {}) = False
 isHappy (SeqRight {}) = False
+isHappy (Conjunction {}) = False
 isHappy _ = True
 
 mite cxt = Mite cxt (isHappy cxt) Set.empty

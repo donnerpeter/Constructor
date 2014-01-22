@@ -11,7 +11,7 @@ generate:: Sense -> String
 generate sense = 
   let topFrames = [frame | frame <- allFrames sense, isTopFrame frame]
       sentenceState :: State (Set.Set Frame) [String]
-      sentenceState = traceShow topFrames $ foldM generateSentence [] topFrames
+      sentenceState = foldM generateSentence [] topFrames
       generateSentence :: [String] -> Frame -> State (Set.Set Frame) [String]
       generateSentence output frame = do
         visited <- get
@@ -33,7 +33,8 @@ np (Just frame) nom =
   if hasType "seq" frame then
     (np (fValue "member1" frame) nom) `cat` (fromMaybe "," $ sValue "conj" frame) `cat` (np (fValue "member2" frame) nom)
   else if hasType "ME" frame then if nom then "I" else "me"
-  else if hasType "HE" frame then if nom then "He" else "him"
+  else if hasType "HE" frame then if nom then "he" else "him"
+  else if hasType "THEY" frame then if nom then "they" else "them"
   else if hasType "WH" frame then "what"
   else let n = noun (getType frame)
            nbar = case sValue "property" frame of
@@ -48,7 +49,9 @@ determiner frame nbar =
     Just "ME" -> "my"
     Just "HE" -> "his"
     _ ->
-      if sValue "number" frame == Just "true" then ""
+      let sDet = sValue "determiner" frame in
+      if sDet == Just "THIS" then "this"
+      else if sValue "number" frame == Just "true" then ""
       else if "a" `isPrefixOf` nbar then "an"
       else if isSingular (getType frame) then "a"
       else ""
@@ -59,6 +62,7 @@ noun (Just typ) = case typ of
   "ME" -> "me"
   "HE" -> "he"
   "NEIGHBORS" -> "neighbors"
+  "MATTER" -> "matter"
   _ -> typ
 
 isSingular Nothing = False
@@ -81,6 +85,14 @@ sentence frame = do
     return $ member1 `cat` (fromMaybe "," $ sValue "conj" frame) `cat` member2
   else fromMaybe (return "") $ fmap clause $ fValue "content" frame
 
+genComplement cp = fromMaybe (return "") $ do
+  fVerb <- fValue "content" cp
+  if hasType "question" cp && hasType "THINK" fVerb then
+    return $ do
+      frameGenerated cp
+      return $ "about their opinion on" `cat` (np (fValue "topic" fVerb) False)
+  else return $ sentence cp  
+
 clause :: Frame -> State (Set.Set Frame) String
 clause fVerb =
   let subject = fValue "arg1" fVerb
@@ -92,9 +104,13 @@ clause fVerb =
         Just "HAPPEN" -> "happened"
         Just "FORGET" -> "forgot"
         Just "GO_OFF" -> "went"
+        Just "ASK" -> "asked"
         Just "COME_SCALARLY" -> "comes first"
         Just s -> s
         Nothing -> "???"
+      dObj = case getType fVerb of
+        Just "ASK" -> np (fValue "arg2" fVerb) False
+        _ -> ""
       io = case fValue "experiencer" fVerb of
         Just smth -> cat "to" (np (Just smth) False)
         _ ->
@@ -114,6 +130,7 @@ clause fVerb =
       _ -> return ""
     let fComp = case getType fVerb of
           Just "FORGET" -> fValue "arg2" fVerb
+          Just "ASK" -> fValue "topic" fVerb
           _ -> Nothing
-    comp <- fromMaybe (return "") $ fmap sentence $ fComp
-    return $ (np subject True) `cat` preAdverb `cat` verb `cat` io `cat` finalAdverb `cat` comp `cat` questionVariants `cat` elaboration
+    comp <- fromMaybe (return "") $ fmap genComplement $ fComp
+    return $ (np subject True) `cat` preAdverb `cat` verb `cat` dObj `cat` io `cat` finalAdverb `cat` comp `cat` questionVariants `cat` elaboration

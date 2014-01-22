@@ -32,9 +32,9 @@ translateTest src target = TestLabel src $ TestCase $
 
 sonnetTests = [
   translateTest "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8" 
-          "An amazing thing happened to me today, I suddenly forgot what comes first - 7 or 8",
+                "An amazing thing happened to me today, I suddenly forgot what comes first - 7 or 8",
   translateTest "Я отправился к соседям и спросил их, что они думают по этому поводу" 
-          "I went to my neighbors and asked them about their opinion on this matter"
+                "I went to my neighbors and asked them about their opinion on this matter"
   ]
 
 variationTests1=[
@@ -85,6 +85,9 @@ variationTests1=[
 variationTests2=[
   translateTest "Он отправился к соседям" 
                 "He went to his neighbors"
+  ,
+  translateTest "Я спросил их, что они думают по этому поводу" 
+                "I asked them about their opinion on this matter"
   ]
 tests = TestList (sonnetTests++variationTests1++variationTests2)
 

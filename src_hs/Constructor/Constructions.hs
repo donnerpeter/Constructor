@@ -12,7 +12,7 @@ instance Show SemValue where
   show (StrValue s) = s
   show (VarValue v) = show v
 
-data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | SInstr | KDat | PoDat deriving (Show, Eq, Ord)
+data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | SInstr | KDat | PoDat | CP deriving (Show, Eq, Ord)
 data Construction = Word Variable String
                   | Sem Variable String SemValue
                   | Unify Variable Variable
@@ -30,7 +30,7 @@ data Construction = Word Variable String
                   | Wh Variable Variable
                   | QuestionVariants (Maybe Variable) (Maybe String)
                   | Conjunction Variable String
-                  | SeqRight Variable
+                  | SeqRight Variable ArgKind
                   | SeqFull Variable
                   | TopLevelClause Variable
                   | SubordinateClause Variable
@@ -48,6 +48,7 @@ isHappy (Adverb {}) = False
 isHappy (ArgHead {}) = False
 isHappy (Argument {}) = False
 isHappy (Elaboration {}) = False
+isHappy (SeqRight {}) = False
 isHappy _ = True
 
 mite cxt = Mite cxt (isHappy cxt) Set.empty

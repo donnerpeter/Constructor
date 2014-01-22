@@ -1,4 +1,4 @@
-module Constructor.Sense (Sense(..), Frame(..), fValue, sValue, usage, getType, hasType, allFrames, makeSense) where
+module Constructor.Sense (Sense(..), Frame(..), fValue, sValue, usages, usage, getType, hasType, allFrames, makeSense) where
 
 import Constructor.Constructions (SemValue(..), Construction(Sem, Unify), Mite(..), Variable(..))
 import Constructor.Tree

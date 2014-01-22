@@ -11,7 +11,7 @@ generate:: Sense -> String
 generate sense = 
   let topFrames = [frame | frame <- allFrames sense, isTopFrame frame]
       sentenceState :: State (Set.Set Frame) [String]
-      sentenceState = foldM generateSentence [] topFrames
+      sentenceState = traceShow topFrames $ foldM generateSentence [] topFrames
       generateSentence :: [String] -> Frame -> State (Set.Set Frame) [String]
       generateSentence output frame = do
         visited <- get
@@ -24,11 +24,13 @@ generate sense =
 
 capitalize (c:rest) = (toUpper c):rest
 
-isTopFrame frame = hasType "fact" frame || hasType "question" frame
+isCP frame = hasType "fact" frame || hasType "question" frame
+isTopFrame frame = isCP frame && (null $ usages "member1" frame) || 
+                   hasType "seq" frame && (fromMaybe False $ fmap isCP $ fValue "member1" frame)
 
 np Nothing _ = "???"
 np (Just frame) nom =
-  if hasType "SEQ" frame then
+  if hasType "seq" frame then
     (np (fValue "member1" frame) nom) `cat` (fromMaybe "," $ sValue "conj" frame) `cat` (np (fValue "member2" frame) nom)
   else if hasType "ME" frame then if nom then "I" else "me"
   else if hasType "HE" frame then if nom then "He" else "him"
@@ -73,7 +75,11 @@ frameGenerated frame = do visited <- get; put $ Set.insert frame visited
 sentence :: Frame -> State (Set.Set Frame) String
 sentence frame = do
   frameGenerated frame
-  fromMaybe (return "") $ fmap clause $ fValue "content" frame
+  if hasType "seq" frame then do
+    member1 <- fromMaybe (return "???") $ fmap sentence $ fValue "member1" frame
+    member2 <- fromMaybe (return "???") $ fmap sentence $ fValue "member2" frame
+    return $ member1 `cat` (fromMaybe "," $ sValue "conj" frame) `cat` member2
+  else fromMaybe (return "") $ fmap clause $ fValue "content" frame
 
 clause :: Frame -> State (Set.Set Frame) String
 clause fVerb =

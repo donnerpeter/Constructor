@@ -21,8 +21,9 @@ wordMites word index =
   "вдруг" -> [mite $ Adverb "manner" "SUDDENLY"]
   "думают" -> (finVerb "THINK" "PRESENT" v) ++ (arg Acc "arg2" v) ++ (arg PoDat "topic" v)
   "забыл" -> (finVerb "FORGET" "PAST" v) ++ [mite $ CompHead (v "comp"), semV v0 "arg2" (v "comp")]
+  "и" -> [mite $ Conjunction v0 "or", semS v0 "conj" "and", semT v0 "seq"]
   "идет" -> (finVerb "COME_SCALARLY" "PRESENT" v) ++ [mite $ ComeScalarly v0]
-  "или" -> [mite $ Conjunction v0 "or", semS v0 "conj" "or", semT v0 "SEQ"]
+  "или" -> [mite $ Conjunction v0 "or", semS v0 "conj" "or", semT v0 "seq"]
   "их" -> pronoun Acc "THEY" v
   "к" -> preposition KDat Dat v
   "мной" -> pronoun Instr "ME" v

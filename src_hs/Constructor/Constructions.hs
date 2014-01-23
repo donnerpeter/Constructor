@@ -3,6 +3,7 @@ module Constructor.Constructions where
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Constructor.LinkedSet as LS
+import Control.Exception (assert)
 
 data Variable = Variable Int String deriving (Ord, Eq)
 instance Show Variable where show (Variable i s) = "V"++(show i)++s
@@ -40,7 +41,7 @@ data Construction = Word Variable String
                   | Question Variable Variable
                   -- | S1 | S2 | S3 | S4
                   deriving (Show, Ord, Eq)
-data Mite = Mite { cxt :: Construction, happy :: Bool, contradictors :: Set.Set Construction } deriving (Ord, Eq)
+data Mite = Mite { cxt :: Construction, happy :: Bool, contradictors :: Set.Set Construction, baseMites :: [Mite] } deriving (Ord, Eq)
 instance Show Mite where
   show (Mite {cxt=c, happy=h, contradictors=cc}) =
     (if h then "" else "!") ++ (show c)-- ++ (if Set.null cc then "" else "(xor "++(show cc)++")")
@@ -55,7 +56,7 @@ isHappy (Conjunction {}) = False
 --isHappy (NomHead {}) = False
 isHappy _ = True
 
-mite cxt = Mite cxt (isHappy cxt) Set.empty
+mite cxt = Mite cxt (isHappy cxt) Set.empty []
   
 semS var prop value = mite $ Sem var prop (StrValue value)
 semV var prop value = mite $ Sem var prop (VarValue value)
@@ -63,13 +64,14 @@ semT var _type = semS var "type" _type
 
 xor :: [[Mite]] -> [Mite]
 xor miteGroups =
-  let cxtGroups = map (map cxt) miteGroups
+  let _ = map (\mite -> assert (null (baseMites mite)) mite) (concat miteGroups)
+      cxtGroups = map (map cxt) miteGroups
       allCxts = LS.elements $ LS.fromList $ concat cxtGroups
       allCxtSet = Set.fromList $ concat cxtGroups
       cxt2Groups = Map.fromListWith (++) $ concat [[(c, group) | c <- group] | group <- cxtGroups]
       cxt2Friends = Map.map Set.fromList cxt2Groups
       cxt2Contras = Map.map (\friends -> Set.difference allCxtSet friends) cxt2Friends
-      newMites = map (\c -> Mite c (isHappy c) $ Map.findWithDefault Set.empty c cxt2Contras) allCxts
+      newMites = map (\c -> Mite c (isHappy c) (Map.findWithDefault Set.empty c cxt2Contras) []) allCxts
   in newMites
 
 contradict mite1 mite2 = Set.member (cxt mite1) (contradictors mite2)

@@ -14,7 +14,7 @@ createEdges:: Tree -> Tree -> [Tree]
 createEdges leftTree rightTree =
   let infos = interactNodes (headMites leftTree) (headMites rightTree)
       infos2 = infos --if null infos then infos else traceShow infos infos 
-      trees = [Tree merged (Just leftTree) (Just rightTree) leftHeadedMerge base Set.empty | (MergeInfo merged leftHeadedMerge base) <- infos2]
+      trees = [Tree merged (Just leftTree) (Just rightTree) leftHeadedMerge Set.empty | (MergeInfo merged leftHeadedMerge) <- infos2]
   in catMaybes $ map suggestActive trees
 
 type MergeResult = Either Tree (Tree, Tree)
@@ -70,7 +70,7 @@ mergeTrees state =
             notConsideredMerges = [m | m <- immediateMerges, not $ LS.member m result]
 
 addMites:: [Tree] -> [Mite] -> [Tree]
-addMites state mites = mergeTrees $ (fromJust $ suggestActive $ Tree mites Nothing Nothing True [] Set.empty):state
+addMites state mites = mergeTrees $ (fromJust $ suggestActive $ Tree mites Nothing Nothing True Set.empty):state
 
 candidateSets:: [Mite] -> [Set.Set Mite]
 candidateSets mites = enumerate mites [] where
@@ -91,7 +91,7 @@ suggestActive tree = inner tree True True True Set.empty where
         anyBorder = leftBorder || rightBorder || borderHead
     singleCandidate <- listToMaybe $ if anyBorder then candidates else absolutelyHappy 
     if isBranch tree then do
-      let nextSpine = Set.union spine (Set.fromList $ baseMites tree)
+      let nextSpine = Set.union spine (Set.fromList $ activeBase singleCandidate)
       newLeft <- inner (fromJust $ left tree) leftBorder False (leftHeaded tree && anyBorder) nextSpine
       newRight <- inner (fromJust $ right tree) False rightBorder ((not $ leftHeaded tree) && anyBorder) nextSpine
       Just $ tree { active = singleCandidate, left = Just newLeft, right = Just newRight }

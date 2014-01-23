@@ -5,7 +5,7 @@ import Data.List
 import qualified Data.Set as Set
 import Constructor.Constructions
 
-data Tree = Tree {mites::[Mite], left::Maybe Tree, right::Maybe Tree, leftHeaded::Bool, baseMites::[Mite], active::Set.Set Mite} deriving (Ord, Eq)
+data Tree = Tree {mites::[Mite], left::Maybe Tree, right::Maybe Tree, leftHeaded::Bool, active::Set.Set Mite} deriving (Ord, Eq)
 instance Show Tree where
   show tree =
     let inner = \tree prefix ->
@@ -26,8 +26,10 @@ headMites tree =
         let ownMites = [mite | mite <- mites tree, not $ Set.member mite suppressed] in
         if isNothing $ left tree then ownMites
         else ownMites ++ (inner (if leftHeaded tree then fromJust $ left tree else fromJust $ right tree)
-                                (Set.union suppressed $ Set.fromList [mite | mite <- baseMites tree, not $ happy mite]))
+                                (Set.union suppressed $ Set.fromList [mite | mite <- activeBase $ active tree, not $ happy mite]))
   in inner tree Set.empty
+
+activeBase activeSet = [mite | activeMite <- Set.elems activeSet, mite <- baseMites activeMite]  
 
 rightSubTree tree =
   if isNothing (left tree) then Nothing

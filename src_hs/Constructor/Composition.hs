@@ -1,7 +1,7 @@
 module Constructor.Composition (interactNodes, MergeInfo(..)) where
 import Constructor.Constructions
 
-data MergeInfo = MergeInfo {mergeResult::[Mite], leftHeadedMerge::Bool, mergedMites::[Mite]} deriving (Show)
+data MergeInfo = MergeInfo {mergeResult::[Mite], leftHeadedMerge::Bool} deriving (Show)
 
 left mites = [(mites, True)]
 right mites = [(mites, False)]
@@ -9,16 +9,15 @@ right mites = [(mites, False)]
 interactNodes:: [Mite] -> [Mite] -> [MergeInfo]
 interactNodes leftMites rightMites =
   pairResults ++ compoundResults where
-  pairResults = concat [
-      [
-        MergeInfo mergeResult leftHeaded [leftMite, rightMite] 
-          | (mergeResult, leftHeaded) <- interactMites (cxt leftMite) (cxt rightMite)] 
-      | leftMite <- leftMites, rightMite <- rightMites
-    ]
+  pairResults = [ MergeInfo (map (\mite -> mite { baseMites = [leftMite, rightMite] }) mergeResult) leftHeaded | 
+                            leftMite <- leftMites, 
+                            rightMite <- rightMites, 
+                            (mergeResult, leftHeaded) <- interactMites (cxt leftMite) (cxt rightMite)]
   compoundResults = leftMites >>= \leftMite1 -> case cxt leftMite1 of
     Elaboration head -> rightMites >>= \rightMite1 -> case cxt rightMite1 of
       Fact cp -> rightMites >>= \rightMite2 -> case cxt rightMite2 of
-        SubordinateClause cp2 | cp == cp2 -> [MergeInfo [semV head "elaboration" cp] True [leftMite1, rightMite1, rightMite2]]
+        SubordinateClause cp2 | cp == cp2 ->
+          [MergeInfo [(semV head "elaboration" cp) { baseMites = [leftMite1, rightMite1, rightMite2]}] True]
         _ -> []
       _ -> []
     _ -> []

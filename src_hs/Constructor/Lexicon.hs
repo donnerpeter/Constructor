@@ -5,7 +5,7 @@ import Data.Char (ord, chr)
 noun caze typ v = [mite $ Argument caze (v ""), semS (v "") "type" typ, mite $ AdjHead (v "") caze]
 pronoun caze typ v = [mite $ Argument caze (v ""), semS (v "") "type" typ]
 preposition prepArg nounArg v = [mite $ Argument prepArg (v ""), mite $ ArgHead nounArg (v "")]
-finVerb typ time v = [mite $ FiniteVerb (v ""), semT (v "") typ, semS (v "") "time" time] ++
+finVerb typ time v = [mite $ Verb (v ""), mite $ NomHead (v ""), semT (v "") typ, semS (v "") "time" time] ++
   (xor [[mite $ TopLevelClause (v "cp")], [mite $ SubordinateClause (v "cp")]]) ++
   (xor [[mite $ Fact (v "cp"), semT (v "cp") "fact"], [mite $ Question (v "cp") (v ""), semT (v "cp") "question"]]) ++
   [semV (v "cp") "content" (v "")]

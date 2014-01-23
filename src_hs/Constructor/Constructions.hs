@@ -18,7 +18,8 @@ data Construction = Word Variable String
                   | Unify Variable Variable
                   | Adj Variable ArgKind String String
                   | AdjHead Variable ArgKind
-                  | FiniteVerb Variable
+                  | Verb Variable
+                  | NomHead Variable
                   | ArgHead ArgKind Variable
                   | Argument ArgKind Variable 
                   | Adverb String String
@@ -50,6 +51,7 @@ isHappy (Argument {}) = False
 isHappy (Elaboration {}) = False
 isHappy (SeqRight {}) = False
 isHappy (Conjunction {}) = False
+--isHappy (NomHead {}) = False
 isHappy _ = True
 
 mite cxt = Mite cxt (isHappy cxt) Set.empty

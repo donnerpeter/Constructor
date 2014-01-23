@@ -26,10 +26,10 @@ interactNodes leftMites rightMites =
 interactMites:: Construction -> Construction -> [([Mite], Bool)]
 interactMites leftMite rightMite = case (leftMite, rightMite) of
   (Adj _ adjCase property value, AdjHead var nounCase) | adjCase == nounCase -> right [semS var property value]
-  (Argument Nom child, FiniteVerb head) -> right [semV head "arg1" child]
-  (Adverb attr val, FiniteVerb head) -> right [semS head attr val]
+  (Argument Nom child, NomHead head) -> right [semV head "arg1" child]
+  (Adverb attr val, Verb head) -> right [semS head attr val]
   (ArgHead kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
-  (FiniteVerb head, Word _ ":") -> left [mite $ Elaboration head]
+  (Verb head, Word _ ":") -> left [mite $ Elaboration head]
   (CompHead head, Word _ ",") -> left [mite $ CompComma head]
   (CompComma head, Wh _ cp) -> left [mite $ Unify head cp]
   (Wh wh cp2, Question cp verb) -> left [mite $ Unify cp cp2, semV verb "arg1" wh, semV cp "questioned" wh]

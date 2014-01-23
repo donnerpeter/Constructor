@@ -21,6 +21,7 @@ data Construction = Word Variable String
                   | Verb Variable
                   | NomHead Variable
                   | ArgHead ArgKind Variable
+                  | PrepHead ArgKind Variable
                   | Argument ArgKind Variable 
                   | Adverb String String
                   | Elaboration Variable

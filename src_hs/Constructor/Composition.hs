@@ -29,6 +29,8 @@ interactMites leftMite rightMite = case (leftMite, rightMite) of
   (Argument Nom child, NomHead head) -> right [semV head "arg1" child]
   (Adverb attr val, Verb head) -> right [semS head attr val]
   (ArgHead kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
+  (Argument kind2 var2, ArgHead kind1 var1) | kind1 == kind2 -> left [mite $ Unify var1 var2]
+  (PrepHead kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
   (Verb head, Word _ ":") -> left [mite $ Elaboration head]
   (CompHead head, Word _ ",") -> left [mite $ CompComma head]
   (CompComma head, Wh _ cp) -> left [mite $ Unify head cp]

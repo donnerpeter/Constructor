@@ -38,6 +38,7 @@ data Construction = Word Variable String
                   | TopLevelClause Variable
                   | SubordinateClause Variable
                   | Fact Variable
+                  | ElidedArgHead Construction
                   | Question Variable Variable
                   -- | S1 | S2 | S3 | S4
                   deriving (Show, Ord, Eq)
@@ -55,6 +56,7 @@ isHappy (Elaboration {}) = False
 isHappy (SeqRight {}) = False
 isHappy (Conjunction {}) = False
 isHappy (NomHead {}) = False
+isHappy (ElidedArgHead {}) = False
 isHappy _ = True
 
 mite cxt = Mite cxt (isHappy cxt) Set.empty []

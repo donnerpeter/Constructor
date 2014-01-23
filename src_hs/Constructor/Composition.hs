@@ -1,6 +1,7 @@
 module Constructor.Composition (interactNodes, MergeInfo(..)) where
 import Constructor.Constructions
 import Debug.Trace
+import Data.Maybe
 
 data MergeInfo = MergeInfo {mergeResult::[Mite], leftHeadedMerge::Bool} deriving (Show)
 
@@ -33,12 +34,30 @@ interactNodesNoWh leftMites rightMites =
           [MergeInfo [(semV head "elaboration" cp) { baseMites = [leftMite1, rightMite1, rightMite2]}] True]
         _ -> []
       _ -> []
+    Conjunction seqV _ -> rightMites >>= \rightMite1 -> case cxt rightMite1 of
+      TopLevelClause child ->
+        let unhappy = filter (not . happy) rightMites
+            wrapped = [(mite $ ElidedArgHead $ cxt m) {baseMites=[m]} | m <- unhappy]
+        in
+        [MergeInfo ([(semV seqV "member2" child) {baseMites = [leftMite1, rightMite1]}, (mite $ SeqRight seqV CP) {baseMites = [leftMite1, rightMite1]}] ++ wrapped) True]
+      _ -> []
+    TopLevelClause child -> rightMites >>= \rightMite1 -> case cxt rightMite1 of
+      SeqRight seqV CP ->
+        let unifications = concat [unifyMissingArgument mite1 mite2 | happyLeft <- filter happy leftMites, 
+                                                                      mite1 <- baseMites happyLeft, 
+                                                                      mite2 <- rightMites]
+            unifyMissingArgument mite1 mite2 = case (cxt mite1, cxt mite2) of
+              (NomHead v1, ElidedArgHead (NomHead v2)) -> [(mite $ Unify v1 v2) {baseMites=[mite1, mite2]}]
+              _ -> []
+        in
+        [MergeInfo ([(semV seqV "member1" child) {baseMites = [leftMite1, rightMite1]}] ++ unifications) False]
+      _ -> []
     _ -> []
 
 interactMites:: Construction -> Construction -> [([Mite], Bool)]
 interactMites leftMite rightMite = case (leftMite, rightMite) of
   (Adj _ adjCase property value, AdjHead var nounCase) | adjCase == nounCase -> right [semS var property value]
-  (Argument Nom child, NomHead head) -> right [semV head "arg1" child]
+  (Argument Nom v1, NomHead v2) -> right [mite $ Unify v1 v2]
   (Adverb attr val, Verb head) -> right [semS head attr val]
   (ArgHead kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
   (Argument kind2 var2, ArgHead kind1 var1) | kind1 == kind2 -> right [mite $ Unify var1 var2]
@@ -50,7 +69,5 @@ interactMites leftMite rightMite = case (leftMite, rightMite) of
   (QuestionVariants (Just v) Nothing, QuestionVariants Nothing (Just s)) -> left [mite $ QuestionVariants (Just v) (Just s)]
   (QuestionVariants (Just v) (Just _), Argument Nom child) -> left [semV v "variants" child]
   (Conjunction v _, Argument Nom child) -> left [semV v "member2" child, mite $ SeqRight v Nom]
-  (Conjunction v _, TopLevelClause child) -> left [semV v "member2" child, mite $ SeqRight v CP]
   (Argument Nom child, SeqRight v Nom) -> right [semV v "member1" child, mite $ SeqFull v, mite $ Argument Nom v]
-  (TopLevelClause child, SeqRight v CP) -> right [semV v "member1" child, mite $ SeqFull v]
   _ -> []

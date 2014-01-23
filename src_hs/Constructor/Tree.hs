@@ -9,24 +9,24 @@ data Tree = Tree {mites::[Mite], left::Maybe Tree, right::Maybe Tree, leftHeaded
 instance Show Tree where
   show tree =
     let inner = \tree prefix ->
-          let myLine = prefix ++ (Data.List.intercalate ", " $ map showMite $ headMites tree)++"\n" in
+          let myLine = prefix ++ (Data.List.intercalate ", " $ map showMite $ headMites tree) ++ "\n" in
           case rightSubTree tree of
             Just r -> (inner r ("  "++prefix)) ++ myLine
             Nothing -> myLine
         allActive = allActiveMiteSet tree
-        showMite mite = (if Set.member mite allActive then "*" else "") ++ (show mite)
+        showMite mite = (if Set.member mite allActive then "*" else "") ++ show mite
     in "\n" ++ inner tree ""
 
 allTreeMites tree =
-  if isNothing (left tree) then mites tree
-  else (allTreeMites $ fromJust $ left tree)++(allTreeMites $ fromJust $ right tree)++(mites tree)
+  if isNothing $ left tree then mites tree
+  else (allTreeMites $ fromJust $ left tree)++(allTreeMites $ fromJust $ right tree)++ mites tree
 
 headMites tree =
   let inner tree suppressed =
         let ownMites = [mite | mite <- mites tree, not $ Set.member mite suppressed] in
         if isNothing $ left tree then ownMites
-        else ownMites ++ (inner (if leftHeaded tree then fromJust $ left tree else fromJust $ right tree)
-                                (Set.union suppressed $ Set.fromList [mite | mite <- activeBase $ active tree, not $ happy mite]))
+        else ownMites ++ inner (if leftHeaded tree then fromJust $ left tree else fromJust $ right tree)
+                                (Set.union suppressed $ Set.fromList [mite | mite <- activeBase $ active tree, not $ happy mite])
   in inner tree Set.empty
 
 activeBase activeSet = [mite | activeMite <- Set.elems activeSet, mite <- baseMites activeMite]  

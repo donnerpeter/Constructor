@@ -19,10 +19,10 @@ wordMites word index =
   case word of
   s | length (reads s :: [(Int, String)]) == 1 -> [mite $ Argument Nom v0, semT v0 word, semS v0 "number" "true"]
   "вдруг" -> [mite $ Adverb "manner" "SUDDENLY"]
-  "думают" -> (finVerb "THINK" "PRESENT" v) ++ (arg Acc "arg2" v) ++ (arg PoDat "topic" v)
-  "забыл" -> (finVerb "FORGET" "PAST" v) ++ [mite $ CompHead (v "comp"), semV v0 "arg2" (v "comp")]
+  "думают" -> finVerb "THINK" "PRESENT" v ++ arg Acc "arg2" v ++ arg PoDat "topic" v
+  "забыл" -> finVerb "FORGET" "PAST" v ++ [mite $ CompHead (v "comp"), semV v0 "arg2" (v "comp")]
   "и" -> [mite $ Conjunction v0 "or", semS v0 "conj" "and", semT v0 "seq"]
-  "идет" -> (finVerb "COME_SCALARLY" "PRESENT" v) ++ [mite $ ComeScalarly v0]
+  "идет" -> finVerb "COME_SCALARLY" "PRESENT" v ++ [mite $ ComeScalarly v0]
   "или" -> [mite $ Conjunction v0 "or", semS v0 "conj" "or", semT v0 "seq"]
   "их" -> pronoun Acc "THEY" v
   "к" -> preposition KDat Dat v
@@ -30,13 +30,13 @@ wordMites word index =
   "удивительный" -> [mite $ Adj v0 Nom "property" "AMAZING"]
   "он" -> pronoun Nom "HE" v
   "они" -> pronoun Nom "THEY" v
-  "отправился" -> (finVerb "GO_OFF" "PAST" v) ++ (arg KDat "goal" v)
+  "отправился" -> finVerb "GO_OFF" "PAST" v ++ arg KDat "goal" v
   "по" -> preposition PoDat Dat v
   "поводу" -> noun Dat "MATTER" v
   "раньше" -> [mite $ ScalarAdverb "EARLIER" v0]
   "случай" -> noun Nom "THING" v
-  "случился" -> (finVerb "HAPPEN" "PAST" v) ++ (arg SInstr "experiencer" v)
-  "спросил" -> (finVerb "ASK" "PAST" v) ++ (arg Acc "arg2" v) ++ [mite $ CompHead (v "comp"), semV v0 "topic" (v "comp")]
+  "случился" -> finVerb "HAPPEN" "PAST" v ++ arg SInstr "experiencer" v
+  "спросил" -> finVerb "ASK" "PAST" v ++ arg Acc "arg2" v ++ [mite $ CompHead (v "comp"), semV v0 "topic" (v "comp")]
   "со" -> preposition SInstr Instr v
   "соседям" -> noun Dat "NEIGHBORS" v
   "что" -> [mite $ Wh v0 (v "cp"), mite $ QuestionVariants (Just v0) Nothing,  semT v0 "WH"]

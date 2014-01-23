@@ -39,7 +39,7 @@ wordMites word index =
   "спросил" -> finVerb "ASK" "PAST" v ++ arg Acc "arg2" v ++ [mite $ CompHead (v "comp"), semV v0 "topic" (v "comp")]
   "со" -> preposition SInstr Instr v
   "соседям" -> noun Dat "NEIGHBORS" v
-  "что" -> [mite $ Wh v0 (v "cp"), mite $ QuestionVariants (Just v0) Nothing,  semT v0 "WH"]
+  "что" -> [mite $ Wh v0 (v "cp"), mite $ QuestionVariants (Just v0) Nothing,  semT v0 "WH"] ++ xor [[mite $ Argument Nom v0], [mite $ Argument Acc v0]]
   "этому" -> [mite $ Adj v0 Dat "determiner" "THIS"]
   "я" -> pronoun Nom "ME" v
   "-" -> [mite $ QuestionVariants Nothing (Just "-")]

@@ -1,5 +1,6 @@
 module Constructor.Composition (interactNodes, MergeInfo(..)) where
 import Constructor.Constructions
+import Debug.Trace
 
 data MergeInfo = MergeInfo {mergeResult::[Mite], leftHeadedMerge::Bool} deriving (Show)
 
@@ -7,7 +8,19 @@ left mites = [(mites, True)]
 right mites = [(mites, False)]
 
 interactNodes:: [Mite] -> [Mite] -> [MergeInfo]
-interactNodes leftMites rightMites =
+interactNodes leftMites rightMites = if null whResults then noWh else whResults where
+  noWh = interactNodesNoWh leftMites rightMites
+  whResults = leftMites >>= \leftMite1 -> case cxt leftMite1 of
+    Wh wh cp -> rightMites >>= \rightMite1 -> case cxt rightMite1 of
+      Question cp2 verb ->
+        let fillers = filter (not . leftHeadedMerge) noWh
+            whLinks = map (\mite -> mite { baseMites = [leftMite1, rightMite1] }) [mite $ Unify cp cp2, semV cp "questioned" wh]
+            infos = map (\ info -> MergeInfo (mergeResult info ++ whLinks) True) fillers
+        in infos
+      _ -> []
+    _ -> []
+
+interactNodesNoWh leftMites rightMites =
   pairResults ++ compoundResults where
   pairResults = [ MergeInfo (map (\mite -> mite { baseMites = [leftMite, rightMite] }) mergeResult) leftHeaded | 
                             leftMite <- leftMites, 
@@ -28,12 +41,11 @@ interactMites leftMite rightMite = case (leftMite, rightMite) of
   (Argument Nom child, NomHead head) -> right [semV head "arg1" child]
   (Adverb attr val, Verb head) -> right [semS head attr val]
   (ArgHead kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
-  (Argument kind2 var2, ArgHead kind1 var1) | kind1 == kind2 -> left [mite $ Unify var1 var2]
+  (Argument kind2 var2, ArgHead kind1 var1) | kind1 == kind2 -> right [mite $ Unify var1 var2]
   (PrepHead kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
   (Verb head, Word _ ":") -> left [mite $ Elaboration head]
   (CompHead head, Word _ ",") -> left [mite $ CompComma head]
   (CompComma head, Wh _ cp) -> left [mite $ Unify head cp]
-  (Wh wh cp2, Question cp verb) -> left [mite $ Unify cp cp2, semV verb "arg1" wh, semV cp "questioned" wh]
   (ComeScalarly verb, ScalarAdverb order _) -> left [semS verb "order" order]
   (QuestionVariants (Just v) Nothing, QuestionVariants Nothing (Just s)) -> left [mite $ QuestionVariants (Just v) (Just s)]
   (QuestionVariants (Just v) (Just _), Argument Nom child) -> left [semV v "variants" child]

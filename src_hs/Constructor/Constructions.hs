@@ -43,8 +43,9 @@ data Construction = Word Variable String
                   deriving (Show, Ord, Eq)
 data Mite = Mite { cxt :: Construction, happy :: Bool, contradictors :: Set.Set Construction, baseMites :: [Mite] } deriving (Ord, Eq)
 instance Show Mite where
-  show (Mite {cxt=c, happy=h, contradictors=cc}) =
-    (if h then "" else "!") ++ (show c)-- ++ (if Set.null cc then "" else "(xor "++(show cc)++")")
+  show (Mite {cxt=c, happy=h, contradictors=cc, baseMites = b}) =
+    (if h then "" else "!") ++ show c -- ++ (if Set.null cc then "" else "(xor "++(show cc)++")")
+      -- ++ (if null b then "" else "(base " ++ show b ++ ")")
   
 isHappy (Adj {}) = False
 isHappy (Adverb {}) = False
@@ -53,7 +54,7 @@ isHappy (Argument {}) = False
 isHappy (Elaboration {}) = False
 isHappy (SeqRight {}) = False
 isHappy (Conjunction {}) = False
---isHappy (NomHead {}) = False
+isHappy (NomHead {}) = False
 isHappy _ = True
 
 mite cxt = Mite cxt (isHappy cxt) Set.empty []
@@ -74,5 +75,7 @@ xor miteGroups =
       newMites = map (\c -> Mite c (isHappy c) (Map.findWithDefault Set.empty c cxt2Contras) []) allCxts
   in newMites
 
-contradict mite1 mite2 = Set.member (cxt mite1) (contradictors mite2)
+contradict mite1 mite2 = Set.member (cxt mite1) (contradictors mite2) ||
+                         any (contradict mite1) (baseMites mite2) ||
+                         any (contradict mite2) (baseMites mite1)
 hasContradictors mite inList = any (contradict mite) inList

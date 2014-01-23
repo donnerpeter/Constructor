@@ -34,7 +34,7 @@ activeBase activeSet = [mite | activeMite <- Set.elems activeSet, mite <- baseMi
 rightSubTree tree =
   if isNothing (left tree) then Nothing
   else if leftHeaded tree then right tree
-  else Nothing
+  else rightSubTree $ fromJust $ right tree
   
 isBranch tree = isJust (left tree)
 isDirectedBranch tree isLeftBranch = isBranch tree && leftHeaded tree == isLeftBranch

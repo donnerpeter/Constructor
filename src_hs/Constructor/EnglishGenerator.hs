@@ -95,7 +95,7 @@ genComplement cp = fromMaybe (return "") $ do
 
 clause :: Frame -> State (Set.Set Frame) String
 clause fVerb =
-  let subject = fValue "arg1" fVerb
+  let fSubject = fValue "arg1" fVerb
       preAdverb = case sValue "manner" fVerb of
         Just "SUDDENLY" -> "suddenly"
         Just s -> s
@@ -120,8 +120,11 @@ clause fVerb =
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         _ -> ""
-      questionVariants = case fmap (\subj -> (getType subj, fValue "variants" subj)) subject of
+      questionVariants = case fmap (\subj -> (getType subj, fValue "variants" subj)) fSubject of
         Just (Just "WH", Just variants) -> "-" `cat` (np (Just variants) True)
+        _ -> ""
+      subject = case fSubject of
+        Just f | [fVerb] `isPrefixOf` (usages "arg1" f) -> np fSubject True
         _ -> ""
   in do
     frameGenerated fVerb
@@ -133,4 +136,4 @@ clause fVerb =
           Just "ASK" -> fValue "topic" fVerb
           _ -> Nothing
     comp <- fromMaybe (return "") $ fmap genComplement $ fComp
-    return $ (np subject True) `cat` preAdverb `cat` verb `cat` dObj `cat` io `cat` finalAdverb `cat` comp `cat` questionVariants `cat` elaboration
+    return $ subject `cat` preAdverb `cat` verb `cat` dObj `cat` io `cat` finalAdverb `cat` comp `cat` questionVariants `cat` elaboration

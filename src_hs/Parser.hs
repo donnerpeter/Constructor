@@ -16,6 +16,7 @@ tokenize s = map (\x -> map toLower x) $
       ' ' -> (current:tokens, "")
       ':' -> (":":current:tokens, "")
       ',' -> (",":current:tokens, "")
+      '.' -> (".":current:tokens, "")
       _ -> (tokens, current++[char])
 
 parse:: String -> [Tree]
@@ -35,6 +36,9 @@ sonnetTests = [
                 "An amazing thing happened to me today, I suddenly forgot what comes first - 7 or 8",
   translateTest "Я отправился к соседям и спросил их, что они думают по этому поводу" 
                 "I went to my neighbors and asked them about their opinion on this matter"
+                ,
+  translateTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета." 
+                "Great was their and my amazement, when they suddenly discovered, that they couldn't recall the counting order."
   ]
 
 variationTests1=[

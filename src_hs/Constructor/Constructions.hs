@@ -13,7 +13,7 @@ instance Show SemValue where
   show (StrValue s) = s
   show (VarValue v) = show v
 
-data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | SInstr | KDat | PoDat | CP deriving (Show, Eq, Ord)
+data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | SInstr | KDat | PoDat | CP | PossKind ArgKind deriving (Show, Eq, Ord)
 data Construction = Word Variable String
                   | Sem Variable String SemValue
                   | Unify Variable Variable
@@ -40,6 +40,11 @@ data Construction = Word Variable String
                   | Fact Variable
                   | ElidedArgHead Construction
                   | Question Variable Variable
+                  | Possessive ArgKind Variable
+                  | EmptyCxt Construction
+                  | CopulaTense Variable
+                  | Copula Variable
+                  | ShortAdj Variable
                   -- | S1 | S2 | S3 | S4
                   deriving (Show, Ord, Eq)
 data Mite = Mite { cxt :: Construction, happy :: Bool, contradictors :: Set.Set Construction, baseMites :: [Mite] } deriving (Ord, Eq)
@@ -57,6 +62,9 @@ isHappy (SeqRight {}) = False
 isHappy (Conjunction {}) = False
 isHappy (NomHead {}) = False
 isHappy (ElidedArgHead {}) = False
+isHappy (Possessive {}) = False
+isHappy (CopulaTense {}) = False
+isHappy (Copula {}) = False
 isHappy _ = True
 
 mite cxt = Mite cxt (isHappy cxt) Set.empty []

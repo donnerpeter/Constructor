@@ -28,14 +28,20 @@ isCP frame = hasType "fact" frame || hasType "question" frame
 isTopFrame frame = isCP frame && (null $ usages "member1" frame) || 
                    hasType "seq" frame && (fromMaybe False $ fmap isCP $ fValue "member1" frame)
 
-np Nothing _ = "???"
-np (Just frame) nom =
+handleSeq _ Nothing = "???"
+handleSeq f (Just frame) =
   if hasType "seq" frame then
-    (np (fValue "member1" frame) nom) `cat` (fromMaybe "," $ sValue "conj" frame) `cat` (np (fValue "member2" frame) nom)
-  else if hasType "ME" frame then if nom then "I" else "me"
+      (f $ fValue "member1" frame) `cat` (fromMaybe "," $ sValue "conj" frame) `cat` (f $ fValue "member2" frame)
+  else f $ Just frame
+
+np nom frame = handleSeq (np_internal nom) frame
+
+np_internal _ Nothing = "???"
+np_internal nom (Just frame) = 
+  if hasType "ME" frame then if nom then "I" else "me"
   else if hasType "HE" frame then if nom then "he" else "him"
   else if hasType "THEY" frame then if nom then "they" else "them"
-  else if hasType "WH" frame then "what"
+  else if hasType "wh" frame then "what"
   else let n = noun (getType frame)
            nbar = case sValue "property" frame of
              Just "AMAZING" -> cat "amazing" n
@@ -44,10 +50,17 @@ np (Just frame) nom =
              
 
 determiner frame nbar =
-  let det = if hasType "NEIGHBORS" frame then fValue "arg1" frame else Nothing in
-  case det >>= getType of
-    Just "ME" -> "my"
-    Just "HE" -> "his"
+  let det = if hasType "NEIGHBORS" frame || hasType "AMAZE" frame then fValue "arg1" frame else Nothing
+      genitiveSpecifier det =
+        case det >>= getType of
+          Just "ME" -> "my"
+          Just "HE" -> "his"
+          Just "THEY" -> "their"
+          Just s -> s
+          _ -> "???"
+  in
+  case det of
+    Just _ -> handleSeq genitiveSpecifier $ det
     _ ->
       let sDet = sValue "determiner" frame in
       if sDet == Just "THIS" then "this"
@@ -63,6 +76,7 @@ noun (Just typ) = case typ of
   "HE" -> "he"
   "NEIGHBORS" -> "neighbors"
   "MATTER" -> "matter"
+  "AMAZE" -> "amazement"
   _ -> typ
 
 isSingular Nothing = False
@@ -90,7 +104,7 @@ genComplement cp = fromMaybe (return "") $ do
   if hasType "question" cp && hasType "THINK" fVerb then
     return $ do
       frameGenerated cp
-      return $ "about their opinion on" `cat` (np (fValue "topic" fVerb) False)
+      return $ "about their opinion on" `cat` (np False $ fValue "topic" fVerb)
   else return $ sentence cp  
 
 clause :: Frame -> State (Set.Set Frame) String
@@ -109,23 +123,26 @@ clause fVerb =
         Just s -> s
         Nothing -> "???"
       dObj = case getType fVerb of
-        Just "ASK" -> np (fValue "arg2" fVerb) False
+        Just "ASK" -> np False $ fValue "arg2" fVerb
         _ -> ""
       io = case fValue "experiencer" fVerb of
-        Just smth -> cat "to" (np (Just smth) False)
+        Just smth -> cat "to" (np False (Just smth))
         _ ->
           case fValue "goal" fVerb of
-            Just smth -> cat "to" (np (Just smth) False)
+            Just smth -> cat "to" (np False (Just smth))
             _ -> ""  
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         _ -> ""
       questionVariants = case fmap (\subj -> (getType subj, fValue "variants" subj)) fSubject of
-        Just (Just "WH", Just variants) -> "-" `cat` (np (Just variants) True)
+        Just (Just "wh", Just variants) -> "-" `cat` (np True (Just variants))
         _ -> ""
       subject = case fSubject of
-        Just f | [fVerb] `isPrefixOf` (usages "arg1" f) -> np fSubject True
+        Just f | [fVerb] `isPrefixOf` (usages "arg1" f) -> np True fSubject
         _ -> ""
+      core = if hasType "degree" fVerb && (fromMaybe False $ fmap (hasType "wh") $ fValue "arg2" fVerb)
+             then "Great was" `cat` subject
+             else subject `cat` preAdverb `cat` verb `cat` dObj `cat` io `cat` finalAdverb
   in do
     frameGenerated fVerb
     elaboration <- case fValue "elaboration" fVerb of
@@ -136,4 +153,4 @@ clause fVerb =
           Just "ASK" -> fValue "topic" fVerb
           _ -> Nothing
     comp <- fromMaybe (return "") $ fmap genComplement $ fComp
-    return $ subject `cat` preAdverb `cat` verb `cat` dObj `cat` io `cat` finalAdverb `cat` comp `cat` questionVariants `cat` elaboration
+    return $ core `cat` comp `cat` questionVariants `cat` elaboration

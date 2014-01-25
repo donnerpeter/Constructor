@@ -45,6 +45,8 @@ data Construction = Word Variable String
                   | CopulaTense Variable
                   | Copula Variable
                   | ShortAdj Variable
+                  | ConditionComp Variable {-if/when-} String {-has cp-} Bool
+                  | CommaSeparated Construction
                   -- | S1 | S2 | S3 | S4
                   deriving (Show, Ord, Eq)
 data Mite = Mite { cxt :: Construction, happy :: Bool, contradictors :: Set.Set Construction, baseMites :: [Mite] } deriving (Ord, Eq)
@@ -65,6 +67,8 @@ isHappy (ElidedArgHead {}) = False
 isHappy (Possessive {}) = False
 isHappy (CopulaTense {}) = False
 isHappy (Copula {}) = False
+isHappy (ConditionComp {}) = False
+isHappy (CommaSeparated {}) = False
 isHappy _ = True
 
 mite cxt = Mite cxt (isHappy cxt) Set.empty []

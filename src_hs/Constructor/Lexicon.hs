@@ -32,7 +32,10 @@ wordMites word index =
   "или" -> [mite $ Conjunction v0 "or", semS v0 "conj" "or", semT v0 "seq"]
   "их" -> xor [pronoun Acc "THEY" v, [semT v0 "THEY", mite $ Possessive Nom v0]]
   "к" -> preposition KDat Dat v
+  -- todo wh-questions with каково
   "каково" -> finiteClause v ++ [mite $ Copula v0, semT (v "wh") "wh", semT v0 "degree", semV v0 "arg2" (v "wh"), mite $ ShortAdj (v "wh")]
+  -- todo wh-questions with когда
+  "когда" -> [mite $ ConditionComp v0 "when" False]
   "мной" -> pronoun Instr "ME" v
   "могут" -> finVerb "CAN" "PAST" v
   "мое" -> [semT v0 "ME", mite $ Possessive Nom v0]

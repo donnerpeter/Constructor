@@ -107,6 +107,17 @@ genComplement cp = fromMaybe (return "") $ do
       return $ "about their opinion on" `cat` (np False $ fValue "topic" fVerb)
   else return $ sentence cp  
 
+verb typ = case typ of
+  "HAPPEN" -> "happened"
+  "FORGET" -> "forgot"
+  "GO_OFF" -> "went"
+  "ASK" -> "asked"
+  "COME_SCALARLY" -> "comes first"
+  "DISCOVER" -> "discovered"
+  "CAN" -> "could"
+  "RECALL" -> "recall"
+  _ -> typ
+
 clause :: Frame -> State (Set.Set Frame) String
 clause fVerb =
   let fSubject = fValue "arg1" fVerb
@@ -114,14 +125,7 @@ clause fVerb =
         Just "SUDDENLY" -> "suddenly"
         Just s -> s
         _ -> ""
-      verb = case getType fVerb of
-        Just "HAPPEN" -> "happened"
-        Just "FORGET" -> "forgot"
-        Just "GO_OFF" -> "went"
-        Just "ASK" -> "asked"
-        Just "COME_SCALARLY" -> "comes first"
-        Just s -> s
-        Nothing -> "???"
+      sVerb = fromMaybe "???" $ fmap verb $ getType fVerb
       dObj = case getType fVerb of
         Just "ASK" -> np False $ fValue "arg2" fVerb
         _ -> ""
@@ -142,7 +146,7 @@ clause fVerb =
         _ -> ""
       core = if hasType "degree" fVerb && (fromMaybe False $ fmap (hasType "wh") $ fValue "arg2" fVerb)
              then "Great was" `cat` subject
-             else subject `cat` preAdverb `cat` verb `cat` dObj `cat` io `cat` finalAdverb
+             else subject `cat` preAdverb `cat` sVerb `cat` dObj `cat` io `cat` finalAdverb
   in do
     frameGenerated fVerb
     elaboration <- case fValue "elaboration" fVerb of
@@ -153,4 +157,7 @@ clause fVerb =
           Just "ASK" -> fValue "topic" fVerb
           _ -> Nothing
     comp <- fromMaybe (return "") $ fmap genComplement $ fComp
-    return $ core `cat` comp `cat` questionVariants `cat` elaboration
+    condComp <- case fValue "whenCondition" fVerb of
+      Just fComp -> do comp <- sentence fComp; return $ ", when" `cat` comp
+      _ -> return ""
+    return $ core `cat` condComp `cat` comp `cat` questionVariants `cat` elaboration

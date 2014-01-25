@@ -28,7 +28,6 @@ data Construction = Word Variable String
                   | Elaboration Variable
                   | ComeScalarly Variable
                   | CompHead Variable
-                  | CompComma Variable
                   | ScalarAdverb String Variable
                   | Wh Variable Variable
                   | QuestionVariants (Maybe Variable) (Maybe String)
@@ -46,7 +45,9 @@ data Construction = Word Variable String
                   | Copula Variable
                   | ShortAdj Variable
                   | ConditionComp Variable {-if/when-} String {-has cp-} Bool
-                  | CommaSeparated Construction
+                  | CommaSurrounded Construction
+                  | Control Variable
+                  | Infinitive Variable
                   -- | S1 | S2 | S3 | S4
                   deriving (Show, Ord, Eq)
 data Mite = Mite { cxt :: Construction, happy :: Bool, contradictors :: Set.Set Construction, baseMites :: [Mite] } deriving (Ord, Eq)
@@ -68,7 +69,9 @@ isHappy (Possessive {}) = False
 isHappy (CopulaTense {}) = False
 isHappy (Copula {}) = False
 isHappy (ConditionComp {}) = False
-isHappy (CommaSeparated {}) = False
+isHappy (CommaSurrounded {}) = False
+isHappy (Infinitive {}) = False
+isHappy (Control {}) = False
 isHappy _ = True
 
 mite cxt = Mite cxt (isHappy cxt) Set.empty []

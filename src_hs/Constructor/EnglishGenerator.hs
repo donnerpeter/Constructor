@@ -34,23 +34,29 @@ handleSeq f (Just frame) =
       (f $ fValue "member1" frame) `cat` (fromMaybe "," $ sValue "conj" frame) `cat` (f $ fValue "member2" frame)
   else f $ Just frame
 
-np nom frame = handleSeq (np_internal nom) frame
+np nom frame = handleSeq (np_internal nom True) frame
 
-np_internal _ Nothing = "???"
-np_internal nom (Just frame) = 
+np_internal _ _ Nothing = "???"
+np_internal nom mayHaveDeterminer (Just frame) = 
   if hasType "ME" frame then if nom then "I" else "me"
   else if hasType "HE" frame then if nom then "he" else "him"
   else if hasType "THEY" frame then if nom then "they" else "them"
   else if hasType "wh" frame then "what"
   else let n = noun (getType frame)
-           nbar = case sValue "property" frame of
+           nbar1 = case sValue "property" frame of
              Just "AMAZING" -> cat "amazing" n
              _ -> n
-           in (determiner frame nbar) `cat` nbar
+           nbar2 = case getType frame of
+             Just "ORDER" -> case fValue "arg1" frame of
+               Just poss -> (handleSeq (np_internal nom False) $ Just poss) `cat` nbar1
+               _ -> nbar1
+             _ -> nbar1
+           nbar = nbar2
+           in if mayHaveDeterminer then (determiner frame nbar) `cat` nbar else nbar
              
 
 determiner frame nbar =
-  let det = if hasType "NEIGHBORS" frame || hasType "AMAZE" frame then fValue "arg1" frame else Nothing
+  let det = if hasAnyType ["NEIGHBORS", "AMAZE"] frame then fValue "arg1" frame else Nothing
       genitiveSpecifier det =
         case det >>= getType of
           Just "ME" -> "my"
@@ -65,6 +71,7 @@ determiner frame nbar =
       let sDet = sValue "determiner" frame in
       if sDet == Just "THIS" then "this"
       else if sValue "number" frame == Just "true" then ""
+      else if sValue "given" frame == Just "true" then "the"
       else if "a" `isPrefixOf` nbar then "an"
       else if isSingular (getType frame) then "a"
       else ""
@@ -77,6 +84,8 @@ noun (Just typ) = case typ of
   "NEIGHBORS" -> "neighbors"
   "MATTER" -> "matter"
   "AMAZE" -> "amazement"
+  "ORDER" -> "order"
+  "COUNTING" -> "counting"
   _ -> typ
 
 isSingular Nothing = False
@@ -107,27 +116,54 @@ genComplement cp = fromMaybe (return "") $ do
       return $ "about their opinion on" `cat` (np False $ fValue "topic" fVerb)
   else return $ sentence cp  
 
-verb typ = case typ of
+verb negated typ = case typ of
   "HAPPEN" -> "happened"
   "FORGET" -> "forgot"
   "GO_OFF" -> "went"
   "ASK" -> "asked"
   "COME_SCALARLY" -> "comes first"
   "DISCOVER" -> "discovered"
-  "CAN" -> "could"
+  "CAN" -> if negated then "couldn't" else "could"
   "RECALL" -> "recall"
   _ -> typ
 
 clause :: Frame -> State (Set.Set Frame) String
 clause fVerb =
   let fSubject = fValue "arg1" fVerb
-      preAdverb = case sValue "manner" fVerb of
+      questionVariants = case fmap (\subj -> (getType subj, fValue "variants" subj)) fSubject of
+        Just (Just "wh", Just variants) -> "-" `cat` (np True (Just variants))
+        _ -> ""
+      subject = case fSubject of
+        Just f | [fVerb] `isPrefixOf` (usages "arg1" f) -> np True fSubject
+        _ -> ""
+      core = if hasType "degree" fVerb && (fromMaybe False $ fmap (hasType "wh") $ fValue "arg2" fVerb)
+             then "Great was" `cat` subject
+             else subject `cat` (vp fVerb)
+  in do
+    frameGenerated fVerb
+    elaboration <- case fValue "elaboration" fVerb of
+      Just smth -> do subClause <- sentence smth; return $ "," `cat` subClause
+      _ -> return ""
+    let fComp = case getType fVerb of
+          Just "FORGET" -> fValue "arg2" fVerb
+          Just "ASK" -> fValue "topic" fVerb
+          Just "DISCOVER" -> fValue "theme" fVerb
+          _ -> Nothing
+    comp <- fromMaybe (return "") $ fmap genComplement $ fComp
+    condComp <- case fValue "whenCondition" fVerb of
+      Just fComp -> do comp <- sentence fComp; return $ ", when" `cat` comp
+      _ -> return ""
+    return $ core `cat` condComp `cat` comp `cat` questionVariants `cat` elaboration
+
+vp fVerb =
+  let preAdverb = case sValue "manner" fVerb of
         Just "SUDDENLY" -> "suddenly"
         Just s -> s
         _ -> ""
-      sVerb = fromMaybe "???" $ fmap verb $ getType fVerb
+      sVerb = fromMaybe "???" $ fmap (verb $ Just "true" == sValue "negated" fVerb) $ getType fVerb
       dObj = case getType fVerb of
         Just "ASK" -> np False $ fValue "arg2" fVerb
+        Just "RECALL" -> np False $ fValue "arg2" fVerb
         _ -> ""
       io = case fValue "experiencer" fVerb of
         Just smth -> cat "to" (np False (Just smth))
@@ -138,26 +174,9 @@ clause fVerb =
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         _ -> ""
-      questionVariants = case fmap (\subj -> (getType subj, fValue "variants" subj)) fSubject of
-        Just (Just "wh", Just variants) -> "-" `cat` (np True (Just variants))
+      controlled = case getType fVerb of
+        Just "CAN" -> case fValue "theme" fVerb of
+          Just slave -> vp slave
+          _ -> ""
         _ -> ""
-      subject = case fSubject of
-        Just f | [fVerb] `isPrefixOf` (usages "arg1" f) -> np True fSubject
-        _ -> ""
-      core = if hasType "degree" fVerb && (fromMaybe False $ fmap (hasType "wh") $ fValue "arg2" fVerb)
-             then "Great was" `cat` subject
-             else subject `cat` preAdverb `cat` sVerb `cat` dObj `cat` io `cat` finalAdverb
-  in do
-    frameGenerated fVerb
-    elaboration <- case fValue "elaboration" fVerb of
-      Just smth -> do subClause <- sentence smth; return $ "," `cat` subClause
-      _ -> return ""
-    let fComp = case getType fVerb of
-          Just "FORGET" -> fValue "arg2" fVerb
-          Just "ASK" -> fValue "topic" fVerb
-          _ -> Nothing
-    comp <- fromMaybe (return "") $ fmap genComplement $ fComp
-    condComp <- case fValue "whenCondition" fVerb of
-      Just fComp -> do comp <- sentence fComp; return $ ", when" `cat` comp
-      _ -> return ""
-    return $ core `cat` condComp `cat` comp `cat` questionVariants `cat` elaboration
+  in preAdverb `cat` sVerb `cat` controlled `cat` dObj `cat` io `cat` finalAdverb

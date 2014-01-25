@@ -1,4 +1,9 @@
-module Constructor.Sense (Sense(..), Frame(..), fValue, sValue, usages, usage, getType, hasType, allFrames, makeSense) where
+module Constructor.Sense 
+  (Sense(..), Frame(..), fValue, sValue, 
+  usages, usage, 
+  getType, hasType, hasAnyType, 
+  allFrames, makeSense)
+  where
 
 import Constructor.Constructions (SemValue(..), Construction(Sem, Unify), Mite(..), Variable(..))
 import Constructor.Tree
@@ -67,7 +72,16 @@ singleListElement list = case list of
   _ -> Nothing
 singleValue attr frame = singleListElement $ allValues attr frame
 
-sValue attr frame = singleValue attr frame >>= extractValueString
+sDeclaredValue attr frame = singleValue attr frame >>= extractValueString
+sValue attr frame =
+  let declared = sDeclaredValue attr frame in
+  if isJust declared then declared
+  else
+    case attr of
+      "given" ->
+        if hasType "ORDER" frame then Just "true"
+        else Just "false"
+      _ -> Nothing
 
 fDeclaredValue attr frame = singleValue attr frame >>= extractValueVar >>= \v -> Just $ Frame v (sense frame)
 fValue attr frame =
@@ -81,6 +95,7 @@ fValue attr frame =
       _ -> Nothing
 
 hasType t frame = getType frame == Just t
+hasAnyType types frame = fromMaybe False $ getType frame >>= \t -> Just $ elem t types
 getType frame = sValue "type" frame
 
 usages attr frame = [f | f <- allFrames (sense frame), fDeclaredValue attr f == Just frame]

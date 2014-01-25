@@ -4,6 +4,7 @@ import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Constructor.LinkedSet as LS
 import Control.Exception (assert)
+import Constructor.Agreement
 
 data Variable = Variable Int String deriving (Ord, Eq)
 instance Show Variable where show (Variable i s) = "V"++(show i)++s
@@ -13,14 +14,14 @@ instance Show SemValue where
   show (StrValue s) = s
   show (VarValue v) = show v
 
-data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | SInstr | KDat | PoDat | CP | PossKind ArgKind deriving (Show, Eq, Ord)
+data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | SInstr | KDat | PoDat | CP | PossKind ArgKind Agr deriving (Show, Eq, Ord)
 data Construction = Word Variable String
                   | Sem Variable String SemValue
                   | Unify Variable Variable
-                  | Adj Variable ArgKind String String
-                  | AdjHead Variable ArgKind
+                  | Adj Variable ArgKind Agr String String
+                  | AdjHead Variable ArgKind Agr
                   | Verb Variable
-                  | NomHead Variable
+                  | NomHead Agr Variable
                   | ArgHead ArgKind Variable
                   | PrepHead ArgKind Variable
                   | Argument ArgKind Variable 
@@ -39,7 +40,7 @@ data Construction = Word Variable String
                   | Fact Variable
                   | ElidedArgHead Construction
                   | Question Variable Variable
-                  | Possessive ArgKind Variable
+                  | Possessive ArgKind Agr Variable
                   | EmptyCxt Construction
                   | CopulaTense Variable
                   | Copula Variable

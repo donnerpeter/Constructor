@@ -1,5 +1,6 @@
 module Constructor.Composition (interactNodes, MergeInfo(..)) where
 import Constructor.Constructions
+import Constructor.Agreement
 import Debug.Trace
 import Data.Maybe
 
@@ -25,10 +26,18 @@ interactNodesNoWh leftMites rightMites =
         right mites = [MergeInfo (withBase [m1, m2] mites) False]
         withBase base mites = map (\m -> m {baseMites=base}) mites
     in case (cxt m1, cxt m2) of
-      (Adj _ adjCase property value, AdjHead var nounCase) | adjCase == nounCase -> right [semS var property value]
-      (Possessive adjCase child, AdjHead noun nounCase) | adjCase == nounCase -> right [semV noun "arg1" child]
-      (Argument Nom v1, NomHead v2) -> right [mite $ Unify v1 v2]
-      (NomHead v2, Argument Nom v1) -> left [mite $ Unify v1 v2]
+      (Adj _ adjCase agr1 property value, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> 
+        right [semS var property value]
+      (Possessive adjCase agr1 child, AdjHead noun nounCase agr2) | adjCase == nounCase && agree agr1 agr2 ->
+        right [semV noun "arg1" child]
+      (Argument Nom v1, NomHead agr1 v2) -> leftMites >>= \m3 -> case cxt m3 of
+        AdjHead v3 Nom agr2 | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) -> 
+          [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2]) False]
+        _ -> []
+      (NomHead agr1 v2, Argument Nom v1) -> rightMites >>= \m3 -> case cxt m3 of
+        AdjHead v3 Nom agr2 | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) -> 
+          [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2]) True]
+        _ -> []
       (Adverb attr val, Verb head) -> right [semS head attr val]
       (ArgHead kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
       (Argument kind2 var2, ArgHead kind1 var1) | kind1 == kind2 -> right [mite $ Unify var1 var2]
@@ -39,9 +48,10 @@ interactNodesNoWh leftMites rightMites =
       (QuestionVariants (Just v) Nothing, QuestionVariants Nothing (Just s)) -> left [mite $ QuestionVariants (Just v) (Just s)]
       (QuestionVariants (Just v) (Just _), Argument Nom child) -> left [semV v "variants" child]
       (Conjunction v _, Argument Nom child) -> left [semV v "member2" child, mite $ SeqRight v Nom]
-      (Conjunction v _, Possessive caze child) -> left [semV v "member2" child, mite $ SeqRight v (PossKind caze)]
+      (Conjunction v _, Possessive caze agr child) -> left [semV v "member2" child, mite $ SeqRight v (PossKind caze agr)]
       (Argument Nom child, SeqRight v Nom) -> right [semV v "member1" child, mite $ SeqFull v, mite $ Argument Nom v]
-      (Possessive caze child, SeqRight v (PossKind caze2)) | caze == caze2 -> right [semV v "member1" child, mite $ SeqFull v, mite $ Possessive caze v]
+      (Possessive caze1 agr1 child, SeqRight v (PossKind caze2 agr2)) | caze1 == caze2 && agree agr1 agr2 -> 
+        right [semV v "member1" child, mite $ SeqFull v, mite $ Possessive caze1 (commonAgr agr1 agr2) v]
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
       (Copula v0, CopulaTense v1) -> left [mite $ Unify v0 v1]
       (ConditionComp v0 s False, SubordinateClause cp) -> left [mite $ Unify v0 cp, mite $ ConditionComp v0 s True]
@@ -65,7 +75,7 @@ interactNodesNoWh leftMites rightMites =
                                                                        mite1 <- baseMites happyLeft, 
                                                                        mite2 <- rightMites]
              unifyMissingArgument m1 m2 = case (cxt m1, cxt m2) of
-               (NomHead v1, ElidedArgHead (NomHead v2)) -> withBase [m1, m2] [mite $ Unify v1 v2]
+               (NomHead agr1 v1, ElidedArgHead (NomHead agr2 v2)) | agree agr1 agr2 -> withBase [m1, m2] [mite $ Unify v1 v2]
                _ -> []
          in
            [MergeInfo (withBase [m1, m2] [semV seqV "member1" child] ++ unifications) False]

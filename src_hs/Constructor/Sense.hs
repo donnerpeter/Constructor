@@ -9,6 +9,7 @@ import Constructor.Constructions (SemValue(..), Construction(Sem, Unify), Mite(.
 import Constructor.Tree
 import Data.List (intercalate)
 import Data.Maybe
+import Debug.Trace
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Constructor.LinkedSet as LS
@@ -81,6 +82,8 @@ sValue attr frame =
       "given" ->
         if hasType "ORDER" frame then Just "true"
         else Just "false"
+      "type" ->
+        usage "arg1" frame >>= commandingSubject >>= getType 
       _ -> Nothing
 
 fDeclaredValue attr frame = singleValue attr frame >>= extractValueVar >>= \v -> Just $ Frame v (sense frame)
@@ -93,6 +96,8 @@ fValue attr frame =
         if hasType "NEIGHBORS" frame then usage "goal" frame >>= fValue "arg1"
         else Nothing
       _ -> Nothing
+
+commandingSubject frame = usage "content" frame >>= usage "theme" >>= fValue "arg1"
 
 hasType t frame = getType frame == Just t
 hasAnyType types frame = fromMaybe False $ getType frame >>= \t -> Just $ elem t types

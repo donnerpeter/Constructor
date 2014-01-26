@@ -49,6 +49,7 @@ data Construction = Word Variable String
                   | CommaSurrounded Construction
                   | Control Variable
                   | Infinitive Variable
+                  | Complementizer Variable
                   -- | S1 | S2 | S3 | S4
                   deriving (Show, Ord, Eq)
 data Mite = Mite { cxt :: Construction, happy :: Bool, contradictors :: Set.Set Construction, baseMites :: [Mite] } deriving (Ord, Eq)

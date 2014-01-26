@@ -109,12 +109,13 @@ sentence frame = do
   else fromMaybe (return "") $ fmap clause $ fValue "content" frame
 
 genComplement cp = fromMaybe (return "") $ do
+  let prefix = if hasType "fact" cp then ", that" else ""
   fVerb <- fValue "content" cp
   if hasType "question" cp && hasType "THINK" fVerb then
     return $ do
       frameGenerated cp
       return $ "about their opinion on" `cat` (np False $ fValue "topic" fVerb)
-  else return $ sentence cp  
+  else return $ do s <- sentence cp; return $ prefix `cat` s
 
 verb negated typ = case typ of
   "HAPPEN" -> "happened"

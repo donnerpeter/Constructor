@@ -13,18 +13,19 @@ interactNodes leftMites rightMites = if null whResults then noWh else whResults 
     Wh wh cp -> rightMites >>= \rightMite1 -> case cxt rightMite1 of
       Question cp2 verb ->
         let fillers = filter (not . leftHeadedMerge) noWh
-            whLinks = map (\mite -> mite { baseMites = [leftMite1, rightMite1] }) [mite $ Unify cp cp2, semV cp "questioned" wh]
+            whLinks = withBase [leftMite1, rightMite1] [mite $ Unify cp cp2, semV cp "questioned" wh]
             infos = map (\ info -> MergeInfo (mergeResult info ++ whLinks) True) fillers
         in infos
       _ -> []
     _ -> []
+
+withBase base mites = map (\m -> m {baseMites=base}) mites
 
 interactNodesNoWh leftMites rightMites =
   concat $ [interactPair m1 m2 | m1 <- leftMites, m2 <- rightMites] where
   interactPair m1 m2 =
     let left mites = [MergeInfo (withBase [m1, m2] mites) True]
         right mites = [MergeInfo (withBase [m1, m2] mites) False]
-        withBase base mites = map (\m -> m {baseMites=base}) mites
     in case (cxt m1, cxt m2) of
       (Adj _ adjCase agr1 property value, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> 
         right [semS var property value]
@@ -44,6 +45,7 @@ interactNodesNoWh leftMites rightMites =
       (PrepHead kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
       (Verb head, Word _ ":") -> left [mite $ Elaboration head]
       (CompHead comp, CommaSurrounded (Wh _ cp)) -> left [mite $ Unify comp cp]
+      (CompHead comp, CommaSurrounded (Complementizer cp)) -> left [mite $ Unify comp cp]
       (ComeScalarly verb, ScalarAdverb order _) -> left [semS verb "order" order]
       (QuestionVariants (Just v) Nothing, QuestionVariants Nothing (Just s)) -> left [mite $ QuestionVariants (Just v) (Just s)]
       (QuestionVariants (Just v) (Just _), Argument Nom child) -> left [semV v "variants" child]
@@ -57,9 +59,14 @@ interactNodesNoWh leftMites rightMites =
       (ConditionComp v0 s False, SubordinateClause cp) -> left [mite $ Unify v0 cp, mite $ ConditionComp v0 s True]
       (Word _ ",", condComp@(ConditionComp cp s True)) -> left [mite $ CommaSurrounded condComp]
       (Word _ ",", comp@(Wh _ _)) -> left [mite $ CommaSurrounded comp]
+      (Word _ ",", comp@(Complementizer _)) -> left [mite $ CommaSurrounded comp]
       (Word _ "не", Verb v) -> right [semS v "negated" "true"]
       (Word _ "тоже", Verb v) -> right [semS v "also" "true"]
       (Verb head, CommaSurrounded (ConditionComp cp cond _)) -> left [semV head (cond++"Condition") cp]
+      (Complementizer cp1, Fact cp2) -> rightMites >>= \m3 -> case cxt m3 of
+         SubordinateClause cp3 | cp3 == cp2 ->
+           [MergeInfo [(mite $ Unify cp1 cp2) { baseMites = [m1, m2, m3]}] True]
+         _ -> []
       (Control slave, Infinitive inf) -> left [mite $ Unify slave inf]
       (Elaboration head, Fact cp) -> rightMites >>= \m3 -> case cxt m3 of
          SubordinateClause cp2 | cp == cp2 ->

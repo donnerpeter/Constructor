@@ -129,6 +129,8 @@ verb negated typ = case typ of
   "DISCOVER" -> "discovered"
   "CAN" -> if negated then "couldn't" else "could"
   "RECALL" -> "recall"
+  "REMEMBER" -> "remember"
+  "FORGET" -> "forgot"
   _ -> typ
 
 clause :: Frame -> State (Set.Set Frame) String
@@ -168,6 +170,7 @@ vp fVerb =
       dObj = case getType fVerb of
         Just "ASK" -> np False $ fValue "arg2" fVerb
         Just "RECALL" -> np False $ fValue "arg2" fVerb
+        Just "REMEMBER" -> np False $ fValue "arg2" fVerb
         _ -> ""
       io = case fValue "experiencer" fVerb of
         Just smth -> cat "to" (np False (Just smth))

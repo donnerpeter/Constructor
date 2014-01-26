@@ -50,6 +50,7 @@ data Construction = Word Variable String
                   | Control Variable
                   | Infinitive Variable
                   | Complementizer Variable
+                  | SurroundingComma Variable
                   -- | S1 | S2 | S3 | S4
                   deriving (Show, Ord, Eq)
 data Mite = Mite { cxt :: Construction, happy :: Bool, contradictors :: Set.Set Construction, baseMites :: [Mite] } deriving (Ord, Eq)
@@ -61,6 +62,7 @@ instance Show Mite where
 isHappy (Adj {}) = False
 isHappy (Adverb {}) = False
 isHappy (ArgHead {}) = False
+isHappy (PrepHead {}) = False
 isHappy (Argument {}) = False
 isHappy (Elaboration {}) = False
 isHappy (SeqRight {}) = False
@@ -74,6 +76,7 @@ isHappy (ConditionComp {}) = False
 isHappy (CommaSurrounded {}) = False
 isHappy (Infinitive {}) = False
 isHappy (Control {}) = False
+isHappy (SurroundingComma {}) = False
 isHappy _ = True
 
 mite cxt = Mite cxt (isHappy cxt) Set.empty []
@@ -84,8 +87,7 @@ semT var _type = semS var "type" _type
 
 xor :: [[Mite]] -> [Mite]
 xor miteGroups =
-  let _ = map (\mite -> assert (null (baseMites mite)) mite) (concat miteGroups)
-      cxtGroups = map (map cxt) miteGroups
+  let cxtGroups = map (map cxt) miteGroups
       allCxts = LS.elements $ LS.fromList $ concat cxtGroups
       allCxtSet = Set.fromList $ concat cxtGroups
       cxt2Groups = Map.fromListWith (++) $ concat [[(c, group) | c <- group] | group <- cxtGroups]

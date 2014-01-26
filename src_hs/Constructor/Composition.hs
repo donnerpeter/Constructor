@@ -21,8 +21,14 @@ interactNodes leftMites rightMites = if null whResults then noWh else whResults 
 
 withBase base mites = map (\m -> m {baseMites=base}) mites
 
+isInteractive mite = case cxt mite of
+  Sem {} -> False
+  Unify {} -> False
+  EmptyCxt {} -> False
+  _ -> True
+
 interactNodesNoWh leftMites rightMites =
-  concat $ [interactPair m1 m2 | m1 <- leftMites, m2 <- rightMites] where
+  concat $ [interactPair m1 m2 | m1 <- filter isInteractive leftMites, m2 <- filter isInteractive rightMites] where
   interactPair m1 m2 =
     let left mites = [MergeInfo (withBase [m1, m2] mites) True]
         right mites = [MergeInfo (withBase [m1, m2] mites) False]
@@ -49,18 +55,18 @@ interactNodesNoWh leftMites rightMites =
       (ComeScalarly verb, ScalarAdverb order _) -> left [semS verb "order" order]
       (QuestionVariants (Just v) Nothing, QuestionVariants Nothing (Just s)) -> left [mite $ QuestionVariants (Just v) (Just s)]
       (QuestionVariants (Just v) (Just _), Argument Nom child) -> left [semV v "variants" child]
-      (Conjunction v _, Argument Nom child) -> left [semV v "member2" child, mite $ SeqRight v Nom]
+      (Conjunction v _, Argument kind child) -> left [semV v "member2" child, mite $ SeqRight v kind]
       (Conjunction v _, Possessive caze agr child) -> left [semV v "member2" child, mite $ SeqRight v (PossKind caze agr)]
-      (Argument Nom child, SeqRight v Nom) -> right [semV v "member1" child, mite $ SeqFull v, mite $ Argument Nom v]
+      (Argument kind child, SeqRight v kind2) | kind == kind2 -> right [semV v "member1" child, mite $ SeqFull v, mite $ Argument kind v]
       (Possessive caze1 agr1 child, SeqRight v (PossKind caze2 agr2)) | caze1 == caze2 && agree agr1 agr2 -> 
         right [semV v "member1" child, mite $ SeqFull v, mite $ Possessive caze1 (commonAgr agr1 agr2) v]
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
       (Copula v0, CopulaTense v1) -> left [mite $ Unify v0 v1]
       (ConditionComp v0 s False, SubordinateClause cp) -> left [mite $ Unify v0 cp, mite $ ConditionComp v0 s True]
       (TopLevelClause cp, Word _ ".") -> right [semS cp "dot" "true"]
-      (Word _ ",", condComp@(ConditionComp cp s True)) -> left [mite $ CommaSurrounded condComp]
-      (Word _ ",", comp@(Wh _ _)) -> left [mite $ CommaSurrounded comp]
-      (Word _ ",", comp@(Complementizer _)) -> left [mite $ CommaSurrounded comp]
+      (SurroundingComma _, condComp@(ConditionComp cp s True)) -> left [mite $ CommaSurrounded condComp]
+      (SurroundingComma _, comp@(Wh _ _)) -> left [mite $ CommaSurrounded comp]
+      (SurroundingComma _, comp@(Complementizer _)) -> left [mite $ CommaSurrounded comp]
       (Word _ "не", Verb v) -> right [semS v "negated" "true"]
       (Word _ "тоже", Verb v) -> right [semS v "also" "true"]
       (Verb head, CommaSurrounded (ConditionComp cp cond _)) -> left [semV head (cond++"Condition") cp]

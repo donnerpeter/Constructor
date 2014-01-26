@@ -5,6 +5,7 @@ import Constructor.Lexicon
 import Constructor.Sense
 import Constructor.EnglishGenerator
 import Test.HUnit
+import Debug.Trace
 
 tokenize s = map (\x -> map toLower x) $
              filter (\token -> length token > 0) $
@@ -29,7 +30,7 @@ translate s = generate $ makeSense $ parse s
 
 translateTest src target = TestLabel src $ TestCase $
   let trees = parse src in
-  assertEqual ((show $ makeSense trees) ++ "\n\n" ++ (show trees)) target (translate src) 
+  assertEqual ((show $ makeSense trees) ++ "\n\n" ++ (show trees)) target (generate $ makeSense trees) 
 
 sonnetTests = [
   translateTest "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8" 
@@ -39,6 +40,9 @@ sonnetTests = [
                 ,
   translateTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета." 
                 "Great was their and my amazement, when they suddenly discovered, that they couldn't recall the counting order."
+                ,
+  translateTest "1, 2, 3, 4, 5 и 6 помнят, а дальше забыли." 
+                "They remember 1, 2, 3, 4, 5 and 6, but forgot what comes next."
   ]
 
 variationTests1=[

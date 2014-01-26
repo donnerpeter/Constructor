@@ -26,12 +26,14 @@ wordMites word index =
       v0 = v ""
   in
   case word of
-  s | length (reads s :: [(Int, String)]) == 1 -> [mite $ Argument Nom v0, semT v0 word, semS v0 "number" "true"]
+  s | length (reads s :: [(Int, String)]) == 1 -> xor [nounSg Nom Masc word v, nounSg Acc Masc word v] ++ [semS v0 "number" "true"]
+  "а" -> [mite $ Conjunction v0 "but", semS v0 "conj" "but", semT v0 "seq"]
   "было" -> [mite $ CopulaTense v0, semS v0 "time" "PAST"]
   "вдруг" -> [mite $ Adverb "manner" "SUDDENLY"]
   "вспомнить" -> infinitive "RECALL" v ++ arg Acc "arg2" v
   "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ arg Acc "arg2" v ++ arg PoDat "topic" v
   "забыл" -> finVerb "FORGET" "PAST" A.m v ++ compHead "arg2" v
+  "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ compHead "arg2" v
   "и" -> [mite $ Conjunction v0 "or", semS v0 "conj" "and", semT v0 "seq"]
   "идет" -> finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ [mite $ ComeScalarly v0]
   "или" -> [mite $ Conjunction v0 "or", semS v0 "conj" "or", semT v0 "seq"]
@@ -51,6 +53,7 @@ wordMites word index =
   "отправился" -> finVerb "GO_OFF" "PAST" A.m v ++ arg KDat "goal" v
   "по" -> preposition PoDat Dat v
   "поводу" -> nounSg Dat Masc "MATTER" v
+  "помнят" -> finVerb "REMEMBER" "PRESENT" A.pl3 v ++ arg Acc "arg2" v
   "порядок" -> nounSg Acc Masc "ORDER" v ++ optional (arg Gen "arg1" v)
   "раньше" -> [mite $ ScalarAdverb "EARLIER" v0]
   "случай" -> nounSg Nom Masc "THING" v
@@ -64,4 +67,5 @@ wordMites word index =
   "этому" -> [mite $ Adj v0 Dat A.sg "determiner" "THIS"]
   "я" -> pronoun Nom (A.Agr Nothing A.Sg $ Just 1) "ME" v
   "-" -> [mite $ QuestionVariants Nothing (Just "-")]
+  "," -> xor [[mite $ SurroundingComma v0], [mite $ Conjunction v0 ",", semT v0 "seq"]]
   _ -> [mite $ Word v0 word]

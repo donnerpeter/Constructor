@@ -95,7 +95,7 @@ isSingular (Just typ) = case typ of
 
 cat "" t2 = t2
 cat t1 "" = t1
-cat t1 t2 = if "," `isPrefixOf` t2 then  t1 ++ t2 else t1 ++ " " ++ t2
+cat t1 t2 = if "," `isPrefixOf` t2 || "." `isPrefixOf` t2 then  t1 ++ t2 else t1 ++ " " ++ t2
 
 frameGenerated frame = do visited <- get; put $ Set.insert frame visited 
 
@@ -106,7 +106,10 @@ sentence frame = do
     member1 <- fromMaybe (return "???") $ fmap sentence $ fValue "member1" frame
     member2 <- fromMaybe (return "???") $ fmap sentence $ fValue "member2" frame
     return $ member1 `cat` (fromMaybe "," $ sValue "conj" frame) `cat` member2
-  else fromMaybe (return "") $ fmap clause $ fValue "content" frame
+  else fromMaybe (return "") $ do
+    let finish = if sValue "dot" frame == Just "true" then "." else ""
+    content <- fValue "content" frame
+    return $ do s <- clause content; return $ s `cat` finish
 
 genComplement cp = fromMaybe (return "") $ do
   let prefix = if hasType "fact" cp then ", that" else ""

@@ -57,6 +57,7 @@ interactNodesNoWh leftMites rightMites =
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
       (Copula v0, CopulaTense v1) -> left [mite $ Unify v0 v1]
       (ConditionComp v0 s False, SubordinateClause cp) -> left [mite $ Unify v0 cp, mite $ ConditionComp v0 s True]
+      (TopLevelClause cp, Word _ ".") -> right [semS cp "dot" "true"]
       (Word _ ",", condComp@(ConditionComp cp s True)) -> left [mite $ CommaSurrounded condComp]
       (Word _ ",", comp@(Wh _ _)) -> left [mite $ CommaSurrounded comp]
       (Word _ ",", comp@(Complementizer _)) -> left [mite $ CommaSurrounded comp]

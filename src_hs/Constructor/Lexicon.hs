@@ -9,7 +9,7 @@ nounPl caze typ v = pronoun caze (A.Agr Nothing A.Pl (Just 3)) typ v
 pronoun caze agr typ v = [mite $ Argument caze (v ""), semS (v "") "type" typ, mite $ AdjHead (v "") caze agr]
 preposition prepArg nounArg v = [mite $ Argument prepArg (v ""), mite $ PrepHead nounArg (v "")]
 finVerb typ time agr v = [semT (v "") typ, semS (v "") "time" time] ++ finiteClause agr v
-finiteClause agr v = [mite $ NomHead agr (v "arg1"), semV (v "") "arg1" (v "arg1")] ++ clause v
+finiteClause agr v = optional [mite $ NomHead agr (v "arg1")] ++ [semV (v "") "arg1" (v "arg1")] ++ clause v
 clause v = [mite $ Verb (v "")] ++
                 (xor [[mite $ TopLevelClause (v "cp")], [mite $ SubordinateClause (v "cp")]]) ++
                 (xor [[mite $ Fact (v "cp"), semT (v "cp") "fact"], [mite $ Question (v "cp") (v ""), semT (v "cp") "question"]]) ++

@@ -38,23 +38,27 @@ handleSeq f (Just frame) =
 np nom frame = handleSeq (np_internal nom True) frame
 
 np_internal _ _ Nothing = "???"
-np_internal nom mayHaveDeterminer (Just frame) = 
-  if hasType "ME" frame then if nom then "I" else "me"
-  else if hasType "HE" frame then if nom then "he" else "him"
-  else if hasType "THEY" frame then if nom then "they" else "them"
-  else if hasType "wh" frame then "what"
-  else let n = noun (getType frame)
-           nbar1 = case sValue "property" frame of
-             Just "AMAZING" -> cat "amazing" n
+np_internal nom mayHaveDeterminer (Just frame) = unquantified `cat` quantifier where
+  unquantified = if hasType "ME" frame then if nom then "I" else "me"
+    else if hasType "HE" frame then if nom then "he" else "him"
+    else if hasType "THEY" frame then if nom then "they" else "them"
+    else if hasType "WE" frame then if nom then "we" else "us"
+    else if hasType "wh" frame then "what"
+    else
+     let n = noun (getType frame)
+         nbar1 = case sValue "property" frame of
+           Just "AMAZING" -> cat "amazing" n
+           _ -> case sValue "kind" frame of
+             Just "COMMERCIAL" -> cat "commercial" n
              _ -> n
-           nbar2 = case getType frame of
-             Just "ORDER" -> case fValue "arg1" frame of
-               Just poss -> (handleSeq (np_internal nom False) $ Just poss) `cat` nbar1
-               _ -> nbar1
+         nbar2 = case getType frame of
+           Just "ORDER" -> case fValue "arg1" frame of
+             Just poss -> (handleSeq (np_internal nom False) $ Just poss) `cat` nbar1
              _ -> nbar1
-           nbar = nbar2
-           in if mayHaveDeterminer then (determiner frame nbar) `cat` nbar else nbar
-             
+           _ -> nbar1
+         nbar = nbar2
+         in if mayHaveDeterminer then (determiner frame nbar) `cat` nbar else nbar
+  quantifier = if sValue "quantifier" frame == Just "ALL" then "all" else ""        
 
 determiner frame nbar =
   let det = if hasAnyType ["NEIGHBORS", "AMAZE"] frame then fValue "arg1" frame else Nothing
@@ -87,6 +91,9 @@ noun (Just typ) = case typ of
   "AMAZE" -> "amazement"
   "ORDER" -> "order"
   "COUNTING" -> "counting"
+  "CASHIER" -> "cashier"
+  "PREDICAMENT" -> "predicament"
+  "SHOP" -> "store"
   _ -> typ
 
 isSingular Nothing = False
@@ -126,6 +133,7 @@ genComplement cp = fromMaybe (return "") $ do
 verb verbForm negated typ = case typ of
   "HAPPEN" -> "happened"
   "FORGET" -> "forgot"
+  "GO" -> "went"
   "GO_OFF" -> "went"
   "ASK" -> "asked"
   "COME_SCALARLY" -> "comes"

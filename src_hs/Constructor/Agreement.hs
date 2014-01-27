@@ -24,5 +24,7 @@ pl = Agr Nothing Pl Nothing
 m3 = Agr (Just Masc) Sg (Just 3)
 f3 = Agr (Just Fem) Sg (Just 3)
 n3 = Agr (Just Neu) Sg (Just 3)
+pl1 = Agr Nothing Pl (Just 1)
+pl2 = Agr Nothing Pl (Just 2)
 pl3 = Agr Nothing Pl (Just 3)
 sg3 = Agr Nothing Sg (Just 3)

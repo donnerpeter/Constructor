@@ -38,6 +38,8 @@ interactNodesNoWh leftMites rightMites = pairVariants ++ seqVariants where
     in case (cxt m1, cxt m2) of
       (Adj _ adjCase agr1 property value, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> 
         right [semS var property value]
+      (AdjHead var nounCase agr2, Adj _ adjCase agr1 property value) | adjCase == nounCase && agree agr1 agr2 -> 
+        left [semS var property value]
       (Possessive adjCase agr1 child, AdjHead noun nounCase agr2) | adjCase == nounCase && agree agr1 agr2 ->
         right [semV noun "arg1" child]
       (Argument Nom v1, NomHead agr1 v2) -> leftMites >>= \m3 -> case cxt m3 of

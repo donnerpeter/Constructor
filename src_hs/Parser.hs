@@ -48,6 +48,9 @@ sonnetTests = [
                         \1, 2, 3, 4, 5 и 6 помнят, а дальше забыли."
                 "Great was their and my amazement, when they suddenly discovered, that they couldn't recall the counting order. \
                         \They remembered 1, 2, 3, 4, 5 and 6, but forgot what comes next."
+                ,
+  translateTest "Мы все пошли в коммерческий магазин \"Гастроном\", что на углу Знаменской и Бассейной улицы, и спросили кассиршу о нашем недоумении"
+                "We all went to a commercial grocery store, the one that's on the corner of Znamenskaya and Basseinaya streets to consult a cashier on our predicament"
   ]
 
 variationTests1=[

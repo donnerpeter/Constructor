@@ -43,6 +43,11 @@ sonnetTests = [
                 ,
   translateTest "1, 2, 3, 4, 5 и 6 помнят, а дальше забыли." 
                 "They remember 1, 2, 3, 4, 5 and 6, but forgot what comes next."
+                ,
+  translateTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета. \
+                        \1, 2, 3, 4, 5 и 6 помнят, а дальше забыли."
+                "Great was their and my amazement, when they suddenly discovered, that they couldn't recall the counting order. \
+                        \They remembered 1, 2, 3, 4, 5 and 6, but forgot what comes next."
   ]
 
 variationTests1=[

@@ -7,18 +7,19 @@ import Data.Char (toUpper)
 import Data.Maybe
 import qualified Data.Set as Set
 
+data GenerationState = GenerationState { visitedFrames:: Set.Set Frame, past:: Bool}
+data VerbForm = BaseVerb | PastVerb deriving (Eq)
+
 generate:: Sense -> String
 generate sense = 
   let topFrames = [frame | frame <- allFrames sense, isTopFrame frame]
-      sentenceState :: State (Set.Set Frame) [String]
       sentenceState = foldM generateSentence [] topFrames
-      generateSentence :: [String] -> Frame -> State (Set.Set Frame) [String]
+      generateSentence :: [String] -> Frame -> State GenerationState [String]
       generateSentence output frame = do
-        visited <- get
-        if Set.member frame visited then return output 
+        state <- get
+        if Set.member frame (visitedFrames state) then return output 
         else do nextSentence <- sentence frame; return $ output++[nextSentence]
-      sentences :: [String]
-      sentences = evalState sentenceState Set.empty  
+      sentences = evalState sentenceState $ GenerationState Set.empty False  
       text = Data.List.intercalate " " $ map capitalize sentences
   in text
 
@@ -97,9 +98,9 @@ cat "" t2 = t2
 cat t1 "" = t1
 cat t1 t2 = if "," `isPrefixOf` t2 || "." `isPrefixOf` t2 then  t1 ++ t2 else t1 ++ " " ++ t2
 
-frameGenerated frame = do visited <- get; put $ Set.insert frame visited 
+frameGenerated frame = do state <- get; put $ state { visitedFrames = Set.insert frame $ visitedFrames state } 
 
-sentence :: Frame -> State (Set.Set Frame) String
+sentence :: Frame -> State GenerationState String
 sentence frame = do
   frameGenerated frame
   if hasType "seq" frame then do
@@ -122,7 +123,7 @@ genComplement cp = fromMaybe (return "") $ do
       return $ "about their opinion on" `cat` (np False $ fValue "topic" fVerb)
   else return $ do s <- sentence cp; return $ prefix `cat` s
 
-verb negated typ = case typ of
+verb verbForm negated typ = case typ of
   "HAPPEN" -> "happened"
   "FORGET" -> "forgot"
   "GO_OFF" -> "went"
@@ -131,10 +132,10 @@ verb negated typ = case typ of
   "DISCOVER" -> "discovered"
   "CAN" -> if negated then "couldn't" else "could"
   "RECALL" -> "recall"
-  "REMEMBER" -> "remember"
+  "REMEMBER" -> if verbForm == PastVerb then "remembered" else "remember"
   _ -> typ
 
-clause :: Frame -> State (Set.Set Frame) String
+clause :: Frame -> State GenerationState String
 clause fVerb =
   let fSubject = fValue "arg1" fVerb
       questionVariants = case fmap (\subj -> (getType subj, fValue "variants" subj)) fSubject of
@@ -143,11 +144,16 @@ clause fVerb =
       subject = case fSubject of
         Just f | [fVerb] `isPrefixOf` (usages "arg1" f) -> np True fSubject
         _ -> ""
-      core = if hasType "degree" fVerb && (fromMaybe False $ fmap (hasType "wh") $ fValue "arg2" fVerb)
-             then "Great was" `cat` subject
-             else subject `cat` (vp fVerb)
+      
   in do
     frameGenerated fVerb
+    state <- get
+    when (sValue "time" fVerb == Just "PAST") (put $ state { past = True })
+    state <- get
+    let verbForm = if past state then PastVerb else BaseVerb
+        core = if hasType "degree" fVerb && (fromMaybe False $ fmap (hasType "wh") $ fValue "arg2" fVerb)
+                     then "Great was" `cat` subject
+                     else subject `cat` (vp fVerb verbForm)
     elaboration <- case fValue "elaboration" fVerb of
       Just smth -> do subClause <- sentence smth; return $ "," `cat` subClause
       _ -> return ""
@@ -162,12 +168,12 @@ clause fVerb =
       _ -> return ""
     return $ core `cat` condComp `cat` comp `cat` questionVariants `cat` elaboration
 
-vp fVerb =
+vp fVerb verbForm =
   let preAdverb = case sValue "manner" fVerb of
         Just "SUDDENLY" -> "suddenly"
         Just s -> s
         _ -> ""
-      sVerb = fromMaybe "???" $ fmap (verb $ Just "true" == sValue "negated" fVerb) $ getType fVerb
+      sVerb = fromMaybe "???" $ fmap (verb verbForm $ Just "true" == sValue "negated" fVerb) $ getType fVerb
       dObj = case getType fVerb of
         Just "ASK" -> np False $ fValue "arg2" fVerb
         Just "RECALL" -> np False $ fValue "arg2" fVerb
@@ -188,7 +194,7 @@ vp fVerb =
         _ -> ""
       controlled = case getType fVerb of
         Just "CAN" -> case fValue "theme" fVerb of
-          Just slave -> vp slave
+          Just slave -> vp slave verbForm
           _ -> ""
         _ -> ""
   in preAdverb `cat` sVerb `cat` controlled `cat` dObj `cat` io `cat` finalAdverb

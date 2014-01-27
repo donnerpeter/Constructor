@@ -3,13 +3,18 @@ import Constructor.Constructions
 import qualified Constructor.Agreement as A
 import Constructor.Agreement (Gender(..))
 import Data.Char (ord, chr)
+import Data.Maybe
 
 nounSg caze gender typ v = pronoun caze (A.Agr (Just gender) A.Sg (Just 3)) typ v
 nounPl caze typ v = pronoun caze (A.Agr Nothing A.Pl (Just 3)) typ v 
 pronoun caze agr typ v = [mite $ Argument caze (v ""), semS (v "") "type" typ, mite $ AdjHead (v "") caze agr]
 preposition prepArg nounArg v = [mite $ Argument prepArg (v ""), mite $ PrepHead nounArg (v "")]
 finVerb typ time agr v = [semT (v "") typ, semS (v "") "time" time] ++ finiteClause agr v
-finiteClause agr v = optional [mite $ NomHead agr (v "arg1")] ++ [semV (v "") "arg1" (v "arg1")] ++ clause v
+finiteClause agr v = optional [mite $ NomHead agr (v "arg1")] ++ [semV (v "") "arg1" (v "arg1")] ++
+                     (rusAgr (Just . A.number) "rusNumber") ++ (rusAgr A.gender "rusGender") ++ (rusAgr A.person "rusPerson") ++ 
+                     clause v where
+  rusAgr :: (Show a) => (A.Agr -> Maybe a) -> String -> [Mite]
+  rusAgr f attr = maybeToList $ f agr >>= \x -> Just $ semS (v "arg1") attr (show x)
 clause v = [mite $ Verb (v "")] ++
                 (xor [[mite $ TopLevelClause (v "cp")], [mite $ SubordinateClause (v "cp")]]) ++
                 (xor [[mite $ Fact (v "cp"), semT (v "cp") "fact"], [mite $ Question (v "cp") (v ""), semT (v "cp") "question"]]) ++

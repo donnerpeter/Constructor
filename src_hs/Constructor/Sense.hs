@@ -83,7 +83,9 @@ sValue attr frame =
         if hasType "ORDER" frame then Just "true"
         else Just "false"
       "type" ->
-        usage "arg1" frame >>= commandingSubject >>= getType 
+        case (sValue "rusNumber" frame, sValue "rusPerson" frame) of
+          (Just "Pl", Just "3") -> Just "THEY"
+          _ -> usage "arg1" frame >>= commandingSubject >>= getType 
       _ -> Nothing
 
 fDeclaredValue attr frame = singleValue attr frame >>= extractValueVar >>= \v -> Just $ Frame v (sense frame)

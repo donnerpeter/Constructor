@@ -46,8 +46,8 @@ sonnetTests = [
   ]
 
 variationTests1=[
---  translateTest "Удивительный случай случился со мной: я вдруг забыл, что идет раньше - 7 или 8" 
---          "An amazing thing happened to me today, I suddenly forgot what comes first - 7 or 8"
+--  translateTest "Я вдруг забыл, что идет дальше." 
+--          "I suddenly forgot what comes next."
 --  ,
 --  translateTest "Я вдруг забыл, что - 7 или 8 - идет раньше" "I suddenly forgot what comes first - 7 or 8"
 --  ,

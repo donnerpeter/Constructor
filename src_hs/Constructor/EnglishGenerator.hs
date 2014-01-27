@@ -31,7 +31,7 @@ isTopFrame frame = isCP frame && (null $ usages "member1" frame) ||
 handleSeq _ Nothing = "???"
 handleSeq f (Just frame) =
   if hasType "seq" frame then
-      (f $ fValue "member1" frame) `cat` (fromMaybe "," $ sValue "conj" frame) `cat` (f $ fValue "member2" frame)
+      (handleSeq f $ fValue "member1" frame) `cat` (fromMaybe "," $ sValue "conj" frame) `cat` (f $ fValue "member2" frame)
   else f $ Just frame
 
 np nom frame = handleSeq (np_internal nom True) frame
@@ -130,7 +130,6 @@ verb negated typ = case typ of
   "CAN" -> if negated then "couldn't" else "could"
   "RECALL" -> "recall"
   "REMEMBER" -> "remember"
-  "FORGET" -> "forgot"
   _ -> typ
 
 clause :: Frame -> State (Set.Set Frame) String

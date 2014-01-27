@@ -27,8 +27,10 @@ isInteractive mite = case cxt mite of
   EmptyCxt {} -> False
   _ -> True
 
-interactNodesNoWh leftMites rightMites =
-  concat $ [interactPair m1 m2 | m1 <- filter isInteractive leftMites, m2 <- filter isInteractive rightMites] where
+interactNodesNoWh leftMites rightMites = pairVariants ++ seqVariants where
+  leftInteractive = filter isInteractive leftMites
+  rightInteractive = filter isInteractive rightMites
+  pairVariants = concat [interactPair m1 m2 | m1 <- leftInteractive, m2 <- rightInteractive]
   interactPair m1 m2 =
     let left mites = [MergeInfo (withBase [m1, m2] mites) True]
         right mites = [MergeInfo (withBase [m1, m2] mites) False]
@@ -55,11 +57,6 @@ interactNodesNoWh leftMites rightMites =
       (ComeScalarly verb, ScalarAdverb order _) -> left [semS verb "order" order]
       (QuestionVariants (Just v) Nothing, QuestionVariants Nothing (Just s)) -> left [mite $ QuestionVariants (Just v) (Just s)]
       (QuestionVariants (Just v) (Just _), Argument Nom child) -> left [semV v "variants" child]
-      (Conjunction v _, Argument kind child) -> left [semV v "member2" child, mite $ SeqRight v kind]
-      (Conjunction v _, Possessive caze agr child) -> left [semV v "member2" child, mite $ SeqRight v (PossKind caze agr)]
-      (Argument kind child, SeqRight v kind2) | kind == kind2 -> right [semV v "member1" child, mite $ SeqFull v, mite $ Argument kind v]
-      (Possessive caze1 agr1 child, SeqRight v (PossKind caze2 agr2)) | caze1 == caze2 && agree agr1 agr2 -> 
-        right [semV v "member1" child, mite $ SeqFull v, mite $ Possessive caze1 (commonAgr agr1 agr2) v]
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
       (Copula v0, CopulaTense v1) -> left [mite $ Unify v0 v1]
       (ConditionComp v0 s False, SubordinateClause cp) -> left [mite $ Unify v0 cp, mite $ ConditionComp v0 s True]
@@ -79,18 +76,31 @@ interactNodesNoWh leftMites rightMites =
          SubordinateClause cp2 | cp == cp2 ->
            [MergeInfo [(semV head "elaboration" cp) { baseMites = [m1, m2, m3]}] True]
          _ -> []
-      (Conjunction seqV _, TopLevelClause child) ->
-        let unhappy = filter (not . happy) rightMites
-            wrapped = [(mite $ ElidedArgHead $ cxt m) {baseMites = [m]} | m <- unhappy]
-        in
-          [MergeInfo (withBase [m1, m2] [semV seqV "member2" child, mite $ SeqRight seqV CP] ++ wrapped) True]
-      (TopLevelClause child, SeqRight seqV CP) ->
-         let unifications = concat [unifyMissingArgument mite1 mite2 | happyLeft <- filter happy leftMites, 
-                                                                       mite1 <- baseMites happyLeft, 
-                                                                       mite2 <- rightMites]
-             unifyMissingArgument m1 m2 = case (cxt m1, cxt m2) of
-               (NomHead agr1 v1, ElidedArgHead (NomHead agr2 v2)) | agree agr1 agr2 -> withBase [m1, m2] [mite $ Unify v1 v2]
-               _ -> []
-         in
-           [MergeInfo (withBase [m1, m2] [semV seqV "member1" child] ++ unifications) False]
       _ -> []
+  seqVariants = (if null seqRight then [] else [MergeInfo seqRight True]) ++ (if null seqLeft then [] else [MergeInfo seqLeft False])
+  seqRight = leftMites >>= \m1 -> case cxt m1 of
+    Conjunction v _ -> rightMites >>= \m2 -> case cxt m2 of
+      Argument kind child -> withBase [m1,m2] [semV v "member2" child, mite $ SeqRight v kind]
+      Possessive caze agr child -> withBase [m1,m2] [semV v "member2" child, mite $ SeqRight v (PossKind caze agr)]
+      TopLevelClause child ->                         
+        let unhappy = filter (not . happy) rightMites
+            wrapped = [(mite $ ElidedArgHead $ cxt m) {baseMites = [m,m1,m2]} | m <- unhappy]
+        in
+          withBase [m1, m2] [semV v "member2" child, mite $ SeqRight v CP] ++ wrapped
+      _ -> []
+    _ -> []      
+  seqLeft = concat [interactSeqLeft m1 m2 | m1 <- leftInteractive, m2 <- rightInteractive]
+  interactSeqLeft m1 m2 = case (cxt m1, cxt m2) of
+    (Argument kind child, SeqRight v kind2) | kind == kind2 -> withBase [m1,m2] [semV v "member1" child, mite $ SeqFull v, mite $ Argument kind v]
+    (Possessive caze1 agr1 child, SeqRight v (PossKind caze2 agr2)) | caze1 == caze2 && agree agr1 agr2 -> 
+        withBase [m1,m2] [semV v "member1" child, mite $ SeqFull v, mite $ Possessive caze1 (commonAgr agr1 agr2) v]
+    (TopLevelClause child, SeqRight seqV CP) ->
+       let unifications = concat [unifyMissingArgument mite1 mite2 | happyLeft <- filter happy leftMites, 
+                                                                     mite1 <- baseMites happyLeft, 
+                                                                     mite2 <- rightMites]
+           unifyMissingArgument aux1 aux2 = case (cxt aux1, cxt aux2) of
+             (NomHead agr1 v1, ElidedArgHead (NomHead agr2 v2)) | agree agr1 agr2 -> withBase [m1,m2,aux1,aux2] [mite $ Unify v1 v2]
+             _ -> []
+       in
+         withBase [m1, m2] [semV seqV "member1" child] ++ unifications
+    _ -> []

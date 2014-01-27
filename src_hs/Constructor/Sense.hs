@@ -24,7 +24,7 @@ calcFacts allMites baseVars =
             in [Fact (Map.findWithDefault var var baseVars) attr normalizedValue]
           _ -> []
   in
-  concat [mapper mite | mite <- allMites]
+  LS.elements $ LS.fromList $ concat $ map mapper allMites
 
 calcBaseVars:: [Mite] -> Map.Map Variable Variable
 calcBaseVars mites =

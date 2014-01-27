@@ -3,6 +3,7 @@ import Constructor.Constructions
 import Constructor.Agreement
 import Debug.Trace
 import Data.Maybe
+import qualified Constructor.LinkedSet as LS
 
 data MergeInfo = MergeInfo {mergeResult::[Mite], leftHeadedMerge::Bool} deriving (Show)
 
@@ -59,7 +60,8 @@ interactNodesNoWh leftMites rightMites = pairVariants ++ seqVariants where
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
       (Copula v0, CopulaTense v1) -> left [mite $ Unify v0 v1]
       (ConditionComp v0 s False, SubordinateClause cp) -> left [mite $ Unify v0 cp, mite $ ConditionComp v0 s True]
-      (TopLevelClause cp, Word _ ".") -> right [semS cp "dot" "true"]
+      (TopLevelClause cp, Word _ ".") -> left [semS cp "dot" "true"]
+      (Conjunction v ",", Word _ "а") -> right [mite $ Conjunction v "but", semS v "conj" "but"]
       (SurroundingComma _, condComp@(ConditionComp cp s True)) -> left [mite $ CommaSurrounded condComp]
       (SurroundingComma _, comp@(Wh _ _)) -> left [mite $ CommaSurrounded comp]
       (SurroundingComma _, comp@(Complementizer _)) -> left [mite $ CommaSurrounded comp]
@@ -94,9 +96,11 @@ interactNodesNoWh leftMites rightMites = pairVariants ++ seqVariants where
     (Possessive caze1 agr1 child, SeqRight v (PossKind caze2 agr2)) | caze1 == caze2 && agree agr1 agr2 -> 
         withBase [m1,m2] [semV v "member1" child, mite $ SeqFull v, mite $ Possessive caze1 (commonAgr agr1 agr2) v]
     (TopLevelClause child, SeqRight seqV CP) ->
-       let unifications = concat [unifyMissingArgument mite1 mite2 | happyLeft <- filter happy leftMites, 
-                                                                     mite1 <- baseMites happyLeft, 
+       let unifications = concat [unifyMissingArgument mite1 mite2 | mite1 <- unhappyLeft ++ happyBases, 
                                                                      mite2 <- rightMites]
+           happyLeft = filter happy leftMites
+           happyBases = LS.elements $ LS.fromList $ concat $ map baseMites happyLeft
+           unhappyLeft = filter (not . happy) leftMites
            unifyMissingArgument aux1 aux2 = case (cxt aux1, cxt aux2) of
              (NomHead agr1 v1, ElidedArgHead (NomHead agr2 v2)) | agree agr1 agr2 -> withBase [m1,m2,aux1,aux2] [mite $ Unify v1 v2]
              _ -> []

@@ -75,6 +75,7 @@ isHappy (CommaSurrounded {}) = False
 isHappy (Infinitive {}) = False
 isHappy (Control {}) = False
 isHappy (SurroundingComma {}) = False
+isHappy (SubordinateClause {}) = False
 isHappy _ = True
 
 mite cxt = Mite cxt (isHappy cxt) Set.empty []

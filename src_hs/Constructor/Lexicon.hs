@@ -32,7 +32,6 @@ wordMites word index =
   in
   case word of
   s | length (reads s :: [(Int, String)]) == 1 -> xor [nounSg Nom Masc word v, nounSg Acc Masc word v] ++ [semS v0 "number" "true"]
-  "а" -> [mite $ Conjunction v0 "but", semS v0 "conj" "but", semT v0 "seq"]
   "было" -> [mite $ CopulaTense v0, semS v0 "time" "PAST"]
   "вдруг" -> [mite $ Adverb "manner" "SUDDENLY"]
   "вспомнить" -> infinitive "RECALL" v ++ arg Acc "arg2" v

@@ -105,7 +105,9 @@ sentence frame = do
   if hasType "seq" frame then do
     member1 <- fromMaybe (return "???") $ fmap sentence $ fValue "member1" frame
     member2 <- fromMaybe (return "???") $ fmap sentence $ fValue "member2" frame
-    return $ member1 `cat` (fromMaybe "," $ sValue "conj" frame) `cat` member2
+    let conj = fromMaybe "" $ sValue "conj" frame
+        separator = if conj == "but" then ", but" else if conj == "" then "," else conj
+    return $ member1 `cat` separator `cat` member2
   else fromMaybe (return "") $ do
     let finish = if sValue "dot" frame == Just "true" then "." else ""
     content <- fValue "content" frame

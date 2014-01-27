@@ -36,11 +36,14 @@ wordMites word index =
   "было" -> [mite $ CopulaTense v0, semS v0 "time" "PAST"]
   "вдруг" -> [mite $ Adverb "manner" "SUDDENLY"]
   "вспомнить" -> infinitive "RECALL" v ++ arg Acc "arg2" v
+  "дальше" -> [mite $ Argument ScalarAdverb v0, semT v0 "NEXT"]
   "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ arg Acc "arg2" v ++ arg PoDat "topic" v
   "забыл" -> finVerb "FORGET" "PAST" A.m v ++ compHead "arg2" v
-  "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ compHead "arg2" v
+  "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ xor [compHead "arg2" v, 
+      [mite $ ArgHead ScalarAdverb (v "scalar"), semV v0 "arg2" (v "arg2"), semT (v "arg2") "question", semV (v "arg2") "content" (v "comes"), semT (v "comes") "COME_SCALARLY", semV (v "comes") "arg1" (v "wh"), semT (v "wh") "wh", semV (v "comes") "order" (v "scalar")]
+    ]
   "и" -> [mite $ Conjunction v0 "or", semS v0 "conj" "and", semT v0 "seq"]
-  "идет" -> finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ [mite $ ComeScalarly v0]
+  "идет" -> finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ arg ScalarAdverb "order" v
   "или" -> [mite $ Conjunction v0 "or", semS v0 "conj" "or", semT v0 "seq"]
   "их" -> xor [pronoun Acc A.pl "THEY" v, [semT v0 "THEY", mite $ Possessive Nom A.sg v0], [semT v0 "THEY", mite $ Possessive Nom A.pl v0]]
   "к" -> preposition KDat Dat v
@@ -60,7 +63,7 @@ wordMites word index =
   "поводу" -> nounSg Dat Masc "MATTER" v
   "помнят" -> finVerb "REMEMBER" "PRESENT" A.pl3 v ++ arg Acc "arg2" v
   "порядок" -> nounSg Acc Masc "ORDER" v ++ optional (arg Gen "arg1" v)
-  "раньше" -> [mite $ ScalarAdverb "EARLIER" v0]
+  "раньше" -> [mite $ Argument ScalarAdverb v0, semT v0 "EARLIER"]
   "случай" -> nounSg Nom Masc "THING" v
   "случился" -> finVerb "HAPPEN" "PAST" A.m v ++ arg SInstr "experiencer" v
   "спросил" -> finVerb "ASK" "PAST" A.m v ++ arg Acc "arg2" v ++ compHead "topic" v

@@ -14,7 +14,7 @@ instance Show SemValue where
   show (StrValue s) = s
   show (VarValue v) = show v
 
-data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | SInstr | KDat | PoDat | CP | PossKind ArgKind Agr deriving (Show, Eq, Ord)
+data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | SInstr | KDat | PoDat | CP | PossKind ArgKind Agr | ScalarAdverb deriving (Show, Eq, Ord)
 data Construction = Word Variable String
                   | Sem Variable String SemValue
                   | Unify Variable Variable
@@ -27,9 +27,7 @@ data Construction = Word Variable String
                   | Argument ArgKind Variable 
                   | Adverb String String
                   | Elaboration Variable
-                  | ComeScalarly Variable
                   | CompHead Variable
-                  | ScalarAdverb String Variable
                   | Wh Variable Variable
                   | QuestionVariants (Maybe Variable) (Maybe String)
                   | Conjunction Variable String

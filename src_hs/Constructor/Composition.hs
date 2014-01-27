@@ -54,7 +54,6 @@ interactNodesNoWh leftMites rightMites = pairVariants ++ seqVariants where
       (Verb head, Word _ ":") -> left [mite $ Elaboration head]
       (CompHead comp, CommaSurrounded (Wh _ cp)) -> left [mite $ Unify comp cp]
       (CompHead comp, CommaSurrounded (Complementizer cp)) -> left [mite $ Unify comp cp]
-      (ComeScalarly verb, ScalarAdverb order _) -> left [semS verb "order" order]
       (QuestionVariants (Just v) Nothing, QuestionVariants Nothing (Just s)) -> left [mite $ QuestionVariants (Just v) (Just s)]
       (QuestionVariants (Just v) (Just _), Argument Nom child) -> left [semV v "variants" child]
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]

@@ -125,7 +125,7 @@ verb negated typ = case typ of
   "FORGET" -> "forgot"
   "GO_OFF" -> "went"
   "ASK" -> "asked"
-  "COME_SCALARLY" -> "comes first"
+  "COME_SCALARLY" -> "comes"
   "DISCOVER" -> "discovered"
   "CAN" -> if negated then "couldn't" else "could"
   "RECALL" -> "recall"
@@ -170,6 +170,10 @@ vp fVerb =
         Just "ASK" -> np False $ fValue "arg2" fVerb
         Just "RECALL" -> np False $ fValue "arg2" fVerb
         Just "REMEMBER" -> np False $ fValue "arg2" fVerb
+        Just "COME_SCALARLY" -> case fValue "order" fVerb >>= getType of
+          Just "EARLIER" -> "first"
+          Just "NEXT" -> "next"
+          _ -> ""
         _ -> ""
       io = case fValue "experiencer" fVerb of
         Just smth -> cat "to" (np False (Just smth))

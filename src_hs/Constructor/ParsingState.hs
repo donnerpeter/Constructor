@@ -23,11 +23,12 @@ integrateSubTree leftTree rightTree toLeft subResult =
   let leftLeft = fromJust $ left leftTree
       rightRight = fromJust $ right rightTree
       newEdges = \ subTree -> createEdges (if toLeft then leftLeft else subTree) (if toLeft then subTree else rightRight)
+      handlePair t1 t2 = [Right (t1, t2)] ++ (map Left $ createEdges t1 t2)
   in
   case subResult of
     Left subTree ->
       if isDirectedBranch subTree (not toLeft)
-      then if toLeft then [Right (leftLeft, subTree)] else [Right (subTree, rightRight)]
+      then if toLeft then handlePair leftLeft subTree else handlePair subTree rightRight
       else [Left tree | tree <- newEdges subTree]
     Right (x1, x2) ->
       let subTree = if toLeft then x1 else x2
@@ -35,7 +36,7 @@ integrateSubTree leftTree rightTree toLeft subResult =
       in
       if isDirectedBranch subTree (not toLeft)
       then []
-      else [if toLeft then Right (tree, another) else Right (another, tree) | tree <- newEdges subTree]
+      else concat [if toLeft then handlePair tree another else handlePair another tree | tree <- newEdges subTree]
   
 optimize:: Tree -> Tree -> Bool -> Bool -> Bool -> [MergeResult]
 optimize leftTree rightTree digLeft digRight useOwnMites =
@@ -83,7 +84,8 @@ candidateSets mites = enumerate mites [] where
       omitMite = if hasContradictors mite rest then enumerate rest chosen else []
 
 suggestActive:: Tree -> Maybe Tree
-suggestActive tree = inner tree True True True Set.empty where
+suggestActive tree = {-traceShow (tree, "->", result) $ -}result where
+  result = inner tree True True True Set.empty 
   inner tree leftBorder rightBorder borderHead spine = do
     let candidates = [set | set <- candidateSets (mites tree), all (flip Set.member set) requiredMites]
         requiredMites = filter (flip Set.member spine) (mites tree)

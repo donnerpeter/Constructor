@@ -4,6 +4,7 @@ import qualified Constructor.Agreement as A
 import Constructor.Agreement (Gender(..))
 import Data.Char (ord, chr)
 import Data.Maybe
+import Data.List
 
 nounSg caze gender typ v = pronoun caze (A.Agr (Just gender) A.Sg (Just 3)) typ v
 nounPl caze typ v = pronoun caze (A.Agr Nothing A.Pl (Just 3)) typ v 
@@ -82,7 +83,7 @@ wordMites word index =
   "соседям" -> nounPl Dat "NEIGHBORS" v
   "счета" -> nounSg Gen Masc "COUNTING" v
   "удивительный" -> adj Nom A.m "property" "AMAZING" v
-  "углу" -> nounSg Prep Masc "CORNER" v
+  "углу" -> nounSg Prep Masc "CORNER" v ++ optional (arg Gen "arg1" v)
   "удивление" -> nounSg Nom Neu "AMAZE" v
   "улицы" -> nounSg Gen Fem "STREET" v
   "что" -> xor [whWord v ++ xor [[mite $ Argument Nom v0], [mite $ Argument Acc v0]] ++ [mite $ AdjHead v0 Nom A.n3], [mite $ Complementizer v0]]
@@ -91,4 +92,8 @@ wordMites word index =
   "-" -> [mite $ QuestionVariants Nothing (Just "-")]
   "," -> xor [[mite $ SurroundingComma v0], [mite $ Conjunction v0 ",", semT v0 "seq"]]
   "\"" -> xor [[mite $ Quote v0 True], [mite $ Quote v0 False]]
-  _ -> [mite $ Word v0 word]
+  _ ->
+    if "ой" `isSuffixOf` word then 
+      let nomName = take (length word - 2) word ++ "ая" in
+      xor [adj Gen A.f "name" nomName v, nounSg Gen Fem "STREET" v ++ [semS v0 "name" nomName]]
+    else [mite $ Word v0 word]

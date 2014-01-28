@@ -8,14 +8,21 @@ import Constructor.Constructions
 data Tree = Tree {mites::[Mite], left::Maybe Tree, right::Maybe Tree, leftHeaded::Bool, active::Set.Set Mite} deriving (Ord, Eq)
 instance Show Tree where
   show tree =
-    let inner = \tree prefix ->
-          let myLine = prefix ++ (Data.List.intercalate ", " $ map showMite $ headMites tree) ++ "\n" in
-          case rightSubTree tree of
-            Just r -> (inner r ("  "++prefix)) ++ myLine
-            Nothing -> myLine
+    let inner tree prefix allowTop allowBottom = top ++ center ++ bottom where
+          center = prefix ++ (Data.List.intercalate ", " $ map showMite $ headMites tree) ++ "\n"
+          top = if not allowTop then "" else case subTree False tree of
+            Just r -> inner r ("  "++prefix) True False
+            Nothing -> ""
+          bottom = if not allowBottom then "" else case subTree True tree of
+            Just r -> inner r ("  "++prefix) False True
+            Nothing -> ""
         allActive = allActiveMiteSet tree
         showMite mite = (if Set.member mite allActive then "*" else "") ++ show mite
-    in "\n" ++ inner tree ""
+        subTree isLeft tree =
+          if not $ isBranch tree then Nothing
+          else if leftHeaded tree /= isLeft then (if isLeft then left else right) tree
+          else subTree isLeft $ fromJust $ (if isLeft then left else right) tree
+    in "\n" ++ inner tree "" True True
 
 allTreeMites tree =
   if isNothing $ left tree then mites tree
@@ -31,11 +38,6 @@ headMites tree =
 
 activeBase activeSet = [mite | activeMite <- Set.elems activeSet, mite <- baseMites activeMite]  
 
-rightSubTree tree =
-  if isNothing (left tree) then Nothing
-  else if leftHeaded tree then right tree
-  else rightSubTree $ fromJust $ right tree
-  
 isBranch tree = isJust (left tree)
 isDirectedBranch tree isLeftBranch = isBranch tree && leftHeaded tree == isLeftBranch
 

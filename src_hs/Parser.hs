@@ -7,17 +7,12 @@ import Constructor.EnglishGenerator
 import Test.HUnit
 import Debug.Trace
 
-tokenize s = map (\x -> map toLower x) $
-             filter (\token -> length token > 0) $
-             reverse $
-             fst $
-             foldl processChar ([], "") (s++" ") where
+tokenize s = [map toLower token | token <- tokens, length token > 0] where
+  tokens = reverse $ fst $ foldl processChar ([], "") (s++" ")
   processChar = \(tokens, current) char ->
     case char of
       ' ' -> (current:tokens, "")
-      ':' -> (":":current:tokens, "")
-      ',' -> (",":current:tokens, "")
-      '.' -> (".":current:tokens, "")
+      c | c == ':' || c == ',' || c == '.' || c == '\"' -> ([char]:current:tokens, "")
       _ -> (tokens, current++[char])
 
 parse:: String -> [Tree]

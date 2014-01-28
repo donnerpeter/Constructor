@@ -49,6 +49,8 @@ data Construction = Word Variable String
                   | Infinitive Variable
                   | Complementizer Variable
                   | SurroundingComma Variable
+                  | Quote Variable {-closing-} Bool
+                  | QuotedWord Construction {-closed-} Bool
                   -- | S1 | S2 | S3 | S4
                   deriving (Show, Ord, Eq)
 data Mite = Mite { cxt :: Construction, happy :: Bool, contradictors :: Set.Set Construction, baseMites :: [Mite] } deriving (Ord, Eq)
@@ -76,6 +78,8 @@ isHappy (Infinitive {}) = False
 isHappy (Control {}) = False
 isHappy (SurroundingComma {}) = False
 isHappy (SubordinateClause {}) = False
+isHappy (QuotedWord _ False) = False
+isHappy (Quote _ False) = False
 isHappy _ = True
 
 mite cxt = Mite cxt (isHappy cxt) Set.empty []

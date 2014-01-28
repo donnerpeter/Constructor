@@ -90,4 +90,5 @@ wordMites word index =
   "я" -> pronoun Nom (A.Agr Nothing A.Sg $ Just 1) "ME" v
   "-" -> [mite $ QuestionVariants Nothing (Just "-")]
   "," -> xor [[mite $ SurroundingComma v0], [mite $ Conjunction v0 ",", semT v0 "seq"]]
+  "\"" -> xor [[mite $ Quote v0 True], [mite $ Quote v0 False]]
   _ -> [mite $ Word v0 word]

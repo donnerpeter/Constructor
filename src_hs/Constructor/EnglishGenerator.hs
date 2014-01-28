@@ -46,11 +46,8 @@ np_internal nom mayHaveDeterminer (Just frame) = unquantified `cat` quantifier w
     else if hasType "wh" frame then "what"
     else
      let n = noun (getType frame)
-         nbar1 = case sValue "property" frame of
-           Just "AMAZING" -> cat "amazing" n
-           _ -> case sValue "kind" frame of
-             Just "COMMERCIAL" -> cat "commercial" n
-             _ -> n
+         adjs = foldl cat "" $ adjectives frame 
+         nbar1 = adjs `cat` n
          nbar2 = case getType frame of
            Just "ORDER" -> case fValue "arg1" frame of
              Just poss -> (handleSeq (np_internal nom False) $ Just poss) `cat` nbar1
@@ -58,7 +55,12 @@ np_internal nom mayHaveDeterminer (Just frame) = unquantified `cat` quantifier w
            _ -> nbar1
          nbar = nbar2
          in if mayHaveDeterminer then (determiner frame nbar) `cat` nbar else nbar
-  quantifier = if sValue "quantifier" frame == Just "ALL" then "all" else ""        
+  quantifier = if sValue "quantifier" frame == Just "ALL" then "all" else ""
+
+adjectives nounFrame = catMaybes [property, kind, shopKind] where 
+  property = sValue "property" nounFrame >>= \p -> if p == "AMAZING" then Just "amazing" else Nothing
+  kind = sValue "kind" nounFrame >>= \p -> if p == "COMMERCIAL" then Just "commercial" else Nothing
+  shopKind = sValue "name" nounFrame >>= \p -> if p == "гастроном" then Just "grocery" else Nothing
 
 determiner frame nbar =
   let det = if hasAnyType ["NEIGHBORS", "AMAZE"] frame then fValue "arg1" frame else Nothing

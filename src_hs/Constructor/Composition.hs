@@ -86,8 +86,9 @@ interactNodesNoWh leftMites rightMites = pairVariants ++ seqVariants where
          _ -> []
       _ -> []
   seqVariants = (if null seqRight then [] else [MergeInfo seqRight True]) ++ (if null seqLeft then [] else [MergeInfo seqLeft False])
+  hasSeqFull = flip any rightMites $ \mite -> case cxt mite of SeqFull {} -> True; _ -> False
   seqRight = leftMites >>= \m1 -> case cxt m1 of
-    Conjunction v _ -> rightMites >>= \m2 -> case cxt m2 of
+    Conjunction v _ -> if hasSeqFull then [] else rightMites >>= \m2 -> case cxt m2 of
       Argument kind child -> withBase [m1,m2] [semV v "member2" child, mite $ SeqRight v kind]
       Possessive caze agr child -> withBase [m1,m2] [semV v "member2" child, mite $ SeqRight v (PossKind caze agr)]
       TopLevelClause child ->                         

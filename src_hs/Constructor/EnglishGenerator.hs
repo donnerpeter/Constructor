@@ -12,7 +12,7 @@ data VerbForm = BaseVerb | PastVerb deriving (Eq)
 
 generate:: Sense -> String
 generate sense = 
-  let topFrames = [frame | frame <- allFrames sense, isTopFrame frame]
+  let topFrames = catMaybes $ map getTopFrame $ allFrames sense
       sentenceState = foldM generateSentence [] topFrames
       generateSentence :: [String] -> Frame -> State GenerationState [String]
       generateSentence output frame = do
@@ -25,9 +25,12 @@ generate sense =
 
 capitalize (c:rest) = (toUpper c):rest
 
-isCP frame = hasType "fact" frame || hasType "question" frame
-isTopFrame frame = isCP frame && (null $ usages "member1" frame) || 
-                   hasType "seq" frame && (fromMaybe False $ fmap isCP $ fValue "member1" frame)
+getTopFrame frame = if isCP frame then upmostSeq frame else Nothing where 
+  isCP frame = hasType "fact" frame || hasType "question" frame
+  upmostSeq frame =
+    case usage "member1" frame of
+      Just p -> upmostSeq p
+      _ -> if isJust $ usage "member2" frame then Nothing else Just frame
 
 handleSeq :: (Frame -> State GenerationState String) -> Maybe Frame -> State GenerationState String
 handleSeq _ Nothing = return "???"
@@ -72,7 +75,7 @@ np_internal nom mayHaveDeterminer frame = do
       det <- if mayHaveDeterminer then determiner frame nbar else return ""
       return $ det `cat` nbar `cat` genitiveComplement
   let quantifier = if sValue "quantifier" frame == Just "ALL" then "all" else ""
-  relative <- fromMaybe (return "") $ liftM (catM $ return ", the one") $ fmap clause $ fValue "relative" frame >>= fValue "content"
+  relative <- fromMaybe (return "") $ liftM (catM $ return ", the one") $ fmap sentence $ fValue "relative" frame
   return $ unquantified `cat` quantifier `cat` relative
 
 adjectives nounFrame = catMaybes [property, kind, shopKind] where 

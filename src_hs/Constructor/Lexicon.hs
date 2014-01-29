@@ -56,12 +56,14 @@ wordMites word index =
   "кассиршу" -> nounSg Acc Fem "CASHIER" v
   "когда" -> [mite $ ConditionComp v0 "when" False]
   "коммерческий" -> adj Acc A.m "kind" "COMMERCIAL" v
+  -- todo который + agr
   "магазин" -> nounSg Acc Masc "SHOP" v
   "мной" -> pronoun Instr A.sg "ME" v
   "могут" -> finVerb "CAN" "PAST" A.pl3 v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
   "мое" -> [semT v0 "ME", mite $ Possessive Nom A.n v0]
   "мы" -> pronoun Nom A.pl1 "WE" v
-  "на" -> preposition "na" Prep v
+  -- todo copula for prepositions besides 'na'
+  "на" -> preposition "na" Prep v ++ optional (finiteClause A.sg (\s -> v $ 'x':s) ++ [mite $ Copula (v "x"), semT (v "x") "copula", semV (v "x") "location" v0]) 
   "нашем" -> [semT v0 "WE", mite $ Possessive Prep A.n v0]
   "недоумении" -> nounSg Prep Neu "PREDICAMENT" v
   "обнаружили" -> finVerb "DISCOVER" "PAST" A.pl v ++ compHead "theme" v

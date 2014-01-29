@@ -50,20 +50,20 @@ wordMites word index =
   "или" -> [mite $ Conjunction v0 "or", semS v0 "conj" "or", semT v0 "seq"]
   "их" -> xor [pronoun Acc A.pl "THEY" v, [semT v0 "THEY", mite $ Possessive Nom A.sg v0], [semT v0 "THEY", mite $ Possessive Nom A.pl v0]]
   "к" -> preposition "k" Dat v
-  -- todo wh-questions with каково
-  "каково" -> finiteClause A.n3 v ++ [mite $ Copula v0, semT (v "wh") "wh", semT v0 "degree", semV v0 "arg2" (v "wh"), mite $ ShortAdj (v "wh")]
-  -- todo wh-questions with когда
+  "каково" -> 
+    -- todo wh-questions with каково
+    finiteClause A.n3 v ++ [mite $ Copula v0, semT (v "wh") "wh", semT v0 "degree", semV v0 "arg2" (v "wh"), mite $ ShortAdj (v "wh")]
   "кассиршу" -> nounSg Acc Fem "CASHIER" v
-  "когда" -> [mite $ ConditionComp v0 "when" False]
+  "когда" -> [mite $ ConditionComp v0 "when" False] -- todo wh-questions with когда
   "коммерческий" -> adj Acc A.m "kind" "COMMERCIAL" v
-  -- todo который + agr
-  "магазин" -> nounSg Acc Masc "SHOP" v
+  "магазин" -> nounSg Acc Masc "SHOP" v -- todo который + agr
   "мной" -> pronoun Instr A.sg "ME" v
   "могут" -> finVerb "CAN" "PAST" A.pl3 v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
   "мое" -> [semT v0 "ME", mite $ Possessive Nom A.n v0]
   "мы" -> pronoun Nom A.pl1 "WE" v
-  -- todo copula for prepositions besides 'na'
-  "на" -> preposition "na" Prep v ++ optional (finiteClause A.sg (\s -> v $ 'x':s) ++ [mite $ Copula (v "x"), semT (v "x") "copula", semV (v "x") "location" v0]) 
+  "на" ->
+    -- todo copula for prepositions besides 'na' 
+    xor [preposition "na" Prep v, [mite $ PrepHead Prep (v ""), semT (v "x") "copula", semV (v "x") "location" v0] ++ finiteClause A.sg (\s -> v $ 'x':s)] 
   "нашем" -> [semT v0 "WE", mite $ Possessive Prep A.n v0]
   "недоумении" -> nounSg Prep Neu "PREDICAMENT" v
   "обнаружили" -> finVerb "DISCOVER" "PAST" A.pl v ++ compHead "theme" v
@@ -92,7 +92,7 @@ wordMites word index =
   "этому" -> [mite $ Adj v0 Dat A.sg "determiner" "THIS"]
   "я" -> pronoun Nom (A.Agr Nothing A.Sg $ Just 1) "ME" v
   "-" -> [mite $ QuestionVariants Nothing (Just "-")]
-  "," -> xor [[mite $ SurroundingComma v0], [mite $ Conjunction v0 ",", semT v0 "seq"]]
+  "," -> xor [[mite $ SurroundingComma False v0], [mite $ SurroundingComma True v0], [mite $ Conjunction v0 ",", semT v0 "seq"]]
   "\"" -> xor [[mite $ Quote v0 True], [mite $ Quote v0 False]]
   _ ->
     if "ой" `isSuffixOf` word then 

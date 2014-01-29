@@ -19,7 +19,7 @@ createEdges leftTree rightTree =
 
 type MergeResult = Either Tree (Tree, Tree)
 integrateSubTree :: Tree -> Tree -> Bool -> MergeResult -> [MergeResult]  
-integrateSubTree leftTree rightTree toLeft subResult =
+integrateSubTree leftTree rightTree toLeft subResult = -- traceShow ("integrateSubTree", leftTree, rightTree, subResult) $
   let leftLeft = fromJust $ left leftTree
       rightRight = fromJust $ right rightTree
       newEdges = \ subTree -> createEdges (if toLeft then leftLeft else subTree) (if toLeft then subTree else rightRight)
@@ -27,9 +27,7 @@ integrateSubTree leftTree rightTree toLeft subResult =
   in
   case subResult of
     Left subTree ->
-      if isDirectedBranch subTree (not toLeft)
-      then if toLeft then handlePair leftLeft subTree else handlePair subTree rightRight
-      else [Left tree | tree <- newEdges subTree]
+      if toLeft then handlePair leftLeft subTree else handlePair subTree rightRight
     Right (x1, x2) ->
       let subTree = if toLeft then x1 else x2
           another = if toLeft then x2 else x1
@@ -84,14 +82,15 @@ candidateSets mites = enumerate mites [] where
       omitMite = if hasContradictors mite rest then enumerate rest chosen else []
 
 suggestActive:: Tree -> Maybe Tree
-suggestActive tree = {-traceShow (tree, "->", result) $ -}result where
+suggestActive tree = {-traceShow ("suggestActive", tree, "->", result) $ -}result where
   result = inner tree True True True Set.empty 
-  inner tree leftBorder rightBorder borderHead spine = do
+  inner tree leftBorder rightBorder borderHead spine = {-traceShow ("inner", spine, mites tree, tree) $-} do
     let candidates = [set | set <- candidateSets (mites tree), all (flip Set.member set) requiredMites]
         requiredMites = filter (flip Set.member spine) (mites tree)
-        absolutelyHappy = [set | set <- candidates, all (\mite -> happy mite || Set.member mite spine) (Set.elems set)]
+        unhappyCount set = length $ filter (\mite -> not (happy mite || Set.member mite spine)) (Set.elems set)
+        absolutelyHappy = [set | set <- candidates, unhappyCount set == 0]
         anyBorder = leftBorder || rightBorder || borderHead
-    singleCandidate <- listToMaybe $ if anyBorder then candidates else absolutelyHappy 
+    singleCandidate <- listToMaybe $ if anyBorder then {-Data.List.sortBy (compare `on` unhappyCount) -}candidates else absolutelyHappy 
     if isBranch tree then do
       let nextSpine = Set.union spine (Set.fromList $ activeBase singleCandidate)
       newLeft <- inner (fromJust $ left tree) leftBorder False (leftHeaded tree && anyBorder) nextSpine

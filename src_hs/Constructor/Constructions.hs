@@ -44,11 +44,11 @@ data Construction = Word Variable String
                   | Copula Variable
                   | ShortAdj Variable
                   | ConditionComp Variable {-if/when-} String {-has cp-} Bool
-                  | CommaSurrounded Construction
+                  | CommaSurrounded {-closed-} Bool Construction
                   | Control Variable
                   | Infinitive Variable
                   | Complementizer Variable
-                  | SurroundingComma Variable
+                  | SurroundingComma {-closing-} Bool Variable
                   | Quote Variable {-closing-} Bool
                   | QuotedWord Construction {-closed-} Bool
                   -- | S1 | S2 | S3 | S4
@@ -63,6 +63,7 @@ isHappy (Adj {}) = False
 isHappy (Adverb {}) = False
 isHappy (ArgHead {}) = False
 isHappy (PrepHead {}) = False
+-- todo isHappy (CompHead {}) = False
 isHappy (Argument {}) = False
 isHappy (Elaboration {}) = False
 isHappy (SeqRight {}) = False
@@ -93,10 +94,12 @@ xor miteGroups =
   let cxtGroups = map (map cxt) miteGroups
       allCxts = LS.removeDups $ concat cxtGroups
       allCxtSet = Set.fromList $ concat cxtGroups
-      cxt2Groups = Map.fromListWith (++) $ concat [[(c, group) | c <- group] | group <- cxtGroups]
+      cxt2Mites = Map.fromListWith (\v1 v2 -> assert (v1 == v2) v1) [(cxt mite, mite) | mite <- concat miteGroups]
+      cxt2Groups = Map.fromListWith (++) $ [(c, group) | group <- cxtGroups, c <- group]
       cxt2Friends = Map.map Set.fromList cxt2Groups
       cxt2Contras = Map.map (\friends -> Set.difference allCxtSet friends) cxt2Friends
-      newMites = map (\c -> Mite c (isHappy c) (Map.findWithDefault Set.empty c cxt2Contras) []) allCxts
+      addContradictors mite contras = mite { contradictors = Set.union (contradictors mite) contras }
+      newMites = map (\c -> addContradictors ((Map.!) cxt2Mites c) (Map.findWithDefault Set.empty c cxt2Contras)) allCxts
   in newMites
 
 contradict mite1 mite2 = Set.member (cxt mite1) (contradictors mite2) ||

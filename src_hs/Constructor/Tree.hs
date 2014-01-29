@@ -16,8 +16,12 @@ instance Show Tree where
           bottom = if not allowBottom then "" else case subTree True tree of
             Just r -> inner r ("  "++prefix) False True
             Nothing -> ""
+          showMite mite =
+            let shown = show mite
+                patched = if Set.member mite spine && "!" `isPrefixOf` shown then drop 1 shown else shown
+            in (if Set.member mite allActive then "*" else "") ++ patched
         allActive = allActiveMiteSet tree
-        showMite mite = (if Set.member mite allActive then "*" else "") ++ show mite
+        spine = Set.fromList $ activeBase allActive
         subTree isLeft tree =
           if not $ isBranch tree then Nothing
           else if leftHeaded tree /= isLeft then (if isLeft then left else right) tree

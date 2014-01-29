@@ -80,7 +80,7 @@ sValue attr frame =
   else
     case attr of
       "given" ->
-        if hasType "ORDER" frame then Just "true"
+        if hasAnyType ["ORDER", "CORNER"] frame then Just "true"
         else Just "false"
       "type" ->
         case (sValue "rusNumber" frame, sValue "rusPerson" frame) of

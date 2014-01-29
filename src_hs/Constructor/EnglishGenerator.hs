@@ -29,33 +29,41 @@ isCP frame = hasType "fact" frame || hasType "question" frame
 isTopFrame frame = isCP frame && (null $ usages "member1" frame) || 
                    hasType "seq" frame && (fromMaybe False $ fmap isCP $ fValue "member1" frame)
 
-handleSeq _ Nothing = "???"
+handleSeq :: (Frame -> State GenerationState String) -> Maybe Frame -> State GenerationState String
+handleSeq _ Nothing = return "???"
 handleSeq f (Just frame) =
-  if hasType "seq" frame then
-      (handleSeq f $ fValue "member1" frame) `cat` (fromMaybe "," $ sValue "conj" frame) `cat` (f $ fValue "member2" frame)
-  else f $ Just frame
+  if hasType "seq" frame then do
+      frameGenerated frame
+      m1 <- fromMaybe (return "???") $ liftM (handleSeq f . Just) $ fValue "member1" frame 
+      m2 <- fromMaybe (return "???") $ liftM f $ fValue "member2" frame
+      let conj = fromMaybe "" $ sValue "conj" frame
+          separator = if conj == "but" then ", but" else if conj == "" then "," else conj
+      return $ m1 `cat` separator `cat` m2
+  else f frame
 
 np nom frame = handleSeq (np_internal nom True) frame
 
-np_internal _ _ Nothing = "???"
-np_internal nom mayHaveDeterminer (Just frame) = unquantified `cat` quantifier where
-  unquantified = if hasType "ME" frame then if nom then "I" else "me"
-    else if hasType "HE" frame then if nom then "he" else "him"
-    else if hasType "THEY" frame then if nom then "they" else "them"
-    else if hasType "WE" frame then if nom then "we" else "us"
-    else if hasType "wh" frame then "what"
-    else
-     let n = noun (getType frame)
-         adjs = foldl cat "" $ adjectives frame 
-         nbar1 = adjs `cat` n
-         nbar2 = case getType frame of
-           Just "ORDER" -> case fValue "arg1" frame of
-             Just poss -> (handleSeq (np_internal nom False) $ Just poss) `cat` nbar1
-             _ -> nbar1
-           _ -> nbar1
-         nbar = nbar2
-         in if mayHaveDeterminer then (determiner frame nbar) `cat` nbar else nbar
-  quantifier = if sValue "quantifier" frame == Just "ALL" then "all" else ""
+np_internal :: Bool -> Bool -> Frame -> State GenerationState String
+np_internal nom mayHaveDeterminer frame = do
+  frameGenerated frame
+  unquantified <- if hasType "ME" frame then if nom then return "I" else return "me"
+    else if hasType "HE" frame then if nom then return "he" else return "him"
+    else if hasType "THEY" frame then if nom then return "they" else return "them"
+    else if hasType "WE" frame then if nom then return "we" else return "us"
+    else if hasType "wh" frame then return "what"
+    else do
+      let n = noun (getType frame)
+          adjs = foldl cat "" $ adjectives frame 
+          nbar1 = adjs `cat` n
+      nbar <- case getType frame of
+         Just "ORDER" -> case fValue "arg1" frame of
+           Just poss -> do s <- handleSeq (np_internal nom False) $ Just poss; return $ s `cat` nbar1
+           _ -> return nbar1
+         _ -> return nbar1
+      det <- if mayHaveDeterminer then determiner frame nbar else return ""
+      return $ det `cat` nbar
+  let quantifier = if sValue "quantifier" frame == Just "ALL" then "all" else ""
+  return $ unquantified `cat` quantifier
 
 adjectives nounFrame = catMaybes [property, kind, shopKind] where 
   property = sValue "property" nounFrame >>= \p -> if p == "AMAZING" then Just "amazing" else Nothing
@@ -65,7 +73,7 @@ adjectives nounFrame = catMaybes [property, kind, shopKind] where
 determiner frame nbar =
   let det = if hasAnyType ["NEIGHBORS", "AMAZE"] frame then fValue "arg1" frame else Nothing
       genitiveSpecifier det =
-        case det >>= getType of
+        case getType det of
           Just "ME" -> "my"
           Just "HE" -> "his"
           Just "THEY" -> "their"
@@ -73,8 +81,8 @@ determiner frame nbar =
           _ -> "???"
   in
   case det of
-    Just _ -> handleSeq genitiveSpecifier $ det
-    _ ->
+    Just _ -> handleSeq (return . genitiveSpecifier) $ det
+    _ -> return $
       let sDet = sValue "determiner" frame in
       if sDet == Just "THIS" then "this"
       else if sValue "number" frame == Just "true" then ""
@@ -107,21 +115,18 @@ cat "" t2 = t2
 cat t1 "" = t1
 cat t1 t2 = if "," `isPrefixOf` t2 || "." `isPrefixOf` t2 then  t1 ++ t2 else t1 ++ " " ++ t2
 
+catM :: State GenerationState String -> State GenerationState String -> State GenerationState String
+catM t1 t2 = do s1 <- t1; s2 <- t2; return $ s1 `cat` s2
+
 frameGenerated frame = do state <- get; put $ state { visitedFrames = Set.insert frame $ visitedFrames state } 
 
 sentence :: Frame -> State GenerationState String
-sentence frame = do
-  frameGenerated frame
-  if hasType "seq" frame then do
-    member1 <- fromMaybe (return "???") $ fmap sentence $ fValue "member1" frame
-    member2 <- fromMaybe (return "???") $ fmap sentence $ fValue "member2" frame
-    let conj = fromMaybe "" $ sValue "conj" frame
-        separator = if conj == "but" then ", but" else if conj == "" then "," else conj
-    return $ member1 `cat` separator `cat` member2
-  else fromMaybe (return "") $ do
+sentence frame = handleSeq singleSentence $ Just frame where
+  singleSentence frame = do
+    frameGenerated frame
     let finish = if sValue "dot" frame == Just "true" then "." else ""
-    content <- fValue "content" frame
-    return $ do s <- clause content; return $ s `cat` finish
+    s <- fromMaybe (return "???") $ liftM clause $ fValue "content" frame
+    return $ s `cat` finish
 
 genComplement cp = fromMaybe (return "") $ do
   let prefix = if hasType "fact" cp then ", that" else ""
@@ -129,7 +134,7 @@ genComplement cp = fromMaybe (return "") $ do
   if hasType "question" cp && hasType "THINK" fVerb then
     return $ do
       frameGenerated cp
-      return $ "about their opinion on" `cat` (np False $ fValue "topic" fVerb)
+      (return "about their opinion on") `catM` (np False $ fValue "topic" fVerb)
   else return $ do s <- sentence cp; return $ prefix `cat` s
 
 verb verbForm negated typ = case typ of
@@ -146,24 +151,19 @@ verb verbForm negated typ = case typ of
   _ -> typ
 
 clause :: Frame -> State GenerationState String
-clause fVerb =
-  let fSubject = fValue "arg1" fVerb
-      questionVariants = case fmap (\subj -> (getType subj, fValue "variants" subj)) fSubject of
-        Just (Just "wh", Just variants) -> "-" `cat` (np True (Just variants))
-        _ -> ""
-      subject = case fSubject of
-        Just f | [fVerb] `isPrefixOf` (usages "arg1" f) -> np True fSubject
-        _ -> ""
-      
-  in do
+clause fVerb = do
     frameGenerated fVerb
     state <- get
     when (sValue "time" fVerb == Just "PAST") (put $ state { past = True })
     state <- get
     let verbForm = if past state then PastVerb else BaseVerb
-        core = if hasType "degree" fVerb && (fromMaybe False $ fmap (hasType "wh") $ fValue "arg2" fVerb)
-                     then "Great was" `cat` subject
-                     else subject `cat` (vp fVerb verbForm)
+        fSubject = fValue "arg1" fVerb
+    subject <- case fSubject of
+      Just f | [fVerb] `isPrefixOf` (usages "arg1" f) -> np True fSubject
+      _ -> return ""
+    core <- if hasType "degree" fVerb && (fromMaybe False $ fmap (hasType "wh") $ fValue "arg2" fVerb)
+           then return $ "Great was" `cat` subject
+           else return subject `catM` (vp fVerb verbForm)
     elaboration <- case fValue "elaboration" fVerb of
       Just smth -> do subClause <- sentence smth; return $ "," `cat` subClause
       _ -> return ""
@@ -176,35 +176,39 @@ clause fVerb =
     condComp <- case fValue "whenCondition" fVerb of
       Just fComp -> do comp <- sentence fComp; return $ ", when" `cat` comp
       _ -> return ""
+    questionVariants <- case fmap (\subj -> (getType subj, fValue "variants" subj)) fSubject of
+      Just (Just "wh", Just variants) -> (return "-") `catM` (np True (Just variants))
+      _ -> return ""
     return $ core `cat` condComp `cat` comp `cat` questionVariants `cat` elaboration
 
-vp fVerb verbForm =
+vp :: Frame -> VerbForm -> State GenerationState String
+vp fVerb verbForm = do
   let preAdverb = case sValue "manner" fVerb of
         Just "SUDDENLY" -> "suddenly"
         Just s -> s
         _ -> ""
       sVerb = fromMaybe "???" $ fmap (verb verbForm $ Just "true" == sValue "negated" fVerb) $ getType fVerb
-      dObj = case getType fVerb of
-        Just "ASK" -> np False $ fValue "arg2" fVerb
-        Just "RECALL" -> np False $ fValue "arg2" fVerb
-        Just "REMEMBER" -> np False $ fValue "arg2" fVerb
-        Just "COME_SCALARLY" -> case fValue "order" fVerb >>= getType of
-          Just "EARLIER" -> "first"
-          Just "NEXT" -> "next"
-          _ -> ""
-        _ -> ""
-      io = case fValue "experiencer" fVerb of
-        Just smth -> cat "to" (np False (Just smth))
-        _ ->
-          case fValue "goal" fVerb of
-            Just smth -> cat "to" (np False (Just smth))
-            _ -> ""  
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         _ -> ""
-      controlled = case getType fVerb of
-        Just "CAN" -> case fValue "theme" fVerb of
-          Just slave -> vp slave verbForm
-          _ -> ""
-        _ -> ""
-  in preAdverb `cat` sVerb `cat` controlled `cat` dObj `cat` io `cat` finalAdverb
+  dObj <- case getType fVerb of
+    Just "ASK" -> np False $ fValue "arg2" fVerb
+    Just "RECALL" -> np False $ fValue "arg2" fVerb
+    Just "REMEMBER" -> np False $ fValue "arg2" fVerb
+    Just "COME_SCALARLY" -> case fValue "order" fVerb >>= getType of
+      Just "EARLIER" -> return "first"
+      Just "NEXT" -> return "next"
+      _ -> return ""
+    _ -> return ""
+  io <- case fValue "experiencer" fVerb of
+    Just smth -> (return "to") `catM` (np False (Just smth))
+    _ ->
+      case fValue "goal" fVerb of
+        Just smth -> (return "to") `catM` (np False (Just smth))
+        _ -> return ""  
+  controlled <- case getType fVerb of
+    Just "CAN" -> case fValue "theme" fVerb of
+      Just slave -> vp slave verbForm
+      _ -> return ""
+    _ -> return ""
+  return $ preAdverb `cat` sVerb `cat` controlled `cat` dObj `cat` io `cat` finalAdverb

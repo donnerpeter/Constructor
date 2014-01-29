@@ -15,3 +15,5 @@ elements (LinkedSet l _) = reverse l
 member elem (LinkedSet l s) = Set.member elem s
 
 fromList list = addAll list empty
+
+removeDups list = elements $ fromList list

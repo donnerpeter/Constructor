@@ -24,7 +24,7 @@ calcFacts allMites baseVars =
             in [Fact (Map.findWithDefault var var baseVars) attr normalizedValue]
           _ -> []
   in
-  LS.elements $ LS.fromList $ concat $ map mapper allMites
+  LS.removeDups $ concat $ map mapper allMites
 
 calcBaseVars:: [Mite] -> Map.Map Variable Variable
 calcBaseVars mites =
@@ -62,7 +62,7 @@ extractValueString _ = Nothing
 extractValueVar (VarValue v) = Just v
 extractValueVar _ = Nothing
 
-allFrames sense = [Frame var sense | var <- LS.elements $ LS.fromList allVars ] where
+allFrames sense = [Frame var sense | var <- LS.removeDups allVars ] where
   allVars = [variable fact | fact <- facts sense ] ++ valueVars
   valueVars = catMaybes [extractValueVar $ value fact | fact <- facts sense ]
 

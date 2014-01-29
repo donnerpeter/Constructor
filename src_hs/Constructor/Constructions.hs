@@ -91,7 +91,7 @@ semT var _type = semS var "type" _type
 xor :: [[Mite]] -> [Mite]
 xor miteGroups =
   let cxtGroups = map (map cxt) miteGroups
-      allCxts = LS.elements $ LS.fromList $ concat cxtGroups
+      allCxts = LS.removeDups $ concat cxtGroups
       allCxtSet = Set.fromList $ concat cxtGroups
       cxt2Groups = Map.fromListWith (++) $ concat [[(c, group) | c <- group] | group <- cxtGroups]
       cxt2Friends = Map.map Set.fromList cxt2Groups

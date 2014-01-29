@@ -105,7 +105,7 @@ interactNodesNoWh leftMites rightMites = pairVariants ++ seqVariants where
        let unifications = concat [unifyMissingArgument mite1 mite2 | mite1 <- unhappyLeft ++ happyBases, 
                                                                      mite2 <- rightMites]
            happyLeft = filter happy leftMites
-           happyBases = LS.elements $ LS.fromList $ concat $ map baseMites happyLeft
+           happyBases = LS.removeDups $ concat $ map baseMites happyLeft
            unhappyLeft = filter (not . happy) leftMites
            unifyMissingArgument aux1 aux2 = case (cxt aux1, cxt aux2) of
              (NomHead agr1 v1, ElidedArgHead (NomHead agr2 v2)) | agree agr1 agr2 -> withBase [m1,m2,aux1,aux2] [mite $ Unify v1 v2]

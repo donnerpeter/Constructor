@@ -14,7 +14,7 @@ createEdges:: Tree -> Tree -> [Tree]
 createEdges leftTree rightTree =
   let infos = interactNodes (headMites leftTree) (headMites rightTree)
       infos2 = infos --if null infos then infos else traceShow infos infos 
-      trees = [Tree merged (Just leftTree) (Just rightTree) leftHeadedMerge Set.empty | (MergeInfo merged leftHeadedMerge) <- infos2]
+      trees = [Tree merged (Just leftTree) (Just rightTree) leftHeadedMerge Set.empty $ calcCandidateSets merged | (MergeInfo merged leftHeadedMerge) <- infos2]
   in catMaybes $ map suggestActive trees
 
 type MergeResult = Either Tree (Tree, Tree)
@@ -69,10 +69,10 @@ mergeTrees state =
             notConsideredMerges = [m | m <- immediateMerges, not $ LS.member m result]
 
 addMites:: [Tree] -> [Mite] -> [Tree]
-addMites state mites = mergeTrees $ (fromJust $ suggestActive $ Tree mites Nothing Nothing True Set.empty):state
+addMites state mites = mergeTrees $ (fromJust $ suggestActive $ Tree mites Nothing Nothing True Set.empty $ calcCandidateSets mites):state
 
-candidateSets:: [Mite] -> [Set.Set Mite]
-candidateSets mites = enumerate mites [] where
+calcCandidateSets:: [Mite] -> [Set.Set Mite]
+calcCandidateSets mites = enumerate mites [] where
   enumerate :: [Mite] -> [Mite] -> [Set.Set Mite]
   enumerate mites chosen = case mites of
     [] -> [Set.fromList chosen]
@@ -85,7 +85,7 @@ suggestActive:: Tree -> Maybe Tree
 suggestActive tree = {-traceShow ("suggestActive", tree, "->", result) $ -}result where
   result = inner tree True True True Set.empty 
   inner tree leftBorder rightBorder borderHead spine = {-traceShow ("inner", spine, mites tree, tree) $-} do
-    let candidates = [set | set <- candidateSets (mites tree), all (flip Set.member set) requiredMites]
+    let candidates = [set | set <- candidateSets tree, all (flip Set.member set) requiredMites]
         requiredMites = filter (flip Set.member spine) (mites tree)
         unhappyCount set = length $ filter (\mite -> not (happy mite || Set.member mite spine)) (Set.elems set)
         absolutelyHappy = [set | set <- candidates, unhappyCount set == 0]

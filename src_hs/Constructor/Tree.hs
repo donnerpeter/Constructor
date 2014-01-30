@@ -5,7 +5,7 @@ import Data.List
 import qualified Data.Set as Set
 import Constructor.Constructions
 
-data Tree = Tree {mites::[Mite], left::Maybe Tree, right::Maybe Tree, leftHeaded::Bool, active::Set.Set Mite} deriving (Ord, Eq)
+data Tree = Tree {mites::[Mite], left::Maybe Tree, right::Maybe Tree, leftHeaded::Bool, active::Set.Set Mite, candidateSets:: [Set.Set Mite]} deriving (Ord, Eq)
 instance Show Tree where
   show tree =
     let inner tree prefix allowTop allowBottom = top ++ center ++ bottom where

@@ -83,10 +83,11 @@ np_internal nom mayHaveDeterminer frame = do
   relative <- fromMaybe (return "") $ liftM (catM $ return ", the one") $ fmap sentence $ fValue "relative" frame
   return $ unquantified `cat` quantifier `cat` relative
 
-adjectives nounFrame = catMaybes [property, kind, shopKind] where 
+adjectives nounFrame = catMaybes [property, kind, shopKind, size] where 
   property = sValue "property" nounFrame >>= \p -> if p == "AMAZING" then Just "amazing" else Nothing
   kind = sValue "kind" nounFrame >>= \p -> if p == "COMMERCIAL" then Just "commercial" else Nothing
   shopKind = sValue "name" nounFrame >>= \p -> if p == "гастроном" then Just "grocery" else Nothing
+  size = sValue "size" nounFrame >>= \p -> if p == "LITTLE" then Just "small" else Nothing
 
 streetName frame = case sValue "name" frame of
  Just "знаменская" -> "Znamenskaya"
@@ -95,18 +96,20 @@ streetName frame = case sValue "name" frame of
  _ -> ""
 
 determiner frame nbar =
-  let det = if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT"] frame then fValue "arg1" frame else Nothing
+  let det = if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW"] frame then fValue "arg1" frame else Nothing
       genitiveSpecifier det =
         case getType det of
-          Just "ME" -> "my"
-          Just "HE" -> "his"
-          Just "THEY" -> "their"
-          Just "WE" -> "our"
-          Just s -> s
-          _ -> "???"
+          Just "ME" -> return "my"
+          Just "HE" -> return "his"
+          Just "THEY" -> return "their"
+          Just "WE" -> return "our"
+          Just s -> do
+            state <- get
+            if Set.member det (visitedFrames state) then return "her" else return s
+          _ -> return "???"
   in
   case det of
-    Just _ -> handleSeq (return . genitiveSpecifier) $ det
+    Just _ -> handleSeq genitiveSpecifier $ det
     _ -> return $
       let sDet = sValue "determiner" frame in
       if sDet == Just "THIS" then "this"
@@ -132,6 +135,9 @@ noun (Just typ) = case typ of
   "SHOP" -> "store"
   "CORNER" -> "corner"
   "STREET" -> "street"
+  "HAMMER" -> "hammer"
+  "MOUTH" -> "mouth"
+  "NOSE" -> "nose"
   _ -> typ
 
 isSingular Nothing = False
@@ -178,6 +184,8 @@ verb verbForm frame typ =
   "CAN" -> if negated then "couldn't" else "could"
   "RECALL" -> "recall"
   "REMEMBER" -> if verbForm == PastVerb then "remembered" else "remember"
+  "SMILE" -> "gave us a sad smile"
+  "TAKE_OUT" -> "took"
   "copula" -> "is"
   _ -> typ
 
@@ -223,6 +231,7 @@ vp :: Frame -> VerbForm -> String -> State GenerationState String
 vp fVerb verbForm subject = do
   let preAdverb = case sValue "manner" fVerb of
         Just "SUDDENLY" -> "suddenly"
+        Just "SADLY" -> if getType fVerb == Just "SMILE" then "" else "sadly"
         Just s -> s
         _ -> ""
       sVerb = fromMaybe "???" $ fmap (verb verbForm fVerb) $ getType fVerb
@@ -240,23 +249,27 @@ vp fVerb verbForm subject = do
 
 data Argument = Adverb String | NPArg Frame | PPArg String Frame
 
-arguments fVerb = fromMaybe [] $ flip fmap (getType fVerb) $ \typ ->
+arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ ->
   allFrameFacts fVerb >>= \ Fact { attrName = attr, value = semValue} ->
   case semValue of
     VarValue v -> let value = Frame v (sense fVerb) in case (typ, attr) of
-      ("ASK", "arg2") -> [NPArg value]
-      ("RECALL", "arg2") -> [NPArg value]
-      ("REMEMBER", "arg2") -> [NPArg value]
       ("COME_SCALARLY", "order") -> case getType value of
         Just "EARLIER" -> [Adverb "first"]
         Just "NEXT" -> [Adverb "next"]
         _ -> []
       ("HAPPEN", "experiencer") -> [PPArg "to" value]
+      ("TAKE_OUT", "source") -> [PPArg "out of" value]
       ("ASK", "topic") -> if hasType "question" value then [] else [PPArg "on" value]
       (_, "goal") -> [PPArg "to" value]
       (_, "location") -> [PPArg "on" value]
+      (_, "arg2") -> if hasType "question" value then [] else [NPArg value]
       _ -> []
     StrValue value -> []
+  where
+  isNPArg arg = case arg of
+    NPArg {} -> True
+    _ -> False
+  reorderArgs args = filter isNPArg args ++ filter (not . isNPArg) args 
 
 generateArg :: Argument -> State GenerationState String
 generateArg arg = case arg of

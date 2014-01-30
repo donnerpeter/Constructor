@@ -37,8 +37,10 @@ wordMites word index =
   "было" -> [mite $ CopulaTense v0, semS v0 "time" "PAST"]
   "в" -> preposition "v" Acc v
   "вдруг" -> [mite $ Adverb "manner" "SUDDENLY"]
+  "вынула" -> finVerb "TAKE_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) "source" v ++ arg Acc "arg2" v
   "все" -> adj Nom A.pl "quantifier" "ALL" v
   "вспомнить" -> infinitive "RECALL" v ++ arg Acc "arg2" v
+  "грустно" -> [mite $ Adverb "manner" "SADLY"]
   "дальше" -> [mite $ Argument ScalarAdverb v0, semT v0 "NEXT"]
   "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ arg Acc "arg2" v ++ arg (PP "po" Dat) "topic" v
   "забыл" -> finVerb "FORGET" "PAST" A.m v ++ compHead "arg2" v
@@ -47,18 +49,22 @@ wordMites word index =
     ]
   "и" -> [mite $ Conjunction v0 "or", semS v0 "conj" "and", semT v0 "seq"]
   "идет" -> finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ arg ScalarAdverb "order" v
+  "изо" -> preposition "iz" Gen v
   "или" -> [mite $ Conjunction v0 "or", semS v0 "conj" "or", semT v0 "seq"]
   "их" -> xor [pronoun Acc A.pl "THEY" v, [semT v0 "THEY", mite $ Possessive Nom A.sg v0], [semT v0 "THEY", mite $ Possessive Nom A.pl v0]]
   "к" -> preposition "k" Dat v
   "каково" -> 
     -- todo wh-questions with каково
     finiteClause A.n3 v ++ [mite $ Copula v0, semT (v "wh") "wh", semT v0 "degree", semV v0 "arg2" (v "wh"), mite $ ShortAdj (v "wh")]
+  "кассирша" -> nounSg Nom Fem "CASHIER" v
   "кассиршу" -> nounSg Acc Fem "CASHIER" v
   "когда" -> [mite $ ConditionComp v0 "when" False] -- todo wh-questions with когда
   "коммерческий" -> adj Acc A.m "kind" "COMMERCIAL" v
   "магазин" -> nounSg Acc Masc "SHOP" v -- todo который + agr
+  "маленький" -> adj Acc A.m "size" "LITTLE" v
   "мной" -> pronoun Instr A.sg "ME" v
   "могут" -> finVerb "CAN" "PAST" A.pl3 v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
+  "молоточек" -> nounSg Acc Masc "HAMMER" v
   "мое" -> [semT v0 "ME", mite $ Possessive Nom A.n v0]
   "мы" -> pronoun Nom A.pl1 "WE" v
   "на" ->
@@ -77,6 +83,7 @@ wordMites word index =
   "порядок" -> nounSg Acc Masc "ORDER" v ++ optional (arg Gen "arg1" v)
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ arg (PP "v" Acc) "goal" v
   "раньше" -> [mite $ Argument ScalarAdverb v0, semT v0 "EARLIER"]
+  "сказала" -> finVerb "SAY" "PAST" A.f v -- todo ++ arg Acc "arg2" v
   "случай" -> nounSg Nom Masc "THING" v
   "случился" -> finVerb "HAPPEN" "PAST" A.m v ++ arg (PP "s" Instr) "experiencer" v
   "спросил" -> finVerb "ASK" "PAST" A.m v ++ arg Acc "arg2" v ++ compHead "topic" v
@@ -84,10 +91,12 @@ wordMites word index =
   "со" -> preposition "s" Instr v
   "соседям" -> nounPl Dat "NEIGHBORS" v
   "счета" -> nounSg Gen Masc "COUNTING" v
+  "рта" -> nounSg Gen Masc "MOUTH" v
   "удивительный" -> adj Nom A.m "property" "AMAZING" v
   "углу" -> nounSg Prep Masc "CORNER" v ++ optional (arg Gen "arg1" v)
   "удивление" -> nounSg Nom Neu "AMAZE" v
   "улицы" -> nounSg Gen Fem "STREET" v
+  "улыбнулась" -> finVerb "SMILE" "PAST" A.f v
   "что" -> xor [whWord v ++ xor [[mite $ Argument Nom v0], [mite $ Argument Acc v0]] ++ [mite $ AdjHead v0 Nom A.n3], [mite $ Complementizer v0]]
   "этому" -> [mite $ Adj v0 Dat A.sg "determiner" "THIS"]
   "я" -> pronoun Nom (A.Agr Nothing A.Sg $ Just 1) "ME" v

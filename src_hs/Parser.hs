@@ -46,6 +46,9 @@ sonnetTests = [
                 ,
   translateTest "Мы все пошли в коммерческий магазин \"Гастроном\", что на углу Знаменской и Бассейной улицы, и спросили кассиршу о нашем недоумении."
                 "We all went to a commercial grocery store, the one that's on the corner of Znamenskaya and Basseinaya streets to consult a cashier on our predicament."
+                ,
+  translateTest "Кассирша грустно улыбнулась, вынула изо рта маленький молоточек и, слегка подвигав носом, сказала:"
+                "The cashier gave us a sad smile, took a small hammer out of her mouth, and moving her nose slightly back and forth, she said:"
   ]
 
 variationTests1=[

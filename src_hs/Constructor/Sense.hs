@@ -80,8 +80,9 @@ sValue attr frame =
   else
     case attr of
       "given" ->
-        if hasAnyType ["ORDER", "CORNER"] frame then Just "true"
-        else Just "false"
+        if hasAnyType ["SHOP", "THING", "HAMMER"] frame then Just "false"
+        else if hasType "CASHIER" frame && any (hasType "SHOP") (allFrames $ sense frame) then Just "false"
+        else Just "true"
       "type" ->
         case (sValue "rusNumber" frame, sValue "rusPerson" frame) of
           (Just "Pl", Just "3") -> Just "THEY"
@@ -96,6 +97,7 @@ fValue attr frame =
     case attr of
       "arg1" ->
         if hasType "NEIGHBORS" frame then usage "goal" frame >>= fValue "arg1"
+        else if hasType "MOUTH" frame then usage "source" frame >>= fValue "arg1"
         else Nothing
       _ -> Nothing
 

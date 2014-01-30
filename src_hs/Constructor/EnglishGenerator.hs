@@ -6,6 +6,7 @@ import Debug.Trace
 import Data.Char (toUpper)
 import Data.Maybe
 import qualified Data.Set as Set
+import Constructor.Constructions (SemValue(..), Variable(..))
 
 data GenerationState = GenerationState { visitedFrames:: Set.Set Frame, past:: Bool}
 data VerbForm = BaseVerb | PastVerb deriving (Eq)
@@ -90,12 +91,13 @@ streetName frame = case sValue "name" frame of
  _ -> ""
 
 determiner frame nbar =
-  let det = if hasAnyType ["NEIGHBORS", "AMAZE"] frame then fValue "arg1" frame else Nothing
+  let det = if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT"] frame then fValue "arg1" frame else Nothing
       genitiveSpecifier det =
         case getType det of
           Just "ME" -> "my"
           Just "HE" -> "his"
           Just "THEY" -> "their"
+          Just "WE" -> "our"
           Just s -> s
           _ -> "???"
   in
@@ -214,28 +216,37 @@ vp fVerb verbForm subject = do
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         _ -> ""
-  dObj <- case getType fVerb of
-    Just "ASK" -> np False $ fValue "arg2" fVerb
-    Just "RECALL" -> np False $ fValue "arg2" fVerb
-    Just "REMEMBER" -> np False $ fValue "arg2" fVerb
-    Just "COME_SCALARLY" -> case fValue "order" fVerb >>= getType of
-      Just "EARLIER" -> return "first"
-      Just "NEXT" -> return "next"
-      _ -> return ""
-    _ -> return ""
-  io <- case fValue "experiencer" fVerb of
-    Just smth -> return "to" `catM` np False (Just smth)
-    _ ->
-      case fValue "goal" fVerb of
-        Just smth -> return "to" `catM` np False (Just smth)
-        _ -> return ""  
   controlled <- case getType fVerb of
     Just "CAN" -> case fValue "theme" fVerb of
       Just slave -> vp slave verbForm ""
       _ -> return ""
     _ -> return ""
-  location <- case fValue "location" fVerb of
-    Just loc -> return "on" `catM` np False (Just loc)
-    _ -> return ""
+  args <- foldM (\s arg -> return s `catM` generateArg arg) "" (arguments fVerb)
   let contracted = if null preAdverb && sVerb == "is" then subject ++ "'s" else subject `cat` preAdverb `cat` sVerb
-  return $ contracted `cat` controlled `cat` dObj `cat` io `cat` location `cat` finalAdverb
+  return $ contracted `cat` controlled `cat` args `cat` finalAdverb
+
+data Argument = Adverb String | NPArg Frame | PPArg String Frame
+
+arguments fVerb = fromMaybe [] $ flip fmap (getType fVerb) $ \typ ->
+  allFrameFacts fVerb >>= \ Fact { attrName = attr, value = semValue} ->
+  case semValue of
+    VarValue v -> let value = Frame v (sense fVerb) in case (typ, attr) of
+      ("ASK", "arg2") -> [NPArg value]
+      ("RECALL", "arg2") -> [NPArg value]
+      ("REMEMBER", "arg2") -> [NPArg value]
+      ("COME_SCALARLY", "order") -> case getType value of
+        Just "EARLIER" -> [Adverb "first"]
+        Just "NEXT" -> [Adverb "next"]
+        _ -> []
+      ("HAPPEN", "experiencer") -> [PPArg "to" value]
+      ("ASK", "topic") -> if hasType "question" value then [] else [PPArg "on" value]
+      (_, "goal") -> [PPArg "to" value]
+      (_, "location") -> [PPArg "on" value]
+      _ -> []
+    StrValue value -> []
+
+generateArg :: Argument -> State GenerationState String
+generateArg arg = case arg of
+  Adverb s -> return s
+  NPArg f -> np False $ Just f
+  PPArg prep f -> return prep `catM` (np False $ Just f)

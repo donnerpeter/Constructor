@@ -1,8 +1,8 @@
 module Constructor.Sense 
-  (Sense(..), Frame(..), fValue, sValue, 
+  (Sense(..), Frame(..), Fact(..), fValue, sValue, 
   usages, usage, 
   getType, hasType, hasAnyType, 
-  allFrames, makeSense)
+  allFrames, allFrameFacts, makeSense)
   where
 
 import Constructor.Constructions (SemValue(..), Construction(Sem, Unify), Mite(..), Variable(..))

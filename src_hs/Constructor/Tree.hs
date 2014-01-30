@@ -33,12 +33,16 @@ allTreeMites tree =
   else (allTreeMites $ fromJust $ left tree)++(allTreeMites $ fromJust $ right tree)++ mites tree
 
 headMites tree =
-  let inner tree suppressed =
-        let ownMites = [mite | mite <- mites tree, not $ Set.member mite suppressed] in
-        if isNothing $ left tree then ownMites
-        else ownMites ++ inner (if leftHeaded tree then fromJust $ left tree else fromJust $ right tree)
-                                (Set.union suppressed $ Set.fromList [mite | mite <- activeBase $ active tree, not $ happy mite])
-  in inner tree Set.empty
+  let inner tree suppressed result =
+        let ownMites = [mite | mite <- mites tree, not $ Set.member mite suppressed, compatible mite]
+            compatible mite = all (not . contradictsAll mite) result
+            contradictsAll mite layer = all (contradict mite) layer
+        in
+        if isNothing $ left tree then concat $ reverse (ownMites:result)
+        else inner (if leftHeaded tree then fromJust $ left tree else fromJust $ right tree)
+                    (Set.union suppressed $ Set.fromList [mite | mite <- activeBase $ active tree, not $ happy mite])
+                    (ownMites:result)
+  in inner tree Set.empty []
 
 activeBase activeSet = [mite | activeMite <- Set.elems activeSet, mite <- baseMites activeMite]  
 

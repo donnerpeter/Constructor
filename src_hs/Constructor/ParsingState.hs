@@ -90,7 +90,7 @@ suggestActive tree = {-traceShow ("suggestActive", tree, "->", result) $ -}resul
         unhappyCount set = length $ filter (\mite -> not (happy mite || Set.member mite spine)) (Set.elems set)
         absolutelyHappy = [set | set <- candidates, unhappyCount set == 0]
         anyBorder = leftBorder || rightBorder || borderHead
-    singleCandidate <- listToMaybe $ if anyBorder then {-Data.List.sortBy (compare `on` unhappyCount) -}candidates else absolutelyHappy 
+    singleCandidate <- listToMaybe $ if anyBorder then Data.List.sortBy (compare `on` unhappyCount) candidates else absolutelyHappy 
     if isBranch tree then do
       let nextSpine = Set.union spine (Set.fromList $ activeBase singleCandidate)
       newLeft <- inner (fromJust $ left tree) leftBorder False (leftHeaded tree && anyBorder) nextSpine

@@ -26,8 +26,8 @@ generate sense =
 
 capitalize (c:rest) = (toUpper c):rest
 
+isCP frame = hasType "fact" frame || hasType "question" frame
 getTopFrame frame = if isCP frame then upmostSeq frame else Nothing where 
-  isCP frame = hasType "fact" frame || hasType "question" frame
   upmostSeq frame =
     case usage "member1" frame of
       Just p -> upmostSeq p
@@ -38,14 +38,18 @@ handleSeq _ Nothing = return "???"
 handleSeq f (Just frame) =
   if hasType "seq" frame then do
       frameGenerated frame
-      m1 <- fromMaybe (return "???") $ liftM (handleSeq f . Just) $ fValue "member1" frame
+      let first = fValue "member1" frame
+          second = fValue "member2" frame
+      m1 <- fromMaybe (return "???") $ liftM (handleSeq f . Just) first
       state <- get
-      let second = fValue "member2" frame
-          secondProcessed = Just True == fmap (flip Set.member (visitedFrames state)) second
+      let secondProcessed = Just True == fmap (flip Set.member (visitedFrames state)) second
       if secondProcessed then return m1 else do
         m2 <- fromMaybe (return "???") $ liftM f $ second
         let conj = fromMaybe "" $ sValue "conj" frame
-            separator = if conj == "but" then ", but" else if conj == "" then "," else conj
+            separator = if conj == "but" then ", but"
+                        else if conj == "and" && Just True == fmap isCP second && Just True == fmap (hasType "seq") first then ", and"
+                        else if conj == "" then "," 
+                        else conj
         return $ m1 `cat` separator `cat` m2
   else f frame
 
@@ -147,7 +151,7 @@ isSingular (Just typ) = case typ of
 
 cat "" t2 = t2
 cat t1 "" = t1
-cat t1 t2 = if "," `isPrefixOf` t2 || "." `isPrefixOf` t2 then  t1 ++ t2 else t1 ++ " " ++ t2
+cat t1 t2 = if "," `isPrefixOf` t2 || "." `isPrefixOf` t2 || ":" `isPrefixOf` t2 then  t1 ++ t2 else t1 ++ " " ++ t2
 
 catM :: State GenerationState String -> State GenerationState String -> State GenerationState String
 catM t1 t2 = do s1 <- t1; s2 <- t2; return $ s1 `cat` s2
@@ -159,7 +163,9 @@ sentence frame = handleSeq singleSentence (Just frame) `catM` return finish wher
   singleSentence frame = do
     frameGenerated frame
     fromMaybe (return "???") $ liftM clause $ fValue "content" frame
-  finish = if (lastSentence >>= sValue "dot") == Just "true" then "." else ""
+  finish = if sValue "dot" frame == Just "true" then "."
+           else if (lastSentence >>= fValue "content" >>= fValue "message" >>= sValue "directSpeech") == Just "true" then ":"
+           else ""
   lastSentence = if hasType "seq" frame then fValue "member2" frame else Just frame
 
 genComplement cp = fromMaybe (return "") $ do
@@ -186,6 +192,7 @@ verb verbForm frame typ =
   "REMEMBER" -> if verbForm == PastVerb then "remembered" else "remember"
   "SMILE" -> "gave us a sad smile"
   "TAKE_OUT" -> "took"
+  "SAY" -> "said"
   "copula" -> "is"
   _ -> typ
 
@@ -198,7 +205,10 @@ clause fVerb = do
     let verbForm = if past state then PastVerb else BaseVerb
         fSubject = fValue "arg1" fVerb
     subject <- case fSubject of
-      Just f | [fVerb] `isPrefixOf` (usages "arg1" f) -> np True fSubject
+      Just f ->
+        if [fVerb] `isPrefixOf` (usages "arg1" f) then np True fSubject 
+        else if (isJust $ fValue "perfectBackground" fVerb) then return "she"
+        else return ""
       _ -> return ""
     core <- if hasType "degree" fVerb && (fromMaybe False $ fmap (hasType "wh") $ fValue "arg2" fVerb)
            then return $ "Great was" `cat` subject
@@ -211,6 +221,9 @@ clause fVerb = do
           Just "ASK" -> fValue "topic" fVerb
           Just "DISCOVER" -> fValue "theme" fVerb
           _ -> Nothing
+    background <- case fValue "perfectBackground" fVerb of
+      Just back -> return "moving her nose slightly back and forth,"
+      _ -> return ""
     comp <- fromMaybe (return "") $ fmap genComplement $ fComp
     externalComp <- if getType fVerb == Just "GO" then 
       case usage "content" fVerb >>= usage "member1" >>= fValue "member2" of
@@ -225,7 +238,7 @@ clause fVerb = do
     questionVariants <- case fmap (\subj -> (getType subj, fValue "variants" subj)) fSubject of
       Just (Just "wh", Just variants) -> (return "-") `catM` (np True (Just variants))
       _ -> return ""
-    return $ core `cat` condComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
+    return $ background `cat` core `cat` condComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
 
 vp :: Frame -> VerbForm -> String -> State GenerationState String
 vp fVerb verbForm subject = do

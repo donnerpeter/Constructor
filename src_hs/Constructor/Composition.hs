@@ -3,6 +3,7 @@ import Constructor.Constructions
 import Constructor.Agreement
 import Debug.Trace
 import Data.Maybe
+import Data.Data
 import qualified Constructor.LinkedSet as LS
 
 data MergeInfo = MergeInfo {mergeResult::[Mite], leftHeadedMerge::Bool} deriving (Show)
@@ -54,10 +55,12 @@ interactNodesNoWh leftMites rightMites = pairVariants ++ seqVariants where
       (ArgHead kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
       (Argument kind2 var2, ArgHead kind1 var1) | kind1 == kind2 -> right [mite $ Unify var1 var2]
       (PrepHead kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
-      (Verb head, Word _ ":") -> left [mite $ Elaboration head]
+      (DirectSpeech head Nothing, Colon "directSpeech" v) -> left [mite $ DirectSpeech head $ Just v, semV head "message" v, semS v "directSpeech" "true"]
+      (Verb head, Colon "elaboration" _) -> left [mite $ Elaboration head]
       (CompHead comp, CommaSurrounded _ (Wh _ cp)) -> left [mite $ Unify comp cp]
       (CompHead comp, CommaSurrounded _ (Complementizer cp)) -> left [mite $ Unify comp cp]
       (AdjHead noun _ _, CommaSurrounded _ (Wh _ cp)) -> left [semV noun "relative" cp]
+      (CommaSurrounded _ (AdverbialPhrase advP), Verb verb) -> right [semV verb "perfectBackground" advP]
       (QuestionVariants (Just v) Nothing, QuestionVariants Nothing (Just s)) -> left [mite $ QuestionVariants (Just v) (Just s)]
       (QuestionVariants (Just v) (Just _), Argument Nom child) -> left [semV v "variants" child]
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
@@ -68,6 +71,7 @@ interactNodesNoWh leftMites rightMites = pairVariants ++ seqVariants where
       (SurroundingComma False _, condComp@(ConditionComp cp s True)) -> left [mite $ CommaSurrounded False condComp]
       (SurroundingComma False _, comp@(Wh _ _)) -> left [mite $ CommaSurrounded False comp]
       (SurroundingComma False _, comp@(Complementizer _)) -> left [mite $ CommaSurrounded False comp]
+      (SurroundingComma False _, comp@(AdverbialPhrase _)) -> left [mite $ CommaSurrounded False comp]
       (CommaSurrounded False cxt, SurroundingComma True _) -> left [mite $ CommaSurrounded True cxt]
       (Quote _ False, word@(Word {})) -> left [mite $ QuotedWord word False]
       (QuotedWord word False, Quote _ True) -> left [mite $ QuotedWord word True]
@@ -113,5 +117,5 @@ interactNodesNoWh leftMites rightMites = pairVariants ++ seqVariants where
              (NomHead agr1 v1, ElidedArgHead (NomHead agr2 v2)) | agree agr1 agr2 -> withBase [m1,m2,aux1,aux2] [mite $ Unify v1 v2]
              _ -> []
        in
-         withBase [m1, m2] [semV seqV "member1" child] ++ unifications
+         withBase [m1, m2] [semV seqV "member1" child, mite $ TopLevelClause seqV] ++ unifications
     _ -> []

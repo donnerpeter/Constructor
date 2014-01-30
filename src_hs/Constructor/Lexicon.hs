@@ -47,7 +47,7 @@ wordMites word index =
   "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ xor [compHead "arg2" v, 
       [mite $ ArgHead ScalarAdverb (v "scalar"), semV v0 "arg2" (v "arg2"), semT (v "arg2") "question", semV (v "arg2") "content" (v "comes"), semT (v "comes") "COME_SCALARLY", semV (v "comes") "arg1" (v "wh"), semT (v "wh") "wh", semV (v "comes") "order" (v "scalar")]
     ]
-  "и" -> [mite $ Conjunction v0 "or", semS v0 "conj" "and", semT v0 "seq"]
+  "и" -> [mite $ Conjunction v0 "and", semS v0 "conj" "and", semT v0 "seq"]
   "идет" -> finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ arg ScalarAdverb "order" v
   "изо" -> preposition "iz" Gen v
   "или" -> [mite $ Conjunction v0 "or", semS v0 "conj" "or", semT v0 "seq"]
@@ -72,6 +72,7 @@ wordMites word index =
     xor [preposition "na" Prep v, [mite $ PrepHead Prep (v ""), semT (v "x") "copula", semV (v "x") "location" v0] ++ finiteClause A.sg (\s -> v $ 'x':s)] 
   "нашем" -> [semT v0 "WE", mite $ Possessive Prep A.n v0]
   "недоумении" -> nounSg Prep Neu "PREDICAMENT" v
+  "носом" -> nounSg Instr Masc "NOSE" v
   "обнаружили" -> finVerb "DISCOVER" "PAST" A.pl v ++ compHead "theme" v
   "о" -> preposition "o" Prep v
   "он" -> pronoun Nom A.m3 "HE" v
@@ -79,11 +80,13 @@ wordMites word index =
   "отправился" -> finVerb "GO_OFF" "PAST" A.m v ++ arg (PP "k" Dat) "goal" v
   "по" -> preposition "po" Dat v
   "поводу" -> nounSg Dat Masc "MATTER" v
+  "подвигав" -> [mite $ Verb v0, semT v0 "MOVE", mite $ AdverbialPhrase v0] ++ arg Instr "arg2" v
   "помнят" -> finVerb "REMEMBER" "PRESENT" A.pl3 v ++ arg Acc "arg2" v
   "порядок" -> nounSg Acc Masc "ORDER" v ++ optional (arg Gen "arg1" v)
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ arg (PP "v" Acc) "goal" v
   "раньше" -> [mite $ Argument ScalarAdverb v0, semT v0 "EARLIER"]
-  "сказала" -> finVerb "SAY" "PAST" A.f v -- todo ++ arg Acc "arg2" v
+  "сказала" -> finVerb "SAY" "PAST" A.f v ++ [mite $ DirectSpeech v0 Nothing] -- todo ++ arg Acc "arg2" v
+  "слегка" -> [mite $ Adverb "manner" "SLIGHTLY"]
   "случай" -> nounSg Nom Masc "THING" v
   "случился" -> finVerb "HAPPEN" "PAST" A.m v ++ arg (PP "s" Instr) "experiencer" v
   "спросил" -> finVerb "ASK" "PAST" A.m v ++ arg Acc "arg2" v ++ compHead "topic" v
@@ -100,6 +103,7 @@ wordMites word index =
   "что" -> xor [whWord v ++ xor [[mite $ Argument Nom v0], [mite $ Argument Acc v0]] ++ [mite $ AdjHead v0 Nom A.n3], [mite $ Complementizer v0]]
   "этому" -> [mite $ Adj v0 Dat A.sg "determiner" "THIS"]
   "я" -> pronoun Nom (A.Agr Nothing A.Sg $ Just 1) "ME" v
+  ":" -> xor [[mite $ Colon "directSpeech" v0], [mite $ Colon "elaboration" v0]]
   "-" -> [mite $ QuestionVariants Nothing (Just "-")]
   "," -> xor [[mite $ SurroundingComma False v0], [mite $ SurroundingComma True v0], [mite $ Conjunction v0 ",", semT v0 "seq"]]
   "\"" -> xor [[mite $ Quote v0 True], [mite $ Quote v0 False]]

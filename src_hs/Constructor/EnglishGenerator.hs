@@ -38,11 +38,15 @@ handleSeq _ Nothing = return "???"
 handleSeq f (Just frame) =
   if hasType "seq" frame then do
       frameGenerated frame
-      m1 <- fromMaybe (return "???") $ liftM (handleSeq f . Just) $ fValue "member1" frame 
-      m2 <- fromMaybe (return "???") $ liftM f $ fValue "member2" frame
-      let conj = fromMaybe "" $ sValue "conj" frame
-          separator = if conj == "but" then ", but" else if conj == "" then "," else conj
-      return $ m1 `cat` separator `cat` m2
+      m1 <- fromMaybe (return "???") $ liftM (handleSeq f . Just) $ fValue "member1" frame
+      state <- get
+      let second = fValue "member2" frame
+          secondProcessed = Just True == fmap (flip Set.member (visitedFrames state)) second
+      if secondProcessed then return m1 else do
+        m2 <- fromMaybe (return "???") $ liftM f $ second
+        let conj = fromMaybe "" $ sValue "conj" frame
+            separator = if conj == "but" then ", but" else if conj == "" then "," else conj
+        return $ m1 `cat` separator `cat` m2
   else f frame
 
 np nom frame =
@@ -145,12 +149,12 @@ catM t1 t2 = do s1 <- t1; s2 <- t2; return $ s1 `cat` s2
 frameGenerated frame = do state <- get; put $ state { visitedFrames = Set.insert frame $ visitedFrames state } 
 
 sentence :: Frame -> State GenerationState String
-sentence frame = handleSeq singleSentence $ Just frame where
+sentence frame = handleSeq singleSentence (Just frame) `catM` return finish where
   singleSentence frame = do
     frameGenerated frame
-    let finish = if sValue "dot" frame == Just "true" then "." else ""
-    s <- fromMaybe (return "???") $ liftM clause $ fValue "content" frame
-    return $ s `cat` finish
+    fromMaybe (return "???") $ liftM clause $ fValue "content" frame
+  finish = if (lastSentence >>= sValue "dot") == Just "true" then "." else ""
+  lastSentence = if hasType "seq" frame then fValue "member2" frame else Just frame
 
 genComplement cp = fromMaybe (return "") $ do
   let prefix = if hasType "fact" cp then ", that" else ""
@@ -161,12 +165,14 @@ genComplement cp = fromMaybe (return "") $ do
       (return "about their opinion on") `catM` (np False $ fValue "topic" fVerb)
   else return $ do s <- sentence cp; return $ prefix `cat` s
 
-verb verbForm negated typ = case typ of
+verb verbForm frame typ =
+  let negated = Just "true" == sValue "negated" frame in
+  case typ of
   "HAPPEN" -> "happened"
   "FORGET" -> "forgot"
   "GO" -> "went"
   "GO_OFF" -> "went"
-  "ASK" -> "asked"
+  "ASK" -> if (fValue "topic" frame >>= getType) == Just "PREDICAMENT" then "consult" else "asked"
   "COME_SCALARLY" -> "comes"
   "DISCOVER" -> "discovered"
   "CAN" -> if negated then "couldn't" else "could"
@@ -198,13 +204,20 @@ clause fVerb = do
           Just "DISCOVER" -> fValue "theme" fVerb
           _ -> Nothing
     comp <- fromMaybe (return "") $ fmap genComplement $ fComp
+    externalComp <- if getType fVerb == Just "GO" then 
+      case usage "content" fVerb >>= usage "member1" >>= fValue "member2" of
+       Just nextClause | (fValue "content" nextClause >>= getType) == Just "ASK" -> do
+         frameGenerated nextClause
+         return "to" `catM` vp (fromJust $ fValue "content" nextClause) BaseVerb ""
+       _ -> return ""
+      else return ""
     condComp <- case fValue "whenCondition" fVerb of
       Just fComp -> do comp <- sentence fComp; return $ ", when" `cat` comp
       _ -> return ""
     questionVariants <- case fmap (\subj -> (getType subj, fValue "variants" subj)) fSubject of
       Just (Just "wh", Just variants) -> (return "-") `catM` (np True (Just variants))
       _ -> return ""
-    return $ core `cat` condComp `cat` comp `cat` questionVariants `cat` elaboration
+    return $ core `cat` condComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
 
 vp :: Frame -> VerbForm -> String -> State GenerationState String
 vp fVerb verbForm subject = do
@@ -212,13 +225,13 @@ vp fVerb verbForm subject = do
         Just "SUDDENLY" -> "suddenly"
         Just s -> s
         _ -> ""
-      sVerb = fromMaybe "???" $ fmap (verb verbForm $ Just "true" == sValue "negated" fVerb) $ getType fVerb
+      sVerb = fromMaybe "???" $ fmap (verb verbForm fVerb) $ getType fVerb
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         _ -> ""
   controlled <- case getType fVerb of
     Just "CAN" -> case fValue "theme" fVerb of
-      Just slave -> vp slave verbForm ""
+      Just slave -> vp slave BaseVerb ""
       _ -> return ""
     _ -> return ""
   args <- foldM (\s arg -> return s `catM` generateArg arg) "" (arguments fVerb)

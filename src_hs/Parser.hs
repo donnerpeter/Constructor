@@ -49,6 +49,9 @@ sonnetTests = [
                 ,
   translateTest "Кассирша грустно улыбнулась, вынула изо рта маленький молоточек и, слегка подвигав носом, сказала:"
                 "The cashier gave us a sad smile, took a small hammer out of her mouth, and moving her nose slightly back and forth, she said:"
+                ,
+  translateTest "По-моему, семь идет после восьми в том случае, когда восемь идет после семи."
+                "In my opinion, a seven comes after an eight, only if an eight comes after a seven."
   ]
 
 variationTests1=[

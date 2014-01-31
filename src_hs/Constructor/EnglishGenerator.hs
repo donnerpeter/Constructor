@@ -68,7 +68,7 @@ np_internal nom mayHaveDeterminer frame = do
     else if hasType "WE" frame then if nom then return "we" else return "us"
     else if hasType "wh" frame then return $ if isJust $ usage "arg1" frame >>= usage "content" >>= usage "relative"  then "that" else "what"
     else do
-      let n = noun (getType frame)
+      let n = noun (getType frame) frame
           adjs = foldl cat "" $ adjectives frame
           nbar1 = adjs `cat` n
       nbar <- case getType frame of
@@ -120,12 +120,12 @@ determiner frame nbar =
       else if getType frame == Just "STREET" then streetName frame
       else if sValue "number" frame == Just "true" then ""
       else if sValue "given" frame == Just "true" then "the"
-      else if "a" `isPrefixOf` nbar then "an"
+      else if "a" `isPrefixOf` nbar || "e" `isPrefixOf` nbar then "an"
       else if isSingular (getType frame) then "a"
       else ""
 
-noun Nothing = "??"
-noun (Just typ) = case typ of
+noun Nothing _ = "??"
+noun (Just typ) frame = case typ of
   "THING" -> "thing"
   "ME" -> "me"
   "HE" -> "he"
@@ -142,6 +142,8 @@ noun (Just typ) = case typ of
   "HAMMER" -> "hammer"
   "MOUTH" -> "mouth"
   "NOSE" -> "nose"
+  "7" -> if sValue "number" frame == Just "true" then typ else "seven"
+  "8" -> if sValue "number" frame == Just "true" then typ else "eight"
   _ -> typ
 
 isSingular Nothing = False
@@ -269,6 +271,9 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       ("COME_SCALARLY", "order") -> case getType value of
         Just "EARLIER" -> [Adverb "first"]
         Just "NEXT" -> [Adverb "next"]
+        Just "AFTER" -> case fValue "anchor" value of 
+          Just anchor -> [PPArg "after" anchor]
+          _ -> [Adverb "after"]
         _ -> []
       ("HAPPEN", "experiencer") -> [PPArg "to" value]
       ("TAKE_OUT", "source") -> [PPArg "out of" value]

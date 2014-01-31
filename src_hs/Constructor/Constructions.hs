@@ -44,7 +44,7 @@ data Construction = Word Variable String
                   | Copula Variable
                   | ShortAdj Variable
                   | ConditionComp Variable {-if/when-} String {-has cp-} Bool
-                  | CommaSurrounded {-closed-} Bool Construction
+                  | CommaSurrounded {-opened-} Bool {-closed-} Bool Construction
                   | Control Variable
                   | Infinitive Variable
                   | Complementizer Variable
@@ -52,7 +52,7 @@ data Construction = Word Variable String
                   | Colon {-role-} String Variable
                   | Quote Variable {-closing-} Bool
                   | QuotedWord Construction {-closed-} Bool
-                  | AdverbialPhrase Variable
+                  | VerbalModifier {-attr-} String Variable
                   | DirectSpeech Variable {--child--} (Maybe Variable)
                   -- | S1 | S2 | S3 | S4
                   deriving (Show, Ord, Eq)
@@ -86,7 +86,14 @@ isHappy (QuotedWord _ False) = False
 isHappy (Quote _ False) = False
 isHappy (DirectSpeech {}) = False
 isHappy (Colon {}) = False
+isHappy (VerbalModifier {}) = False
 isHappy _ = True
+
+isCommaSurroundable (ConditionComp _ _ True) = True
+isCommaSurroundable (Wh {}) = True
+isCommaSurroundable (Complementizer {}) = True
+isCommaSurroundable (VerbalModifier {}) = True
+isCommaSurroundable _ = False
 
 mite cxt = Mite cxt (isHappy cxt) Set.empty []
   

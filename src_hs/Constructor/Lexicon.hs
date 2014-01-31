@@ -10,6 +10,7 @@ nounSg caze gender typ v = pronoun caze (A.Agr (Just gender) A.Sg (Just 3)) typ 
 nounPl caze typ v = pronoun caze (A.Agr Nothing A.Pl (Just 3)) typ v 
 pronoun caze agr typ v = [mite $ Argument caze (v ""), semS (v "") "type" typ, mite $ AdjHead (v "") caze agr]
 preposition prep nounArg v = [mite $ Argument (PP prep nounArg) (v ""), mite $ PrepHead nounArg (v "")]
+semPreposition prep nounArg typ attr v = [mite $ Argument (PP prep nounArg) (v ""), mite $ PrepHead nounArg (v "noun"), semT (v "") typ, semV (v "") attr (v "noun")]
 finVerb typ time agr v = [semT (v "") typ, semS (v "") "time" time] ++ finiteClause agr v
 finiteClause agr v = optional [mite $ NomHead agr (v "arg1")] ++ [semV (v "") "arg1" (v "arg1")] ++
                      (rusAgr (Just . A.number) "rusNumber") ++ (rusAgr A.gender "rusGender") ++ (rusAgr A.person "rusPerson") ++ 
@@ -37,6 +38,8 @@ wordMites word index =
   "было" -> [mite $ CopulaTense v0, semS v0 "time" "PAST"]
   "в" -> preposition "v" Acc v
   "вдруг" -> [mite $ Adverb "manner" "SUDDENLY"]
+  "восемь" -> nounSg Nom Masc "8" v
+  "восьми" -> nounSg Gen Masc "8" v
   "вынула" -> finVerb "TAKE_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) "source" v ++ arg Acc "arg2" v
   "все" -> adj Nom A.pl "quantifier" "ALL" v
   "вспомнить" -> infinitive "RECALL" v ++ arg Acc "arg2" v
@@ -48,7 +51,7 @@ wordMites word index =
       [mite $ ArgHead ScalarAdverb (v "scalar"), semV v0 "arg2" (v "arg2"), semT (v "arg2") "question", semV (v "arg2") "content" (v "comes"), semT (v "comes") "COME_SCALARLY", semV (v "comes") "arg1" (v "wh"), semT (v "wh") "wh", semV (v "comes") "order" (v "scalar")]
     ]
   "и" -> [mite $ Conjunction v0 "and", semS v0 "conj" "and", semT v0 "seq"]
-  "идет" -> finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ arg ScalarAdverb "order" v
+  "идет" -> finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v]
   "изо" -> preposition "iz" Gen v
   "или" -> [mite $ Conjunction v0 "or", semS v0 "conj" "or", semT v0 "seq"]
   "их" -> xor [pronoun Acc A.pl "THEY" v, [semT v0 "THEY", mite $ Possessive Nom A.sg v0], [semT v0 "THEY", mite $ Possessive Nom A.pl v0]]
@@ -79,12 +82,16 @@ wordMites word index =
   "они" -> pronoun Nom A.pl3 "THEY" v
   "отправился" -> finVerb "GO_OFF" "PAST" A.m v ++ arg (PP "k" Dat) "goal" v
   "по" -> preposition "po" Dat v
+  "по-моему" -> [mite $ VerbalModifier "accordingTo" v0, semT v0 "opinion", semV v0 "arg1" (v "me"), semT (v "me") "ME"]
   "поводу" -> nounSg Dat Masc "MATTER" v
-  "подвигав" -> [mite $ Verb v0, semT v0 "MOVE", mite $ AdverbialPhrase v0] ++ arg Instr "arg2" v
+  "подвигав" -> [mite $ Verb v0, semT v0 "MOVE", mite $ VerbalModifier "perfectBackground" v0] ++ arg Instr "arg2" v
   "помнят" -> finVerb "REMEMBER" "PRESENT" A.pl3 v ++ arg Acc "arg2" v
   "порядок" -> nounSg Acc Masc "ORDER" v ++ optional (arg Gen "arg1" v)
+  "после" -> semPreposition "posle" Gen "AFTER" "anchor" v
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ arg (PP "v" Acc) "goal" v
   "раньше" -> [mite $ Argument ScalarAdverb v0, semT v0 "EARLIER"]
+  "семи" -> nounSg Gen Masc "7" v
+  "семь" -> nounSg Nom Masc "7" v
   "сказала" -> finVerb "SAY" "PAST" A.f v ++ [mite $ DirectSpeech v0 Nothing] -- todo ++ arg Acc "arg2" v
   "слегка" -> [mite $ Adverb "manner" "SLIGHTLY"]
   "случай" -> nounSg Nom Masc "THING" v

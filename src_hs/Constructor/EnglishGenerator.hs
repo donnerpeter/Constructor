@@ -100,7 +100,7 @@ streetName frame = case sValue "name" frame of
  _ -> ""
 
 determiner frame nbar =
-  let det = if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW"] frame then fValue "arg1" frame else Nothing
+  let det = if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "OPINION"] frame then fValue "arg1" frame else Nothing
       genitiveSpecifier det =
         case getType det of
           Just "ME" -> return "my"
@@ -126,7 +126,7 @@ determiner frame nbar =
 
 noun Nothing _ = "??"
 noun (Just typ) frame = case typ of
-  "THING" -> "thing"
+  "CASE" -> "thing"
   "ME" -> "me"
   "HE" -> "he"
   "NEIGHBORS" -> "neighbors"
@@ -142,6 +142,7 @@ noun (Just typ) frame = case typ of
   "HAMMER" -> "hammer"
   "MOUTH" -> "mouth"
   "NOSE" -> "nose"
+  "OPINION" -> "opinion"
   "7" -> if sValue "number" frame == Just "true" then typ else "seven"
   "8" -> if sValue "number" frame == Just "true" then typ else "eight"
   _ -> typ
@@ -212,6 +213,9 @@ clause fVerb = do
         else if (isJust $ fValue "perfectBackground" fVerb) then return "she"
         else return ""
       _ -> return ""
+    opinion <- case fValue "accordingTo" fVerb of
+      Just source | hasType "OPINION" source -> return "in" `catM` np False (Just source) `catM` return ","
+      _ -> return ""
     core <- if hasType "degree" fVerb && (fromMaybe False $ fmap (hasType "wh") $ fValue "arg2" fVerb)
            then return $ "Great was" `cat` subject
            else vp fVerb verbForm subject
@@ -236,11 +240,15 @@ clause fVerb = do
       else return ""
     condComp <- case fValue "whenCondition" fVerb of
       Just fComp -> do comp <- sentence fComp; return $ ", when" `cat` comp
-      _ -> return ""
+      _ -> case fValue "condition" fVerb of
+        Just caze | hasType "CASE" caze -> case fValue "whenCondition" caze of
+          Just fComp -> do comp <- sentence fComp; return $ ", only if" `cat` comp
+          _ -> return ""
+        _ -> return ""  
     questionVariants <- case fmap (\subj -> (getType subj, fValue "variants" subj)) fSubject of
       Just (Just "wh", Just variants) -> (return "-") `catM` (np True (Just variants))
       _ -> return ""
-    return $ background `cat` core `cat` condComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
+    return $ opinion `cat` background `cat` core `cat` condComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
 
 vp :: Frame -> VerbForm -> String -> State GenerationState String
 vp fVerb verbForm subject = do

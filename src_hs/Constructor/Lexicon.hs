@@ -9,8 +9,8 @@ import Data.List
 nounSg caze gender typ v = pronoun caze (A.Agr (Just gender) A.Sg (Just 3)) typ v
 nounPl caze typ v = pronoun caze (A.Agr Nothing A.Pl (Just 3)) typ v 
 pronoun caze agr typ v = [mite $ Argument caze (v ""), semS (v "") "type" typ, mite $ AdjHead (v "") caze agr]
-preposition prep nounArg v = [mite $ Argument (PP prep nounArg) (v ""), mite $ PrepHead nounArg (v "")]
-semPreposition prep nounArg typ attr v = [mite $ Argument (PP prep nounArg) (v ""), mite $ PrepHead nounArg (v "noun"), semT (v "") typ, semV (v "") attr (v "noun")]
+preposition prep nounArg v = [mite $ PrepHead prep nounArg (v "")] ++ xor [[mite $ Argument (PP prep nounArg) (v "")], [mite $ ActivePreposition (v "")]]
+semPreposition prep nounArg typ attr v = [mite $ Argument (PP prep nounArg) (v ""), mite $ PrepHead prep nounArg (v "noun"), semT (v "") typ, semV (v "") attr (v "noun")]
 finVerb typ time agr v = [semT (v "") typ, semS (v "") "time" time] ++ finiteClause agr v
 finiteClause agr v = optional [mite $ NomHead agr (v "arg1")] ++ [semV (v "") "arg1" (v "arg1")] ++
                      (rusAgr (Just . A.number) "rusNumber") ++ (rusAgr A.gender "rusGender") ++ (rusAgr A.person "rusPerson") ++ 
@@ -36,7 +36,7 @@ wordMites word index =
   case word of
   s | length (reads s :: [(Int, String)]) == 1 -> xor [nounSg Nom Masc word v, nounSg Acc Masc word v] ++ [semS v0 "number" "true"]
   "было" -> [mite $ CopulaTense v0, semS v0 "time" "PAST"]
-  "в" -> preposition "v" Acc v
+  "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
   "вдруг" -> [mite $ Adverb "manner" "SUDDENLY"]
   "восемь" -> nounSg Nom Masc "8" v
   "восьми" -> nounSg Gen Masc "8" v
@@ -72,7 +72,7 @@ wordMites word index =
   "мы" -> pronoun Nom A.pl1 "WE" v
   "на" ->
     -- todo copula for prepositions besides 'na' 
-    xor [preposition "na" Prep v, [mite $ PrepHead Prep (v ""), semT (v "x") "copula", semV (v "x") "location" v0] ++ finiteClause A.sg (\s -> v $ 'x':s)] 
+    xor [preposition "na" Prep v, [mite $ PrepHead "na" Prep (v ""), semT (v "x") "copula", semV (v "x") "location" v0] ++ finiteClause A.sg (\s -> v $ 'x':s)] 
   "нашем" -> [semT v0 "WE", mite $ Possessive Prep A.n v0]
   "недоумении" -> nounSg Prep Neu "PREDICAMENT" v
   "носом" -> nounSg Instr Masc "NOSE" v
@@ -82,26 +82,28 @@ wordMites word index =
   "они" -> pronoun Nom A.pl3 "THEY" v
   "отправился" -> finVerb "GO_OFF" "PAST" A.m v ++ arg (PP "k" Dat) "goal" v
   "по" -> preposition "po" Dat v
-  "по-моему" -> [mite $ VerbalModifier "accordingTo" v0, semT v0 "opinion", semV v0 "arg1" (v "me"), semT (v "me") "ME"]
+  "по-моему" -> [mite $ VerbalModifier "accordingTo" True v0, semT v0 "OPINION", semV v0 "arg1" (v "me"), semT (v "me") "ME"]
   "поводу" -> nounSg Dat Masc "MATTER" v
-  "подвигав" -> [mite $ Verb v0, semT v0 "MOVE", mite $ VerbalModifier "perfectBackground" v0] ++ arg Instr "arg2" v
+  "подвигав" -> [mite $ Verb v0, semT v0 "MOVE", mite $ VerbalModifier "perfectBackground" True v0] ++ arg Instr "arg2" v
   "помнят" -> finVerb "REMEMBER" "PRESENT" A.pl3 v ++ arg Acc "arg2" v
   "порядок" -> nounSg Acc Masc "ORDER" v ++ optional (arg Gen "arg1" v)
   "после" -> semPreposition "posle" Gen "AFTER" "anchor" v
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ arg (PP "v" Acc) "goal" v
   "раньше" -> [mite $ Argument ScalarAdverb v0, semT v0 "EARLIER"]
+  "рта" -> nounSg Gen Masc "MOUTH" v
   "семи" -> nounSg Gen Masc "7" v
   "семь" -> nounSg Nom Masc "7" v
   "сказала" -> finVerb "SAY" "PAST" A.f v ++ [mite $ DirectSpeech v0 Nothing] -- todo ++ arg Acc "arg2" v
   "слегка" -> [mite $ Adverb "manner" "SLIGHTLY"]
-  "случай" -> nounSg Nom Masc "THING" v
+  "случай" -> nounSg Nom Masc "CASE" v
+  "случае" -> nounSg Prep Masc "CASE" v ++ [mite $ ConditionCompHead v0] ++ optional [mite $ PrepositionActivator "v" Prep [VerbalModifier "condition" False v0]]
   "случился" -> finVerb "HAPPEN" "PAST" A.m v ++ arg (PP "s" Instr) "experiencer" v
   "спросил" -> finVerb "ASK" "PAST" A.m v ++ arg Acc "arg2" v ++ compHead "topic" v
   "спросили" -> finVerb "ASK" "PAST" A.pl v ++ arg Acc "arg2" v ++ xor [compHead "topic" v, arg (PP "o" Prep) "topic" v]
   "со" -> preposition "s" Instr v
   "соседям" -> nounPl Dat "NEIGHBORS" v
   "счета" -> nounSg Gen Masc "COUNTING" v
-  "рта" -> nounSg Gen Masc "MOUTH" v
+  "том" -> [mite $ Adj v0 Prep A.sg "determiner" "THAT"]
   "удивительный" -> adj Nom A.m "property" "AMAZING" v
   "углу" -> nounSg Prep Masc "CORNER" v ++ optional (arg Gen "arg1" v)
   "удивление" -> nounSg Nom Neu "AMAZE" v

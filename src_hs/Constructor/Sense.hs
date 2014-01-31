@@ -80,7 +80,7 @@ sValue attr frame =
   else
     case attr of
       "given" ->
-        if hasAnyType ["SHOP", "THING", "HAMMER", "7", "8"] frame then Just "false"
+        if hasAnyType ["SHOP", "CASE", "HAMMER", "7", "8"] frame then Just "false"
         else if hasType "CASHIER" frame && any (hasType "SHOP") (allFrames $ sense frame) then Just "false"
         else Just "true"
       "type" ->

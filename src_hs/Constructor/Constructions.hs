@@ -23,11 +23,14 @@ data Construction = Word Variable String
                   | Verb Variable
                   | NomHead Agr Variable
                   | ArgHead ArgKind Variable
-                  | PrepHead ArgKind Variable
+                  | PrepHead String ArgKind Variable
+                  | PrepositionActivator String ArgKind [Construction]
+                  | ActivePreposition Variable
                   | Argument ArgKind Variable 
                   | Adverb String String
                   | Elaboration Variable
                   | CompHead Variable
+                  | ConditionCompHead Variable
                   | Wh Variable Variable
                   | QuestionVariants (Maybe Variable) (Maybe String)
                   | Conjunction Variable String
@@ -52,7 +55,7 @@ data Construction = Word Variable String
                   | Colon {-role-} String Variable
                   | Quote Variable {-closing-} Bool
                   | QuotedWord Construction {-closed-} Bool
-                  | VerbalModifier {-attr-} String Variable
+                  | VerbalModifier {-attr-} String {-requires comma-} Bool Variable
                   | DirectSpeech Variable {--child--} (Maybe Variable)
                   -- | S1 | S2 | S3 | S4
                   deriving (Show, Ord, Eq)
@@ -67,6 +70,7 @@ isHappy (Adverb {}) = False
 isHappy (ArgHead {}) = False
 isHappy (PrepHead {}) = False
 isHappy (CompHead {}) = False
+isHappy (ConditionCompHead {}) = False
 isHappy (Argument {}) = False
 isHappy (Elaboration {}) = False
 isHappy (SeqRight {}) = False
@@ -87,6 +91,8 @@ isHappy (Quote _ False) = False
 isHappy (DirectSpeech {}) = False
 isHappy (Colon {}) = False
 isHappy (VerbalModifier {}) = False
+isHappy (PrepositionActivator {}) = False
+isHappy (ActivePreposition {}) = False
 isHappy _ = True
 
 isCommaSurroundable (ConditionComp _ _ True) = True
@@ -106,12 +112,14 @@ xor miteGroups =
   let cxtGroups = map (map cxt) miteGroups
       allCxts = LS.removeDups $ concat cxtGroups
       allCxtSet = Set.fromList $ concat cxtGroups
-      cxt2Mites = Map.fromListWith (\v1 v2 -> assert (v1 == v2) v1) [(cxt mite, mite) | mite <- concat miteGroups]
+      cxt2ExistingContras = Map.fromListWith Set.union [(cxt mite, contradictors mite) | mite <- concat miteGroups]
       cxt2Groups = Map.fromListWith (++) $ [(c, group) | group <- cxtGroups, c <- group]
       cxt2Friends = Map.map Set.fromList cxt2Groups
       cxt2Contras = Map.map (\friends -> Set.difference allCxtSet friends) cxt2Friends
       addContradictors mite contras = mite { contradictors = Set.union (contradictors mite) contras }
-      newMites = map (\c -> addContradictors ((Map.!) cxt2Mites c) (Map.findWithDefault Set.empty c cxt2Contras)) allCxts
+      contras c fromMap = Map.findWithDefault Set.empty c fromMap
+      createMite c = (mite c) { contradictors = Set.union (contras c cxt2ExistingContras) (contras c cxt2Contras)}
+      newMites = map createMite allCxts
   in newMites
 
 contradict mite1 mite2 = Set.member (cxt mite1) (contradictors mite2) ||

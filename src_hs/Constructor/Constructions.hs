@@ -56,7 +56,9 @@ data Construction = Word Variable String
                   | Quote Variable {-closing-} Bool
                   | QuotedWord Construction {-closed-} Bool
                   | VerbalModifier {-attr-} String {-requires comma-} Bool Variable
-                  | DirectSpeech Variable {--child--} (Maybe Variable)
+                  | DirectSpeechHead Variable {--child--} (Maybe Variable)
+                  | DirectSpeech Variable
+                  | DirectSpeechDash Variable
                   -- | S1 | S2 | S3 | S4
                   deriving (Show, Ord, Eq)
 data Mite = Mite { cxt :: Construction, happy :: Bool, contradictors :: Set.Set Construction, baseMites :: [Mite] } deriving (Ord, Eq)
@@ -88,11 +90,12 @@ isHappy (SurroundingComma {}) = False
 isHappy (SubordinateClause {}) = False
 isHappy (QuotedWord _ False) = False
 isHappy (Quote _ False) = False
-isHappy (DirectSpeech {}) = False
+isHappy (DirectSpeechHead {}) = False
 isHappy (Colon {}) = False
 isHappy (VerbalModifier {}) = False
 isHappy (PrepositionActivator {}) = False
 isHappy (ActivePreposition {}) = False
+isHappy (DirectSpeechDash {}) = False
 isHappy _ = True
 
 isCommaSurroundable (ConditionComp _ _ True) = True

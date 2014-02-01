@@ -15,13 +15,16 @@ generate:: Sense -> String
 generate sense = 
   let topFrames = catMaybes $ map getTopFrame $ allFrames sense
       sentenceState = foldM generateSentence [] topFrames
-      generateSentence :: [String] -> Frame -> State GenerationState [String]
+      generateSentence :: String -> Frame -> State GenerationState String
       generateSentence output frame = do
         state <- get
         if Set.member frame (visitedFrames state) then return output 
-        else do nextSentence <- sentence frame; return $ output++[nextSentence]
-      sentences = evalState sentenceState $ GenerationState Set.empty False  
-      text = Data.List.intercalate " " $ map capitalize sentences
+        else do 
+          nextSentence <- sentence frame
+          let start = if (sValue "directSpeech" frame) == Just "true" then "- " else ""
+              separator = if null output then "" else if start == "- " then "\n" else " "
+          return $ output ++ separator ++ start ++ capitalize nextSentence
+      text = evalState sentenceState $ GenerationState Set.empty False  
   in text
 
 capitalize (c:rest) = (toUpper c):rest
@@ -167,7 +170,7 @@ sentence frame = handleSeq singleSentence (Just frame) `catM` return finish wher
     frameGenerated frame
     fromMaybe (return "???") $ liftM clause $ fValue "content" frame
   finish = if sValue "dot" frame == Just "true" then "."
-           else if (lastSentence >>= fValue "content" >>= fValue "message" >>= sValue "directSpeech") == Just "true" then ":"
+           else if isJust (lastSentence >>= fValue "content" >>= fValue "message") then ":"
            else ""
   lastSentence = if hasType "seq" frame then fValue "member2" frame else Just frame
 

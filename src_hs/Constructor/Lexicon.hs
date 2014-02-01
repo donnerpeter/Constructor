@@ -93,7 +93,7 @@ wordMites word index =
   "рта" -> nounSg Gen Masc "MOUTH" v
   "семи" -> nounSg Gen Masc "7" v
   "семь" -> nounSg Nom Masc "7" v
-  "сказала" -> finVerb "SAY" "PAST" A.f v ++ [mite $ DirectSpeech v0 Nothing] -- todo ++ arg Acc "arg2" v
+  "сказала" -> finVerb "SAY" "PAST" A.f v ++ [mite $ DirectSpeechHead v0 Nothing] -- todo ++ arg Acc "arg2" v
   "слегка" -> [mite $ Adverb "manner" "SLIGHTLY"]
   "случай" -> nounSg Nom Masc "CASE" v
   "случае" -> nounSg Prep Masc "CASE" v ++ [mite $ ConditionCompHead v0] ++ optional [mite $ PrepositionActivator "v" Prep [VerbalModifier "condition" False v0]]
@@ -113,7 +113,7 @@ wordMites word index =
   "этому" -> [mite $ Adj v0 Dat A.sg "determiner" "THIS"]
   "я" -> pronoun Nom (A.Agr Nothing A.Sg $ Just 1) "ME" v
   ":" -> xor [[mite $ Colon "directSpeech" v0], [mite $ Colon "elaboration" v0]]
-  "-" -> [mite $ QuestionVariants Nothing (Just "-")]
+  "-" -> xor [[mite $ QuestionVariants Nothing (Just "-")], [mite $ DirectSpeechDash v0]]
   "," -> xor [[mite $ SurroundingComma False v0], [mite $ SurroundingComma True v0], [mite $ Conjunction v0 ",", semT v0 "seq"]]
   "\"" -> xor [[mite $ Quote v0 True], [mite $ Quote v0 False]]
   _ ->

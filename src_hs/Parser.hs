@@ -61,6 +61,9 @@ sonnetTests = [
                 ,
   translateTest "Мы поблагодарили кассиршу и с радостью выбежали из магазина."
                 "We thanked the cashier and ran cheerfully out of the store."
+                ,
+  translateTest "Но тут, вдумываясь в слова кассирши, мы опять приуныли, так как ее слова показались нам лишенными всякого смысла."
+                "But there, thinking carefully about cashier's words, we got sad again because her words were void of any meaning."
   ]
 
 variationTests1=[

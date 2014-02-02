@@ -434,6 +434,14 @@ A@3.member=B
     doTranslateTest 'Мы опять приуныли, вдумываясь в слова кассирши',
                     "We got sad again, thinking carefully about cashier's words"
   }
+  public void test9_GotSadThinkingNeighbors() {
+    doTranslateTest 'Мы опять приуныли, вдумываясь в слова соседей',
+                    "We got sad again, thinking carefully about neighbours' words"
+  }
+  public void test9_GotSadThinkingNeighbor() {
+    doTranslateTest 'Мы опять приуныли, вдумываясь в слова соседа',
+                    "We got sad again, thinking carefully about neighbour's words"
+  }
   public void test9_2Only() {
     doTranslateTest 'Ее слова нам показались лишенными всякого смысла',
                     "Her words were void of any meaning"

@@ -58,6 +58,9 @@ sonnetTests = [
                 \- По-моему, семь идет после восьми в том случае, когда восемь идет после семи."
                 "The cashier gave us a sad smile, took a small hammer out of her mouth, and moving her nose slightly back and forth, she said:\n\
                 \- In my opinion, a seven comes after an eight, only if an eight comes after a seven."
+                ,
+  translateTest "Мы поблагодарили кассиршу и с радостью выбежали из магазина."
+                "We thanked the cashier and ran cheerfully out of the store."
   ]
 
 variationTests1=[

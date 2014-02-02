@@ -45,6 +45,7 @@ data Construction = Word Variable String
                   | EmptyCxt Construction
                   | CopulaTense Variable
                   | Copula Variable
+                  | PrepCopula Variable
                   | ShortAdj Variable
                   | ConditionComp Variable {-if/when-} String {-has cp-} Bool
                   | CommaSurrounded {-opened-} Bool {-closed-} Bool Construction

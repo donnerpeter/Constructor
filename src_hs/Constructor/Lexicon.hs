@@ -40,6 +40,7 @@ wordMites word index =
   "вдруг" -> [mite $ Adverb "manner" "SUDDENLY"]
   "восемь" -> nounSg Nom Masc "8" v
   "восьми" -> nounSg Gen Masc "8" v
+  "выбежали" -> finVerb "RUN_OUT" "PAST" A.pl v ++ arg (PP "iz" Gen) "source" v
   "вынула" -> finVerb "TAKE_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) "source" v ++ arg Acc "arg2" v
   "все" -> adj Nom A.pl "quantifier" "ALL" v
   "вспомнить" -> infinitive "RECALL" v ++ arg Acc "arg2" v
@@ -52,6 +53,7 @@ wordMites word index =
     ]
   "и" -> [mite $ Conjunction v0 "and", semS v0 "conj" "and", semT v0 "seq"]
   "идет" -> finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v]
+  "из" -> preposition "iz" Gen v
   "изо" -> preposition "iz" Gen v
   "или" -> [mite $ Conjunction v0 "or", semS v0 "conj" "or", semT v0 "seq"]
   "их" -> xor [pronoun Acc A.pl "THEY" v, [semT v0 "THEY", mite $ Possessive Nom A.sg v0], [semT v0 "THEY", mite $ Possessive Nom A.pl v0]]
@@ -64,6 +66,7 @@ wordMites word index =
   "когда" -> [mite $ ConditionComp v0 "when" False] -- todo wh-questions with когда
   "коммерческий" -> adj Acc A.m "kind" "COMMERCIAL" v
   "магазин" -> nounSg Acc Masc "SHOP" v -- todo который + agr
+  "магазина" -> nounSg Gen Masc "SHOP" v
   "маленький" -> adj Acc A.m "size" "LITTLE" v
   "мной" -> pronoun Instr A.sg "ME" v
   "могут" -> finVerb "CAN" "PAST" A.pl3 v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
@@ -72,7 +75,7 @@ wordMites word index =
   "мы" -> pronoun Nom A.pl1 "WE" v
   "на" ->
     -- todo copula for prepositions besides 'na' 
-    xor [preposition "na" Prep v, [mite $ PrepHead "na" Prep (v ""), semT (v "x") "copula", semV (v "x") "location" v0] ++ finiteClause A.sg (\s -> v $ 'x':s)] 
+    xor [preposition "na" Prep v, [mite $ PrepHead "na" Prep v0, mite $ PrepCopula v0, semT (v "x") "copula", semV (v "x") "location" v0] ++ finiteClause A.sg (\s -> v $ 'x':s)] 
   "нашем" -> [semT v0 "WE", mite $ Possessive Prep A.n v0]
   "недоумении" -> nounSg Prep Neu "PREDICAMENT" v
   "носом" -> nounSg Instr Masc "NOSE" v
@@ -83,12 +86,15 @@ wordMites word index =
   "отправился" -> finVerb "GO_OFF" "PAST" A.m v ++ arg (PP "k" Dat) "goal" v
   "по" -> preposition "po" Dat v
   "по-моему" -> [mite $ VerbalModifier "accordingTo" True v0, semT v0 "OPINION", semV v0 "arg1" (v "me"), semT (v "me") "ME"]
+  "поблагодарили" -> finVerb "THANK" "PAST" A.pl v ++ arg Acc "arg2" v
   "поводу" -> nounSg Dat Masc "MATTER" v
   "подвигав" -> [mite $ Verb v0, semT v0 "MOVE", mite $ VerbalModifier "perfectBackground" True v0] ++ arg Instr "arg2" v
   "помнят" -> finVerb "REMEMBER" "PRESENT" A.pl3 v ++ arg Acc "arg2" v
   "порядок" -> nounSg Acc Masc "ORDER" v ++ optional (arg Gen "arg1" v)
   "после" -> semPreposition "posle" Gen "AFTER" "anchor" v
+  "с" -> preposition "s" Instr v
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ arg (PP "v" Acc) "goal" v
+  "радостью" -> nounSg Instr Fem "JOY" v ++ optional [mite $ PrepositionActivator "s" Instr [VerbalModifier "mood" False v0]]
   "раньше" -> [mite $ Argument ScalarAdverb v0, semT v0 "EARLIER"]
   "рта" -> nounSg Gen Masc "MOUTH" v
   "семи" -> nounSg Gen Masc "7" v

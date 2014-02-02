@@ -197,6 +197,8 @@ verb verbForm frame typ =
   "RECALL" -> "recall"
   "REMEMBER" -> if verbForm == PastVerb then "remembered" else "remember"
   "SMILE" -> "gave us a sad smile"
+  "THANK" -> "thanked"
+  "RUN_OUT" -> "ran"
   "TAKE_OUT" -> "took"
   "SAY" -> "said"
   "copula" -> "is"
@@ -288,8 +290,13 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
         _ -> []
       ("HAPPEN", "experiencer") -> [PPArg "to" value]
       ("TAKE_OUT", "source") -> [PPArg "out of" value]
+      ("RUN_OUT", "source") -> [PPArg "out of" value]
       ("ASK", "topic") -> if hasType "question" value then [] else [PPArg "on" value]
       (_, "goal") -> [PPArg "to" value]
+      (_, "mood") -> case getType value of
+        Just "JOY" -> [Adverb "cheerfully"]
+        Just s -> [Adverb s]
+        _ -> []
       (_, "location") -> [PPArg "on" value]
       (_, "arg2") -> if hasType "question" value then [] else [NPArg value]
       _ -> []

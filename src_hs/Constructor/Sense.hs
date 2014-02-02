@@ -7,7 +7,7 @@ module Constructor.Sense
 
 import Constructor.Constructions (SemValue(..), Construction(Sem, Unify), Mite(..), Variable(..))
 import Constructor.Tree
-import Data.List (intercalate)
+import Data.List (intercalate, findIndex, find)
 import Data.Maybe
 import Debug.Trace
 import qualified Data.Map as Map
@@ -73,6 +73,16 @@ singleListElement list = case list of
   _ -> Nothing
 singleValue attr frame = singleListElement $ allValues attr frame
 
+findFrames typ sense = [f | f <- allFrames sense, hasType typ f]
+
+earlier f1 attr1 f2 attr2 =
+  let allFacts = facts $ sense f1
+      mi1 = findIndex (\ fact -> variable fact == var f1 && attrName fact == attr1) allFacts
+      mi2 = findIndex (\ fact -> variable fact == var f2 && attrName fact == attr2) allFacts
+  in case (mi1, mi2) of
+    (Just i1, Just i2) | i1 < i2 -> True
+    _ -> False
+
 sDeclaredValue attr frame = singleValue attr frame >>= extractValueString
 sValue attr frame =
   let declared = sDeclaredValue attr frame in
@@ -80,8 +90,14 @@ sValue attr frame =
   else
     case attr of
       "given" ->
-        if hasAnyType ["SHOP", "CASE", "HAMMER", "7", "8"] frame then Just "false"
-        else if hasType "CASHIER" frame && any (hasType "SHOP") (allFrames $ sense frame) then Just "false"
+        if hasAnyType ["CASE", "HAMMER", "7", "8"] frame then Just "false"
+        else if hasType "CASHIER" frame then
+          case find (\shop -> earlier shop "type" frame "type") $ findFrames "SHOP" $ sense frame of
+           Just shop -> sValue "given" shop
+           _ -> Just "true"
+        else if hasType "SHOP" frame then
+          if any (\cashier -> earlier cashier "type" frame "type") $ findFrames "CASHIER" $ sense frame then Just "true"
+          else Just "false"
         else Just "true"
       "type" ->
         case (sValue "rusNumber" frame, sValue "rusPerson" frame) of

@@ -30,7 +30,7 @@ instance Show Tree where
 
 allTreeMites tree =
   if isNothing $ left tree then mites tree
-  else (allTreeMites $ fromJust $ left tree)++(allTreeMites $ fromJust $ right tree)++ mites tree
+  else (allTreeMites $ fromJust $ left tree)++mites tree++(allTreeMites $ fromJust $ right tree)
 
 headMites tree =
   let inner tree suppressed result =

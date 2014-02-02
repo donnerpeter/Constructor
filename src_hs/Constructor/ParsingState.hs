@@ -9,6 +9,7 @@ import Data.Function (on)
 import qualified Constructor.LinkedSet as LS
 import qualified Data.Set as Set
 import Constructor.Composition
+import Control.Exception (assert)
 
 createEdges:: Tree -> Tree -> [Tree]
 createEdges leftTree rightTree =
@@ -53,8 +54,10 @@ optimize leftTree rightTree digLeft digRight useOwnMites =
 
 mergeTrees:: [Tree] -> [Tree]
 mergeTrees state =
-  head $ sortByLength $ allMergeVariants [state] LS.empty where
+  head $ sortByLength $ sortByUnhappy $ allMergeVariants [state] LS.empty where
     sortByLength = Data.List.sortBy (compare `on` length)
+    sortByUnhappy = Data.List.sortBy (compare `on` unhappyCount)
+    unhappyCount trees = sum [length $ unhappyActiveMites tree | tree <- trees]
     allMergeVariants queue result =
       case queue of
         [] -> LS.elements result
@@ -72,14 +75,16 @@ addMites:: [Tree] -> [Mite] -> [Tree]
 addMites state mites = mergeTrees $ (fromJust $ suggestActive $ Tree mites Nothing Nothing True Set.empty $ calcCandidateSets mites):state
 
 calcCandidateSets:: [Mite] -> [Set.Set Mite]
-calcCandidateSets mites = enumerate mites [] where
-  enumerate :: [Mite] -> [Mite] -> [Set.Set Mite]
-  enumerate mites chosen = case mites of
-    [] -> [Set.fromList chosen]
-    mite:rest -> includeMite++omitMite where
-      includeMite = if hasContradictors mite chosen then [] 
-                    else enumerate [r | r <- rest, not $ contradict mite r] (mite:chosen)
-      omitMite = if hasContradictors mite rest then enumerate rest chosen else []
+calcCandidateSets mites = enumerate mites [] [] where
+  enumerate :: [Mite] -> [Mite] -> [Mite] -> [Set.Set Mite]
+  enumerate mites chosen uncovered =
+    if any (\mite -> not $ hasContradictors mite mites) uncovered then [] 
+    else case mites of
+      [] -> assert (null uncovered) [Set.fromList chosen]
+      mite:rest -> includeMite++omitMite where
+        includeMite = if hasContradictors mite chosen then [] 
+                      else enumerate (filter (not . contradict mite) rest) (mite:chosen) (filter (not . contradict mite) uncovered)
+        omitMite = enumerate rest chosen (mite:uncovered)
 
 suggestActive:: Tree -> Maybe Tree
 suggestActive tree = {-traceShow ("suggestActive", tree, "->", result) $ -}result where

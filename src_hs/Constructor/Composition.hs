@@ -109,10 +109,16 @@ interactNodesNoWh leftMites rightMites = pairVariants ++ seqVariants where
       Argument kind child -> withBase [m1,m2] [semV v "member2" child, mite $ SeqRight v kind]
       Possessive caze agr child -> withBase [m1,m2] [semV v "member2" child, mite $ SeqRight v (PossKind caze agr)]
       TopLevelClause child ->                         
-        let unhappy = filter (not . happy) rightMites
+        let unhappy = filter elideable $ filter (not . happy) rightMites
             wrapped = [(mite $ ElidedArgHead $ cxt m) {baseMites = [m,m1,m2]} | m <- unhappy]
+            elideable mite = case cxt mite of
+              NomHead {} -> True
+              _ -> False
+            emptyCounterparts = rightMites >>= \m -> case cxt m of
+              EmptyCxt w | any (contradict m) wrapped -> [(mite $ cxt m) {baseMites = [m,m1,m2]}]
+              _ -> []
         in
-          withBase [m1, m2] [semV v "member2" child, mite $ SeqRight v CP] ++ wrapped
+          withBase [m1, m2] [semV v "member2" child, mite $ SeqRight v CP] ++ wrapped ++ emptyCounterparts
       _ -> []
     _ -> []      
   seqLeft = concat [interactSeqLeft m1 m2 | m1 <- leftInteractive, m2 <- rightInteractive]

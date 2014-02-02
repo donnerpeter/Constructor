@@ -55,3 +55,7 @@ allActiveMiteSet tree =
   else active tree
 
 allActiveMites tree = filter (flip Set.member activeSet) (allTreeMites tree) where activeSet = allActiveMiteSet tree
+
+unhappyActiveMites tree = filter (\mite -> not (happy mite || Set.member mite spine)) $ Set.elems allActive where
+  allActive = allActiveMiteSet tree
+  spine = Set.fromList $ activeBase $ allActive

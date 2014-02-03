@@ -44,7 +44,8 @@ data Construction = Word Variable String
                   | ConditionComp Variable {-if/when-} String {-has cp-} Bool
                   | CommaSurrounded {-opened-} Bool {-closed-} Bool Construction
                   | Control Variable
-                  | Infinitive Variable
+                  | ModalityInfinitive Variable
+                  | ControlledInfinitive Variable
                   | Complementizer Variable
                   | SurroundingComma {-closing-} Bool Variable
                   | Colon {-role-} String Variable
@@ -84,7 +85,7 @@ isHappy (CopulaTense {}) = False
 isHappy (Copula {}) = False
 isHappy (ConditionComp {}) = False
 isHappy (CommaSurrounded {}) = False
-isHappy (Infinitive {}) = False
+isHappy (ControlledInfinitive {}) = False
 isHappy (Control {}) = False
 isHappy (SurroundingComma {}) = False
 isHappy (SubordinateClause {}) = False

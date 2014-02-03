@@ -13,7 +13,7 @@ tokenize s = [map toLower token | token <- tokens, length token > 0] where
     case char of
       ' ' -> (current:tokens, "")
       '\n' -> (current:tokens, "")
-      c | c == ':' || c == ',' || c == '.' || c == '\"' -> ([char]:current:tokens, "")
+      c | c == ':' || c == ',' || c == '.' || c == '\"' || c == '?' -> ([char]:current:tokens, "")
       _ -> (tokens, current++[char])
 
 parse:: String -> [Tree]
@@ -64,6 +64,9 @@ sonnetTests = [
                 ,
   translateTest "Но тут, вдумываясь в слова кассирши, мы опять приуныли, так как ее слова показались нам лишенными всякого смысла."
                 "But there, thinking carefully about cashier's words, we got sad again because her words were void of any meaning."
+                ,
+  translateTest "Что нам было делать?"
+                "What were we supposed to do?"
   ]
 
 variationTests1=[

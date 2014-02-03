@@ -516,6 +516,18 @@ A@3.member=B
     doTranslateTest 'Что мне нужно?',
                     'What do I need?'
   }
+  public void test10_NothingToDoPast() {
+    doTranslateTest 'Делать нам было нечего',
+                    'We had nothing to do'
+  }
+  public void test10_NothingToDo() {
+    doTranslateTest 'Делать нам нечего',
+                    'We have nothing to do'
+  }
+  public void test10_SomethingToDo() {
+    doTranslateTest 'Нам есть, что делать',
+                    'We have something to do'
+  }
   public void test10_INeedPast() {
     doTranslateTest 'Что мне было нужно?',
                     'What did I need?'

@@ -233,6 +233,7 @@ clause fVerb = do
       _ -> return ""
     core <- if hasType "degree" fVerb && (fromMaybe False $ fmap (hasType "wh") $ fValue "arg2" fVerb)
            then return $ "Great was" `cat` subject
+           else if hasType "modality" fVerb then return "What were we supposed to do?"
            else vp fVerb verbForm subject
     elaboration <- case fValue "elaboration" fVerb of
       Just smth -> do subClause <- sentence smth; return $ "," `cat` subClause

@@ -82,7 +82,9 @@ interactNodesNoWh leftMites rightMites = pairVariants ++ seqVariants where
       (QuestionVariants (Just v) Nothing, QuestionVariants Nothing (Just s)) -> left [mite $ QuestionVariants (Just v) (Just s)]
       (QuestionVariants (Just v) (Just _), Argument Nom child) -> left [semV v "variants" child]
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
+      
       (Copula v0, CopulaTense v1) -> left [mite $ Unify v0 v1]
+      (CopulaTense v1, ModalityInfinitive v2) -> right [mite $ Unify v1 v2]
       
       (ConditionComp v0 s False, SubordinateClause cp) -> left [mite $ Unify v0 cp, mite $ ConditionComp v0 s True]
       (ConditionCompHead head, CommaSurrounded True _ (ConditionComp cp cond _)) -> left [semV head (cond++"Condition") cp]
@@ -107,7 +109,7 @@ interactNodesNoWh leftMites rightMites = pairVariants ++ seqVariants where
          SubordinateClause cp3 | cp3 == cp2 ->
            [MergeInfo [(mite $ Unify cp1 cp2) { baseMites = [m1, m2, m3]}] True]
          _ -> []
-      (Control slave, Infinitive inf) -> left [mite $ Unify slave inf]
+      (Control slave, ControlledInfinitive inf) -> left [mite $ Unify slave inf]
       (Elaboration head, Fact cp) -> rightMites >>= \m3 -> case cxt m3 of
          SubordinateClause cp2 | cp == cp2 ->
            [MergeInfo [(semV head "elaboration" cp) { baseMites = [m1, m2, m3]}] True]

@@ -103,8 +103,9 @@ streetName frame = case sValue "name" frame of
  _ -> ""
 
 determiner frame nbar =
-  let det = if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "OPINION", "WORDS"] frame 
-            then fValue "arg1" frame else Nothing
+  let det = if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "OPINION"] frame then fValue "arg1" frame
+            else if hasAnyType ["WORDS"] frame then fValue "author" frame
+            else Nothing
       genitiveSpecifier det =
         case getType det of
           Just "ME" -> return "my"
@@ -122,6 +123,7 @@ determiner frame nbar =
     _ -> return $
       let sDet = sValue "determiner" frame in
       if sDet == Just "THIS" then "this"
+      else if sDet == Just "ANY" then "any"
       else if getType frame == Just "STREET" then streetName frame
       else if sValue "number" frame == Just "true" then ""
       else if sValue "given" frame == Just "true" then "the"
@@ -149,6 +151,7 @@ noun (Just typ) frame = case typ of
   "MOUTH" -> "mouth"
   "NOSE" -> "nose"
   "OPINION" -> "opinion"
+  "MEANING" -> "meaning"
   "7" -> if sValue "number" frame == Just "true" then typ else "seven"
   "8" -> if sValue "number" frame == Just "true" then typ else "eight"
   _ -> typ
@@ -205,6 +208,7 @@ verb verbForm frame typ =
   "TAKE_OUT" -> "took"
   "GET_SAD" -> "got sad"
   "SAY" -> "said"
+  "LACK" -> "were void of"
   "copula" -> "is"
   _ -> typ
 
@@ -214,7 +218,8 @@ clause fVerb = do
     state <- get
     when (sValue "time" fVerb == Just "PAST") (put $ state { past = True })
     state <- get
-    let emphasis = if sValue "emphasis" fVerb == Just "true" then "there," else ""
+    let emphasis = cat (if sValue "butEmphasis" fVerb == Just "true" then "but" else "") 
+                       (if sValue "emphasis" fVerb == Just "true" then "there," else "")
     let verbForm = if past state then PastVerb else BaseVerb
         fSubject = fValue "arg1" fVerb
     subject <- case fSubject of
@@ -251,16 +256,21 @@ clause fVerb = do
        _ -> return ""
       else return ""
     condComp <- case fValue "whenCondition" fVerb of
-      Just fComp -> do comp <- sentence fComp; return $ ", when" `cat` comp
+      Just fComp -> return ", when" `catM` sentence fComp
       _ -> case fValue "condition" fVerb of
         Just caze | hasType "CASE" caze -> case fValue "whenCondition" caze of
           Just fComp -> do comp <- sentence fComp; return $ ", only if" `cat` comp
           _ -> return ""
         _ -> return ""  
+    reasonComp <- case fValue "reason" fVerb of
+      Just fComp -> if (fValue "content" fComp >>= getType) == Just "SEEM" && isJust (fValue "content" fComp >>= fValue "theme")
+        then do frameGenerated fComp; return "because" `catM` clause (fromJust $ fValue "content" fComp >>= fValue "theme")
+        else return "because" `catM` sentence fComp
+      _ -> return ""
     questionVariants <- case fmap (\subj -> (getType subj, fValue "variants" subj)) fSubject of
       Just (Just "wh", Just variants) -> (return "-") `catM` (np True (Just variants))
       _ -> return ""
-    return $ emphasis `cat` opinion `cat` background `cat` core `cat` condComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
+    return $ emphasis `cat` opinion `cat` background `cat` core `cat` condComp `cat` reasonComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
 
 vp :: Frame -> VerbForm -> String -> State GenerationState String
 vp fVerb verbForm subject = do
@@ -299,6 +309,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       ("TAKE_OUT", "source") -> [PPArg "out of" value]
       ("RUN_OUT", "source") -> [PPArg "out of" value]
       ("ASK", "topic") -> if hasType "question" value then [] else [PPArg "on" value]
+      ("LACK", "theme") -> [NPArg value]
       (_, "goal") -> [PPArg "to" value]
       (_, "mood") -> case getType value of
         Just "JOY" -> [Adverb "cheerfully"]

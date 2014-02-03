@@ -72,14 +72,25 @@ interactNodesNoWh leftMites rightMites = pairVariants ++ seqVariants where
       (CompHead comp, CommaSurrounded True _ (Wh _ cp)) -> left [mite $ Unify comp cp]
       (CompHead comp, CommaSurrounded True _ (Complementizer cp)) -> left [mite $ Unify comp cp]
       (AdjHead noun _ _, CommaSurrounded True _ (Wh _ cp)) -> left [semV noun "relative" cp]
+      
       (CommaSurrounded _ True (VerbalModifier attr True advP), Verb verb) -> right [semV verb attr advP]
       (Verb verb, VerbalModifier attr False advP) -> left [semV verb attr advP]
       (VerbalModifier attr False advP, Verb verb) -> right [semV verb attr advP]
+      
       (QuestionVariants (Just v) Nothing, QuestionVariants Nothing (Just s)) -> left [mite $ QuestionVariants (Just v) (Just s)]
       (QuestionVariants (Just v) (Just _), Argument Nom child) -> left [semV v "variants" child]
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
       (Copula v0, CopulaTense v1) -> left [mite $ Unify v0 v1]
+      
       (ConditionComp v0 s False, SubordinateClause cp) -> left [mite $ Unify v0 cp, mite $ ConditionComp v0 s True]
+      (ConditionCompHead head, CommaSurrounded True _ (ConditionComp cp cond _)) -> left [semV head (cond++"Condition") cp]
+      (Verb head, CommaSurrounded True _ (ConditionComp cp cond _)) -> left [semV head (cond++"Condition") cp]
+
+      (ReasonComp v0 False, SubordinateClause cp) -> left [mite $ Unify v0 cp, mite $ ReasonComp v0 True]
+      (Verb head, CommaSurrounded True _ (ReasonComp cp _)) -> left [semV head "reason" cp]
+      
+      (TwoWordCxt s1 True wrapped _, TwoWordCxt s2 False _ _) | s1 == s2 -> left wrapped
+      
       (TopLevelClause cp, Word _ ".") -> left [semS cp "dot" "true"]
       (Conjunction v ",", Word _ "а") -> right [mite $ Conjunction v "but", semS v "conj" "but"]
       (SurroundingComma False _, toWrap) | isCommaSurroundable toWrap -> left [mite $ CommaSurrounded True False toWrap]
@@ -90,8 +101,6 @@ interactNodesNoWh leftMites rightMites = pairVariants ++ seqVariants where
       (AdjHead noun _ _, QuotedWord (Word _ word) _) -> left [semS noun "name" word]
       (Word _ "не", Verb v) -> right [semS v "negated" "true"]
       (Word _ "тоже", Verb v) -> right [semS v "also" "true"]
-      (ConditionCompHead head, CommaSurrounded True _ (ConditionComp cp cond _)) -> left [semV head (cond++"Condition") cp]
-      (Verb head, CommaSurrounded True _ (ConditionComp cp cond _)) -> left [semV head (cond++"Condition") cp]
       (Complementizer cp1, Fact cp2) -> rightMites >>= \m3 -> case cxt m3 of
          SubordinateClause cp3 | cp3 == cp2 ->
            [MergeInfo [(mite $ Unify cp1 cp2) { baseMites = [m1, m2, m3]}] True]

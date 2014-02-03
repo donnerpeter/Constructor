@@ -62,6 +62,8 @@ data Construction = Word Variable String
                   | DirectSpeechDash Variable
                   | RaisingVerb {-verb-} Variable {-subj-} Variable
                   | Raiseable Agr Variable
+                  | TwoWordCxt String {-first-} Bool [Mite] Variable
+                  | ReasonComp Variable {-has cp-} Bool
                   -- | S1 | S2 | S3 | S4
                   deriving (Show, Ord, Eq)
 data Mite = Mite { cxt :: Construction, happy :: Bool, contradictors :: Set.Set Construction, baseMites :: [Mite] } deriving (Ord, Eq)
@@ -101,9 +103,12 @@ isHappy (ActivePreposition {}) = False
 isHappy (DirectSpeechDash {}) = False
 isHappy (RaisingVerb {}) = False
 isHappy (Raiseable {}) = False
+isHappy (TwoWordCxt {}) = False
+isHappy (ReasonComp {}) = False
 isHappy _ = True
 
 isCommaSurroundable (ConditionComp _ _ True) = True
+isCommaSurroundable (ReasonComp _ True) = True
 isCommaSurroundable (Wh {}) = True
 isCommaSurroundable (Complementizer {}) = True
 isCommaSurroundable (VerbalModifier {}) = True

@@ -67,6 +67,7 @@ wordMites word index =
   "или" -> [mite $ Conjunction v0 "or", semS v0 "conj" "or", semT v0 "seq"]
   "их" -> xor [pronoun Acc A.pl "THEY" v, [semT v0 "THEY", mite $ Possessive Nom A.sg v0], [semT v0 "THEY", mite $ Possessive Nom A.pl v0]]
   "к" -> preposition "k" Dat v
+  "как" -> [mite $ TwoWordCxt "так как" False [] v0]
   "каково" -> 
     -- todo wh-questions with каково
     finiteClause A.n3 True v ++ [mite $ Copula v0, semT (v "wh") "wh", semT v0 "degree", semV v0 "arg2" (v "wh"), mite $ ShortAdj (v "wh")]
@@ -90,6 +91,7 @@ wordMites word index =
   "нам" -> pronoun Dat A.pl3 "WE" v
   "нашем" -> [semT v0 "WE", mite $ Possessive Prep A.n v0]
   "недоумении" -> nounSg Prep Neu "PREDICAMENT" v
+  "но" ->  adverb "butEmphasis" "true"
   "носом" -> nounSg Instr Masc "NOSE" v
   "обнаружили" -> finVerb "DISCOVER" "PAST" A.pl v ++ compHead "theme" v
   "о" -> preposition "o" Prep v
@@ -116,7 +118,7 @@ wordMites word index =
   "семь" -> nounSg Nom Masc "7" v
   "сказала" -> finVerb "SAY" "PAST" A.f v ++ [mite $ DirectSpeechHead v0 Nothing] -- todo ++ arg Acc "arg2" v
   "слегка" -> adverb "manner" "SLIGHTLY"
-  "слова" -> xor [nounPl Nom "WORDS" v, nounPl Acc "WORDS" v] ++ optional (arg Gen "arg1" v)
+  "слова" -> xor [nounPl Nom "WORDS" v, nounPl Acc "WORDS" v] ++ optional (arg Gen "author" v)
   "случай" -> nounSg Nom Masc "CASE" v
   "случае" -> nounSg Prep Masc "CASE" v ++ [mite $ ConditionCompHead v0] ++ optional [mite $ PrepositionActivator "v" Prep [VerbalModifier "condition" False v0]]
   "случился" -> finVerb "HAPPEN" "PAST" A.m v ++ arg (PP "s" Instr) "experiencer" v
@@ -126,6 +128,7 @@ wordMites word index =
   "со" -> preposition "s" Instr v
   "соседям" -> nounPl Dat "NEIGHBORS" v
   "счета" -> nounSg Gen Masc "COUNTING" v
+  "так" -> [mite $ TwoWordCxt "так как" True [mite $ ReasonComp v0 False] v0]
   "том" -> [mite $ Adj v0 Prep A.sg "determiner" "THAT"]
   "тут" -> adverb "emphasis" "true"
   "удивительный" -> adj Nom A.m "property" "AMAZING" v

@@ -49,7 +49,7 @@ wordMites word index =
       v0 = v ""
   in
   case word of
-  s | isNumber s -> xor [nounSg Nom Masc word v, nounSg Acc Masc word v] ++ [semS v0 "number" "true"]
+  s | isNumber s -> xor [nounSg Nom Masc word v, nounSg Nom Neu word v, nounSg Acc Masc word v, nounSg Acc Neu word v] ++ [semS v0 "number" "true"]
   "6-ти" -> nounSg Gen Masc word v ++ [semS v0 "number" "true"]
   "было" -> [mite $ CopulaTense v0, semS v0 "time" "PAST"]
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
@@ -68,6 +68,7 @@ wordMites word index =
   "деревья" -> nounPl Acc "TREES" v
   "до" -> preposition "do" Gen v
   "дойдя" -> perfectBackground "COME_TO" v ++ arg (PP "v" Prep) "domain" v ++ arg (PP "do" Gen) "goal" v
+  "других" -> nounPl Gen "OTHERS" v
   "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ directObject v ++ arg (PP "po" Dat) "topic" v
   "ее" -> xor [pronoun Acc A.pl "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.sg v0], [semT v0 "SHE", mite $ Possessive Nom A.pl v0]]
   "забыл" -> finVerb "FORGET" "PAST" A.m v ++ compHead "arg2" v
@@ -95,6 +96,7 @@ wordMites word index =
   "магазин" -> nounSg Acc Masc "SHOP" v -- todo который + agr
   "магазина" -> nounSg Gen Masc "SHOP" v
   "маленький" -> adj Acc A.m "size" "LITTLE" v
+  "мнению" -> nounSg Dat Masc "OPINION" v ++ genHead "arg1" v ++ optional [mite $ PrepositionActivator "po" Dat [VerbalModifier "accordingTo" False v0]]
   "мной" -> pronoun Instr A.sg "ME" v
   "могут" -> finVerb "CAN" "PRESENT" A.pl3 v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
   "молоточек" -> nounSg Acc Masc "HAMMER" v
@@ -109,8 +111,9 @@ wordMites word index =
   "недоумении" -> nounSg Prep Neu "PREDICAMENT" v ++ genHead "arg1" v
   "но" ->  adverb "butEmphasis" "true"
   "носом" -> nounSg Instr Masc "NOSE" v
-  "обнаружили" -> finVerb "DISCOVER" "PAST" A.pl v ++ compHead "theme" v
   "о" -> preposition "o" Prep v
+  "обнаружили" -> finVerb "DISCOVER" "PAST" A.pl v ++ compHead "theme" v
+  "одних" -> nounPl Gen "SOME" v
   "он" -> pronoun Nom A.m3 "HE" v
   "они" -> pronoun Nom A.pl3 "THEY" v
   "опять" -> adverb "anchor" "AGAIN"
@@ -126,27 +129,28 @@ wordMites word index =
   "после" -> semPreposition "posle" Gen "AFTER" "anchor" v
   "показались" -> raisingVerb "SEEM" "PAST" A.pl v ++ arg Dat "experiencer" v
   "приуныли" -> finVerb "GET_SAD" "PAST" A.pl v
-  "с" -> preposition "s" Instr v
-  "сад" -> nounSg Acc Masc "GARDEN" v
-  "стали" -> finVerb "BEGIN" "PAST" A.pl v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ arg (PP "v" Acc) "goal" v
   "радостью" -> nounSg Instr Fem "JOY" v ++ optional [mite $ PrepositionActivator "s" Instr [VerbalModifier "mood" False v0]]
   "раньше" -> [mite $ Argument ScalarAdverb v0, semT v0 "EARLIER"]
   "рта" -> nounSg Gen Masc "MOUTH" v
+  "с" -> preposition "s" Instr v
+  "сад" -> nounSg Acc Masc "GARDEN" v
   "семи" -> nounSg Gen Masc "7" v
   "семь" -> nounSg Nom Masc "7" v
   "сказала" -> finVerb "SAY" "PAST" A.f v ++ [mite $ DirectSpeechHead v0 Nothing] -- todo ++ directObject v
   "слегка" -> adverb "manner" "SLIGHTLY"
+  "следовало" -> finVerb "COME_SCALARLY" "PAST" A.n3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v]
   "слова" -> xor [nounPl Nom "WORDS" v, nounPl Acc "WORDS" v] ++ genHead "author" v
   "случай" -> nounSg Nom Masc "CASE" v
   "случае" -> nounSg Prep Masc "CASE" v ++ [mite $ ConditionCompHead v0] ++ optional [mite $ PrepositionActivator "v" Prep [VerbalModifier "condition" False v0]]
   "случился" -> finVerb "HAPPEN" "PAST" A.m v ++ arg (PP "s" Instr) "experiencer" v
   "смысла" -> nounSg Gen Masc "MEANING" v
-  "спросил" -> finVerb "ASK" "PAST" A.m v ++ directObject v ++ compHead "topic" v
-  "спросили" -> finVerb "ASK" "PAST" A.pl v ++ directObject v ++ xor [compHead "topic" v, arg (PP "o" Prep) "topic" v]
   "со" -> preposition "s" Instr v
   "соседям" -> nounPl Dat "NEIGHBORS" v
   "спорить" -> infinitive "ARGUE" v
+  "спросил" -> finVerb "ASK" "PAST" A.m v ++ directObject v ++ compHead "topic" v
+  "спросили" -> finVerb "ASK" "PAST" A.pl v ++ directObject v ++ xor [compHead "topic" v, arg (PP "o" Prep) "topic" v]
+  "стали" -> finVerb "BEGIN" "PAST" A.pl v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
   "счета" -> nounSg Gen Masc "COUNTING" v
   "счете" -> nounSg Prep Masc "COUNTING" v
   "считать" -> infinitive "COUNT" v ++ directObject v

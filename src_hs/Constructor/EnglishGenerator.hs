@@ -202,9 +202,11 @@ verb verbForm frame typ =
   "ASK" -> if (fValue "topic" frame >>= getType) == Just "PREDICAMENT" then "consult" else "asked"
   "COME_SCALARLY" -> "comes"
   "DISCOVER" -> "discovered"
+  "STOP" -> "stopped"
   "CAN" -> if negated then "couldn't" else "could"
   "BEGIN" -> "started"
   "COUNT" -> if verbForm == Gerund then "counting" else "count"
+  "ARGUE" -> if verbForm == Gerund then "arguing" else "argue"
   "RECALL" -> "recall"
   "REMEMBER" -> if verbForm == PastVerb then "remembered" else "remember"
   "SMILE" -> "gave us a sad smile"
@@ -250,8 +252,11 @@ clause fVerb = do
           _ -> Nothing
     background <- case fValue "perfectBackground" fVerb of
       Just back -> case getType back of
+        -- todo vary perfectBackground constituents
         Just "MOVE" -> return "moving her nose slightly back and forth,"
         Just "THINK" -> return "thinking carefully about cashier's words,"
+        Just "COME_TO" -> return "but reaching a six in count,"
+        _ -> return ""
       _ -> return ""
     comp <- fromMaybe (return "") $ fmap genComplement $ fComp
     externalComp <- if getType fVerb == Just "GO" then 

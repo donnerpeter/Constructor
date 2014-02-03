@@ -39,7 +39,9 @@ genHead attr v = optional [mite $ GenHead (v "gen"), semV (v "") attr (v "gen")]
 directObject v = arg Acc "arg2" v
 modifyV v c = \s -> v $ c:s 
 
-isNumber s = length (reads s :: [(Int, String)]) == 1
+isNumber s = case reads s :: [(Int, String)] of
+  [(_, "")] -> True
+  _ -> False
 
 wordMites :: String -> Int -> [Mite]  
 wordMites word index =
@@ -48,6 +50,7 @@ wordMites word index =
   in
   case word of
   s | isNumber s -> xor [nounSg Nom Masc word v, nounSg Acc Masc word v] ++ [semS v0 "number" "true"]
+  "6-ти" -> nounSg Gen Masc word v ++ [semS v0 "number" "true"]
   "было" -> [mite $ CopulaTense v0, semS v0 "time" "PAST"]
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
   "вдруг" -> adverb "manner" "SUDDENLY"
@@ -63,6 +66,8 @@ wordMites word index =
   "дальше" -> [mite $ Argument ScalarAdverb v0, semT v0 "NEXT"]
   "делать" -> infinitive "DO" v ++ directObject v
   "деревья" -> nounPl Acc "TREES" v
+  "до" -> preposition "do" Gen v
+  "дойдя" -> perfectBackground "COME_TO" v ++ arg (PP "v" Prep) "domain" v ++ arg (PP "do" Gen) "goal" v
   "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ directObject v ++ arg (PP "po" Dat) "topic" v
   "ее" -> xor [pronoun Acc A.pl "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.sg v0], [semT v0 "SHE", mite $ Possessive Nom A.pl v0]]
   "забыл" -> finVerb "FORGET" "PAST" A.m v ++ compHead "arg2" v
@@ -99,6 +104,7 @@ wordMites word index =
     -- todo copula for prepositions besides 'na' 
     xor [preposition "na" Prep v, [mite $ PrepHead "na" Prep v0, mite $ PrepCopula v0, semT (v "x") "copula", semV (v "x") "location" v0] ++ finiteClause A.sg True (modifyV v 'x')] 
   "нам" -> pronoun Dat A.pl3 "WE" v
+  "начали" -> finVerb "BEGIN" "PAST" A.pl v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
   "нашем" -> [semT v0 "WE", mite $ Possessive Prep A.n v0]
   "недоумении" -> nounSg Prep Neu "PREDICAMENT" v ++ genHead "arg1" v
   "но" ->  adverb "butEmphasis" "true"
@@ -108,6 +114,7 @@ wordMites word index =
   "он" -> pronoun Nom A.m3 "HE" v
   "они" -> pronoun Nom A.pl3 "THEY" v
   "опять" -> adverb "anchor" "AGAIN"
+  "остановились" -> finVerb "STOP" "PAST" A.pl v
   "отправился" -> finVerb "GO_OFF" "PAST" A.m v ++ arg (PP "k" Dat) "goal" v
   "по" -> preposition "po" Dat v
   "по-моему" -> [mite $ VerbalModifier "accordingTo" True v0, semT v0 "OPINION", semV v0 "arg1" (v "me"), semT (v "me") "ME"]
@@ -139,7 +146,9 @@ wordMites word index =
   "спросили" -> finVerb "ASK" "PAST" A.pl v ++ directObject v ++ xor [compHead "topic" v, arg (PP "o" Prep) "topic" v]
   "со" -> preposition "s" Instr v
   "соседям" -> nounPl Dat "NEIGHBORS" v
+  "спорить" -> infinitive "ARGUE" v
   "счета" -> nounSg Gen Masc "COUNTING" v
+  "счете" -> nounSg Prep Masc "COUNTING" v
   "считать" -> infinitive "COUNT" v ++ directObject v
   "так" -> [mite $ TwoWordCxt "так как" True [mite $ ReasonComp v0 False] v0]
   "там" -> adverb "location" "THERE"

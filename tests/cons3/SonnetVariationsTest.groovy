@@ -446,6 +446,10 @@ A@3.member=B
     doTranslateTest 'Мы приуныли, так как нам ее слова показались лишенными всякого смысла',
                     "We got sad because her words were void of any meaning"
   }
+  public void test9_12WePrefixBecause() {
+    doTranslateTest 'Мы приуныли, потому что ее слова показались нам лишенными всякого смысла',
+                    "We got sad because her words were void of any meaning"
+  }
 
   public void test9_12JustMeaning() {
     doTranslateTest 'Мы приуныли, так как ее слова нам показались лишенными смысла',

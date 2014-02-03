@@ -11,8 +11,10 @@ nounPl caze typ v = pronoun caze (A.Agr Nothing A.Pl (Just 3)) typ v
 pronoun caze agr typ v = [mite $ Argument caze (v ""), semS (v "") "type" typ, mite $ AdjHead (v "") caze agr]
 preposition prep nounArg v = [mite $ PrepHead prep nounArg (v "")] ++ xor [[mite $ Argument (PP prep nounArg) (v "")], [mite $ ActivePreposition (v "")]]
 semPreposition prep nounArg typ attr v = [mite $ Argument (PP prep nounArg) (v ""), mite $ PrepHead prep nounArg (v "noun"), semT (v "") typ, semV (v "") attr (v "noun")]
-finVerb typ time agr v = [semT (v "") typ, semS (v "") "time" time] ++ finiteClause agr v
-finiteClause agr v = optional [mite $ NomHead agr (v "arg1")] ++ [semV (v "") "arg1" (v "arg1")] ++
+finVerb typ time agr v = [semT (v "") typ, semS (v "") "time" time] ++ finiteClause agr True v
+raisingVerb typ time agr v = [semT (v "") typ, semS (v "") "time" time, mite $ RaisingVerb (v "") (v "arg1")] ++ finiteClause agr False v
+finiteClause agr withSemSubject v = optional [mite $ NomHead agr (v "arg1")] ++ 
+                     (if withSemSubject then [semV (v "") "arg1" (v "arg1")] else []) ++
                      (rusAgr (Just . A.number) "rusNumber") ++ (rusAgr A.gender "rusGender") ++ (rusAgr A.person "rusPerson") ++ 
                      clause v where
   rusAgr :: (Show a) => (A.Agr -> Maybe a) -> String -> [Mite]
@@ -45,6 +47,7 @@ wordMites word index =
   "вдумываясь" -> perfectBackground "THINK" v ++ arg (PP "v" Acc) "theme" v
   "восемь" -> nounSg Nom Masc "8" v
   "восьми" -> nounSg Gen Masc "8" v
+  "всякого" -> adj Gen A.m "determiner" "ANY" v
   "выбежали" -> finVerb "RUN_OUT" "PAST" A.pl v ++ arg (PP "iz" Gen) "source" v
   "вынула" -> finVerb "TAKE_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) "source" v ++ arg Acc "arg2" v
   "все" -> adj Nom A.pl "quantifier" "ALL" v
@@ -66,12 +69,13 @@ wordMites word index =
   "к" -> preposition "k" Dat v
   "каково" -> 
     -- todo wh-questions with каково
-    finiteClause A.n3 v ++ [mite $ Copula v0, semT (v "wh") "wh", semT v0 "degree", semV v0 "arg2" (v "wh"), mite $ ShortAdj (v "wh")]
+    finiteClause A.n3 True v ++ [mite $ Copula v0, semT (v "wh") "wh", semT v0 "degree", semV v0 "arg2" (v "wh"), mite $ ShortAdj (v "wh")]
   "кассирша" -> nounSg Nom Fem "CASHIER" v
   "кассирши" -> nounSg Gen Fem "CASHIER" v
   "кассиршу" -> nounSg Acc Fem "CASHIER" v
   "когда" -> [mite $ ConditionComp v0 "when" False] -- todo wh-questions with когда
   "коммерческий" -> adj Acc A.m "kind" "COMMERCIAL" v
+  "лишенными" -> [mite $ Raiseable A.pl v0, semT v0 "LACK"] ++ arg Gen "theme" v
   "магазин" -> nounSg Acc Masc "SHOP" v -- todo который + agr
   "магазина" -> nounSg Gen Masc "SHOP" v
   "маленький" -> adj Acc A.m "size" "LITTLE" v
@@ -82,7 +86,7 @@ wordMites word index =
   "мы" -> pronoun Nom A.pl1 "WE" v
   "на" ->
     -- todo copula for prepositions besides 'na' 
-    xor [preposition "na" Prep v, [mite $ PrepHead "na" Prep v0, mite $ PrepCopula v0, semT (v "x") "copula", semV (v "x") "location" v0] ++ finiteClause A.sg (\s -> v $ 'x':s)] 
+    xor [preposition "na" Prep v, [mite $ PrepHead "na" Prep v0, mite $ PrepCopula v0, semT (v "x") "copula", semV (v "x") "location" v0] ++ finiteClause A.sg True (\s -> v $ 'x':s)] 
   "нам" -> pronoun Dat A.pl3 "WE" v
   "нашем" -> [semT v0 "WE", mite $ Possessive Prep A.n v0]
   "недоумении" -> nounSg Prep Neu "PREDICAMENT" v
@@ -101,7 +105,7 @@ wordMites word index =
   "помнят" -> finVerb "REMEMBER" "PRESENT" A.pl3 v ++ arg Acc "arg2" v
   "порядок" -> nounSg Acc Masc "ORDER" v ++ optional (arg Gen "arg1" v)
   "после" -> semPreposition "posle" Gen "AFTER" "anchor" v
-  "показались" -> finVerb "SEEM" "PAST" A.pl v ++ arg Dat "experiencer" v
+  "показались" -> raisingVerb "SEEM" "PAST" A.pl v ++ arg Dat "experiencer" v
   "приуныли" -> finVerb "GET_SAD" "PAST" A.pl v
   "с" -> preposition "s" Instr v
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ arg (PP "v" Acc) "goal" v
@@ -116,6 +120,7 @@ wordMites word index =
   "случай" -> nounSg Nom Masc "CASE" v
   "случае" -> nounSg Prep Masc "CASE" v ++ [mite $ ConditionCompHead v0] ++ optional [mite $ PrepositionActivator "v" Prep [VerbalModifier "condition" False v0]]
   "случился" -> finVerb "HAPPEN" "PAST" A.m v ++ arg (PP "s" Instr) "experiencer" v
+  "смысла" -> nounSg Gen Masc "MEANING" v
   "спросил" -> finVerb "ASK" "PAST" A.m v ++ arg Acc "arg2" v ++ compHead "topic" v
   "спросили" -> finVerb "ASK" "PAST" A.pl v ++ arg Acc "arg2" v ++ xor [compHead "topic" v, arg (PP "o" Prep) "topic" v]
   "со" -> preposition "s" Instr v

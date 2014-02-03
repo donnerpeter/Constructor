@@ -101,6 +101,7 @@ interactNodesNoWh leftMites rightMites = pairVariants ++ seqVariants where
          SubordinateClause cp2 | cp == cp2 ->
            [MergeInfo [(semV head "elaboration" cp) { baseMites = [m1, m2, m3]}] True]
          _ -> []
+      (RaisingVerb verb subj, Raiseable agr child) -> left [semV child "arg1" subj, semV verb "theme" child] 
       _ -> []
   seqVariants = (if null seqRight then [] else [MergeInfo seqRight True]) ++ (if null seqLeft then [] else [MergeInfo seqLeft False])
   hasSeqFull = flip any rightMites $ \mite -> case cxt mite of SeqFull {} -> True; _ -> False

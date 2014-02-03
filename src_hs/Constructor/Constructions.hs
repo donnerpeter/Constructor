@@ -15,6 +15,7 @@ data Construction = Word Variable String
                   | AdjHead Variable ArgKind Agr
                   | Verb Variable
                   | NomHead Agr Variable
+                  | GenHead Variable
                   | ArgHead ArgKind Variable
                   | PrepHead String ArgKind Variable
                   | PrepositionActivator String ArgKind [Construction]
@@ -76,6 +77,7 @@ isHappy (Elaboration {}) = False
 isHappy (SeqRight {}) = False
 isHappy (Conjunction {}) = False
 isHappy (NomHead {}) = False
+isHappy (GenHead {}) = False
 isHappy (ElidedArgHead {}) = False
 isHappy (Possessive {}) = False
 isHappy (CopulaTense {}) = False

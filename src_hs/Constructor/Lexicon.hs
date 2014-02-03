@@ -32,6 +32,7 @@ compHead attr v = [mite $ CompHead (v "comp"), semV (v "") attr (v "comp")]
 adj caze agr attr value v = [mite $ Adj (v "") caze agr attr value]
 perfectBackground typ v = [mite $ Verb (v ""), semT (v "") typ, mite $ VerbalModifier "perfectBackground" True (v "")]
 adverb attr value = [mite $ Adverb attr value]
+genHead attr v = optional [mite $ GenHead (v "gen"), semV (v "") attr (v "gen")]
 
 isNumber s = length (reads s :: [(Int, String)]) == 1
 
@@ -91,7 +92,7 @@ wordMites word index =
     xor [preposition "na" Prep v, [mite $ PrepHead "na" Prep v0, mite $ PrepCopula v0, semT (v "x") "copula", semV (v "x") "location" v0] ++ finiteClause A.sg True (\s -> v $ 'x':s)] 
   "нам" -> pronoun Dat A.pl3 "WE" v
   "нашем" -> [semT v0 "WE", mite $ Possessive Prep A.n v0]
-  "недоумении" -> nounSg Prep Neu "PREDICAMENT" v
+  "недоумении" -> nounSg Prep Neu "PREDICAMENT" v ++ genHead "arg1" v
   "но" ->  adverb "butEmphasis" "true"
   "носом" -> nounSg Instr Masc "NOSE" v
   "обнаружили" -> finVerb "DISCOVER" "PAST" A.pl v ++ compHead "theme" v
@@ -106,7 +107,7 @@ wordMites word index =
   "поводу" -> nounSg Dat Masc "MATTER" v
   "подвигав" -> perfectBackground "MOVE" v ++ arg Instr "arg2" v
   "помнят" -> finVerb "REMEMBER" "PRESENT" A.pl3 v ++ arg Acc "arg2" v
-  "порядок" -> nounSg Acc Masc "ORDER" v ++ optional (arg Gen "arg1" v)
+  "порядок" -> nounSg Acc Masc "ORDER" v ++ genHead "arg1" v
   "после" -> semPreposition "posle" Gen "AFTER" "anchor" v
   "показались" -> raisingVerb "SEEM" "PAST" A.pl v ++ arg Dat "experiencer" v
   "приуныли" -> finVerb "GET_SAD" "PAST" A.pl v
@@ -119,7 +120,7 @@ wordMites word index =
   "семь" -> nounSg Nom Masc "7" v
   "сказала" -> finVerb "SAY" "PAST" A.f v ++ [mite $ DirectSpeechHead v0 Nothing] -- todo ++ arg Acc "arg2" v
   "слегка" -> adverb "manner" "SLIGHTLY"
-  "слова" -> xor [nounPl Nom "WORDS" v, nounPl Acc "WORDS" v] ++ optional (arg Gen "author" v)
+  "слова" -> xor [nounPl Nom "WORDS" v, nounPl Acc "WORDS" v] ++ genHead "author" v
   "случай" -> nounSg Nom Masc "CASE" v
   "случае" -> nounSg Prep Masc "CASE" v ++ [mite $ ConditionCompHead v0] ++ optional [mite $ PrepositionActivator "v" Prep [VerbalModifier "condition" False v0]]
   "случился" -> finVerb "HAPPEN" "PAST" A.m v ++ arg (PP "s" Instr) "experiencer" v
@@ -133,8 +134,8 @@ wordMites word index =
   "том" -> [mite $ Adj v0 Prep A.sg "determiner" "THAT"]
   "тут" -> adverb "emphasis" "true"
   "удивительный" -> adj Nom A.m "property" "AMAZING" v
-  "углу" -> nounSg Prep Masc "CORNER" v ++ optional (arg Gen "arg1" v)
-  "удивление" -> nounSg Nom Neu "AMAZE" v
+  "углу" -> nounSg Prep Masc "CORNER" v ++ genHead "arg1" v
+  "удивление" -> nounSg Nom Neu "AMAZE" v ++ genHead "arg1" v
   "улицы" -> nounSg Gen Fem "STREET" v
   "улыбнулась" -> finVerb "SMILE" "PAST" A.f v
   "что" -> xor [whWord v ++ xor [[mite $ Argument Nom v0], [mite $ Argument Acc v0]] ++ [mite $ AdjHead v0 Nom A.n3], [mite $ Complementizer v0]]

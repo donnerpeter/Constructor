@@ -57,10 +57,11 @@ handleSeq f (Just frame) =
   else f frame
 
 np nom frame =
-  if (frame >>= getType) == Just "seq" && (frame >>= fValue "member2" >>= getType) == Just "STREET"
+  if isSeq && (frame >>= fValue "member2" >>= getType) == Just "STREET"
   then
     handleSeq (return . streetName) frame `catM` return "streets"
-  else handleSeq (np_internal nom True) frame
+  else handleSeq (np_internal nom (not $ isSeq && isNumber frame)) frame where
+  isSeq = (frame >>= getType) == Just "seq"
 
 np_internal :: Bool -> Bool -> Frame -> State GenerationState String
 np_internal nom mayHaveDeterminer frame = do
@@ -83,6 +84,9 @@ np_internal nom mayHaveDeterminer frame = do
         Just "CORNER" -> case fValue "arg1" frame of
           Just gen -> return "of" `catM` np False (Just gen)
           _ -> return ""
+        Just "OPINION" | not $ isDeterminerOpinion frame -> case fValue "arg1" frame of
+          Just gen -> return "of" `catM` np False (Just gen)
+          _ -> return ""
         _ -> return ""
       det <- if mayHaveDeterminer then determiner frame nbar else return ""
       return $ det `cat` nbar `cat` genitiveComplement
@@ -102,8 +106,10 @@ streetName frame = case sValue "name" frame of
  Just s -> s
  _ -> ""
 
+isDeterminerOpinion frame = all (hasAnyType ["ME", "THEY"]) (flatten $ fValue "arg1" frame)
 determiner frame nbar =
-  let det = if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "OPINION"] frame then fValue "arg1" frame
+  let det = if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW"] frame then fValue "arg1" frame
+            else if hasAnyType ["OPINION"] frame && isDeterminerOpinion frame then fValue "arg1" frame
             else if hasAnyType ["WORDS"] frame then fValue "author" frame
             else Nothing
       genitiveSpecifier det =
@@ -125,7 +131,7 @@ determiner frame nbar =
       if sDet == Just "THIS" then "this"
       else if sDet == Just "ANY" then "any"
       else if hasType "STREET" frame then streetName frame
-      else if sValue "number" frame == Just "true" then ""
+      else if hasAnyType ["SOME", "OTHERS"] frame then ""
       else if sValue "given" frame == Just "true" then "the"
       else if "a" `isPrefixOf` nbar || "e" `isPrefixOf` nbar then "an"
       else if isSingular (getType frame) then "a"
@@ -153,6 +159,8 @@ noun (Just typ) frame = case typ of
   "NOSE" -> "nose"
   "OPINION" -> "opinion"
   "MEANING" -> "meaning"
+  "SOME" -> "some"
+  "OTHERS" -> "others"
   "GARDEN" -> if sValue "name" frame == Just "летний" then "Summer Garden" else "garden"
   "7" -> if sValue "number" frame == Just "true" then typ else "seven"
   "8" -> if sValue "number" frame == Just "true" then typ else "eight"
@@ -200,7 +208,7 @@ verb verbForm frame typ =
   "GO" -> "went"
   "GO_OFF" -> "went"
   "ASK" -> if (fValue "topic" frame >>= getType) == Just "PREDICAMENT" then "consult" else "asked"
-  "COME_SCALARLY" -> "comes"
+  "COME_SCALARLY" -> if sValue "time" frame == Just "PAST" then "went" else "comes"
   "DISCOVER" -> "discovered"
   "STOP" -> "stopped"
   "CAN" -> if negated then "couldn't" else "could"
@@ -243,7 +251,7 @@ clause fVerb = do
            else if hasType "modality" fVerb then return "What were we supposed to do?"
            else vp fVerb verbForm subject
     elaboration <- case fValue "elaboration" fVerb of
-      Just smth -> do subClause <- sentence smth; return $ "," `cat` subClause
+      Just smth -> return (if hasType "HAPPEN" fVerb then "," else ":") `catM` sentence smth
       _ -> return ""
     let fComp = case getType fVerb of
           Just "FORGET" -> fValue "arg2" fVerb

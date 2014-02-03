@@ -70,7 +70,8 @@ interactNodesNoWh leftMites rightMites = pairVariants ++ seqVariants where
       (DirectSpeechHead head Nothing, Colon "directSpeech" v) -> left [mite $ DirectSpeechHead head $ Just v, semV head "message" v]
       --(DirectSpeechHead head (Just v), DirectSpeech v1) -> left [mite $ Unify v v1]
       (DirectSpeechDash v, TopLevelClause cp) -> left [mite $ DirectSpeech cp, semS cp "directSpeech" "true"]
-      (Verb head, Colon "elaboration" _) -> left [mite $ Elaboration head]
+      (Colon "elaboration" _, SubordinateClause cp) -> left [mite $ Elaboration cp]
+      (Verb head, Elaboration child) -> left [semV head "elaboration" child]
       (CompHead comp, CommaSurrounded True _ (Wh _ cp)) -> left [mite $ Unify comp cp]
       (CompHead comp, CommaSurrounded True _ (Complementizer cp)) -> left [mite $ Unify comp cp]
       (AdjHead noun _ _, CommaSurrounded True _ (Wh _ cp)) -> left [semV noun "relative" cp]
@@ -110,10 +111,6 @@ interactNodesNoWh leftMites rightMites = pairVariants ++ seqVariants where
            [MergeInfo [(mite $ Unify cp1 cp2) { baseMites = [m1, m2, m3]}] True]
          _ -> []
       (Control slave, ControlledInfinitive inf) -> left [mite $ Unify slave inf]
-      (Elaboration head, Fact cp) -> rightMites >>= \m3 -> case cxt m3 of
-         SubordinateClause cp2 | cp == cp2 ->
-           [MergeInfo [(semV head "elaboration" cp) { baseMites = [m1, m2, m3]}] True]
-         _ -> []
       (RaisingVerb verb subj, Raiseable agr child) -> left [semV child "arg1" subj, semV verb "theme" child] 
       _ -> []
   seqVariants = (if null seqRight then [] else [MergeInfo seqRight True]) ++ (if null seqLeft then [] else [MergeInfo seqLeft False])

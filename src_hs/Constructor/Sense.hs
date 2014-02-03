@@ -2,7 +2,9 @@ module Constructor.Sense
   (Sense(..), Frame(..), Fact(..), fValue, sValue, 
   usages, usage, 
   getType, hasType, hasAnyType, 
-  allFrames, allFrameFacts, makeSense)
+  allFrames, allFrameFacts,
+  flatten, isNumber,
+  makeSense)
   where
 
 import Constructor.Constructions (Construction(Sem, Unify), Mite(..))
@@ -126,4 +128,8 @@ getType frame = sValue "type" frame
 
 usages attr frame = [f | f <- allFrames (sense frame), fDeclaredValue attr f == Just frame]
 usage attr frame = singleListElement $ usages attr frame
-  
+
+flatten Nothing = []
+flatten (Just frame) = if hasType "seq" frame then flatten (fValue "member1" frame) ++ maybeToList (fValue "member2" frame) else [frame]
+
+isNumber frame = any (\f -> sValue "number" f == Just "true") $ flatten frame

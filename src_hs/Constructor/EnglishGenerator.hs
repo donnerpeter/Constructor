@@ -9,7 +9,7 @@ import qualified Data.Set as Set
 import Constructor.Variable
 
 data GenerationState = GenerationState { visitedFrames:: Set.Set Frame, past:: Bool}
-data VerbForm = BaseVerb | PastVerb deriving (Eq)
+data VerbForm = BaseVerb | PastVerb | Gerund deriving (Eq)
 
 generate:: Sense -> String
 generate sense = 
@@ -124,7 +124,7 @@ determiner frame nbar =
       let sDet = sValue "determiner" frame in
       if sDet == Just "THIS" then "this"
       else if sDet == Just "ANY" then "any"
-      else if getType frame == Just "STREET" then streetName frame
+      else if hasType "STREET" frame then streetName frame
       else if sValue "number" frame == Just "true" then ""
       else if sValue "given" frame == Just "true" then "the"
       else if "a" `isPrefixOf` nbar || "e" `isPrefixOf` nbar then "an"
@@ -137,6 +137,7 @@ noun (Just typ) frame = case typ of
   "ME" -> "me"
   "HE" -> "he"
   "NEIGHBORS" -> "neighbors"
+  "TREES" -> "trees"
   "MATTER" -> "matter"
   "AMAZE" -> "amazement"
   "ORDER" -> "order"
@@ -152,6 +153,7 @@ noun (Just typ) frame = case typ of
   "NOSE" -> "nose"
   "OPINION" -> "opinion"
   "MEANING" -> "meaning"
+  "GARDEN" -> if sValue "name" frame == Just "летний" then "Summer Garden" else "garden"
   "7" -> if sValue "number" frame == Just "true" then typ else "seven"
   "8" -> if sValue "number" frame == Just "true" then typ else "eight"
   _ -> typ
@@ -159,6 +161,7 @@ noun (Just typ) frame = case typ of
 isSingular Nothing = False
 isSingular (Just typ) = case typ of
   "NEIGHBORS" -> False
+  "TREES" -> False
   _ -> True
 
 cat "" t2 = t2
@@ -200,6 +203,8 @@ verb verbForm frame typ =
   "COME_SCALARLY" -> "comes"
   "DISCOVER" -> "discovered"
   "CAN" -> if negated then "couldn't" else "could"
+  "BEGIN" -> "started"
+  "COUNT" -> if verbForm == Gerund then "counting" else "count"
   "RECALL" -> "recall"
   "REMEMBER" -> if verbForm == PastVerb then "remembered" else "remember"
   "SMILE" -> "gave us a sad smile"
@@ -287,6 +292,9 @@ vp fVerb verbForm subject = do
   controlled <- case getType fVerb of
     Just "CAN" -> case fValue "theme" fVerb of
       Just slave -> vp slave BaseVerb ""
+      _ -> return ""
+    Just "BEGIN" -> case fValue "theme" fVerb of
+      Just slave -> vp slave Gerund ""
       _ -> return ""
     _ -> return ""
   args <- foldM (\s arg -> return s `catM` generateArg arg) "" (arguments fVerb)

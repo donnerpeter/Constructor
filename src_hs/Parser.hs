@@ -67,6 +67,9 @@ sonnetTests = [
                 ,
   translateTest "Что нам было делать?"
                 "What were we supposed to do?"
+                ,
+  translateTest "Мы пошли в Летний сад и стали там считать деревья."
+                "We went to the Summer Garden and started counting trees."
   ]
 
 variationTests1=[

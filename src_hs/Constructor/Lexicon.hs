@@ -26,7 +26,7 @@ clause v = [mite $ Verb (v "")] ++
                 [semV (v "cp") "content" (v "")]
 infinitive typ v =
   [semT (v "x") typ] ++ optional (arg Dat "arg1" $ modifyV v 'x') ++
-  xor [[mite $ ControlledInfinitive $ v "", mite $ Unify (v "") (v "x")],
+  xor [[mite $ ControlledInfinitive $ v "", mite $ Unify (v "") (v "x"), mite $ Verb (v "")],
        [mite $ ModalityInfinitive (v ""), semT (v "") "modality", semV (v "") "theme" (v "x")] ++ clause v]
 arg argType relation v = [mite $ ArgHead argType (v relation), semV (v "") relation (v relation)]
 whWord v = [mite $ Wh (v "") (v "cp"), mite $ QuestionVariants (Just $ v "") Nothing,  semT (v "") "wh"]
@@ -62,6 +62,7 @@ wordMites word index =
   "грустно" -> adverb "manner" "SADLY"
   "дальше" -> [mite $ Argument ScalarAdverb v0, semT v0 "NEXT"]
   "делать" -> infinitive "DO" v ++ directObject v
+  "деревья" -> nounPl Acc "TREES" v
   "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ directObject v ++ arg (PP "po" Dat) "topic" v
   "ее" -> xor [pronoun Acc A.pl "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.sg v0], [semT v0 "SHE", mite $ Possessive Nom A.pl v0]]
   "забыл" -> finVerb "FORGET" "PAST" A.m v ++ compHead "arg2" v
@@ -84,12 +85,13 @@ wordMites word index =
   "кассиршу" -> nounSg Acc Fem "CASHIER" v
   "когда" -> [mite $ ConditionComp v0 "when" False] -- todo wh-questions with когда
   "коммерческий" -> adj Acc A.m "kind" "COMMERCIAL" v
+  "летний" -> adj Acc A.m "name" "летний" v -- todo летний is not only a name
   "лишенными" -> [mite $ Raiseable A.pl v0, semT v0 "LACK"] ++ arg Gen "theme" v
   "магазин" -> nounSg Acc Masc "SHOP" v -- todo который + agr
   "магазина" -> nounSg Gen Masc "SHOP" v
   "маленький" -> adj Acc A.m "size" "LITTLE" v
   "мной" -> pronoun Instr A.sg "ME" v
-  "могут" -> finVerb "CAN" "PAST" A.pl3 v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
+  "могут" -> finVerb "CAN" "PRESENT" A.pl3 v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
   "молоточек" -> nounSg Acc Masc "HAMMER" v
   "мое" -> [semT v0 "ME", mite $ Possessive Nom A.n v0]
   "мы" -> pronoun Nom A.pl1 "WE" v
@@ -118,6 +120,8 @@ wordMites word index =
   "показались" -> raisingVerb "SEEM" "PAST" A.pl v ++ arg Dat "experiencer" v
   "приуныли" -> finVerb "GET_SAD" "PAST" A.pl v
   "с" -> preposition "s" Instr v
+  "сад" -> nounSg Acc Masc "GARDEN" v
+  "стали" -> finVerb "BEGIN" "PAST" A.pl v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ arg (PP "v" Acc) "goal" v
   "радостью" -> nounSg Instr Fem "JOY" v ++ optional [mite $ PrepositionActivator "s" Instr [VerbalModifier "mood" False v0]]
   "раньше" -> [mite $ Argument ScalarAdverb v0, semT v0 "EARLIER"]
@@ -136,7 +140,9 @@ wordMites word index =
   "со" -> preposition "s" Instr v
   "соседям" -> nounPl Dat "NEIGHBORS" v
   "счета" -> nounSg Gen Masc "COUNTING" v
+  "считать" -> infinitive "COUNT" v ++ directObject v
   "так" -> [mite $ TwoWordCxt "так как" True [mite $ ReasonComp v0 False] v0]
+  "там" -> adverb "location" "THERE"
   "том" -> [mite $ Adj v0 Prep A.sg "determiner" "THAT"]
   "тут" -> adverb "emphasis" "true"
   "удивительный" -> adj Nom A.m "property" "AMAZING" v

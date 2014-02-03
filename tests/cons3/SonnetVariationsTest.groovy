@@ -442,23 +442,50 @@ A@3.member=B
     doTranslateTest 'Мы опять приуныли, вдумываясь в слова соседа',
                     "We got sad again, thinking carefully about neighbour's words"
   }
+  public void test9_12WePrefix() {
+    doTranslateTest 'Мы приуныли, так как нам ее слова показались лишенными всякого смысла',
+                    "We got sad because her words were void of any meaning"
+  }
+
+  public void test9_12JustMeaning() {
+    doTranslateTest 'Мы приуныли, так как ее слова нам показались лишенными смысла',
+                    "We got sad because her words were void of meaning"
+  }
+
+  public void test9_12Meaningless() {
+    doTranslateTest 'Мы приуныли, так как ее слова нам показались бессмысленными',
+                    "We got sad because her words were meaningless"
+  }
+
   public void test9_2Only() {
-    doTranslateTest 'Ее слова нам показались лишенными всякого смысла',
-                    "Her words were void of any meaning"
+    doTranslateTest "Ее слова нам показались лишенными всякого смысла",
+            "Her words seemed void of any meaning to us"
   }
   public void test9_2WePrefix() {
-    doTranslateTest 'Нам ее слова показались лишенными всякого смысла',
-                    "Her words were void of any meaning"
+    doTranslateTest "Нам ее слова показались лишенными всякого смысла",
+            "To us, her words seemed void of any meaning"
   }
 
-  public void test9_JustMeaning() {
-    doTranslateTest 'Ее слова нам показались лишенными смысла',
-                    "Her words were void of meaning"
+  public void test9_2JustMeaning() {
+    doTranslateTest "Ее слова нам показались лишенными смысла",
+            "Her words seemed void of meaning to us"
+  }
+  public void test9_2NoUs() {
+    doTranslateTest "Ее слова показались лишенными смысла",
+            "Her words seemed void of meaning"
   }
 
-  public void test9_Meaningless() {
-    doTranslateTest 'Ее слова нам показались бессмысленными',
-                    "Her words were meaningless"
+  public void test9_2Meaningless() {
+    doTranslateTest "Ее слова нам показались бессмысленными",
+            "Her words seemed meaningless to us"
+  }
+  public void test9_2Smart() {
+    doTranslateTest "Ее речь нам кажется умной",
+            "Her speech seems clever to us."
+  }
+  public void test9_SmartUsPrefix() {
+    doTranslateTest "Нам ее речь кажется умной.",
+            "To us, her speech seems clever."
   }
 
   public void test10_WhatToDo() {

@@ -5,14 +5,7 @@ import qualified Data.Map as Map
 import qualified Constructor.LinkedSet as LS
 import Control.Exception (assert)
 import Constructor.Agreement
-
-data Variable = Variable Int String deriving (Ord, Eq)
-instance Show Variable where show (Variable i s) = "V"++(show i)++s
-
-data SemValue = StrValue String | VarValue Variable deriving (Eq, Ord)
-instance Show SemValue where
-  show (StrValue s) = s
-  show (VarValue v) = show v
+import Constructor.Variable
 
 data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | CP | PossKind ArgKind Agr | ScalarAdverb deriving (Show, Eq, Ord)
 data Construction = Word Variable String

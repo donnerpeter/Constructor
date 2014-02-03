@@ -5,7 +5,8 @@ module Constructor.Sense
   allFrames, allFrameFacts, makeSense)
   where
 
-import Constructor.Constructions (SemValue(..), Construction(Sem, Unify), Mite(..), Variable(..))
+import Constructor.Constructions (Construction(Sem, Unify), Mite(..))
+import Constructor.Variable
 import Constructor.Tree
 import Data.List (intercalate, findIndex, find)
 import Data.Maybe

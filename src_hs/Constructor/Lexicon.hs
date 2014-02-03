@@ -1,5 +1,6 @@
 module Constructor.Lexicon where
 import Constructor.Constructions
+import Constructor.Variable
 import qualified Constructor.Agreement as A
 import Constructor.Agreement (Gender(..))
 import Data.Char (ord, chr)

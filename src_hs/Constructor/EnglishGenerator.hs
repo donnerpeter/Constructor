@@ -6,7 +6,7 @@ import Debug.Trace
 import Data.Char (toUpper)
 import Data.Maybe
 import qualified Data.Set as Set
-import Constructor.Constructions (SemValue(..), Variable(..))
+import Constructor.Variable
 
 data GenerationState = GenerationState { visitedFrames:: Set.Set Frame, past:: Bool}
 data VerbForm = BaseVerb | PastVerb deriving (Eq)

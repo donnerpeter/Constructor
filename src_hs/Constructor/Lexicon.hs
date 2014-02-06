@@ -167,7 +167,7 @@ wordMites word index =
   "этому" -> [mite $ Adj v0 Dat A.sg "determiner" "THIS"]
   "я" -> pronoun Nom (A.Agr Nothing A.Sg $ Just 1) "ME" v
   ":" -> xor [[mite $ Colon "directSpeech" v0], [mite $ Colon "elaboration" v0]]
-  "-" -> xor [[mite $ QuestionVariants Nothing (Just "-")], [mite $ DirectSpeechDash v0]]
+  "-" -> xor [[mite $ QuestionVariants Nothing (Just "-")], [mite $ DirectSpeechDash v0], [mite $ Ellipsis v0 Nothing Nothing]]
   "," -> xor [[mite $ SurroundingComma False v0], [mite $ SurroundingComma True v0], [mite $ Conjunction v0 ",", semT v0 "seq"]]
   "\"" -> xor [[mite $ Quote v0 True], [mite $ Quote v0 False]]
   _ ->

@@ -13,7 +13,7 @@ import Control.Exception (assert)
 
 createEdges:: Tree -> Tree -> [Tree]
 createEdges leftTree rightTree =
-  let infos = interactNodes (headMites leftTree) (headMites rightTree)
+  let infos = interactNodes leftTree (headMites leftTree) (headMites rightTree)
       infos2 = infos --if null infos then infos else traceShow infos infos 
       trees = [Tree merged (Just leftTree) (Just rightTree) leftHeadedMerge Set.empty $ calcCandidateSets merged | (MergeInfo merged leftHeadedMerge) <- infos2]
   in catMaybes $ map suggestActive trees

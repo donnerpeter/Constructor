@@ -55,6 +55,7 @@ data Construction = Word Variable String
                   | DirectSpeechHead Variable {--child--} (Maybe Variable)
                   | DirectSpeech Variable
                   | DirectSpeechDash Variable
+                  | Ellipsis Variable {-left-} (Maybe Construction) {-right-} (Maybe Construction)
                   | RaisingVerb {-verb-} Variable {-subj-} Variable
                   | Raiseable Agr Variable
                   | TwoWordCxt String {-first-} Bool [Mite] Variable
@@ -101,13 +102,14 @@ isHappy (RaisingVerb {}) = False
 isHappy (Raiseable {}) = False
 isHappy (TwoWordCxt {}) = False
 isHappy (ReasonComp {}) = False
+isHappy (Ellipsis {}) = False
 isHappy _ = True
 
 isCommaSurroundable (ConditionComp _ _ True) = True
 isCommaSurroundable (ReasonComp _ True) = True
 isCommaSurroundable (Wh {}) = True
 isCommaSurroundable (Complementizer {}) = True
-isCommaSurroundable (VerbalModifier {}) = True
+isCommaSurroundable (VerbalModifier _ True _) = True
 isCommaSurroundable _ = False
 
 mite cxt = Mite cxt (isHappy cxt) Set.empty []

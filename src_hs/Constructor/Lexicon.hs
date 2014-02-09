@@ -21,7 +21,7 @@ finiteClause agr withSemSubject v = optional [mite $ NomHead agr (v "arg1")] ++
   rusAgr :: (Show a) => (A.Agr -> Maybe a) -> String -> [Mite]
   rusAgr f attr = maybeToList $ f agr >>= \x -> Just $ semS (v "arg1") attr (show x)
 clause v = [mite $ Verb (v "")] ++
-                (xor [[mite $ TopLevelClause (v "cp")], [mite $ SubordinateClause (v "cp")]]) ++
+                (xor [[mite $ Clause TopLevel (v "cp")], [mite $ Clause Subordinate (v "cp")]]) ++
                 (xor [[mite $ Fact (v "cp"), semT (v "cp") "fact"], [mite $ Question (v "cp") (v ""), semT (v "cp") "question"]]) ++
                 [semV (v "cp") "content" (v "")]
 infinitive typ v =

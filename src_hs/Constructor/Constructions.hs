@@ -7,7 +7,8 @@ import Control.Exception (assert)
 import Constructor.Agreement
 import Constructor.Variable
 
-data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | CP | PossKind ArgKind Agr | ScalarAdverb deriving (Show, Eq, Ord)
+data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | CP ClauseLevel | PossKind ArgKind Agr | ScalarAdverb deriving (Show, Eq, Ord)
+data ClauseLevel = TopLevel | Subordinate deriving (Show, Eq, Ord)
 data Construction = Word Variable String
                   | Sem Variable String SemValue
                   | Unify Variable Variable
@@ -23,6 +24,7 @@ data Construction = Word Variable String
                   | Argument ArgKind Variable 
                   | Adverb String String
                   | Elaboration Variable
+                  | Unclosed Construction
                   | CompHead Variable
                   | ConditionCompHead Variable
                   | Wh Variable Variable
@@ -30,8 +32,7 @@ data Construction = Word Variable String
                   | Conjunction Variable String
                   | SeqRight Variable ArgKind
                   | SeqFull Variable
-                  | TopLevelClause Variable
-                  | SubordinateClause Variable
+                  | Clause ClauseLevel Variable
                   | Fact Variable
                   | ElidedArgHead Construction
                   | Question Variable Variable
@@ -89,7 +90,7 @@ isHappy (CommaSurrounded {}) = False
 isHappy (ControlledInfinitive {}) = False
 isHappy (Control {}) = False
 isHappy (SurroundingComma {}) = False
-isHappy (SubordinateClause {}) = False
+isHappy (Clause Subordinate _) = False
 isHappy (QuotedWord _ False) = False
 isHappy (Quote _ False) = False
 isHappy (DirectSpeechHead _ Nothing) = False
@@ -103,6 +104,7 @@ isHappy (Raiseable {}) = False
 isHappy (TwoWordCxt {}) = False
 isHappy (ReasonComp {}) = False
 isHappy (Ellipsis {}) = False
+isHappy (Unclosed {}) = False
 isHappy _ = True
 
 isCommaSurroundable (ConditionComp _ _ True) = True

@@ -2,6 +2,7 @@ module Constructor.Tree where
 
 import Data.Maybe
 import Data.List
+import Debug.Trace
 import qualified Data.Set as Set
 import Constructor.Constructions
 
@@ -36,7 +37,7 @@ headMites tree =
   let inner tree suppressed result =
         let ownMites = [mite | mite <- mites tree, not $ Set.member mite suppressed, compatible mite]
             compatible mite = all (not . contradictsAll mite) result
-            contradictsAll mite layer = all (contradict mite) layer
+            contradictsAll mite layer = (not $ null layer) && all (contradict mite) layer
         in
         if isNothing $ left tree then concat $ reverse (ownMites:result)
         else inner (if leftHeaded tree then fromJust $ left tree else fromJust $ right tree)

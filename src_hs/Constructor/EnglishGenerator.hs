@@ -51,7 +51,7 @@ handleSeq f (Just frame) =
         let conj = fromMaybe "" $ sValue "conj" frame
             separator = if conj == "but" then ", but"
                         else if conj == "and" && Just True == fmap isCP second && Just True == fmap (hasType "seq") first then ", and"
-                        else if conj == "" then "," 
+                        else if conj == "" then if isJust (second >>= fValue "content" >>= fValue "accordingTo") then "; but" else "," 
                         else conj
         return $ m1 `cat` separator `cat` m2
   else f frame
@@ -132,10 +132,13 @@ determiner frame nbar =
       else if sDet == Just "ANY" then "any"
       else if hasType "STREET" frame then streetName frame
       else if hasAnyType ["SOME", "OTHERS"] frame then ""
+      else if hasType "OPINION" frame && Just True == fmap isVerbEllipsis (usage "accordingTo" frame) then ""
       else if sValue "given" frame == Just "true" then "the"
-      else if "a" `isPrefixOf` nbar || "e" `isPrefixOf` nbar then "an"
+      else if "a" `isPrefixOf` nbar || "e" `isPrefixOf` nbar || "8" `isPrefixOf` nbar then "an"
       else if isSingular (getType frame) then "a"
       else ""
+
+isVerbEllipsis verb = Just "true" == (usage "content" verb >>= sValue "ellipsis")
 
 noun Nothing _ = "??"
 noun (Just typ) frame = case typ of
@@ -174,7 +177,7 @@ isSingular (Just typ) = case typ of
 
 cat "" t2 = t2
 cat t1 "" = t1
-cat t1 t2 = if "," `isPrefixOf` t2 || "." `isPrefixOf` t2 || ":" `isPrefixOf` t2 then  t1 ++ t2 else t1 ++ " " ++ t2
+cat t1 t2 = if "," `isPrefixOf` t2 || "." `isPrefixOf` t2 || ":" `isPrefixOf` t2 || ";" `isPrefixOf` t2 then  t1 ++ t2 else t1 ++ " " ++ t2
 
 catM :: State GenerationState String -> State GenerationState String -> State GenerationState String
 catM t1 t2 = do s1 <- t1; s2 <- t2; return $ s1 `cat` s2
@@ -244,7 +247,7 @@ clause fVerb = do
         else return ""
       _ -> return ""
     opinion <- case fValue "accordingTo" fVerb of
-      Just source | hasType "OPINION" source -> return "in" `catM` np False (Just source) `catM` return ","
+      Just source | hasType "OPINION" source -> return "in" `catM` np False (Just source) `catM` return (if isVerbEllipsis fVerb then "" else ",")
       _ -> return ""
     core <- if hasType "degree" fVerb && (fromMaybe False $ fmap (hasType "wh") $ fValue "arg2" fVerb)
            then return $ "Great was" `cat` subject
@@ -298,7 +301,7 @@ vp fVerb verbForm subject = do
         Just "SADLY" -> if getType fVerb == Just "SMILE" then "" else "sadly"
         Just s -> s
         _ -> ""
-      sVerb = fromMaybe "???" $ fmap (verb verbForm fVerb) $ getType fVerb
+      sVerb = if isVerbEllipsis fVerb then "did" else fromMaybe "???" $ fmap (verb verbForm fVerb) $ getType fVerb
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         _ -> ""
@@ -322,7 +325,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
     VarValue v -> let value = Frame v (sense fVerb) in case (typ, attr) of
       ("COME_SCALARLY", "order") -> case getType value of
         Just "EARLIER" -> [Adverb "first"]
-        Just "NEXT" -> [Adverb "next"]
+        Just "NEXT" -> if isVerbEllipsis fVerb then [] else [Adverb "next"]
         Just "AFTER" -> case fValue "anchor" value of 
           Just anchor -> [PPArg "after" anchor]
           _ -> [Adverb "after"]

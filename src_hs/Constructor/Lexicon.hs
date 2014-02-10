@@ -169,7 +169,7 @@ wordMites word index =
   ":" -> xor [[mite $ Colon "directSpeech" v0], [mite $ Colon "elaboration" v0]]
   "-" -> xor [[mite $ QuestionVariants Nothing (Just "-")],
               [mite $ DirectSpeechDash v0],
-              [mite $ Ellipsis v0 Nothing Nothing] ++ (xor [[mite $ Clause TopLevel v0], [mite $ Clause Subordinate v0]])
+              [mite $ Ellipsis v0 Nothing Nothing, semS v0 "ellipsis" "true"] ++ (xor [[mite $ Clause TopLevel v0], [mite $ Clause Subordinate v0]])
              ]
   "," -> xor [[mite $ SurroundingComma False v0], [mite $ SurroundingComma True v0], [mite $ Conjunction v0 ",", semT v0 "seq"]]
   "\"" -> xor [[mite $ Quote v0 True], [mite $ Quote v0 False]]

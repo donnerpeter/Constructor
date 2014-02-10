@@ -140,4 +140,4 @@ contradict mite1 mite2 = Set.member (cxt mite1) (contradictors mite2) ||
                          any (contradict mite2) (baseMites mite1)
 hasContradictors mite inList = any (contradict mite) inList
 
-withBase base mites = map (\m -> m {baseMites=base}) mites
+withBase base mites = map (\m -> m {baseMites = LS.removeDups $ (baseMites m ++ base)}) mites

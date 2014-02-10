@@ -70,7 +70,7 @@ wordMites word index =
   "дойдя" -> perfectBackground "COME_TO" v ++ arg (PP "v" Prep) "domain" v ++ arg (PP "do" Gen) "goal" v
   "других" -> nounPl Gen "OTHERS" v
   "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ directObject v ++ arg (PP "po" Dat) "topic" v
-  "ее" -> xor [pronoun Acc A.pl "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.sg v0], [semT v0 "SHE", mite $ Possessive Nom A.pl v0]]
+  "ее" -> xor [pronoun Acc A.pl "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.sg v0], [semT v0 "SHE", mite $ Possessive Nom A.pl v0]] -- todo empty agr
   "забыл" -> finVerb "FORGET" "PAST" A.m v ++ compHead "arg2" v
   "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ xor [compHead "arg2" v, 
       [mite $ ArgHead ScalarAdverb (v "scalar"), semV v0 "arg2" (v "arg2"), semT (v "arg2") "question", semV (v "arg2") "content" (v "comes"), semT (v "comes") "COME_SCALARLY", semV (v "comes") "arg1" (v "wh"), semT (v "wh") "wh", semV (v "comes") "order" (v "scalar")]
@@ -80,7 +80,7 @@ wordMites word index =
   "из" -> preposition "iz" Gen v
   "изо" -> preposition "iz" Gen v
   "или" -> [mite $ Conjunction v0 "or", semS v0 "conj" "or", semT v0 "seq"]
-  "их" -> xor [pronoun Acc A.pl "THEY" v, [semT v0 "THEY", mite $ Possessive Nom A.sg v0], [semT v0 "THEY", mite $ Possessive Nom A.pl v0]]
+  "их" -> xor [pronoun Acc A.pl "THEY" v, [semT v0 "THEY", mite $ Possessive Nom A.sg v0], [semT v0 "THEY", mite $ Possessive Nom A.pl v0]] -- todo empty agr
   "к" -> preposition "k" Dat v
   "как" -> [mite $ TwoWordCxt "так как" False [] v0]
   "каково" -> 
@@ -167,7 +167,10 @@ wordMites word index =
   "этому" -> [mite $ Adj v0 Dat A.sg "determiner" "THIS"]
   "я" -> pronoun Nom (A.Agr Nothing A.Sg $ Just 1) "ME" v
   ":" -> xor [[mite $ Colon "directSpeech" v0], [mite $ Colon "elaboration" v0]]
-  "-" -> xor [[mite $ QuestionVariants Nothing (Just "-")], [mite $ DirectSpeechDash v0], [mite $ Ellipsis v0 Nothing Nothing]]
+  "-" -> xor [[mite $ QuestionVariants Nothing (Just "-")],
+              [mite $ DirectSpeechDash v0],
+              [mite $ Ellipsis v0 Nothing Nothing] ++ (xor [[mite $ Clause TopLevel v0], [mite $ Clause Subordinate v0]])
+             ]
   "," -> xor [[mite $ SurroundingComma False v0], [mite $ SurroundingComma True v0], [mite $ Conjunction v0 ",", semT v0 "seq"]]
   "\"" -> xor [[mite $ Quote v0 True], [mite $ Quote v0 False]]
   _ ->

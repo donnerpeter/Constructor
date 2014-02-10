@@ -6,15 +6,17 @@ import Debug.Trace
 import qualified Data.Set as Set
 import Constructor.Constructions
 
+data Side = LeftSide | RightSide deriving (Eq, Show)
+
 data Tree = Tree {mites::[Mite], left::Maybe Tree, right::Maybe Tree, leftHeaded::Bool, active::Set.Set Mite, candidateSets:: [Set.Set Mite]} deriving (Ord, Eq)
 instance Show Tree where
   show tree =
     let inner tree prefix allowTop allowBottom = top ++ center ++ bottom where
           center = prefix ++ (Data.List.intercalate ", " $ map showMite $ headMites tree) ++ "\n"
-          top = if not allowTop then "" else case subTree False tree of
+          top = if not allowTop then "" else case listToMaybe $ subTrees RightSide tree of
             Just r -> inner r ("  "++prefix) True False
             Nothing -> ""
-          bottom = if not allowBottom then "" else case subTree True tree of
+          bottom = if not allowBottom then "" else case listToMaybe $ subTrees LeftSide tree of
             Just r -> inner r ("  "++prefix) False True
             Nothing -> ""
           showMite mite =
@@ -23,15 +25,17 @@ instance Show Tree where
             in (if Set.member mite allActive then "*" else "") ++ patched
         allActive = allActiveMiteSet tree
         spine = Set.fromList $ activeBase allActive
-        subTree isLeft tree =
-          if not $ isBranch tree then Nothing
-          else if leftHeaded tree /= isLeft then (if isLeft then left else right) tree
-          else subTree isLeft $ fromJust $ (if isLeft then left else right) tree
     in "\n" ++ inner tree "" True True
 
 allTreeMites tree =
   if isNothing $ left tree then mites tree
   else (allTreeMites $ fromJust $ left tree)++mites tree++(allTreeMites $ fromJust $ right tree)
+
+subTrees side tree =
+  if not $ isBranch tree then []
+  else if leftHeaded tree && side == RightSide then fromJust (right tree) : subTrees side (fromJust $ left tree)
+  else if not (leftHeaded tree) && side == LeftSide then fromJust (left tree) : subTrees side (fromJust $ right tree)
+  else subTrees side $ fromJust $ (if side == LeftSide then left else right) tree
 
 headMites tree =
   let inner tree suppressed result =

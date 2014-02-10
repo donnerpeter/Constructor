@@ -110,6 +110,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (Control slave, ControlledInfinitive inf) -> left [mite $ Unify slave inf]
       (RaisingVerb verb subj, Raiseable agr child) -> left [semV child "arg1" subj, semV verb "theme" child]
        
+      -- todo take all ellipsis anchor alternatives into account
       (leftCxt@(VerbalModifier _ False _), Ellipsis v Nothing rightCxt) -> right [mite $ Ellipsis v (Just leftCxt) rightCxt]
       (Ellipsis v leftCxt Nothing, rightCxt@(Argument _ _)) -> left [mite $ Ellipsis v leftCxt (Just rightCxt)]
       _ -> []

@@ -135,9 +135,12 @@ xor miteGroups =
       newMites = map createMite allCxts
   in newMites
 
-contradict mite1 mite2 = Set.member (cxt mite1) (contradictors mite2) ||
-                         any (contradict mite1) (baseMites mite2) ||
-                         any (contradict mite2) (baseMites mite1)
+contradict mite1 mite2 = let
+  allBaseMites m = m:(baseMites m >>= allBaseMites)
+  allContradictors1 = foldl Set.union Set.empty (map contradictors $ allBaseMites mite1)
+  in
+  any (flip Set.member allContradictors1) $ map cxt $ allBaseMites mite2
+
 hasContradictors mite inList = any (contradict mite) inList
 
 withBase base mites = map (\m -> m {baseMites = LS.removeDups $ (baseMites m ++ base)}) mites

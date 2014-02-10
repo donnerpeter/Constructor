@@ -8,6 +8,7 @@ import Debug.Trace
 import Data.Function (on)
 import qualified Constructor.LinkedSet as LS
 import qualified Data.Set as Set
+import qualified Data.Map as Map
 import Constructor.Composition
 import Control.Exception (assert)
 
@@ -75,7 +76,10 @@ addMites:: [Tree] -> [Mite] -> [Tree]
 addMites state mites = mergeTrees $ (fromJust $ suggestActive $ Tree mites Nothing Nothing True Set.empty $ calcCandidateSets mites):state
 
 calcCandidateSets:: [Mite] -> [Set.Set Mite]
-calcCandidateSets mites = enumerate mites [] [] where
+calcCandidateSets mites = {-traceShow ("calcCandidates", mites, "\ncontradictors:", contradictorCache, length result) $ -}result where
+  contradictorCache = Map.fromList [(m, Set.fromList $ filter (contradict m) mites) | m <- mites]
+  contradictCached m1 m2 = Set.member m2 $ (Map.!) contradictorCache m1
+  hasContradictors mite inList = let contras = (Map.!) contradictorCache mite in any (flip Set.member contras) inList
   enumerate :: [Mite] -> [Mite] -> [Mite] -> [Set.Set Mite]
   enumerate mites chosen uncovered =
     if any (\mite -> not $ hasContradictors mite mites) uncovered then [] 
@@ -83,8 +87,9 @@ calcCandidateSets mites = enumerate mites [] [] where
       [] -> assert (null uncovered) [Set.fromList chosen]
       mite:rest -> includeMite++omitMite where
         includeMite = if hasContradictors mite chosen then [] 
-                      else enumerate (filter (not . contradict mite) rest) (mite:chosen) (filter (not . contradict mite) uncovered)
+                      else enumerate (filter (not . contradictCached mite) rest) (mite:chosen) (filter (not . contradictCached mite) uncovered)
         omitMite = enumerate rest chosen (mite:uncovered)
+  result = enumerate mites [] []
 
 suggestActive:: Tree -> Maybe Tree
 suggestActive tree = {-traceShow ("suggestActive", tree, "->", result) $ -}result where

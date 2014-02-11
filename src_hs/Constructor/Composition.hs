@@ -38,10 +38,12 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
         right [semS var property value]
       (AdjHead var nounCase agr2, Adj _ adjCase agr1 property value) | adjCase == nounCase && agree agr1 agr2 -> 
         left [semS var property value]
+
       (Possessive adjCase agr1 child, AdjHead noun nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> rightMites >>= \m3 -> case cxt m3 of
         GenHead h -> [MergeInfo [(mite $ Unify h child) {baseMites=[m1,m2,m3]}] False]
         _ -> []
       (GenHead v1, Argument Gen v2) -> left [mite $ Unify v1 v2] 
+
       (Argument Nom v1, NomHead agr1 v2) -> leftMites >>= \m3 -> case cxt m3 of
         AdjHead v3 Nom agr2 | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) -> 
           [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2]) False]
@@ -50,9 +52,13 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
         AdjHead v3 Nom agr2 | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) -> 
           [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2]) True]
         _ -> []
+
       (Adverb attr val, Verb head) -> right [semS head attr val]
+      (Verb head, Adverb attr val) -> left [semS head attr val]
+
       (ArgHead kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
       (Argument kind2 var2, ArgHead kind1 var1) | kind1 == kind2 -> right [mite $ Unify var1 var2]
+
       (PrepHead prep1 kind1 var1, Argument kind2 var2) | kind1 == kind2 ->
         let argMites = leftMites >>= \m3 -> case cxt m3 of
               Argument (PP prep3 kind3) var3 | prep3 == prep1 && kind1 == kind3  -> withBase [m1,m2,m3] [mite $ Unify var1 var2, mite $ Argument (PP prep3 kind3) var3]
@@ -80,6 +86,8 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (QuestionVariants (Just v) Nothing, QuestionVariants Nothing (Just s)) -> left [mite $ QuestionVariants (Just v) (Just s)]
       (QuestionVariants (Just v) (Just _), Argument Nom child) -> left [semV v "variants" child]
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
+      (Verb v, Word _ "бы") -> left [semS v "irrealis" "true"]
+      (Word _ "очень", Adverb attr val) -> right []
       
       (Copula v0, CopulaTense v1) -> left [mite $ Unify v0 v1]
       (CopulaTense v1, ModalityInfinitive v2) -> right [mite $ Unify v1 v2]

@@ -164,6 +164,9 @@ noun (Just typ) frame = case typ of
   "MEANING" -> "meaning"
   "SOME" -> "some"
   "OTHERS" -> "others"
+  "CHILD" -> "child"
+  "BENCH" -> "bench"
+  "JAW" -> "jaws"
   "GARDEN" -> if sValue "name" frame == Just "летний" then "Summer Garden" else "garden"
   "7" -> if sValue "number" frame == Just "true" then typ else "seven"
   "8" -> if sValue "number" frame == Just "true" then typ else "eight"
@@ -213,11 +216,13 @@ verb verbForm frame typ =
   "ASK" -> if (fValue "topic" frame >>= getType) == Just "PREDICAMENT" then "consult" else "asked"
   "COME_SCALARLY" -> if sValue "time" frame == Just "PAST" then "went" else "comes"
   "DISCOVER" -> "discovered"
+  "FALL" -> "fell"
+  "BREAK" -> "broke"
   "STOP" -> "stopped"
   "CAN" -> if negated then "couldn't" else "could"
   "BEGIN" -> "started"
   "COUNT" -> if verbForm == Gerund then "counting" else "count"
-  "ARGUE" -> if verbForm == Gerund then "arguing" else "argue"
+  "ARGUE" -> if verbForm == Gerund then "arguing" else if Just "true" == sValue "irrealis" frame then "were arguing" else "argue"
   "RECALL" -> "recall"
   "REMEMBER" -> if verbForm == PastVerb then "remembered" else "remember"
   "SMILE" -> "gave us a sad smile"
@@ -333,6 +338,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       ("HAPPEN", "experiencer") -> [PPArg "to" value]
       ("TAKE_OUT", "source") -> [PPArg "out of" value]
       ("RUN_OUT", "source") -> [PPArg "out of" value]
+      ("FALL", "source") -> [PPArg "off" value]
       ("ASK", "topic") -> if hasType "question" value then [] else [PPArg "on" value]
       ("LACK", "theme") -> [NPArg value]
       (_, "goal") -> [PPArg "to" value]
@@ -345,6 +351,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       _ -> []
     StrValue value -> case (attr, value) of
       ("anchor", "AGAIN") -> [Adverb "again"]
+      ("duration", "LONG") -> [Adverb "for a long time"]
       _ -> []
   where
   isNPArg arg = case arg of

@@ -68,6 +68,7 @@ wordMites word index =
   "деревья" -> nounPl Acc "TREES" v
   "до" -> preposition "do" Gen v
   "дойдя" -> perfectBackground "COME_TO" v ++ arg (PP "v" Prep) "domain" v ++ arg (PP "do" Gen) "goal" v
+  "долго" -> adverb "duration" "LONG"
   "других" -> nounPl Gen "OTHERS" v
   "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ directObject v ++ arg (PP "po" Dat) "topic" v
   "ее" -> xor [pronoun Acc A.pl "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.sg v0], [semT v0 "SHE", mite $ Possessive Nom A.pl v0]] -- todo empty agr
@@ -86,6 +87,7 @@ wordMites word index =
   "каково" -> 
     -- todo wh-questions with каково
     finiteClause A.n3 True v ++ [mite $ Copula v0, semT (v "wh") "wh", semT v0 "degree", semV v0 "arg2" (v "wh"), mite $ ShortAdj (v "wh")]
+  "какой-то" -> [mite $ Adj v0 Nom A.sg "determiner" "SOME"]
   "кассирша" -> nounSg Nom Fem "CASHIER" v
   "кассирши" -> nounSg Gen Fem "CASHIER" v
   "кассиршу" -> nounSg Acc Fem "CASHIER" v
@@ -112,6 +114,7 @@ wordMites word index =
   "но" ->  adverb "butEmphasis" "true"
   "носом" -> nounSg Instr Masc "NOSE" v
   "о" -> preposition "o" Prep v
+  "обе" -> [mite $ Argument Acc (v ""), semT (v "q") "BOTH", semV v0 "quantifier" (v "q"), mite $ ArgHead Gen v0]
   "обнаружили" -> finVerb "DISCOVER" "PAST" A.pl v ++ compHead "theme" v
   "одних" -> nounPl Gen "SOME" v
   "он" -> pronoun Nom A.m3 "HE" v
@@ -132,25 +135,32 @@ wordMites word index =
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ arg (PP "v" Acc) "goal" v
   "радостью" -> nounSg Instr Fem "JOY" v ++ optional [mite $ PrepositionActivator "s" Instr [VerbalModifier "mood" False v0]]
   "раньше" -> [mite $ Argument ScalarAdverb v0, semT v0 "EARLIER"]
+  "ребенок" -> nounSg Nom Masc "CHILD" v
   "рта" -> nounSg Gen Masc "MOUTH" v
   "с" -> preposition "s" Instr v
   "сад" -> nounSg Acc Masc "GARDEN" v
+  "свалился" -> finVerb "FALL" "PAST" A.m v ++ arg (PP "s" Gen) "source" v
+  "себе" -> pronoun Dat (A.Agr Nothing A.Sg Nothing) "SELF" v -- todo empty agr
   "семи" -> nounSg Gen Masc "7" v
   "семь" -> nounSg Nom Masc "7" v
   "сказала" -> finVerb "SAY" "PAST" A.f v ++ [mite $ DirectSpeechHead v0 Nothing] -- todo ++ directObject v
+  "скамейки" -> nounSg Gen Fem "BENCH" v
   "слегка" -> adverb "manner" "SLIGHTLY"
   "следовало" -> finVerb "COME_SCALARLY" "PAST" A.n3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v]
   "слова" -> xor [nounPl Nom "WORDS" v, nounPl Acc "WORDS" v] ++ genHead "author" v
+  "сломал" -> finVerb "BREAK" "PAST" A.m v ++ directObject v ++ [mite $ ArgHead Dat (v "dat"), semV (v "acc") "arg1" (v "dat")]
   "случай" -> nounSg Nom Masc "CASE" v
   "случае" -> nounSg Prep Masc "CASE" v ++ [mite $ ConditionCompHead v0] ++ optional [mite $ PrepositionActivator "v" Prep [VerbalModifier "condition" False v0]]
   "случился" -> finVerb "HAPPEN" "PAST" A.m v ++ arg (PP "s" Instr) "experiencer" v
   "смысла" -> nounSg Gen Masc "MEANING" v
-  "со" -> preposition "s" Instr v
+  "со" -> xor [preposition "s" Instr v, preposition "s" Gen v]
   "соседям" -> nounPl Dat "NEIGHBORS" v
+  "спорили" -> finVerb "ARGUE" "PAST" A.pl v
   "спорить" -> infinitive "ARGUE" v
   "спросил" -> finVerb "ASK" "PAST" A.m v ++ directObject v ++ compHead "topic" v
   "спросили" -> finVerb "ASK" "PAST" A.pl v ++ directObject v ++ xor [compHead "topic" v, arg (PP "o" Prep) "topic" v]
   "стали" -> finVerb "BEGIN" "PAST" A.pl v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
+  "счастию" -> nounSg Dat Neu "LUCK" v ++ optional [mite $ PrepositionActivator "po" Dat [VerbalModifier "optativeModality" True v0]]
   "счета" -> nounSg Gen Masc "COUNTING" v
   "счете" -> nounSg Prep Masc "COUNTING" v
   "считать" -> infinitive "COUNT" v ++ directObject v
@@ -163,6 +173,7 @@ wordMites word index =
   "удивление" -> nounSg Nom Neu "AMAZE" v ++ genHead "arg1" v
   "улицы" -> nounSg Gen Fem "STREET" v
   "улыбнулась" -> finVerb "SMILE" "PAST" A.f v
+  "челюсти" -> nounSg Gen Fem "JAW" v
   "что" -> xor [whWord v ++ xor [[mite $ Argument Nom v0], [mite $ Argument Acc v0]] ++ [mite $ AdjHead v0 Nom A.n3], [mite $ Complementizer v0]]
   "этому" -> [mite $ Adj v0 Dat A.sg "determiner" "THIS"]
   "я" -> pronoun Nom (A.Agr Nothing A.Sg $ Just 1) "ME" v

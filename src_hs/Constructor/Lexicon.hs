@@ -32,7 +32,7 @@ arg argType relation v = [mite $ ArgHead argType (v relation), semV (v "") relat
 whWord v = [mite $ Wh (v "") (v "cp"), mite $ QuestionVariants (Just $ v "") Nothing,  semT (v "") "wh"]
 optional mites = xor [mites, [mite $ EmptyCxt $ cxt $ head mites]]
 compHead attr v = [mite $ CompHead (v "comp"), semV (v "") attr (v "comp")] 
-adj caze agr attr value v = [mite $ Adj (v "") caze agr attr value]
+adj caze agr attr value v = [mite $ Adj (v "") caze agr, semV (v "") attr (v "adj"), semT (v "adj") value]
 perfectBackground typ v = [mite $ Verb (v ""), semT (v "") typ, mite $ VerbalModifier "perfectBackground" True (v "")]
 adverb attr value = [mite $ Adverb attr value]
 genHead attr v = optional [mite $ GenHead (v "gen"), semV (v "") attr (v "gen")]
@@ -87,7 +87,7 @@ wordMites word index =
   "каково" -> 
     -- todo wh-questions with каково
     finiteClause A.n3 True v ++ [mite $ Copula v0, semT (v "wh") "wh", semT v0 "degree", semV v0 "arg2" (v "wh"), mite $ ShortAdj (v "wh")]
-  "какой-то" -> [mite $ Adj v0 Nom A.sg "determiner" "SOME"]
+  "какой-то" -> adj Nom A.sg "determiner" "SOME" v
   "кассирша" -> nounSg Nom Fem "CASHIER" v
   "кассирши" -> nounSg Gen Fem "CASHIER" v
   "кассиршу" -> nounSg Acc Fem "CASHIER" v
@@ -166,7 +166,7 @@ wordMites word index =
   "считать" -> infinitive "COUNT" v ++ directObject v
   "так" -> [mite $ TwoWordCxt "так как" True [mite $ ReasonComp v0 False] v0]
   "там" -> adverb "location" "THERE"
-  "том" -> [mite $ Adj v0 Prep A.sg "determiner" "THAT"]
+  "том" -> adj Prep A.sg "determiner" "THAT" v
   "тут" -> adverb "emphasis" "true"
   "удивительный" -> adj Nom A.m "property" "AMAZING" v
   "углу" -> nounSg Prep Masc "CORNER" v ++ genHead "arg1" v
@@ -175,7 +175,7 @@ wordMites word index =
   "улыбнулась" -> finVerb "SMILE" "PAST" A.f v
   "челюсти" -> nounSg Gen Fem "JAW" v
   "что" -> xor [whWord v ++ xor [[mite $ Argument Nom v0], [mite $ Argument Acc v0]] ++ [mite $ AdjHead v0 Nom A.n3], [mite $ Complementizer v0]]
-  "этому" -> [mite $ Adj v0 Dat A.sg "determiner" "THIS"]
+  "этому" -> adj Dat A.sg "determiner" "THIS" v
   "я" -> pronoun Nom (A.Agr Nothing A.Sg $ Just 1) "ME" v
   ":" -> xor [[mite $ Colon "directSpeech" v0], [mite $ Colon "elaboration" v0]]
   "-" -> xor [[mite $ QuestionVariants Nothing (Just "-")],
@@ -187,5 +187,5 @@ wordMites word index =
   _ ->
     if "ой" `isSuffixOf` word then 
       let nomName = take (length word - 2) word ++ "ая" in
-      xor [adj Gen A.f "name" nomName v, nounSg Gen Fem "STREET" v ++ [semS v0 "name" nomName]]
+      xor [[mite $ Adj (v "") Gen A.f, semS v0 "name" nomName], nounSg Gen Fem "STREET" v ++ [semS v0 "name" nomName]]
     else [mite $ Word v0 word]

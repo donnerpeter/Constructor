@@ -90,15 +90,15 @@ np_internal nom mayHaveDeterminer frame = do
         _ -> return ""
       det <- if mayHaveDeterminer then determiner frame nbar else return ""
       return $ det `cat` nbar `cat` genitiveComplement
-  let quantifier = if sValue "quantifier" frame == Just "ALL" then "all" else ""
+  let quantifier = if (fValue "quantifier" frame >>= getType) == Just "ALL" then "all" else ""
   relative <- fromMaybe (return "") $ liftM (catM $ return ", the one") $ fmap sentence $ fValue "relative" frame
   return $ unquantified `cat` quantifier `cat` relative
 
 adjectives nounFrame = catMaybes [property, kind, shopKind, size] where 
-  property = sValue "property" nounFrame >>= \p -> if p == "AMAZING" then Just "amazing" else Nothing
-  kind = sValue "kind" nounFrame >>= \p -> if p == "COMMERCIAL" then Just "commercial" else Nothing
+  property = fValue "property" nounFrame >>= getType >>= \p -> if p == "AMAZING" then Just "amazing" else Nothing
+  kind = fValue "kind" nounFrame >>= getType >>= \p -> if p == "COMMERCIAL" then Just "commercial" else Nothing
   shopKind = sValue "name" nounFrame >>= \p -> if p == "гастроном" then Just "grocery" else Nothing
-  size = sValue "size" nounFrame >>= \p -> if p == "LITTLE" then Just "small" else Nothing
+  size = fValue "size" nounFrame >>= getType >>= \p -> if p == "LITTLE" then Just "small" else Nothing
 
 streetName frame = case sValue "name" frame of
  Just "знаменская" -> "Znamenskaya"
@@ -127,7 +127,7 @@ determiner frame nbar =
   case det of
     Just _ -> handleSeq genitiveSpecifier $ det
     _ -> return $
-      let sDet = sValue "determiner" frame in
+      let sDet = fValue "determiner" frame >>= getType in
       if sDet == Just "THIS" then "this"
       else if sDet == Just "ANY" then "any"
       else if hasType "STREET" frame then streetName frame
@@ -167,7 +167,7 @@ noun (Just typ) frame = case typ of
   "CHILD" -> "child"
   "BENCH" -> "bench"
   "JAW" -> "jaws"
-  "GARDEN" -> if sValue "name" frame == Just "летний" then "Summer Garden" else "garden"
+  "GARDEN" -> if (fValue "name" frame >>= getType) == Just "летний" then "Summer Garden" else "garden"
   "7" -> if sValue "number" frame == Just "true" then typ else "seven"
   "8" -> if sValue "number" frame == Just "true" then typ else "eight"
   _ -> typ

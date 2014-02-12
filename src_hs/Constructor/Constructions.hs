@@ -12,7 +12,7 @@ data ClauseLevel = TopLevel | Subordinate deriving (Show, Eq, Ord)
 data Construction = Word Variable String
                   | Sem Variable String SemValue
                   | Unify Variable Variable
-                  | Adj Variable ArgKind Agr String String
+                  | Adj Variable ArgKind Agr
                   | AdjHead Variable ArgKind Agr
                   | Verb Variable
                   | NomHead Agr Variable

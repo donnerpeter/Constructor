@@ -174,7 +174,8 @@ wordMites word index =
   "улицы" -> nounSg Gen Fem "STREET" v
   "улыбнулась" -> finVerb "SMILE" "PAST" A.f v
   "челюсти" -> nounSg Gen Fem "JAW" v
-  "что" -> xor [whWord v ++ xor [[mite $ Argument Nom v0], [mite $ Argument Acc v0]] ++ [mite $ AdjHead v0 Nom A.n3], [mite $ Complementizer v0]]
+  "что" -> xor [whWord v ++ xor [[mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.n3], [mite $ Argument Acc v0, mite $ AdjHead v0 Acc A.n3]], 
+                [mite $ Complementizer v0]]
   "этому" -> adj Dat A.sg "determiner" "THIS" v
   "я" -> pronoun Nom (A.Agr Nothing A.Sg $ Just 1) "ME" v
   ":" -> xor [[mite $ Colon "directSpeech" v0], [mite $ Colon "elaboration" v0]]

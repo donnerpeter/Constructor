@@ -43,11 +43,11 @@ handleSeq f (Just frame) =
       frameGenerated frame
       let first = fValue "member1" frame
           second = fValue "member2" frame
-      m1 <- fromMaybe (return "???") $ liftM (handleSeq f . Just) first
+      m1 <- handleSeq f first
       state <- get
       let secondProcessed = Just True == fmap (flip Set.member (visitedFrames state)) second
       if secondProcessed then return m1 else do
-        m2 <- fromMaybe (return "???") $ liftM f $ second
+        m2 <- handleSeq f second
         let conj = fromMaybe "" $ sValue "conj" frame
             separator = if conj == "but" then ", but"
                         else if conj == "and" && Just True == fmap isCP second && Just True == fmap (hasType "seq") first then ", and"

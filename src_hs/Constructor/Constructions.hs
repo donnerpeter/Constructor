@@ -29,9 +29,9 @@ data Construction = Word Variable String
                   | ConditionCompHead Variable
                   | Wh Variable Variable
                   | QuestionVariants (Maybe Variable) (Maybe String)
-                  | Conjunction Variable String
-                  | SeqRight Variable ArgKind
-                  | SeqFull Variable
+                  | Conjunction Variable String {-ready-} Bool
+                  | SeqRight Variable ArgKind String
+                  | SeqFull Variable String
                   | Clause ClauseLevel Variable
                   | Fact Variable
                   | ElidedArgHead Construction

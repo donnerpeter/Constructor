@@ -49,9 +49,11 @@ handleSeq f (Just frame) =
       if secondProcessed then return m1 else do
         m2 <- handleSeq f second
         let conj = fromMaybe "" $ sValue "conj" frame
-            separator = if conj == "but" then ", but"
+            separator = if conj == "but" then
+                          if Just "true" == (first >>= fValue "content" >>= sValue "irrealis") then ", when" else ", but"
                         else if conj == "and" && Just True == fmap isCP second && Just True == fmap (hasType "seq") first then ", and"
-                        else if conj == "" then if isJust (second >>= fValue "content" >>= fValue "accordingTo") then "; but" else "," 
+                        else if conj == "" then
+                          if isJust (second >>= fValue "content" >>= fValue "accordingTo") then "; but" else "," 
                         else conj
         return $ m1 `cat` separator `cat` m2
   else f frame
@@ -243,7 +245,8 @@ clause fVerb = do
     when (sValue "time" fVerb == Just "PAST") (put $ state { past = True })
     state <- get
     let emphasis = cat (if sValue "butEmphasis" fVerb == Just "true" then "but" else "") 
-                       (if sValue "emphasis" fVerb == Just "true" then "there," else "")
+                       (if (fValue "optativeModality" fVerb >>= getType) == Just "LUCK" then "by some wheer luck,"
+                        else if sValue "emphasis" fVerb == Just "true" then "there," else "")
     let verbForm = if past state then PastVerb else BaseVerb
         fSubject = fValue "arg1" fVerb
     subject <- case fSubject of

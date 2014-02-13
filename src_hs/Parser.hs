@@ -74,8 +74,8 @@ sonnetTests = [
   translateTest "Но дойдя в счете до 6-ти, мы остановились и начали спорить: по мнению одних дальше следовало 7, по мнению других - 8"
                 "But reaching a six in count, we stopped and started arguing: in the opinion of some, a 7 went next; but in opinion of others an 8 did"
                 ,
-  translateTest "Мы спорили бы очень долго, но, по счастию, тут со скамейки свалился какой-то ребенок и сломал себе обе челюсти"
-                "We were arguing for a long time, when by some sheer luck, a child fell off a bench and broke both of his jaws"
+  translateTest "Мы спорили бы очень долго, но, по счастию, тут со скамейки свалился какой-то ребенок и сломал себе обе челюсти."
+                "We were arguing for a long time, when by some sheer luck, a child fell off a bench and broke both of his jaws."
   ]
 
 variationTests1=[

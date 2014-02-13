@@ -124,11 +124,16 @@ determiner frame nbar =
           Just "SHE" -> return "her"
           Just s -> do
             state <- get
-            if Set.member det (visitedFrames state) then return "her" else return s
+            if Set.member det (visitedFrames state) then return $ case sValue "rusGender" det of
+               Just "Masc" -> "his"
+               Just "Fem" -> "her"
+               Just "Neu" -> "its"
+               _ -> s
+            else return s
           _ -> return "???"
   in
   case det of
-    Just _ -> handleSeq genitiveSpecifier $ det
+    Just _ -> handleSeq genitiveSpecifier $ fmap resolve det
     _ -> return $
       let sDet = fValue "determiner" frame >>= getType in
       if sDet == Just "THIS" then "this"
@@ -245,7 +250,7 @@ clause fVerb = do
     when (sValue "time" fVerb == Just "PAST") (put $ state { past = True })
     state <- get
     let emphasis = cat (if sValue "butEmphasis" fVerb == Just "true" then "but" else "") 
-                       (if (fValue "optativeModality" fVerb >>= getType) == Just "LUCK" then "by some wheer luck,"
+                       (if (fValue "optativeModality" fVerb >>= getType) == Just "LUCK" then "by some sheer luck,"
                         else if sValue "emphasis" fVerb == Just "true" then "there," else "")
     let verbForm = if past state then PastVerb else BaseVerb
         fSubject = fValue "arg1" fVerb

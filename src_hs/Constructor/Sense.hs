@@ -1,7 +1,7 @@
 module Constructor.Sense 
   (Sense(..), Frame(..), Fact(..), fValue, sValue, 
   usages, usage, 
-  getType, hasType, hasAnyType, 
+  getType, hasType, hasAnyType, resolve, 
   allFrames, allFrameFacts,
   flatten, isNumber,
   makeSense)
@@ -131,5 +131,9 @@ usage attr frame = singleListElement $ usages attr frame
 
 flatten Nothing = []
 flatten (Just frame) = if hasType "seq" frame then flatten (fValue "member1" frame) ++ maybeToList (fValue "member2" frame) else [frame]
+
+resolve frame = case (getType frame, fValue "target" frame) of
+  (Just "SELF", Just target) -> target
+  _ -> frame
 
 isNumber frame = any (\f -> sValue "number" f == Just "true") $ flatten frame

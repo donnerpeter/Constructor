@@ -56,8 +56,8 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (Adverb attr val, Verb head) -> right [semS head attr val]
       (Verb head, Adverb attr val) -> left [semS head attr val]
 
-      (ArgHead kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
-      (Argument kind2 var2, ArgHead kind1 var1) | kind1 == kind2 -> right [mite $ Unify var1 var2]
+      (ArgHead kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left $ argVariants var1 var2 leftMites rightMites
+      (Argument kind2 var2, ArgHead kind1 var1) | kind1 == kind2 -> right $ argVariants var1 var2 rightMites leftMites
 
       (PrepHead prep1 kind1 var1, Argument kind2 var2) | kind1 == kind2 ->
         let argMites = leftMites >>= \m3 -> case cxt m3 of
@@ -125,3 +125,10 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
   seqVariants = (if null seqRight then [] else [MergeInfo seqRight True]) ++ (if null seqLeft then [] else [MergeInfo seqLeft False])
   seqLeft = Seq.seqLeft leftTree leftMites rightMites
   seqRight = Seq.seqRight leftMites rightMites
+
+argVariants v1 v2 headMites childMites = [mite $ Unify v1 v2] ++ reflexive where
+  reflexive = headMites >>= \m1 -> case cxt m1 of
+    ReflexiveTarget target -> childMites >>= \m2 -> case cxt m2 of
+      ReflexiveReference ref -> withBase [m1,m2] [semV ref "target" target]
+      _ -> []
+    _ -> []

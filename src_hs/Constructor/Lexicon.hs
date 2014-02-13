@@ -14,7 +14,8 @@ preposition prep nounArg v = [mite $ PrepHead prep nounArg (v "")] ++ xor [[mite
 semPreposition prep nounArg typ attr v = [mite $ Argument (PP prep nounArg) (v ""), mite $ PrepHead prep nounArg (v "noun"), semT (v "") typ, semV (v "") attr (v "noun")]
 finVerb typ time agr v = [semT (v "") typ, semS (v "") "time" time] ++ finiteClause agr True v
 raisingVerb typ time agr v = [semT (v "") typ, semS (v "") "time" time, mite $ RaisingVerb (v "") (v "arg1")] ++ finiteClause agr False v
-finiteClause agr withSemSubject v = optional [mite $ NomHead agr (v "arg1")] ++ 
+finiteClause agr withSemSubject v = optional [mite $ NomHead agr (v "arg1")] ++
+                     [mite $ ReflexiveTarget (v "arg1")] ++
                      (if withSemSubject then [semV (v "") "arg1" (v "arg1")] else []) ++
                      (rusAgr (Just . A.number) "rusNumber") ++ (rusAgr A.gender "rusGender") ++ (rusAgr A.person "rusPerson") ++ 
                      clause v where
@@ -141,7 +142,7 @@ wordMites word index =
   "с" -> preposition "s" Instr v
   "сад" -> nounSg Acc Masc "GARDEN" v
   "свалился" -> finVerb "FALL" "PAST" A.m v ++ arg (PP "s" Gen) "source" v
-  "себе" -> pronoun Dat (A.Agr Nothing A.Sg Nothing) "SELF" v -- todo empty agr
+  "себе" -> pronoun Dat (A.Agr Nothing A.Sg Nothing) "SELF" v ++ [mite $ ReflexiveReference (v "")] -- todo empty agr
   "семи" -> nounSg Gen Masc "7" v
   "семь" -> nounSg Nom Masc "7" v
   "сказала" -> finVerb "SAY" "PAST" A.f v ++ [mite $ DirectSpeechHead v0 Nothing] -- todo ++ directObject v
@@ -149,7 +150,7 @@ wordMites word index =
   "слегка" -> adverb "manner" "SLIGHTLY"
   "следовало" -> finVerb "COME_SCALARLY" "PAST" A.n3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v]
   "слова" -> xor [nounPl Nom "WORDS" v, nounPl Acc "WORDS" v] ++ genHead "author" v
-  "сломал" -> finVerb "BREAK" "PAST" A.m v ++ directObject v ++ [mite $ ArgHead Dat (v "dat"), semV (v "acc") "arg1" (v "dat")]
+  "сломал" -> finVerb "BREAK" "PAST" A.m v ++ directObject v ++ [mite $ ArgHead Dat (v "dat"), semV (v "arg2") "arg1" (v "dat")]
   "случай" -> nounSg Nom Masc "CASE" v
   "случае" -> nounSg Prep Masc "CASE" v ++ [mite $ ConditionCompHead v0] ++ optional [mite $ PrepositionActivator "v" Prep [VerbalModifier "condition" False v0]]
   "случился" -> finVerb "HAPPEN" "PAST" A.m v ++ arg (PP "s" Instr) "experiencer" v

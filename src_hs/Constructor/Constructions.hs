@@ -61,7 +61,8 @@ data Construction = Word Variable String
                   | Raiseable Agr Variable
                   | TwoWordCxt String {-first-} Bool [Mite] Variable
                   | ReasonComp Variable {-has cp-} Bool
-                  | DativePart Variable
+                  | ReflexiveReference Variable
+                  | ReflexiveTarget Variable
                   -- | S1 | S2 | S3 | S4
                   deriving (Show, Ord, Eq)
 data Mite = Mite { cxt :: Construction, happy :: Bool, contradictors :: Set.Set Construction, baseMites :: [Mite] } deriving (Ord, Eq)
@@ -106,7 +107,6 @@ isHappy (TwoWordCxt {}) = False
 isHappy (ReasonComp {}) = False
 isHappy (Ellipsis {}) = False
 isHappy (Unclosed {}) = False
-isHappy (DativePart {}) = False
 isHappy _ = True
 
 isCommaSurroundable (ConditionComp _ _ True) = True

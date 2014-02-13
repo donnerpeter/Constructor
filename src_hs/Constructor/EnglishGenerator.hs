@@ -90,9 +90,10 @@ np_internal nom mayHaveDeterminer frame = do
         _ -> return ""
       det <- if mayHaveDeterminer then determiner frame nbar else return ""
       return $ det `cat` nbar `cat` genitiveComplement
-  let quantifier = if (fValue "quantifier" frame >>= getType) == Just "ALL" then "all" else ""
+  let postQuantifier = if (fValue "quantifier" frame >>= getType) == Just "ALL" then "all" else ""
+  let preQuantifier = if (fValue "quantifier" frame >>= getType) == Just "BOTH" then "both of" else ""
   relative <- fromMaybe (return "") $ liftM (catM $ return ", the one") $ fmap sentence $ fValue "relative" frame
-  return $ unquantified `cat` quantifier `cat` relative
+  return $ preQuantifier `cat` unquantified `cat` postQuantifier `cat` relative
 
 adjectives nounFrame = catMaybes [property, kind, shopKind, size] where 
   property = fValue "property" nounFrame >>= getType >>= \p -> if p == "AMAZING" then Just "amazing" else Nothing

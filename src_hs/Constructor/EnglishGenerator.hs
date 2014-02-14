@@ -92,7 +92,9 @@ np_internal nom mayHaveDeterminer frame = do
         _ -> return ""
       det <- if mayHaveDeterminer then determiner frame nbar else return ""
       return $ det `cat` nbar `cat` genitiveComplement
-  let postQuantifier = if (fValue "quantifier" frame >>= getType) == Just "ALL" then "all" else ""
+  let postQuantifier = if (fValue "quantifier" frame >>= getType) == Just "ALL" || 
+                          (usage "arg1" frame >>= getType) == Just "DISPERSE"
+                       then "all" else ""
   let preQuantifier = if (fValue "quantifier" frame >>= getType) == Just "BOTH" then "both of" else ""
   relative <- fromMaybe (return "") $ liftM (catM $ return ", the one") $ fmap sentence $ fValue "relative" frame
   return $ preQuantifier `cat` unquantified `cat` postQuantifier `cat` relative
@@ -227,6 +229,7 @@ verb verbForm frame typ =
   "COME_SCALARLY" -> if sValue "time" frame == Just "PAST" then "went" else "comes"
   "DISCOVER" -> "discovered"
   "DISTRACT" -> "distracted"
+  "DISPERSE" -> "went"
   "FALL" -> "fell"
   "BREAK" -> "broke"
   "STOP" -> "stopped"
@@ -252,9 +255,13 @@ clause fVerb = do
     state <- get
     when (sValue "time" fVerb == Just "PAST") (put $ state { past = True })
     state <- get
-    let emphasis = cat (if sValue "butEmphasis" fVerb == Just "true" then "but" else "") 
+    let emphasis = cat (if sValue "butEmphasis" fVerb == Just "true" then "but"
+                        else if sValue "andEmphasis" fVerb == Just "true" then "and"
+                        else "") 
                        (if (fValue "optativeModality" fVerb >>= getType) == Just "LUCK" then "by some sheer luck,"
-                        else if sValue "emphasis" fVerb == Just "true" then "there," else "")
+                        else if sValue "emphasis" fVerb == Just "true" then "there,"
+                        else if sValue "relTime" fVerb == Just "AFTER" then "then"
+                        else "")
     let verbForm = if past state then PastVerb else BaseVerb
         fSubject = fValue "arg1" fVerb
     subject <- case fSubject of
@@ -354,6 +361,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       ("ASK", "topic") -> if hasType "question" value then [] else [PPArg "on" value]
       ("LACK", "theme") -> [NPArg value]
       ("DISTRACT", "theme") -> [PPArg "from" value]
+      ("DISPERSE", "goal") -> if hasType "HOMES" value then [Adverb "home"] else [PPArg "to" value]
       (_, "goal") -> [PPArg "to" value]
       (_, "mood") -> case getType value of
         Just "JOY" -> [Adverb "cheerfully"]

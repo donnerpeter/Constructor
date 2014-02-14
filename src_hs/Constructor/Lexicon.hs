@@ -52,7 +52,7 @@ wordMites word index =
   case word of
   s | isNumber s -> xor [nounSg Nom Masc word v, nounSg Nom Neu word v, nounSg Acc Masc word v, nounSg Acc Neu word v] ++ [semS v0 "number" "true"]
   "6-ти" -> nounSg Gen Masc "6" v ++ [semS v0 "number" "true"]
-  "а" -> [mite $ Conjunction v0 "but" False, semS v0 "conj" "but", semT v0 "seq"]
+  "а" -> xor [[mite $ Conjunction v0 "but" False, semS v0 "conj" "but", semT v0 "seq"], adverb "andEmphasis" "true"]
   "было" -> [mite $ CopulaTense v0, semS v0 "time" "PAST"]
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
   "вдруг" -> adverb "manner" "SUDDENLY"
@@ -71,6 +71,7 @@ wordMites word index =
   "до" -> preposition "do" Gen v
   "дойдя" -> perfectBackground "COME_TO" v ++ arg (PP "v" Prep) "domain" v ++ arg (PP "do" Gen) "goal" v
   "долго" -> adverb "duration" "LONG"
+  "домам" -> nounPl Dat "HOMES" v
   "других" -> nounPl Gen "OTHERS" v
   "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ directObject v ++ arg (PP "po" Dat) "topic" v
   "ее" -> xor [pronoun Acc A.pl "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.sg v0], [semT v0 "SHE", mite $ Possessive Nom A.pl v0]] -- todo empty agr
@@ -133,13 +134,15 @@ wordMites word index =
   "поблагодарили" -> finVerb "THANK" "PAST" A.pl v ++ directObject v
   "поводу" -> nounSg Dat Masc "MATTER" v
   "подвигав" -> perfectBackground "MOVE" v ++ arg Instr "arg2" v
+  "показались" -> raisingVerb "SEEM" "PAST" A.pl v ++ arg Dat "experiencer" v
   "помнят" -> finVerb "REMEMBER" "PRESENT" A.pl3 v ++ directObject v
   "порядок" -> nounSg Acc Masc "ORDER" v ++ genHead "arg1" v
   "после" -> semPreposition "posle" Gen "AFTER" "anchor" v
-  "показались" -> raisingVerb "SEEM" "PAST" A.pl v ++ arg Dat "experiencer" v
+  "потом" -> adverb "relTime" "AFTER"
   "приуныли" -> finVerb "GET_SAD" "PAST" A.pl v
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ arg (PP "v" Acc) "goal" v
   "радостью" -> nounSg Instr Fem "JOY" v ++ optional [mite $ PrepositionActivator "s" Instr [VerbalModifier "mood" False v0]]
+  "разошлись" -> finVerb "DISPERSE" "PAST" A.pl v ++ arg (PP "po" Dat) "goal" v
   "раньше" -> [mite $ Argument ScalarAdverb v0, semT v0 "EARLIER"]
   "ребенок" -> nounSg Nom Masc "CHILD" v
   "рта" -> nounSg Gen Masc "MOUTH" v

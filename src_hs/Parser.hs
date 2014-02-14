@@ -79,6 +79,9 @@ sonnetTests = [
                 ,
   translateTest "Это отвлекло нас от нашего спора"
                 "That distracted us from our argument"
+                ,
+  translateTest "А потом мы разошлись по домам."
+                "And then we all went home."
   ]
 
 variationTests1=[

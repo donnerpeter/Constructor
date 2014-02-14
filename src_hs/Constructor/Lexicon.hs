@@ -109,8 +109,10 @@ wordMites word index =
   "на" ->
     -- todo copula for prepositions besides 'na' 
     xor [preposition "na" Prep v, [mite $ PrepHead "na" Prep v0, mite $ PrepCopula v0, semT (v "x") "copula", semV (v "x") "location" v0] ++ finiteClause A.sg True (modifyV v 'x')] 
-  "нам" -> pronoun Dat A.pl3 "WE" v
+  "нам" -> pronoun Dat A.pl1 "WE" v
+  "нас" -> pronoun Acc A.pl1 "WE" v
   "начали" -> finVerb "BEGIN" "PAST" A.pl v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
+  "нашего" -> [semT v0 "WE", mite $ Possessive Gen A.m v0]
   "нашем" -> [semT v0 "WE", mite $ Possessive Prep A.n v0]
   "недоумении" -> nounSg Prep Neu "PREDICAMENT" v ++ genHead "arg1" v
   "но" ->  xor [[mite $ Conjunction v0 "but" False, semS v0 "conj" "but", semT v0 "seq"], adverb "butEmphasis" "true"]
@@ -123,6 +125,8 @@ wordMites word index =
   "они" -> pronoun Nom A.pl3 "THEY" v
   "опять" -> adverb "anchor" "AGAIN"
   "остановились" -> finVerb "STOP" "PAST" A.pl v
+  "от" -> preposition "ot" Gen v
+  "отвлекло" -> finVerb "DISTRACT" "PAST" A.m v ++ directObject v ++ arg (PP "ot" Gen) "theme" v
   "отправился" -> finVerb "GO_OFF" "PAST" A.m v ++ arg (PP "k" Dat) "goal" v
   "по" -> preposition "po" Dat v
   "по-моему" -> [mite $ VerbalModifier "accordingTo" True v0, semT v0 "OPINION", semV v0 "arg1" (v "me"), semT (v "me") "ME"]
@@ -157,6 +161,7 @@ wordMites word index =
   "смысла" -> nounSg Gen Masc "MEANING" v
   "со" -> xor [preposition "s" Instr v, preposition "s" Gen v]
   "соседям" -> nounPl Dat "NEIGHBORS" v
+  "спора" -> nounSg Gen Masc "ARGUE" v ++ genHead "arg1" v
   "спорили" -> finVerb "ARGUE" "PAST" A.pl v
   "спорить" -> infinitive "ARGUE" v
   "спросил" -> finVerb "ASK" "PAST" A.m v ++ directObject v ++ compHead "topic" v
@@ -178,6 +183,7 @@ wordMites word index =
   "челюсти" -> nounSg Gen Fem "JAW" v
   "что" -> xor [whWord v ++ xor [[mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.n3], [mite $ Argument Acc v0, mite $ AdjHead v0 Acc A.n3]], 
                 [mite $ Complementizer v0]]
+  "это" -> pronoun Nom (A.Agr Nothing A.Sg $ Just 3) "THIS" v
   "этому" -> adj Dat A.sg "determiner" "THIS" v
   "я" -> pronoun Nom (A.Agr Nothing A.Sg $ Just 1) "ME" v
   ":" -> xor [[mite $ Colon "directSpeech" v0], [mite $ Colon "elaboration" v0]]

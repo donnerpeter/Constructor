@@ -76,6 +76,9 @@ sonnetTests = [
                 ,
   translateTest "Мы спорили бы очень долго, но, по счастию, тут со скамейки свалился какой-то ребенок и сломал себе обе челюсти."
                 "We were arguing for a long time, when by some sheer luck, a child fell off a bench and broke both of his jaws."
+                ,
+  translateTest "Это отвлекло нас от нашего спора"
+                "That distracted us from our argument"
   ]
 
 variationTests1=[

@@ -111,7 +111,7 @@ streetName frame = case sValue "name" frame of
 
 isDeterminerOpinion frame = all (hasAnyType ["ME", "THEY"]) (flatten $ fValue "arg1" frame)
 determiner frame nbar =
-  let det = if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW"] frame then fValue "arg1" frame
+  let det = if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "ARGUE"] frame then fValue "arg1" frame
             else if hasAnyType ["OPINION"] frame && isDeterminerOpinion frame then fValue "arg1" frame
             else if hasAnyType ["WORDS"] frame then fValue "author" frame
             else Nothing
@@ -139,7 +139,7 @@ determiner frame nbar =
       if sDet == Just "THIS" then "this"
       else if sDet == Just "ANY" then "any"
       else if hasType "STREET" frame then streetName frame
-      else if hasAnyType ["SOME", "OTHERS"] frame then ""
+      else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT"] frame then ""
       else if hasType "OPINION" frame && Just True == fmap isVerbEllipsis (usage "accordingTo" frame) then ""
       else if sValue "given" frame == Just "true" then "the"
       else if "a" `isPrefixOf` nbar || "e" `isPrefixOf` nbar || "8" `isPrefixOf` nbar then "an"
@@ -175,6 +175,8 @@ noun (Just typ) frame = case typ of
   "CHILD" -> "child"
   "BENCH" -> "bench"
   "JAW" -> "jaws"
+  "ARGUE" -> "argument"
+  "THIS" -> "that"
   "GARDEN" -> if (fValue "name" frame >>= getType) == Just "летний" then "Summer Garden" else "garden"
   "7" -> if sValue "number" frame == Just "true" then typ else "seven"
   "8" -> if sValue "number" frame == Just "true" then typ else "eight"
@@ -224,6 +226,7 @@ verb verbForm frame typ =
   "ASK" -> if (fValue "topic" frame >>= getType) == Just "PREDICAMENT" then "consult" else "asked"
   "COME_SCALARLY" -> if sValue "time" frame == Just "PAST" then "went" else "comes"
   "DISCOVER" -> "discovered"
+  "DISTRACT" -> "distracted"
   "FALL" -> "fell"
   "BREAK" -> "broke"
   "STOP" -> "stopped"
@@ -350,6 +353,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       ("FALL", "source") -> [PPArg "off" value]
       ("ASK", "topic") -> if hasType "question" value then [] else [PPArg "on" value]
       ("LACK", "theme") -> [NPArg value]
+      ("DISTRACT", "theme") -> [PPArg "from" value]
       (_, "goal") -> [PPArg "to" value]
       (_, "mood") -> case getType value of
         Just "JOY" -> [Adverb "cheerfully"]

@@ -81,6 +81,7 @@ wordMites word index =
     ]
   "и" -> [mite $ Conjunction v0 "and" True, semS v0 "conj" "and", semT v0 "seq"]
   "идет" -> finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v]
+  "идёт" -> finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v]
   "из" -> preposition "iz" Gen v
   "изо" -> preposition "iz" Gen v
   "или" -> [mite $ Conjunction v0 "or" True, semS v0 "conj" "or", semT v0 "seq"]

@@ -50,7 +50,7 @@ wordMites word index =
       v0 = v ""
   in
   case word of
-  s | isNumber s -> xor [nounSg Nom Masc word v, nounSg Nom Neu word v, nounSg Acc Masc word v, nounSg Acc Neu word v] ++ [semS v0 "number" "true"]
+  s | isNumber s -> xor [nounSg caze gender word v | caze <- [Nom, Gen, Acc], gender <- [Masc, Neu]] ++ [semS v0 "number" "true"]
   "6-ти" -> nounSg Gen Masc "6" v ++ [semS v0 "number" "true"]
   "а" -> xor [[mite $ Conjunction v0 "but" False, semS v0 "conj" "but", semT v0 "seq"], adverb "andEmphasis" "true"]
   "было" -> [mite $ CopulaTense v0, semS v0 "time" "PAST"]
@@ -80,8 +80,8 @@ wordMites word index =
       [mite $ ArgHead ScalarAdverb (v "scalar"), semV v0 "arg2" (v "arg2"), semT (v "arg2") "question", semV (v "arg2") "content" (v "comes"), semT (v "comes") "COME_SCALARLY", semV (v "comes") "arg1" (v "wh"), semT (v "wh") "wh", semV (v "comes") "order" (v "scalar")]
     ]
   "и" -> [mite $ Conjunction v0 "and" True, semS v0 "conj" "and", semT v0 "seq"]
-  "идет" -> finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v]
-  "идёт" -> finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v]
+  "идет" -> finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v, arg (PP "ranshe" Gen) "order" v]
+  "идёт" -> finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v, arg (PP "ranshe" Gen) "order" v]
   "из" -> preposition "iz" Gen v
   "изо" -> preposition "iz" Gen v
   "или" -> [mite $ Conjunction v0 "or" True, semS v0 "conj" "or", semT v0 "seq"]
@@ -144,7 +144,7 @@ wordMites word index =
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ arg (PP "v" Acc) "goal" v
   "радостью" -> nounSg Instr Fem "JOY" v ++ optional [mite $ PrepositionActivator "s" Instr [VerbalModifier "mood" False v0]]
   "разошлись" -> finVerb "DISPERSE" "PAST" A.pl v ++ arg (PP "po" Dat) "goal" v
-  "раньше" -> [mite $ Argument ScalarAdverb v0, semT v0 "EARLIER"]
+  "раньше" -> xor [[mite $ Argument ScalarAdverb v0, semT v0 "EARLIER"], semPreposition "ranshe" Gen "BEFORE" "anchor" v]
   "ребенок" -> nounSg Nom Masc "CHILD" v
   "рта" -> nounSg Gen Masc "MOUTH" v
   "с" -> preposition "s" Instr v

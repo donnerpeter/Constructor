@@ -357,6 +357,9 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
         Just "AFTER" -> case fValue "anchor" value of 
           Just anchor -> [PPArg "after" anchor]
           _ -> [Adverb "after"]
+        Just "BEFORE" -> case fValue "anchor" value of 
+          Just anchor -> [PPArg "before" anchor]
+          _ -> [Adverb "before"]
         _ -> []
       ("HAPPEN", "experiencer") -> [PPArg "to" value]
       ("TAKE_OUT", "source") -> [PPArg "out of" value]

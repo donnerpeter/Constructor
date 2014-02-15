@@ -375,7 +375,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
         Just s -> [Adverb s]
         _ -> []
       (_, "location") -> [PPArg "on" value]
-      (_, "arg2") -> if hasType "question" value then [] else [NPArg value]
+      (_, "arg2") -> if hasAnyType ["question", "fact"] value then [] else [NPArg value]
       _ -> []
     StrValue value -> case (attr, value) of
       ("anchor", "AGAIN") -> [Adverb "again"]

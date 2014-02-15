@@ -246,7 +246,7 @@ verb verbForm frame typ =
   "GET_SAD" -> "got sad"
   "SAY" -> "said"
   "LACK" -> "were void of"
-  "copula" -> "is"
+  "copula" -> if Just "ME" == (fValue "arg1" frame >>= getType) then "am" else "is"
   _ -> typ
 
 clause :: Frame -> State GenerationState String
@@ -338,7 +338,11 @@ vp fVerb verbForm subject = do
       _ -> return ""
     _ -> return ""
   args <- foldM (\s arg -> return s `catM` generateArg arg) "" (arguments fVerb)
-  let contracted = if null preAdverb && sVerb == "is" then subject ++ "'s" else subject `cat` preAdverb `cat` sVerb
+  let contracted = if null preAdverb then
+                     if sVerb == "am" then subject ++ "'m"
+                     else if sVerb == "is" then subject ++ "'s"
+                     else subject `cat` sVerb
+                   else subject `cat` preAdverb `cat` sVerb
   return $ contracted `cat` controlled `cat` args `cat` finalAdverb
 
 data Argument = Adverb String | NPArg Frame | PPArg String Frame

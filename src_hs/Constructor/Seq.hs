@@ -14,6 +14,7 @@ seqRight leftMites rightMites = result where
     Conjunction v conj True -> if hasSeqFull conj then [] else rightMites >>= \m2 -> case cxt m2 of
       Argument kind child -> withBase [m1,m2] [semV v "member2" child, mite $ SeqRight v kind conj]
       Possessive caze agr child -> withBase [m1,m2] [semV v "member2" child, mite $ SeqRight v (PossKind caze agr) conj]
+      Complement child -> withBase [m1,m2] [semV v "member2" child, mite $ SeqRight v CP conj]
       Clause level child ->                         
         let unhappy = filter elideable $ filter (not . happy) rightMites
             wrapped = [(mite $ ElidedArgHead $ cxt m) {baseMites = [m,m1,m2]} | m <- unhappy]
@@ -27,7 +28,7 @@ seqRight leftMites rightMites = result where
               Ellipsis child _ _ -> [e]
               _ -> []
         in
-          withBase (ellipsis ++ [m1, m2]) [semV v "member2" child, mite $ SeqRight v (CP level) conj] ++ wrapped ++ emptyCounterparts
+          withBase (ellipsis ++ [m1, m2]) [semV v "member2" child, mite $ SeqRight v (ClauseArg level) conj] ++ wrapped ++ emptyCounterparts
       _ -> []
     _ -> []      
 
@@ -42,7 +43,10 @@ seqLeft leftTree leftMites rightMites = concat [interactSeqLeft m1 m2 | m1 <- le
     (Possessive caze1 agr1 child, SeqRight v (PossKind caze2 agr2) conj) | caze1 == caze2 && agree agr1 agr2 ->
       if contradictsSeq conj then [] else  
         withBase [m1,m2] [semV v "member1" child, mite $ SeqFull v conj, mite $ Possessive caze1 (commonAgr agr1 agr2) v]
-    (Clause level child, SeqRight seqV (CP level2) conj) | level == level2 ->
+    (Complement child, SeqRight v CP conj) ->
+      if contradictsSeq conj then [] else  
+        withBase [m1,m2] [semV v "member1" child, mite $ SeqFull v conj, mite $ Complement v]
+    (Clause level child, SeqRight seqV (ClauseArg level2) conj) | level == level2 ->
        if contradictsSeq conj then [] else
        let unifications = concat [unifyMissingArgument mite1 mite2 | mite1 <- unhappyLeft ++ happyBases, 
                                                                      mite2 <- rightMites]

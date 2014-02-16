@@ -7,7 +7,9 @@ import Control.Exception (assert)
 import Constructor.Agreement
 import Constructor.Variable
 
-data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | CP ClauseLevel | PossKind ArgKind Agr | ScalarAdverb deriving (Show, Eq, Ord)
+data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | 
+               ClauseArg ClauseLevel | CP | PossKind ArgKind Agr | ScalarAdverb
+               deriving (Show, Eq, Ord)
 data ClauseLevel = TopLevel | Subordinate deriving (Show, Eq, Ord)
 data Construction = Word Variable String
                   | Sem Variable String SemValue
@@ -47,6 +49,8 @@ data Construction = Word Variable String
                   | Control Variable
                   | ModalityInfinitive Variable
                   | ControlledInfinitive Variable
+                  | RelativeClause Variable
+                  | Complement Variable
                   | Complementizer Variable
                   | SurroundingComma {-closing-} Bool Variable
                   | Colon {-role-} String Variable
@@ -107,12 +111,15 @@ isHappy (TwoWordCxt {}) = False
 isHappy (ReasonComp {}) = False
 isHappy (Ellipsis {}) = False
 isHappy (Unclosed {}) = False
+isHappy (Complement {}) = False
+isHappy (Wh {}) = False
+isHappy (RelativeClause {}) = False
 isHappy _ = True
 
 isCommaSurroundable (ConditionComp _ _ True) = True
 isCommaSurroundable (ReasonComp _ True) = True
-isCommaSurroundable (Wh {}) = True
-isCommaSurroundable (Complementizer {}) = True
+isCommaSurroundable (Complement {}) = True
+isCommaSurroundable (RelativeClause {}) = True
 isCommaSurroundable (VerbalModifier _ True _) = True
 isCommaSurroundable _ = False
 

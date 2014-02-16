@@ -29,7 +29,8 @@ generate sense =
 
 capitalize (c:rest) = (toUpper c):rest
 
-isCP frame = hasType "fact" frame || hasType "question" frame
+isCP frame = hasAnyType ["fact", "question"] frame
+isCPOrSeq frame = any isCP $ flatten $ Just frame
 getTopFrame frame = if isCP frame then upmostSeq frame else Nothing where 
   upmostSeq frame =
     case usage "member1" frame of
@@ -37,7 +38,7 @@ getTopFrame frame = if isCP frame then upmostSeq frame else Nothing where
       _ -> if isJust $ usage "member2" frame then Nothing else Just frame
 
 handleSeq :: (Frame -> State GenerationState String) -> Maybe Frame -> State GenerationState String
-handleSeq _ Nothing = return "???"
+handleSeq _ Nothing = return "???seq"
 handleSeq f (Just frame) =
   if hasType "seq" frame then do
       frameGenerated frame
@@ -132,7 +133,7 @@ determiner frame nbar =
                Just "Neu" -> "its"
                _ -> s
             else return s
-          _ -> return "???"
+          _ -> return "???det"
   in
   case det of
     Just _ -> handleSeq genitiveSpecifier $ fmap resolve det
@@ -203,14 +204,14 @@ sentence :: Frame -> State GenerationState String
 sentence frame = handleSeq singleSentence (Just frame) `catM` return finish where
   singleSentence frame = do
     frameGenerated frame
-    fromMaybe (return "???") $ liftM clause $ fValue "content" frame
+    fromMaybe (return "???sentence") $ liftM clause $ fValue "content" frame
   finish = if sValue "dot" frame == Just "true" then "."
            else if isJust (lastSentence >>= fValue "content" >>= fValue "message") then ":"
            else ""
   lastSentence = if hasType "seq" frame then fValue "member2" frame else Just frame
 
 genComplement cp = fromMaybe (return "") $ do
-  let prefix = if hasType "fact" cp then ", that" else ""
+  let prefix = if hasType "fact" cp then "that" else ""
   fVerb <- fValue "content" cp
   if hasType "question" cp && hasType "THINK" fVerb then
     return $ do
@@ -293,7 +294,9 @@ clause fVerb = do
         Just "COME_TO" -> return "but reaching a six in count,"
         _ -> return ""
       _ -> return ""
-    comp <- fromMaybe (return "") $ fmap genComplement $ fComp
+    comp <- case fComp of
+      Nothing -> return "" 
+      _ -> return (if hasType "fact" $ head $ flatten fComp then "," else "") `catM` handleSeq genComplement fComp
     externalComp <- if getType fVerb == Just "GO" then 
       case usage "content" fVerb >>= usage "member1" >>= fValue "member2" of
        Just nextClause | (fValue "content" nextClause >>= getType) == Just "ASK" -> do
@@ -325,7 +328,7 @@ vp fVerb verbForm subject = do
         Just "SADLY" -> if getType fVerb == Just "SMILE" then "" else "sadly"
         Just s -> s
         _ -> ""
-      sVerb = if isVerbEllipsis fVerb then "did" else fromMaybe "???" $ fmap (verb verbForm fVerb) $ getType fVerb
+      sVerb = if isVerbEllipsis fVerb then "did" else fromMaybe "???vp" $ fmap (verb verbForm fVerb) $ getType fVerb
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         _ -> ""
@@ -375,7 +378,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
         Just s -> [Adverb s]
         _ -> []
       (_, "location") -> [PPArg "on" value]
-      (_, "arg2") -> if hasAnyType ["question", "fact"] value then [] else [NPArg value]
+      (_, "arg2") -> if isCPOrSeq value then [] else [NPArg value]
       _ -> []
     StrValue value -> case (attr, value) of
       ("anchor", "AGAIN") -> [Adverb "again"]

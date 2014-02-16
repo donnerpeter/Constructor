@@ -93,7 +93,7 @@ sValue attr frame =
   else
     case attr of
       "given" ->
-        if hasAnyType ["CASE", "HAMMER", "7", "8", "TREES", "CHILD", "BENCH"] frame then Just "false"
+        if hasAnyType ["CASE", "HAMMER", "3", "4", "7", "8", "TREES", "CHILD", "BENCH"] frame then Just "false"
         else if hasType "CASHIER" frame then
           case find (\shop -> earlier shop "type" frame "type") $ findFrames "SHOP" $ sense frame of
            Just shop -> sValue "given" shop

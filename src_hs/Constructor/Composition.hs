@@ -14,7 +14,8 @@ interactNodes leftTree leftMites rightMites = if null whResults then noWh else w
     Wh wh cp -> rightMites >>= \rightMite1 -> case cxt rightMite1 of
       Question cp2 verb ->
         let fillers = filter (not . leftHeadedMerge) noWh
-            whLinks = withBase [leftMite1, rightMite1] [mite $ Unify cp cp2, semV cp "questioned" wh]
+            whLinks = withBase [leftMite1, rightMite1] $
+              [mite $ Unify cp cp2, semV cp "questioned" wh] ++ xor [[mite $ Complement cp], [mite $ RelativeClause cp]]
             infos = map (\ info -> MergeInfo (mergeResult info ++ whLinks) True) fillers
         in infos
       _ -> []
@@ -75,9 +76,8 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (DirectSpeechDash v, Clause TopLevel cp) -> left [mite $ DirectSpeech cp, semS cp "directSpeech" "true"]
       (Colon "elaboration" _, Clause Subordinate cp) -> left [mite $ Elaboration cp]
       (Verb head, Elaboration child) -> left [semV head "elaboration" child, mite $ Unclosed (cxt m2)]
-      (CompHead comp, CommaSurrounded True _ (Wh _ cp)) -> left [mite $ Unify comp cp]
-      (CompHead comp, CommaSurrounded True _ (Complementizer cp)) -> left [mite $ Unify comp cp]
-      (AdjHead noun _ _, CommaSurrounded True _ (Wh _ cp)) -> left [semV noun "relative" cp]
+      (CompHead comp, CommaSurrounded True _ (Complement cp)) -> left [mite $ Unify comp cp]
+      (AdjHead noun _ _, CommaSurrounded True _ (RelativeClause cp)) -> left [semV noun "relative" cp]
       
       (CommaSurrounded _ True (VerbalModifier attr True advP), Verb verb) -> right [semV verb attr advP]
       (Verb verb, VerbalModifier attr False advP) -> left [semV verb attr advP]
@@ -113,7 +113,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (Word _ "тоже", Verb v) -> right [semS v "also" "true"]
       (Complementizer cp1, Fact cp2) -> rightMites >>= \m3 -> case cxt m3 of
          Clause Subordinate cp3 | cp3 == cp2 ->
-           [MergeInfo [(mite $ Unify cp1 cp2) { baseMites = [m1, m2, m3]}] True]
+           [MergeInfo (withBase [m1,m2,m3] [mite $ Unify cp1 cp2, mite $ Complement cp1]) True]
          _ -> []
       (Control slave, ControlledInfinitive inf) -> left [mite $ Unify slave inf]
       (RaisingVerb verb subj, Raiseable agr child) -> left [semV child "arg1" subj, semV verb "theme" child]

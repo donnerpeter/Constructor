@@ -87,7 +87,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (QuestionVariants (Just v) (Just _), Argument Nom child) -> left [semV v "variants" child]
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
       (Verb v, Word _ "бы") -> left [semS v "irrealis" "true"]
-      (Word _ "очень", Adverb attr val) -> right []
+      (Word _ "очень", adverb@(Adverb attr val)) -> right [mite $ adverb]
       
       (Copula v0, CopulaTense v1) -> left [mite $ Unify v0 v1]
       (CopulaTense v1, ModalityInfinitive v2) -> right [mite $ Unify v1 v2]

@@ -14,10 +14,15 @@ import Control.Exception (assert)
 
 createEdges:: Tree -> Tree -> [Tree]
 createEdges leftTree rightTree =
-  let infos = interactNodes leftTree (headMites leftTree) (headMites rightTree)
-      infos2 = infos --if null infos then infos else traceShow infos infos 
-      trees = [Tree merged (Just leftTree) (Just rightTree) leftHeadedMerge Set.empty $ calcCandidateSets merged | (MergeInfo merged leftHeadedMerge) <- infos2]
-  in catMaybes $ map suggestActive trees
+  let leftTreeVariants = [(tree, activeHeadMites tree) | tree <- map (flip applyAV leftTree) $ avs leftTree]
+      rightTreeVariants = [(tree, activeHeadMites tree) | tree <- map (flip applyAV rightTree) $ avs rightTree]
+      infos = concat [interactNodes l lMites rMites | (l, lMites) <- leftTreeVariants, (r, rMites) <- rightTreeVariants]
+      lh = xor [merged | (MergeInfo merged leftHeadedMerge) <- infos, leftHeadedMerge]
+      rh = xor [merged | (MergeInfo merged leftHeadedMerge) <- infos, not leftHeadedMerge]
+      lTree = if null lh then Nothing else createBranch lh leftTree rightTree LeftSide $ calcCandidateSets lh
+      rTree = if null rh then Nothing else createBranch rh leftTree rightTree RightSide $ calcCandidateSets rh
+      trees = catMaybes [lTree, rTree]
+  in trees
 
 type MergeResult = Either Tree (Tree, Tree)
 integrateSubTree :: Tree -> Tree -> Bool -> MergeResult -> [MergeResult]  
@@ -73,37 +78,22 @@ mergeTrees state =
             notConsideredMerges = [m | m <- immediateMerges, not $ LS.member m result]
 
 addMites:: [Tree] -> [Mite] -> [Tree]
-addMites state mites = mergeTrees $ (fromJust $ suggestActive $ Tree mites Nothing Nothing True Set.empty $ calcCandidateSets mites):state
+addMites state mites = mergeTrees $ (createLeaf mites $ calcCandidateSets mites):state
 
-calcCandidateSets:: [Mite] -> [Set.Set Mite]
-calcCandidateSets mites = {-traceShow ("calcCandidates", mites, "\ncontradictors:", contradictorCache, length result) $ -}result where
-  contradictorCache = Map.fromList [(m, Set.fromList $ filter (contradict m) mites) | m <- mites]
-  contradictCached m1 m2 = Set.member m2 $ (Map.!) contradictorCache m1
+calcCandidateSets:: [Mite] -> [[Mite]]
+calcCandidateSets mites = {-traceShow ("contradictors:", mites) $ -}result where
+  contradictorCache = buildContradictorCache mites
   hasContradictors mite inList = let contras = (Map.!) contradictorCache mite in any (flip Set.member contras) inList
-  enumerate :: [Mite] -> [Mite] -> [Mite] -> [Set.Set Mite]
+  enumerate :: [Mite] -> [Mite] -> [Mite] -> [[Mite]]
   enumerate mites chosen uncovered =
     if any (\mite -> not $ hasContradictors mite mites) uncovered then [] 
     else case mites of
-      [] -> assert (null uncovered) [Set.fromList chosen]
+      [] -> assert (null uncovered) [chosen]
       mite:rest -> includeMite++omitMite where
-        includeMite = if hasContradictors mite chosen then [] 
-                      else enumerate (filter (not . contradictCached mite) rest) (mite:chosen) (filter (not . contradictCached mite) uncovered)
+        includeMite = if contradictsChosen then [] else enumerate nextUnprocessed (mite:chosen) nextUncovered where
+          contradictsChosen = any (flip Set.member contras) chosen
+          nextUnprocessed = filter (not . flip Set.member contras) rest
+          nextUncovered = filter (not . flip Set.member contras) uncovered
+          contras = (Map.!) contradictorCache mite
         omitMite = enumerate rest chosen (mite:uncovered)
   result = enumerate mites [] []
-
-suggestActive:: Tree -> Maybe Tree
-suggestActive tree = {-traceShow ("suggestActive", tree, "->", result) $ -}result where
-  result = inner tree True True True Set.empty 
-  inner tree leftBorder rightBorder borderHead spine = {-traceShow ("inner", spine, mites tree, tree) $-} do
-    let candidates = [set | set <- candidateSets tree, all (flip Set.member set) requiredMites]
-        requiredMites = filter (flip Set.member spine) (mites tree)
-        unhappyCount set = length $ filter (\mite -> not (happy mite || Set.member mite spine)) (Set.elems set)
-        absolutelyHappy = [set | set <- candidates, unhappyCount set == 0]
-        anyBorder = leftBorder || rightBorder || borderHead
-    singleCandidate <- listToMaybe $ if anyBorder then Data.List.sortBy (compare `on` unhappyCount) candidates else absolutelyHappy 
-    if isBranch tree then do
-      let nextSpine = Set.union spine (Set.fromList $ activeBase singleCandidate)
-      newLeft <- inner (fromJust $ left tree) leftBorder False (leftHeaded tree && anyBorder) nextSpine
-      newRight <- inner (fromJust $ right tree) False rightBorder ((not $ leftHeaded tree) && anyBorder) nextSpine
-      Just $ tree { active = singleCandidate, left = Just newLeft, right = Just newRight }
-    else Just $ tree { active = singleCandidate }

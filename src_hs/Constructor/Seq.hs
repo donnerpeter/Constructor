@@ -5,6 +5,7 @@ import Constructor.Constructions
 import Constructor.Agreement
 import Constructor.Variable
 import Constructor.Tree
+import Control.Monad
 import Debug.Trace
 import Data.Maybe
 
@@ -25,10 +26,10 @@ seqRight leftMites rightMites = result where
               EmptyCxt w | any (contradict m) wrapped -> [(mite $ cxt m) {baseMites = [m,m1,m2]}]
               _ -> []
             ellipsis = rightMites >>= \e -> case cxt e of
-              Ellipsis child _ _ -> [e]
+              Ellipsis child (Just _) (Just _) -> withBase [e] [mite $ cxt e] 
               _ -> []
         in
-          withBase (ellipsis ++ [m1, m2]) [semV v "member2" child, mite $ SeqRight v (ClauseArg level) conj] ++ wrapped ++ emptyCounterparts
+          ellipsis ++ withBase ([m1, m2]) [semV v "member2" child, mite $ SeqRight v (ClauseArg level) conj] ++ wrapped -- ++ emptyCounterparts
       _ -> []
     _ -> []      
 
@@ -56,8 +57,8 @@ seqLeft leftTree leftMites rightMites = concat [interactSeqLeft m1 m2 | m1 <- le
            unifyMissingArgument aux1 aux2 = case (cxt aux1, cxt aux2) of
              (NomHead agr1 v1, ElidedArgHead (NomHead agr2 v2)) | agree agr1 agr2 -> withBase [aux1,aux2] [mite $ Unify v1 v2]
              _ -> []
-           ellipsisVariants = baseMites m2 >>= \m3 -> case cxt m3 of
-             Ellipsis ellipsisVar (Just e1) (Just e2) -> processEllipsis child ellipsisVar e1 e2 leftTree 
+           ellipsisVariants = rightMites >>= \m3 -> case cxt m3 of
+             Ellipsis ellipsisVar (Just e1) (Just e2) -> map (withBase [m3]) $ processEllipsis child ellipsisVar e1 e2 leftTree 
              _ -> []
            result = withBase [m1, m2] ([semV seqV "member1" child, mite $ Clause level seqV, mite $ SeqFull seqV conj] ++ unifications ++ xor ellipsisVariants)
        in
@@ -88,23 +89,22 @@ processEllipsis oldCP ellipsisVar@(Variable varIndex _) e1 e2 prevTree = let
       else if _v == vo2 then va2
       else if _v == oldCP then ellipsisVar
       else Variable varIndex ("_" ++ show _v)
-    mapMite m = withBase [m,mo1,mo2] $ case cxt m of
+    mapMite m = withBase [m] $ case cxt m of
       Unify _v1 _v2 -> [mite $ Unify (mapVariable _v1) (mapVariable _v2)]
       Sem _v1 attr (StrValue s) -> [mite $ Sem (mapVariable _v1) attr (StrValue s)]
       Sem _v1 attr (VarValue _v2)  -> [mite $ Sem (mapVariable _v1) attr (VarValue $ mapVariable _v2)]
       _ -> []
     walkTree :: Tree -> ([Mite], [Construction])
     walkTree tree = let
-      ownMites = headMites tree
-      activeHeadMites = filter (flip Set.member activeMiteSet) ownMites
-      ownCxts = map cxt ownMites
-      ownMapped = ownMites >>= mapMite
+      activeHeadMites = Constructor.Tree.activeHeadMites tree
+      headCxts = map cxt activeHeadMites
+      ownMapped = activeHeadMites >>= mapMite
       folder (allMapped, allCovered) tree = let (mapped, covered) = walkTree tree in (allMapped++mapped, allCovered++covered) 
       (leftMapped, leftCovered) = foldl folder ([], []) $ subTrees LeftSide tree
       (rightMapped, rightCovered) = foldl folder ([], []) $ subTrees RightSide tree
       in
-      if elem o1 ownCxts then ([], [o1])
-      else if elem o2 ownCxts then ([], [o2])
+      if elem o1 headCxts then ([], [o1])
+      else if elem o2 headCxts then ([], [o2])
       else if containsClause activeHeadMites then ([], [])
       else (leftMapped++ownMapped++rightMapped, leftCovered++rightCovered)
     (mapped, covered) = walkTree prevTree

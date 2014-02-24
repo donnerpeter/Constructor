@@ -6,6 +6,7 @@ import qualified Constructor.LinkedSet as LS
 import Control.Exception (assert)
 import Constructor.Agreement
 import Constructor.Variable
+import Debug.Trace
 
 data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | 
                ClauseArg ClauseLevel | CP | PossKind ArgKind Agr | ScalarAdverb
@@ -69,11 +70,14 @@ data Construction = Word Variable String
                   | ReflexiveTarget Variable
                   -- | S1 | S2 | S3 | S4
                   deriving (Show, Ord, Eq)
-data Mite = Mite { cxt :: Construction, happy :: Bool, contradictors :: Set.Set Construction, baseMites :: [Mite] } deriving (Ord, Eq)
+type XorKey = (Construction, [Mite])
+data Mite = Mite { cxt :: Construction, happy :: Bool, contradictors :: Set.Set XorKey, baseMites :: [Mite] }
 instance Show Mite where
   show (Mite {cxt=c, happy=h, contradictors=cc, baseMites = b}) =
     (if h then "" else "!") ++ show c -- ++ (if Set.null cc then "" else "(xor "++(show cc)++")")
-      -- ++ (if null b then "" else "(base " ++ show b ++ ")")
+        -- ++ (if null b then "" else "(base " ++ show b ++ "/base)")
+instance Ord Mite where compare m1 m2 = compare (xorKey m1) (xorKey m2)
+instance Eq Mite where m1 == m2 = (xorKey m1) == (xorKey m2)
   
 isHappy (Adj {}) = False
 isHappy (Adverb {}) = False
@@ -129,27 +133,40 @@ semS var prop value = mite $ Sem var prop (StrValue value)
 semV var prop value = mite $ Sem var prop (VarValue value)
 semT var _type = semS var "type" _type
 
+xorKey mite = (cxt mite, baseMites mite)
+
 xor :: [[Mite]] -> [Mite]
 xor miteGroups =
-  let cxtGroups = map (map cxt) miteGroups
+  let cxtGroups = map (map xorKey) miteGroups
       allCxts = LS.removeDups $ concat cxtGroups
-      allCxtSet = Set.fromList $ concat cxtGroups
-      cxt2ExistingContras = Map.fromListWith Set.union [(cxt mite, contradictors mite) | mite <- concat miteGroups]
-      cxt2Groups = Map.fromListWith (++) $ [(c, group) | group <- cxtGroups, c <- group]
-      cxt2Friends = Map.map Set.fromList cxt2Groups
+      allCxtSet = Set.fromList allCxts
+
+      cxt2ExistingContras :: Map.Map XorKey (Set.Set XorKey)
+      cxt2ExistingContras = Map.fromListWith Set.union [(xorKey mite, contradictors mite) | mite <- concat miteGroups]
+      cxt2Friends = Map.fromListWith Set.union $ [(c, Set.fromList group) | group <- cxtGroups, c <- group]
       cxt2Contras = Map.map (\friends -> Set.difference allCxtSet friends) cxt2Friends
-      addContradictors mite contras = mite { contradictors = Set.union (contradictors mite) contras }
+
+      contras :: XorKey -> Map.Map XorKey (Set.Set XorKey) -> Set.Set XorKey
       contras c fromMap = Map.findWithDefault Set.empty c fromMap
-      createMite c = (mite c) { contradictors = Set.union (contras c cxt2ExistingContras) (contras c cxt2Contras)}
+      createMite key@(c, b) = (mite c) { contradictors = Set.union (contras key cxt2ExistingContras) (contras key cxt2Contras), baseMites = b}
       newMites = map createMite allCxts
-  in newMites
+  in assert (LS.removeDups newMites == newMites) $ {-traceShow ("xor", miteGroups) $ traceShow ("->", newMites) $ -}newMites
+  
+flattenBaseMites m = m:(baseMites m >>= flattenBaseMites)
+flattenContradictors mite = foldl Set.union Set.empty (map contradictors $ flattenBaseMites mite) where
 
-contradict mite1 mite2 = let
-  allBaseMites m = m:(baseMites m >>= allBaseMites)
-  allContradictors1 = foldl Set.union Set.empty (map contradictors $ allBaseMites mite1)
+contradict mite1 mite2 = let allContradictors1 = flattenContradictors mite1 in
+  any (flip Set.member allContradictors1) $ map xorKey $ flattenBaseMites mite2
+
+buildContradictorCache mites = Map.fromList [(m, Set.fromList $ findContradictors t) | t@(m, _, _) <- triples] where
+  triples = [(m, LS.removeDups $ map xorKey $ flattenBaseMites m, flattenContradictors m) | m <- mites]
+  findContradictors (mite, _, allContradictors) = [m | (m, _, _) <- filter contradicts triples] where
+    contradicts (m2, flatBase2, _) = any (flip Set.member allContradictors) flatBase2
+
+withBase base mites = let
+  keys = Set.fromList $ map xorKey mites
+  addBaseToContra key@(c, b) = if Set.member key keys then (c, LS.removeDups $ b ++ base) else key
   in
-  any (flip Set.member allContradictors1) $ map cxt $ allBaseMites mite2
+  map (\m -> m {baseMites = LS.removeDups $ (baseMites m ++ base), contradictors = Set.map addBaseToContra $ contradictors m }) mites
 
-hasContradictors mite inList = any (contradict mite) inList
-
-withBase base mites = map (\m -> m {baseMites = LS.removeDups $ (baseMites m ++ base)}) mites
+optional mites = xor [mites, [mite $ EmptyCxt $ cxt $ head mites]]

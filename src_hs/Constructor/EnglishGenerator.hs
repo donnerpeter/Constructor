@@ -321,6 +321,8 @@ clause fVerb = do
       _ -> return ""
     return $ emphasis `cat` opinion `cat` background `cat` core `cat` condComp `cat` reasonComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
 
+isQuestioned frame = hasType "wh" frame
+
 vp :: Frame -> VerbForm -> String -> State GenerationState String
 vp fVerb verbForm subject = do
   let preAdverb = case sValue "manner" fVerb of
@@ -332,6 +334,7 @@ vp fVerb verbForm subject = do
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         _ -> ""
+      whWord = if Just True == (fmap isQuestioned $ fValue "arg2" fVerb) then "what" else ""
   controlled <- case getType fVerb of
     Just "CAN" -> case fValue "theme" fVerb of
       Just slave -> vp slave BaseVerb ""
@@ -346,7 +349,7 @@ vp fVerb verbForm subject = do
                      else if sVerb == "is" then subject ++ "'s"
                      else subject `cat` sVerb
                    else subject `cat` preAdverb `cat` sVerb
-  return $ contracted `cat` controlled `cat` args `cat` finalAdverb
+  return $ whWord `cat` contracted `cat` controlled `cat` args `cat` finalAdverb
 
 data Argument = Adverb String | NPArg Frame | PPArg String Frame
 
@@ -378,7 +381,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
         Just s -> [Adverb s]
         _ -> []
       (_, "location") -> [PPArg "on" value]
-      (_, "arg2") -> if isCPOrSeq value then [] else [NPArg value]
+      (_, "arg2") -> if isCPOrSeq value || isQuestioned value then [] else [NPArg value]
       _ -> []
     StrValue value -> case (attr, value) of
       ("anchor", "AGAIN") -> [Adverb "again"]

@@ -14,9 +14,9 @@ import Control.Exception (assert)
 
 createEdges:: Tree -> Tree -> [Tree]
 createEdges leftTree rightTree =
-  let leftTreeVariants = [(tree, activeHeadMites tree) | tree <- map (flip applyAV leftTree) $ avs leftTree]
-      rightTreeVariants = [(tree, activeHeadMites tree) | tree <- map (flip applyAV rightTree) $ avs rightTree]
-      infos = concat [interactNodes l lMites rMites | (l, lMites) <- leftTreeVariants, (r, rMites) <- rightTreeVariants]
+  let leftMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ map (flip applyAV leftTree) $ avs leftTree
+      rightMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ map (flip applyAV rightTree) $ avs rightTree
+      infos = interactNodes leftTree leftMites rightMites
       lh = xor [merged | (MergeInfo merged leftHeadedMerge) <- infos, leftHeadedMerge]
       rh = xor [merged | (MergeInfo merged leftHeadedMerge) <- infos, not leftHeadedMerge]
       lTree = if null lh then Nothing else createBranch lh leftTree rightTree LeftSide $ calcCandidateSets lh

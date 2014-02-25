@@ -9,11 +9,15 @@ import qualified Data.Map as Map
 import qualified Constructor.LinkedSet as LS
 import Constructor.Constructions
 
-data Side = LeftSide | RightSide deriving (Eq, Show)
+data Side = LeftSide | RightSide deriving (Eq, Show, Ord)
+invert LeftSide = RightSide
+invert RightSide = LeftSide
+select LeftSide x _ = x
+select RightSide _ x = x
 
-data Tree = Tree {mites::[Mite], left::Maybe Tree, right::Maybe Tree, leftHeaded::Bool, active::Set.Set Mite, avs:: [ActiveVariant], allActiveMiteSet :: Set.Set Mite}
+data Tree = Tree {mites::[Mite], left::Maybe Tree, right::Maybe Tree, headSide::Side, active::Set.Set Mite, avs:: [ActiveVariant], allActiveMiteSet :: Set.Set Mite}
 
-cmpKey tree = (leftHeaded tree, mites tree, active tree, left tree, right tree)
+cmpKey tree = (headSide tree, mites tree, active tree, left tree, right tree)
 
 instance Eq Tree where t1 == t2 = cmpKey t1 == cmpKey t2
 instance Ord Tree where compare t1 t2 = compare (cmpKey t1) (cmpKey t2)
@@ -44,33 +48,33 @@ allTreeMites tree =
 
 subTrees side tree =
   if not $ isBranch tree then []
-  else if leftHeaded tree && side == RightSide then fromJust (right tree) : subTrees side (fromJust $ left tree)
-  else if not (leftHeaded tree) && side == LeftSide then fromJust (left tree) : subTrees side (fromJust $ right tree)
-  else subTrees side $ fromJust $ (if side == LeftSide then left else right) tree
+  else if headSide tree == LeftSide && side == RightSide then justRight tree : subTrees side (justLeft tree)
+  else if headSide tree == RightSide && side == LeftSide then justLeft tree : subTrees side (justRight tree)
+  else subTrees side $ (if side == LeftSide then justLeft else justRight) tree
 
 headTrees tree =
-  if isBranch tree then tree:headTrees (if leftHeaded tree then justLeft tree else justRight tree)
+  if isBranch tree then tree:headTrees (if headSide tree == LeftSide then justLeft tree else justRight tree)
   else [tree]
 
 headMites tree = concat $ map mites $ headTrees tree
-  
+
 activeHeadMites tree = filter (flip Set.member allActive) (uncoveredHeadMites tree) where
-  allActive = foldl Set.union Set.empty $ map active $ headTrees tree 
+  allActive = foldl Set.union Set.empty $ map active $ headTrees tree
 
 uncoveredHeadMites tree =
   let inner tree suppressed result =
         let ownMites = [mite | mite <- mites tree, not $ Set.member mite suppressed]
         in
         if isNothing $ left tree then concat $ reverse (ownMites:result)
-        else inner (if leftHeaded tree then fromJust $ left tree else fromJust $ right tree)
+        else inner (if headSide tree == LeftSide then justLeft tree else justRight tree)
                     (Set.union suppressed $ Set.filter (not . happy) $ activeBase $ active tree)
                     (ownMites:result)
   in inner tree Set.empty []
 
-activeBase activeSet = Set.fromList [mite | activeMite <- Set.elems activeSet, mite <- baseMites activeMite]  
+activeBase activeSet = Set.fromList [mite | activeMite <- Set.elems activeSet, mite <- baseMites activeMite]
 
 isBranch tree = isJust (left tree)
-isDirectedBranch tree isLeftBranch = isBranch tree && leftHeaded tree == isLeftBranch
+isDirectedBranch tree side = isBranch tree && headSide tree == side
 
 allActiveMites tree = filter (flip Set.member activeSet) (allTreeMites tree) where activeSet = allActiveMiteSet tree
 
@@ -84,15 +88,15 @@ data ActiveVariant = ActiveVariant { avMites :: [Mite], avLeft :: Maybe Tree, av
   avUnhappyLeft :: [Mite], avUnhappyHead :: [Mite], avUnhappyRight :: [Mite] } deriving (Show)
 
 createLeaf mites candidateSets = let avs = leafAVs candidateSets in
-  applyAV (head avs) $ Tree mites Nothing Nothing True Set.empty avs Set.empty
+  applyAV (head avs) $ Tree mites Nothing Nothing LeftSide Set.empty avs Set.empty
 
 createBranch mites leftChild rightChild headSide candidateSets = let avs = branchAVs leftChild rightChild headSide candidateSets in
   case avs of
     [] -> Nothing
-    av:_ -> Just $ applyAV av $ Tree mites (Just leftChild) (Just rightChild) (headSide == LeftSide) Set.empty avs Set.empty
+    av:_ -> Just $ applyAV av $ Tree mites (Just leftChild) (Just rightChild) headSide Set.empty avs Set.empty
 
-applyAV av tree = let activeSet = Set.fromList $ avMites av in 
-  tree { active = activeSet, left = avLeft av, right = avRight av, 
+applyAV av tree = let activeSet = Set.fromList $ avMites av in
+  tree { active = activeSet, left = avLeft av, right = avRight av,
          allActiveMiteSet =
            if isBranch tree
            then Set.union activeSet $ Set.union (allActiveMiteSet $ fromJust $ avLeft av) (allActiveMiteSet $ fromJust $ avRight av)
@@ -115,7 +119,7 @@ branchAVs leftChild rightChild headSide activeSets = {-traceShow ("-------------
     let missingInLeft = filter (not . flip Set.member (allActiveMiteSet leftChildCandidate)) covered
     aRight <- rightAVs
     let rightChildCandidate = applyAV aRight rightChild
-    let missingInRight = filter (not . flip Set.member (allActiveMiteSet rightChildCandidate)) missingInLeft    
+    let missingInRight = filter (not . flip Set.member (allActiveMiteSet rightChildCandidate)) missingInLeft
     if {-traceShow ("-----------checkRight", active) $ traceShow ("missingInRight", missingInRight) $ -}null missingInRight
     then
       let childrenActive = {-traceShow ("ok") $ -}Set.union (avAllActive aLeft) (avAllActive aRight) in

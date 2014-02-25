@@ -25,37 +25,36 @@ createEdges leftTree rightTree =
   in trees
 
 data MergeResult = Single Tree | Couple Tree Tree
-integrateSubTree :: Tree -> Tree -> Bool -> MergeResult -> [MergeResult]  
-integrateSubTree leftTree rightTree toLeft subResult = -- traceShow ("integrateSubTree", leftTree, rightTree, subResult) $
-  let leftLeft = fromJust $ left leftTree
-      rightRight = fromJust $ right rightTree
-      newEdges = \ subTree -> createEdges (if toLeft then leftLeft else subTree) (if toLeft then subTree else rightRight)
+integrateSubTree :: Tree -> Tree -> Side -> MergeResult -> [MergeResult]
+integrateSubTree leftTree rightTree side subResult = -- traceShow ("integrateSubTree", leftTree, rightTree, subResult) $
+  let leftLeft = justLeft leftTree
+      rightRight = justRight rightTree
+      newEdges subTree = createEdges (select side leftLeft subTree) (select side subTree rightRight)
       handlePair t1 t2 = [Couple t1 t2] ++ (map Single $ createEdges t1 t2)
   in
   case subResult of
-    Single subTree ->
-      if toLeft then handlePair leftLeft subTree else handlePair subTree rightRight
+    Single subTree -> handlePair (select side leftLeft subTree) (select side subTree rightRight)
     Couple x1 x2 ->
-      let subTree = if toLeft then x1 else x2
-          another = if toLeft then x2 else x1
+      let subTree = select side x1 x2
+          another = select side x2 x1
       in
-      if isDirectedBranch subTree (not toLeft)
+      if isDirectedBranch subTree (invert side)
       then []
-      else concat [if toLeft then handlePair tree another else handlePair another tree | tree <- newEdges subTree]
-  
+      else concat [handlePair (select side tree another) (select side another tree) | tree <- newEdges subTree]
+
 optimize:: Tree -> Tree -> Bool -> Bool -> Bool -> [MergeResult]
 optimize leftTree rightTree digLeft digRight useOwnMites =
-  let ownResults = if useOwnMites 
+  let ownResults = if useOwnMites
                    then [Single tree | tree <- createEdges leftTree rightTree]
                    else []
       leftSubResults = if digLeft && isBranch leftTree
-                       then optimize (fromJust $ right leftTree) rightTree True False $ isDirectedBranch leftTree True 
+                       then optimize (justRight leftTree) rightTree True False $ isDirectedBranch leftTree LeftSide
                        else []
-      rightSubResults = if digRight && isBranch rightTree 
-                        then optimize leftTree (fromJust $ left rightTree) False True $ isDirectedBranch rightTree False
+      rightSubResults = if digRight && isBranch rightTree
+                        then optimize leftTree (justLeft rightTree) False True $ isDirectedBranch rightTree RightSide
                         else []
-      dugLeft = concat $ map (integrateSubTree leftTree rightTree True) leftSubResults
-      dugRight = concat $ map (integrateSubTree leftTree rightTree False) rightSubResults
+      dugLeft = concat $ map (integrateSubTree leftTree rightTree LeftSide) leftSubResults
+      dugRight = concat $ map (integrateSubTree leftTree rightTree RightSide) rightSubResults
       in ownResults ++ dugLeft ++ dugRight
 
 mergeTrees:: [Tree] -> [Tree]
@@ -86,7 +85,7 @@ calcCandidateSets mites = {-traceShow ("contradictors:", mites) $ -}result where
   hasContradictors mite inList = let contras = (Map.!) contradictorCache mite in any (flip Set.member contras) inList
   enumerate :: [Mite] -> [Mite] -> [Mite] -> [[Mite]]
   enumerate mites chosen uncovered =
-    if any (\mite -> not $ hasContradictors mite mites) uncovered then [] 
+    if any (\mite -> not $ hasContradictors mite mites) uncovered then []
     else case mites of
       [] -> assert (null uncovered) [chosen]
       mite:rest -> includeMite++omitMite where

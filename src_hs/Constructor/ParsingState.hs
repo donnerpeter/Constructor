@@ -24,18 +24,18 @@ createEdges leftTree rightTree =
       trees = catMaybes [lTree, rTree]
   in trees
 
-type MergeResult = Either Tree (Tree, Tree)
+data MergeResult = Single Tree | Couple Tree Tree
 integrateSubTree :: Tree -> Tree -> Bool -> MergeResult -> [MergeResult]  
 integrateSubTree leftTree rightTree toLeft subResult = -- traceShow ("integrateSubTree", leftTree, rightTree, subResult) $
   let leftLeft = fromJust $ left leftTree
       rightRight = fromJust $ right rightTree
       newEdges = \ subTree -> createEdges (if toLeft then leftLeft else subTree) (if toLeft then subTree else rightRight)
-      handlePair t1 t2 = [Right (t1, t2)] ++ (map Left $ createEdges t1 t2)
+      handlePair t1 t2 = [Couple t1 t2] ++ (map Single $ createEdges t1 t2)
   in
   case subResult of
-    Left subTree ->
+    Single subTree ->
       if toLeft then handlePair leftLeft subTree else handlePair subTree rightRight
-    Right (x1, x2) ->
+    Couple x1 x2 ->
       let subTree = if toLeft then x1 else x2
           another = if toLeft then x2 else x1
       in
@@ -46,7 +46,7 @@ integrateSubTree leftTree rightTree toLeft subResult = -- traceShow ("integrateS
 optimize:: Tree -> Tree -> Bool -> Bool -> Bool -> [MergeResult]
 optimize leftTree rightTree digLeft digRight useOwnMites =
   let ownResults = if useOwnMites 
-                   then [Left tree | tree <- createEdges leftTree rightTree]
+                   then [Single tree | tree <- createEdges leftTree rightTree]
                    else []
       leftSubResults = if digLeft && isBranch leftTree
                        then optimize (fromJust $ right leftTree) rightTree True False $ isDirectedBranch leftTree True 
@@ -72,8 +72,8 @@ mergeTrees state =
             immediateMerges = case state of
               rightTree:leftTree:restTrees -> map toTrees $ optimize leftTree rightTree True True True where
                 toTrees result = case result of
-                  Left x -> x:restTrees
-                  Right (x, y) -> y:x:restTrees
+                  Single x -> x:restTrees
+                  Couple x y -> y:x:restTrees
               _ -> []
             notConsideredMerges = [m | m <- immediateMerges, not $ LS.member m result]
 

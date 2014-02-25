@@ -25,15 +25,13 @@ createEdges leftTree rightTree =
   in trees
 
 data MergeResult = Single Tree | Couple Tree Tree
-integrateSubTree :: Tree -> Tree -> Side -> MergeResult -> [MergeResult]
-integrateSubTree leftTree rightTree side subResult = -- traceShow ("integrateSubTree", leftTree, rightTree, subResult) $
-  let leftLeft = justLeft leftTree
-      rightRight = justRight rightTree
-      newEdges subTree = createEdges (select side leftLeft subTree) (select side subTree rightRight)
+integrateSubTree :: Tree -> Side -> MergeResult -> [MergeResult]
+integrateSubTree orphan side subResult = -- traceShow ("integrateSubTree", leftTree, rightTree, subResult) $
+  let newEdges subTree = createEdges (select side orphan subTree) (select side subTree orphan)
       handlePair t1 t2 = [Couple t1 t2] ++ (map Single $ createEdges t1 t2)
   in
   case subResult of
-    Single subTree -> handlePair (select side leftLeft subTree) (select side subTree rightRight)
+    Single subTree -> handlePair (select side orphan subTree) (select side subTree orphan)
     Couple x1 x2 ->
       let subTree = select side x1 x2
           another = select side x2 x1
@@ -53,8 +51,8 @@ optimize leftTree rightTree digLeft digRight useOwnMites =
       rightSubResults = if digRight && isBranch rightTree
                         then optimize leftTree (justLeft rightTree) False True $ isDirectedBranch rightTree RightSide
                         else []
-      dugLeft = concat $ map (integrateSubTree leftTree rightTree LeftSide) leftSubResults
-      dugRight = concat $ map (integrateSubTree leftTree rightTree RightSide) rightSubResults
+      dugLeft = concat $ map (integrateSubTree (justLeft leftTree) LeftSide) leftSubResults
+      dugRight = concat $ map (integrateSubTree (justRight rightTree) RightSide) rightSubResults
       in ownResults ++ dugLeft ++ dugRight
 
 mergeTrees:: [Tree] -> [Tree]

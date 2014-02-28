@@ -4,7 +4,7 @@ import Data.Maybe
 import Data.List
 import Constructor.Constructions
 import Constructor.Tree
-import Debug.Trace
+import Constructor.Util
 import Data.Function (on)
 import qualified Constructor.LinkedSet as LS
 import qualified Data.Set as Set
@@ -24,32 +24,30 @@ createEdges leftTree rightTree =
       trees = catMaybes [lTree, rTree]
   in trees
 
-data MergeResult = Single Tree | Couple Tree Tree
+data MergeResult = Single Tree | Couple Tree Tree deriving (Show)
 integrateSubTree :: Tree -> Side -> MergeResult -> [MergeResult]
-integrateSubTree orphan side subResult = -- traceShow ("integrateSubTree", leftTree, rightTree, subResult) $
-  let newEdges subTree = createEdges (select side orphan subTree) (select side subTree orphan)
-      handlePair t1 t2 = [Couple t1 t2] ++ (map Single $ createEdges t1 t2)
-  in
-  case subResult of
-    Single subTree -> handlePair (select side orphan subTree) (select side subTree orphan)
-    Couple x1 x2 ->
-      let subTree = select side x1 x2
-          another = select side x2 x1
-      in
-      if isDirectedBranch subTree (invert side)
-      then []
-      else concat [handlePair (select side tree another) (select side another tree) | tree <- newEdges subTree]
+integrateSubTree orphan side subResult = --trace ("---integrateSubTree", activeHeadMites orphan) $
+  let handlePair t1 t2 digLeft digRight = [Couple t1 t2] ++ (map Single $ mergeTwoTrees t1 t2 digLeft digRight)
+  in case subResult of
+    Single subTree -> select side (handlePair orphan subTree True False) (handlePair subTree orphan False True)
+    Couple x1 x2 -> concat [select side (handlePair adoption x2 False False) (handlePair x1 adoption False False) |
+                            adoption <- select side (mergeTwoTrees orphan x1 True False) (mergeTwoTrees x2 orphan False True)]
+
+mergeTwoTrees leftTree rightTree digLeft digRight = concat $ map toTrees $ optimize leftTree rightTree digLeft digRight True where
+  toTrees result = case result of
+    Single x -> [x]
+    _ -> []
 
 optimize:: Tree -> Tree -> Bool -> Bool -> Bool -> [MergeResult]
 optimize leftTree rightTree digLeft digRight useOwnMites =
-  let ownResults = if useOwnMites
+  let ownResults = if useOwnMites && null (avUnhappyRight $ head $ avs leftTree) && null (avUnhappyLeft $ head $ avs rightTree)
                    then [Single tree | tree <- createEdges leftTree rightTree]
                    else []
       leftSubResults = if digLeft && isBranch leftTree
-                       then optimize (justRight leftTree) rightTree True False $ isDirectedBranch leftTree LeftSide
+                       then optimize (justRight leftTree) rightTree True False $ headSide leftTree == LeftSide
                        else []
       rightSubResults = if digRight && isBranch rightTree
-                        then optimize leftTree (justLeft rightTree) False True $ isDirectedBranch rightTree RightSide
+                        then optimize leftTree (justLeft rightTree) False True $ headSide rightTree == RightSide
                         else []
       dugLeft = concat $ map (integrateSubTree (justLeft leftTree) LeftSide) leftSubResults
       dugRight = concat $ map (integrateSubTree (justRight rightTree) RightSide) rightSubResults

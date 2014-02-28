@@ -74,7 +74,6 @@ uncoveredHeadMites tree =
 activeBase activeSet = Set.fromList [mite | activeMite <- Set.elems activeSet, mite <- baseMites activeMite]
 
 isBranch tree = isJust (left tree)
-isDirectedBranch tree side = isBranch tree && headSide tree == side
 
 allActiveMites tree = filter (flip Set.member activeSet) (allTreeMites tree) where activeSet = allActiveMiteSet tree
 

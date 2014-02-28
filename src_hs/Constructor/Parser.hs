@@ -4,7 +4,7 @@ import Constructor.ParsingState
 import Constructor.Lexicon
 import Constructor.Sense
 import Constructor.EnglishGenerator
-import Debug.Trace
+import Constructor.Util
 import Data.Char (toLower)
 import Data.List
 
@@ -20,7 +20,7 @@ tokenize s = [map toLower token | token <- tokens, length token > 0] where
 parse:: String -> [Tree]
 parse s =
   let tokens = tokenize s
-      pair = foldl' (\(state, index) word -> seq state $ {-traceShow word $ -}(addMites state (wordMites word index), index + 1)) ([], 1) tokens
+      pair = foldl' (\(state, index) word -> seq state $ {-trace word $ -}(addMites state (wordMites word index), index + 1)) ([], 1) tokens
   in fst pair
 
 translate s = generate $ makeSense $ parse s

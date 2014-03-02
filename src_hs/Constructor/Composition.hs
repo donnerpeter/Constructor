@@ -2,22 +2,23 @@ module Constructor.Composition (interactNodes, MergeInfo(..)) where
 import Constructor.Constructions
 import Constructor.Agreement
 import Constructor.Tree
+import Constructor.Util
 import qualified Constructor.Seq as Seq
-import Debug.Trace
 
 data MergeInfo = MergeInfo {mergeResult::[Mite], leftHeadedMerge::Bool} deriving (Show)
 
 interactNodes:: Tree -> [Mite] -> [Mite] -> [MergeInfo]
-interactNodes leftTree leftMites rightMites = whResults ++ noWh where
+interactNodes leftTree leftMites rightMites = if null whResults then noWh else whResults where
   noWh = interactNodesNoWh leftTree leftMites rightMites
-  whResults = leftMites >>= \leftMite1 -> case cxt leftMite1 of
+  whResults = leftMites >>= \whMite -> case cxt whMite of
     Wh wh cp -> rightMites >>= \rightMite1 -> case cxt rightMite1 of
       Question cp2 verb ->
         let fillers = filter (not . leftHeadedMerge) noWh
-            whLinks = withBase [leftMite1, rightMite1] $
+            whLinks = withBase [whMite, rightMite1] $
               [mite $ Unify cp cp2, semV cp "questioned" wh] ++ xor [[mite $ Complement cp], [mite $ RelativeClause cp]]
             infos = map (\ info -> MergeInfo (mergeResult info ++ whLinks) True) fillers
-        in infos
+            whIncompatible info = any (contradict whMite) (mergeResult info)
+        in infos ++ filter whIncompatible noWh
       _ -> []
     _ -> []
 

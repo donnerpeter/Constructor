@@ -1,7 +1,8 @@
 module Constructor.Sense 
   (Sense(..), Frame(..), Fact(..), fValue, sValue, 
   usages, usage, 
-  getType, hasType, hasAnyType, resolve, 
+  getType, hasType, hasAnyType, resolve,
+  earlier,
   allFrames, allFrameFacts,
   flatten, isNumber,
   makeSense)
@@ -9,7 +10,6 @@ module Constructor.Sense
 
 import Constructor.Constructions (Construction(Sem, Unify), Mite(..))
 import Constructor.Variable
-import Constructor.Tree
 import Data.List (intercalate, findIndex, find)
 import Data.Maybe
 import Debug.Trace
@@ -54,10 +54,7 @@ instance Show Sense where show (Sense facts) = Data.List.intercalate "\n" (map s
 data Frame = Frame { var:: Variable, sense:: Sense } deriving (Eq, Ord)
 instance Show Frame where show frame = "{" ++ (Data.List.intercalate "," (map show $ allFrameFacts frame)) ++ "}"
 
-makeSense trees =
-  let allMites = concat (map allActiveMites $ reverse trees)
-      baseVars = calcBaseVars allMites
-  in Sense (calcFacts allMites baseVars)
+makeSense allMites = Sense $ calcFacts allMites $ calcBaseVars allMites
 
 extractValueString (StrValue s) = Just s
 extractValueString _ = Nothing

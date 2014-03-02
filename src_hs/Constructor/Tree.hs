@@ -8,6 +8,7 @@ import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Constructor.LinkedSet as LS
 import Constructor.Constructions
+import Constructor.Sense
 
 data Side = LeftSide | RightSide deriving (Eq, Show, Ord)
 invert LeftSide = RightSide
@@ -140,5 +141,24 @@ branchAVs leftChild rightChild headSide activeSets = {-traceShow ("-------------
   in
   {-traceShow ("branchAVs", result) $ -}result
 
-sortAVs avs = Data.List.sortBy (compare `on` unhappyCount) avs where
+sortAVs avs = Data.List.sortBy (compare `on` unhappyCount) $ Data.List.sortBy (compare `on` avIssueCount) avs where
   unhappyCount av = length (avUnhappyLeft av) + length (avUnhappyHead av) + length (avUnhappyRight av)
+  avIssueCount av = issueCount $ case avLeft av of
+    Just _ -> allActiveMites (fromJust $ avLeft av) ++ (avMites av) ++ allActiveMites (fromJust $ avRight av)
+    _ -> avMites av
+
+issueCount :: [Mite] -> Int
+issueCount mites = let
+  sense = makeSense mites
+  frames = allFrames sense
+  frameIssues frame = case getType frame of
+    Just "seq" | Nothing == sValue "conj" frame -> ["comma-only seq"]
+    Just "COME_SCALARLY" -> case fValue "arg1" frame of
+      Just subj ->
+        if Nothing == getType subj then ["unknown subj"] else
+         case fValue "order" frame of
+          Just order | earlier frame "order" subj "type" && earlier frame "type" frame "order" -> ["come_scalarly order subj"]
+          _ -> []
+    _ -> []
+  issues = frames >>= frameIssues
+  in {-trace issues $ -}length issues

@@ -2,7 +2,7 @@ module Constructor.Parser where
 import Constructor.Tree
 import Constructor.ParsingState
 import Constructor.Lexicon
-import Constructor.Sense
+import qualified Constructor.Sense as Sense
 import Constructor.EnglishGenerator
 import Constructor.Util
 import Data.Char (toLower)
@@ -24,3 +24,5 @@ parse s =
   in fst pair
 
 translate s = generate $ makeSense $ parse s
+
+makeSense trees = Sense.makeSense $ concat (map allActiveMites $ reverse trees)

@@ -59,8 +59,7 @@ mergeTrees state =
     sortByLength = Data.List.sortBy (compare `on` length)
     sortByUnhappy = Data.List.sortBy (compare `on` unhappyCount)
     unhappyCount trees = sum [length $ unhappyActiveMites tree | tree <- trees]
-    sortByIssues = Data.List.sortBy (compare `on` issueCount)
-    issueCount trees = sum [length $ issues (allActiveMites tree) | tree <- trees]
+    sortByIssues = Data.List.sortBy (compare `on` stateIssueCount)
     allMergeVariants queue result =
       case queue of
         [] -> LS.elements result
@@ -94,3 +93,5 @@ calcCandidateSets mites = {-traceShow ("contradictors:", mites) $ -}result where
           contras = (Map.!) contradictorCache mite
         omitMite = enumerate rest chosen (mite:uncovered)
   result = enumerate mites [] []
+
+stateIssueCount trees = issueCount $ concat (map allActiveMites $ reverse trees)

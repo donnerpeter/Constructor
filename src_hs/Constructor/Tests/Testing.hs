@@ -1,7 +1,6 @@
 module Constructor.Tests.Testing where
 
 import Test.HUnit
-import Constructor.Sense
 import Constructor.EnglishGenerator
 import Constructor.Parser
 import Debug.Trace

@@ -1,7 +1,7 @@
 module Constructor.LinkedSet where
 import qualified Data.Set as Set
 
-data LinkedSet a = LinkedSet [a] (Set.Set a)
+data LinkedSet a = LinkedSet [a] (Set.Set a) deriving (Show)
 
 empty = LinkedSet [] Set.empty
 

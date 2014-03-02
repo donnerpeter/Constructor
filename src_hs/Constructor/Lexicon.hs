@@ -151,6 +151,7 @@ wordMites word index =
   "семи" -> nounSg Gen Masc "7" v
   "семь" -> nounSg Nom Masc "7" v
   "сказала" -> finVerb "SAY" "PAST" A.f v ++ [mite $ DirectSpeechHead v0 Nothing] -- todo ++ directObject v
+  "сказали" -> finVerb "SAY" "PAST" A.pl v ++ optional [mite $ DirectSpeechHead v0 Nothing] ++ directObject v
   "скамейки" -> nounSg Gen Fem "BENCH" v
   "слегка" -> adverb "manner" "SLIGHTLY"
   "следовало" -> finVerb "COME_SCALARLY" "PAST" A.n3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v]
@@ -165,7 +166,7 @@ wordMites word index =
   "спора" -> nounSg Gen Masc "ARGUE" v ++ genHead "arg1" v
   "спорили" -> finVerb "ARGUE" "PAST" A.pl v
   "спорить" -> infinitive "ARGUE" v
-  "спросил" -> finVerb "ASK" "PAST" A.m v ++ directObject v ++ compHead "topic" v
+  "спросил" -> finVerb "ASK" "PAST" A.m v ++ optional (directObject v) ++ compHead "topic" v
   "спросили" -> finVerb "ASK" "PAST" A.pl v ++ directObject v ++ xor [compHead "topic" v, arg (PP "o" Prep) "topic" v]
   "стали" -> finVerb "BEGIN" "PAST" A.pl v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
   "счастию" -> nounSg Dat Neu "LUCK" v ++ optional [mite $ PrepositionActivator "po" Dat [VerbalModifier "optativeModality" True v0]]

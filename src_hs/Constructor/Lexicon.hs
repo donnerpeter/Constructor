@@ -1,6 +1,7 @@
 module Constructor.Lexicon where
 import Constructor.Constructions
 import Constructor.Variable
+import Constructor.Util
 import qualified Constructor.Agreement as A
 import Constructor.Agreement (Gender(..))
 import Data.Char (ord, chr)
@@ -39,17 +40,13 @@ genHead attr v = optional [mite $ GenHead (v "gen"), semV (v "") attr (v "gen")]
 directObject v = arg Acc "arg2" v
 modifyV v c = \s -> v $ c:s 
 
-isNumber s = case reads s :: [(Int, String)] of
-  [(_, "")] -> True
-  _ -> False
-
-wordMites :: String -> Int -> [Mite]  
+wordMites :: String -> Int -> [Mite]
 wordMites word index =
   let v = \i -> Variable index i
       v0 = v ""
   in
   case word of
-  s | isNumber s -> xor [nounSg caze gender word v | caze <- [Nom, Gen, Acc], gender <- [Masc, Neu]] ++ [semS v0 "number" "true"]
+  s | isNumberString s -> xor [nounSg caze gender word v | caze <- [Nom, Gen, Acc], gender <- [Masc, Neu]] ++ [semS v0 "number" "true"]
   "6-ти" -> nounSg Gen Masc "6" v ++ [semS v0 "number" "true"]
   "а" -> xor [[mite $ Conjunction v0 "but" False, semS v0 "conj" "but", semT v0 "seq"], adverb "andEmphasis" "true"]
   "было" -> [mite $ CopulaTense v0, semS v0 "time" "PAST"]

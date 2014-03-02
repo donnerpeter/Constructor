@@ -10,6 +10,7 @@ module Constructor.Sense
 
 import Constructor.Constructions (Construction(Sem, Unify), Mite(..))
 import Constructor.Variable
+import Constructor.Util
 import Data.List (intercalate, findIndex, find)
 import Data.Maybe
 import Debug.Trace
@@ -90,7 +91,8 @@ sValue attr frame =
   else
     case attr of
       "given" ->
-        if hasAnyType ["CASE", "HAMMER", "3", "4", "7", "8", "TREES", "CHILD", "BENCH"] frame then Just "false"
+        if hasAnyType ["CASE", "HAMMER", "TREES", "CHILD", "BENCH"] frame then Just "false"
+        else if Just True == fmap isNumberString (getType frame) then Just "false"
         else if hasType "CASHIER" frame then
           case find (\shop -> earlier shop "type" frame "type") $ findFrames "SHOP" $ sense frame of
            Just shop -> sValue "given" shop

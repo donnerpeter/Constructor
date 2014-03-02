@@ -224,6 +224,7 @@ verb verbForm frame typ =
   case typ of
   "HAPPEN" -> "happened"
   "FORGET" -> "forgot"
+  "DO" -> "did"
   "GO" -> "went"
   "GO_OFF" -> "went"
   "ASK" -> if (fValue "topic" frame >>= getType) == Just "PREDICAMENT" then "consult" else "asked"

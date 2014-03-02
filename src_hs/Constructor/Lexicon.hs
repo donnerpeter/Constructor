@@ -65,6 +65,7 @@ wordMites word index =
   "вспомнить" -> infinitive "RECALL" v ++ directObject v
   "грустно" -> adverb "manner" "SADLY"
   "дальше" -> [mite $ Argument ScalarAdverb v0, semT v0 "NEXT"]
+  "делал" -> finVerb "DO" "PAST" A.m v ++ directObject v
   "делать" -> infinitive "DO" v ++ directObject v
   "деревья" -> nounPl Acc "TREES" v
   "до" -> preposition "do" Gen v

@@ -55,10 +55,12 @@ optimize leftTree rightTree digLeft digRight useOwnMites =
 
 mergeTrees:: [Tree] -> [Tree]
 mergeTrees state =
-  head $ sortByLength $ sortByUnhappy $ allMergeVariants [state] LS.empty where
+  head $ sortByLength $ sortByUnhappy $ sortByIssues $ allMergeVariants [state] LS.empty where
     sortByLength = Data.List.sortBy (compare `on` length)
     sortByUnhappy = Data.List.sortBy (compare `on` unhappyCount)
     unhappyCount trees = sum [length $ unhappyActiveMites tree | tree <- trees]
+    sortByIssues = Data.List.sortBy (compare `on` issueCount)
+    issueCount trees = sum [length $ issues (allActiveMites tree) | tree <- trees]
     allMergeVariants queue result =
       case queue of
         [] -> LS.elements result

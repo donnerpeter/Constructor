@@ -50,6 +50,7 @@ data Construction = Word Variable String
                   | Control Variable
                   | ModalityInfinitive Variable
                   | ControlledInfinitive Variable
+                  | RelativeHead Variable
                   | RelativeClause Variable
                   | Complement Variable
                   | Complementizer Variable
@@ -170,3 +171,7 @@ withBase base mites = let
   map (\m -> m {baseMites = LS.removeDups $ (baseMites m ++ base), contradictors = Set.map addBaseToContra $ contradictors m }) mites
 
 optional mites = xor [mites, [mite $ EmptyCxt $ cxt $ head mites]]
+
+issues mites = {-traceIt "issues " $ -}mites >>= \mite -> case cxt mite of
+  SeqFull _ "," -> ["comma-only seq"]
+  _ -> []

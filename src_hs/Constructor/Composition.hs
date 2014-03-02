@@ -8,7 +8,7 @@ import Debug.Trace
 data MergeInfo = MergeInfo {mergeResult::[Mite], leftHeadedMerge::Bool} deriving (Show)
 
 interactNodes:: Tree -> [Mite] -> [Mite] -> [MergeInfo]
-interactNodes leftTree leftMites rightMites = if null whResults then noWh else whResults where
+interactNodes leftTree leftMites rightMites = whResults ++ noWh where
   noWh = interactNodesNoWh leftTree leftMites rightMites
   whResults = leftMites >>= \leftMite1 -> case cxt leftMite1 of
     Wh wh cp -> rightMites >>= \rightMite1 -> case cxt rightMite1 of
@@ -77,7 +77,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (Colon "elaboration" _, Clause Subordinate cp) -> left [mite $ Elaboration cp]
       (Verb head, Elaboration child) -> left [semV head "elaboration" child, mite $ Unclosed (cxt m2)]
       (CompHead comp, CommaSurrounded True _ (Complement cp)) -> left [mite $ Unify comp cp]
-      (AdjHead noun _ _, CommaSurrounded True _ (RelativeClause cp)) -> left [semV noun "relative" cp]
+      (RelativeHead noun, CommaSurrounded True _ (RelativeClause cp)) -> left [semV noun "relative" cp]
       
       (CommaSurrounded _ True (VerbalModifier attr True advP), Verb verb) -> right [semV verb attr advP]
       (Verb verb, VerbalModifier attr False advP) -> left [semV verb attr advP]

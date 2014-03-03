@@ -85,7 +85,10 @@ unhappyActiveMites tree = result where
 
 data ActiveVariant = ActiveVariant { avMites :: [Mite], avLeft :: Maybe Tree, avRight :: Maybe Tree,
   avAllActive :: Set.Set Mite,
-  avUnhappyLeft :: [Mite], avUnhappyHead :: [Mite], avUnhappyRight :: [Mite] } deriving (Show)
+  avUnhappyLeft :: [Mite], avUnhappyHead :: [Mite], avUnhappyRight :: [Mite],
+  avIssues :: [Issue]
+  } deriving (Show)
+type Issue = String
 
 createLeaf mites candidateSets = let avs = leafAVs candidateSets in
   applyAV (head avs) $ Tree mites Nothing Nothing LeftSide Set.empty avs Set.empty
@@ -104,7 +107,9 @@ applyAV av tree = let activeSet = Set.fromList $ avMites av in
        }
 
 leafAVs :: [[Mite]] -> [ActiveVariant]
-leafAVs activeSets = sortAVs $ map (\active -> ActiveVariant active Nothing Nothing (Set.fromList active) [] (filter (not. happy) active) []) activeSets
+leafAVs activeSets = sortAVs $ map (\active ->
+  ActiveVariant active Nothing Nothing (Set.fromList active) [] (filter (not. happy) active) [] (issues active))
+  activeSets
 
 branchAVs :: Tree -> Tree -> Side -> [[Mite]] -> [ActiveVariant]
 branchAVs leftChild rightChild headSide activeSets = {-traceShow ("------------------activeSets", activeSets) $ -}let
@@ -130,7 +135,8 @@ branchAVs leftChild rightChild headSide activeSets = {-traceShow ("-------------
         avAllActive = Set.union (Set.filter (\mite -> isUncovered mite || happy mite) childrenActive) $ Set.fromList active,
         avUnhappyLeft = filter isUncovered $ avUnhappyLeft aLeft ++ (if headSide == LeftSide then [] else avUnhappyHead aLeft),
         avUnhappyHead = filter isUncovered $ avUnhappyHead (if headSide == LeftSide then aLeft else aRight) ++ filter (not. happy) active,
-        avUnhappyRight = filter isUncovered $ avUnhappyRight aRight ++ (if headSide == RightSide then [] else avUnhappyHead aRight)
+        avUnhappyRight = filter isUncovered $ avUnhappyRight aRight ++ (if headSide == RightSide then [] else avUnhappyHead aRight),
+        avIssues = issues $ allActiveMites leftChildCandidate ++ active ++ allActiveMites rightChildCandidate
       }
     else []
   grouped = Map.fromListWith (++) [(activeHeadMites av, [av]) | av <- allAVCandidates]
@@ -143,12 +149,10 @@ branchAVs leftChild rightChild headSide activeSets = {-traceShow ("-------------
 
 sortAVs avs = Data.List.sortBy (compare `on` (\av -> (unhappyCount av, avIssueCount av))) avs where
   unhappyCount av = length (avUnhappyLeft av) + length (avUnhappyHead av) + length (avUnhappyRight av)
-  avIssueCount av = issueCount $ case avLeft av of
-    Just _ -> allActiveMites (fromJust $ avLeft av) ++ (avMites av) ++ allActiveMites (fromJust $ avRight av)
-    _ -> avMites av
+  avIssueCount av = length $ avIssues av
 
-issueCount :: [Mite] -> Int
-issueCount mites = let
+issues :: [Mite] -> [Issue]
+issues mites = let
   sense = makeSense mites
   frames = allFrames sense
   frameIssues frame = case getType frame of
@@ -160,5 +164,4 @@ issueCount mites = let
           Just order | earlier frame "order" subj "type" && earlier frame "type" frame "order" -> ["come_scalarly order subj"]
           _ -> []
     _ -> []
-  issues = frames >>= frameIssues
-  in {-trace issues $ -}length issues
+  in frames >>= frameIssues

@@ -25,4 +25,4 @@ parse s =
 
 translate s = generate $ makeSense $ parse s
 
-makeSense trees = Sense.makeSense $ concat (map allActiveMites $ reverse trees)
+makeSense trees = Sense.makeSense $ activeStateMites trees

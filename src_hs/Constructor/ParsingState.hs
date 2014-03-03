@@ -91,4 +91,6 @@ calcCandidateSets mites = {-traceShow ("contradictors:", mites) $ -}result where
         omitMite = enumerate rest chosen (mite:uncovered)
   result = enumerate mites [] []
 
-stateIssueCount trees = issueCount $ concat (map allActiveMites $ reverse trees)
+stateIssueCount trees = sum [length $ avIssues $ head $ avs tree | tree <- trees]
+
+activeStateMites trees = concat (map allActiveMites $ reverse trees)

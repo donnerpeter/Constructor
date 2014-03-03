@@ -141,7 +141,7 @@ branchAVs leftChild rightChild headSide activeSets = {-traceShow ("-------------
   in
   {-traceShow ("branchAVs", result) $ -}result
 
-sortAVs avs = Data.List.sortBy (compare `on` unhappyCount) $ Data.List.sortBy (compare `on` avIssueCount) avs where
+sortAVs avs = Data.List.sortBy (compare `on` (\av -> (unhappyCount av, avIssueCount av))) avs where
   unhappyCount av = length (avUnhappyLeft av) + length (avUnhappyHead av) + length (avUnhappyRight av)
   avIssueCount av = issueCount $ case avLeft av of
     Just _ -> allActiveMites (fromJust $ avLeft av) ++ (avMites av) ++ allActiveMites (fromJust $ avRight av)

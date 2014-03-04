@@ -31,7 +31,7 @@ integrateSubTree orphan side subResult = --trace ("---integrateSubTree", activeH
   in case subResult of
     Single subTree -> select side (handlePair orphan subTree True False) (handlePair subTree orphan False True)
     Couple x1 x2 -> concat [select side (handlePair adoption x2 False False) (handlePair x1 adoption False False) |
-                            adoption <- select side (mergeTwoTrees orphan x1 True False) (mergeTwoTrees x2 orphan False True)]
+                            adoption <- select side (mergeTwoTrees orphan x1 True False) (mergeTwoTrees x2 orphan False False)]
 
 mergeTwoTrees leftTree rightTree digLeft digRight = concat $ map toTrees $ optimize leftTree rightTree digLeft digRight True where
   toTrees result = case result of
@@ -63,7 +63,7 @@ mergeTrees state =
         state:restQueue ->
           allMergeVariants (restQueue++notConsideredMerges) $ LS.addAll (state:notConsideredMerges) result where
             immediateMerges = case state of
-              rightTree:leftTree:restTrees -> map toTrees $ optimize leftTree rightTree True True True where
+              rightTree:leftTree:restTrees -> map toTrees $ optimize leftTree rightTree True False True where
                 toTrees result = case result of
                   Single x -> x:restTrees
                   Couple x y -> y:x:restTrees

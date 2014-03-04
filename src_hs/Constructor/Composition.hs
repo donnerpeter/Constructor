@@ -12,7 +12,7 @@ interactNodes leftTree leftMites rightMites = if null whResults then noWh else w
   noWh = interactNodesNoWh leftTree leftMites rightMites
   whResults = leftMites >>= \whMite -> case cxt whMite of
     Wh wh cp -> rightMites >>= \rightMite1 -> case cxt rightMite1 of
-      Question cp2 verb ->
+      Clause Interrogative cp2 ->
         let fillers = filter (not . leftHeadedMerge) noWh
             whLinks = withBase [whMite, rightMite1] $
               [mite $ Unify cp cp2, semV cp "questioned" wh] ++ xor [[mite $ Complement cp], [mite $ RelativeClause cp]]
@@ -74,8 +74,8 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
         in [MergeInfo (argMites ++ adjunctMites) True]      
       (DirectSpeechHead head Nothing, Colon "directSpeech" v) -> left [mite $ DirectSpeechHead head $ Just v, semV head "message" v]
       --(DirectSpeechHead head (Just v), DirectSpeech v1) -> left [mite $ Unify v v1]
-      (DirectSpeechDash v, Clause TopLevel cp) -> left [mite $ DirectSpeech cp, semS cp "directSpeech" "true"]
-      (Colon "elaboration" _, Clause Subordinate cp) -> left [mite $ Elaboration cp]
+      (DirectSpeechDash v, Sentence cp) -> left [mite $ DirectSpeech cp, semS cp "directSpeech" "true"]
+      (Colon "elaboration" _, Clause _ cp) -> left [mite $ Elaboration cp]
       (Verb head, Elaboration child) -> left [semV head "elaboration" child, mite $ Unclosed (cxt m2)]
       (CompHead comp, CommaSurrounded True _ (Complement cp)) -> left [mite $ Unify comp cp]
       (RelativeHead noun, CommaSurrounded True _ (RelativeClause cp)) -> left [semV noun "relative" cp]
@@ -93,16 +93,16 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (Copula v0, CopulaTense v1) -> left [mite $ Unify v0 v1]
       (CopulaTense v1, ModalityInfinitive v2) -> right [mite $ Unify v1 v2]
       
-      (ConditionComp v0 s False, Clause Subordinate cp) -> left [mite $ Unify v0 cp, mite $ ConditionComp v0 s True]
+      (ConditionComp v0 s False, Clause Declarative cp) -> left [mite $ Unify v0 cp, mite $ ConditionComp v0 s True]
       (ConditionCompHead head, CommaSurrounded True _ (ConditionComp cp cond _)) -> left [semV head (cond++"Condition") cp]
       (Verb head, CommaSurrounded True _ (ConditionComp cp cond _)) -> left [semV head (cond++"Condition") cp]
 
-      (ReasonComp v0 False, Clause Subordinate cp) -> left [mite $ Unify v0 cp, mite $ ReasonComp v0 True]
+      (ReasonComp v0 False, Clause Declarative cp) -> left [mite $ Unify v0 cp, mite $ ReasonComp v0 True]
       (Verb head, CommaSurrounded True _ (ReasonComp cp _)) -> left [semV head "reason" cp]
       
       (TwoWordCxt s1 True wrapped _, TwoWordCxt s2 False _ _) | s1 == s2 -> left wrapped
       
-      (Clause TopLevel cp, Word _ ".") -> left [semS cp "dot" "true"]
+      (Clause Declarative cp, Word _ ".") -> left [semS cp "dot" "true", mite $ Sentence cp]
       (Conjunction v "," True, Conjunction _ "but" False) -> right [mite $ Conjunction v "but" True, semS v "conj" "but"]
       (SurroundingComma False _, toWrap) | isCommaSurroundable toWrap -> left [mite $ CommaSurrounded True False toWrap]
       (toWrap, SurroundingComma True _) | isCommaSurroundable toWrap -> right [mite $ CommaSurrounded False True toWrap]
@@ -112,10 +112,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (AdjHead noun _ _, QuotedWord (Word _ word) _) -> left [semS noun "name" word]
       (Word _ "не", Verb v) -> right [semS v "negated" "true"]
       (Word _ "тоже", Verb v) -> right [semS v "also" "true"]
-      (Complementizer cp1, Fact cp2) -> rightMites >>= \m3 -> case cxt m3 of
-         Clause Subordinate cp3 | cp3 == cp2 ->
-           [MergeInfo (withBase [m1,m2,m3] [mite $ Unify cp1 cp2, mite $ Complement cp1]) True]
-         _ -> []
+      (Complementizer cp1, Clause Declarative cp2) -> left [mite $ Unify cp1 cp2, mite $ Complement cp1]
       (Control slave, ControlledInfinitive inf) -> left [mite $ Unify slave inf]
       (RaisingVerb verb subj, Raiseable agr child) -> left [semV child "arg1" subj, semV verb "theme" child]
        

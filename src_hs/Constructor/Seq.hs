@@ -17,7 +17,7 @@ seqRight leftMites rightMites = result where
       Argument kind child -> withBase [m1,m2] [semV v "member2" child, mite $ SeqRight v kind conj]
       Possessive caze agr child -> withBase [m1,m2] [semV v "member2" child, mite $ SeqRight v (PossKind caze agr) conj]
       Complement child -> withBase [m1,m2] [semV v "member2" child, mite $ SeqRight v CP conj]
-      Clause level child ->
+      Clause force child ->
         let unhappy = filter elideable $ filter (not . happy) rightMites
             wrapped = [(mite $ ElidedArgHead $ cxt m) {baseMites = [m,m1,m2]} | m <- unhappy]
             elideable mite = case cxt mite of
@@ -26,10 +26,7 @@ seqRight leftMites rightMites = result where
             ellipsis = rightMites >>= \e -> case cxt e of
               Ellipsis child (Just _) (Just _) -> withBase [e] [mite $ cxt e] 
               _ -> []
-            result = rightMites >>= \force -> case cxt force of
-              Fact fCP | fCP == child -> withBase [m1, m2] [semV v "member2" child] ++ withBase [m1, m2, force] [mite $ SeqRight v (ClauseArg level Declarative) conj] ++ ellipsis ++ wrapped
-              Question qCP qContent | qCP == child -> withBase [m1, m2] [semV v "member2" child] ++ withBase [m1, m2, force] [mite $ SeqRight v (ClauseArg level Interrogative) conj] ++ ellipsis ++ wrapped
-              _ -> []
+            result = withBase [m1, m2] [semV v "member2" child, mite $ SeqRight v (ClauseArg Declarative) conj] ++ ellipsis ++ wrapped
         in
           result
       _ -> []
@@ -49,7 +46,7 @@ seqLeft leftTree leftMites rightMites = concat [interactSeqLeft m1 m2 | m1 <- le
     (Complement child, SeqRight v CP conj) ->
       if contradictsSeq conj then [] else  
         withBase [m1,m2] [semV v "member1" child, mite $ SeqFull v conj, mite $ Complement v]
-    (Clause level child, SeqRight seqV (ClauseArg level2 force) conj) | level == level2 -> {-traceIt "clause left" $-}
+    (Clause force child, SeqRight seqV (ClauseArg force2) conj) | force == force2 -> {-traceIt "clause left" $-}
        if contradictsSeq conj then [] else
        let unifications = concat [unifyMissingArgument mite1 mite2 | mite1 <- unhappyLeft ++ happyBases,
                                                                      mite2 <- rightMites]
@@ -62,13 +59,10 @@ seqLeft leftTree leftMites rightMites = concat [interactSeqLeft m1 m2 | m1 <- le
            ellipsisVariants = rightMites >>= \m3 -> case cxt m3 of
              Ellipsis ellipsisVar (Just e1) (Just e2) -> map (withBase [m3]) $ processEllipsis child ellipsisVar e1 e2 leftTree 
              _ -> []
-           result leftForce newForce = withBase [m1, m2, leftForce] $
-             [semV seqV "member1" child, mite $ Clause level seqV, mite $ SeqFull seqV conj, mite newForce] ++ unifications ++ xor ellipsisVariants
+           result = withBase [m1, m2] $
+             [semV seqV "member1" child, mite $ Clause force seqV, mite $ SeqFull seqV conj] ++ unifications ++ xor ellipsisVariants
        in
-         leftMites >>= \leftForce -> case cxt leftForce of
-           Fact fCP | fCP == child && force == Declarative -> result leftForce (Fact seqV)
-           Question qCP _ | qCP == child && force == Interrogative -> result leftForce (Question seqV seqV)
-           _ -> []
+         result
     _ -> []
 
 data AnchorMapping = AnchorMapping {-original-} Mite Variable {-anchor-} Construction Variable

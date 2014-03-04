@@ -9,9 +9,8 @@ import Constructor.Variable
 import Debug.Trace
 
 data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | 
-               ClauseArg ClauseLevel ClauseForce | CP | PossKind ArgKind Agr | ScalarAdverb
+               ClauseArg ClauseForce | CP | PossKind ArgKind Agr | ScalarAdverb
                deriving (Show, Eq, Ord)
-data ClauseLevel = TopLevel | Subordinate deriving (Show, Eq, Ord)
 data ClauseForce = Declarative | Interrogative deriving (Show, Eq, Ord)
 data Construction = Word Variable String
                   | Sem Variable String SemValue
@@ -36,10 +35,8 @@ data Construction = Word Variable String
                   | Conjunction Variable String {-ready-} Bool
                   | SeqRight Variable ArgKind String
                   | SeqFull Variable String
-                  | Clause ClauseLevel Variable
-                  | Fact Variable
+                  | Clause ClauseForce Variable
                   | ElidedArgHead Construction
-                  | Question Variable Variable
                   | Possessive ArgKind Agr Variable
                   | EmptyCxt Construction
                   | CopulaTense Variable
@@ -70,6 +67,7 @@ data Construction = Word Variable String
                   | ReasonComp Variable {-has cp-} Bool
                   | ReflexiveReference Variable
                   | ReflexiveTarget Variable
+                  | Sentence Variable
                   -- | S1 | S2 | S3 | S4
                   deriving (Show, Ord, Eq)
 type XorKey = (Construction, [Mite])
@@ -102,7 +100,7 @@ isHappy (CommaSurrounded {}) = False
 isHappy (ControlledInfinitive {}) = False
 isHappy (Control {}) = False
 isHappy (SurroundingComma {}) = False
-isHappy (Clause Subordinate _) = False
+isHappy (Clause {}) = False
 isHappy (QuotedWord _ False) = False
 isHappy (Quote _ False) = False
 isHappy (DirectSpeechHead _ Nothing) = False

@@ -23,8 +23,7 @@ finiteClause agr withSemSubject v = optional [mite $ NomHead agr (v "arg1")] ++
   rusAgr :: (Show a) => (A.Agr -> Maybe a) -> String -> [Mite]
   rusAgr f attr = maybeToList $ f agr >>= \x -> Just $ semS (v "arg1") attr (show x)
 clause v = [mite $ Verb (v "")] ++
-                (xor [[mite $ Clause TopLevel (v "cp")], [mite $ Clause Subordinate (v "cp")]]) ++
-                (xor [[mite $ Fact (v "cp"), semT (v "cp") "fact"], [mite $ Question (v "cp") (v ""), semT (v "cp") "question"]]) ++
+                (xor [[mite $ Clause Declarative (v "cp"), semT (v "cp") "fact"], [mite $ Clause Interrogative (v "cp"), semT (v "cp") "question"]]) ++
                 [semV (v "cp") "content" (v "")]
 infinitive typ v =
   [semT (v "x") typ] ++ optional (arg Dat "arg1" $ modifyV v 'x') ++
@@ -193,7 +192,7 @@ wordMites word index =
   ":" -> xor [[mite $ Colon "directSpeech" v0], [mite $ Colon "elaboration" v0]]
   "-" -> xor [[mite $ QuestionVariants Nothing (Just "-")],
               [mite $ DirectSpeechDash v0],
-              [mite $ Ellipsis v0 Nothing Nothing, semS v0 "ellipsis" "true"] ++ (xor [[mite $ Clause TopLevel v0], [mite $ Clause Subordinate v0]]) ++ (xor [[mite $ Fact v0], [mite $ Question v0 (v "smth")]])
+              [mite $ Ellipsis v0 Nothing Nothing, semS v0 "ellipsis" "true"] ++ (xor [[mite $ Clause Declarative v0], [mite $ Clause Interrogative v0]])
              ]
   "," -> xor [[mite $ SurroundingComma False v0], [mite $ SurroundingComma True v0], [mite $ Conjunction v0 "," True, semT v0 "seq"]]
   "\"" -> xor [[mite $ Quote v0 True], [mite $ Quote v0 False]]

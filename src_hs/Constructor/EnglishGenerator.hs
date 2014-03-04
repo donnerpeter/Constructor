@@ -54,7 +54,9 @@ handleSeq f (Just frame) =
                           if Just "true" == (first >>= fValue "content" >>= sValue "irrealis") then ", when" else ", but"
                         else if conj == "and" && Just True == fmap isCP second && Just True == fmap (hasType "seq") first then ", and"
                         else if conj == "" then
-                          if isJust (second >>= fValue "content" >>= fValue "accordingTo") then "; but" else "," 
+                          if isJust (second >>= fValue "content" >>= fValue "accordingTo") then "; but"
+                          else if isJust (second >>= fValue "content" >>= sValue "andEmphasis") then ""
+                          else ","
                         else conj
         return $ m1 `cat` separator `cat` m2
   else f frame
@@ -211,13 +213,13 @@ sentence frame = handleSeq singleSentence (Just frame) `catM` return finish wher
   lastSentence = if hasType "seq" frame then fValue "member2" frame else Just frame
 
 genComplement cp = fromMaybe (return "") $ do
-  let prefix = if hasType "fact" cp then "that" else ""
   fVerb <- fValue "content" cp
+  let prefix = if hasType "fact" cp && not (Just "true" == sValue "andEmphasis" fVerb) then "that" else ""
   if hasType "question" cp && hasType "THINK" fVerb then
     return $ do
       frameGenerated cp
       (return "about their opinion on") `catM` (np False $ fValue "topic" fVerb)
-  else return $ do s <- sentence cp; return $ prefix `cat` s
+  else return $ return prefix `catM` sentence cp
 
 verb verbForm frame typ =
   let negated = Just "true" == sValue "negated" frame in
@@ -232,6 +234,8 @@ verb verbForm frame typ =
   "DISCOVER" -> "discovered"
   "DISTRACT" -> "distracted"
   "DISPERSE" -> "went"
+  "THINK" -> "were thinking"
+  "SIT" -> "sitting"
   "FALL" -> "fell"
   "BREAK" -> "broke"
   "STOP" -> "stopped"
@@ -328,6 +332,7 @@ vp :: Frame -> VerbForm -> String -> State GenerationState String
 vp fVerb verbForm subject = do
   let preAdverb = case sValue "manner" fVerb of
         Just "SUDDENLY" -> "suddenly"
+        Just "JUST" -> "just"
         Just "SADLY" -> if getType fVerb == Just "SMILE" then "" else "sadly"
         Just s -> s
         _ -> ""
@@ -336,6 +341,7 @@ vp fVerb verbForm subject = do
         Just "HAPPEN" -> "today"
         _ -> ""
       whWord = if Just True == (fmap isQuestioned $ fValue "arg2" fVerb) then "what" else ""
+      negation = if sValue "negated" fVerb == Just "true" && hasType "SIT" fVerb then "not" else ""
   controlled <- case getType fVerb of
     Just "CAN" -> case fValue "theme" fVerb of
       Just slave -> vp slave BaseVerb ""
@@ -345,11 +351,11 @@ vp fVerb verbForm subject = do
       _ -> return ""
     _ -> return ""
   args <- foldM (\s arg -> return s `catM` generateArg arg) "" (arguments fVerb)
-  let contracted = if null preAdverb then
+  let contracted = if null preAdverb && null negation then
                      if sVerb == "am" then subject ++ "'m"
                      else if sVerb == "is" then subject ++ "'s"
                      else subject `cat` sVerb
-                   else subject `cat` preAdverb `cat` sVerb
+                   else subject `cat` negation `cat` preAdverb `cat` sVerb
   return $ whWord `cat` contracted `cat` controlled `cat` args `cat` finalAdverb
 
 data Argument = Adverb String | NPArg Frame | PPArg String Frame

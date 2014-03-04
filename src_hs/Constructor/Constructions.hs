@@ -9,9 +9,10 @@ import Constructor.Variable
 import Debug.Trace
 
 data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | 
-               ClauseArg ClauseLevel | CP | PossKind ArgKind Agr | ScalarAdverb
+               ClauseArg ClauseLevel ClauseForce | CP | PossKind ArgKind Agr | ScalarAdverb
                deriving (Show, Eq, Ord)
 data ClauseLevel = TopLevel | Subordinate deriving (Show, Eq, Ord)
+data ClauseForce = Declarative | Interrogative deriving (Show, Eq, Ord)
 data Construction = Word Variable String
                   | Sem Variable String SemValue
                   | Unify Variable Variable

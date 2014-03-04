@@ -1,5 +1,7 @@
 module Constructor.Sense 
-  (Sense(..), Frame(..), Fact(..), fValue, sValue, 
+  (Sense(..), Frame(..), Fact(..),
+  fValue, sValue,
+   fDeclaredValue, sDeclaredValue,
   usages, usage, 
   getType, hasType, hasAnyType, resolve,
   earlier,

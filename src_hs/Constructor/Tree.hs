@@ -9,6 +9,7 @@ import qualified Data.Map as Map
 import qualified Constructor.LinkedSet as LS
 import Constructor.Constructions
 import Constructor.Sense
+import Constructor.Util
 
 data Side = LeftSide | RightSide deriving (Eq, Show, Ord)
 invert LeftSide = RightSide
@@ -157,11 +158,12 @@ issues mites = let
   frames = allFrames sense
   frameIssues frame = case getType frame of
     Just "seq" | Nothing == sValue "conj" frame -> ["comma-only seq"]
+    Just "SIT" -> if Nothing == (fValue "arg1" frame >>= sDeclaredValue "type") then ["unknown sit subj "] else []
     Just "COME_SCALARLY" -> case fValue "arg1" frame of
       Just subj ->
-        if Nothing == getType subj then ["unknown subj"] else
+        if Nothing == sDeclaredValue "type" subj then ["unknown subj"] else
          case fValue "order" frame of
           Just order | earlier frame "order" subj "type" && earlier frame "type" frame "order" -> ["come_scalarly order subj"]
           _ -> []
     _ -> []
-  in frames >>= frameIssues
+  in {-traceIt "issues" $ -}frames >>= frameIssues

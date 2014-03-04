@@ -70,7 +70,7 @@ wordMites word index =
   "долго" -> adverb "duration" "LONG"
   "домам" -> nounPl Dat "HOMES" v
   "других" -> nounPl Gen "OTHERS" v
-  "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ directObject v ++ arg (PP "po" Dat) "topic" v
+  "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) "topic" v)
   "ее" -> xor [pronoun Acc A.pl "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.sg v0], [semT v0 "SHE", mite $ Possessive Nom A.pl v0]] -- todo empty agr
   "забыл" -> finVerb "FORGET" "PAST" A.m v ++ xor [compHead "arg2" v, directObject v]
   "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ xor [compHead "arg2" v, 
@@ -138,6 +138,7 @@ wordMites word index =
   "после" -> semPreposition "posle" Gen "AFTER" "anchor" v
   "потом" -> adverb "relTime" "AFTER"
   "приуныли" -> finVerb "GET_SAD" "PAST" A.pl v
+  "просто" -> adverb "manner" "JUST"
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ arg (PP "v" Acc) "goal" v
   "радостью" -> nounSg Instr Fem "JOY" v ++ optional [mite $ PrepositionActivator "s" Instr [VerbalModifier "mood" False v0]]
   "разошлись" -> finVerb "DISPERSE" "PAST" A.pl v ++ arg (PP "po" Dat) "goal" v
@@ -150,6 +151,7 @@ wordMites word index =
   "себе" -> pronoun Dat (A.Agr Nothing A.Sg Nothing) "SELF" v ++ [mite $ ReflexiveReference (v "")] -- todo empty agr
   "семи" -> nounSg Gen Masc "7" v
   "семь" -> nounSg Nom Masc "7" v
+  "сидят" -> finVerb "SIT" "PRESENT" A.pl3 v
   "сказала" -> finVerb "SAY" "PAST" A.f v ++ [mite $ DirectSpeechHead v0 Nothing] -- todo ++ directObject v
   "сказали" -> finVerb "SAY" "PAST" A.pl v ++ optional [mite $ DirectSpeechHead v0 Nothing] ++ directObject v
   "скамейки" -> nounSg Gen Fem "BENCH" v
@@ -191,7 +193,7 @@ wordMites word index =
   ":" -> xor [[mite $ Colon "directSpeech" v0], [mite $ Colon "elaboration" v0]]
   "-" -> xor [[mite $ QuestionVariants Nothing (Just "-")],
               [mite $ DirectSpeechDash v0],
-              [mite $ Ellipsis v0 Nothing Nothing, semS v0 "ellipsis" "true"] ++ (xor [[mite $ Clause TopLevel v0], [mite $ Clause Subordinate v0]])
+              [mite $ Ellipsis v0 Nothing Nothing, semS v0 "ellipsis" "true"] ++ (xor [[mite $ Clause TopLevel v0], [mite $ Clause Subordinate v0]]) ++ (xor [[mite $ Fact v0], [mite $ Question v0 (v "smth")]])
              ]
   "," -> xor [[mite $ SurroundingComma False v0], [mite $ SurroundingComma True v0], [mite $ Conjunction v0 "," True, semT v0 "seq"]]
   "\"" -> xor [[mite $ Quote v0 True], [mite $ Quote v0 False]]

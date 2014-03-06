@@ -47,7 +47,7 @@ wordMites word index =
   case word of
   s | isNumberString s -> xor [nounSg caze gender word v | caze <- [Nom, Gen, Acc], gender <- [Masc, Neu]] ++ [semS v0 "number" "true"]
   "6-ти" -> nounSg Gen Masc "6" v ++ [semS v0 "number" "true"]
-  "а" -> xor [[mite $ Conjunction v0 "but" False, semS v0 "conj" "but", semT v0 "seq"], adverb "andEmphasis" "true"]
+  "а" -> xor [[mite $ Conjunction v0 "but" False, semS v0 "conj" "but", semT v0 "seq"], [mite $ ConjEmphasis "andEmphasis" v0]]
   "было" -> [mite $ CopulaTense v0, semS v0 "time" "PAST"]
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
   "вдруг" -> adverb "manner" "SUDDENLY"
@@ -113,7 +113,7 @@ wordMites word index =
   "нашего" -> [semT v0 "WE", mite $ Possessive Gen A.m v0]
   "нашем" -> [semT v0 "WE", mite $ Possessive Prep A.n v0]
   "недоумении" -> nounSg Prep Neu "PREDICAMENT" v ++ genHead "arg1" v
-  "но" ->  xor [[mite $ Conjunction v0 "but" False, semS v0 "conj" "but", semT v0 "seq"], adverb "butEmphasis" "true"]
+  "но" ->  xor [[mite $ Conjunction v0 "but" False, semS v0 "conj" "but", semT v0 "seq"], [mite $ ConjEmphasis "butEmphasis" v0]]
   "носом" -> nounSg Instr Masc "NOSE" v
   "о" -> preposition "o" Prep v
   "обе" -> [mite $ Argument Acc (v ""), semT (v "q") "BOTH", semV v0 "quantifier" (v "q"), mite $ ArgHead Gen v0]

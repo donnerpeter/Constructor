@@ -55,6 +55,8 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
           [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2]) True]
         _ -> []
 
+      (ConjEmphasis attr _, Verb head) -> right [semS head attr "true"]
+
       (Adverb attr val, Verb head) -> right [semS head attr val]
       (Verb head, Adverb attr val) -> left [semS head attr val]
 
@@ -110,6 +112,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (Quote _ False, word@(Word {})) -> left [mite $ QuotedWord word False]
       (QuotedWord word False, Quote _ True) -> left [mite $ QuotedWord word True]
       (AdjHead noun _ _, QuotedWord (Word _ word) _) -> left [semS noun "name" word]
+      (Word _ "не", Complement cp) -> right [semS cp "negated" "true"]
       (Word _ "не", Verb v) -> right [semS v "negated" "true"]
       (Word _ "тоже", Verb v) -> right [semS v "also" "true"]
       (Complementizer cp1, Clause Declarative cp2) -> left [mite $ Unify cp1 cp2, mite $ Complement cp1]

@@ -68,6 +68,7 @@ data Construction = Word Variable String
                   | ReflexiveReference Variable
                   | ReflexiveTarget Variable
                   | Sentence Variable
+                  | ConjEmphasis String Variable
                   -- | S1 | S2 | S3 | S4
                   deriving (Show, Ord, Eq)
 type XorKey = (Construction, [Mite])

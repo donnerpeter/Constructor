@@ -71,8 +71,10 @@ np nom frame =
   if isSeq && (frame >>= fValue "member2" >>= getType) == Just "STREET"
   then
     handleSeq (return . streetName) frame `catM` return "streets"
-  else handleSeq (np_internal nom (not $ isSeq && isNumber frame)) frame where
+  else handleSeq (np_internal nom (if isNumber frame then isSubj || isAnchor else True)) frame where
   isSeq = (frame >>= getType) == Just "seq"
+  isSubj = isJust (frame >>= usage "arg1")
+  isAnchor = isJust (frame >>= usage "anchor")
 
 np_internal :: Bool -> Bool -> Frame -> State GenerationState String
 np_internal nom mayHaveDeterminer frame = do
@@ -235,7 +237,7 @@ verb verbForm frame typ =
   "DO" -> "did"
   "GO" -> "went"
   "GO_OFF" -> "went"
-  "ASK" -> if (fValue "topic" frame >>= getType) == Just "PREDICAMENT" then "consult" else "asked"
+  "ASK" -> if (fValue "topic" frame >>= getType) == Just "PREDICAMENT" then if verbForm == PastVerb then "consulted" else "consult" else "asked"
   "COME_SCALARLY" -> if sValue "time" frame == Just "PAST" then "went" else "comes"
   "DISCOVER" -> "discovered"
   "DISTRACT" -> "distracted"
@@ -251,7 +253,7 @@ verb verbForm frame typ =
   "ARGUE" -> if verbForm == Gerund then "arguing" else if Just "true" == sValue "irrealis" frame then "were arguing" else "argue"
   "RECALL" -> "recall"
   "REMEMBER" -> if verbForm == PastVerb then "remembered" else "remember"
-  "SMILE" -> "gave us a sad smile"
+  "SMILE" -> "gave us a " ++ (if sValue "manner" frame == Just "SADLY" then "sad " else "") ++ "smile"
   "THANK" -> "thanked"
   "RUN_OUT" -> "ran"
   "TAKE_OUT" -> "took"

@@ -16,7 +16,7 @@ preposition prep nounArg v = [mite $ PrepHead prep nounArg (v "")] ++ xor [[mite
 semPreposition prep nounArg typ attr v = [mite $ Argument (PP prep nounArg) (v ""), mite $ PrepHead prep nounArg (v "noun"), semT (v "") typ, semV (v "") attr (v "noun")]
 finVerb typ time agr v = [semT (v "") typ, semS (v "") "time" time] ++ finiteClause agr True v
 raisingVerb typ time agr v = [semT (v "") typ, semS (v "") "time" time, mite $ RaisingVerb (v "") (v "arg1")] ++ finiteClause agr False v
-finiteClause agr withSemSubject v = optional [mite $ NomHead agr (v "arg1")] ++
+finiteClause agr withSemSubject v = optional [mite $ NomHead agr (v "arg1") False] ++
                      [mite $ ReflexiveTarget (v "arg1")] ++
                      (if withSemSubject then [semV (v "") "arg1" (v "arg1")] else []) ++
                      (rusAgr (Just . A.number) "rusNumber") ++ (rusAgr A.gender "rusGender") ++ (rusAgr A.person "rusPerson") ++ 
@@ -71,6 +71,7 @@ wordMites word index =
   "долго" -> adverb "duration" "LONG"
   "домам" -> nounPl Dat "HOMES" v
   "других" -> nounPl Gen "OTHERS" v
+  "думает" -> finVerb "THINK" "PRESENT" A.sg3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) "topic" v)
   "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) "topic" v)
   "ее" -> xor [pronoun Acc A.pl "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.sg v0], [semT v0 "SHE", mite $ Possessive Nom A.pl v0]] -- todo empty agr
   "забыл" -> finVerb "FORGET" "PAST" A.m v ++ xor [compHead "arg2" v, directObject v]
@@ -152,6 +153,7 @@ wordMites word index =
   "себе" -> pronoun Dat (A.Agr Nothing A.Sg Nothing) "SELF" v ++ [mite $ ReflexiveReference (v "")] -- todo empty agr
   "семи" -> nounSg Gen Masc "7" v
   "семь" -> nounSg Nom Masc "7" v
+  "сидит" -> finVerb "SIT" "PRESENT" A.sg3 v
   "сидят" -> finVerb "SIT" "PRESENT" A.pl3 v
   "сказала" -> finVerb "SAY" "PAST" A.f v ++ [mite $ DirectSpeechHead v0 Nothing] -- todo ++ directObject v
   "сказали" -> finVerb "SAY" "PAST" A.pl v ++ optional [mite $ DirectSpeechHead v0 Nothing] ++ directObject v

@@ -47,13 +47,13 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
         _ -> []
       (GenHead v1, Argument Gen v2) -> left [mite $ Unify v1 v2] 
 
-      (Argument Nom v1, NomHead agr1 v2) -> leftMites >>= \m3 -> case cxt m3 of
+      (Argument Nom v1, NomHead agr1 v2 False) -> leftMites >>= \m3 -> case cxt m3 of
         AdjHead v3 Nom agr2 | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) -> 
-          [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2]) False]
+          [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 True]) False]
         _ -> []
-      (NomHead agr1 v2, Argument Nom v1) -> rightMites >>= \m3 -> case cxt m3 of
+      (NomHead agr1 v2 False, Argument Nom v1) -> rightMites >>= \m3 -> case cxt m3 of
         AdjHead v3 Nom agr2 | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) -> 
-          [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2]) True]
+          [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 True]) True]
         _ -> []
 
       (ConjEmphasis attr _, Verb head) -> right [semS head attr "true"]

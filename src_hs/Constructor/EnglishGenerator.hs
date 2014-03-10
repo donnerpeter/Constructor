@@ -54,7 +54,9 @@ handleSeq f (Just frame) =
             secondContent = second >>= fValue "content"
             separator = if conj == "but" then
                           if Just "true" == (firstContent >>= sValue "irrealis") then ", when"
-                          else if Just True == fmap isGerund secondContent || Just True == fmap isGerund firstContent then "and"
+                          else if (Just True == fmap isGerund secondContent || Just True == fmap isGerund firstContent) &&
+                                  isNothing (firstContent >>= sValue "negated")
+                            then "and"
                           else ", but"
                         else if conj == "and" && Just True == fmap isCP second && Just True == fmap (hasType "seq") first then ", and"
                         else if conj == "" then
@@ -238,7 +240,7 @@ verb verbForm frame typ =
   "DISCOVER" -> "discovered"
   "DISTRACT" -> "distracted"
   "DISPERSE" -> "went"
-  "THINK" -> "were thinking"
+  "THINK" -> "thinking"
   "SIT" -> "sitting"
   "FALL" -> "fell"
   "BREAK" -> "broke"
@@ -351,6 +353,9 @@ vp fVerb verbForm subject = do
         _ -> ""
       whWord = if Just True == (fmap isQuestioned $ fValue "arg2" fVerb) then "what" else ""
       negation = if sValue "negated" fVerb == Just "true" && isGerund fVerb then "not" else ""
+      aux = if isGerund fVerb && isNothing (usage "content" fVerb >>= usage "member2") then
+              if Just "Pl" == (fValue "arg1" fVerb >>= sValue "rusNumber") then "were" else "was"
+            else ""
   controlled <- case getType fVerb of
     Just "CAN" -> case fValue "theme" fVerb of
       Just slave -> vp slave BaseVerb ""
@@ -360,11 +365,11 @@ vp fVerb verbForm subject = do
       _ -> return ""
     _ -> return ""
   args <- foldM (\s arg -> return s `catM` generateArg arg) "" (arguments fVerb)
-  let contracted = if null preAdverb && null negation then
+  let contracted = if null preAdverb && null negation && null aux then
                      if sVerb == "am" then subject ++ "'m"
                      else if sVerb == "is" then subject ++ "'s"
                      else subject `cat` sVerb
-                   else subject `cat` negation `cat` preAdverb `cat` sVerb
+                   else subject `cat` aux `cat` negation `cat` preAdverb `cat` sVerb
   return $ whWord `cat` contracted `cat` controlled `cat` args `cat` finalAdverb
 
 data Argument = Adverb String | NPArg Frame | PPArg String Frame

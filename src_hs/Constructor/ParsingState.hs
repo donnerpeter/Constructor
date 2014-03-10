@@ -39,7 +39,7 @@ instance Show ParsingState where show state = show $ roots state
 emptyState = ParsingState [] []
 
 mergeTrees:: ParsingState -> ParsingState
-mergeTrees state = result where
+mergeTrees state = {-trace ("--------------", length allVariants, [(sortingKey v, v) | v <- allVariants]) $ -}result where
   result = head $ Data.List.sortBy (compare `on` sortingKey) $ allVariants
   sortingKey state = (length $ roots state, unhappyCount state, stateIssueCount state)
   unhappyCount state = sum [length $ unhappyActiveMites tree | tree <- roots state]

@@ -21,7 +21,7 @@ data Construction = Word Variable String
                   | Adj Variable ArgKind Agr
                   | AdjHead Variable ArgKind Agr
                   | Verb Variable
-                  | NomHead Agr Variable
+                  | NomHead Agr Variable {-satisfied-} Bool
                   | GenHead Variable
                   | ArgHead ArgKind Variable
                   | PrepHead String ArgKind Variable
@@ -79,7 +79,8 @@ isHappy cxt = case cxt of
   CompHead {} -> False; ConditionCompHead {} -> False; ConditionComp {} -> False; ReasonComp {} -> False
   Elaboration {} -> False
   Conjunction (SeqData {seqHasLeft = seqHasLeft, seqHasRight = seqHasRight}) -> seqHasLeft && seqHasRight
-  NomHead {} -> False; GenHead {} -> False; Possessive {} -> False
+  NomHead _ _ satisfied -> satisfied
+  GenHead {} -> False; Possessive {} -> False
   CopulaTense {} -> False; Copula {} -> False
   CommaSurrounded {} -> False; SurroundingComma {} -> False
   ControlledInfinitive {} -> False; Control {} -> False

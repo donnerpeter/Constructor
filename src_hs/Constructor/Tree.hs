@@ -28,10 +28,10 @@ instance Show Tree where
     let inner tree prefix allowTop allowBottom = top ++ center ++ bottom where
           center = prefix ++ (Data.List.intercalate ", " $ map showMite $ uncoveredHeadMites tree) ++ "\n"
           top = if not allowTop then "" else case listToMaybe $ subTrees RightSide tree of
-            Just r -> inner r ("  "++prefix) True False
+            Just r -> inner r (".."++prefix) True False
             Nothing -> ""
           bottom = if not allowBottom then "" else case listToMaybe $ subTrees LeftSide tree of
-            Just r -> inner r ("  "++prefix) False True
+            Just r -> inner r (".."++prefix) False True
             Nothing -> ""
           showMite mite =
             let shown = show mite

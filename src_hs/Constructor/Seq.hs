@@ -14,10 +14,14 @@ seqRight leftMites rightMites = {-traceIt "seqRight" $ -}result where
   hasSeqFull conj = flip any rightMites $ \mite -> case cxt mite of
     Conjunction (SeqData { seqHasLeft=True, seqHasRight=True, seqConj=c}) | isSeqContinuation conj c -> True
     _ -> False
+  hasConjEmphasis = any (any isConjEmphasis . baseMites) rightMites
+  isConjEmphasis mite = case cxt mite of
+    ConjEmphasis {} -> True
+    _ -> False
   conjWithRight sd kind = mite $ Conjunction $ sd {seqKind=Just kind, seqHasRight=True}
   result = leftMites >>= \m1 -> case cxt m1 of
     Conjunction sd@(SeqData { seqVar=v, seqReady=True, seqHasLeft=False, seqHasRight=False, seqConj=conj}) ->
-     if hasSeqFull conj then [] else rightMites >>= \m2 -> case cxt m2 of
+     if hasSeqFull conj || hasConjEmphasis then [] else rightMites >>= \m2 -> case cxt m2 of
       Argument kind child -> withBase [m1,m2] [semV v "member2" child, conjWithRight sd kind]
       Possessive caze agr child -> withBase [m1,m2] [semV v "member2" child, conjWithRight sd $ PossKind caze agr]
       Complement child -> withBase [m1,m2] [semV v "member2" child, semS child "distinguished" "true", conjWithRight sd CP]
@@ -25,7 +29,7 @@ seqRight leftMites rightMites = {-traceIt "seqRight" $ -}result where
         let unhappy = filter elideable $ filter (not . happy) rightMites
             wrapped = [(mite $ ElidedArgHead $ cxt m) {baseMites = [m,m1,m2]} | m <- unhappy]
             elideable mite = case cxt mite of
-              NomHead {} -> True
+              NomHead _ _ False -> True
               _ -> False
             ellipsis = rightMites >>= \e -> case cxt e of
               Ellipsis child (Just _) (Just _) -> withBase [e] [mite $ cxt e] 
@@ -59,13 +63,10 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
           Complement child | kindMatches CP ->
             withBase [m1,m2] [semV seqV "member1" child, conjWithLeft CP, mite $ Complement seqV]
           Clause force child | kindMatches (ClauseArg force) ->
-             let unifications = concat [unifyMissingArgument mite1 mite2 | mite1 <- unhappyLeft ++ happyBases,
-                                                                           mite2 <- rightMites]
-                 happyLeft = filter happy leftMites
-                 happyBases = LS.removeDups $ concat $ map baseMites happyLeft
-                 unhappyLeft = filter (not . happy) leftMites
+             let unifications = concat [unifyMissingArgument mite1 mite2 | mite1 <- leftMites, mite2 <- rightMites]
                  unifyMissingArgument aux1 aux2 = case (cxt aux1, cxt aux2) of
-                   (NomHead agr1 v1, ElidedArgHead (NomHead agr2 v2)) | agree agr1 agr2 -> withBase [aux1,aux2] [mite $ Unify v1 v2]
+                   (NomHead agr1 v1 satisfied, ElidedArgHead (NomHead agr2 v2 False)) | agree agr1 agr2 ->
+                       withBase [aux1,aux2] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v1 satisfied]
                    _ -> []
                  ellipsisVariants = rightMites >>= \m3 -> case cxt m3 of
                    Ellipsis ellipsisVar (Just e1) (Just e2) -> map (withBase [m3]) $ processEllipsis child ellipsisVar e1 e2 leftTree

@@ -17,63 +17,44 @@ createEdges leftTree rightTree infos = --trace infos $
       rh = xor [merged | (MergeInfo merged leftHeadedMerge) <- infos, not leftHeadedMerge]
       lTree = if null lh then Nothing else createBranch lh leftTree rightTree LeftSide $ calcCandidateSets lh
       rTree = if null rh then Nothing else createBranch rh leftTree rightTree RightSide $ calcCandidateSets rh
-      trees = catMaybes [lTree, rTree]
-  in trees
+  in catMaybes [lTree, rTree]
 
 calcMergeInfos leftTree rightTree = infos where
   leftMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ map (flip applyAV leftTree) $ avs leftTree
   rightMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ map (flip applyAV rightTree) $ avs rightTree
   infos = interactNodes leftTree leftMites rightMites
 
-data MergeResult = Single Tree | Couple Tree Tree deriving (Show)
-integrateSubTree :: Tree -> Side -> MergeResult -> [MergeResult]
-integrateSubTree orphan side subResult = --trace ("---integrateSubTree", activeHeadMites orphan) $
-  let handlePair t1 t2 digLeft digRight = [Couple t1 t2] ++ (map Single $ mergeTwoTrees t1 t2 digLeft digRight)
-  in case subResult of
-    Single subTree -> select side (handlePair orphan subTree True False) (handlePair subTree orphan False True)
-    Couple x1 x2 -> concat [select side (handlePair adoption x2 False False) (handlePair x1 adoption False False) |
-                            adoption <- select side (mergeTwoTrees orphan x1 True False) (mergeTwoTrees x2 orphan False False)]
-
-mergeTwoTrees leftTree rightTree digLeft digRight = concat $ map toTrees $ optimize leftTree rightTree digLeft digRight Set.empty where
-  toTrees result = case result of
-    Single x -> [x]
-    _ -> []
-
-optimize:: Tree -> Tree -> Bool -> Bool -> Set.Set MergeInfo -> [MergeResult]
-optimize leftTree rightTree digLeft digRight processedInfos =
-  let ownResults = [Single tree | tree <- createEdges leftTree rightTree $ filter (not. flip Set.member processedInfos) infos]
+stealLeft:: Tree -> Tree -> Set.Set MergeInfo -> [Tree]
+stealLeft leftTree rightTree processedInfos =
+  let ownResults = createEdges leftTree rightTree $ filter (not. flip Set.member processedInfos) infos
       infos = if null (avUnhappyRight $ head $ avs leftTree) && null (avUnhappyLeft $ head $ avs rightTree)
               then calcMergeInfos leftTree rightTree
               else []
-      leftSubResults = if digLeft && isBranch leftTree
-                       then optimize (justRight leftTree) rightTree True False $ if headSide leftTree == LeftSide then Set.empty else Set.union processedInfos (Set.fromList infos)
-                       else []
-      rightSubResults = if digRight && isBranch rightTree
-                        then optimize leftTree (justLeft rightTree) False True $ if headSide rightTree == RightSide then Set.empty else Set.union processedInfos (Set.fromList infos)
-                        else []
-      dugLeft = concat $ map (integrateSubTree (justLeft leftTree) LeftSide) leftSubResults
-      dugRight = concat $ map (integrateSubTree (justRight rightTree) RightSide) rightSubResults
-      in ownResults ++ dugLeft ++ dugRight
+      nextProcessed = if headSide leftTree == LeftSide then Set.empty else Set.union processedInfos (Set.fromList infos)
+      leftSubResults = if isBranch leftTree then stealLeft (justRight leftTree) rightTree nextProcessed else []
+  in ownResults ++ leftSubResults
 
-mergeTrees:: [Tree] -> [Tree]
-mergeTrees state =
-  head $ Data.List.sortBy (compare `on` (\state -> (length state, unhappyCount state, stateIssueCount state))) $ allMergeVariants [state] LS.empty where
-    unhappyCount trees = sum [length $ unhappyActiveMites tree | tree <- trees]
-    allMergeVariants queue result =
-      case queue of
-        [] -> LS.elements result
-        state:restQueue ->
-          allMergeVariants (restQueue++notConsideredMerges) $ LS.addAll (state:notConsideredMerges) result where
-            immediateMerges = case state of
-              rightTree:leftTree:restTrees -> map toTrees $ optimize leftTree rightTree True False Set.empty where
-                toTrees result = case result of
-                  Single x -> x:restTrees
-                  Couple x y -> y:x:restTrees
-              _ -> []
-            notConsideredMerges = [m | m <- immediateMerges, not $ LS.member m result]
+data ParsingState = ParsingState { roots :: [Tree], history :: [ParsingState] }
+instance Show ParsingState where show state = show $ roots state
+emptyState = ParsingState [] []
 
-addMites:: [Tree] -> [Mite] -> [Tree]
-addMites state mites = mergeTrees $ (createLeaf mites $ calcCandidateSets mites):state
+mergeTrees:: ParsingState -> ParsingState
+mergeTrees state = result where
+  result = head $ Data.List.sortBy (compare `on` sortingKey) $ allVariants
+  sortingKey state = (length $ roots state, unhappyCount state, stateIssueCount state)
+  unhappyCount state = sum [length $ unhappyActiveMites tree | tree <- roots state]
+  allVariants = tryStealing (roots state)
+  tryStealing :: [Tree] -> [ParsingState]
+  tryStealing trees = [state { roots = trees }] ++ case trees of
+    right:left:rest -> let
+      stolen = stealLeft left right Set.empty
+      prevState tree = (history state) !! (treeWidth tree - 1)
+      nextStates = map (\tree -> tree : roots (prevState tree)) stolen
+      in nextStates >>= tryStealing
+    _ -> []
+
+addMites:: ParsingState -> [Mite] -> ParsingState
+addMites state mites = mergeTrees $ ParsingState { roots = (createLeaf mites $ calcCandidateSets mites):roots state, history = state:history state }
 
 calcCandidateSets:: [Mite] -> [[Mite]]
 calcCandidateSets mites = {-traceShow ("contradictors:", mites) $ -}result where
@@ -93,6 +74,6 @@ calcCandidateSets mites = {-traceShow ("contradictors:", mites) $ -}result where
         omitMite = enumerate rest chosen (mite:uncovered)
   result = enumerate mites [] []
 
-stateIssueCount trees = sum [length $ avIssues $ head $ avs tree | tree <- trees]
+stateIssueCount state = sum [length $ avIssues $ head $ avs tree | tree <- roots state]
 
 activeStateMites trees = concat (map allActiveMites $ reverse trees)

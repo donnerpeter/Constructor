@@ -20,8 +20,9 @@ tokenize s = [map toLower token | token <- tokens, length token > 0] where
 parse:: String -> [Tree]
 parse s =
   let tokens = tokenize s
-      pair = foldl' (\(state, index) word -> seq state $ {-trace word $ -}(addMites state (wordMites word index), index + 1)) ([], 1) tokens
-  in fst pair
+      addWord state word = seq state $ {-trace word $ -}addMites state $ wordMites word (1 + length (history state))
+      result = foldl' addWord emptyState tokens
+  in roots result
 
 translate s = generate $ makeSense $ parse s
 

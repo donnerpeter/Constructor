@@ -148,6 +148,8 @@ branchAVs leftChild rightChild headSide activeSets = {-traceShow ("-------------
   in
   {-traceShow ("branchAVs", result) $ -}result
 
+treeWidth tree = if isBranch tree then treeWidth (justLeft tree) + treeWidth (justRight tree) else 1
+
 sortAVs avs = Data.List.sortBy (compare `on` (\av -> (unhappyCount av, avIssueCount av))) avs where
   unhappyCount av = length (avUnhappyLeft av) + length (avUnhappyHead av) + length (avUnhappyRight av)
   avIssueCount av = length $ avIssues av

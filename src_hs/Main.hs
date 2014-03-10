@@ -3,7 +3,6 @@ import Data.Char (toLower)
 import Constructor.Tree
 import Constructor.ParsingState
 import Constructor.Lexicon
-import Constructor.Sense
 import Constructor.Parser
 import Constructor.EnglishGenerator
 

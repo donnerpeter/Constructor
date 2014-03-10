@@ -50,12 +50,16 @@ handleSeq f (Just frame) =
       if secondProcessed then return m1 else do
         m2 <- handleSeq f second
         let conj = fromMaybe "" $ sValue "conj" frame
+            firstContent = first >>= fValue "content"
+            secondContent = second >>= fValue "content"
             separator = if conj == "but" then
-                          if Just "true" == (first >>= fValue "content" >>= sValue "irrealis") then ", when" else ", but"
+                          if Just "true" == (firstContent >>= sValue "irrealis") then ", when"
+                          else if Just True == fmap isGerund secondContent || Just True == fmap isGerund firstContent then "and"
+                          else ", but"
                         else if conj == "and" && Just True == fmap isCP second && Just True == fmap (hasType "seq") first then ", and"
                         else if conj == "" then
-                          if isJust (second >>= fValue "content" >>= fValue "accordingTo") then "; but"
-                          else if isJust (second >>= fValue "content" >>= sValue "andEmphasis") then ""
+                          if isJust (secondContent >>= fValue "accordingTo") then "; but"
+                          else if isJust (secondContent >>= sValue "andEmphasis") then ""
                           else ","
                         else conj
         return $ m1 `cat` separator `cat` m2
@@ -212,14 +216,14 @@ sentence frame = handleSeq singleSentence (Just frame) `catM` return finish wher
            else ""
   lastSentence = if hasType "seq" frame then fValue "member2" frame else Just frame
 
-genComplement cp = fromMaybe (return "") $ do
-  fVerb <- fValue "content" cp
-  let prefix = if hasType "fact" cp && not (Just "true" == sValue "andEmphasis" fVerb) then "that" else ""
-  if hasType "question" cp && hasType "THINK" fVerb then
-    return $ do
-      frameGenerated cp
-      (return "about their opinion on") `catM` (np False $ fValue "topic" fVerb)
-  else return $ return prefix `catM` sentence cp
+genComplement cp = case fValue "content" cp of
+  Nothing -> return ""
+  Just fVerb -> let
+      prefix = if hasType "fact" cp && (isNothing (usage "member2" cp) || Just "true" == sValue "distinguished" cp) then "that" else ""
+      negation = if Just "true" == sValue "negated" cp then "not" else ""
+    in return (negation `cat` prefix) `catM` sentence cp
+
+isGerund fVerb = hasAnyType ["SIT", "THINK"] fVerb
 
 verb verbForm frame typ =
   let negated = Just "true" == sValue "negated" frame in
@@ -301,7 +305,12 @@ clause fVerb = do
       _ -> return ""
     comp <- case fComp of
       Nothing -> return "" 
-      _ -> return (if hasType "fact" $ head $ flatten fComp then "," else "") `catM` handleSeq genComplement fComp
+      Just cp -> let compVerb = fValue "content" cp in
+        if hasType "question" cp && Just True == fmap (hasType "THINK") compVerb then
+           do
+             frameGenerated cp
+             (return "about their opinion on") `catM` (np False $ fValue "topic" $ fromJust compVerb)
+        else return (if hasType "fact" $ head $ flatten fComp then "," else "") `catM` handleSeq genComplement fComp
     externalComp <- if getType fVerb == Just "GO" then 
       case usage "content" fVerb >>= usage "member1" >>= fValue "member2" of
        Just nextClause | (fValue "content" nextClause >>= getType) == Just "ASK" -> do
@@ -341,7 +350,7 @@ vp fVerb verbForm subject = do
         Just "HAPPEN" -> "today"
         _ -> ""
       whWord = if Just True == (fmap isQuestioned $ fValue "arg2" fVerb) then "what" else ""
-      negation = if sValue "negated" fVerb == Just "true" && hasType "SIT" fVerb then "not" else ""
+      negation = if sValue "negated" fVerb == Just "true" && isGerund fVerb then "not" else ""
   controlled <- case getType fVerb of
     Just "CAN" -> case fValue "theme" fVerb of
       Just slave -> vp slave BaseVerb ""
@@ -378,7 +387,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       ("TAKE_OUT", "source") -> [PPArg "out of" value]
       ("RUN_OUT", "source") -> [PPArg "out of" value]
       ("FALL", "source") -> [PPArg "off" value]
-      ("ASK", "topic") -> if hasType "question" value then [] else [PPArg "on" value]
+      ("ASK", "topic") -> if all (hasType "question") $ flatten $ Just value then [] else [PPArg "on" value]
       ("LACK", "theme") -> [NPArg value]
       ("DISTRACT", "theme") -> [PPArg "from" value]
       ("DISPERSE", "goal") -> if hasType "HOMES" value then [Adverb "home"] else [PPArg "to" value]

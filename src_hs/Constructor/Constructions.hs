@@ -6,12 +6,19 @@ import qualified Constructor.LinkedSet as LS
 import Control.Exception (assert)
 import Constructor.Agreement
 import Constructor.Variable
-import Debug.Trace
+import Data.Maybe
 
 data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | 
                ClauseArg ClauseForce | CP | PossKind ArgKind Agr | ScalarAdverb
                deriving (Show, Eq, Ord)
 data ClauseForce = Declarative | Interrogative deriving (Show, Eq, Ord)
+data SeqData = SeqData { seqVar :: Variable, seqConj :: String, seqReady :: Bool,
+                         seqKind :: Maybe ArgKind, seqHasLeft :: Bool, seqHasRight :: Bool } deriving (Eq, Ord)
+instance Show SeqData where
+  show sd = show (seqVar sd) ++ " " ++ seqConj sd ++
+            (if isJust $ seqKind sd then " (" ++ show (fromJust $ seqKind sd) ++ ")" else "") ++
+            (if seqReady sd then "" else "!ready") ++ (if seqHasLeft sd then " left" else "") ++
+            (if seqHasRight sd then " right" else "")
 data Construction = Word Variable String
                   | Sem Variable String SemValue
                   | Unify Variable Variable
@@ -32,9 +39,7 @@ data Construction = Word Variable String
                   | ConditionCompHead Variable
                   | Wh Variable Variable
                   | QuestionVariants (Maybe Variable) (Maybe String)
-                  | Conjunction Variable String {-ready-} Bool
-                  | SeqRight Variable ArgKind String
-                  | SeqFull Variable String
+                  | Conjunction SeqData
                   | Clause ClauseForce Variable
                   | ElidedArgHead Construction
                   | Possessive ArgKind Agr Variable
@@ -80,53 +85,37 @@ instance Show Mite where
 instance Ord Mite where compare m1 m2 = compare (xorKey m1) (xorKey m2)
 instance Eq Mite where m1 == m2 = (xorKey m1) == (xorKey m2)
   
-isHappy (Adj {}) = False
-isHappy (Adverb {}) = False
-isHappy (ArgHead {}) = False
-isHappy (PrepHead {}) = False
-isHappy (CompHead {}) = False
-isHappy (ConditionCompHead {}) = False
-isHappy (Argument {}) = False
-isHappy (Elaboration {}) = False
-isHappy (SeqRight {}) = False
-isHappy (Conjunction {}) = False
-isHappy (NomHead {}) = False
-isHappy (GenHead {}) = False
-isHappy (ElidedArgHead {}) = False
-isHappy (Possessive {}) = False
-isHappy (CopulaTense {}) = False
-isHappy (Copula {}) = False
-isHappy (ConditionComp {}) = False
-isHappy (CommaSurrounded {}) = False
-isHappy (ControlledInfinitive {}) = False
-isHappy (Control {}) = False
-isHappy (SurroundingComma {}) = False
-isHappy (Clause {}) = False
-isHappy (QuotedWord _ False) = False
-isHappy (Quote _ False) = False
-isHappy (DirectSpeechHead _ Nothing) = False
-isHappy (Colon {}) = False
-isHappy (VerbalModifier {}) = False
-isHappy (PrepositionActivator {}) = False
-isHappy (ActivePreposition {}) = False
-isHappy (DirectSpeechDash {}) = False
-isHappy (RaisingVerb {}) = False
-isHappy (Raiseable {}) = False
-isHappy (TwoWordCxt {}) = False
-isHappy (ReasonComp {}) = False
-isHappy (Ellipsis {}) = False
-isHappy (Unclosed {}) = False
-isHappy (Complement {}) = False
-isHappy (Wh {}) = False
-isHappy (RelativeClause {}) = False
-isHappy _ = True
+isHappy cxt = case cxt of
+  Adj {} -> False; Adverb {} -> False
+  ArgHead {} -> False; PrepHead {} -> False; Argument {} -> False; ElidedArgHead {} -> False
+  CompHead {} -> False; ConditionCompHead {} -> False; ConditionComp {} -> False; ReasonComp {} -> False
+  Elaboration {} -> False
+  Conjunction (SeqData {seqHasLeft = seqHasLeft, seqHasRight = seqHasRight}) -> seqHasLeft && seqHasRight
+  NomHead {} -> False; GenHead {} -> False; Possessive {} -> False
+  CopulaTense {} -> False; Copula {} -> False
+  CommaSurrounded {} -> False; SurroundingComma {} -> False
+  ControlledInfinitive {} -> False; Control {} -> False
+  Clause {} -> False
+  QuotedWord _ False -> False; Quote _ False -> False
+  DirectSpeechDash {} -> False; DirectSpeechHead _ Nothing -> False
+  Colon {} -> False
+  VerbalModifier {} -> False
+  PrepositionActivator {} -> False; ActivePreposition {} -> False
+  RaisingVerb {} -> False; Raiseable {} -> False
+  TwoWordCxt {} -> False
+  Ellipsis {} -> False
+  Unclosed {} -> False
+  Complement {} -> False
+  Wh {} -> False
+  RelativeClause {} -> False
+  _ -> True
 
-isCommaSurroundable (ConditionComp _ _ True) = True
-isCommaSurroundable (ReasonComp _ True) = True
-isCommaSurroundable (Complement {}) = True
-isCommaSurroundable (RelativeClause {}) = True
-isCommaSurroundable (VerbalModifier _ True _) = True
-isCommaSurroundable _ = False
+isCommaSurroundable cxt = case cxt of
+  ConditionComp _ _ True -> True; ReasonComp _ True -> True
+  Complement {} -> True
+  RelativeClause {} -> True
+  VerbalModifier _ True _ -> True
+  _ -> False
 
 mite cxt = Mite cxt (isHappy cxt) Set.empty []
   

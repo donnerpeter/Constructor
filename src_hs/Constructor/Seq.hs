@@ -7,16 +7,19 @@ import Constructor.Variable
 import Constructor.Tree
 import Constructor.Util
 import Control.Monad
-import Debug.Trace
 import Data.Maybe
 
-seqRight leftMites rightMites = result where
-  hasSeqFull conj = flip any rightMites $ \mite -> case cxt mite of SeqFull _ c | isSeqContinuation conj c -> True; _ -> False
+seqRight leftMites rightMites = {-traceIt "seqRight" $ -}result where
+  hasSeqFull conj = flip any rightMites $ \mite -> case cxt mite of
+    Conjunction (SeqData { seqHasLeft=True, seqHasRight=True, seqConj=c}) | isSeqContinuation conj c -> True
+    _ -> False
+  conjWithRight sd kind = mite $ Conjunction $ sd {seqKind=Just kind, seqHasRight=True}
   result = leftMites >>= \m1 -> case cxt m1 of
-    Conjunction v conj True -> if hasSeqFull conj then [] else rightMites >>= \m2 -> case cxt m2 of
-      Argument kind child -> withBase [m1,m2] [semV v "member2" child, mite $ SeqRight v kind conj]
-      Possessive caze agr child -> withBase [m1,m2] [semV v "member2" child, mite $ SeqRight v (PossKind caze agr) conj]
-      Complement child -> withBase [m1,m2] [semV v "member2" child, mite $ SeqRight v CP conj]
+    Conjunction sd@(SeqData { seqVar=v, seqReady=True, seqHasLeft=False, seqHasRight=False, seqConj=conj}) ->
+     if hasSeqFull conj then [] else rightMites >>= \m2 -> case cxt m2 of
+      Argument kind child -> withBase [m1,m2] [semV v "member2" child, conjWithRight sd kind]
+      Possessive caze agr child -> withBase [m1,m2] [semV v "member2" child, conjWithRight sd $ PossKind caze agr]
+      Complement child -> withBase [m1,m2] [semV v "member2" child, semS child "distinguished" "true", conjWithRight sd CP]
       Clause force child ->
         let unhappy = filter elideable $ filter (not . happy) rightMites
             wrapped = [(mite $ ElidedArgHead $ cxt m) {baseMites = [m,m1,m2]} | m <- unhappy]
@@ -26,7 +29,7 @@ seqRight leftMites rightMites = result where
             ellipsis = rightMites >>= \e -> case cxt e of
               Ellipsis child (Just _) (Just _) -> withBase [e] [mite $ cxt e] 
               _ -> []
-            result = withBase [m1, m2] [semV v "member2" child, mite $ SeqRight v (ClauseArg Declarative) conj] ++ ellipsis ++ wrapped
+            result = withBase [m1, m2] [semV v "member2" child, conjWithRight sd $ ClauseArg Declarative] ++ ellipsis ++ wrapped
         in
           result
       _ -> []
@@ -34,35 +37,43 @@ seqRight leftMites rightMites = result where
 
 isSeqContinuation conj1 conj2 = conj1 == ","
 
-seqLeft leftTree leftMites rightMites = concat [interactSeqLeft m1 m2 | m1 <- leftMites, m2 <- rightMites] where
-  contradictsSeq conj = flip any leftMites $ \mite -> case cxt mite of SeqFull _ c | not $ isSeqContinuation c conj -> True; _ -> False
-  interactSeqLeft m1 m2 = case (cxt m1, cxt m2) of
-    (Argument kind child, SeqRight v kind2 conj) | kind == kind2 ->
-      if contradictsSeq conj then [] else
-        withBase [m1,m2] [semV v "member1" child, mite $ SeqFull v conj, mite $ Argument kind v]
-    (Possessive caze1 agr1 child, SeqRight v (PossKind caze2 agr2) conj) | caze1 == caze2 && agree agr1 agr2 ->
-      if contradictsSeq conj then [] else  
-        withBase [m1,m2] [semV v "member1" child, mite $ SeqFull v conj, mite $ Possessive caze1 (commonAgr agr1 agr2) v]
-    (Complement child, SeqRight v CP conj) ->
-      if contradictsSeq conj then [] else  
-        withBase [m1,m2] [semV v "member1" child, mite $ SeqFull v conj, mite $ Complement v]
-    (Clause force child, SeqRight seqV (ClauseArg force2) conj) | force == force2 -> {-traceIt "clause left" $-}
-       if contradictsSeq conj then [] else
-       let unifications = concat [unifyMissingArgument mite1 mite2 | mite1 <- unhappyLeft ++ happyBases,
-                                                                     mite2 <- rightMites]
-           happyLeft = filter happy leftMites
-           happyBases = LS.removeDups $ concat $ map baseMites happyLeft
-           unhappyLeft = filter (not . happy) leftMites
-           unifyMissingArgument aux1 aux2 = case (cxt aux1, cxt aux2) of
-             (NomHead agr1 v1, ElidedArgHead (NomHead agr2 v2)) | agree agr1 agr2 -> withBase [aux1,aux2] [mite $ Unify v1 v2]
-             _ -> []
-           ellipsisVariants = rightMites >>= \m3 -> case cxt m3 of
-             Ellipsis ellipsisVar (Just e1) (Just e2) -> map (withBase [m3]) $ processEllipsis child ellipsisVar e1 e2 leftTree 
-             _ -> []
-           result = withBase [m1, m2] $
-             [semV seqV "member1" child, mite $ Clause force seqV, mite $ SeqFull seqV conj] ++ unifications ++ xor ellipsisVariants
-       in
-         result
+seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
+  contradictsSeq conj = flip any leftMites $ \mite -> case cxt mite of
+    Conjunction (SeqData { seqHasLeft=True, seqHasRight=True, seqConj=c}) | not $ isSeqContinuation c conj -> True
+    _ -> False
+  result = rightMites >>= \m2 -> case cxt m2 of
+    Conjunction sd@(SeqData { seqVar=seqV, seqReady=True, seqKind=maybeKind, seqHasLeft=False, seqConj=conj}) ->
+      if contradictsSeq conj then [] else let
+        kindMatches kind1 = case maybeKind of
+           Nothing -> True
+           Just kind2 -> kind2 == kind1
+        conjWithLeft kind = mite $ Conjunction $ sd {seqKind=Just kind, seqHasLeft=True}
+        in leftMites >>= \m1 -> case cxt m1 of
+          Argument kind child | kindMatches kind ->
+            withBase [m1,m2] [semV seqV "member1" child, conjWithLeft kind, mite $ Argument kind seqV]
+          Possessive caze1 agr1 child -> case maybeKind of
+            Just (PossKind caze2 agr2) | caze1 == caze2 && agree agr1 agr2 ->
+              withBase [m1,m2] [semV seqV "member1" child, conjWithLeft (PossKind caze1 (commonAgr agr1 agr2)), mite $ Possessive caze1 (commonAgr agr1 agr2) seqV]
+            _ -> []
+          Complement child | kindMatches CP ->
+            withBase [m1,m2] [semV seqV "member1" child, conjWithLeft CP, mite $ Complement seqV]
+          Clause force child | kindMatches (ClauseArg force) ->
+             let unifications = concat [unifyMissingArgument mite1 mite2 | mite1 <- unhappyLeft ++ happyBases,
+                                                                           mite2 <- rightMites]
+                 happyLeft = filter happy leftMites
+                 happyBases = LS.removeDups $ concat $ map baseMites happyLeft
+                 unhappyLeft = filter (not . happy) leftMites
+                 unifyMissingArgument aux1 aux2 = case (cxt aux1, cxt aux2) of
+                   (NomHead agr1 v1, ElidedArgHead (NomHead agr2 v2)) | agree agr1 agr2 -> withBase [aux1,aux2] [mite $ Unify v1 v2]
+                   _ -> []
+                 ellipsisVariants = rightMites >>= \m3 -> case cxt m3 of
+                   Ellipsis ellipsisVar (Just e1) (Just e2) -> map (withBase [m3]) $ processEllipsis child ellipsisVar e1 e2 leftTree
+                   _ -> []
+                 result = withBase [m1, m2] $
+                   [semV seqV "member1" child, mite $ Clause force seqV, conjWithLeft (ClauseArg force)] ++ unifications ++ xor ellipsisVariants
+             in
+               result
+          _ -> []
     _ -> []
 
 data AnchorMapping = AnchorMapping {-original-} Mite Variable {-anchor-} Construction Variable

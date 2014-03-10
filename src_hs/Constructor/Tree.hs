@@ -159,6 +159,7 @@ issues mites = let
   frameIssues frame = case getType frame of
     Just "seq" | Nothing == sValue "conj" frame -> ["comma-only seq"]
     Just "SIT" -> if Nothing == (fValue "arg1" frame >>= sDeclaredValue "type") then ["unknown sit subj "] else []
+    Just "ASK" -> if any (hasType "fact") (flatten $ fValue "topic" frame) then ["asking fact"] else []
     Just "COME_SCALARLY" -> case fValue "arg1" frame of
       Just subj ->
         if Nothing == sDeclaredValue "type" subj then ["unknown subj"] else

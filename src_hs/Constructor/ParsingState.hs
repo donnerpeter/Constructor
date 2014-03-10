@@ -12,17 +12,18 @@ import qualified Data.Map as Map
 import Constructor.Composition
 import Control.Exception (assert)
 
-createEdges:: Tree -> Tree -> [Tree]
-createEdges leftTree rightTree =
-  let leftMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ map (flip applyAV leftTree) $ avs leftTree
-      rightMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ map (flip applyAV rightTree) $ avs rightTree
-      infos = interactNodes leftTree leftMites rightMites
-      lh = xor [merged | (MergeInfo merged leftHeadedMerge) <- infos, leftHeadedMerge]
+createEdges leftTree rightTree infos = --trace infos $
+  let lh = xor [merged | (MergeInfo merged leftHeadedMerge) <- infos, leftHeadedMerge]
       rh = xor [merged | (MergeInfo merged leftHeadedMerge) <- infos, not leftHeadedMerge]
       lTree = if null lh then Nothing else createBranch lh leftTree rightTree LeftSide $ calcCandidateSets lh
       rTree = if null rh then Nothing else createBranch rh leftTree rightTree RightSide $ calcCandidateSets rh
       trees = catMaybes [lTree, rTree]
   in trees
+
+calcMergeInfos leftTree rightTree = infos where
+  leftMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ map (flip applyAV leftTree) $ avs leftTree
+  rightMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ map (flip applyAV rightTree) $ avs rightTree
+  infos = interactNodes leftTree leftMites rightMites
 
 data MergeResult = Single Tree | Couple Tree Tree deriving (Show)
 integrateSubTree :: Tree -> Side -> MergeResult -> [MergeResult]
@@ -33,21 +34,22 @@ integrateSubTree orphan side subResult = --trace ("---integrateSubTree", activeH
     Couple x1 x2 -> concat [select side (handlePair adoption x2 False False) (handlePair x1 adoption False False) |
                             adoption <- select side (mergeTwoTrees orphan x1 True False) (mergeTwoTrees x2 orphan False False)]
 
-mergeTwoTrees leftTree rightTree digLeft digRight = concat $ map toTrees $ optimize leftTree rightTree digLeft digRight True where
+mergeTwoTrees leftTree rightTree digLeft digRight = concat $ map toTrees $ optimize leftTree rightTree digLeft digRight Set.empty where
   toTrees result = case result of
     Single x -> [x]
     _ -> []
 
-optimize:: Tree -> Tree -> Bool -> Bool -> Bool -> [MergeResult]
-optimize leftTree rightTree digLeft digRight useOwnMites =
-  let ownResults = if useOwnMites && null (avUnhappyRight $ head $ avs leftTree) && null (avUnhappyLeft $ head $ avs rightTree)
-                   then [Single tree | tree <- createEdges leftTree rightTree]
-                   else []
+optimize:: Tree -> Tree -> Bool -> Bool -> Set.Set MergeInfo -> [MergeResult]
+optimize leftTree rightTree digLeft digRight processedInfos =
+  let ownResults = [Single tree | tree <- createEdges leftTree rightTree $ filter (not. flip Set.member processedInfos) infos]
+      infos = if null (avUnhappyRight $ head $ avs leftTree) && null (avUnhappyLeft $ head $ avs rightTree)
+              then calcMergeInfos leftTree rightTree
+              else []
       leftSubResults = if digLeft && isBranch leftTree
-                       then optimize (justRight leftTree) rightTree True False $ headSide leftTree == LeftSide
+                       then optimize (justRight leftTree) rightTree True False $ if headSide leftTree == LeftSide then Set.empty else Set.union processedInfos (Set.fromList infos)
                        else []
       rightSubResults = if digRight && isBranch rightTree
-                        then optimize leftTree (justLeft rightTree) False True $ headSide rightTree == RightSide
+                        then optimize leftTree (justLeft rightTree) False True $ if headSide rightTree == RightSide then Set.empty else Set.union processedInfos (Set.fromList infos)
                         else []
       dugLeft = concat $ map (integrateSubTree (justLeft leftTree) LeftSide) leftSubResults
       dugRight = concat $ map (integrateSubTree (justRight rightTree) RightSide) rightSubResults
@@ -63,7 +65,7 @@ mergeTrees state =
         state:restQueue ->
           allMergeVariants (restQueue++notConsideredMerges) $ LS.addAll (state:notConsideredMerges) result where
             immediateMerges = case state of
-              rightTree:leftTree:restTrees -> map toTrees $ optimize leftTree rightTree True False True where
+              rightTree:leftTree:restTrees -> map toTrees $ optimize leftTree rightTree True False Set.empty where
                 toTrees result = case result of
                   Single x -> x:restTrees
                   Couple x y -> y:x:restTrees

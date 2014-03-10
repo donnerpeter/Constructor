@@ -5,7 +5,7 @@ import Constructor.Tree
 import Constructor.Util
 import qualified Constructor.Seq as Seq
 
-data MergeInfo = MergeInfo {mergeResult::[Mite], leftHeadedMerge::Bool} deriving (Show)
+data MergeInfo = MergeInfo {mergeResult::[Mite], leftHeadedMerge::Bool} deriving (Show,Eq,Ord)
 
 interactNodes:: Tree -> [Mite] -> [Mite] -> [MergeInfo]
 interactNodes leftTree leftMites rightMites = if null whResults then noWh else whResults where
@@ -105,14 +105,15 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (TwoWordCxt s1 True wrapped _, TwoWordCxt s2 False _ _) | s1 == s2 -> left wrapped
       
       (Clause Declarative cp, Word _ ".") -> left [semS cp "dot" "true", mite $ Sentence cp]
-      (Conjunction v "," True, Conjunction _ "but" False) -> right [mite $ Conjunction v "but" True, semS v "conj" "but"]
+      (Conjunction (SeqData {seqVar=v1, seqConj=",", seqHasLeft=False, seqHasRight=False}), Conjunction sd@(SeqData {seqVar=v2, seqConj="but", seqReady=False})) ->
+          right [mite $ Conjunction $ sd {seqReady=True}, mite $ Unify v1 v2]
       (SurroundingComma False _, toWrap) | isCommaSurroundable toWrap -> left [mite $ CommaSurrounded True False toWrap]
       (toWrap, SurroundingComma True _) | isCommaSurroundable toWrap -> right [mite $ CommaSurrounded False True toWrap]
       (CommaSurrounded True False cxt, SurroundingComma True _) -> left [mite $ CommaSurrounded True True cxt]
       (Quote _ False, word@(Word {})) -> left [mite $ QuotedWord word False]
       (QuotedWord word False, Quote _ True) -> left [mite $ QuotedWord word True]
       (AdjHead noun _ _, QuotedWord (Word _ word) _) -> left [semS noun "name" word]
-      (Word _ "не", Complement cp) -> right [semS cp "negated" "true"]
+      (Word _ "не", Complement cp) -> right [semS cp "negated" "true", mite $ Complement cp]
       (Word _ "не", Verb v) -> right [semS v "negated" "true"]
       (Word _ "тоже", Verb v) -> right [semS v "also" "true"]
       (Complementizer cp1, Clause Declarative cp2) -> left [mite $ Unify cp1 cp2, mite $ Complement cp1]

@@ -37,6 +37,7 @@ perfectBackground typ v = [mite $ Verb (v ""), semT (v "") typ, mite $ VerbalMod
 adverb attr value = [mite $ Adverb attr value]
 genHead attr v = optional [mite $ GenHead (v "gen"), semV (v "") attr (v "gen")]
 directObject v = arg Acc "arg2" v
+conjunction v0 conj ready = [mite $ Conjunction $ SeqData v0 conj ready Nothing False False, semT v0 "seq"] ++ (if conj == "," then [] else [semS v0 "conj" conj])
 modifyV v c = \s -> v $ c:s 
 
 wordMites :: String -> Int -> [Mite]
@@ -47,7 +48,7 @@ wordMites word index =
   case word of
   s | isNumberString s -> xor [nounSg caze gender word v | caze <- [Nom, Gen, Acc], gender <- [Masc, Neu]] ++ [semS v0 "number" "true"]
   "6-ти" -> nounSg Gen Masc "6" v ++ [semS v0 "number" "true"]
-  "а" -> xor [[mite $ Conjunction v0 "but" False, semS v0 "conj" "but", semT v0 "seq"], [mite $ ConjEmphasis "andEmphasis" v0]]
+  "а" -> xor [conjunction v0 "but" False, [mite $ ConjEmphasis "andEmphasis" v0]]
   "было" -> [mite $ CopulaTense v0, semS v0 "time" "PAST"]
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
   "вдруг" -> adverb "manner" "SUDDENLY"
@@ -75,12 +76,12 @@ wordMites word index =
   "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ xor [compHead "arg2" v, 
       [mite $ ArgHead ScalarAdverb (v "scalar"), semV v0 "arg2" (v "arg2"), semT (v "arg2") "question", semV (v "arg2") "content" (v "comes"), semT (v "comes") "COME_SCALARLY", semV (v "comes") "arg1" (v "wh"), semT (v "wh") "wh", semV (v "comes") "order" (v "scalar")]
     ]
-  "и" -> [mite $ Conjunction v0 "and" True, semS v0 "conj" "and", semT v0 "seq"]
+  "и" -> conjunction v0 "and" True
   "идет" -> finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v, arg (PP "ranshe" Gen) "order" v]
   "идёт" -> finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v, arg (PP "ranshe" Gen) "order" v]
   "из" -> preposition "iz" Gen v
   "изо" -> preposition "iz" Gen v
-  "или" -> [mite $ Conjunction v0 "or" True, semS v0 "conj" "or", semT v0 "seq"]
+  "или" -> conjunction v0 "or" True
   "их" -> xor [pronoun Acc A.pl "THEY" v, [semT v0 "THEY", mite $ Possessive Nom A.sg v0], [semT v0 "THEY", mite $ Possessive Nom A.pl v0]] -- todo empty agr
   "к" -> preposition "k" Dat v
   "как" -> [mite $ TwoWordCxt "так как" False [] v0]
@@ -113,7 +114,7 @@ wordMites word index =
   "нашего" -> [semT v0 "WE", mite $ Possessive Gen A.m v0]
   "нашем" -> [semT v0 "WE", mite $ Possessive Prep A.n v0]
   "недоумении" -> nounSg Prep Neu "PREDICAMENT" v ++ genHead "arg1" v
-  "но" ->  xor [[mite $ Conjunction v0 "but" False, semS v0 "conj" "but", semT v0 "seq"], [mite $ ConjEmphasis "butEmphasis" v0]]
+  "но" ->  xor [conjunction v0 "but" False, [mite $ ConjEmphasis "butEmphasis" v0]]
   "носом" -> nounSg Instr Masc "NOSE" v
   "о" -> preposition "o" Prep v
   "обе" -> [mite $ Argument Acc (v ""), semT (v "q") "BOTH", semV v0 "quantifier" (v "q"), mite $ ArgHead Gen v0]
@@ -194,7 +195,7 @@ wordMites word index =
               [mite $ DirectSpeechDash v0],
               [mite $ Ellipsis v0 Nothing Nothing, semS v0 "ellipsis" "true"] ++ (xor [[mite $ Clause Declarative v0], [mite $ Clause Interrogative v0]])
              ]
-  "," -> xor [[mite $ SurroundingComma False v0], [mite $ SurroundingComma True v0], [mite $ Conjunction v0 "," True, semT v0 "seq"]]
+  "," -> xor [[mite $ SurroundingComma False v0], [mite $ SurroundingComma True v0], conjunction v0 "," True]
   "\"" -> xor [[mite $ Quote v0 True], [mite $ Quote v0 False]]
   _ ->
     if "ой" `isSuffixOf` word then 

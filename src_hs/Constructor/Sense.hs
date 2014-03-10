@@ -10,7 +10,8 @@ module Constructor.Sense
   makeSense)
   where
 
-import Constructor.Constructions (Construction(Sem, Unify), Mite(..))
+import Constructor.Constructions (Construction(Sem, Unify))
+import Constructor.Mite (Mite(..))
 import Constructor.Variable
 import Constructor.Util
 import Data.List (intercalate, findIndex, find)

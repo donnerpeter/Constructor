@@ -1,5 +1,6 @@
 module Constructor.Lexicon where
 import Constructor.Constructions
+import Constructor.Mite
 import Constructor.Variable
 import Constructor.Util
 import qualified Constructor.Agreement as A
@@ -175,7 +176,7 @@ wordMites word index =
   "счета" -> nounSg Gen Masc "COUNTING" v
   "счете" -> nounSg Prep Masc "COUNTING" v
   "считать" -> infinitive "COUNT" v ++ directObject v
-  "так" -> [mite $ TwoWordCxt "так как" True [mite $ ReasonComp v0 False] v0]
+  "так" -> [mite $ TwoWordCxt "так как" True [ReasonComp v0 False] v0]
   "там" -> adverb "location" "THERE"
   "том" -> adj Prep A.sg "determiner" "THAT" v
   "тут" -> adverb "emphasis" "true"

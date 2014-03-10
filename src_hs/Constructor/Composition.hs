@@ -1,5 +1,6 @@
 module Constructor.Composition (interactNodes, MergeInfo(..)) where
 import Constructor.Constructions
+import Constructor.Mite
 import Constructor.Agreement
 import Constructor.Tree
 import Constructor.Util
@@ -102,7 +103,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (ReasonComp v0 False, Clause Declarative cp) -> left [mite $ Unify v0 cp, mite $ ReasonComp v0 True]
       (Verb head, CommaSurrounded True _ (ReasonComp cp _)) -> left [semV head "reason" cp]
       
-      (TwoWordCxt s1 True wrapped _, TwoWordCxt s2 False _ _) | s1 == s2 -> left wrapped
+      (TwoWordCxt s1 True wrapped _, TwoWordCxt s2 False _ _) | s1 == s2 -> left $ map mite wrapped
       
       (Clause Declarative cp, Word _ ".") -> left [semS cp "dot" "true", mite $ Sentence cp]
       (Conjunction (SeqData {seqVar=v1, seqConj=",", seqHasLeft=False, seqHasRight=False}), Conjunction sd@(SeqData {seqVar=v2, seqConj="but", seqReady=False})) ->

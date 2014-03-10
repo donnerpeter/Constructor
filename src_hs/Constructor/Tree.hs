@@ -7,7 +7,7 @@ import Data.Function (on)
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Constructor.LinkedSet as LS
-import Constructor.Constructions
+import Constructor.Mite
 import Constructor.Sense
 import Constructor.Util
 

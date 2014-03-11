@@ -102,6 +102,7 @@ wordMites word index =
   "маленький" -> adj Acc A.m "size" "LITTLE" v
   "мнению" -> nounSg Dat Masc "OPINION" v ++ genHead "arg1" v ++ optional [mite $ PrepositionActivator "po" Dat [VerbalModifier "accordingTo" False v0]]
   "мной" -> pronoun Instr A.sg "ME" v
+  "может" -> finVerb "CAN" "PRESENT" A.sg3 v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
   "могут" -> finVerb "CAN" "PRESENT" A.pl3 v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
   "молоточек" -> nounSg Acc Masc "HAMMER" v
   "мое" -> [semT v0 "ME", mite $ Possessive Nom A.n v0]
@@ -119,9 +120,12 @@ wordMites word index =
   "носом" -> nounSg Instr Masc "NOSE" v
   "о" -> preposition "o" Prep v
   "обе" -> [mite $ Argument Acc (v ""), semT (v "q") "BOTH", semV v0 "quantifier" (v "q"), mite $ ArgHead Gen v0]
+  "обнаружил" -> finVerb "DISCOVER" "PAST" A.m v ++ compHead "theme" v
+  "обнаружила" -> finVerb "DISCOVER" "PAST" A.f v ++ compHead "theme" v
   "обнаружили" -> finVerb "DISCOVER" "PAST" A.pl v ++ compHead "theme" v
   "одних" -> nounPl Gen "SOME" v
   "он" -> pronoun Nom A.m3 "HE" v
+  "она" -> pronoun Nom A.f3 "SHE" v
   "они" -> pronoun Nom A.pl3 "THEY" v
   "опять" -> adverb "anchor" "AGAIN"
   "остановились" -> finVerb "STOP" "PAST" A.pl v

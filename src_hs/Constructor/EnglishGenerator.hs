@@ -81,6 +81,7 @@ np_internal nom mayHaveDeterminer frame = do
   frameGenerated frame
   unquantified <- if hasType "ME" frame then if nom then return "I" else return "me"
     else if hasType "HE" frame then if nom then return "he" else return "him"
+    else if hasType "SHE" frame then if nom then return "she" else return "her"
     else if hasType "THEY" frame then if nom then return "they" else return "them"
     else if hasType "WE" frame then if nom then return "we" else return "us"
     else if hasType "wh" frame then return $ if isJust $ usage "arg1" frame >>= usage "content" >>= usage "relative"  then "that" else "what"

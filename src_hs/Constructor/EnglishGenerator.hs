@@ -9,7 +9,7 @@ import qualified Data.Set as Set
 import Constructor.Variable
 
 data GenerationState = GenerationState { visitedFrames:: Set.Set Frame, past:: Bool}
-data VerbForm = BaseVerb | PastVerb | Gerund deriving (Eq)
+data VerbForm = BaseVerb | Sg3Verb | PastVerb | Gerund deriving (Eq)
 
 generate:: Sense -> String
 generate sense = 
@@ -253,7 +253,7 @@ verb verbForm frame typ =
   "COUNT" -> if verbForm == Gerund then "counting" else "count"
   "ARGUE" -> if verbForm == Gerund then "arguing" else if Just "true" == sValue "irrealis" frame then "were arguing" else "argue"
   "RECALL" -> "recall"
-  "REMEMBER" -> if verbForm == PastVerb then "remembered" else "remember"
+  "REMEMBER" -> if verbForm == PastVerb then "remembered" else if verbForm == Sg3Verb then "remembers" else "remember"
   "SMILE" -> "gave us a " ++ (if sValue "manner" frame == Just "SADLY" then "sad " else "") ++ "smile"
   "THANK" -> "thanked"
   "RUN_OUT" -> "ran"
@@ -277,7 +277,7 @@ clause fVerb = do
                         else if sValue "emphasis" fVerb == Just "true" then "there,"
                         else if sValue "relTime" fVerb == Just "AFTER" then "then"
                         else "")
-    let verbForm = if past state then PastVerb else BaseVerb
+    let verbForm = if past state then PastVerb else if Just True == fmap (hasAnyType ["HE", "SHE"]) fSubject then Sg3Verb else BaseVerb
         fSubject = fValue "arg1" fVerb
     subject <- case fSubject of
       Just f ->

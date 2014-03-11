@@ -104,10 +104,14 @@ sValue attr frame =
           if any (\cashier -> earlier cashier "type" frame "type") $ findFrames "CASHIER" $ sense frame then Just "true"
           else Just "false"
         else Just "true"
-      "type" ->
-        case (sValue "rusNumber" frame, sValue "rusPerson" frame) of
-          (Just "Pl", Just "3") -> Just "THEY"
-          _ -> usage "arg1" frame >>= commandingSubject >>= getType 
+      "type" -> case usage "arg1" frame >>= commandingSubject >>= getType of
+        Just commandingType -> Just commandingType
+        Nothing ->
+          case (sValue "rusNumber" frame, sValue "rusPerson" frame, sValue "rusGender" frame) of
+            (Just "Pl", Just "3", _) -> Just "THEY"
+            (Just "Sg", Just "3", Just "Fem") -> Just "SHE"
+            (Just "Sg", Just "3", _) -> Just "HE"
+            _ -> Nothing
       _ -> Nothing
 
 fDeclaredValue attr frame = singleValue attr frame >>= extractValueVar >>= \v -> Just $ Frame v (sense frame)

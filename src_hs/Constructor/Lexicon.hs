@@ -76,6 +76,7 @@ wordMites word index =
   "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) "topic" v)
   "ее" -> xor [pronoun Acc A.pl "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.sg v0], [semT v0 "SHE", mite $ Possessive Nom A.pl v0]] -- todo empty agr
   "забыл" -> finVerb "FORGET" "PAST" A.m v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
+  "забыла" -> finVerb "FORGET" "PAST" A.f v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
   "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
   "и" -> conjunction v0 "and" True
   "идет" -> finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v, arg (PP "ranshe" Gen) "order" v]
@@ -138,6 +139,7 @@ wordMites word index =
   "поводу" -> nounSg Dat Masc "MATTER" v
   "подвигав" -> perfectBackground "MOVE" v ++ arg Instr "arg2" v
   "показались" -> raisingVerb "SEEM" "PAST" A.pl v ++ arg Dat "experiencer" v
+  "помнит" -> finVerb "REMEMBER" "PRESENT" A.sg3 v ++ directObject v
   "помнят" -> finVerb "REMEMBER" "PRESENT" A.pl3 v ++ directObject v
   "порядок" -> nounSg Acc Masc "ORDER" v ++ genHead "arg1" v
   "после" -> semPreposition "posle" Gen "AFTER" "anchor" v

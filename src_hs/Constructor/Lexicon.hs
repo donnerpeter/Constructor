@@ -55,7 +55,7 @@ wordMites word index =
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
   "вдруг" -> adverb "manner" "SUDDENLY"
   "вдумываясь" -> perfectBackground "THINK" v ++ arg (PP "v" Acc) "theme" v
-  "восемь" -> nounSg Nom Masc "8" v
+  "восемь" -> xor [nounSg Nom Masc "8" v, nounSg Acc Masc "8" v]
   "восьми" -> nounSg Gen Masc "8" v
   "всякого" -> adj Gen A.m "determiner" "ANY" v
   "выбежали" -> finVerb "RUN_OUT" "PAST" A.pl v ++ arg (PP "iz" Gen) "source" v
@@ -157,7 +157,7 @@ wordMites word index =
   "свалился" -> finVerb "FALL" "PAST" A.m v ++ arg (PP "s" Gen) "source" v
   "себе" -> pronoun Dat (A.Agr Nothing A.Sg Nothing) "SELF" v ++ [mite $ ReflexiveReference (v "")] -- todo empty agr
   "семи" -> nounSg Gen Masc "7" v
-  "семь" -> nounSg Nom Masc "7" v
+  "семь" -> xor [nounSg Nom Masc "7" v, nounSg Acc Masc "7" v]
   "сидит" -> finVerb "SIT" "PRESENT" A.sg3 v
   "сидят" -> finVerb "SIT" "PRESENT" A.pl3 v
   "сказала" -> finVerb "SAY" "PAST" A.f v ++ [mite $ DirectSpeechHead v0 Nothing] -- todo ++ directObject v

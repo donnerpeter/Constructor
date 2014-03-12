@@ -93,7 +93,9 @@ np_internal nom mayHaveDeterminer frame = do
          Just "ORDER" -> case fValue "arg1" frame of
            Just poss -> handleSeq (np_internal True False) (Just poss) `catM` return nbar1
            _ -> return nbar1
-         _ -> return nbar1
+         _ -> case fValue "location" frame of
+           Just loc -> return nbar1 `catM` return "on" `catM` np False (Just loc)
+           _ -> return nbar1
       genitiveComplement <- case getType frame of
         Just "CORNER" -> case fValue "arg1" frame of
           Just gen -> return "of" `catM` np False (Just gen)

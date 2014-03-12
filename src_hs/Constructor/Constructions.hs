@@ -29,6 +29,7 @@ data Construction = Word Variable String
                   | ActivePreposition Variable
                   | Argument ArgKind Variable 
                   | Adverb String String
+                  | NounAdjunct Variable
                   | Elaboration Variable
                   | Unclosed Construction
                   | CompHead Variable
@@ -74,7 +75,7 @@ data Construction = Word Variable String
                   deriving (Show, Ord, Eq)
 
 isHappy cxt = case cxt of
-  Adj {} -> False; Adverb {} -> False
+  Adj {} -> False; Adverb {} -> False; NounAdjunct {} -> False
   ArgHead {} -> False; PrepHead {} -> False; Argument {} -> False; ElidedArgHead {} -> False
   CompHead {} -> False; ConditionCompHead {} -> False; ConditionComp {} -> False; ReasonComp {} -> False
   Elaboration {} -> False

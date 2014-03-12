@@ -6,7 +6,7 @@ import Constructor.Tree
 import Constructor.Util
 import qualified Constructor.Seq as Seq
 
-data MergeInfo = MergeInfo {mergeResult::[Mite], leftHeadedMerge::Bool} deriving (Show,Eq,Ord)
+data MergeInfo = MergeInfo {mergeResult::[Mite], mergedHeadSide::Side} deriving (Show,Eq,Ord)
 
 interactNodes:: Tree -> [Mite] -> [Mite] -> [MergeInfo]
 interactNodes leftTree leftMites rightMites = if null whResults then noWh else whResults where
@@ -14,10 +14,10 @@ interactNodes leftTree leftMites rightMites = if null whResults then noWh else w
   whResults = leftMites >>= \whMite -> case cxt whMite of
     Wh wh cp -> rightMites >>= \rightMite1 -> case cxt rightMite1 of
       Clause Interrogative cp2 ->
-        let fillers = filter (not . leftHeadedMerge) noWh
+        let fillers = filter (\info -> mergedHeadSide info == RightSide) noWh
             whLinks = withBase [whMite, rightMite1] $
               [mite $ Unify cp cp2, semV cp "questioned" wh] ++ xor [[mite $ Complement cp], [mite $ RelativeClause cp]]
-            infos = map (\ info -> MergeInfo (mergeResult info ++ whLinks) True) fillers
+            infos = map (\ info -> MergeInfo (mergeResult info ++ whLinks) LeftSide) fillers
             whIncompatible info = any (contradict whMite) (mergeResult info)
         in infos ++ filter whIncompatible noWh
       _ -> []
@@ -34,8 +34,8 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
   rightInteractive = filter isInteractive rightMites
   pairVariants = concat [interactPair m1 m2 | m1 <- leftInteractive, m2 <- rightInteractive]
   interactPair m1 m2 =
-    let left mites = [MergeInfo (withBase [m1, m2] mites) True]
-        right mites = [MergeInfo (withBase [m1, m2] mites) False]
+    let left mites = [MergeInfo (withBase [m1, m2] mites) LeftSide]
+        right mites = [MergeInfo (withBase [m1, m2] mites) RightSide]
     in case (cxt m1, cxt m2) of
       (Adj var2 adjCase agr1, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> 
         right [mite $ Unify var var2]
@@ -43,23 +43,24 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
         left [mite $ Unify var var2]
 
       (Possessive adjCase agr1 child, AdjHead noun nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> rightMites >>= \m3 -> case cxt m3 of
-        GenHead h -> [MergeInfo [(mite $ Unify h child) {baseMites=[m1,m2,m3]}] False]
+        GenHead h -> [MergeInfo [(mite $ Unify h child) {baseMites=[m1,m2,m3]}] RightSide]
         _ -> []
       (GenHead v1, Argument Gen v2) -> left [mite $ Unify v1 v2] 
 
       (Argument Nom v1, NomHead agr1 v2 False) -> leftMites >>= \m3 -> case cxt m3 of
         AdjHead v3 Nom agr2 | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) -> 
-          [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 True]) False]
+          [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 True]) RightSide]
         _ -> []
       (NomHead agr1 v2 False, Argument Nom v1) -> rightMites >>= \m3 -> case cxt m3 of
         AdjHead v3 Nom agr2 | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) -> 
-          [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 True]) True]
+          [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 True]) LeftSide]
         _ -> []
 
       (ConjEmphasis attr _, Verb head) -> right [semS head attr "true"]
 
       (Adverb attr val, Verb head) -> right [semS head attr val]
       (Verb head, Adverb attr val) -> left [semS head attr val]
+      (AdjHead head _ _, NounAdjunct var) -> left [mite $ Unify head var]
 
       (ArgHead kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left $ argVariants var1 var2 leftMites rightMites
       (Argument kind2 var2, ArgHead kind1 var1) | kind1 == kind2 -> right $ argVariants var1 var2 rightMites leftMites
@@ -74,7 +75,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
                 ActivePreposition {} -> withBase [m1,m2,m3,m4] $ map mite cxts
                 _ -> []
               _ -> []
-        in [MergeInfo (argMites ++ adjunctMites) True]      
+        in [MergeInfo (argMites ++ adjunctMites) LeftSide]
       (DirectSpeechHead head Nothing, Colon "directSpeech" v) -> left [mite $ DirectSpeechHead head $ Just v, semV head "message" v]
       --(DirectSpeechHead head (Just v), DirectSpeech v1) -> left [mite $ Unify v v1]
       (DirectSpeechDash v, Sentence cp) -> left [mite $ DirectSpeech cp, semS cp "directSpeech" "true"]
@@ -125,7 +126,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (leftCxt@(VerbalModifier _ False _), Ellipsis v Nothing rightCxt) -> right [mite $ Ellipsis v (Just leftCxt) rightCxt]
       (Ellipsis v leftCxt Nothing, rightCxt@(Argument _ _)) -> left [mite $ Ellipsis v leftCxt (Just rightCxt)]
       _ -> []
-  seqVariants = (if null seqRight then [] else [MergeInfo seqRight True]) ++ (if null seqLeft then [] else [MergeInfo seqLeft False])
+  seqVariants = (if null seqRight then [] else [MergeInfo seqRight LeftSide]) ++ (if null seqLeft then [] else [MergeInfo seqLeft RightSide])
   seqLeft = Seq.seqLeft leftTree leftMites rightMites
   seqRight = Seq.seqRight leftMites rightMites
 

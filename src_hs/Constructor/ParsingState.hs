@@ -13,8 +13,8 @@ import Constructor.Composition
 import Control.Exception (assert)
 
 createEdges leftTree rightTree infos = --trace infos $
-  let lh = xor [merged | (MergeInfo merged leftHeadedMerge) <- infos, leftHeadedMerge]
-      rh = xor [merged | (MergeInfo merged leftHeadedMerge) <- infos, not leftHeadedMerge]
+  let lh = xor [merged | (MergeInfo merged side) <- infos, side == LeftSide]
+      rh = xor [merged | (MergeInfo merged side) <- infos, side == RightSide]
       lTree = if null lh then Nothing else createBranch lh leftTree rightTree LeftSide $ calcCandidateSets lh
       rTree = if null rh then Nothing else createBranch rh leftTree rightTree RightSide $ calcCandidateSets rh
   in catMaybes [lTree, rTree]

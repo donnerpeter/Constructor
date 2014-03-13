@@ -12,26 +12,26 @@ data GenerationState = GenerationState { visitedFrames:: Set.Set Frame, past:: B
 data VerbForm = BaseVerb | Sg3Verb | PastVerb | Gerund deriving (Eq)
 
 generate:: Sense -> String
-generate sense = 
+generate sense =
   let topFrames = catMaybes $ map getTopFrame $ allFrames sense
       sentenceState = foldM generateSentence [] topFrames
       generateSentence :: String -> Frame -> State GenerationState String
       generateSentence output frame = do
         state <- get
-        if Set.member frame (visitedFrames state) then return output 
-        else do 
+        if Set.member frame (visitedFrames state) then return output
+        else do
           nextSentence <- sentence frame
           let start = if (sValue "directSpeech" frame) == Just "true" then "- " else ""
               separator = if null output then "" else if start == "- " then "\n" else " "
           return $ output ++ separator ++ start ++ capitalize nextSentence
-      text = evalState sentenceState $ GenerationState Set.empty False  
+      text = evalState sentenceState $ GenerationState Set.empty False
   in text
 
 capitalize (c:rest) = (toUpper c):rest
 
 isCP frame = hasAnyType ["fact", "question"] frame
 isCPOrSeq frame = any isCP $ flatten $ Just frame
-getTopFrame frame = if isCP frame then upmostSeq frame else Nothing where 
+getTopFrame frame = if isCP frame then upmostSeq frame else Nothing where
   upmostSeq frame =
     case usage "member1" frame of
       Just p -> upmostSeq p
@@ -110,14 +110,14 @@ np_internal nom mayHaveDeterminer frame = do
         _ -> return ""
       det <- if mayHaveDeterminer then determiner frame nbar else return ""
       return $ det `cat` nbar `cat` genitiveComplement
-  let postQuantifier = if (fValue "quantifier" frame >>= getType) == Just "ALL" || 
+  let postQuantifier = if (fValue "quantifier" frame >>= getType) == Just "ALL" ||
                           (usage "arg1" frame >>= getType) == Just "DISPERSE"
                        then "all" else ""
   let preQuantifier = if (fValue "quantifier" frame >>= getType) == Just "BOTH" then "both of" else ""
   relative <- fromMaybe (return "") $ liftM (catM $ return ", the one") $ fmap sentence $ fValue "relative" frame
   return $ preQuantifier `cat` unquantified `cat` postQuantifier `cat` relative
 
-adjectives nounFrame = catMaybes [property, kind, shopKind, size] where 
+adjectives nounFrame = catMaybes [property, kind, shopKind, size] where
   property = fValue "property" nounFrame >>= getType >>= \p -> if p == "AMAZING" then Just "amazing" else Nothing
   kind = fValue "kind" nounFrame >>= getType >>= \p -> if p == "COMMERCIAL" then Just "commercial" else Nothing
   shopKind = sValue "name" nounFrame >>= \p -> if p == "гастроном" then Just "grocery" else Nothing
@@ -195,7 +195,7 @@ noun (Just typ) frame = case typ of
   "OTHERS" -> "others"
   "CHILD" -> "child"
   "BENCH" -> "bench"
-  "JAW" -> "jaws"
+  "JAW" -> if isJust (fValue "quantifier" frame) then "jaws" else "jaw"
   "ARGUE" -> "argument"
   "THIS" -> "that"
   "GARDEN" -> if (fValue "name" frame >>= getType) == Just "летний" then "Summer Garden" else "garden"
@@ -216,7 +216,7 @@ cat t1 t2 = if "," `isPrefixOf` t2 || "." `isPrefixOf` t2 || ":" `isPrefixOf` t2
 catM :: State GenerationState String -> State GenerationState String -> State GenerationState String
 catM t1 t2 = do s1 <- t1; s2 <- t2; return $ s1 `cat` s2
 
-frameGenerated frame = do state <- get; put $ state { visitedFrames = Set.insert frame $ visitedFrames state } 
+frameGenerated frame = do state <- get; put $ state { visitedFrames = Set.insert frame $ visitedFrames state }
 
 sentence :: Frame -> State GenerationState String
 sentence frame = handleSeq singleSentence (Just frame) `catM` return finish where
@@ -279,7 +279,7 @@ clause fVerb = do
     state <- get
     let emphasis = cat (if sValue "butEmphasis" fVerb == Just "true" then "but"
                         else if sValue "andEmphasis" fVerb == Just "true" then "and"
-                        else "") 
+                        else "")
                        (if (fValue "optativeModality" fVerb >>= getType) == Just "LUCK" then "by some sheer luck,"
                         else if sValue "emphasis" fVerb == Just "true" then "there,"
                         else if sValue "relTime" fVerb == Just "AFTER" then "then"
@@ -288,8 +288,8 @@ clause fVerb = do
         fSubject = fValue "arg1" fVerb
     subject <- case fSubject of
       Just f ->
-        if [fVerb] `isPrefixOf` (usages "arg1" f) then np True fSubject 
-        else if (isJust $ fValue "perfectBackground" fVerb) then return "she"
+        if [fVerb] `isPrefixOf` (usages "arg1" f) then np True fSubject
+        else if (isJust $ fValue "perfectBackground" fVerb) then return $ if sValue "rusGender" f == Just "Masc" then "he" else "she"
         else return ""
       _ -> return ""
     opinion <- case fValue "accordingTo" fVerb of
@@ -310,8 +310,10 @@ clause fVerb = do
     background <- case fValue "perfectBackground" fVerb of
       Just back -> case getType back of
         -- todo vary perfectBackground constituents
-        Just "MOVE" -> let slightly = if Just "SLIGHTLY" == sValue "manner" back then "slightly" else "" in
-           return $ "moving her nose" `cat` slightly `cat` "back and forth,"
+        Just "MOVE" -> do
+          let slightly = if Just "SLIGHTLY" == sValue "manner" back then "slightly" else ""
+          moved <- np False (fValue "arg2" back)
+          return $ "moving" `cat` moved `cat` slightly `cat` "back and forth,"
         Just "THINK" -> return "thinking carefully about cashier's words,"
         Just "COME_TO" -> return "but reaching a six in count,"
         _ -> return ""

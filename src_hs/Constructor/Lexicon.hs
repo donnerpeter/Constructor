@@ -60,6 +60,7 @@ wordMites word index =
   "восьми" -> nounSg Gen Masc "8" v
   "всякого" -> adj Gen A.m "determiner" "ANY" v
   "выбежали" -> finVerb "RUN_OUT" "PAST" A.pl v ++ arg (PP "iz" Gen) "source" v
+  "вынул" -> finVerb "TAKE_OUT" "PAST" A.m v ++ arg (PP "iz" Gen) "source" v ++ directObject v
   "вынула" -> finVerb "TAKE_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) "source" v ++ directObject v
   "все" -> adj Nom A.pl "quantifier" "ALL" v
   "вспомнить" -> infinitive "RECALL" v ++ directObject v
@@ -92,6 +93,7 @@ wordMites word index =
     -- todo wh-questions with каково
     finiteClause A.n3 True v ++ [mite $ Copula v0, semT (v "wh") "wh", semT v0 "degree", semV v0 "arg2" (v "wh"), mite $ ShortAdj (v "wh")]
   "какой-то" -> adj Nom A.sg "determiner" "SOME" v
+  "кассир" -> nounSg Nom Masc "CASHIER" v
   "кассирша" -> nounSg Nom Fem "CASHIER" v
   "кассирши" -> nounSg Gen Fem "CASHIER" v
   "кассиршу" -> nounSg Acc Fem "CASHIER" v
@@ -161,6 +163,7 @@ wordMites word index =
   "семь" -> xor [nounSg Nom Masc "7" v, nounSg Acc Masc "7" v]
   "сидит" -> finVerb "SIT" "PRESENT" A.sg3 v
   "сидят" -> finVerb "SIT" "PRESENT" A.pl3 v
+  "сказал" -> finVerb "SAY" "PAST" A.m v ++ [mite $ DirectSpeechHead v0 Nothing] -- todo ++ directObject v
   "сказала" -> finVerb "SAY" "PAST" A.f v ++ [mite $ DirectSpeechHead v0 Nothing] -- todo ++ directObject v
   "сказали" -> finVerb "SAY" "PAST" A.pl v ++ optional [mite $ DirectSpeechHead v0 Nothing] ++ directObject v
   "скамейки" -> nounSg Gen Fem "BENCH" v
@@ -195,7 +198,8 @@ wordMites word index =
   "улицы" -> nounSg Gen Fem "STREET" v
   "улыбнулась" -> finVerb "SMILE" "PAST" A.f v
   "челюсти" -> nounSg Gen Fem "JAW" v
-  "что" -> xor [whWord v ++ xor [[mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.n3], [mite $ Argument Acc v0, mite $ AdjHead v0 Acc A.n3]], 
+  "челюстью" -> nounSg Instr Fem "JAW" v
+  "что" -> xor [whWord v ++ xor [[mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.n3], [mite $ Argument Acc v0, mite $ AdjHead v0 Acc A.n3]],
                 [mite $ Complementizer v0]]
   "это" -> xor [pronoun Nom (A.Agr (Just A.Neu) A.Sg $ Just 3) "THIS" v, pronoun Acc (A.Agr (Just A.Neu) A.Sg $ Just 3) "THIS" v]
   "этому" -> adj Dat A.sg "determiner" "THIS" v

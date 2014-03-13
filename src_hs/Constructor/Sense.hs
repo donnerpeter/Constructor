@@ -123,7 +123,10 @@ fValue attr frame =
     case attr of
       "arg1" ->
         if hasType "NEIGHBORS" frame then usage "goal" frame >>= fValue "arg1"
-        else if hasType "MOUTH" frame then usage "source" frame >>= fValue "arg1"
+        else if hasAnyType ["MOUTH", "NOSE", "JAW"] frame then
+          case usage "source" frame >>= fValue "arg1" of
+            Just x -> Just x
+            Nothing -> usage "arg2" frame >>= usage "perfectBackground" >>= fValue "arg1"
         else Nothing
       _ -> Nothing
 

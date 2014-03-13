@@ -268,6 +268,7 @@ verb verbForm frame typ =
   "GET_SAD" -> "got sad"
   "SAY" -> "said"
   "LACK" -> "were void of"
+  "MOVE" -> "moved"
   "copula" -> if Just "ME" == (fValue "arg1" frame >>= getType) then "am" else if sValue "time" frame == Just "PAST" then "was" else "is"
   _ -> typ
 
@@ -358,11 +359,13 @@ vp fVerb verbForm subject = do
         Just "SUDDENLY" -> "suddenly"
         Just "JUST" -> "just"
         Just "SADLY" -> if getType fVerb == Just "SMILE" then "" else "sadly"
+        Just "SLIGHTLY" -> if getType fVerb == Just "MOVE" then "" else "slightly"
         Just s -> s
         _ -> ""
       sVerb = if isVerbEllipsis fVerb then "did" else fromMaybe "???vp" $ fmap (verb verbForm fVerb) $ getType fVerb
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
+        Just "MOVE" -> (if Just "SLIGHTLY" == sValue "manner" fVerb then "slightly" else "") `cat` "back and forth"
         _ -> ""
       whWord = if Just True == (fmap isQuestioned $ fValue "arg2" fVerb) then "what" else ""
       negation = if sValue "negated" fVerb == Just "true" && isGerund fVerb then "not" else ""

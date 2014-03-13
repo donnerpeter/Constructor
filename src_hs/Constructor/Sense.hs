@@ -14,6 +14,7 @@ import Constructor.Constructions (Construction(Sem, Unify))
 import Constructor.Mite (Mite(..))
 import Constructor.Variable
 import Constructor.Util
+import Control.Monad
 import Data.List (intercalate, findIndex, find)
 import Data.Maybe
 import Debug.Trace
@@ -123,10 +124,8 @@ fValue attr frame =
     case attr of
       "arg1" ->
         if hasType "NEIGHBORS" frame then usage "goal" frame >>= fValue "arg1"
-        else if hasAnyType ["MOUTH", "NOSE", "JAW"] frame then
-          case usage "source" frame >>= fValue "arg1" of
-            Just x -> Just x
-            Nothing -> usage "arg2" frame >>= usage "perfectBackground" >>= fValue "arg1"
+        else if hasAnyType ["MOUTH", "NOSE", "JAW"] frame then msum
+          [usage "source" frame >>= fValue "arg1", usage "arg2" frame >>= fValue "arg1", usage "arg2" frame >>= usage "perfectBackground" >>= fValue "arg1"]
         else Nothing
       _ -> Nothing
 

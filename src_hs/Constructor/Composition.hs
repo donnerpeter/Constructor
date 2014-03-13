@@ -70,7 +70,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (PrepHead prep1 kind1 var1, Argument kind2 var2) | kind1 == kind2 ->
         let argMites = leftMites >>= \m3 -> case cxt m3 of
               Argument (PP prep3 kind3) var3 | prep3 == prep1 && kind1 == kind3  -> withBase [m1,m2,m3] [mite $ Unify var1 var2, mite $ Argument (PP prep3 kind3) var3]
-              PrepCopula var3 | var1 == var3  -> withBase [m1,m2,m3] [mite $ Unify var1 var2]
+              Copula var3 -> withBase [m1,m2,m3] [mite $ Unify var1 var2]
               _ -> []
             adjunctMites = rightMites >>= \m3 -> case cxt m3 of
               PrepositionActivator prep3 kind3 cxts | prep3 == prep1 && kind3 == kind1 -> leftMites >>= \m4 -> case cxt m4 of
@@ -97,6 +97,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (Word _ "очень", adverb@(Adverb attr val)) -> right [mite $ adverb]
       
       (Copula v0, CopulaTense v1) -> left [mite $ Unify v0 v1]
+      (CopulaTense v0, Copula v1) -> right [mite $ Unify v0 v1]
       (CopulaTense v1, ModalityInfinitive v2) -> right [mite $ Unify v1 v2]
       
       (ConditionComp v0 s False, Clause Declarative cp) -> left [mite $ Unify v0 cp, mite $ ConditionComp v0 s True]

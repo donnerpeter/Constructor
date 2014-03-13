@@ -265,7 +265,7 @@ verb verbForm frame typ =
   "GET_SAD" -> "got sad"
   "SAY" -> "said"
   "LACK" -> "were void of"
-  "copula" -> if Just "ME" == (fValue "arg1" frame >>= getType) then "am" else "is"
+  "copula" -> if Just "ME" == (fValue "arg1" frame >>= getType) then "am" else if sValue "time" frame == Just "PAST" then "was" else "is"
   _ -> typ
 
 clause :: Frame -> State GenerationState String

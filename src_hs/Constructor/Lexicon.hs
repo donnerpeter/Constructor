@@ -51,6 +51,7 @@ wordMites word index =
   s | isNumberString s -> xor [nounSg caze gender word v | caze <- [Nom, Gen, Acc], gender <- [Masc, Neu]] ++ [semS v0 "number" "true"]
   "6-ти" -> nounSg Gen Masc "6" v ++ [semS v0 "number" "true"]
   "а" -> xor [conjunction v0 "but" False, [mite $ ConjEmphasis "andEmphasis" v0]]
+  "был" -> [mite $ CopulaTense v0, semS v0 "time" "PAST"]
   "было" -> [mite $ CopulaTense v0, semS v0 "time" "PAST"]
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
   "вдруг" -> adverb "manner" "SUDDENLY"
@@ -98,7 +99,7 @@ wordMites word index =
   "коммерческий" -> adj Acc A.m "kind" "COMMERCIAL" v
   "летний" -> adj Acc A.m "name" "летний" v -- todo летний is not only a name
   "лишенными" -> [mite $ Raiseable A.pl v0, semT v0 "LACK"] ++ arg Gen "theme" v
-  "магазин" -> nounSg Acc Masc "SHOP" v -- todo который + agr
+  "магазин" -> xor [nounSg Nom Masc "SHOP" v, nounSg Acc Masc "SHOP" v] -- todo который + agr
   "магазина" -> nounSg Gen Masc "SHOP" v
   "маленький" -> adj Acc A.m "size" "LITTLE" v
   "мнению" -> nounSg Dat Masc "OPINION" v ++ genHead "arg1" v ++ optional [mite $ PrepositionActivator "po" Dat [VerbalModifier "accordingTo" False v0]]
@@ -110,7 +111,7 @@ wordMites word index =
   "мы" -> pronoun Nom A.pl1 "WE" v
   "на" ->
     -- todo copula for prepositions besides 'na' 
-    xor [preposition "na" Prep v, [mite $ PrepHead "na" Prep v0, mite $ PrepCopula v0, semT (v "x") "copula", semV (v "x") "location" v0] ++ finiteClause A.sg True (modifyV v 'x')]
+    xor [preposition "na" Prep v, [mite $ PrepHead "na" Prep v0, mite $ Copula (v "x"), semT (v "x") "copula", semV (v "x") "location" v0] ++ finiteClause A.sg True (modifyV v 'x')]
   "нам" -> pronoun Dat A.pl1 "WE" v
   "нас" -> pronoun Acc A.pl1 "WE" v
   "начали" -> finVerb "BEGIN" "PAST" A.pl v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]

@@ -224,8 +224,9 @@ sentence frame = handleSeq singleSentence (Just frame) `catM` return finish wher
     frameGenerated frame
     fromMaybe (return "???sentence") $ liftM clause $ fValue "content" frame
   finish = if sValue "dot" frame == Just "true" then "."
-           else if isJust (lastSentence >>= fValue "content" >>= fValue "message") then ":"
-           else ""
+           else case lastSentence >>= fValue "content" >>= fValue "message" of
+             Just message -> if isNothing (getType message) then ":" else ""
+             _ -> ""
   lastSentence = if hasType "seq" frame then fValue "member2" frame else Just frame
 
 genComplement cp = case fValue "content" cp of
@@ -307,6 +308,9 @@ clause fVerb = do
           Just "FORGET" -> fValue "arg2" fVerb
           Just "ASK" -> fValue "topic" fVerb
           Just "DISCOVER" -> fValue "theme" fVerb
+          Just "SAY" -> case fValue "message" fVerb of
+            Just comp | isJust (getType comp) -> Just comp
+            _ -> Nothing
           _ -> Nothing
     background <- case fValue "perfectBackground" fVerb of
       Just back -> case getType back of
@@ -326,7 +330,8 @@ clause fVerb = do
            do
              frameGenerated cp
              (return "about their opinion on") `catM` (np False $ fValue "topic" $ fromJust compVerb)
-        else return (if hasType "fact" $ head $ flatten fComp then "," else "") `catM` handleSeq genComplement fComp
+        else let comma = if not (hasType "SAY" fVerb) && hasType "fact" (head $ flatten fComp) then "," else ""
+             in return comma `catM` handleSeq genComplement fComp
     externalComp <- if getType fVerb == Just "GO" then 
       case usage "content" fVerb >>= usage "member1" >>= fValue "member2" of
        Just nextClause | (fValue "content" nextClause >>= getType) == Just "ASK" -> do

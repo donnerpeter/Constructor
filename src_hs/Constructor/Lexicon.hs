@@ -76,7 +76,8 @@ wordMites word index =
   "других" -> nounPl Gen "OTHERS" v
   "думает" -> finVerb "THINK" "PRESENT" A.sg3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) "topic" v)
   "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) "topic" v)
-  "ее" -> xor [pronoun Acc A.pl "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.sg v0], [semT v0 "SHE", mite $ Possessive Nom A.pl v0]] -- todo empty agr
+  "его" -> xor [pronoun Acc A.m "HE" v, [semT v0 "HE", mite $ Possessive Nom A.sg v0], [semT v0 "HE", mite $ Possessive Nom A.pl v0]] -- todo empty agr
+  "ее" -> xor [pronoun Acc A.f "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.sg v0], [semT v0 "SHE", mite $ Possessive Nom A.pl v0]] -- todo empty agr
   "если" -> [mite $ ConditionComp v0 "if" False]
   "забыл" -> finVerb "FORGET" "PAST" A.m v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
   "забыла" -> finVerb "FORGET" "PAST" A.f v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
@@ -165,9 +166,9 @@ wordMites word index =
   "семь" -> xor [nounSg Nom Masc "7" v, nounSg Acc Masc "7" v]
   "сидит" -> finVerb "SIT" "PRESENT" A.sg3 v
   "сидят" -> finVerb "SIT" "PRESENT" A.pl3 v
-  "сказал" -> finVerb "SAY" "PAST" A.m v ++ [mite $ DirectSpeechHead v0 Nothing] -- todo ++ directObject v
-  "сказала" -> finVerb "SAY" "PAST" A.f v ++ [mite $ DirectSpeechHead v0 Nothing] -- todo ++ directObject v
-  "сказали" -> finVerb "SAY" "PAST" A.pl v ++ optional [mite $ DirectSpeechHead v0 Nothing] ++ directObject v
+  "сказал" -> finVerb "SAY" "PAST" A.m v ++ xor [[mite $ DirectSpeechHead v0 Nothing], directObject v, compHead "message" v]
+  "сказала" -> finVerb "SAY" "PAST" A.f v ++ xor [[mite $ DirectSpeechHead v0 Nothing], directObject v, compHead "message" v]
+  "сказали" -> finVerb "SAY" "PAST" A.pl v ++ xor [[mite $ DirectSpeechHead v0 Nothing], directObject v, compHead "message" v]
   "скамейки" -> nounSg Gen Fem "BENCH" v
   "слегка" -> adverb "manner" "SLIGHTLY"
   "следовало" -> finVerb "COME_SCALARLY" "PAST" A.n3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v]

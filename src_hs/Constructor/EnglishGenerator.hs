@@ -336,11 +336,13 @@ clause fVerb = do
       else return ""
     condComp <- case fValue "whenCondition" fVerb of
       Just fComp -> return ", when" `catM` sentence fComp
-      _ -> case fValue "condition" fVerb of
-        Just caze | hasType "CASE" caze -> case fValue "whenCondition" caze of
-          Just fComp -> do comp <- sentence fComp; return $ ", only if" `cat` comp
+      _ -> case fValue "ifCondition" fVerb of
+        Just fComp -> return ", if" `catM` sentence fComp
+        _ -> case fValue "condition" fVerb of
+          Just caze | hasType "CASE" caze -> case msum [fValue "whenCondition" caze, fValue "ifCondition" caze] of
+            Just fComp -> do comp <- sentence fComp; return $ ", only if" `cat` comp
+            _ -> return ""
           _ -> return ""
-        _ -> return ""  
     reasonComp <- case fValue "reason" fVerb of
       Just fComp -> if (fValue "content" fComp >>= getType) == Just "SEEM" && isJust (fValue "content" fComp >>= fValue "theme")
         then do frameGenerated fComp; return "because" `catM` clause (fromJust $ fValue "content" fComp >>= fValue "theme")

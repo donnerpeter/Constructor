@@ -5,7 +5,7 @@ import Constructor.Variable
 import Data.Maybe
 
 data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | 
-               ClauseArg ClauseForce | CP | PossKind ArgKind Agr | ScalarAdverb
+               ClauseArg ClauseForce | CP | AdjKind ArgKind Agr | ScalarAdverb
                deriving (Show, Eq, Ord)
 data ClauseForce = Declarative | Interrogative deriving (Show, Eq, Ord)
 data SeqData = SeqData { seqVar :: Variable, seqConj :: String, seqReady :: Bool,
@@ -19,6 +19,7 @@ data Construction = Word Variable String
                   | Sem Variable String SemValue
                   | Unify Variable Variable
                   | Adj Variable ArgKind Agr
+                  | CompositeAdj Variable ArgKind Agr
                   | AdjHead Variable ArgKind Agr
                   | Verb Variable
                   | NomHead Agr Variable {-satisfied-} Bool

@@ -190,6 +190,7 @@ wordMites word index =
   "удивительный" -> adj Nom A.m "property" "AMAZING" v
   "углу" -> nounSg Prep Masc "CORNER" v ++ genHead "arg1" v ++ optional [mite $ PrepositionActivator "na" Prep [NounAdjunct (v "noun"), cxt $ semV (v "noun") "location" v0]]
   "удивление" -> nounSg Nom Neu "AMAZE" v ++ genHead "arg1" v
+  "улиц" -> nounPl Gen "STREETS" v
   "улицы" -> nounSg Gen Fem "STREET" v
   "улыбнулась" -> finVerb "SMILE" "PAST" A.f v
   "челюсти" -> nounSg Gen Fem "JAW" v

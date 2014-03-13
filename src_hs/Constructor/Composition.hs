@@ -39,8 +39,10 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
     in case (cxt m1, cxt m2) of
       (Adj var2 adjCase agr1, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> 
         right [mite $ Unify var var2]
-      (AdjHead var nounCase agr2, Adj var2 adjCase agr1) | adjCase == nounCase && agree agr1 agr2 -> 
+      (AdjHead var nounCase agr2, Adj var2 adjCase agr1) | adjCase == nounCase && agree agr1 agr2 ->
         left [mite $ Unify var var2]
+      (CompositeAdj var2 adjCase agr1, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 ->
+        right [semV var "components" var2]
 
       (Possessive adjCase agr1 child, AdjHead noun nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> rightMites >>= \m3 -> case cxt m3 of
         GenHead h -> [MergeInfo [(mite $ Unify h child) {baseMites=[m1,m2,m3]}] RightSide]

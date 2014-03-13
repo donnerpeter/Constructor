@@ -23,7 +23,8 @@ seqRight leftMites rightMites = {-traceIt "seqRight" $ -}result where
     Conjunction sd@(SeqData { seqVar=v, seqReady=True, seqHasLeft=False, seqHasRight=False, seqConj=conj}) ->
      if hasSeqFull conj || hasConjEmphasis then [] else rightMites >>= \m2 -> case cxt m2 of
       Argument kind child -> withBase [m1,m2] [semV v "member2" child, conjWithRight sd kind]
-      Possessive caze agr child -> withBase [m1,m2] [semV v "member2" child, conjWithRight sd $ PossKind caze agr]
+      Adj child caze agr -> withBase [m1,m2] [semV v "member2" child, conjWithRight sd $ AdjKind caze agr]
+      Possessive caze agr child -> withBase [m1,m2] [semV v "member2" child, conjWithRight sd $ AdjKind caze agr]
       Complement child -> withBase [m1,m2] [semV v "member2" child, semS child "distinguished" "true", conjWithRight sd CP]
       Clause force child ->
         let unhappy = filter elideable $ filter (not . happy) rightMites
@@ -57,8 +58,16 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
           Argument kind child | kindMatches kind ->
             withBase [m1,m2] [semV seqV "member1" child, conjWithLeft kind, mite $ Argument kind seqV]
           Possessive caze1 agr1 child -> case maybeKind of
-            Just (PossKind caze2 agr2) | caze1 == caze2 && agree agr1 agr2 ->
-              withBase [m1,m2] [semV seqV "member1" child, conjWithLeft (PossKind caze1 (commonAgr agr1 agr2)), mite $ Possessive caze1 (commonAgr agr1 agr2) seqV]
+            Just (AdjKind caze2 agr2) | caze1 == caze2 && agree agr1 agr2 ->
+              withBase [m1,m2] [semV seqV "member1" child, conjWithLeft (AdjKind caze1 (commonAgr agr1 agr2)), mite $ Possessive caze1 (commonAgr agr1 agr2) seqV]
+            _ -> []
+          Adj child caze1 agr1 -> case maybeKind of
+            Just (AdjKind caze2 agr2) | caze1 == caze2 && adjAgree agr1 agr2 -> let newAgr = commonAdjAgr agr1 agr2 in
+              withBase [m1,m2] [semV seqV "member1" child, conjWithLeft (AdjKind caze1 newAgr), mite $ CompositeAdj seqV caze1 newAgr]
+            _ -> []
+          CompositeAdj child caze1 agr1 -> case maybeKind of
+            Just (AdjKind caze2 agr2) | caze1 == caze2 && adjAgree agr1 agr2 -> let newAgr = commonAdjAgr agr1 agr2 in
+              withBase [m1,m2] [semV seqV "member1" child, conjWithLeft (AdjKind caze1 newAgr), mite $ CompositeAdj seqV caze1 newAgr]
             _ -> []
           Complement child | kindMatches CP ->
             withBase [m1,m2] [semV seqV "member1" child, conjWithLeft CP, mite $ Complement seqV]

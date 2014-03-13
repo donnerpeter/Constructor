@@ -68,9 +68,10 @@ handleSeq f (Just frame) =
   else f frame
 
 np nom frame =
-  if isSeq && (frame >>= fValue "member2" >>= getType) == Just "STREET"
-  then
+  if isSeq && (frame >>= fValue "member2" >>= getType) == Just "STREET" then
     handleSeq (return . streetName) frame `catM` return "streets"
+  else if Just True == fmap (hasType "STREETS") frame then
+    handleSeq (return . streetName) (frame >>= fValue "components") `catM` return "streets"
   else handleSeq (np_internal nom (if isNumber frame then isSubj || isAnchor else True)) frame where
   isSeq = (frame >>= getType) == Just "seq"
   isSubj = isJust (frame >>= usage "arg1")
@@ -122,6 +123,7 @@ adjectives nounFrame = catMaybes [property, kind, shopKind, size] where
 streetName frame = case sValue "name" frame of
  Just "знаменская" -> "Znamenskaya"
  Just "бассейная" -> "Basseinaya"
+ Just "театральная" -> "Teatralnaya"
  Just s -> s
  _ -> ""
 

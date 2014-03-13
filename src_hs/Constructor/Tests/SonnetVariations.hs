@@ -167,6 +167,9 @@ var5 = TestLabel "sonnetVariations 5" $ TestList [
   translateTest "Мы все пошли в коммерческий магазин \"Гастроном\", что на углу Знаменской и Бассейной улиц, и спросили кассиршу о нашем недоумении"
                 "We all went to a commercial grocery store, the one that's on the corner of Znamenskaya and Basseinaya streets to consult a cashier on our predicament"
   ,
+  translateTest "Мы все пошли в коммерческий магазин \"Гастроном\", что на углу Театральной, Знаменской и Бассейной улиц, и спросили кассиршу о нашем недоумении"
+                "We all went to a commercial grocery store, the one that's on the corner of Teatralnaya, Znamenskaya and Basseinaya streets to consult a cashier on our predicament"
+  ,
   -- 5_Shorter
   translateTest "Мы пошли в магазин \"Гастроном\", что на углу, и спросили кассиршу о нашем недоумении"
                 "We went to a grocery store, the one that's on the corner to consult a cashier on our predicament"

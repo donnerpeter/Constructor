@@ -35,7 +35,7 @@ seqRight leftMites rightMites = {-traceIt "seqRight" $ -}result where
             ellipsis = rightMites >>= \e -> case cxt e of
               Ellipsis child (Just _) (Just _) -> withBase [e] [mite $ cxt e] 
               _ -> []
-            result = withBase [m1, m2] [semV v "member2" child, conjWithRight sd $ ClauseArg Declarative] ++ ellipsis ++ wrapped
+            result = withBase [m1, m2] [semV v "member2" child, conjWithRight sd $ ClauseArg force] ++ ellipsis ++ wrapped
         in
           result
       _ -> []
@@ -72,13 +72,14 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
           Complement child | kindMatches CP ->
             withBase [m1,m2] [semV seqV "member1" child, conjWithLeft CP, mite $ Complement seqV]
           Clause force child | kindMatches (ClauseArg force) ->
-             let unifications = concat [unifyMissingArgument mite1 mite2 | mite1 <- leftMites, mite2 <- rightMites]
+             let unifications = concat [unifyMissingArgument mite1 mite2 | mite1 <- filter (not . contradict m1) leftMites,
+                                                                           mite2 <- filter (not . contradict m2) rightMites]
                  unifyMissingArgument aux1 aux2 = case (cxt aux1, cxt aux2) of
                    (NomHead agr1 v1 satisfied, ElidedArgHead (NomHead agr2 v2 False)) | agree agr1 agr2 ->
                        withBase [aux1,aux2] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v1 satisfied]
                    _ -> []
                  ellipsisVariants = rightMites >>= \m3 -> case cxt m3 of
-                   Ellipsis ellipsisVar (Just e1) (Just e2) -> map (withBase [m3]) $ processEllipsis child ellipsisVar e1 e2 leftTree
+                   Ellipsis ellipsisVar (Just e1) (Just e2) | not $ contradict m3 m2 -> map (withBase [m3]) $ processEllipsis child ellipsisVar e1 e2 leftTree
                    _ -> []
                  result = withBase [m1, m2] $
                    [semV seqV "member1" child, mite $ Clause force seqV, conjWithLeft (ClauseArg force)] ++ unifications ++ xor ellipsisVariants

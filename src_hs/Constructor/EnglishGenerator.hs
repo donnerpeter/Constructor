@@ -58,7 +58,10 @@ handleSeq f (Just frame) =
                                   isNothing (firstContent >>= sValue "negated")
                             then "and"
                           else ", but"
-                        else if conj == "and" && Just True == fmap isCP second && Just True == fmap (hasType "seq") first then ", and"
+                        else if conj == "and" then
+                          if Just True == fmap isCP second && Just True == fmap (hasType "seq") first then ", and"
+                          else if isJust (secondContent >>= fValue "perfectBackground") then ", and"
+                          else "and"
                         else if conj == "" then
                           if isJust (secondContent >>= fValue "accordingTo") then "; but"
                           else if isJust (secondContent >>= sValue "andEmphasis") then ""
@@ -307,7 +310,8 @@ clause fVerb = do
     background <- case fValue "perfectBackground" fVerb of
       Just back -> case getType back of
         -- todo vary perfectBackground constituents
-        Just "MOVE" -> return "moving her nose slightly back and forth,"
+        Just "MOVE" -> let slightly = if Just "SLIGHTLY" == sValue "manner" back then "slightly" else "" in
+           return $ "moving her nose" `cat` slightly `cat` "back and forth,"
         Just "THINK" -> return "thinking carefully about cashier's words,"
         Just "COME_TO" -> return "but reaching a six in count,"
         _ -> return ""

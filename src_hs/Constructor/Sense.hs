@@ -103,7 +103,7 @@ sValue attr frame =
            _ -> Just "true"
         else if hasType "SHOP" frame then
           if any (\cashier -> earlier cashier "type" frame "type") $ findFrames "CASHIER" $ sense frame then Just "true"
-          else if isJust $ usage "arg1" frame then Just "true"
+          else if isJust $ msum [usage "arg1" frame, usage "source" frame] then Just "true"
           else Just "false"
         else Just "true"
       "type" -> case usage "arg1" frame >>= commandingSubject >>= getType of

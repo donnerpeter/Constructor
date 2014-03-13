@@ -7,6 +7,7 @@ import Data.Char (toUpper)
 import Data.Maybe
 import qualified Data.Set as Set
 import Constructor.Variable
+import Data.Function (on)
 
 data GenerationState = GenerationState { visitedFrames:: Set.Set Frame, past:: Bool}
 data VerbForm = BaseVerb | Sg3Verb | PastVerb | Gerund deriving (Eq)
@@ -121,7 +122,7 @@ adjectives nounFrame = catMaybes [property, kind, shopKind, size] where
   property = fValue "property" nounFrame >>= getType >>= \p -> if p == "AMAZING" then Just "amazing" else Nothing
   kind = fValue "kind" nounFrame >>= getType >>= \p -> if p == "COMMERCIAL" then Just "commercial" else Nothing
   shopKind = sValue "name" nounFrame >>= \p -> if p == "гастроном" then Just "grocery" else Nothing
-  size = fValue "size" nounFrame >>= getType >>= \p -> if p == "LITTLE" then Just "small" else Nothing
+  size = fValue "size" nounFrame >>= getType >>= \p -> if p == "LITTLE" then Just "small" else if p == "BIG" then Just "great" else Nothing
 
 streetName frame = case sValue "name" frame of
  Just "знаменская" -> "Znamenskaya"
@@ -160,7 +161,7 @@ determiner frame nbar =
       if sDet == Just "THIS" then "this"
       else if sDet == Just "ANY" then "any"
       else if hasType "STREET" frame then streetName frame
-      else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT"] frame then ""
+      else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING"] frame then ""
       else if hasType "OPINION" frame && Just True == fmap isVerbEllipsis (usage "accordingTo" frame) then ""
       else if sValue "given" frame == Just "true" then "the"
       else if "a" `isPrefixOf` nbar || "e" `isPrefixOf` nbar || "8" `isPrefixOf` nbar then "an"
@@ -183,6 +184,8 @@ noun (Just typ) frame = case typ of
   "CASHIER" -> "cashier"
   "WORDS" -> "words"
   "PREDICAMENT" -> "predicament"
+  "JOY" -> "joy"
+  "RELIEF" -> "relief"
   "SHOP" -> "store"
   "CORNER" -> "corner"
   "STREET" -> "street"
@@ -391,7 +394,7 @@ vp fVerb verbForm subject = do
       Just slave -> vp slave Gerund ""
       _ -> return ""
     _ -> return ""
-  args <- foldM (\s arg -> return s `catM` generateArg arg) "" (arguments fVerb)
+  args <- foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) (arguments fVerb)
   let contracted = if null preAdverb && null negation && null aux then
                      if sVerb == "am" then subject ++ "'m"
                      else if sVerb == "is" then subject ++ "'s"
@@ -399,7 +402,7 @@ vp fVerb verbForm subject = do
                    else subject `cat` aux `cat` negation `cat` preAdverb `cat` sVerb
   return $ whWord `cat` contracted `cat` controlled `cat` args `cat` finalAdverb
 
-data Argument = Adverb String | NPArg Frame | PPArg String Frame
+data Argument = Adverb String | NPArg Frame | PPArg String Frame | PPAdjunct String Frame
 
 arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ ->
   allFrameFacts fVerb >>= \ Fact { attrName = attr, value = semValue} ->
@@ -425,8 +428,8 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       ("DISPERSE", "goal") -> if hasType "HOMES" value then [Adverb "home"] else [PPArg "to" value]
       (_, "goal") -> [PPArg "to" value]
       (_, "mood") -> case getType value of
-        Just "JOY" -> [Adverb "cheerfully"]
-        Just s -> [Adverb s]
+        Just "JOY" | isNothing (fValue "size" value)-> [Adverb "cheerfully"]
+        Just _ -> [PPAdjunct "with" value]
         _ -> []
       (_, "location") -> [PPArg "on" value]
       (_, "arg2") -> if isCPOrSeq value || isQuestioned value then [] else [NPArg value]
@@ -446,3 +449,8 @@ generateArg arg = case arg of
   Adverb s -> return s
   NPArg f -> np False $ Just f
   PPArg prep f -> return prep `catM` (np False $ Just f)
+  PPAdjunct prep f -> return prep `catM` (np False $ Just f)
+
+argOrder arg = case arg of
+  PPAdjunct {} -> 1
+  _ -> 0

@@ -51,6 +51,8 @@ wordMites word index =
   s | isNumberString s -> xor [nounSg caze gender word v | caze <- [Nom, Gen, Acc], gender <- [Masc, Neu]] ++ [semS v0 "number" "true"]
   "6-ти" -> nounSg Gen Masc "6" v ++ [semS v0 "number" "true"]
   "а" -> xor [conjunction v0 "but" False, [mite $ ConjEmphasis "andEmphasis" v0]]
+  "большим" -> adj Instr A.m "size" "BIG" v
+  "большой" -> adj Instr A.f "size" "BIG" v
   "был" -> [mite $ CopulaTense v0, semS v0 "time" "PAST"]
   "было" -> [mite $ CopulaTense v0, semS v0 "time" "PAST"]
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
@@ -78,6 +80,7 @@ wordMites word index =
   "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) "topic" v)
   "его" -> xor [pronoun Acc A.m "HE" v, [semT v0 "HE", mite $ Possessive Nom A.sg v0], [semT v0 "HE", mite $ Possessive Nom A.pl v0]] -- todo empty agr
   "ее" -> xor [pronoun Acc A.f "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.sg v0], [semT v0 "SHE", mite $ Possessive Nom A.pl v0]] -- todo empty agr
+  "её" -> xor [pronoun Acc A.f "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.sg v0], [semT v0 "SHE", mite $ Possessive Nom A.pl v0]] -- todo empty agr
   "если" -> [mite $ ConditionComp v0 "if" False]
   "забыл" -> finVerb "FORGET" "PAST" A.m v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
   "забыла" -> finVerb "FORGET" "PAST" A.f v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
@@ -126,6 +129,7 @@ wordMites word index =
   "носом" -> nounSg Instr Masc "NOSE" v
   "о" -> preposition "o" Prep v
   "обе" -> [mite $ Argument Acc (v ""), semT (v "q") "BOTH", semV v0 "quantifier" (v "q"), mite $ ArgHead Gen v0]
+  "облегчением" -> nounSg Instr Neu "RELIEF" v ++ optional [mite $ PrepositionActivator "s" Instr [VerbalModifier "mood" False v0]]
   "обнаружил" -> finVerb "DISCOVER" "PAST" A.m v ++ compHead "theme" v
   "обнаружила" -> finVerb "DISCOVER" "PAST" A.f v ++ compHead "theme" v
   "обнаружили" -> finVerb "DISCOVER" "PAST" A.pl v ++ compHead "theme" v

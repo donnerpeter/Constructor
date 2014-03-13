@@ -314,9 +314,9 @@ clause fVerb = do
         Just "MOVE" -> do
           let slightly = if Just "SLIGHTLY" == sValue "manner" back then "slightly" else ""
           moved <- np False (fValue "arg2" back)
-          return $ "moving" `cat` moved `cat` slightly `cat` "back and forth,"
-        Just "THINK" -> return "thinking carefully about cashier's words,"
-        Just "COME_TO" -> return "but reaching a six in count,"
+          return $ "moving" `cat` moved `cat` slightly `cat` "back and forth"
+        Just "THINK" -> return "thinking carefully about cashier's words"
+        Just "COME_TO" -> return "but reaching a six in count"
         _ -> return ""
       _ -> return ""
     comp <- case fComp of
@@ -351,7 +351,11 @@ clause fVerb = do
     questionVariants <- case fmap (\subj -> (getType subj, fValue "variants" subj)) fSubject of
       Just (Just "wh", Just variants) -> (return "-") `catM` (np True (Just variants))
       _ -> return ""
-    return $ emphasis `cat` opinion `cat` background `cat` core `cat` condComp `cat` reasonComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
+    let coreWithBackground =
+          if null background then core
+          else if earlier fVerb "type" fVerb "perfectBackground" then core `cat` "," `cat` background
+          else background `cat` "," `cat` core
+    return $ emphasis `cat` opinion `cat` coreWithBackground `cat` condComp `cat` reasonComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
 
 isQuestioned frame = hasType "wh" frame
 

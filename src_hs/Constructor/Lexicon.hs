@@ -52,7 +52,7 @@ wordMites word index =
   "6-ти" -> nounSg Gen Masc "6" v ++ [semS v0 "number" "true"]
   "а" -> xor [conjunction v0 "but" False, [mite $ ConjEmphasis "andEmphasis" v0]]
   "большим" -> adj Instr A.m "size" "BIG" v
-  "большой" -> adj Instr A.f "size" "BIG" v
+  "большой" -> xor[adj Instr A.f "size" "BIG" v, adj Nom A.m "size" "BIG" v, adj Acc A.m "size" "BIG" v]
   "был" -> [mite $ CopulaTense v0, semS v0 "time" "PAST"]
   "было" -> [mite $ CopulaTense v0, semS v0 "time" "PAST"]
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]

@@ -122,7 +122,11 @@ adjectives nounFrame = catMaybes [property, kind, shopKind, size] where
   property = fValue "property" nounFrame >>= getType >>= \p -> if p == "AMAZING" then Just "amazing" else Nothing
   kind = fValue "kind" nounFrame >>= getType >>= \p -> if p == "COMMERCIAL" then Just "commercial" else Nothing
   shopKind = sValue "name" nounFrame >>= \p -> if p == "гастроном" then Just "grocery" else Nothing
-  size = fValue "size" nounFrame >>= getType >>= \p -> if p == "LITTLE" then Just "small" else if p == "BIG" then Just "great" else Nothing
+  size = fValue "size" nounFrame >>= getType >>= \p ->
+    if p == "LITTLE" then Just "small"
+    else if p == "BIG" then
+      if hasType "GARDEN" nounFrame then Just "big" else Just "great"
+    else Nothing
 
 streetName frame = case sValue "name" frame of
  Just "знаменская" -> "Znamenskaya"

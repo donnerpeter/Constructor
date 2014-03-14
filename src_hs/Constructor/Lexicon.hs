@@ -71,6 +71,7 @@ wordMites word index =
   "делал" -> finVerb "DO" "PAST" A.m v ++ directObject v
   "делали" -> finVerb "DO" "PAST" A.pl v ++ directObject v
   "делать" -> infinitive "DO" v ++ directObject v
+  "деньги" -> nounPl Acc "MONEY" v
   "деревья" -> nounPl Acc "TREES" v
   "до" -> preposition "do" Gen v
   "дойдя" -> perfectBackground "COME_TO" v ++ arg (PP "v" Prep) "domain" v ++ arg (PP "do" Gen) "goal" v

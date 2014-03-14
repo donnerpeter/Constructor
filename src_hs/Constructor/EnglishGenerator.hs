@@ -165,7 +165,7 @@ determiner frame nbar =
       if sDet == Just "THIS" then "this"
       else if sDet == Just "ANY" then "any"
       else if hasType "STREET" frame then streetName frame
-      else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING"] frame then ""
+      else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING", "MONEY"] frame then ""
       else if hasType "OPINION" frame && Just True == fmap isVerbEllipsis (usage "accordingTo" frame) then ""
       else if sValue "given" frame == Just "true" then "the"
       else if "a" `isPrefixOf` nbar || "e" `isPrefixOf` nbar || "8" `isPrefixOf` nbar then "an"
@@ -193,6 +193,7 @@ noun (Just typ) frame = case typ of
   "SHOP" -> "store"
   "CORNER" -> "corner"
   "STREET" -> "street"
+  "MONEY" -> "money"
   "HAMMER" -> "hammer"
   "MOUTH" -> "mouth"
   "NOSE" -> "nose"

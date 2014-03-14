@@ -229,6 +229,7 @@ sentence frame = handleSeq singleSentence (Just frame) `catM` return finish wher
     frameGenerated frame
     fromMaybe (return "???sentence") $ liftM clause $ fValue "content" frame
   finish = if sValue "dot" frame == Just "true" then "."
+           else if sValue "question_mark" frame == Just "true" then "?"
            else case lastSentence >>= fValue "content" >>= fValue "message" of
              Just message -> if isNothing (getType message) then ":" else ""
              _ -> ""
@@ -307,7 +308,7 @@ clause fVerb = do
            then return $ "Great was" `cat` subject
            else if isModality then
              let supposed = if isJust fSubject then beForm fSubject verbForm `cat` subject `cat` "supposed" else ""
-             in return $ "What" `cat` supposed `cat` "to" `cat` (fromMaybe "???" $ fmap (verb BaseVerb) (fValue "theme" fVerb)) `cat` "?"
+             in return $ "what" `cat` supposed `cat` "to" `cat` (fromMaybe "???" $ fmap (verb BaseVerb) (fValue "theme" fVerb))
            else vp fVerb verbForm subject
     elaboration <- case fValue "elaboration" fVerb of
       Just smth -> return (if hasType "HAPPEN" fVerb then "," else ":") `catM` sentence smth

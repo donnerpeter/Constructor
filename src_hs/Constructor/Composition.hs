@@ -111,6 +111,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (TwoWordCxt s1 True wrapped _, TwoWordCxt s2 False _ _) | s1 == s2 -> left $ map mite wrapped
       
       (Clause Declarative cp, Word _ ".") -> left [semS cp "dot" "true", mite $ Sentence cp]
+      (Clause Interrogative cp, Word _ "?") -> left [semS cp "question_mark" "true", mite $ Sentence cp]
       (Conjunction (SeqData {seqVar=v1, seqConj=",", seqHasLeft=False, seqHasRight=False}), Conjunction sd@(SeqData {seqVar=v2, seqConj="but", seqReady=False})) ->
           right [mite $ Conjunction $ sd {seqReady=True}, mite $ Unify v1 v2]
       (SurroundingComma False _, toWrap) | isCommaSurroundable toWrap -> left [mite $ CommaSurrounded True False toWrap]

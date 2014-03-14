@@ -69,6 +69,7 @@ wordMites word index =
   "грустно" -> adverb "manner" "SADLY"
   "дальше" -> [mite $ Argument ScalarAdverb v0, semT v0 "NEXT"]
   "делал" -> finVerb "DO" "PAST" A.m v ++ directObject v
+  "делали" -> finVerb "DO" "PAST" A.pl v ++ directObject v
   "делать" -> infinitive "DO" v ++ directObject v
   "деревья" -> nounPl Acc "TREES" v
   "до" -> preposition "do" Gen v

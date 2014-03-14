@@ -388,14 +388,19 @@ vp fVerb verbForm subject = do
         Just "SLIGHTLY" -> if getType fVerb == Just "MOVE" then "" else "slightly"
         Just s -> s
         _ -> ""
-      sVerb = if isVerbEllipsis fVerb then "did" else verb verbForm fVerb
+      cp = usage "content" fVerb
+      inverted = Just True == fmap (hasType "question") cp && Just "true" == (cp >>= sValue "question_mark")
+      sVerb = if isVerbEllipsis fVerb then "did" else verb (if null aux then verbForm else BaseVerb) fVerb
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         Just "MOVE" -> (if Just "SLIGHTLY" == sValue "manner" fVerb then "slightly" else "") `cat` "back and forth"
         _ -> ""
       whWord = if Just True == (fmap isQuestioned $ fValue "arg2" fVerb) then "what" else ""
       negation = if sValue "negated" fVerb == Just "true" && isGerund fVerb then "not" else ""
-      aux = if isGerund fVerb && isNothing (usage "content" fVerb >>= usage "member2") then beForm (fValue "arg1" fVerb) verbForm else ""
+      aux =
+        if isGerund fVerb && isNothing (usage "content" fVerb >>= usage "member2") then beForm (fValue "arg1" fVerb) verbForm
+        else if inverted then "did"
+        else ""
   controlled <- case getType fVerb of
     Just "CAN" -> case fValue "theme" fVerb of
       Just slave -> vp slave BaseVerb ""
@@ -409,7 +414,7 @@ vp fVerb verbForm subject = do
                      if sVerb == "am" then subject ++ "'m"
                      else if sVerb == "is" then subject ++ "'s"
                      else subject `cat` sVerb
-                   else subject `cat` aux `cat` negation `cat` preAdverb `cat` sVerb
+                   else (if inverted then aux `cat` negation `cat` subject else subject `cat` aux `cat` negation) `cat` preAdverb `cat` sVerb
   return $ whWord `cat` contracted `cat` controlled `cat` args `cat` finalAdverb
 
 data Argument = Adverb String | NPArg Frame | PPArg String Frame | PPAdjunct String Frame

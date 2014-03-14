@@ -151,6 +151,7 @@ wordMites word index =
   "подвигав" -> perfectBackground "MOVE" v ++ arg Instr "arg2" v
   "подвигала" -> finVerb "MOVE" "PAST" A.f v ++ arg Instr "arg2" v
   "показались" -> raisingVerb "SEEM" "PAST" A.pl v ++ arg Dat "experiencer" v
+  "поливать" -> infinitive "TO_WATER" v ++ directObject v
   "помнит" -> finVerb "REMEMBER" "PRESENT" A.sg3 v ++ directObject v
   "помнят" -> finVerb "REMEMBER" "PRESENT" A.pl3 v ++ directObject v
   "порядок" -> nounSg Acc Masc "ORDER" v ++ genHead "arg1" v
@@ -199,6 +200,7 @@ wordMites word index =
   "считать" -> infinitive "COUNT" v ++ directObject v
   "так" -> [mite $ TwoWordCxt "так как" True [ReasonComp v0 False] v0]
   "там" -> adverb "location" "THERE"
+  "танцевать" -> infinitive "DANCE" v
   "том" -> adj Prep A.sg "determiner" "THAT" v
   "тут" -> adverb "emphasis" "true"
   "удивительный" -> adj Nom A.m "property" "AMAZING" v

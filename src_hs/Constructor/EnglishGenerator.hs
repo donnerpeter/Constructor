@@ -265,6 +265,8 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "CAN" -> if negated then "couldn't" else "could"
   "BEGIN" -> "started"
   "COUNT" -> if verbForm == Gerund then "counting" else "count"
+  "TO_WATER" -> if verbForm == Gerund then "watering" else "water"
+  "DANCE" -> if verbForm == Gerund then "dancing" else "dance"
   "ARGUE" -> if verbForm == Gerund then "arguing" else if Just "true" == sValue "irrealis" frame then "were arguing" else "argue"
   "RECALL" -> "recall"
   "REMEMBER" -> if verbForm == PastVerb then "remembered" else if verbForm == Sg3Verb then "remembers" else "remember"

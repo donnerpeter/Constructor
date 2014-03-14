@@ -109,11 +109,16 @@ sValue attr frame =
       "type" -> case usage "arg1" frame >>= commandingSubject >>= getType of
         Just commandingType -> Just commandingType
         Nothing ->
-          case (sValue "rusNumber" frame, sValue "rusPerson" frame, sValue "rusGender" frame) of
+          case (sDeclaredValue "rusNumber" frame, sDeclaredValue "rusPerson" frame, sDeclaredValue "rusGender" frame) of
             (Just "Pl", Just "3", _) -> Just "THEY"
             (Just "Sg", Just "3", Just "Fem") -> Just "SHE"
             (Just "Sg", Just "3", _) -> Just "HE"
             _ -> Nothing
+      "rusNumber" -> case sDeclaredValue "type" frame of
+        Just "WE" -> Just "Pl"
+        Just "THEY" -> Just "Pl"
+        Just "ME" -> Just "Sg"
+        _ -> Nothing
       _ -> Nothing
 
 fDeclaredValue attr frame = singleValue attr frame >>= extractValueVar >>= \v -> Just $ Frame v (sense frame)

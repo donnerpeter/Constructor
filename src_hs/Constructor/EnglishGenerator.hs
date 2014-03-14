@@ -214,7 +214,9 @@ isSingular (Just typ) = case typ of
 
 cat "" t2 = t2
 cat t1 "" = t1
-cat t1 t2 = if "," `isPrefixOf` t2 || "." `isPrefixOf` t2 || ":" `isPrefixOf` t2 || ";" `isPrefixOf` t2 then  t1 ++ t2 else t1 ++ " " ++ t2
+cat t1 t2 = case t2 of
+ [] -> t1
+ c:_ -> if c `elem` ",.:;?" then  t1 ++ t2 else t1 ++ " " ++ t2
 
 catM :: State GenerationState String -> State GenerationState String -> State GenerationState String
 catM t1 t2 = do s1 <- t1; s2 <- t2; return $ s1 `cat` s2
@@ -241,15 +243,15 @@ genComplement cp = case fValue "content" cp of
 
 isGerund fVerb = hasAnyType ["SIT", "THINK"] fVerb
 
-verb verbForm frame typ =
+verb verbForm frame = if isNothing (getType frame) then "???vp" else
   let negated = Just "true" == sValue "negated" frame in
-  case typ of
+  case fromJust $ getType frame of
   "HAPPEN" -> "happened"
   "FORGET" -> "forgot"
-  "DO" -> "did"
+  "DO" -> if verbForm == BaseVerb then "do" else "did"
   "GO" -> "went"
   "GO_OFF" -> "went"
-  "ASK" -> if (fValue "topic" frame >>= getType) == Just "PREDICAMENT" then if verbForm == PastVerb then "consulted" else "consult" else "asked"
+  "ASK" -> if (fValue "topic" frame >>= getType) == Just "PREDICAMENT" then if verbForm == PastVerb then "consulted" else "consult" else if verbForm == BaseVerb then "ask" else "asked"
   "COME_SCALARLY" -> if sValue "time" frame == Just "PAST" then "went" else "comes"
   "DISCOVER" -> "discovered"
   "DISTRACT" -> "distracted"
@@ -273,8 +275,8 @@ verb verbForm frame typ =
   "SAY" -> "said"
   "LACK" -> "were void of"
   "MOVE" -> "moved"
-  "copula" -> if Just "ME" == (fValue "arg1" frame >>= getType) then "am" else if sValue "time" frame == Just "PAST" then "was" else "is"
-  _ -> typ
+  "copula" -> beForm (fValue "arg1" frame) (if sValue "time" frame /= Just "PAST" then BaseVerb else verbForm)
+  typ -> typ
 
 clause :: Frame -> State GenerationState String
 clause fVerb = do
@@ -290,10 +292,11 @@ clause fVerb = do
                         else if sValue "relTime" fVerb == Just "AFTER" then "then"
                         else "")
     let verbForm = if past state then PastVerb else if Just True == fmap (hasAnyType ["HE", "SHE"]) fSubject then Sg3Verb else BaseVerb
-        fSubject = fValue "arg1" fVerb
+        isModality = hasType "modality" fVerb
+        fSubject = if isModality then fValue "theme" fVerb >>= fValue "arg1" else fValue "arg1" fVerb
     subject <- case fSubject of
       Just f ->
-        if [fVerb] `isPrefixOf` (usages "arg1" f) then np True fSubject
+        if [fVerb] `isPrefixOf` (usages "arg1" f) || isModality then np True fSubject
         else if (isJust $ fValue "perfectBackground" fVerb) then return $ if sValue "rusGender" f == Just "Masc" then "he" else "she"
         else return ""
       _ -> return ""
@@ -302,7 +305,9 @@ clause fVerb = do
       _ -> return ""
     core <- if hasType "degree" fVerb && (fromMaybe False $ fmap (hasType "wh") $ fValue "arg2" fVerb)
            then return $ "Great was" `cat` subject
-           else if hasType "modality" fVerb then return "What were we supposed to do?"
+           else if isModality then
+             let supposed = if isJust fSubject then beForm fSubject verbForm `cat` subject `cat` "supposed" else ""
+             in return $ "What" `cat` supposed `cat` "to" `cat` (fromMaybe "???" $ fmap (verb BaseVerb) (fValue "theme" fVerb)) `cat` "?"
            else vp fVerb verbForm subject
     elaboration <- case fValue "elaboration" fVerb of
       Just smth -> return (if hasType "HAPPEN" fVerb then "," else ":") `catM` sentence smth
@@ -367,6 +372,12 @@ clause fVerb = do
 
 isQuestioned frame = hasType "wh" frame
 
+beForm fSubject verbForm =
+  if verbForm == PastVerb then
+    if Just "Pl" == (fSubject >>= sValue "rusNumber") then "were" else "was"
+  else if Just "ME" == (fSubject >>= getType) then "am" else "is"
+
+
 vp :: Frame -> VerbForm -> String -> State GenerationState String
 vp fVerb verbForm subject = do
   let preAdverb = case sValue "manner" fVerb of
@@ -376,16 +387,14 @@ vp fVerb verbForm subject = do
         Just "SLIGHTLY" -> if getType fVerb == Just "MOVE" then "" else "slightly"
         Just s -> s
         _ -> ""
-      sVerb = if isVerbEllipsis fVerb then "did" else fromMaybe "???vp" $ fmap (verb verbForm fVerb) $ getType fVerb
+      sVerb = if isVerbEllipsis fVerb then "did" else verb verbForm fVerb
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         Just "MOVE" -> (if Just "SLIGHTLY" == sValue "manner" fVerb then "slightly" else "") `cat` "back and forth"
         _ -> ""
       whWord = if Just True == (fmap isQuestioned $ fValue "arg2" fVerb) then "what" else ""
       negation = if sValue "negated" fVerb == Just "true" && isGerund fVerb then "not" else ""
-      aux = if isGerund fVerb && isNothing (usage "content" fVerb >>= usage "member2") then
-              if Just "Pl" == (fValue "arg1" fVerb >>= sValue "rusNumber") then "were" else "was"
-            else ""
+      aux = if isGerund fVerb && isNothing (usage "content" fVerb >>= usage "member2") then beForm (fValue "arg1" fVerb) verbForm else ""
   controlled <- case getType fVerb of
     Just "CAN" -> case fValue "theme" fVerb of
       Just slave -> vp slave BaseVerb ""

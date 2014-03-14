@@ -109,6 +109,7 @@ wordMites word index =
   "магазин" -> xor [nounSg Nom Masc "SHOP" v, nounSg Acc Masc "SHOP" v] -- todo который + agr
   "магазина" -> nounSg Gen Masc "SHOP" v
   "маленький" -> adj Acc A.m "size" "LITTLE" v
+  "мне" -> pronoun Dat A.sg "ME" v
   "мнению" -> nounSg Dat Masc "OPINION" v ++ genHead "arg1" v ++ optional [mite $ PrepositionActivator "po" Dat [VerbalModifier "accordingTo" False v0]]
   "мной" -> pronoun Instr A.sg "ME" v
   "может" -> finVerb "CAN" "PRESENT" A.sg3 v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
@@ -189,6 +190,7 @@ wordMites word index =
   "спорить" -> infinitive "ARGUE" v
   "спросил" -> finVerb "ASK" "PAST" A.m v ++ optional (directObject v) ++ compHead "topic" v
   "спросили" -> finVerb "ASK" "PAST" A.pl v ++ directObject v ++ xor [compHead "topic" v, arg (PP "o" Prep) "topic" v]
+  "спросить" -> infinitive "ASK" v ++ optional (directObject v)
   "стали" -> finVerb "BEGIN" "PAST" A.pl v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
   "счастию" -> nounSg Dat Neu "LUCK" v ++ optional [mite $ PrepositionActivator "po" Dat [VerbalModifier "optativeModality" True v0]]
   "счета" -> nounSg Gen Masc "COUNTING" v

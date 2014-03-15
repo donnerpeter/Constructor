@@ -487,7 +487,7 @@ generateArg :: Argument -> State GenerationState String
 generateArg arg = case arg of
   Adverb s -> return s
   NPArg f -> np False $ Just f
-  PPArg prep f -> return prep `catM` (np False $ Just f)
+  PPArg prep f  -> if isJust (getType f) then return prep `catM` (np False $ Just f) else return ""
   PPAdjunct prep f -> return prep `catM` (np False $ Just f)
 
 argOrder arg = case arg of

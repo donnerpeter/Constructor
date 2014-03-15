@@ -413,7 +413,8 @@ vp fVerb verbForm subject = do
         _ -> ""
       cp = usage "content" fVerb
       inverted = Just True == fmap (hasType "question") cp && Just "true" == (cp >>= sValue "question_mark")
-      sVerb = if isVerbEllipsis fVerb then "did" else verb (if null aux then verbForm else BaseVerb) fVerb
+      sVerb = if isVerbEllipsis fVerb then if verbForm == PastVerb then "did" else "does"
+              else verb (if null aux then verbForm else BaseVerb) fVerb
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         Just "MOVE" -> (if Just "SLIGHTLY" == sValue "manner" fVerb then "slightly" else "") `cat` "back and forth"
@@ -432,7 +433,7 @@ vp fVerb verbForm subject = do
       Just slave -> vp slave Gerund ""
       _ -> return ""
     _ -> return ""
-  args <- foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) (arguments fVerb)
+  args <- if isVerbEllipsis fVerb then return "" else foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) (arguments fVerb)
   let contracted = if null preAdverb && null negation && null aux then
                      if sVerb == "am" then subject ++ "'m"
                      else if sVerb == "is" then subject ++ "'s"

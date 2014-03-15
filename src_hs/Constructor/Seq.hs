@@ -92,7 +92,7 @@ data AnchorMapping = AnchorMapping {-original-} Mite Variable {-anchor-} Constru
 
 checkOriginal ::  Construction -> Mite -> Maybe AnchorMapping
 checkOriginal anchor candidate = case (cxt candidate, anchor) of
-  (VerbalModifier a1 False v1, VerbalModifier a2 False v2) | a1 == a2 -> Just $ AnchorMapping candidate v1 anchor v2
+  (VerbalModifier a1 _ v1, VerbalModifier a2 _ v2) | a1 == a2 -> Just $ AnchorMapping candidate v1 anchor v2
   (Argument kind1 v1, Argument kind2 v2) | kind1 == kind2 -> Just $ AnchorMapping candidate v1 anchor v2
   _ -> Nothing
 

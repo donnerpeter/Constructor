@@ -514,23 +514,23 @@ var12 = TestLabel "sonnetVariations 12" $ TestList [
   ,
   -- 12_MyTheirOpinion
   translateTest "По моему мнению, раньше идет 7, а по их мнению - 8"
-                "In my opinion, a 7 comes first; but in their opinion an 8 does"
+                "In my opinion, a 7 comes first, but in their opinion an 8 does"
   ,
   -- 12_HumbleOpinions
   translateTest "По моему скромному мнению, раньше идет 7, а по их скромному мнению - 8"
-                "In my humble opinion, a 7 comes first; but in their humble opinion an 8 does"
+                "In my humble opinion, a 7 comes first, but in their humble opinion an 8 does"
   ,
   -- 12_ImhoVsCashier
   translateTest "По-моему, раньше идет 7, а по мнению кассирши - 8"
-                "In my opinion, a 7 comes first; but in the opinion of the cashier an 8 does"
+                "In my opinion, a 7 comes first, but in opinion of the cashier an 8 does"
   ,
   -- 12_ImhoVsCashierFront7
   translateTest "По-моему, 7 идет раньше, а по мнению кассирши - 8"
-                "In my opinion, a 7 comes first; but in the opinion of the cashier an 8 does"
+                "In my opinion, a 7 comes first, but in opinion of the cashier an 8 does"
   ,
   -- 12_ImhoVsCashierLater
   translateTest "По-моему, 7 идет раньше, а по мнению кассирши - потом"
-                "In my opinion, a 7 comes first; but in the opinion of the cashier, it comes next"
+                "In my opinion, a 7 comes first, but in opinion of the cashier, it comes next"
   ,
   -- 12_AccordingCashier
   translateTest "По словам кассирши, раньше идет 7"
@@ -542,7 +542,7 @@ var12 = TestLabel "sonnetVariations 12" $ TestList [
   ,
   -- 12_ShortNoEllipsis
   translateTest "По мнению одних дальше следовало 7, по мнению других дальше следовало 8"
-                "In the opinion of some, a 7 went next; but in opinion of others, an 8 went next"
+                "In the opinion of some, a 7 went next; but in the opinion of others, an 8 went next"
   ,
   -- 12_Before7Followed
   translateTest "Раньше потом следовало 7"

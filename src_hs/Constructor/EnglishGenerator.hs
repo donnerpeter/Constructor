@@ -7,6 +7,7 @@ import Data.Char (toUpper)
 import Data.Maybe
 import qualified Data.Set as Set
 import Constructor.Variable
+import Constructor.Util
 import Data.Function (on)
 
 data GenerationState = GenerationState { visitedFrames:: Set.Set Frame, past:: Bool}
@@ -76,10 +77,11 @@ np nom frame =
     handleSeq (return . streetName) frame `catM` return "streets"
   else if Just True == fmap (hasType "STREETS") frame then
     handleSeq (return . streetName) (frame >>= fValue "components") `catM` return "streets"
-  else handleSeq (np_internal nom (if isNumber frame then isSubj || isAnchor else True)) frame where
+  else handleSeq (np_internal nom mayHaveDeterminer) frame where
   isSeq = (frame >>= getType) == Just "seq"
   isSubj = isJust (frame >>= usage "arg1")
   isAnchor = isJust (frame >>= usage "anchor")
+  mayHaveDeterminer = if isNumber frame then isSubj || isAnchor || renderAsWord (fromJust frame) else True
 
 np_internal :: Bool -> Bool -> Frame -> State GenerationState String
 np_internal nom mayHaveDeterminer frame = do
@@ -165,7 +167,7 @@ determiner frame nbar =
       if sDet == Just "THIS" then "this"
       else if sDet == Just "ANY" then "any"
       else if hasType "STREET" frame then streetName frame
-      else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING", "MONEY"] frame then ""
+      else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING", "MONEY", "COUNTING"] frame then ""
       else if hasType "OPINION" frame && Just True == fmap isVerbEllipsis (usage "accordingTo" frame) then ""
       else if sValue "given" frame == Just "true" then "the"
       else if "a" `isPrefixOf` nbar || "e" `isPrefixOf` nbar || "8" `isPrefixOf` nbar then "an"
@@ -184,7 +186,7 @@ noun (Just typ) frame = case typ of
   "MATTER" -> "matter"
   "AMAZE" -> "amazement"
   "ORDER" -> "order"
-  "COUNTING" -> "counting"
+  "COUNTING" -> if isJust (usage "domain" frame) then "count" else "counting"
   "CASHIER" -> "cashier"
   "WORDS" -> "words"
   "PREDICAMENT" -> "predicament"
@@ -207,9 +209,16 @@ noun (Just typ) frame = case typ of
   "ARGUE" -> "argument"
   "THIS" -> "that"
   "GARDEN" -> if (fValue "name" frame >>= getType) == Just "летний" then "Summer Garden" else "garden"
-  "7" -> if sValue "number" frame == Just "true" then typ else "seven"
-  "8" -> if sValue "number" frame == Just "true" then typ else "eight"
-  _ -> typ
+  _ ->
+    if isNumberString typ && renderAsWord frame then case typ of
+      "5" -> "five"
+      "6" -> "six"
+      "7" -> "seven"
+      "8" -> "eight"
+      _ -> typ
+    else typ
+
+renderAsWord frame = not $ isNumber $ Just frame
 
 isSingular Nothing = False
 isSingular (Just typ) = case typ of
@@ -286,19 +295,22 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "copula" -> beForm (fValue "arg1" frame) (if sValue "time" frame /= Just "PAST" then BaseVerb else verbForm)
   typ -> typ
 
+clauseEmphasis fVerb = x1 `cat` x2 where
+  x1 = if sValue "butEmphasis" fVerb == Just "true" then "but"
+       else if sValue "andEmphasis" fVerb == Just "true" then "and"
+       else ""
+  x2 = if (fValue "optativeModality" fVerb >>= getType) == Just "LUCK" then "by some sheer luck,"
+       else if sValue "emphasis" fVerb == Just "true" then "there,"
+       else if sValue "relTime" fVerb == Just "AFTER" then "then"
+       else ""
+
 clause :: Frame -> State GenerationState String
 clause fVerb = do
     frameGenerated fVerb
     state <- get
     when (sValue "time" fVerb == Just "PAST") (put $ state { past = True })
     state <- get
-    let emphasis = cat (if sValue "butEmphasis" fVerb == Just "true" then "but"
-                        else if sValue "andEmphasis" fVerb == Just "true" then "and"
-                        else "")
-                       (if (fValue "optativeModality" fVerb >>= getType) == Just "LUCK" then "by some sheer luck,"
-                        else if sValue "emphasis" fVerb == Just "true" then "there,"
-                        else if sValue "relTime" fVerb == Just "AFTER" then "then"
-                        else "")
+    let emphasis = clauseEmphasis fVerb
     let verbForm = if past state then PastVerb else if Just True == fmap (hasAnyType ["HE", "SHE"]) fSubject then Sg3Verb else BaseVerb
         isModality = hasType "modality" fVerb
         fSubject = if isModality then fValue "theme" fVerb >>= fValue "arg1" else fValue "arg1" fVerb
@@ -336,7 +348,11 @@ clause fVerb = do
           moved <- np False (fValue "arg2" back)
           return $ "moving" `cat` moved `cat` slightly `cat` "back and forth"
         Just "THINK" -> return "thinking carefully about cashier's words"
-        Just "COME_TO" -> return "but reaching a six in count"
+        Just "COME_TO" ->
+          let domain = case fValue "domain" back of
+                         Just dom | isJust (sValue "type" dom) -> return "in" `catM` np False (Just dom)
+                         _ -> return ""
+          in return (clauseEmphasis back `cat` "reaching") `catM` np False (fValue "goal" back) `catM` domain
         _ -> return ""
       _ -> return ""
     comp <- case fComp of

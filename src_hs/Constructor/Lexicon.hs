@@ -49,7 +49,8 @@ wordMites word index =
   in
   case word of
   s | isNumberString s -> xor [nounSg caze gender word v | caze <- [Nom, Gen, Acc], gender <- [Masc, Neu]] ++ [semS v0 "number" "true"]
-  "6-ти" -> nounSg Gen Masc "6" v ++ [semS v0 "number" "true"]
+  "5-ти" -> nounSg Gen Masc "5" v
+  "6-ти" -> nounSg Gen Masc "6" v
   "а" -> xor [conjunction v0 "but" False, [mite $ ConjEmphasis "andEmphasis" v0]]
   "большим" -> adj Instr A.m "size" "BIG" v
   "большой" -> xor[adj Instr A.f "size" "BIG" v, adj Nom A.m "size" "BIG" v, adj Acc A.m "size" "BIG" v]
@@ -168,6 +169,7 @@ wordMites word index =
   "рта" -> nounSg Gen Masc "MOUTH" v
   "с" -> preposition "s" Instr v
   "сад" -> nounSg Acc Masc "GARDEN" v
+  "сада" -> nounSg Gen Masc "GARDEN" v
   "свалился" -> finVerb "FALL" "PAST" A.m v ++ arg (PP "s" Gen) "source" v
   "себе" -> pronoun Dat (A.Agr Nothing A.Sg Nothing) "SELF" v ++ [mite $ ReflexiveReference (v "")] -- todo empty agr
   "семи" -> nounSg Gen Masc "7" v
@@ -214,6 +216,7 @@ wordMites word index =
   "челюстью" -> nounSg Instr Fem "JAW" v
   "что" -> xor [whWord v ++ xor [[mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.n3], [mite $ Argument Acc v0, mite $ AdjHead v0 Acc A.n3]],
                 [mite $ Complementizer v0]]
+  "шести" -> nounSg Gen Masc "6" v
   "это" -> xor [pronoun Nom (A.Agr (Just A.Neu) A.Sg $ Just 3) "THIS" v, pronoun Acc (A.Agr (Just A.Neu) A.Sg $ Just 3) "THIS" v]
   "этому" -> adj Dat A.sg "determiner" "THIS" v
   "я" -> pronoun Nom (A.Agr Nothing A.Sg $ Just 1) "ME" v

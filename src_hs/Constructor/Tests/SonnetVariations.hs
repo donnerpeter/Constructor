@@ -502,11 +502,11 @@ var12 = TestLabel "sonnetVariations 12" $ TestList [
   ,
   -- 12_ButReachingFive
   translateTest "Но, дойдя до 5, мы начали спорить"
-                "But reaching a 5, we started arguing"
+                "But reaching 5, we started arguing"
   ,
   -- 12_ReachingFivePostfix
   translateTest "Но мы начали спорить, дойдя до 5"
-                "But we started arguing, reaching a 5"
+                "But we started arguing, reaching 5"
   ,
   -- 12_ReachingSixInLetters
   translateTest "Дойдя до шести, мы начали спорить"

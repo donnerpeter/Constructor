@@ -79,7 +79,7 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
                        withBase [aux1,aux2] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v1 satisfied]
                    _ -> []
                  ellipsisVariants = rightMites >>= \m3 -> case cxt m3 of
-                   Ellipsis ellipsisVar (Just e1) (Just e2) | not $ contradict m3 m2 -> map (withBase [m3]) $ processEllipsis child ellipsisVar e1 e2 leftTree
+                   Ellipsis ellipsisVar (Just e1) (Just e2) | not $ contradict m3 m2 -> map (withBase [m3]) $ processEllipsis m1 ellipsisVar e1 e2 leftTree
                    _ -> []
                  result = withBase [m1, m2] $
                    [semV seqV "member1" child, mite $ Clause force seqV, conjWithLeft (ClauseArg force)] ++ unifications ++ xor ellipsisVariants
@@ -98,8 +98,9 @@ checkOriginal anchor candidate = case (cxt candidate, anchor) of
 
 findOriginals mites anchor = catMaybes $ map (checkOriginal anchor) mites 
 
-processEllipsis :: Variable -> Variable -> Construction -> Construction -> Tree -> [[Mite]]
-processEllipsis oldCP ellipsisVar@(Variable varIndex _) e1 e2 prevTree = let
+processEllipsis :: Mite -> Variable -> Construction -> Construction -> Tree -> [[Mite]]
+processEllipsis oldClause ellipsisVar@(Variable varIndex _) e1 e2 prevTree = let
+  Clause _ oldCP = cxt oldClause
   allMites = allTreeMites prevTree
   activeMiteSet = allActiveMiteSet prevTree
   mappings = catMaybes [mapConstructions mapping1 mapping2 | mapping1 <- findOriginals allMites e1, mapping2 <- findOriginals allMites e2]
@@ -121,7 +122,7 @@ processEllipsis oldCP ellipsisVar@(Variable varIndex _) e1 e2 prevTree = let
     walkTree tree = let
       activeHeadMites = Constructor.Tree.activeHeadMites tree
       headCxts = map cxt activeHeadMites
-      ownMapped = activeHeadMites >>= mapMite
+      ownMapped = filter (not . contradict oldClause) activeHeadMites >>= mapMite
       folder (allMapped, allCovered) tree = let (mapped, covered) = walkTree tree in (allMapped++mapped, allCovered++covered) 
       (leftMapped, leftCovered) = foldl folder ([], []) $ subTrees LeftSide tree
       (rightMapped, rightCovered) = foldl folder ([], []) $ subTrees RightSide tree

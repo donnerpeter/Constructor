@@ -55,7 +55,13 @@ buildContradictorCache mites = Map.fromList [(m, Set.fromList $ findContradictor
 withBase base mites = let
   keys = Set.fromList $ map xorKey mites
   addBaseToContra key@(c, b) = if Set.member key keys then (c, LS.removeDups $ b ++ base) else key
-  in
-  map (\m -> m {baseMites = LS.removeDups $ (baseMites m ++ base), contradictors = Set.map addBaseToContra $ contradictors m }) mites
+  handleMite m = let
+    newBase = LS.removeDups $ (baseMites m ++ base)
+    issues = concat [if contradict m1 m2 then [(m1, m2)] else [] | m1 <- newBase, m2 <- newBase]
+    in
+    if null issues
+    then m {baseMites = newBase, contradictors = Set.map addBaseToContra $ contradictors m }
+    else error $ "contradictory base for mite " ++ show m ++ ": " ++ show issues ++ "\nallBase=" ++ show newBase
+  in map handleMite mites
 
 optional mites = xor [mites, [mite $ EmptyCxt $ cxt $ head mites]]

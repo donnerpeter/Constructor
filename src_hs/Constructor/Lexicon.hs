@@ -87,7 +87,7 @@ wordMites word index =
   "деньги" -> nounPl Acc "MONEY" v
   "деревья" -> nounPl Acc "TREES" v
   "до" -> preposition "do" Gen v
-  "дойдя" -> perfectBackground "COME_TO" v ++ arg (PP "v" Prep) "domain" v ++ arg (PP "do" Gen) "goal" v
+  "дойдя" -> perfectBackground "COME_TO" v ++ optional (arg (PP "v" Prep) "domain" v) ++ optional (arg (PP "do" Gen) "goal" v)
   "долго" -> adverb "duration" "LONG"
   "домам" -> nounPl Dat "HOMES" v
   "других" -> nounPl Gen "OTHERS" v

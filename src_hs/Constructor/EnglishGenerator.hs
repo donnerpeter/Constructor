@@ -27,7 +27,7 @@ generate sense =
               separator = if null output then "" else if start == "- " then "\n" else " "
           return $ output ++ separator ++ start ++ capitalize nextSentence
       text = evalState sentenceState $ GenerationState Set.empty False
-  in text
+  in stripLastComma text
 
 capitalize (c:rest) = (toUpper c):rest
 
@@ -245,7 +245,9 @@ cat "" t2 = t2
 cat t1 "" = t1
 cat t1 t2 = case t2 of
  [] -> t1
- c:_ -> if c `elem` ",.:;?" then  t1 ++ t2 else t1 ++ " " ++ t2
+ c:_ -> if c `elem` ",.:;?" then stripLastComma t1 ++ t2 else t1 ++ " " ++ t2
+
+stripLastComma t1 = if "," `isSuffixOf` t1 then take (length t1 - 1) t1 else t1
 
 catM :: State GenerationState String -> State GenerationState String -> State GenerationState String
 catM t1 t2 = do s1 <- t1; s2 <- t2; return $ s1 `cat` s2
@@ -312,14 +314,10 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "copula" -> beForm (fValue "arg1" frame) (if sValue "time" frame /= Just "PAST" then BaseVerb else verbForm)
   typ -> typ
 
-clauseEmphasis fVerb = x1 `cat` x2 where
-  x1 = if sValue "butEmphasis" fVerb == Just "true" then "but"
-       else if sValue "andEmphasis" fVerb == Just "true" then "and"
-       else ""
-  x2 = if (fValue "optativeModality" fVerb >>= getType) == Just "LUCK" then "by some sheer luck,"
-       else if sValue "emphasis" fVerb == Just "true" then "there,"
-       else if sValue "relTime" fVerb == Just "AFTER" then "then"
-       else ""
+conjIntroduction fVerb =
+   if sValue "butEmphasis" fVerb == Just "true" then "but"
+   else if sValue "andEmphasis" fVerb == Just "true" then "and"
+   else ""
 
 clause :: Frame -> State GenerationState String
 clause fVerb = do
@@ -327,7 +325,11 @@ clause fVerb = do
     state <- get
     when (sValue "time" fVerb == Just "PAST") (put $ state { past = True })
     state <- get
-    let emphasis = clauseEmphasis fVerb
+    let intro = conjIntroduction fVerb
+    let emphasis = if (fValue "optativeModality" fVerb >>= getType) == Just "LUCK" then "by some sheer luck,"
+                   else if sValue "emphasis" fVerb == Just "true" then "there"
+                   else if sValue "relTime" fVerb == Just "AFTER" then "then"
+                   else ""
     let verbForm = if past state then PastVerb else if Just True == fmap (hasAnyType ["HE", "SHE"]) fSubject then Sg3Verb else BaseVerb
         isModality = hasType "modality" fVerb
         fSubject = if isModality then fValue "theme" fVerb >>= fValue "arg1" else fValue "arg1" fVerb
@@ -369,7 +371,7 @@ clause fVerb = do
           let domain = case fValue "domain" back of
                          Just dom | isJust (sValue "type" dom) -> return "in" `catM` np False (Just dom)
                          _ -> return ""
-          in return (clauseEmphasis back `cat` "reaching") `catM` np False (fValue "goal" back) `catM` domain
+          in return (conjIntroduction back `cat` "reaching") `catM` np False (fValue "goal" back) `catM` domain
         _ -> return ""
       _ -> return ""
     comp <- case fComp of
@@ -405,11 +407,12 @@ clause fVerb = do
     questionVariants <- case fmap (\subj -> (getType subj, fValue "variants" subj)) fSubject of
       Just (Just "wh", Just variants) -> (return "-") `catM` (np True (Just variants))
       _ -> return ""
+    let veryStart = intro `cat` emphasis `cat` opinion
     let coreWithBackground =
           if null background then core
-          else if earlier fVerb "type" fVerb "perfectBackground" then core `cat` "," `cat` background
-          else background `cat` "," `cat` core
-    return $ emphasis `cat` opinion `cat` coreWithBackground `cat` condComp `cat` reasonComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
+          else if earlier fVerb "type" fVerb "perfectBackground" then core `cat` "," `cat` background `cat` ","
+          else (if null emphasis then "" else ",") `cat` background `cat` "," `cat` core
+    return $ veryStart `cat` coreWithBackground `cat` condComp `cat` reasonComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
 
 isQuestioned frame = hasType "wh" frame
 

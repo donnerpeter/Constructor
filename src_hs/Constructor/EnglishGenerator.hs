@@ -274,7 +274,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "THINK" -> "thinking"
   "SIT" -> "sitting"
   "FALL" -> "fell"
-  "BREAK" -> "broke"
+  "BREAK" -> if verbForm == BaseVerb then "break" else "broke"
   "STOP" -> "stopped"
   "CAN" -> if negated then "couldn't" else "could"
   "BEGIN" -> "started"

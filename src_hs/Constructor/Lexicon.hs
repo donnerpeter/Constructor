@@ -45,13 +45,13 @@ whatComesNext v = [mite $ ArgHead ScalarAdverb (v "scalar"),
   semT (v "arg2") "question", semV (v "arg2") "questioned" (v "wh"), semV (v "arg2") "content" (v "comes"),
   semT (v "comes") "COME_SCALARLY", semV (v "comes") "order" (v "scalar"),
   semV (v "comes") "arg1" (v "wh"), semT (v "wh") "wh"]
-numQuantifier ownCase childCase v = [mite $ Argument ownCase (v "noun"), semV (v "noun") "quantifier" (v ""), mite $ ArgHead childCase (v "noun")]
-number word v = xor (concat [nounAlternatives caze ++ [quantifierAlternative caze] | caze <- [Nom, Gen, Acc]]) ++ [semS (v "") "number" "true"] where
-  nounAlternatives caze = [nounSg caze gender word v | gender <- [Masc, Neu]]
-  quantifierAlternative caze = numQuantifier caze (childCase caze) v ++ [semT (v "") word]
+numQuantifier ownCase childCase v = [mite $ Argument ownCase (v ""), semV (v "") "quantifier" (v "q"), mite $ ArgHead childCase (v "")]
+number word v = xor (concat [nounAlternatives caze ++ [quantifierAlternative caze] | caze <- [Nom, Gen, Acc]]) where
+  nounAlternatives caze = [nounSg caze gender word v  ++ [semS (v "") "number" "true"] | gender <- [Masc, Neu]]
+  quantifierAlternative caze = numQuantifier caze (childCase caze) v ++ [semT (v "q") word, semS (v "q") "number" "true"]
   childCase caze = if word == "1" then caze else Gen
-wordNumber caze typ v = xor [nounSg caze Masc typ v, numQuantifier caze (childCase caze) v ++ [semT (v "") typ]] where
-  childCase caze = if typ == "1" then caze else Gen
+wordNumber caze typ v = xor [nounSg caze Masc typ v, numQuantifier caze childCase v ++ [semT (v "q") typ]] where
+  childCase = if typ == "1" then caze else Gen
 
 wordMites :: String -> Int -> [Mite]
 wordMites word index =
@@ -146,7 +146,7 @@ wordMites word index =
   "но" ->  xor [conjunction v0 "but" False, [mite $ ConjEmphasis "butEmphasis" v0]]
   "носом" -> nounSg Instr Masc "NOSE" v
   "о" -> preposition "o" Prep v
-  "обе" -> numQuantifier Acc Gen v ++ [semT v0 "BOTH"]
+  "обе" -> numQuantifier Acc Gen v ++ [semT (v "q") "BOTH"]
   "облегчением" -> nounSg Instr Neu "RELIEF" v ++ optional [mite $ PrepositionActivator "s" Instr [VerbalModifier "mood" False v0]]
   "обнаружил" -> finVerb "DISCOVER" "PAST" A.m v ++ compHead "theme" v
   "обнаружила" -> finVerb "DISCOVER" "PAST" A.f v ++ compHead "theme" v

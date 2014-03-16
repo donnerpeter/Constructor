@@ -39,6 +39,7 @@ data Construction = Word Variable String
                   | QuestionVariants (Maybe Variable) (Maybe String)
                   | Conjunction SeqData
                   | Clause ClauseForce Variable
+                  | TopLevelQuestion Variable
                   | ElidedArgHead Construction
                   | Possessive ArgKind Agr Variable
                   | EmptyCxt Construction
@@ -85,7 +86,7 @@ isHappy cxt = case cxt of
   CopulaTense {} -> False
   CommaSurrounded {} -> False; SurroundingComma {} -> False
   ControlledInfinitive {} -> False; Control {} -> False
-  Clause {} -> False
+  Clause {} -> False; TopLevelQuestion {} -> False
   QuotedWord _ False -> False; Quote _ False -> False
   DirectSpeechDash {} -> False; DirectSpeechHead _ Nothing -> False
   Colon {} -> False

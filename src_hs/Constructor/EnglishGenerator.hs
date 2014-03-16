@@ -412,7 +412,7 @@ vp fVerb verbForm subject = do
         Just s -> s
         _ -> ""
       cp = usage "content" fVerb
-      inverted = Just True == fmap (hasType "question") cp && Just "true" == (cp >>= sValue "question_mark")
+      inverted = Just True == fmap (hasType "question") cp && Just "true" == (cp >>= sValue "question_mark") && (cp >>= fValue "questioned") /= fValue "arg1" fVerb
       sVerb = if isVerbEllipsis fVerb then if verbForm == PastVerb then "did" else "does"
               else verb (if null aux then verbForm else BaseVerb) fVerb
       finalAdverb = case getType fVerb of

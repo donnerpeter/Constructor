@@ -158,10 +158,12 @@ issues :: [Mite] -> [Issue]
 issues mites = let
   sense = makeSense mites
   frames = allFrames sense
+  hasCP = any (hasAnyType ["fact", "question"]) frames
   frameIssues frame = case getType frame of
     Just "seq" | Nothing == sValue "conj" frame -> ["comma-only seq"]
     Just "SIT" -> if Nothing == (fValue "arg1" frame >>= sDeclaredValue "type") then ["unknown sit subj "] else []
     Just "ASK" -> if any (hasType "fact") (flatten $ fValue "topic" frame) then ["asking fact"] else []
+    Just "THEY" -> if isJust $ fValue "relative" frame then ["relative clause for pronoun"] else []
     Just "COME_SCALARLY" -> case fValue "arg1" frame of
       Just subj ->
         if Nothing == sDeclaredValue "type" subj then ["unknown subj"] else
@@ -169,4 +171,4 @@ issues mites = let
           Just order | earlier frame "order" subj "type" && earlier frame "type" frame "order" -> ["come_scalarly order subj"]
           _ -> []
     _ -> []
-  in {-traceIt "issues" $ -}frames >>= frameIssues
+  in {-traceIt "issues" $ -}(frames >>= frameIssues) ++ (if hasCP then [] else ["no clause"])

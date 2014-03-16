@@ -32,7 +32,7 @@ stealLeft leftTree rightTree processedInfos =
               else []
       nextProcessed = if headSide leftTree == LeftSide then Set.empty else Set.union processedInfos (Set.fromList infos)
       leftSubResults = if isBranch leftTree then stealLeft (justRight leftTree) rightTree nextProcessed else []
-  in ownResults ++ leftSubResults
+  in leftSubResults ++ ownResults
 
 data ParsingState = ParsingState { roots :: [Tree], history :: [ParsingState] }
 instance Show ParsingState where show state = show $ roots state

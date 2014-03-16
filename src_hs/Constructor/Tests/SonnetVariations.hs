@@ -270,7 +270,7 @@ var67 = TestLabel "sonnetVariations 6+7" $ TestList [
   ,
   -- 6_7_IndirectHeWhatOpinion
   translateTest "Кассир сказал нам, что, по его мнению, идет после восьми"
-                "The cashier told us, what, in his opinion, comes after an eight"
+                "The cashier told us what, in his opinion, comes after an eight"
   ,
   -- 6_7_IndirectHeWhat
   translateTest "Кассир сказал нам, что идет после восьми"

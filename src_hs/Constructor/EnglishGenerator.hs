@@ -2,7 +2,6 @@ module Constructor.EnglishGenerator (generate) where
 import Constructor.Sense
 import Control.Monad.State
 import Data.List
-import Debug.Trace
 import Data.Char (toUpper)
 import Data.Maybe
 import qualified Data.Set as Set
@@ -308,7 +307,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "RUN_OUT" -> "ran"
   "TAKE_OUT" -> "took"
   "GET_SAD" -> "got sad"
-  "SAY" -> "said"
+  "SAY" -> if isJust $ fValue "addressee" frame then "told" else "said"
   "LACK" -> "were void of"
   "MOVE" -> "moved"
   "copula" -> beForm (fValue "arg1" frame) (if sValue "time" frame /= Just "PAST" then BaseVerb else verbForm)
@@ -318,6 +317,13 @@ conjIntroduction fVerb =
    if sValue "butEmphasis" fVerb == Just "true" then "but"
    else if sValue "andEmphasis" fVerb == Just "true" then "and"
    else ""
+
+generateAccording fVerb = case fValue "accordingTo" fVerb of
+  Just source | hasType "OPINION" source -> do
+    state <- get
+    if Set.member source (visitedFrames state) then return ""
+    else return "in" `catM` np False (Just source) `catM` return (if isVerbEllipsis fVerb then "" else ",")
+  _ -> return ""
 
 clause :: Frame -> State GenerationState String
 clause fVerb = do
@@ -338,9 +344,6 @@ clause fVerb = do
         if [fVerb] `isPrefixOf` (usages "arg1" f) || isModality then np True fSubject
         else if (isJust $ fValue "perfectBackground" fVerb) then return $ if sValue "rusGender" f == Just "Masc" then "he" else "she"
         else return ""
-      _ -> return ""
-    opinion <- case fValue "accordingTo" fVerb of
-      Just source | hasType "OPINION" source -> return "in" `catM` np False (Just source) `catM` return (if isVerbEllipsis fVerb then "" else ",")
       _ -> return ""
     core <- if hasType "degree" fVerb && (fromMaybe False $ fmap (hasType "wh") $ fValue "arg2" fVerb)
            then return $ "Great was" `cat` subject
@@ -407,12 +410,12 @@ clause fVerb = do
     questionVariants <- case fmap (\subj -> (getType subj, fValue "variants" subj)) fSubject of
       Just (Just "wh", Just variants) -> (return "-") `catM` (np True (Just variants))
       _ -> return ""
-    let veryStart = intro `cat` emphasis `cat` opinion
     let coreWithBackground =
           if null background then core
           else if earlier fVerb "type" fVerb "perfectBackground" then core `cat` "," `cat` background `cat` ","
           else (if null emphasis then "" else ",") `cat` background `cat` "," `cat` core
-    return $ veryStart `cat` coreWithBackground `cat` condComp `cat` reasonComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
+    according <- generateAccording fVerb
+    return $ intro `cat` emphasis `cat` according `cat` coreWithBackground `cat` condComp `cat` reasonComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
 
 isQuestioned frame = hasType "wh" frame
 
@@ -447,6 +450,9 @@ vp fVerb verbForm subject = do
         else if inverted then if verbForm == PastVerb then "did" else "do"
         else ""
   whWord <- if nonSubjectQuestion then np False (cp >>= fValue "questioned") else return ""
+  according <- if null whWord && Just True /= fmap (hasType "wh") fSubject then return "" else do
+    acc <- generateAccording fVerb
+    return $ if null acc then "" else "," `cat` acc
   controlled <- case getType fVerb of
     Just "CAN" -> case fValue "theme" fVerb of
       Just slave -> vp slave BaseVerb ""
@@ -456,11 +462,11 @@ vp fVerb verbForm subject = do
       _ -> return ""
     _ -> return ""
   args <- if isVerbEllipsis fVerb then return "" else foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) (arguments fVerb)
-  let contracted = if null preAdverb && null negation && null aux then
+  let contracted = if null preAdverb && null negation && null aux && null according then
                      if sVerb == "am" then subject ++ "'m"
                      else if sVerb == "is" then subject ++ "'s"
                      else subject `cat` sVerb
-                   else (if inverted then aux `cat` negation `cat` subject else subject `cat` aux `cat` negation) `cat` preAdverb `cat` sVerb
+                   else (if inverted then according `cat` aux `cat` negation `cat` subject else subject `cat` according `cat` aux `cat` negation) `cat` preAdverb `cat` sVerb
   return $ whWord `cat` contracted `cat` controlled `cat` args `cat` finalAdverb
 
 data Argument = Adverb String | NPArg Frame | PPArg String Frame | PPAdjunct String Frame
@@ -483,6 +489,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       ("TAKE_OUT", "source") -> [PPArg "out of" value]
       ("RUN_OUT", "source") -> [PPArg "out of" value]
       ("FALL", "source") -> [PPArg "off" value]
+      ("SAY", "addressee") -> [NPArg value]
       ("ASK", "topic") -> if all (hasType "question") $ flatten $ Just value then [] else [PPArg "on" value]
       ("LACK", "theme") -> [NPArg value]
       ("DISTRACT", "theme") -> [PPArg "from" value]

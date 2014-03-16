@@ -164,6 +164,7 @@ issues mites = let
     Just "SIT" -> if Nothing == (fValue "arg1" frame >>= sDeclaredValue "type") then ["unknown sit subj "] else []
     Just "ASK" -> if any (hasType "fact") (flatten $ fValue "topic" frame) then ["asking fact"] else []
     Just "THEY" -> if isJust $ fValue "relative" frame then ["relative clause for pronoun"] else []
+    Just "WE" -> if isJust $ fValue "relative" frame then ["relative clause for pronoun"] else []
     Just "COME_SCALARLY" -> case fValue "arg1" frame of
       Just subj ->
         if Nothing == sDeclaredValue "type" subj then ["unknown subj"] else

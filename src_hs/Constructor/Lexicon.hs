@@ -194,9 +194,9 @@ wordMites word index =
   "семь" -> xor [wordNumber Nom "7" v, wordNumber Acc "7" v]
   "сидит" -> finVerb "SIT" "PRESENT" A.sg3 v
   "сидят" -> finVerb "SIT" "PRESENT" A.pl3 v
-  "сказал" -> finVerb "SAY" "PAST" A.m v ++ xor [[mite $ DirectSpeechHead v0 Nothing], directObject v, compHead "message" v]
-  "сказала" -> finVerb "SAY" "PAST" A.f v ++ xor [[mite $ DirectSpeechHead v0 Nothing], directObject v, compHead "message" v]
-  "сказали" -> finVerb "SAY" "PAST" A.pl v ++ xor [[mite $ DirectSpeechHead v0 Nothing], directObject v, compHead "message" v]
+  "сказал" -> finVerb "SAY" "PAST" A.m v ++ optional (arg Dat "addressee" v) ++ xor [[mite $ DirectSpeechHead v0 Nothing], directObject v, compHead "message" v]
+  "сказала" -> finVerb "SAY" "PAST" A.f v ++ optional (arg Dat "addressee" v) ++ xor [[mite $ DirectSpeechHead v0 Nothing], directObject v, compHead "message" v]
+  "сказали" -> finVerb "SAY" "PAST" A.pl v ++ optional (arg Dat "addressee" v) ++ xor [[mite $ DirectSpeechHead v0 Nothing], directObject v, compHead "message" v]
   "скамейки" -> nounSg Gen Fem "BENCH" v
   "слегка" -> adverb "manner" "SLIGHTLY"
   "следовало" -> finVerb "COME_SCALARLY" "PAST" A.n3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v]

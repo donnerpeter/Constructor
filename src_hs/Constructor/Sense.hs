@@ -6,7 +6,7 @@ module Constructor.Sense
   getType, hasType, hasAnyType, resolve,
   earlier,
   allFrames, allFrameFacts,
-  flatten, isNumber,
+  flatten, isNumber, unSeq,
   makeSense)
   where
 
@@ -153,3 +153,7 @@ resolve frame = case (getType frame, fValue "target" frame) of
   _ -> frame
 
 isNumber frame = any (\f -> sValue "number" f == Just "true") $ flatten frame
+
+unSeq frame = case msum [usage "member1" frame, usage "member2" frame] of
+  Just s -> unSeq s
+  _ -> frame

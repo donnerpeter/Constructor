@@ -258,7 +258,9 @@ genComplement cp = case fValue "content" cp of
       negation = if Just "true" == sValue "negated" cp then "not" else ""
     in return (negation `cat` prefix) `catM` sentence cp
 
-isGerund fVerb = hasAnyType ["SIT", "THINK"] fVerb
+isGerund fVerb = hasAnyType ["SIT", "THINK"] fVerb &&
+  (Just "FORGET" == (usage "content" (unSeq fVerb) >>= usage "arg2" . unSeq >>= getType) ||
+  Just "ASK" == (usage "content" (unSeq fVerb) >>= usage "topic" . unSeq >>= getType))
 
 verb verbForm frame = if isNothing (getType frame) then "???vp" else
   let negated = Just "true" == sValue "negated" frame in
@@ -273,7 +275,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "DISCOVER" -> "discovered"
   "DISTRACT" -> "distracted"
   "DISPERSE" -> "went"
-  "THINK" -> "thinking"
+  "THINK" -> if verbForm == BaseVerb then "think" else "thinking"
   "SIT" -> "sitting"
   "FALL" -> "fell"
   "BREAK" -> if verbForm == BaseVerb then "break" else "broke"
@@ -414,18 +416,19 @@ vp fVerb verbForm subject = do
         Just s -> s
         _ -> ""
       cp = usage "content" fVerb
-      nonSubjectQuestion = Just True == fmap (hasType "question") cp && (cp >>= fValue "questioned") /= fValue "arg1" fVerb
+      fSubject = fValue "arg1" fVerb
+      nonSubjectQuestion = Just True == fmap (hasType "question") cp && (cp >>= fValue "questioned") /= fSubject
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue "question_mark")
       sVerb = if isVerbEllipsis fVerb then if verbForm == PastVerb then "did" else "does"
-              else verb (if null aux then verbForm else BaseVerb) fVerb
+              else verb (if null aux then verbForm else if isGerund fVerb then Gerund else BaseVerb) fVerb
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         Just "MOVE" -> (if Just "SLIGHTLY" == sValue "manner" fVerb then "slightly" else "") `cat` "back and forth"
         _ -> ""
       negation = if sValue "negated" fVerb == Just "true" && isGerund fVerb then "not" else ""
       aux =
-        if isGerund fVerb && isNothing (usage "content" fVerb >>= usage "member2") then beForm (fValue "arg1" fVerb) verbForm
-        else if inverted then "did"
+        if isGerund fVerb && isNothing (usage "content" fVerb >>= usage "member2") then beForm fSubject verbForm
+        else if inverted then if verbForm == PastVerb then "did" else "do"
         else ""
   whWord <- if nonSubjectQuestion then np False (cp >>= fValue "questioned") else return ""
   controlled <- case getType fVerb of
@@ -467,6 +470,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       ("ASK", "topic") -> if all (hasType "question") $ flatten $ Just value then [] else [PPArg "on" value]
       ("LACK", "theme") -> [NPArg value]
       ("DISTRACT", "theme") -> [PPArg "from" value]
+      ("THINK", "topic") -> [PPArg "on" value]
       ("DISPERSE", "goal") -> if hasType "HOMES" value then [Adverb "home"] else [PPArg "to" value]
       (_, "goal") -> [PPArg "to" value]
       (_, "mood") -> case getType value of

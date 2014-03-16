@@ -24,6 +24,6 @@ parse s =
       result = foldl' addWord emptyState tokens
   in roots result
 
-translate s = generate $ makeSense $ parse s
+translate s = generate $ makeSense s
 
-makeSense trees = Sense.makeSense $ activeStateMites trees
+makeSense s = Sense.makeSense $ activeStateMites $ parse s

@@ -666,6 +666,9 @@ var13 = TestLabel "sonnetVariations 13" $ TestList [
   translateTest "Ребенок сломал мне три пальца"
                 "The child broke three of my fingers"
   ,
+  translateTest "Ребенок сломал мне обе челюсти и три пальца"
+                "The child broke both of my jaws and three fingers"
+  ,
   -- 13_FemaleCashierFingers
   translateTest "Кассирша сломала себе 8 пальцев"
                 "The cashier broke 8 of her fingers"

@@ -122,7 +122,8 @@ np_internal nom mayHaveDeterminer frame = do
   preQuantifier <- case fQuantifier >>= getType of
     Just "BOTH" -> return "both of"
     Just "ALL" -> return ""
-    Just _ -> handleSeq (np_internal True False) fQuantifier
+    Just typ -> let q = handleSeq (np_internal True False) fQuantifier in
+      if typ == "1" || isNothing (fValue "arg1" frame >>= getType) then q else q `catM` return "of"
     _ -> return ""
   relative <- fromMaybe (return "") $ liftM (catM $ return ", the one") $ fmap sentence $ fValue "relative" frame
   return $ preQuantifier `cat` unquantified `cat` postQuantifier `cat` relative
@@ -146,7 +147,7 @@ streetName frame = case sValue "name" frame of
 
 isDeterminerOpinion frame = all (hasAnyType ["ME", "THEY"]) (flatten $ fValue "arg1" frame)
 determiner frame nbar =
-  let det = if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "ARGUE"] frame then fValue "arg1" frame
+  let det = if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "ARGUE", "FINGER"] frame then fValue "arg1" frame
             else if hasAnyType ["OPINION"] frame && isDeterminerOpinion frame then fValue "arg1" frame
             else if hasAnyType ["WORDS"] frame then fValue "author" frame
             else Nothing
@@ -179,7 +180,7 @@ determiner frame nbar =
       else if hasType "OPINION" frame && Just True == fmap isVerbEllipsis (usage "accordingTo" frame) then ""
       else if sValue "given" frame == Just "true" then "the"
       else if "a" `isPrefixOf` nbar || "e" `isPrefixOf` nbar || "8" `isPrefixOf` nbar then "an"
-      else if isSingular (getType frame) then "a"
+      else if isSingular frame then "a"
       else ""
 
 isVerbEllipsis verb = Just "true" == (usage "content" verb >>= sValue "ellipsis")
@@ -213,14 +214,17 @@ noun (Just typ) frame = case typ of
   "OTHERS" -> "others"
   "CHILD" -> "child"
   "BENCH" -> "bench"
-  "FINGER" -> "finger"
-  "JAW" -> if isJust (fValue "quantifier" frame) then "jaws" else "jaw"
+  "FINGER" -> if isSingular frame then "finger" else "fingers"
+  "JAW" -> if isSingular frame then "jaw" else "jaws"
   "ARGUE" -> "argument"
   "THIS" -> "that"
   "GARDEN" -> if (fValue "name" frame >>= getType) == Just "летний" then "Summer Garden" else "garden"
   _ ->
     if isNumberString typ && renderAsWord frame then case typ of
       "1" -> "one"
+      "2" -> "two"
+      "3" -> "three"
+      "4" -> "four"
       "5" -> "five"
       "6" -> "six"
       "7" -> "seven"
@@ -230,11 +234,12 @@ noun (Just typ) frame = case typ of
 
 renderAsWord frame = not $ isNumber $ Just frame
 
-isSingular Nothing = False
-isSingular (Just typ) = case typ of
-  "NEIGHBORS" -> False
-  "TREES" -> False
-  _ -> True
+isSingular frame = case getType frame of
+  Just "NEIGHBORS" -> False
+  Just "TREES" -> False
+  _ -> case fValue "quantifier" frame >>= getType of
+    Just s -> s == "1"
+    _ -> True
 
 cat "" t2 = t2
 cat t1 "" = t1

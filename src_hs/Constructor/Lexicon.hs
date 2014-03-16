@@ -46,6 +46,12 @@ whatComesNext v = [mite $ ArgHead ScalarAdverb (v "scalar"),
   semT (v "comes") "COME_SCALARLY", semV (v "comes") "order" (v "scalar"),
   semV (v "comes") "arg1" (v "wh"), semT (v "wh") "wh"]
 numQuantifier ownCase childCase v = [mite $ Argument ownCase (v "noun"), semV (v "noun") "quantifier" (v ""), mite $ ArgHead childCase (v "noun")]
+number word v = xor (concat [nounAlternatives caze ++ [quantifierAlternative caze] | caze <- [Nom, Gen, Acc]]) ++ [semS (v "") "number" "true"] where
+  nounAlternatives caze = [nounSg caze gender word v | gender <- [Masc, Neu]]
+  quantifierAlternative caze = numQuantifier caze (childCase caze) v ++ [semT (v "") word]
+  childCase caze = if word == "1" then caze else Gen
+wordNumber caze typ v = xor [nounSg caze Masc typ v, numQuantifier caze (childCase caze) v ++ [semT (v "") typ]] where
+  childCase caze = if typ == "1" then caze else Gen
 
 wordMites :: String -> Int -> [Mite]
 wordMites word index =
@@ -53,7 +59,7 @@ wordMites word index =
       v0 = v ""
   in
   case word of
-  s | isNumberString s -> xor [nounSg caze gender word v | caze <- [Nom, Gen, Acc], gender <- [Masc, Neu]] ++ [semS v0 "number" "true"]
+  s | isNumberString s -> number s v
   "5-ти" -> nounSg Gen Masc "5" v
   "6-ти" -> nounSg Gen Masc "6" v
   "а" -> xor [conjunction v0 "but" False, [mite $ ConjEmphasis "andEmphasis" v0]]
@@ -64,8 +70,8 @@ wordMites word index =
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
   "вдруг" -> adverb "manner" "SUDDENLY"
   "вдумываясь" -> perfectBackground "THINK" v ++ arg (PP "v" Acc) "theme" v
-  "восемь" -> xor [nounSg Nom Masc "8" v, nounSg Acc Masc "8" v]
-  "восьми" -> nounSg Gen Masc "8" v
+  "восемь" -> xor [wordNumber Nom "8" v, wordNumber Acc "8" v]
+  "восьми" -> wordNumber Gen "8" v
   "всякого" -> adj Gen A.m "determiner" "ANY" v
   "выбежали" -> finVerb "RUN_OUT" "PAST" A.pl v ++ arg (PP "iz" Gen) "source" v
   "вынул" -> finVerb "TAKE_OUT" "PAST" A.m v ++ arg (PP "iz" Gen) "source" v ++ directObject v
@@ -74,6 +80,7 @@ wordMites word index =
   "вспомнить" -> infinitive "RECALL" v ++ directObject v
   "грустно" -> adverb "manner" "SADLY"
   "дальше" -> [mite $ Argument ScalarAdverb v0, semT v0 "NEXT"]
+  "два" -> wordNumber Acc "2" v
   "делал" -> finVerb "DO" "PAST" A.m v ++ directObject v
   "делали" -> finVerb "DO" "PAST" A.pl v ++ directObject v
   "делать" -> infinitive "DO" v ++ directObject v
@@ -144,7 +151,7 @@ wordMites word index =
   "обнаружил" -> finVerb "DISCOVER" "PAST" A.m v ++ compHead "theme" v
   "обнаружила" -> finVerb "DISCOVER" "PAST" A.f v ++ compHead "theme" v
   "обнаружили" -> finVerb "DISCOVER" "PAST" A.pl v ++ compHead "theme" v
-  "один" -> numQuantifier Acc Acc v ++ [semT v0 "1"]
+  "один" -> wordNumber Acc "1" v
   "одних" -> nounPl Gen "SOME" v
   "он" -> pronoun Nom A.m3 "HE" v
   "она" -> pronoun Nom A.f3 "SHE" v
@@ -155,6 +162,8 @@ wordMites word index =
   "отвлекло" -> finVerb "DISTRACT" "PAST" A.n v ++ directObject v ++ arg (PP "ot" Gen) "theme" v
   "отправился" -> finVerb "GO_OFF" "PAST" A.m v ++ arg (PP "k" Dat) "goal" v
   "палец" -> nounSg Acc Masc "FINGER" v
+  "пальца" -> nounSg Gen Masc "FINGER" v
+  "пальцев" -> nounPl Gen "FINGER" v
   "по" -> preposition "po" Dat v
   "по-моему" -> [mite $ VerbalModifier "accordingTo" True v0, semT v0 "OPINION", semV v0 "arg1" (v "me"), semT (v "me") "ME"]
   "поблагодарили" -> finVerb "THANK" "PAST" A.pl v ++ directObject v
@@ -181,8 +190,8 @@ wordMites word index =
   "сада" -> nounSg Gen Masc "GARDEN" v
   "свалился" -> finVerb "FALL" "PAST" A.m v ++ arg (PP "s" Gen) "source" v
   "себе" -> pronoun Dat (A.Agr Nothing A.Sg Nothing) "SELF" v ++ [mite $ ReflexiveReference (v "")] -- todo empty agr
-  "семи" -> nounSg Gen Masc "7" v
-  "семь" -> xor [nounSg Nom Masc "7" v, nounSg Acc Masc "7" v]
+  "семи" -> wordNumber Gen "7" v
+  "семь" -> xor [wordNumber Nom "7" v, wordNumber Acc "7" v]
   "сидит" -> finVerb "SIT" "PRESENT" A.sg3 v
   "сидят" -> finVerb "SIT" "PRESENT" A.pl3 v
   "сказал" -> finVerb "SAY" "PAST" A.m v ++ xor [[mite $ DirectSpeechHead v0 Nothing], directObject v, compHead "message" v]
@@ -215,6 +224,7 @@ wordMites word index =
   "там" -> adverb "location" "THERE"
   "танцевать" -> infinitive "DANCE" v
   "том" -> adj Prep A.sg "determiner" "THAT" v
+  "три" -> wordNumber Acc "3" v
   "тут" -> adverb "emphasis" "true"
   "удивительный" -> adj Nom A.m "property" "AMAZING" v
   "углу" -> nounSg Prep Masc "CORNER" v ++ genHead "arg1" v ++ optional [mite $ PrepositionActivator "na" Prep [NounAdjunct (v "noun"), cxt $ semV (v "noun") "location" v0]]
@@ -227,7 +237,7 @@ wordMites word index =
   "челюстью" -> nounSg Instr Fem "JAW" v
   "что" -> xor [whWord v ++ xor [[mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.n3], [mite $ Argument Acc v0, mite $ AdjHead v0 Acc A.n3]],
                 [mite $ Complementizer v0]]
-  "шести" -> nounSg Gen Masc "6" v
+  "шести" -> wordNumber Gen "6" v
   "это" -> xor [pronoun Nom (A.Agr (Just A.Neu) A.Sg $ Just 3) "THIS" v, pronoun Acc (A.Agr (Just A.Neu) A.Sg $ Just 3) "THIS" v]
   "этому" -> adj Dat A.sg "determiner" "THIS" v
   "я" -> pronoun Nom (A.Agr Nothing A.Sg $ Just 1) "ME" v

@@ -45,6 +45,7 @@ whatComesNext v = [mite $ ArgHead ScalarAdverb (v "scalar"),
   semT (v "arg2") "question", semV (v "arg2") "questioned" (v "wh"), semV (v "arg2") "content" (v "comes"),
   semT (v "comes") "COME_SCALARLY", semV (v "comes") "order" (v "scalar"),
   semV (v "comes") "arg1" (v "wh"), semT (v "wh") "wh"]
+numQuantifier ownCase childCase v = [mite $ Argument ownCase (v "noun"), semV (v "noun") "quantifier" (v ""), mite $ ArgHead childCase (v "noun")]
 
 wordMites :: String -> Int -> [Mite]
 wordMites word index =
@@ -138,11 +139,12 @@ wordMites word index =
   "но" ->  xor [conjunction v0 "but" False, [mite $ ConjEmphasis "butEmphasis" v0]]
   "носом" -> nounSg Instr Masc "NOSE" v
   "о" -> preposition "o" Prep v
-  "обе" -> [mite $ Argument Acc (v ""), semT (v "q") "BOTH", semV v0 "quantifier" (v "q"), mite $ ArgHead Gen v0]
+  "обе" -> numQuantifier Acc Gen v ++ [semT v0 "BOTH"]
   "облегчением" -> nounSg Instr Neu "RELIEF" v ++ optional [mite $ PrepositionActivator "s" Instr [VerbalModifier "mood" False v0]]
   "обнаружил" -> finVerb "DISCOVER" "PAST" A.m v ++ compHead "theme" v
   "обнаружила" -> finVerb "DISCOVER" "PAST" A.f v ++ compHead "theme" v
   "обнаружили" -> finVerb "DISCOVER" "PAST" A.pl v ++ compHead "theme" v
+  "один" -> numQuantifier Acc Acc v ++ [semT v0 "1"]
   "одних" -> nounPl Gen "SOME" v
   "он" -> pronoun Nom A.m3 "HE" v
   "она" -> pronoun Nom A.f3 "SHE" v
@@ -152,6 +154,7 @@ wordMites word index =
   "от" -> preposition "ot" Gen v
   "отвлекло" -> finVerb "DISTRACT" "PAST" A.n v ++ directObject v ++ arg (PP "ot" Gen) "theme" v
   "отправился" -> finVerb "GO_OFF" "PAST" A.m v ++ arg (PP "k" Dat) "goal" v
+  "палец" -> nounSg Acc Masc "FINGER" v
   "по" -> preposition "po" Dat v
   "по-моему" -> [mite $ VerbalModifier "accordingTo" True v0, semT v0 "OPINION", semV v0 "arg1" (v "me"), semT (v "me") "ME"]
   "поблагодарили" -> finVerb "THANK" "PAST" A.pl v ++ directObject v

@@ -115,10 +115,15 @@ np_internal nom mayHaveDeterminer frame = do
         _ -> return ""
       det <- if mayHaveDeterminer then determiner frame nbar else return ""
       return $ det `cat` nbar `cat` genitiveComplement
-  let postQuantifier = if (fValue "quantifier" frame >>= getType) == Just "ALL" ||
+  let fQuantifier = fValue "quantifier" frame
+  let postQuantifier = if (fQuantifier >>= getType) == Just "ALL" ||
                           (usage "arg1" frame >>= getType) == Just "DISPERSE"
                        then "all" else ""
-  let preQuantifier = if (fValue "quantifier" frame >>= getType) == Just "BOTH" then "both of" else ""
+  preQuantifier <- case fQuantifier >>= getType of
+    Just "BOTH" -> return "both of"
+    Just "ALL" -> return ""
+    Just _ -> handleSeq (np_internal True False) fQuantifier
+    _ -> return ""
   relative <- fromMaybe (return "") $ liftM (catM $ return ", the one") $ fmap sentence $ fValue "relative" frame
   return $ preQuantifier `cat` unquantified `cat` postQuantifier `cat` relative
 
@@ -168,6 +173,7 @@ determiner frame nbar =
       let sDet = fValue "determiner" frame >>= getType in
       if sDet == Just "THIS" then "this"
       else if sDet == Just "ANY" then "any"
+      else if isJust (fValue "quantifier" frame) then ""
       else if hasType "STREET" frame then streetName frame
       else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING", "MONEY", "COUNTING"] frame then ""
       else if hasType "OPINION" frame && Just True == fmap isVerbEllipsis (usage "accordingTo" frame) then ""
@@ -207,12 +213,14 @@ noun (Just typ) frame = case typ of
   "OTHERS" -> "others"
   "CHILD" -> "child"
   "BENCH" -> "bench"
+  "FINGER" -> "finger"
   "JAW" -> if isJust (fValue "quantifier" frame) then "jaws" else "jaw"
   "ARGUE" -> "argument"
   "THIS" -> "that"
   "GARDEN" -> if (fValue "name" frame >>= getType) == Just "летний" then "Summer Garden" else "garden"
   _ ->
     if isNumberString typ && renderAsWord frame then case typ of
+      "1" -> "one"
       "5" -> "five"
       "6" -> "six"
       "7" -> "seven"

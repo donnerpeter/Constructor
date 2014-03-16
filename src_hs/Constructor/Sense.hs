@@ -95,7 +95,7 @@ sValue attr frame =
   else
     case attr of
       "given" ->
-        if hasAnyType ["CASE", "HAMMER", "TREES", "BENCH"] frame then Just "false"
+        if hasAnyType ["CASE", "HAMMER", "TREES", "BENCH", "FINGER"] frame then Just "false"
         else if Just True == fmap isNumberString (getType frame) then Just "false"
         else if hasType "CHILD" frame then
           if Just "SOME" == (fValue "determiner" frame >>= getType) then Just "false" else Just "true"
@@ -131,8 +131,10 @@ fValue attr frame =
     case attr of
       "arg1" ->
         if hasType "NEIGHBORS" frame then usage "goal" frame >>= fValue "arg1"
-        else if hasAnyType ["MOUTH", "NOSE", "JAW"] frame then msum
-          [usage "source" frame >>= fValue "arg1", usage "arg2" frame >>= fValue "arg1", usage "arg2" frame >>= usage "perfectBackground" >>= fValue "arg1"]
+        else if hasAnyType ["MOUTH", "NOSE", "JAW"] frame then let
+          verbs = catMaybes [usage "source" $ unSeq frame, usage "arg2" $ unSeq frame]
+          foregrounds = catMaybes $ map (usage "perfectBackground") verbs
+          in msum $ map (fValue "arg1") (verbs ++ foregrounds)
         else Nothing
       _ -> Nothing
 

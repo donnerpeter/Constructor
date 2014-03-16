@@ -40,7 +40,11 @@ genHead attr v = optional [mite $ GenHead (v "gen"), semV (v "") attr (v "gen")]
 directObject v = arg Acc "arg2" v
 conjunction v0 conj ready = [mite $ Conjunction $ SeqData v0 conj ready Nothing False False, semT v0 "seq"] ++ (if conj == "," then [] else [semS v0 "conj" conj])
 modifyV v c = \s -> v $ c:s 
-whatComesNext v = [mite $ ArgHead ScalarAdverb (v "scalar"), semV (v "") "arg2" (v "arg2"), semT (v "arg2") "question", semV (v "arg2") "content" (v "comes"), semT (v "comes") "COME_SCALARLY", semV (v "comes") "arg1" (v "wh"), semT (v "wh") "wh", semV (v "comes") "order" (v "scalar")]
+whatComesNext v = [mite $ ArgHead ScalarAdverb (v "scalar"),
+  semV (v "") "arg2" (v "arg2"),
+  semT (v "arg2") "question", semV (v "arg2") "questioned" (v "wh"), semV (v "arg2") "content" (v "comes"),
+  semT (v "comes") "COME_SCALARLY", semV (v "comes") "order" (v "scalar"),
+  semV (v "comes") "arg1" (v "wh"), semT (v "wh") "wh"]
 
 wordMites :: String -> Int -> [Mite]
 wordMites word index =
@@ -106,6 +110,7 @@ wordMites word index =
   "кассирша" -> nounSg Nom Fem "CASHIER" v
   "кассирши" -> nounSg Gen Fem "CASHIER" v
   "кассиршу" -> nounSg Acc Fem "CASHIER" v
+  "кого" -> whWord v ++ [mite $ Argument Acc v0, mite $ AdjHead v0 Acc A.sg, semS v0 "animate" "true"]
   "когда" -> [mite $ ConditionComp v0 "when" False] -- todo wh-questions with когда
   "коммерческий" -> adj Acc A.m "kind" "COMMERCIAL" v
   "летний" -> adj Acc A.m "name" "летний" v -- todo летний is not only a name
@@ -195,9 +200,9 @@ wordMites word index =
   "спора" -> nounSg Gen Masc "ARGUE" v ++ genHead "arg1" v
   "спорили" -> finVerb "ARGUE" "PAST" A.pl v
   "спорить" -> infinitive "ARGUE" v
-  "спросил" -> finVerb "ASK" "PAST" A.m v ++ optional (directObject v) ++ compHead "topic" v
-  "спросили" -> finVerb "ASK" "PAST" A.pl v ++ directObject v ++ xor [compHead "topic" v, arg (PP "o" Prep) "topic" v]
-  "спросить" -> infinitive "ASK" v ++ optional (directObject v)
+  "спросил" -> finVerb "ASK" "PAST" A.m v ++ optional (directObject v) ++ optional (xor [compHead "topic" v, arg (PP "o" Prep) "topic" v])
+  "спросили" -> finVerb "ASK" "PAST" A.pl v ++ optional (directObject v) ++ optional (xor [compHead "topic" v, arg (PP "o" Prep) "topic" v])
+  "спросить" -> infinitive "ASK" v ++ optional (directObject v) ++ optional (xor [compHead "topic" v, arg (PP "o" Prep) "topic" v])
   "стали" -> finVerb "BEGIN" "PAST" A.pl v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
   "счастию" -> nounSg Dat Neu "LUCK" v ++ optional [mite $ PrepositionActivator "po" Dat [VerbalModifier "optativeModality" True v0]]
   "счета" -> nounSg Gen Masc "COUNTING" v

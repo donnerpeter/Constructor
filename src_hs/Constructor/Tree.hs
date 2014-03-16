@@ -39,7 +39,7 @@ instance Show Tree where
             in (if Set.member mite allActive then "*" else "") ++ patched
         allActive = allActiveMiteSet tree
         spine = activeBase allActive
-    in "\n" ++ inner tree "" True True
+    in "\n" ++ inner tree "." True True
 
 justLeft tree = fromJust $ left tree
 justRight tree = fromJust $ right tree

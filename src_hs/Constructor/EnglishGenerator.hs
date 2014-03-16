@@ -91,7 +91,9 @@ np_internal nom mayHaveDeterminer frame = do
     else if hasType "SHE" frame then if nom then return "she" else return "her"
     else if hasType "THEY" frame then if nom then return "they" else return "them"
     else if hasType "WE" frame then if nom then return "we" else return "us"
-    else if hasType "wh" frame then return $ if isJust $ usage "arg1" frame >>= usage "content" >>= usage "relative"  then "that" else "what"
+    else if hasType "wh" frame then return $
+      if isJust $ usage "arg1" frame >>= usage "content" >>= usage "relative" then "that"
+      else if Just "true" == sValue "animate" frame then "who" else "what"
     else do
       let n = noun (getType frame) frame
           adjs = foldl cat "" $ adjectives frame
@@ -412,19 +414,20 @@ vp fVerb verbForm subject = do
         Just s -> s
         _ -> ""
       cp = usage "content" fVerb
-      inverted = Just True == fmap (hasType "question") cp && Just "true" == (cp >>= sValue "question_mark") && (cp >>= fValue "questioned") /= fValue "arg1" fVerb
+      nonSubjectQuestion = Just True == fmap (hasType "question") cp && (cp >>= fValue "questioned") /= fValue "arg1" fVerb
+      inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue "question_mark")
       sVerb = if isVerbEllipsis fVerb then if verbForm == PastVerb then "did" else "does"
               else verb (if null aux then verbForm else BaseVerb) fVerb
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         Just "MOVE" -> (if Just "SLIGHTLY" == sValue "manner" fVerb then "slightly" else "") `cat` "back and forth"
         _ -> ""
-      whWord = if Just True == (fmap isQuestioned $ fValue "arg2" fVerb) then "what" else ""
       negation = if sValue "negated" fVerb == Just "true" && isGerund fVerb then "not" else ""
       aux =
         if isGerund fVerb && isNothing (usage "content" fVerb >>= usage "member2") then beForm (fValue "arg1" fVerb) verbForm
         else if inverted then "did"
         else ""
+  whWord <- if nonSubjectQuestion then np False (cp >>= fValue "questioned") else return ""
   controlled <- case getType fVerb of
     Just "CAN" -> case fValue "theme" fVerb of
       Just slave -> vp slave BaseVerb ""

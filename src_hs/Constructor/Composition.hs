@@ -81,7 +81,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (DirectSpeechHead head Nothing, Colon "directSpeech" v) -> left [mite $ DirectSpeechHead head $ Just v, semV head "message" v]
       --(DirectSpeechHead head (Just v), DirectSpeech v1) -> left [mite $ Unify v v1]
       (DirectSpeechDash v, Sentence cp) -> left [mite $ DirectSpeech cp, semS cp "directSpeech" "true"]
-      (Colon "elaboration" _, Clause _ cp) -> left [mite $ Elaboration cp]
+      (Colon "elaboration" _, Clause Declarative cp) -> left [mite $ Elaboration cp]
       (Verb head, Elaboration child) -> left [semV head "elaboration" child, mite $ Unclosed (cxt m2)]
       (CompHead comp, CommaSurrounded True _ (Complement cp)) -> left [mite $ Unify comp cp]
       (RelativeHead noun, CommaSurrounded True _ (RelativeClause cp)) -> left [semV noun "relative" cp]

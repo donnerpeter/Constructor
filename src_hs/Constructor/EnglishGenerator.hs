@@ -309,6 +309,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "GET_SAD" -> "got sad"
   "SAY" -> if isJust $ fValue "addressee" frame then "told" else "said"
   "LACK" -> "were void of"
+  "MEANINGLESS" -> "were meaningless"
   "MOVE" -> "moved"
   "copula" -> beForm (fValue "arg1" frame) (if sValue "time" frame /= Just "PAST" then BaseVerb else verbForm)
   typ -> typ

@@ -375,7 +375,7 @@ var9 = TestLabel "sonnetVariations 9" $ TestList [
                 "Her words seemed meaningless to us"
   ,
   -- 9_2Smart
-  translateTest "Ее речь нам кажется умной"
+  translateTest "Ее речь нам кажется умной."
                 "Her speech seems clever to us."
   ,
   -- 9_SmartUsPrefix

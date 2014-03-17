@@ -110,6 +110,7 @@ wordMites word index =
   "или" -> conjunction v0 "or" True
   "их" -> xor [pronoun Acc A.pl "THEY" v, [semT v0 "THEY", mite $ Possessive Nom A.sg v0], [semT v0 "THEY", mite $ Possessive Nom A.pl v0]] -- todo empty agr
   "к" -> preposition "k" Dat v
+  "кажется" -> raisingVerb "SEEM" "PRESENT" A.sg3 v ++ optional (arg Dat "experiencer" v)
   "как" -> [mite $ TwoWordCxt "так как" False [] v0]
   "каково" -> 
     -- todo wh-questions with каково
@@ -185,6 +186,7 @@ wordMites word index =
   "разошлись" -> finVerb "DISPERSE" "PAST" A.pl v ++ arg (PP "po" Dat) "goal" v
   "раньше" -> xor [[mite $ Argument ScalarAdverb v0, semT v0 "EARLIER"], semPreposition "ranshe" Gen "BEFORE" "anchor" v]
   "ребенок" -> nounSg Nom Masc "CHILD" v
+  "речь" -> nounSg Nom Fem "SPEECH" v ++ genHead "arg1" v
   "рта" -> nounSg Gen Masc "MOUTH" v
   "с" -> preposition "s" Instr v
   "сад" -> nounSg Acc Masc "GARDEN" v
@@ -233,6 +235,7 @@ wordMites word index =
   "улиц" -> nounPl Gen "STREETS" v
   "улицы" -> nounSg Gen Fem "STREET" v
   "улыбнулась" -> finVerb "SMILE" "PAST" A.f v
+  "умной" -> [mite $ Raiseable A.f v0, semT v0 "CLEVER"]
   "челюсти" -> nounSg Gen Fem "JAW" v
   "челюсть" -> nounSg Acc Fem "JAW" v
   "челюстью" -> nounSg Instr Fem "JAW" v

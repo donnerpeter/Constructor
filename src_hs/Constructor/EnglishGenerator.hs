@@ -146,7 +146,7 @@ streetName frame = case sValue "name" frame of
 
 isDeterminerOpinion frame = all (hasAnyType ["ME", "THEY", "HE", "SHE"]) (flatten $ fValue "arg1" frame)
 determiner frame nbar =
-  let det = if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "ARGUE", "FINGER"] frame then fValue "arg1" frame
+  let det = if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "ARGUE", "FINGER", "SPEECH"] frame then fValue "arg1" frame
             else if hasAnyType ["OPINION"] frame && isDeterminerOpinion frame then fValue "arg1" frame
             else if hasAnyType ["WORDS"] frame then fValue "author" frame
             else Nothing
@@ -200,6 +200,7 @@ noun (Just typ) frame = case typ of
   "PREDICAMENT" -> "predicament"
   "JOY" -> "joy"
   "RELIEF" -> "relief"
+  "SPEECH" -> "speech"
   "SHOP" -> "store"
   "CORNER" -> "corner"
   "STREET" -> "street"
@@ -309,7 +310,9 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "GET_SAD" -> "got sad"
   "SAY" -> if isJust $ fValue "addressee" frame then "told" else "said"
   "MOVE" -> "moved"
-  "SEEM" -> if isJust (usage "content" frame >>= usage "reason") then "were" else "seemed"
+  "SEEM" -> if isJust (usage "content" frame >>= usage "reason") then
+     if verbForm == PastVerb then "were" else "is"
+   else if verbForm == PastVerb then "seemed" else "seems"
   "copula" -> beForm (fValue "arg1" frame) (if sValue "time" frame /= Just "PAST" then BaseVerb else verbForm)
   typ -> typ
 
@@ -497,6 +500,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       ("SEEM", "theme") ->
         if hasType "LACK" value then [PPArg "void of" (fromJust $ fValue "theme" value)]
         else if hasType "MEANINGLESS" value then [Adverb "meaningless"]
+        else if hasType "CLEVER" value then [Adverb "clever"]
         else [Adverb (fromMaybe "??" $ getType value)]
       ("DISPERSE", "goal") -> if hasType "HOMES" value then [Adverb "home"] else [PPArg "to" value]
       (_, "goal") -> [PPArg "to" value]

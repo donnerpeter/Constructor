@@ -171,7 +171,7 @@ wordMites word index =
   "поводу" -> nounSg Dat Masc "MATTER" v
   "подвигав" -> perfectBackground "MOVE" v ++ arg Instr "arg2" v
   "подвигала" -> finVerb "MOVE" "PAST" A.f v ++ arg Instr "arg2" v
-  "показались" -> raisingVerb "SEEM" "PAST" A.pl v ++ arg Dat "experiencer" v
+  "показались" -> raisingVerb "SEEM" "PAST" A.pl v ++ optional (arg Dat "experiencer" v)
   "поливать" -> infinitive "TO_WATER" v ++ directObject v
   "помнит" -> finVerb "REMEMBER" "PRESENT" A.sg3 v ++ directObject v
   "помнят" -> finVerb "REMEMBER" "PRESENT" A.pl3 v ++ directObject v

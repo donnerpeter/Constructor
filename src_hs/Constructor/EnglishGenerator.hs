@@ -308,9 +308,8 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "TAKE_OUT" -> "took"
   "GET_SAD" -> "got sad"
   "SAY" -> if isJust $ fValue "addressee" frame then "told" else "said"
-  "LACK" -> "were void of"
-  "MEANINGLESS" -> "were meaningless"
   "MOVE" -> "moved"
+  "SEEM" -> if isJust (usage "content" frame >>= usage "reason") then "were" else "seemed"
   "copula" -> beForm (fValue "arg1" frame) (if sValue "time" frame /= Just "PAST" then BaseVerb else verbForm)
   typ -> typ
 
@@ -339,10 +338,11 @@ clause fVerb = do
                    else ""
     let verbForm = if past state then PastVerb else if Just True == fmap (hasAnyType ["HE", "SHE"]) fSubject then Sg3Verb else BaseVerb
         isModality = hasType "modality" fVerb
-        fSubject = if isModality then fValue "theme" fVerb >>= fValue "arg1" else fValue "arg1" fVerb
+        isRaising = hasType "SEEM" fVerb
+        fSubject = if isModality || isRaising then fValue "theme" fVerb >>= fValue "arg1" else fValue "arg1" fVerb
     subject <- case fSubject of
       Just f ->
-        if [fVerb] `isPrefixOf` (usages "arg1" f) || isModality then np True fSubject
+        if [fVerb] `isPrefixOf` (usages "arg1" f) || isModality || isRaising then np True fSubject
         else if (isJust $ fValue "perfectBackground" fVerb) then return $ if sValue "rusGender" f == Just "Masc" then "he" else "she"
         else return ""
       _ -> return ""
@@ -404,9 +404,7 @@ clause fVerb = do
             _ -> return ""
           _ -> return ""
     reasonComp <- case fValue "reason" fVerb of
-      Just fComp -> if (fValue "content" fComp >>= getType) == Just "SEEM" && isJust (fValue "content" fComp >>= fValue "theme")
-        then do frameGenerated fComp; return "because" `catM` clause (fromJust $ fValue "content" fComp >>= fValue "theme")
-        else return "because" `catM` sentence fComp
+      Just fComp -> return "because" `catM` sentence fComp
       _ -> return ""
     questionVariants <- case fmap (\subj -> (getType subj, fValue "variants" subj)) fSubject of
       Just (Just "wh", Just variants) -> (return "-") `catM` (np True (Just variants))
@@ -495,6 +493,11 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       ("LACK", "theme") -> [NPArg value]
       ("DISTRACT", "theme") -> [PPArg "from" value]
       ("THINK", "topic") -> [PPArg "on" value]
+      ("SEEM", "experiencer") -> if isJust (usage "content" fVerb >>= usage "reason") then [] else [PPAdjunct "to" value]
+      ("SEEM", "theme") ->
+        if hasType "LACK" value then [PPArg "void of" (fromJust $ fValue "theme" value)]
+        else if hasType "MEANINGLESS" value then [Adverb "meaningless"]
+        else [Adverb (fromMaybe "??" $ getType value)]
       ("DISPERSE", "goal") -> if hasType "HOMES" value then [Adverb "home"] else [PPArg "to" value]
       (_, "goal") -> [PPArg "to" value]
       (_, "mood") -> case getType value of

@@ -463,15 +463,23 @@ vp fVerb verbForm subject = do
       Just slave -> vp slave Gerund ""
       _ -> return ""
     _ -> return ""
-  args <- if isVerbEllipsis fVerb then return "" else foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) (arguments fVerb)
+  let args = arguments fVerb
+  let topicalizedArg = case (getType fVerb, fValue "theme" fVerb >>= fValue "arg1", args) of
+        (Just "SEEM", Just subj, hd@(PPAdjunct _ value):_) | earlier value "type" fVerb "type" && earlier value "type" subj "type" -> Just hd
+        _ -> Nothing
+  let otherArgs = fromMaybe args $ fmap (flip Data.List.delete args) topicalizedArg
+  sArgs <- if isVerbEllipsis fVerb then return "" else foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) otherArgs
+  sTopicalized <- case topicalizedArg of
+    Just arg -> generateArg arg `catM` return ","
+    _ -> return ""
   let contracted = if null preAdverb && null negation && null aux && null according then
                      if sVerb == "am" then subject ++ "'m"
                      else if sVerb == "is" then subject ++ "'s"
                      else subject `cat` sVerb
                    else (if inverted then according `cat` aux `cat` negation `cat` subject else subject `cat` according `cat` aux `cat` negation) `cat` preAdverb `cat` sVerb
-  return $ whWord `cat` contracted `cat` controlled `cat` args `cat` finalAdverb
+  return $ sTopicalized `cat` whWord `cat` contracted `cat` controlled `cat` sArgs `cat` finalAdverb
 
-data Argument = Adverb String | NPArg Frame | PPArg String Frame | PPAdjunct String Frame
+data Argument = Adverb String | NPArg Frame | PPArg String Frame | PPAdjunct String Frame deriving (Eq)
 
 arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ ->
   allFrameFacts fVerb >>= \ Fact { attrName = attr, value = semValue} ->

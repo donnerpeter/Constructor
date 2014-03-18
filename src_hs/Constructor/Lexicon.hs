@@ -28,7 +28,7 @@ clause v = [mite $ Verb (v "")] ++
                 [semV (v "cp") "content" (v "")]
 infinitive typ v =
   [semT (v "x") typ] ++ optional (arg Dat "arg1" $ modifyV v 'x') ++
-  xor [[mite $ ControlledInfinitive $ v "", mite $ Unify (v "") (v "x"), mite $ Verb (v "")],
+  xor [[mite $ ControlledInfinitive $ v "", mite $ Unify (v "") (v "x")],
        [mite $ ModalityInfinitive (v ""), semT (v "") "modality", semV (v "") "theme" (v "x")] ++ clause v]
 arg argType relation v = [mite $ ArgHead argType (v relation), semV (v "") relation (v relation)]
 whWord v = [mite $ Wh (v "") (v "cp"), mite $ QuestionVariants (Just $ v "") Nothing,  semT (v "") "wh"]

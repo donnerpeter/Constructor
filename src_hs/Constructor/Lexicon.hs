@@ -147,7 +147,7 @@ wordMites word index =
   "недоумении" -> nounSg Prep Neu "PREDICAMENT" v ++ genHead "arg1" v
   "но" ->  xor [conjunction v0 "but" False, [mite $ ConjEmphasis "butEmphasis" v0]]
   "носом" -> nounSg Instr Masc "NOSE" v
-  "нужно" -> [semT v0 "NEED", mite $ NomHead A.n (v "arg2") False, semV v0 "arg2" (v "arg2")] ++ optional (arg Dat "arg1" v) ++ clause v
+  "нужно" -> [semT v0 "NEED", mite $ NomHead A.n (v "arg2") False, semV v0 "arg2" (v "arg2"), mite $ Copula v0] ++ optional (arg Dat "arg1" v) ++ clause v
   "о" -> preposition "o" Prep v
   "обе" -> numQuantifier Acc Gen v ++ [semT (v "q") "BOTH"]
   "облегчением" -> nounSg Instr Neu "RELIEF" v ++ optional [mite $ PrepositionActivator "s" Instr [VerbalModifier "mood" False v0]]

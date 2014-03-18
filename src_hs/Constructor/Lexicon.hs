@@ -179,6 +179,7 @@ wordMites word index =
   "порядок" -> nounSg Acc Masc "ORDER" v ++ genHead "arg1" v
   "после" -> semPreposition "posle" Gen "AFTER" "anchor" v
   "потом" -> adverb "relTime" "AFTER"
+  "потому" -> [mite $ TwoWordCxt "потому что" True [ReasonComp v0 False] v0]
   "приуныли" -> finVerb "GET_SAD" "PAST" A.pl v
   "просто" -> adverb "manner" "JUST"
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ arg (PP "v" Acc) "goal" v
@@ -242,7 +243,8 @@ wordMites word index =
   "челюсть" -> nounSg Acc Fem "JAW" v
   "челюстью" -> nounSg Instr Fem "JAW" v
   "что" -> xor [whWord v ++ xor [[mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.n3], [mite $ Argument Acc v0, mite $ AdjHead v0 Acc A.n3]],
-                [mite $ Complementizer v0]]
+                [mite $ Complementizer v0],
+                [mite $ TwoWordCxt "потому что" False [] v0]]
   "шести" -> wordNumber Gen "6" v
   "это" -> xor [pronoun Nom (A.Agr (Just A.Neu) A.Sg $ Just 3) "THIS" v, pronoun Acc (A.Agr (Just A.Neu) A.Sg $ Just 3) "THIS" v]
   "этому" -> adj Dat A.sg "determiner" "THIS" v

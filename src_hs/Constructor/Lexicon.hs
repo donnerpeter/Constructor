@@ -204,6 +204,7 @@ wordMites word index =
   "сказала" -> finVerb "SAY" "PAST" A.f v ++ optional (arg Dat "addressee" v) ++ xor [[mite $ DirectSpeechHead v0 Nothing], directObject v, compHead "message" v]
   "сказали" -> finVerb "SAY" "PAST" A.pl v ++ optional (arg Dat "addressee" v) ++ xor [[mite $ DirectSpeechHead v0 Nothing], directObject v, compHead "message" v]
   "скамейки" -> nounSg Gen Fem "BENCH" v
+  "скромному" -> adj Dat A.n "quality" "HUMBLE" v
   "слегка" -> adverb "manner" "SLIGHTLY"
   "следовало" -> finVerb "COME_SCALARLY" "PAST" A.n3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v]
   "слова" -> xor [nounPl Nom "WORDS" v, nounPl Acc "WORDS" v] ++ genHead "author" v

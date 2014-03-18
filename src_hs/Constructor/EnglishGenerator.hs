@@ -127,9 +127,10 @@ np_internal nom mayHaveDeterminer frame = do
   relative <- fromMaybe (return "") $ liftM (catM $ return ", the one") $ fmap sentence $ fValue "relative" frame
   return $ preQuantifier `cat` unquantified `cat` postQuantifier `cat` relative
 
-adjectives nounFrame = catMaybes [property, kind, shopKind, size] where
+adjectives nounFrame = catMaybes [property, kind, shopKind, size, quality] where
   property = fValue "property" nounFrame >>= getType >>= \p -> if p == "AMAZING" then Just "amazing" else Nothing
   kind = fValue "kind" nounFrame >>= getType >>= \p -> if p == "COMMERCIAL" then Just "commercial" else Nothing
+  quality = fValue "quality" nounFrame >>= getType >>= \p -> if p == "HUMBLE" then Just "humble" else Nothing
   shopKind = sValue "name" nounFrame >>= \p -> if p == "гастроном" then Just "grocery" else Nothing
   size = fValue "size" nounFrame >>= getType >>= \p ->
     if p == "LITTLE" then Just "small"

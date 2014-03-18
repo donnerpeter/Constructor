@@ -100,7 +100,8 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (Copula v0, CopulaTense v1) -> left [mite $ Unify v0 v1]
       (CopulaTense v0, Copula v1) -> right [mite $ Unify v0 v1]
       (CopulaTense v1, ModalityInfinitive v2) -> right [mite $ Unify v1 v2]
-      
+      (ModalityInfinitive v2, CopulaTense v1) -> left [mite $ Unify v1 v2]
+
       (ConditionComp v0 s False, Clause Declarative cp) -> left [mite $ Unify v0 cp, mite $ ConditionComp v0 s True]
       (ConditionCompHead head, CommaSurrounded True _ (ConditionComp cp cond _)) -> left [semV head (cond++"Condition") cp]
       (Verb head, CommaSurrounded True _ (ConditionComp cp cond _)) -> left [semV head (cond++"Condition") cp]

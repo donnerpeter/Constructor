@@ -436,18 +436,6 @@ var10 = TestLabel "sonnetVariations 10" $ TestList [
   translateTest "Что я делал?"
                 "What did I do?"
   ,
-  -- 10_NothingToDoPast
-  translateTest "Делать нам было нечего"
-                "We had nothing to do"
-  ,
-  -- 10_NothingToDo
-  translateTest "Делать нам нечего"
-                "We have nothing to do"
-  ,
-  -- 10_SomethingToDo
-  translateTest "Нам есть, что делать"
-                "We have something to do"
-  ,
   -- 10_INeedPast
   translateTest "Что мне было нужно?"
                 "What did I need?"

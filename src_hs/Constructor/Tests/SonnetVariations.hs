@@ -384,11 +384,11 @@ var9 = TestLabel "sonnetVariations 9" $ TestList [
   ,
   -- 9_GotSadThinkingNeighbors
   translateTest "Мы опять приуныли, вдумываясь в слова соседей"
-                "We got sad again, thinking carefully about neighbours' words"
+                "We got sad again, thinking carefully about neighbors' words"
   ,
   -- 9_GotSadThinkingNeighbor
   translateTest "Мы опять приуныли, вдумываясь в слова соседа"
-                "We got sad again, thinking carefully about neighbour's words"
+                "We got sad again, thinking carefully about neighbor's words"
   ,
   -- 9_12WePrefix
   translateTest "Мы приуныли, так как нам ее слова показались лишенными всякого смысла"

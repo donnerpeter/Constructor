@@ -211,6 +211,8 @@ wordMites word index =
   "случился" -> finVerb "HAPPEN" "PAST" A.m v ++ arg (PP "s" Instr) "experiencer" v
   "смысла" -> nounSg Gen Masc "MEANING" v
   "со" -> xor [preposition "s" Instr v, preposition "s" Gen v]
+  "соседа" -> nounSg Gen Masc "NEIGHBOR" v
+  "соседей" -> nounPl Gen "NEIGHBORS" v
   "соседям" -> nounPl Dat "NEIGHBORS" v
   "спора" -> nounSg Gen Masc "ARGUE" v ++ genHead "arg1" v
   "спорили" -> finVerb "ARGUE" "PAST" A.pl v

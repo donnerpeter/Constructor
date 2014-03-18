@@ -164,7 +164,9 @@ determiner frame nbar =
                Just "Fem" -> "her"
                Just "Neu" -> "its"
                _ -> s
-            else return s
+            else do
+              sDet <- np_internal False False det
+              return $ if "s" `isSuffixOf` sDet then sDet ++ "'" else sDet ++ "'s"
           _ -> return "???det"
   in
   case det of
@@ -190,6 +192,7 @@ noun (Just typ) frame = case typ of
   "ME" -> "me"
   "HE" -> "he"
   "NEIGHBORS" -> "neighbors"
+  "NEIGHBOR" -> "neighbor"
   "TREES" -> "trees"
   "MATTER" -> "matter"
   "AMAZE" -> "amazement"
@@ -368,12 +371,11 @@ clause fVerb = do
           _ -> Nothing
     background <- case fValue "perfectBackground" fVerb of
       Just back -> case getType back of
-        -- todo vary perfectBackground constituents
         Just "MOVE" -> do
           let slightly = if Just "SLIGHTLY" == sValue "manner" back then "slightly" else ""
           moved <- np False (fValue "arg2" back)
           return $ "moving" `cat` moved `cat` slightly `cat` "back and forth"
-        Just "THINK" -> return "thinking carefully about cashier's words"
+        Just "THINK" -> return "thinking carefully about" `catM` np False (fValue "theme" back)
         Just "COME_TO" ->
           let domain = case fValue "domain" back of
                          Just dom | isJust (sValue "type" dom) -> return "in" `catM` np False (Just dom)

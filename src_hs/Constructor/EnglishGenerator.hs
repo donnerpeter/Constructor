@@ -292,6 +292,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "COME_SCALARLY" -> if sValue "time" frame == Just "PAST" then "went" else "comes"
   "DISCOVER" -> "discovered"
   "DISTRACT" -> "distracted"
+  "NEED" -> "need"
   "DISPERSE" -> "went"
   "THINK" -> if verbForm == BaseVerb then "think" else "thinking"
   "SIT" -> "sitting"

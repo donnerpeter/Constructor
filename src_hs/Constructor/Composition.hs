@@ -64,6 +64,11 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (Verb head, Adverb attr val) -> left [semS head attr val]
       (AdjHead head _ _, NounAdjunct var) -> left [mite $ Unify head var]
 
+      (Quantifier kind1 agr1 v1, Argument kind2 v2) | kind1 == kind2 -> rightMites >>= \m3 -> case cxt m3 of
+        AdjHead v3 kind3 agr2 | kind3 == kind1 && agree agr1 agr2 && v2 == v3 && not (contradict m2 m3) ->
+          [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2]) LeftSide]
+        _ -> []
+
       (ArgHead kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left $ argVariants var1 var2 leftMites rightMites
       (Argument kind2 var2, ArgHead kind1 var1) | kind1 == kind2 -> right $ argVariants var1 var2 rightMites leftMites
 

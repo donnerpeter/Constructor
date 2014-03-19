@@ -150,6 +150,7 @@ determiner frame nbar =
   let det = if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "ARGUE", "FINGER", "SPEECH"] frame then fValue "arg1" frame
             else if hasAnyType ["OPINION"] frame && isDeterminerOpinion frame then fValue "arg1" frame
             else if hasAnyType ["WORDS"] frame then fValue "author" frame
+            else if hasAnyType ["CASHIER"] frame then fValue "place" frame
             else Nothing
       genitiveSpecifier det =
         case getType det of
@@ -166,8 +167,9 @@ determiner frame nbar =
                Just "Neu" -> "its"
                _ -> s
             else do
-              sDet <- np_internal False False det
-              return $ if "s" `isSuffixOf` sDet then sDet ++ "'" else sDet ++ "'s"
+              let human = isHuman det
+              sDet <- np_internal False (not human) det
+              return $ if human then if "s" `isSuffixOf` sDet then sDet ++ "'" else sDet ++ "'s" else sDet
           _ -> return "???det"
   in
   case det of

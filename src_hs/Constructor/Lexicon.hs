@@ -116,10 +116,10 @@ wordMites word index =
     -- todo wh-questions with каково
     finiteClause A.n3 True v ++ [mite $ Copula v0, semT (v "wh") "wh", semT v0 "degree", semV v0 "arg2" (v "wh"), mite $ ShortAdj (v "wh")]
   "какой-то" -> adj Nom A.sg "determiner" "SOME" v
-  "кассир" -> nounSg Nom Masc "CASHIER" v
-  "кассирша" -> nounSg Nom Fem "CASHIER" v
-  "кассирши" -> nounSg Gen Fem "CASHIER" v
-  "кассиршу" -> nounSg Acc Fem "CASHIER" v
+  "кассир" -> nounSg Nom Masc "CASHIER" v ++ genHead "place" v
+  "кассирша" -> nounSg Nom Fem "CASHIER" v ++ genHead "place" v
+  "кассирши" -> nounSg Gen Fem "CASHIER" v ++ genHead "place" v
+  "кассиршу" -> nounSg Acc Fem "CASHIER" v ++ genHead "place" v
   "кого" -> whWord v ++ [mite $ Argument Acc v0, mite $ AdjHead v0 Acc A.sg, semS v0 "animate" "true"]
   "когда" -> [mite $ ConditionComp v0 "when" False] -- todo wh-questions with когда
   "коммерческий" -> adj Acc A.m "kind" "COMMERCIAL" v

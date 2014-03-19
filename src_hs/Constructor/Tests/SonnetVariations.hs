@@ -574,7 +574,7 @@ var12 = TestLabel "sonnetVariations 12" $ TestList [
   ,
   -- 12_OpinionCoordinationWithWords
   translateTest "По словам кассирши и по мнению других, 7 идет раньше 8"
-                "According to the cashier and in opinion of others, a 7 comes before an 8"
+                "According to the cashier and in the opinion of others, a 7 comes before an 8"
   ,
   -- 12_OpinionCoordinationWithWords_SamePerson_RepeatedPreposition
   translateTest "По словам и по мнению кассирши, 7 идет раньше 8"

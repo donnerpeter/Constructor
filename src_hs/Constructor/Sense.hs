@@ -1,12 +1,13 @@
 module Constructor.Sense 
   (Sense(..), Frame(..), Fact(..),
   fValue, sValue,
-   fDeclaredValue, sDeclaredValue,
+  fDeclaredValue, sDeclaredValue,
   usages, usage, 
   getType, hasType, hasAnyType, resolve,
   earlier,
   allFrames, allFrameFacts,
   flatten, isNumber, unSeq,
+  isHuman,
   makeSense)
   where
 
@@ -155,6 +156,8 @@ resolve frame = case (getType frame, fValue "target" frame) of
   _ -> frame
 
 isNumber frame = any (\f -> sValue "number" f == Just "true") $ flatten frame
+
+isHuman frame = hasAnyType ["NEIGHBOR", "NEIGHBORS", "CASHIER"] frame
 
 unSeq frame = case msum [usage "member1" frame, usage "member2" frame] of
   Just s -> unSeq s

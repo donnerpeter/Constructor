@@ -187,7 +187,7 @@ wordMites word index =
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ arg (PP "v" Acc) "goal" v
   "радостью" -> nounSg Instr Fem "JOY" v ++ optional [mite $ PrepositionActivator "s" Instr [VerbalModifier "mood" False v0]]
   "разошлись" -> finVerb "DISPERSE" "PAST" A.pl v ++ arg (PP "po" Dat) "goal" v
-  "раньше" -> xor [[mite $ Argument ScalarAdverb v0, semT v0 "EARLIER"], semPreposition "ranshe" Gen "BEFORE" "anchor" v]
+  "раньше" -> xor [[mite $ Argument ScalarAdverb v0, semT v0 "EARLIER"], semPreposition "ranshe" Gen "BEFORE" "anchor" v, adverb "relTime" "BEFORE"]
   "ребенок" -> nounSg Nom Masc "CHILD" v
   "речь" -> nounSg Nom Fem "SPEECH" v ++ genHead "arg1" v
   "рта" -> nounSg Gen Masc "MOUTH" v

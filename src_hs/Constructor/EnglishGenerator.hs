@@ -347,6 +347,7 @@ clause fVerb = do
     let emphasis = if (fValue "optativeModality" fVerb >>= getType) == Just "LUCK" then "by some sheer luck,"
                   else if sValue "emphasis" fVerb == Just "true" then "there"
                    else if sValue "relTime" fVerb == Just "AFTER" then "then"
+                   else if sValue "relTime" fVerb == Just "BEFORE" then "before,"
                    else ""
     let verbForm = if past state then PastVerb else if Just True == fmap (hasAnyType ["HE", "SHE"]) fSubject then Sg3Verb else BaseVerb
         isModality = hasType "modality" fVerb

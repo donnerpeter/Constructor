@@ -2,7 +2,6 @@ module Constructor.Tree where
 
 import Data.Maybe
 import Data.List
-import Debug.Trace
 import Data.Function (on)
 import qualified Data.Set as Set
 import qualified Data.Map as Map
@@ -118,17 +117,22 @@ branchAVs leftChild rightChild headSide activeSets = {-traceShow ("-------------
   rightAVs = filter (null . avUnhappyLeft) (avs rightChild)
   allAVCandidates = {-traceShow ("-------------------leftAVs", leftAVs) $ -}do
     active <- activeSets
-    let covered = LS.removeDups [mite | activeMite <- active, mite <- baseMites activeMite]
+    let covered = base active
+        base mites = LS.removeDups [mite | activeMite <- mites, mite <- baseMites activeMite]
         isUncovered mite = not $ mite `elem` covered
-    aLeft <- {-traceShow ("----------------active", length activeSets, active) $ -}leftAVs
+        unhappyBase = Set.fromList $ filter (not . happy) covered
+        isCompatible av = not $ any (flip Set.member unhappyBase) $ base $ activeHeadMites av
+    aLeft <- {-trace ("----------------active", length activeSets, active) $ -}leftAVs
+    if not (isCompatible aLeft) then [] else do
     let leftChildCandidate = applyAV aLeft leftChild
     let missingInLeft = filter (not . flip Set.member (allActiveMiteSet leftChildCandidate)) covered
     aRight <- rightAVs
+    if not (isCompatible aRight) then [] else do
     let rightChildCandidate = applyAV aRight rightChild
     let missingInRight = filter (not . flip Set.member (allActiveMiteSet rightChildCandidate)) missingInLeft
-    if {-traceShow ("-----------checkRight", active) $ traceShow ("missingInRight", missingInRight) $ -}null missingInRight
+    if {-trace ("-----------checkRight", active) $ traceShow ("missingInRight", missingInRight) $ -}null missingInRight
     then
-      let childrenActive = {-traceShow ("ok") $ -}Set.union (avAllActive aLeft) (avAllActive aRight) in
+      let childrenActive = {-trace ("ok", active) $ -}Set.union (avAllActive aLeft) (avAllActive aRight) in
       return $ ActiveVariant {
         avMites = active,
         avLeft = Just leftChildCandidate,
@@ -146,7 +150,7 @@ branchAVs leftChild rightChild headSide activeSets = {-traceShow ("-------------
     inHead = avMites av ++ headMites (if headSide == LeftSide then leftChild else rightChild)
   leastUnhappy avs = head $ sortAVs avs
   in
-  {-traceShow ("branchAVs", result) $ -}result
+  {-trace ("branchAVs", result) $ -}result
 
 treeWidth tree = if isBranch tree then treeWidth (justLeft tree) + treeWidth (justRight tree) else 1
 

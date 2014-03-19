@@ -327,11 +327,14 @@ conjIntroduction fVerb =
    else ""
 
 generateAccording fVerb = case fValue "accordingTo" fVerb of
-  Just source | hasType "OPINION" source -> do
+  Just source -> do
     state <- get
-    let comma = if isVerbEllipsis fVerb && fValue "arg1" fVerb == (usage "content" fVerb >>= fValue "ellipsisAnchor2") then "" else ","
     if Set.member source (visitedFrames state) then return ""
-    else return "in" `catM` np False (Just source) `catM` return comma
+    else case getType source of
+      Just "OPINION" ->
+        let comma = if isVerbEllipsis fVerb && fValue "arg1" fVerb == (usage "content" fVerb >>= fValue "ellipsisAnchor2") then "" else ","
+        in return "in" `catM` np False (Just source) `catM` return comma
+      Just "WORDS" -> return "according to" `catM` np False (fValue "author" source) `catM` return ","
   _ -> return ""
 
 clause :: Frame -> State GenerationState String
@@ -342,7 +345,7 @@ clause fVerb = do
     state <- get
     let intro = conjIntroduction fVerb
     let emphasis = if (fValue "optativeModality" fVerb >>= getType) == Just "LUCK" then "by some sheer luck,"
-                   else if sValue "emphasis" fVerb == Just "true" then "there"
+                  else if sValue "emphasis" fVerb == Just "true" then "there"
                    else if sValue "relTime" fVerb == Just "AFTER" then "then"
                    else ""
     let verbForm = if past state then PastVerb else if Just True == fmap (hasAnyType ["HE", "SHE"]) fSubject then Sg3Verb else BaseVerb

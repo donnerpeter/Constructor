@@ -330,12 +330,14 @@ generateAccording fVerb = case fValue "accordingTo" fVerb of
   Just source -> do
     state <- get
     if Set.member source (visitedFrames state) then return ""
-    else case getType source of
-      Just "OPINION" ->
-        let comma = if isVerbEllipsis fVerb && fValue "arg1" fVerb == (usage "content" fVerb >>= fValue "ellipsisAnchor2") then "" else ","
-        in return "in" `catM` np False (Just source) `catM` return comma
-      Just "WORDS" -> return "according to" `catM` np False (fValue "author" source) `catM` return ","
+    else handleSeq oneOpinion (Just source) `catM` return comma
   _ -> return ""
+  where
+    comma = if isVerbEllipsis fVerb && fValue "arg1" fVerb == (usage "content" fVerb >>= fValue "ellipsisAnchor2") then "" else ","
+    oneOpinion source = case getType source of
+      Just "OPINION" -> return "in" `catM` np False (Just source)
+      Just "WORDS" -> return "according to" `catM` np False (fValue "author" source)
+      s -> return $ show s
 
 clause :: Frame -> State GenerationState String
 clause fVerb = do

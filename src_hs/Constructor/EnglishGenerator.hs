@@ -329,8 +329,9 @@ conjIntroduction fVerb =
 generateAccording fVerb = case fValue "accordingTo" fVerb of
   Just source | hasType "OPINION" source -> do
     state <- get
+    let comma = if isVerbEllipsis fVerb && fValue "arg1" fVerb == (usage "content" fVerb >>= fValue "ellipsisAnchor2") then "" else ","
     if Set.member source (visitedFrames state) then return ""
-    else return "in" `catM` np False (Just source) `catM` return (if isVerbEllipsis fVerb then "" else ",")
+    else return "in" `catM` np False (Just source) `catM` return comma
   _ -> return ""
 
 clause :: Frame -> State GenerationState String
@@ -350,7 +351,8 @@ clause fVerb = do
         fSubject = if isModality || isRaising then fValue "theme" fVerb >>= fValue "arg1" else fValue "arg1" fVerb
     subject <- case fSubject of
       Just f ->
-        if [fVerb] `isPrefixOf` (usages "arg1" f) || isModality || isRaising then np True fSubject
+        if isVerbEllipsis fVerb && fSubject /= (usage "content" fVerb >>= fValue "ellipsisAnchor2") then return "it"
+        else if [fVerb] `isPrefixOf` (usages "arg1" f) || isModality || isRaising then np True fSubject
         else if (isJust $ fValue "perfectBackground" fVerb) then return $ if sValue "rusGender" f == Just "Masc" then "he" else "she"
         else return ""
       _ -> return ""
@@ -444,7 +446,8 @@ vp fVerb verbForm subject = do
       fSubject = fValue "arg1" fVerb
       nonSubjectQuestion = Just True == fmap (hasType "question") cp && (cp >>= fValue "questioned") /= fSubject
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue "question_mark")
-      sVerb = if isVerbEllipsis fVerb then if verbForm == PastVerb then "did" else "does"
+      sVerb = if isVerbEllipsis fVerb && fSubject == (cp >>= fValue "ellipsisAnchor2")
+              then if verbForm == PastVerb then "did" else "does"
               else verb (if null aux then verbForm else if isGerund fVerb then Gerund else BaseVerb) fVerb
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
@@ -472,7 +475,7 @@ vp fVerb verbForm subject = do
         (Just "SEEM", Just subj, hd@(PPAdjunct _ value):_) | earlier value "type" fVerb "type" && earlier value "type" subj "type" -> Just hd
         _ -> Nothing
   let otherArgs = fromMaybe args $ fmap (flip Data.List.delete args) topicalizedArg
-  sArgs <- if isVerbEllipsis fVerb then return "" else foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) otherArgs
+  sArgs <- foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) otherArgs
   sTopicalized <- case topicalizedArg of
     Just arg -> generateArg arg `catM` return ","
     _ -> return ""
@@ -488,10 +491,12 @@ data Argument = Adverb String | NPArg Frame | PPArg String Frame | PPAdjunct Str
 arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ ->
   allFrameFacts fVerb >>= \ Fact { attrName = attr, value = semValue} ->
   case semValue of
-    VarValue v -> let value = Frame v (sense fVerb) in case (typ, attr) of
+    VarValue v -> let value = Frame v (sense fVerb) in
+     if isVerbEllipsis fVerb && Just value /= (usage "content" fVerb >>= fValue "ellipsisAnchor2") then [] else
+     case (typ, attr) of
       ("COME_SCALARLY", "order") -> case getType value of
         Just "EARLIER" -> [Adverb "first"]
-        Just "NEXT" -> if isVerbEllipsis fVerb then [] else [Adverb "next"]
+        Just "NEXT" -> [Adverb "next"]
         Just "AFTER" -> case fValue "anchor" value of 
           Just anchor -> [PPArg "after" anchor]
           _ -> [Adverb "after"]

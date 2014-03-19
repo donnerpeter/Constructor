@@ -180,7 +180,7 @@ wordMites word index =
   "помнят" -> finVerb "REMEMBER" "PRESENT" A.pl3 v ++ directObject v
   "порядок" -> nounSg Acc Masc "ORDER" v ++ genHead "arg1" v
   "после" -> semPreposition "posle" Gen "AFTER" "anchor" v
-  "потом" -> adverb "relTime" "AFTER"
+  "потом" -> xor [[mite $ Argument ScalarAdverb v0, semT v0 "NEXT"], adverb "relTime" "AFTER"]
   "потому" -> [mite $ TwoWordCxt "потому что" True [ReasonComp v0 False] v0]
   "приуныли" -> finVerb "GET_SAD" "PAST" A.pl v
   "просто" -> adverb "manner" "JUST"

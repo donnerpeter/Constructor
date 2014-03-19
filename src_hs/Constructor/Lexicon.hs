@@ -9,8 +9,8 @@ import Data.Char (ord, chr)
 import Data.Maybe
 import Data.List
 
-nounSg caze gender typ v = pronoun caze (A.Agr (Just gender) A.Sg (Just 3)) typ v
-nounPl caze typ v = pronoun caze (A.Agr Nothing A.Pl (Just 3)) typ v 
+nounSg caze gender typ v = pronoun caze (A.Agr (Just gender) (Just A.Sg) (Just 3)) typ v
+nounPl caze typ v = pronoun caze (A.Agr Nothing (Just A.Pl) (Just 3)) typ v
 pronoun caze agr typ v = [mite $ Argument caze (v ""), semS (v "") "type" typ, mite $ AdjHead (v "") caze agr, mite $ RelativeHead (v "")]
 preposition prep nounArg v = [mite $ PrepHead prep nounArg (v "")] ++ xor [[mite $ Argument (PP prep nounArg) (v "")], [mite $ ActivePreposition (v "")]]
 semPreposition prep nounArg typ attr v = [mite $ Argument (PP prep nounArg) (v ""), mite $ PrepHead prep nounArg (v "noun"), semT (v "") typ, semV (v "") attr (v "noun")]
@@ -19,7 +19,7 @@ raisingVerb typ time agr v = [semT (v "") typ, semS (v "") "time" time, mite $ R
 finiteClause agr withSemSubject v = optional [mite $ NomHead agr (v "arg1") False] ++
                      [mite $ ReflexiveTarget (v "arg1")] ++
                      (if withSemSubject then [semV (v "") "arg1" (v "arg1")] else []) ++
-                     (rusAgr (Just . A.number) "rusNumber") ++ (rusAgr A.gender "rusGender") ++ (rusAgr A.person "rusPerson") ++ 
+                     (rusAgr A.number "rusNumber") ++ (rusAgr A.gender "rusGender") ++ (rusAgr A.person "rusPerson") ++
                      clause v where
   rusAgr :: (Show a) => (A.Agr -> Maybe a) -> String -> [Mite]
   rusAgr f attr = maybeToList $ f agr >>= \x -> Just $ semS (v "arg1") attr (show x)
@@ -94,9 +94,9 @@ wordMites word index =
   "других" -> nounPl Gen "OTHERS" v
   "думает" -> finVerb "THINK" "PRESENT" A.sg3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) "topic" v)
   "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) "topic" v)
-  "его" -> xor [pronoun Acc A.m "HE" v, [semT v0 "HE", mite $ Possessive Nom A.sg v0], [semT v0 "HE", mite $ Possessive Dat A.sg v0], [semT v0 "HE", mite $ Possessive Nom A.pl v0]] -- todo empty agr
-  "ее" -> xor [pronoun Acc A.f "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.sg v0], [semT v0 "SHE", mite $ Possessive Dat A.sg v0], [semT v0 "SHE", mite $ Possessive Nom A.pl v0]] -- todo empty agr
-  "её" -> xor [pronoun Acc A.f "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.sg v0], [semT v0 "SHE", mite $ Possessive Dat A.sg v0], [semT v0 "SHE", mite $ Possessive Nom A.pl v0]] -- todo empty agr
+  "его" -> xor [pronoun Acc A.m "HE" v, [semT v0 "HE", mite $ Possessive Nom A.empty v0], [semT v0 "HE", mite $ Possessive Dat A.empty v0]]
+  "ее" -> xor [pronoun Acc A.f "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.empty v0], [semT v0 "SHE", mite $ Possessive Dat A.empty v0]]
+  "её" -> xor [pronoun Acc A.f "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.empty v0], [semT v0 "SHE", mite $ Possessive Dat A.empty v0]]
   "ему" -> pronoun Dat A.sg "HE" v
   "если" -> [mite $ ConditionComp v0 "if" False]
   "забыл" -> finVerb "FORGET" "PAST" A.m v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
@@ -108,7 +108,7 @@ wordMites word index =
   "из" -> preposition "iz" Gen v
   "изо" -> preposition "iz" Gen v
   "или" -> conjunction v0 "or" True
-  "их" -> xor [pronoun Acc A.pl "THEY" v, [semT v0 "THEY", mite $ Possessive Nom A.sg v0], [semT v0 "THEY", mite $ Possessive Nom A.pl v0], [semT v0 "THEY", mite $ Possessive Dat A.sg v0]] -- todo empty agr
+  "их" -> xor [pronoun Acc A.pl "THEY" v, [semT v0 "THEY", mite $ Possessive Nom A.empty v0], [semT v0 "THEY", mite $ Possessive Dat A.empty v0]]
   "к" -> preposition "k" Dat v
   "кажется" -> raisingVerb "SEEM" "PRESENT" A.sg3 v ++ optional (arg Dat "experiencer" v)
   "как" -> [mite $ TwoWordCxt "так как" False [] v0]
@@ -195,7 +195,7 @@ wordMites word index =
   "сад" -> nounSg Acc Masc "GARDEN" v
   "сада" -> nounSg Gen Masc "GARDEN" v
   "свалился" -> finVerb "FALL" "PAST" A.m v ++ arg (PP "s" Gen) "source" v
-  "себе" -> pronoun Dat (A.Agr Nothing A.Sg Nothing) "SELF" v ++ [mite $ ReflexiveReference (v "")] -- todo empty agr
+  "себе" -> pronoun Dat A.empty "SELF" v ++ [mite $ ReflexiveReference (v "")]
   "семи" -> wordNumber Gen "7" v
   "семь" -> xor [wordNumber Nom "7" v, wordNumber Acc "7" v]
   "сидит" -> finVerb "SIT" "PRESENT" A.sg3 v
@@ -250,9 +250,9 @@ wordMites word index =
                 [mite $ Complementizer v0],
                 [mite $ TwoWordCxt "потому что" False [] v0]]
   "шести" -> wordNumber Gen "6" v
-  "это" -> xor [pronoun Nom (A.Agr (Just A.Neu) A.Sg $ Just 3) "THIS" v, pronoun Acc (A.Agr (Just A.Neu) A.Sg $ Just 3) "THIS" v]
+  "это" -> xor [pronoun Nom (A.Agr (Just A.Neu) (Just A.Sg) $ Just 3) "THIS" v, pronoun Acc (A.Agr (Just A.Neu) (Just A.Sg) $ Just 3) "THIS" v]
   "этому" -> adj Dat A.sg "determiner" "THIS" v
-  "я" -> pronoun Nom (A.Agr Nothing A.Sg $ Just 1) "ME" v
+  "я" -> pronoun Nom (A.Agr Nothing (Just A.Sg) $ Just 1) "ME" v
   ":" -> xor [[mite $ Colon "directSpeech" v0], [mite $ Colon "elaboration" v0]]
   "-" -> xor [[mite $ QuestionVariants Nothing (Just "-")],
               [mite $ DirectSpeechDash v0],

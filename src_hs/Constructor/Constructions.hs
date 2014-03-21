@@ -4,18 +4,15 @@ import Constructor.Agreement
 import Constructor.Variable
 import Data.Maybe
 
-data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | 
-               ClauseArg ClauseForce | CP | AdjKind ArgKind Agr | ScalarAdverb |
-               VerbalModifierKind {-attr-} String {-requires comma-} Bool
-               deriving (Show, Eq, Ord)
+data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | ScalarAdverb deriving (Show, Eq, Ord)
 data ClauseForce = Declarative | Interrogative deriving (Show, Eq, Ord)
 data SeqData = SeqData { seqVar :: Variable, seqConj :: String, seqReady :: Bool,
-                         seqKind :: Maybe ArgKind, seqHasLeft :: Bool, seqHasRight :: Bool } deriving (Eq, Ord)
+                         seqKind :: Maybe Construction, seqHasLeft :: Bool, seqRightVar :: Maybe Variable } deriving (Eq, Ord)
 instance Show SeqData where
   show sd = show (seqVar sd) ++ " " ++ seqConj sd ++
             (if isJust $ seqKind sd then " (" ++ show (fromJust $ seqKind sd) ++ ")" else "") ++
             (if seqReady sd then "" else "!ready") ++ (if seqHasLeft sd then " left" else "") ++
-            (if seqHasRight sd then " right" else "")
+            (if isJust (seqRightVar sd) then " right" else "")
 data Construction = Word Variable String
                   | Sem Variable String SemValue
                   | Unify Variable Variable
@@ -83,7 +80,7 @@ isHappy cxt = case cxt of
   Quantifier {} -> False
   CompHead {} -> False; ConditionCompHead {} -> False; ConditionComp {} -> False; ReasonComp {} -> False
   Elaboration {} -> False
-  Conjunction (SeqData {seqHasLeft = seqHasLeft, seqHasRight = seqHasRight}) -> seqHasLeft && seqHasRight
+  Conjunction sd -> seqHasLeft sd && isJust (seqRightVar sd)
   NomHead _ _ satisfied -> satisfied
   GenHead {} -> False; Possessive {} -> False
   CopulaTense {} -> False

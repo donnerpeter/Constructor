@@ -38,7 +38,7 @@ perfectBackground typ v = [mite $ Verb (v ""), semT (v "") typ, mite $ VerbalMod
 adverb attr value = [mite $ Adverb attr value]
 genHead attr v = optional [mite $ GenHead (v "gen"), semV (v "") attr (v "gen")]
 directObject v = arg Acc "arg2" v
-conjunction v0 conj ready = [mite $ Conjunction $ SeqData v0 conj ready Nothing False False, semT v0 "seq"] ++ (if conj == "," then [] else [semS v0 "conj" conj])
+conjunction v0 conj ready = [mite $ Conjunction $ SeqData v0 conj ready Nothing False Nothing, semT v0 "seq"] ++ (if conj == "," then [] else [semS v0 "conj" conj])
 modifyV v c = \s -> v $ c:s 
 whatComesNext v = [mite $ ArgHead ScalarAdverb (v "scalar"),
   semV (v "") "arg2" (v "arg2"),

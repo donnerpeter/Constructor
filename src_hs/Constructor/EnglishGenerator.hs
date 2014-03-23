@@ -549,6 +549,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       _ -> []
     StrValue value -> case (attr, value) of
       ("anchor", "AGAIN") -> [Adverb "again"]
+      ("anchor", "ALREADY") -> [Adverb "already"]
       ("duration", "LONG") -> [Adverb "for a long time"]
       _ -> []
   where

@@ -289,7 +289,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "HAPPEN" -> "happened"
   "FORGET" -> "forgot"
   "DO" -> if verbForm == BaseVerb then "do" else "did"
-  "GO" -> "went"
+  "GO" -> if verbForm == PastVerb then "went" else "goes"
   "GO_OFF" -> "went"
   "ASK" -> if (fValue "topic" frame >>= getType) == Just "PREDICAMENT" then if verbForm == PastVerb then "consulted" else "consult" else if verbForm == BaseVerb then "ask" else "asked"
   "COME_SCALARLY" -> if sValue "time" frame == Just "PAST" then "went" else "comes"

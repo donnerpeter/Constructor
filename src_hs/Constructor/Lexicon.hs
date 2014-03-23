@@ -103,8 +103,10 @@ wordMites word index =
   "забыла" -> finVerb "FORGET" "PAST" A.f v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
   "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
   "и" -> conjunction v0 "and" True
-  "идет" -> finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v, arg (PP "ranshe" Gen) "order" v]
-  "идёт" -> finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v, arg (PP "ranshe" Gen) "order" v]
+  "идет" -> xor [finVerb "GO" "PRESENT" A.sg3 v ++ arg (PP "v" Acc) "goal" v,
+                 finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v, arg (PP "ranshe" Gen) "order" v]]
+  "идёт" -> xor [finVerb "GO" "PRESENT" A.sg3 v ++ arg (PP "v" Acc) "goal" v,
+                 finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v, arg (PP "ranshe" Gen) "order" v]]
   "из" -> preposition "iz" Gen v
   "изо" -> preposition "iz" Gen v
   "или" -> conjunction v0 "or" True

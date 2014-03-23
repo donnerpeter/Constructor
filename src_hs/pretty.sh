@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+# from http://stackoverflow.com/questions/5535512/how-to-hack-ghci-or-hugs-so-that-it-prints-unicode-chars-unescaped/5615374#5615374
 
 import sys
 import re

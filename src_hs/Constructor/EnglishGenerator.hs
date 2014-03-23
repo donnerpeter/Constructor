@@ -181,6 +181,7 @@ determiner frame nbar =
       else if isJust (fValue "quantifier" frame) then ""
       else if hasType "STREET" frame then streetName frame
       else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING", "MONEY", "COUNTING"] frame then ""
+      else if hasAnyType ["NAMED_PERSON"] frame then ""
       else if hasType "OPINION" frame && Just True == fmap isVerbEllipsis (usage "accordingTo" frame) then ""
       else if sValue "given" frame == Just "true" then "the"
       else if "a" `isPrefixOf` nbar || "e" `isPrefixOf` nbar || "8" `isPrefixOf` nbar then "an"
@@ -197,6 +198,7 @@ noun (Just typ) frame = case typ of
   "NEIGHBORS" -> "neighbors"
   "NEIGHBOR" -> "neighbor"
   "TREES" -> "trees"
+  "WATERMELON" -> "watermelon"
   "MATTER" -> "matter"
   "AMAZE" -> "amazement"
   "ORDER" -> "order"
@@ -224,6 +226,7 @@ noun (Just typ) frame = case typ of
   "JAW" -> if isSingular frame then "jaw" else "jaws"
   "ARGUE" -> "argument"
   "THIS" -> "that"
+  "NAMED_PERSON" -> fromMaybe "??name" $ sValue "name" frame
   "GARDEN" -> if (fValue "name" frame >>= getType) == Just "летний" then "Summer Garden" else "garden"
   _ ->
     if isNumberString typ && renderAsWord frame then case typ of
@@ -371,6 +374,12 @@ clause fVerb = do
            else if isModality then
              let supposed = if isJust fSubject then beForm fSubject verbForm `cat` subject `cat` "supposed" else ""
              in return $ "what" `cat` supposed `cat` "to" `cat` (fromMaybe "???" $ fmap (verb BaseVerb) (fValue "theme" fVerb))
+           else if hasType "copula" fVerb && isJust (fValue "owner" fVerb) then do
+             let owner = fValue "owner" fVerb
+             subj <- np True owner
+             let verb = if verbForm == PastVerb then "had" else if Just "ME" == (owner >>= getType) then "have" else "has"
+             obj <- np False (fValue "arg1" fVerb)
+             return $ subj `cat` verb `cat` obj
            else vp fVerb verbForm subject
     elaboration <- case fValue "elaboration" fVerb of
       Just smth -> return (if hasType "HAPPEN" fVerb then "," else ":") `catM` sentence smth

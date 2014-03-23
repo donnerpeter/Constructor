@@ -96,7 +96,7 @@ sValue attr frame =
   else
     case attr of
       "given" ->
-        if hasAnyType ["CASE", "HAMMER", "TREES", "BENCH", "FINGER"] frame then Just "false"
+        if hasAnyType ["CASE", "HAMMER", "TREES", "BENCH", "FINGER", "WATERMELON"] frame then Just "false"
         else if Just True == fmap isNumberString (getType frame) then Just "false"
         else if hasType "CHILD" frame then
           if Just "SOME" == (fValue "determiner" frame >>= getType) then Just "false" else Just "true"

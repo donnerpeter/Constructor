@@ -9,15 +9,15 @@ randomStuffTests = [TestLabel "random stuff tests" $ TestList [
   ,
   -- IHaveMelon
   translateTest "У меня есть арбуз."
-                "I have a water melon."
+                "I have a watermelon."
   ,
   -- IHadMelon
   translateTest "У меня был арбуз."
-                "I had a water melon."
+                "I had a watermelon."
   ,
   -- VasyaHadMelon
   translateTest "У Васи был арбуз."
-                "Vasya had a water melon."
+                "Vasya had a watermelon."
   ,
   --  I'm on the corner
   translateTest "Я на углу"

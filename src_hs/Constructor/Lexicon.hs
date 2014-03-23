@@ -63,12 +63,14 @@ wordMites word index =
   "5-ти" -> nounSg Gen Masc "5" v
   "6-ти" -> nounSg Gen Masc "6" v
   "а" -> xor [conjunction v0 "but" False, [mite $ ConjEmphasis "andEmphasis" v0]]
+  "арбуз" -> nounSg Nom Masc "WATERMELON" v
   "бессмысленными" -> [mite $ Raiseable A.pl v0, semT v0 "MEANINGLESS"]
   "большим" -> xor[adj Instr A.m "size" "BIG" v, adj Instr A.n "size" "BIG" v]
   "большой" -> xor[adj Instr A.f "size" "BIG" v, adj Nom A.m "size" "BIG" v, adj Acc A.m "size" "BIG" v]
   "был" -> [mite $ CopulaTense v0, semS v0 "time" "PAST"]
   "было" -> [mite $ CopulaTense v0, semS v0 "time" "PAST"]
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
+  "васи" -> nounSg Gen Masc "NAMED_PERSON" v ++ [semS v0 "name" "Vasya"]
   "вдруг" -> adverb "manner" "SUDDENLY"
   "вдумываясь" -> perfectBackground "THINK" v ++ arg (PP "v" Acc) "theme" v
   "восемь" -> xor [wordNumber Nom "8" v, wordNumber Acc "8" v]
@@ -99,6 +101,7 @@ wordMites word index =
   "её" -> xor [pronoun Acc A.f "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.empty v0], [semT v0 "SHE", mite $ Possessive Dat A.empty v0]]
   "ему" -> pronoun Dat A.sg "HE" v
   "если" -> [mite $ ConditionComp v0 "if" False]
+  "есть" -> [mite $ CopulaTense v0, semS v0 "time" "PRESENT"]
   "забыл" -> finVerb "FORGET" "PAST" A.m v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
   "забыла" -> finVerb "FORGET" "PAST" A.f v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
   "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
@@ -130,6 +133,7 @@ wordMites word index =
   "магазин" -> xor [nounSg Nom Masc "SHOP" v, nounSg Acc Masc "SHOP" v] -- todo который + agr
   "магазина" -> nounSg Gen Masc "SHOP" v
   "маленький" -> adj Acc A.m "size" "LITTLE" v
+  "меня" -> pronoun Gen A.sg "ME" v
   "мне" -> pronoun Dat A.sg "ME" v
   "мнению" -> nounSg Dat Neu "OPINION" v ++ genHead "arg1" v ++ optional [mite $ PrepositionActivator "po" Dat v0 $ VerbalModifier "accordingTo" True v0]
   "мной" -> pronoun Instr A.sg "ME" v
@@ -141,7 +145,7 @@ wordMites word index =
   "мы" -> pronoun Nom A.pl1 "WE" v
   "на" ->
     -- todo copula for prepositions besides 'na' 
-    xor [preposition "na" Prep v, [mite $ PrepHead "na" Prep v0, mite $ Copula (v "x"), semT (v "x") "copula", semV (v "x") "location" v0] ++ finiteClause A.sg True (modifyV v 'x')]
+    xor [preposition "na" Prep v, [mite $ PrepHead "na" Prep v0, mite $ Copula (v "x"), semT (v "x") "copula", semV (v "x") "location" v0] ++ finiteClause A.empty True (modifyV v 'x')]
   "нам" -> pronoun Dat A.pl1 "WE" v
   "нас" -> pronoun Acc A.pl1 "WE" v
   "начали" -> finVerb "BEGIN" "PAST" A.pl v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
@@ -238,6 +242,9 @@ wordMites word index =
   "том" -> adj Prep A.sg "determiner" "THAT" v
   "три" -> wordNumber Acc "3" v
   "тут" -> adverb "emphasis" "true"
+  "у" ->
+    -- todo copula for prepositions besides 'u'
+    xor [preposition "u" Gen v, [mite $ PrepHead "u" Gen v0, mite $ Copula (v "x"), semT (v "x") "copula", semV (v "x") "owner" v0] ++ finiteClause A.empty True (modifyV v 'x')]
   "удивительный" -> adj Nom A.m "property" "AMAZING" v
   "углу" -> nounSg Prep Masc "CORNER" v ++ genHead "arg1" v ++ optional [mite $ PrepositionActivator "na" Prep v0 $ NounAdjunct "location" v0]
   "удивление" -> nounSg Nom Neu "AMAZE" v ++ genHead "arg1" v

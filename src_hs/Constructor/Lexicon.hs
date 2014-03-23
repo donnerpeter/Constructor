@@ -108,7 +108,7 @@ wordMites word index =
   "из" -> preposition "iz" Gen v
   "изо" -> preposition "iz" Gen v
   "или" -> conjunction v0 "or" True
-  "их" -> xor [pronoun Acc A.pl "THEY" v, [semT v0 "THEY", mite $ Possessive Nom A.empty v0], [semT v0 "THEY", mite $ Possessive Dat A.empty v0]]
+  "их" -> xor [pronoun Acc A.pl "THEY" v, [semT v0 "THEY", mite $ Possessive Nom A.empty v0], [semT v0 "THEY", mite $ Possessive Gen A.empty v0], [semT v0 "THEY", mite $ Possessive Dat A.empty v0]]
   "к" -> preposition "k" Dat v
   "кажется" -> raisingVerb "SEEM" "PRESENT" A.sg3 v ++ optional (arg Dat "experiencer" v)
   "как" -> [mite $ TwoWordCxt "так как" False [] v0]

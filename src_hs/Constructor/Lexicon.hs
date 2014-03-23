@@ -129,7 +129,7 @@ wordMites word index =
   "магазина" -> nounSg Gen Masc "SHOP" v
   "маленький" -> adj Acc A.m "size" "LITTLE" v
   "мне" -> pronoun Dat A.sg "ME" v
-  "мнению" -> nounSg Dat Neu "OPINION" v ++ genHead "arg1" v ++ optional [mite $ PrepositionActivator "po" Dat [VerbalModifier "accordingTo" True v0]]
+  "мнению" -> nounSg Dat Neu "OPINION" v ++ genHead "arg1" v ++ optional [mite $ PrepositionActivator "po" Dat v0 $ VerbalModifier "accordingTo" True v0]
   "мной" -> pronoun Instr A.sg "ME" v
   "может" -> finVerb "CAN" "PRESENT" A.sg3 v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
   "могут" -> finVerb "CAN" "PRESENT" A.pl3 v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
@@ -151,7 +151,7 @@ wordMites word index =
   "нужно" -> [semT v0 "NEED", mite $ NomHead A.n (v "arg2") False, semV v0 "arg2" (v "arg2"), mite $ Copula v0] ++ optional (arg Dat "arg1" v) ++ clause v
   "о" -> preposition "o" Prep v
   "обе" -> numQuantifier Acc Gen A.f v ++ [semT (v "q") "BOTH"]
-  "облегчением" -> nounSg Instr Neu "RELIEF" v ++ optional [mite $ PrepositionActivator "s" Instr [VerbalModifier "mood" False v0]]
+  "облегчением" -> nounSg Instr Neu "RELIEF" v ++ optional [mite $ PrepositionActivator "s" Instr v0 $ VerbalModifier "mood" False v0]
   "обнаружил" -> finVerb "DISCOVER" "PAST" A.m v ++ compHead "theme" v
   "обнаружила" -> finVerb "DISCOVER" "PAST" A.f v ++ compHead "theme" v
   "обнаружили" -> finVerb "DISCOVER" "PAST" A.pl v ++ compHead "theme" v
@@ -185,7 +185,7 @@ wordMites word index =
   "приуныли" -> finVerb "GET_SAD" "PAST" A.pl v
   "просто" -> adverb "manner" "JUST"
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ arg (PP "v" Acc) "goal" v
-  "радостью" -> nounSg Instr Fem "JOY" v ++ optional [mite $ PrepositionActivator "s" Instr [VerbalModifier "mood" False v0]]
+  "радостью" -> nounSg Instr Fem "JOY" v ++ optional [mite $ PrepositionActivator "s" Instr v0 $ VerbalModifier "mood" False v0]
   "разошлись" -> finVerb "DISPERSE" "PAST" A.pl v ++ arg (PP "po" Dat) "goal" v
   "раньше" -> xor [[mite $ Argument ScalarAdverb v0, semT v0 "EARLIER"], semPreposition "ranshe" Gen "BEFORE" "anchor" v, adverb "relTime" "BEFORE"]
   "ребенок" -> nounSg Nom Masc "CHILD" v
@@ -208,11 +208,11 @@ wordMites word index =
   "слегка" -> adverb "manner" "SLIGHTLY"
   "следовало" -> finVerb "COME_SCALARLY" "PAST" A.n3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v]
   "слова" -> xor [nounPl Nom "WORDS" v, nounPl Acc "WORDS" v] ++ genHead "author" v
-  "словам" -> nounPl Dat "WORDS" v ++ genHead "author" v ++ optional [mite $ PrepositionActivator "po" Dat [VerbalModifier "accordingTo" True v0]]
+  "словам" -> nounPl Dat "WORDS" v ++ genHead "author" v ++ optional [mite $ PrepositionActivator "po" Dat v0 $ VerbalModifier "accordingTo" True v0]
   "сломал" -> finVerb "BREAK" "PAST" A.m v ++ directObject v ++ [mite $ ArgHead Dat (v "dat"), semV (v "arg2") "arg1" (v "dat")]
   "сломала" -> finVerb "BREAK" "PAST" A.f v ++ directObject v ++ [mite $ ArgHead Dat (v "dat"), semV (v "arg2") "arg1" (v "dat")]
   "случай" -> nounSg Nom Masc "CASE" v
-  "случае" -> nounSg Prep Masc "CASE" v ++ [mite $ ConditionCompHead v0] ++ optional [mite $ PrepositionActivator "v" Prep [VerbalModifier "condition" False v0]]
+  "случае" -> nounSg Prep Masc "CASE" v ++ [mite $ ConditionCompHead v0] ++ optional [mite $ PrepositionActivator "v" Prep v0 $ VerbalModifier "condition" False v0]
   "случился" -> finVerb "HAPPEN" "PAST" A.m v ++ arg (PP "s" Instr) "experiencer" v
   "смысла" -> nounSg Gen Masc "MEANING" v
   "со" -> xor [preposition "s" Instr v, preposition "s" Gen v]
@@ -226,7 +226,7 @@ wordMites word index =
   "спросили" -> finVerb "ASK" "PAST" A.pl v ++ optional (directObject v) ++ optional (xor [compHead "topic" v, arg (PP "o" Prep) "topic" v])
   "спросить" -> infinitive "ASK" v ++ optional (directObject v) ++ optional (xor [compHead "topic" v, arg (PP "o" Prep) "topic" v])
   "стали" -> finVerb "BEGIN" "PAST" A.pl v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
-  "счастию" -> nounSg Dat Neu "LUCK" v ++ optional [mite $ PrepositionActivator "po" Dat [VerbalModifier "optativeModality" True v0]]
+  "счастию" -> nounSg Dat Neu "LUCK" v ++ optional [mite $ PrepositionActivator "po" Dat v0 $ VerbalModifier "optativeModality" True v0]
   "счета" -> nounSg Gen Masc "COUNTING" v
   "счете" -> nounSg Prep Masc "COUNTING" v
   "считать" -> infinitive "COUNT" v ++ directObject v
@@ -237,7 +237,7 @@ wordMites word index =
   "три" -> wordNumber Acc "3" v
   "тут" -> adverb "emphasis" "true"
   "удивительный" -> adj Nom A.m "property" "AMAZING" v
-  "углу" -> nounSg Prep Masc "CORNER" v ++ genHead "arg1" v ++ optional [mite $ PrepositionActivator "na" Prep [NounAdjunct (v "noun"), cxt $ semV (v "noun") "location" v0]]
+  "углу" -> nounSg Prep Masc "CORNER" v ++ genHead "arg1" v ++ optional [mite $ PrepositionActivator "na" Prep v0 $ NounAdjunct "location" v0]
   "удивление" -> nounSg Nom Neu "AMAZE" v ++ genHead "arg1" v
   "улиц" -> nounPl Gen "STREETS" v
   "улицы" -> nounSg Gen Fem "STREET" v

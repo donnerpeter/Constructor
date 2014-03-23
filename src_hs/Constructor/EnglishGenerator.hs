@@ -275,7 +275,7 @@ sentence frame = handleSeq singleSentence (Just frame) `catM` return finish wher
 genComplement cp = case fValue "content" cp of
   Nothing -> return ""
   Just fVerb -> let
-      prefix = if hasType "fact" cp && (isNothing (usage "member2" cp) || Just "true" == sValue "distinguished" cp) then "that" else ""
+      prefix = if hasType "fact" cp && distinguish cp then "that" else ""
       negation = if Just "true" == sValue "negated" cp then "not" else ""
     in return (negation `cat` prefix) `catM` sentence cp
 
@@ -328,6 +328,8 @@ conjIntroduction fVerb =
    else if sValue "andEmphasis" fVerb == Just "true" then "and"
    else ""
 
+distinguish frame = isNothing (usage "member2" frame) || Just "true" == sValue "distinguished" frame
+
 generateAccording fVerb = case fValue "accordingTo" fVerb of
   Just source -> do
     state <- get
@@ -337,7 +339,7 @@ generateAccording fVerb = case fValue "accordingTo" fVerb of
   where
     comma = if isVerbEllipsis fVerb && fValue "arg1" fVerb == (usage "content" fVerb >>= fValue "ellipsisAnchor2") then "" else ","
     oneOpinion source = case getType source of
-      Just "OPINION" -> return "in" `catM` np False (Just source)
+      Just "OPINION" -> return (if distinguish source then "in" else "") `catM` np False (Just source)
       Just "WORDS" -> return "according to" `catM` np False (fValue "author" source)
       s -> return $ show s
 

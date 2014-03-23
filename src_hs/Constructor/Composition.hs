@@ -62,7 +62,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
 
       (Adverb attr val, Verb head) -> right [semS head attr val]
       (Verb head, Adverb attr val) -> left [semS head attr val]
-      (AdjHead head _ _, NounAdjunct var) -> left [mite $ Unify head var]
+      (AdjHead head _ _, NounAdjunct attr var) -> left [semV head attr var]
 
       (Quantifier kind1 agr1 v1, Argument kind2 v2) | kind1 == kind2 -> rightMites >>= \m3 -> case cxt m3 of
         AdjHead v3 kind3 agr2 | kind3 == kind1 && agree agr1 agr2 && v2 == v3 && not (contradict m2 m3) ->
@@ -78,8 +78,8 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
               Copula var3 -> withBase [m1,m2,m3] [mite $ Unify var1 var2]
               _ -> []
             adjunctMites = rightMites >>= \m3 -> case cxt m3 of
-              PrepositionActivator prep3 kind3 cxts | prep3 == prep1 && kind3 == kind1 -> leftMites >>= \m4 -> case cxt m4 of
-                ActivePreposition {} -> withBase [m1,m2,m3,m4] $ map mite cxts
+              PrepositionActivator prep3 kind3 _ innerCxt | prep3 == prep1 && kind3 == kind1 -> leftMites >>= \m4 -> case cxt m4 of
+                ActivePreposition {} -> withBase [m1,m2,m3,m4] [mite innerCxt]
                 _ -> []
               _ -> []
         in [MergeInfo (argMites ++ adjunctMites) LeftSide]

@@ -24,12 +24,12 @@ data Construction = Word Variable String
                   | GenHead Variable
                   | ArgHead ArgKind Variable
                   | PrepHead String ArgKind Variable
-                  | PrepositionActivator String ArgKind [Construction]
+                  | PrepositionActivator String ArgKind Variable Construction
                   | ActivePreposition Variable
                   | Quantifier ArgKind Agr Variable
                   | Argument ArgKind Variable
                   | Adverb String String
-                  | NounAdjunct Variable
+                  | NounAdjunct String Variable
                   | Elaboration Variable
                   | Unclosed Construction
                   | CompHead Variable

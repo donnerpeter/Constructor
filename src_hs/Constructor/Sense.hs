@@ -139,7 +139,7 @@ fValue attr frame =
         else Nothing
       _ -> Nothing
 
-commandingSubject frame = usage "content" frame >>= usage "theme" >>= fValue "arg1"
+commandingSubject frame = msum [usage "content" frame >>= usage "theme", usage "content" frame >>= usage "arg2"] >>= fValue "arg1"
 
 hasType t frame = getType frame == Just t
 hasAnyType types frame = fromMaybe False $ getType frame >>= \t -> Just $ elem t types

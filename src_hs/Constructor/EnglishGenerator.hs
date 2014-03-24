@@ -147,7 +147,7 @@ streetName frame = case sValue "name" frame of
 
 isDeterminerOpinion frame = all (hasAnyType ["ME", "THEY", "HE", "SHE"]) (flatten $ fValue "arg1" frame)
 determiner frame nbar =
-  let det = if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "ARGUE", "FINGER", "SPEECH"] frame then fValue "arg1" frame
+  let det = if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "JAWS", "ARGUE", "FINGER", "SPEECH"] frame then fValue "arg1" frame
             else if hasAnyType ["OPINION"] frame && isDeterminerOpinion frame then fValue "arg1" frame
             else if hasAnyType ["WORDS"] frame then fValue "author" frame
             else if hasAnyType ["CASHIER"] frame then fValue "place" frame
@@ -224,6 +224,7 @@ noun (Just typ) frame = case typ of
   "BENCH" -> "bench"
   "FINGER" -> if isSingular frame then "finger" else "fingers"
   "JAW" -> if isSingular frame then "jaw" else "jaws"
+  "JAWS" -> "jaws"
   "ARGUE" -> "argument"
   "THIS" -> "that"
   "NAMED_PERSON" -> fromMaybe "??name" $ sValue "name" frame

@@ -253,7 +253,7 @@ wordMites word index =
   "улицы" -> nounSg Gen Fem "STREET" v
   "улыбнулась" -> finVerb "SMILE" "PAST" A.f v
   "умной" -> [mite $ Raiseable A.f v0, semT v0 "CLEVER"]
-  "челюсти" -> nounSg Gen Fem "JAW" v
+  "челюсти" -> xor[nounSg Gen Fem "JAW" v, nounPl Nom "JAWS" v, nounPl Acc "JAWS" v]
   "челюсть" -> nounSg Acc Fem "JAW" v
   "челюстью" -> nounSg Instr Fem "JAW" v
   "что" -> xor [whWord v ++ xor [[mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.n3], [mite $ Argument Acc v0, mite $ AdjHead v0 Acc A.n3]],

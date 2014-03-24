@@ -170,6 +170,8 @@ issues mites = let
     Just "THEY" -> if isJust $ fValue "relative" frame then ["relative clause for pronoun"] else []
     Just "WE" -> if isJust $ fValue "relative" frame then ["relative clause for pronoun"] else []
     Just "CASHIER" -> if any (hasType "OTHERS") (flatten $ fValue "place" frame) then ["cashier of other people"] else []
+    Just "OPINION" -> if isNothing (fValue "arg1" frame >>= getType) then ["opinion without subj"] else []
+    Just "WORDS" -> if isNothing (fValue "author" frame >>= getType) then ["words without author"] else []
     Just "COME_SCALARLY" -> case fValue "arg1" frame of
       Just subj ->
         if Nothing == sDeclaredValue "type" subj then ["unknown subj"] else

@@ -2,7 +2,7 @@ module Constructor.Sense
   (Sense(..), Frame(..), Fact(..),
   fValue, sValue,
   fDeclaredValue, sDeclaredValue,
-  usages, usage, 
+  usages, usage, allUsages,
   getType, hasType, hasAnyType, resolve,
   earlier,
   allFrames, allFrameFacts,
@@ -145,6 +145,7 @@ hasType t frame = getType frame == Just t
 hasAnyType types frame = fromMaybe False $ getType frame >>= \t -> Just $ elem t types
 getType frame = sValue "type" frame
 
+allUsages attrs frame = [f | f <- allFrames (sense frame), any (\attr -> fDeclaredValue attr f == Just frame) attrs]
 usages attr frame = [f | f <- allFrames (sense frame), fDeclaredValue attr f == Just frame]
 usage attr frame = singleListElement $ usages attr frame
 

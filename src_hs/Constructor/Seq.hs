@@ -18,6 +18,13 @@ seqRight leftMites rightMites = {-traceIt "seqRight" $ -}result where
   isConjEmphasis mite = case cxt mite of
     ConjEmphasis {} -> True
     _ -> False
+  liftArguments m1 m2 = let
+    unhappy = filter elideable $ filter (not . happy) rightMites
+    wrapped = concat [optional $ withBase [m,m1,m2] [mite $ UnsatisfiedArgHead $ cxt m] | m <- unhappy]
+    elideable mite = case cxt mite of
+      GenHead {} -> True
+      _ -> False
+    in wrapped
   result = leftMites >>= \m1 -> case cxt m1 of
    Conjunction sd@(SeqData { seqVar=v, seqReady=True, seqHasLeft=False, seqRightVar=Nothing, seqConj=conj}) ->
     if hasSeqFull conj || hasConjEmphasis then [] else rightMites >>= \m2 -> let
@@ -35,7 +42,7 @@ seqRight leftMites rightMites = {-traceIt "seqRight" $ -}result where
       Adj child caze agr -> withBase [m1,m2] [semV v "member2" child, conjWithRight child]
       Possessive caze agr child -> withBase [m1,m2] [semV v "member2" child, mite $ Conjunction $ sd {seqKind=Just (Adj child caze agr), seqRightVar=Just child}]
       Complement child -> withBase [m1,m2] [semV v "member2" child, semS child "distinguished" "true", conjWithRight child]
-      PrepositionActivator _ _ child _ -> withBase [m1,m2] [semV v "member2" child, conjWithRight child]
+      PrepositionActivator _ _ child _ -> withBase [m1,m2] [semV v "member2" child, conjWithRight child] ++ liftArguments m1 m2
       Clause force child ->
         let unhappy = filter elideable $ filter (not . happy) rightMites
             wrapped = [(mite $ ElidedArgHead $ cxt m) {baseMites = [m,m1,m2]} | m <- unhappy]
@@ -74,6 +81,14 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
         stripVar c = case c of
           VerbalModifier attr comma _ -> VerbalModifier attr comma
           NounAdjunct attr _ -> NounAdjunct attr
+        argUnifications = let
+           unifications = concat [unifyMissingArgument mite1 mite2 | mite1 <- filter (not . contradict m1) leftMites,
+                                                                     mite2 <- filter (not . contradict m2) rightMites]
+           unifyMissingArgument aux1 aux2 = case (cxt aux1, cxt aux2) of
+             (GenHead v1, UnsatisfiedArgHead (GenHead v2)) ->
+                 optional $ withBase [aux1,aux2] [mite $ Unify v1 v2, mite $ GenHead v1]
+             _ -> []
+           in unifications
         in case cxt m1 of
           Argument kind child -> case maybeKind of -- todo kindMatches
             Just (Argument kind2 _) | kind == kind2 ->
@@ -85,7 +100,7 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
           CompositeAdj child caze1 agr1 -> handleAdj child caze1 agr1 $ \newAgr -> CompositeAdj seqV caze1 newAgr
           Complement child | kindMatches Complement -> withBase [m1,m2] [semV seqV "member1" child, conjWithLeft, mite $ Complement seqV]
           PrepositionActivator prep kind child cxt | kindMatches (\var -> PrepositionActivator prep kind var $ stripVar cxt var) ->
-           withBase [m1,m2] [semV seqV "member1" child, conjWithLeft, mite $ PrepositionActivator prep kind seqV $ stripVar cxt seqV]
+           withBase [m1,m2] [semV seqV "member1" child, conjWithLeft, mite $ PrepositionActivator prep kind seqV $ stripVar cxt seqV] ++ argUnifications
           Clause force child -> case maybeKind of
             Just (Clause force2 _) | force == force2 -> let
                  unifications = concat [unifyMissingArgument mite1 mite2 | mite1 <- filter (not . contradict m1) leftMites,

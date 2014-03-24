@@ -109,7 +109,7 @@ np_internal nom mayHaveDeterminer frame = do
           Just gen -> return "of" `catM` np False (Just gen)
           _ -> return ""
         Just "OPINION" | not $ isDeterminerOpinion frame -> case fValue "arg1" frame of
-          Just gen -> return "of" `catM` np False (Just gen)
+          Just gen -> return "of" `catM` elideableArgument (Just gen) frame
           _ -> return ""
         _ -> return ""
       det <- if mayHaveDeterminer then determiner frame nbar else return ""
@@ -331,7 +331,12 @@ conjIntroduction fVerb =
    else if sValue "andEmphasis" fVerb == Just "true" then "and"
    else ""
 
-distinguish frame = isNothing (usage "member2" frame) || Just "true" == sValue "distinguished" frame
+distinguish frame = isNothing (usage "member2" frame) || Just "true" == sValue "distinguished" frame ||
+  hasType "OPINION" frame && Just "WORDS" == (usage "member2" frame >>= fValue "member1" >>= getType)
+
+elideableArgument frame parent = if elideNoun then return "" else np False frame where
+  elideNoun = length (dropWhile (/= parent) allSources) > 1 where
+  allSources = fromMaybe [] $ flip fmap frame $ \f -> filter (hasAnyType ["WORDS", "OPINION"]) $ allUsages ["arg1", "author"] f
 
 generateAccording fVerb = case fValue "accordingTo" fVerb of
   Just source -> do
@@ -343,7 +348,7 @@ generateAccording fVerb = case fValue "accordingTo" fVerb of
     comma = if isVerbEllipsis fVerb && fValue "arg1" fVerb == (usage "content" fVerb >>= fValue "ellipsisAnchor2") then "" else ","
     oneOpinion source = case getType source of
       Just "OPINION" -> return (if distinguish source then "in" else "") `catM` np False (Just source)
-      Just "WORDS" -> return "according to" `catM` np False (fValue "author" source)
+      Just "WORDS" -> return "according to" `catM` elideableArgument (fValue "author" source) source
       s -> return $ show s
 
 clause :: Frame -> State GenerationState String

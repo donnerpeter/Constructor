@@ -122,7 +122,7 @@ np_internal nom mayHaveDeterminer frame = do
     Just "BOTH" -> return "both of"
     Just "ALL" -> return ""
     Just typ -> let q = handleSeq (np_internal True False) fQuantifier in
-      if typ == "1" || isNothing (fValue "arg1" frame >>= getType) then q else q `catM` return "of"
+      if typ == "1" || isNothing (fValue "arg1" frame >>= getType) || any (\f -> fDeterminer frame == fDeterminer f) (prevSiblings frame) then q else q `catM` return "of"
     _ -> return ""
   relative <- fromMaybe (return "") $ liftM (catM $ return ", the one") $ fmap sentence $ fValue "relative" frame
   return $ preQuantifier `cat` unquantified `cat` postQuantifier `cat` relative
@@ -145,13 +145,16 @@ streetName frame = case sValue "name" frame of
  Just s -> s
  _ -> ""
 
+fDeterminer frame =
+  if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "JAWS", "ARGUE", "FINGER", "SPEECH"] frame then fValue "arg1" frame
+  else if hasAnyType ["OPINION"] frame && isDeterminerOpinion frame then fValue "arg1" frame
+  else if hasAnyType ["WORDS"] frame then fValue "author" frame
+  else if hasAnyType ["CASHIER"] frame then fValue "place" frame
+  else Nothing
+
 isDeterminerOpinion frame = all (hasAnyType ["ME", "THEY", "HE", "SHE"]) (flatten $ fValue "arg1" frame)
 determiner frame nbar =
-  let det = if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "JAWS", "ARGUE", "FINGER", "SPEECH"] frame then fValue "arg1" frame
-            else if hasAnyType ["OPINION"] frame && isDeterminerOpinion frame then fValue "arg1" frame
-            else if hasAnyType ["WORDS"] frame then fValue "author" frame
-            else if hasAnyType ["CASHIER"] frame then fValue "place" frame
-            else Nothing
+  let det = fDeterminer frame
       genitiveSpecifier det =
         case getType det of
           Just "ME" -> return "my"
@@ -173,7 +176,7 @@ determiner frame nbar =
           _ -> return "???det"
   in
   case det of
-    Just _ -> handleSeq genitiveSpecifier $ fmap resolve det
+    Just _  | not $ any (\f -> fDeterminer frame == fDeterminer f) (prevSiblings frame) -> handleSeq genitiveSpecifier $ fmap resolve det
     _ -> return $
       let sDet = fValue "determiner" frame >>= getType in
       if sDet == Just "THIS" then "this"
@@ -335,9 +338,8 @@ conjIntroduction fVerb =
 distinguish frame = isNothing (usage "member2" frame) || Just "true" == sValue "distinguished" frame ||
   hasType "OPINION" frame && Just "WORDS" == (usage "member2" frame >>= fValue "member1" >>= getType)
 
-elideableArgument frame parent = if elideNoun then return "" else np False frame where
-  elideNoun = length (dropWhile (/= parent) allSources) > 1 where
-  allSources = fromMaybe [] $ flip fmap frame $ \f -> filter (hasAnyType ["WORDS", "OPINION"]) $ allUsages ["arg1", "author"] f
+elideableArgument frame parent = if any (\f -> source f == frame) (nextSiblings parent) then return "" else np False frame where
+  source f = if hasType "WORDS" f then fValue "author" f else fValue "arg1" f
 
 generateAccording fVerb = case fValue "accordingTo" fVerb of
   Just source -> do

@@ -6,7 +6,7 @@ module Constructor.Sense
   getType, hasType, hasAnyType, resolve,
   earlier,
   allFrames, allFrameFacts,
-  flatten, isNumber, unSeq,
+  flatten, isNumber, unSeq, seqSiblings, prevSiblings, nextSiblings,
   isHuman,
   makeSense)
   where
@@ -96,7 +96,7 @@ sValue attr frame =
   else
     case attr of
       "given" ->
-        if hasAnyType ["CASE", "HAMMER", "TREES", "BENCH", "FINGER", "WATERMELON"] frame then Just "false"
+        if hasAnyType ["CASE", "HAMMER", "TREES", "BENCH", "FINGER", "WATERMELON", "JAW"] frame then Just "false"
         else if Just True == fmap isNumberString (getType frame) then Just "false"
         else if hasType "CHILD" frame then
           if Just "SOME" == (fValue "determiner" frame >>= getType) then Just "false" else Just "true"
@@ -132,10 +132,10 @@ fValue attr frame =
     case attr of
       "arg1" ->
         if hasType "NEIGHBORS" frame then usage "goal" frame >>= fValue "arg1"
-        else if hasAnyType ["MOUTH", "NOSE", "JAW"] frame then let
+        else if hasAnyType ["MOUTH", "NOSE", "JAW", "JAWS", "FINGER"] frame then let
           verbs = catMaybes [usage "source" $ unSeq frame, usage "arg2" $ unSeq frame]
           foregrounds = catMaybes $ map (usage "perfectBackground") verbs
-          in msum $ map (fValue "arg1") (verbs ++ foregrounds)
+          in fmap resolve $ msum $ map (fValue "receiver") (verbs ++ foregrounds) ++ map (fValue "arg1") (verbs ++ foregrounds)
         else Nothing
       _ -> Nothing
 
@@ -151,6 +151,10 @@ usage attr frame = singleListElement $ usages attr frame
 
 flatten Nothing = []
 flatten (Just frame) = if hasType "seq" frame then flatten (fValue "member1" frame) ++ maybeToList (fValue "member2" frame) else [frame]
+
+seqSiblings frame = flatten $ Just $ unSeq frame
+prevSiblings frame = takeWhile (/= frame) $ seqSiblings frame
+nextSiblings frame = tail $ dropWhile (/= frame) $ seqSiblings frame
 
 resolve frame = case (getType frame, fValue "target" frame) of
   (Just "SELF", Just target) -> target

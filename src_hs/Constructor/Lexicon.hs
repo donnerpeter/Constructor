@@ -215,8 +215,8 @@ wordMites word index =
   "следовало" -> finVerb "COME_SCALARLY" "PAST" A.n3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v]
   "слова" -> xor [nounPl Nom "WORDS" v, nounPl Acc "WORDS" v] ++ genHead "author" v
   "словам" -> nounPl Dat "WORDS" v ++ genHead "author" v ++ optional [mite $ PrepositionActivator "po" Dat v0 $ VerbalModifier "accordingTo" True v0]
-  "сломал" -> finVerb "BREAK" "PAST" A.m v ++ directObject v ++ [mite $ ArgHead Dat (v "dat"), semV (v "arg2") "arg1" (v "dat")]
-  "сломала" -> finVerb "BREAK" "PAST" A.f v ++ directObject v ++ [mite $ ArgHead Dat (v "dat"), semV (v "arg2") "arg1" (v "dat")]
+  "сломал" -> finVerb "BREAK" "PAST" A.m v ++ directObject v ++ arg Dat "receiver" v
+  "сломала" -> finVerb "BREAK" "PAST" A.f v ++ directObject v ++ arg Dat "receiver" v
   "случай" -> nounSg Nom Masc "CASE" v
   "случае" -> nounSg Prep Masc "CASE" v ++ [mite $ ConditionCompHead v0] ++ optional [mite $ PrepositionActivator "v" Prep v0 $ VerbalModifier "condition" False v0]
   "случился" -> finVerb "HAPPEN" "PAST" A.m v ++ arg (PP "s" Instr) "experiencer" v

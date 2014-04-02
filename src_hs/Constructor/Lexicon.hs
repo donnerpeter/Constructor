@@ -92,7 +92,7 @@ wordMites word index =
   "до" -> preposition "do" Gen v
   "дойдя" -> perfectBackground "COME_TO" v ++ optional (arg (PP "v" Prep) "domain" v) ++ optional (arg (PP "do" Gen) "goal" v)
   "долго" -> adverb "duration" "LONG"
-  "домам" -> nounPl Dat "HOMES" v
+  "домам" -> nounPl Dat "HOMES" v ++ genHead "owner" v
   "других" -> nounPl Gen "OTHERS" v
   "думает" -> finVerb "THINK" "PRESENT" A.sg3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) "topic" v)
   "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) "topic" v)
@@ -125,9 +125,11 @@ wordMites word index =
   "кассирша" -> nounSg Nom Fem "CASHIER" v ++ genHead "place" v
   "кассирши" -> nounSg Gen Fem "CASHIER" v ++ genHead "place" v
   "кассиршу" -> nounSg Acc Fem "CASHIER" v ++ genHead "place" v
+  "квартирам" -> nounPl Dat "APARTMENTS" v ++ genHead "owner" v
   "кого" -> whWord v ++ [mite $ Argument Acc v0, mite $ AdjHead v0 Acc A.sg, semS v0 "animate" "true"]
   "когда" -> [mite $ ConditionComp v0 "when" False] -- todo wh-questions with когда
   "коммерческий" -> adj Acc A.m "kind" "COMMERCIAL" v
+  "комнатам" -> nounPl Dat "ROOMS" v ++ genHead "owner" v
   "летний" -> adj Acc A.m "name" "летний" v -- todo летний is not only a name
   "лишенными" -> [mite $ Raiseable A.pl v0, semT v0 "LACK"] ++ arg Gen "theme" v
   "магазин" -> xor [nounSg Nom Masc "SHOP" v, nounSg Acc Masc "SHOP" v] -- todo который + agr
@@ -171,6 +173,7 @@ wordMites word index =
   "от" -> preposition "ot" Gen v
   "отвлекло" -> finVerb "DISTRACT" "PAST" A.n v ++ directObject v ++ arg (PP "ot" Gen) "theme" v
   "отправился" -> finVerb "GO_OFF" "PAST" A.m v ++ arg (PP "k" Dat) "goal" v
+  "офисам" -> nounPl Dat "OFFICES" v ++ genHead "owner" v
   "палец" -> nounSg Acc Masc "FINGER" v
   "пальца" -> nounSg Gen Masc "FINGER" v
   "пальцев" -> nounPl Gen "FINGER" v
@@ -201,7 +204,8 @@ wordMites word index =
   "сад" -> nounSg Acc Masc "GARDEN" v
   "сада" -> nounSg Gen Masc "GARDEN" v
   "свалился" -> finVerb "FALL" "PAST" A.m v ++ arg (PP "s" Gen) "source" v
-  "себе" -> pronoun Dat A.empty "SELF" v ++ [mite $ ReflexiveReference (v "")]
+  "своим" -> [semT v0 "SELF", mite $ Possessive Dat A.pl v0, mite $ ReflexiveReference v0]
+  "себе" -> pronoun Dat A.empty "SELF" v ++ [mite $ ReflexiveReference v0]
   "семи" -> wordNumber Gen "7" v
   "семь" -> xor [wordNumber Nom "7" v, wordNumber Acc "7" v]
   "сидит" -> finVerb "SIT" "PRESENT" A.sg3 v

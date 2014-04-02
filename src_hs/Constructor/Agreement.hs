@@ -20,7 +20,6 @@ adjAgree (Agr {gender=g1, person=p1}) (Agr {gender=g2, person=p2}) =
 unifyAttrs f a1 a2 = if isJust m1 then m1 else m2 where m1 = f a1; m2 = f a2
 
 commonAgr a1 a2 = assert (agree a1 a2) $ Agr (unifyAttrs gender a1 a2) (unifyAttrs number a1 a2) (unifyAttrs person a1 a2)
-commonAdjAgr a1 a2 = assert (adjAgree a1 a2) $ Agr (unifyAttrs gender a1 a2) (Just Pl) (unifyAttrs person a1 a2)
 
 m = Agr (Just Masc) (Just Sg) Nothing
 f = Agr (Just Fem) (Just Sg) Nothing

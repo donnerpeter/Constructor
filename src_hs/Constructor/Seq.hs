@@ -1,4 +1,4 @@
-module Constructor.Seq (seqLeft, seqRight) where
+module Constructor.Seq (seqLeft, seqRight, pullThyself) where
 import qualified Constructor.LinkedSet as LS
 import qualified Data.Set as Set
 import Constructor.Constructions
@@ -37,7 +37,7 @@ seqRight leftMites rightMites = {-traceIt "seqRight" $ -}result where
        PrepHead {} -> True
        _ -> False
      in case cxt m2 of
-      Argument kind child -> withBase [m1,m2] $ [semV v "member2" child, conjWithRight child] ++ distinguished m2
+      Argument kind child -> withBase [m1,m2] $ [semV v "member2" child, conjWithRight child] ++ distinguished m2 ++ pullThyself m2 rightMites
       VerbalModifier attr comma child -> withBase [m1,m2] $ [semV v "member2" child, conjWithRight child] ++ distinguished m2
       Adj child caze agr -> withBase [m1,m2] [semV v "member2" child, conjWithRight child]
       Possessive caze agr child -> withBase [m1,m2] [semV v "member2" child, mite $ Conjunction $ sd {seqKind=Just (Adj child caze agr), seqRightVar=Just child}]
@@ -74,7 +74,7 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
         handleAdj :: Variable -> ArgKind -> Agr -> (Agr -> Construction) -> [Mite]
         handleAdj child caze1 agr1 result = case maybeKind of
           Just (Adj _ caze2 agr2) | caze1 == caze2 && adjAgree agr1 agr2 -> let
-            adjAgrVariants = [mite $ result (commonAdjAgr agr1 agr2)]
+            adjAgrVariants = [mite $ result (Agr Nothing (Just Pl) Nothing)]
             allVariants = if agree agr1 agr2 then xor [adjAgrVariants, [mite $ result (commonAgr agr1 agr2)]] else adjAgrVariants
             in withBase [m1,m2] $ [semV seqV "member1" child, conjWithLeft] ++ allVariants
           _ -> []
@@ -89,10 +89,14 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
                  optional $ withBase [aux1,aux2] [mite $ Unify v1 v2, mite $ GenHead v1]
              _ -> []
            in unifications
+        combineThyself = case pullThyself m1 leftMites ++ pullThyself m2 rightMites of
+          both@[Mite {cxt = ReflexiveReference ref1}, Mite { cxt = ReflexiveReference ref2 }] -> withBase both [mite $ ReflexiveReference ref1, mite $ Unify ref1 ref2]
+          combined -> combined
+        adjHeadCompanions child kind = withBase [m2] [mite $ AdjHead seqV kind (Agr Nothing (Just Pl) Nothing)]
         in case cxt m1 of
           Argument kind child -> case maybeKind of -- todo kindMatches
             Just (Argument kind2 _) | kind == kind2 ->
-              withBase [m1,m2] [semV seqV "member1" child, conjWithLeft, mite $ Argument kind seqV]
+              withBase [m1,m2] ([semV seqV "member1" child, conjWithLeft, mite $ Argument kind seqV] ++ combineThyself) ++ adjHeadCompanions child kind
             _ -> []
           VerbalModifier attr comma child | kindMatches (VerbalModifier attr comma) -> withBase [m1,m2] [semV seqV "member1" child, conjWithLeft, mite $ VerbalModifier attr comma seqV]
           Possessive caze1 agr1 child -> handleAdj child caze1 agr1 $ \newAgr -> Possessive caze1 newAgr seqV
@@ -103,8 +107,9 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
            withBase [m1,m2] [semV seqV "member1" child, conjWithLeft, mite $ PrepositionActivator prep kind seqV $ stripVar cxt seqV] ++ argUnifications
           Clause force child -> case maybeKind of
             Just (Clause force2 _) | force == force2 -> let
-                 unifications = concat [unifyMissingArgument mite1 mite2 | mite1 <- filter (not . contradict m1) leftMites,
-                                                                           mite2 <- filter (not . contradict m2) rightMites]
+                 unifications = xor $ filter (not . null) $
+                   [unifyMissingArgument mite1 mite2 | mite1 <- filter (not . contradict m1) leftMites,
+                                                       mite2 <- filter (not . contradict m2) rightMites]
                  unifyMissingArgument aux1 aux2 = case (cxt aux1, cxt aux2) of
                    (NomHead agr1 v1 satisfied, ElidedArgHead (NomHead agr2 v2 False)) | agree agr1 agr2 ->
                        withBase [aux1,aux2] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v1 satisfied]
@@ -167,3 +172,7 @@ processEllipsis oldClause ellipsisVar@(Variable varIndex _) e1 e2 prevTree = let
     in
     if covered == [o1,o2] then Just mapped else Nothing
   in mappings
+
+pullThyself base childMites = childMites >>= \m -> case cxt m of
+  ReflexiveReference ref | not $ contradict m base -> withBase [m] [mite $ cxt m]
+  _ -> []

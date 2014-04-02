@@ -45,7 +45,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
         right [semV var "components" var2]
 
       (Possessive adjCase agr1 child, AdjHead noun nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> rightMites >>= \m3 -> case cxt m3 of
-        GenHead h -> [MergeInfo [(mite $ Unify h child) {baseMites=[m1,m2,m3]}] RightSide]
+        GenHead h -> [MergeInfo (withBase [m1,m2,m3] $ [mite $ Unify h child] ++ Seq.pullThyself m1 leftMites) RightSide]
         _ -> []
       (GenHead v1, Argument Gen v2) -> left [mite $ Unify v1 v2] 
 
@@ -54,7 +54,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
           [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 True]) RightSide]
         _ -> []
       (NomHead agr1 v2 False, Argument Nom v1) -> rightMites >>= \m3 -> case cxt m3 of
-        AdjHead v3 Nom agr2 | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) -> 
+        AdjHead v3 Nom agr2 | agree agr1 agr2 && v1 == v3 && not (contradict m2 m3) ->
           [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 True]) LeftSide]
         _ -> []
 
@@ -74,12 +74,13 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
 
       (PrepHead prep1 kind1 var1, Argument kind2 var2) | kind1 == kind2 ->
         let argMites = leftMites >>= \m3 -> case cxt m3 of
-              Argument (PP prep3 kind3) var3 | prep3 == prep1 && kind1 == kind3  -> withBase [m1,m2,m3] [mite $ Unify var1 var2, mite $ Argument (PP prep3 kind3) var3]
+              Argument (PP prep3 kind3) var3 | prep3 == prep1 && kind1 == kind3 ->
+                withBase [m1,m2,m3] $ [mite $ Unify var1 var2, mite $ Argument (PP prep3 kind3) var3] ++ Seq.pullThyself m2 rightMites
               Copula var3 -> withBase [m1,m2,m3] [mite $ Unify var1 var2]
               _ -> []
             adjunctMites = rightMites >>= \m3 -> case cxt m3 of
               PrepositionActivator prep3 kind3 _ innerCxt | prep3 == prep1 && kind3 == kind1 -> leftMites >>= \m4 -> case cxt m4 of
-                ActivePreposition {} -> withBase [m1,m2,m3,m4] [mite innerCxt]
+                ActivePreposition {} -> withBase [m1,m2,m3,m4] $ [mite innerCxt] ++ Seq.pullThyself m2 rightMites
                 _ -> []
               _ -> []
         in [MergeInfo (argMites ++ adjunctMites) LeftSide]

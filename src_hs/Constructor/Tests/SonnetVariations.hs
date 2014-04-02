@@ -156,6 +156,9 @@ var4 = TestLabel "sonnetVariations 4" $ TestList [
   -- 4_SheRemembers
   translateTest "1, 2 и 3 помнит, а дальше забыла"
                 "She remembers 1, 2 and 3, but forgot what comes next"
+  ,
+  translateTest "1 помнит, а дальше забыла"
+                "She remembers 1, but forgot what comes next"
  ]
 
 var5 = TestLabel "sonnetVariations 5" $ TestList [

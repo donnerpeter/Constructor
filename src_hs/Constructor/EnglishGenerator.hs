@@ -184,7 +184,7 @@ determiner frame nbar =
       else if sDet == Just "ANY" then "any"
       else if isJust (fValue "quantifier" frame) then ""
       else if hasType "STREET" frame then streetName frame
-      else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING", "MONEY", "COUNTING"] frame then ""
+      else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING", "MONEY", "COUNTING", "APARTMENTS", "OFFICES", "HOMES"] frame then ""
       else if hasAnyType ["NAMED_PERSON"] frame then ""
       else if hasType "OPINION" frame && Just True == fmap isVerbEllipsis (usage "accordingTo" frame) then ""
       else if sValue "given" frame == Just "true" then "the"

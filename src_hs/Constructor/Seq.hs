@@ -37,12 +37,12 @@ seqRight leftMites rightMites = {-traceIt "seqRight" $ -}result where
        PrepHead {} -> True
        _ -> False
      in case cxt m2 of
-      Argument kind child -> withBase [m1,m2] $ [semV v "member2" child, conjWithRight child] ++ distinguished m2 ++ pullThyself m2 rightMites
+      Argument kind child -> withBase [m1,m2] ([semV v "member2" child, conjWithRight child] ++ distinguished m2 ++ pullThyself m2 rightMites) ++ liftArguments m1 m2
       VerbalModifier attr comma child -> withBase [m1,m2] $ [semV v "member2" child, conjWithRight child] ++ distinguished m2
       Adj child caze agr -> withBase [m1,m2] [semV v "member2" child, conjWithRight child]
       Possessive caze agr child -> withBase [m1,m2] [semV v "member2" child, mite $ Conjunction $ sd {seqKind=Just (Adj child caze agr), seqRightVar=Just child}]
       Complement child -> withBase [m1,m2] [semV v "member2" child, semS child "distinguished" "true", conjWithRight child]
-      PrepositionActivator _ _ child _ -> withBase [m1,m2] [semV v "member2" child, conjWithRight child] ++ liftArguments m1 m2
+      PrepositionActivator _ _ child _ -> withBase [m1,m2] [semV v "member2" child, conjWithRight child]
       Clause force child ->
         let unhappy = filter elideable $ filter (not . happy) rightMites
             wrapped = [(mite $ ElidedArgHead $ cxt m) {baseMites = [m,m1,m2]} | m <- unhappy]
@@ -96,7 +96,8 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
         in case cxt m1 of
           Argument kind child -> case maybeKind of -- todo kindMatches
             Just (Argument kind2 _) | kind == kind2 ->
-              withBase [m1,m2] ([semV seqV "member1" child, conjWithLeft, mite $ Argument kind seqV] ++ combineThyself) ++ adjHeadCompanions child kind
+              withBase [m1,m2] ([semV seqV "member1" child, conjWithLeft, mite $ Argument kind seqV] ++ combineThyself)
+                ++ adjHeadCompanions child kind ++ argUnifications
             _ -> []
           VerbalModifier attr comma child | kindMatches (VerbalModifier attr comma) -> withBase [m1,m2] [semV seqV "member1" child, conjWithLeft, mite $ VerbalModifier attr comma seqV]
           Possessive caze1 agr1 child -> handleAdj child caze1 agr1 $ \newAgr -> Possessive caze1 newAgr seqV
@@ -104,7 +105,7 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
           CompositeAdj child caze1 agr1 -> handleAdj child caze1 agr1 $ \newAgr -> CompositeAdj seqV caze1 newAgr
           Complement child | kindMatches Complement -> withBase [m1,m2] [semV seqV "member1" child, conjWithLeft, mite $ Complement seqV]
           PrepositionActivator prep kind child cxt | kindMatches (\var -> PrepositionActivator prep kind var $ stripVar cxt var) ->
-           withBase [m1,m2] [semV seqV "member1" child, conjWithLeft, mite $ PrepositionActivator prep kind seqV $ stripVar cxt seqV] ++ argUnifications
+           withBase [m1,m2] [semV seqV "member1" child, conjWithLeft, mite $ PrepositionActivator prep kind seqV $ stripVar cxt seqV]
           Clause force child -> case maybeKind of
             Just (Clause force2 _) | force == force2 -> let
                  unifications = xor $ filter (not . null) $

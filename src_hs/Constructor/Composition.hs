@@ -75,15 +75,16 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (PrepHead prep1 kind1 var1, Argument kind2 var2) | kind1 == kind2 ->
         let argMites = leftMites >>= \m3 -> case cxt m3 of
               Argument (PP prep3 kind3) var3 | prep3 == prep1 && kind1 == kind3 ->
-                withBase [m1,m2,m3] $ [mite $ Unify var1 var2, mite $ Argument (PP prep3 kind3) var3] ++ Seq.pullThyself m2 rightMites
+                withBase [m1,m2,m3] $ [mite $ Unify var1 var2, mite $ Argument (PP prep3 kind3) var3]
               Copula var3 -> withBase [m1,m2,m3] [mite $ Unify var1 var2]
               _ -> []
             adjunctMites = rightMites >>= \m3 -> case cxt m3 of
               PrepositionActivator prep3 kind3 _ innerCxt | prep3 == prep1 && kind3 == kind1 -> leftMites >>= \m4 -> case cxt m4 of
-                ActivePreposition {} -> withBase [m1,m2,m3,m4] $ [mite innerCxt] ++ Seq.pullThyself m2 rightMites
+                ActivePreposition {} -> withBase [m1,m2,m3,m4] $ [mite innerCxt]
                 _ -> []
               _ -> []
-        in [MergeInfo (argMites ++ adjunctMites) LeftSide]
+            extra = Seq.pullThyself m2 rightMites ++ Seq.liftArguments m2 rightMites
+        in [MergeInfo (argMites ++ adjunctMites ++ extra) LeftSide]
       (DirectSpeechHead head Nothing, Colon "directSpeech" v) -> left [mite $ DirectSpeechHead head $ Just v, semV head "message" v]
       --(DirectSpeechHead head (Just v), DirectSpeech v1) -> left [mite $ Unify v v1]
       (DirectSpeechDash v, Sentence cp) -> left [mite $ DirectSpeech cp, semS cp "directSpeech" "true"]

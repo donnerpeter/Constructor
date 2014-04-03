@@ -1,4 +1,4 @@
-module Constructor.Seq (seqLeft, seqRight, pullThyself) where
+module Constructor.Seq (seqLeft, seqRight, pullThyself, liftArguments) where
 import qualified Constructor.LinkedSet as LS
 import qualified Data.Set as Set
 import Constructor.Constructions
@@ -10,6 +10,14 @@ import Constructor.Util
 import Control.Monad
 import Data.Maybe
 
+liftArguments base mites = wrapped where
+  wrapped = concat $ map wrapMite $ filter (not . happy) {-$ filter (not . contradict base)-} mites
+  wrapMite m = wrapCxt m >>= \c -> optional (withBase [m] [mite c])
+  wrapCxt mite = case cxt mite of
+    GenHead {} -> [UnsatisfiedArgHead $ cxt mite]
+    UnsatisfiedArgHead {} -> [cxt mite]
+    _ -> []
+
 seqRight leftMites rightMites = {-traceIt "seqRight" $ -}result where
   hasSeqFull conj = flip any rightMites $ \mite -> case cxt mite of
     Conjunction (SeqData { seqHasLeft=True, seqRightVar=(Just _), seqConj=c}) | isSeqContinuation conj c -> True
@@ -18,13 +26,6 @@ seqRight leftMites rightMites = {-traceIt "seqRight" $ -}result where
   isConjEmphasis mite = case cxt mite of
     ConjEmphasis {} -> True
     _ -> False
-  liftArguments m1 m2 = let
-    unhappy = filter elideable $ filter (not . happy) rightMites
-    wrapped = concat [optional $ withBase [m,m1,m2] [mite $ UnsatisfiedArgHead $ cxt m] | m <- unhappy]
-    elideable mite = case cxt mite of
-      GenHead {} -> True
-      _ -> False
-    in wrapped
   result = leftMites >>= \m1 -> case cxt m1 of
    Conjunction sd@(SeqData { seqVar=v, seqReady=True, seqHasLeft=False, seqRightVar=Nothing, seqConj=conj}) ->
     if hasSeqFull conj || hasConjEmphasis then [] else rightMites >>= \m2 -> let
@@ -37,7 +38,9 @@ seqRight leftMites rightMites = {-traceIt "seqRight" $ -}result where
        PrepHead {} -> True
        _ -> False
      in case cxt m2 of
-      Argument kind child -> withBase [m1,m2] ([semV v "member2" child, conjWithRight child] ++ distinguished m2 ++ pullThyself m2 rightMites) ++ liftArguments m1 m2
+      Argument kind child ->
+        withBase [m1,m2] ([semV v "member2" child, conjWithRight child] ++ distinguished m2 ++ pullThyself m2 rightMites)
+          ++ liftArguments m2 rightMites
       VerbalModifier attr comma child -> withBase [m1,m2] $ [semV v "member2" child, conjWithRight child] ++ distinguished m2
       Adj child caze agr -> withBase [m1,m2] [semV v "member2" child, conjWithRight child]
       Possessive caze agr child -> withBase [m1,m2] [semV v "member2" child, mite $ Conjunction $ sd {seqKind=Just (Adj child caze agr), seqRightVar=Just child}]
@@ -87,12 +90,14 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
            unifyMissingArgument aux1 aux2 = case (cxt aux1, cxt aux2) of
              (GenHead v1, UnsatisfiedArgHead (GenHead v2)) ->
                  optional $ withBase [aux1,aux2] [mite $ Unify v1 v2, mite $ GenHead v1]
+             (UnsatisfiedArgHead (GenHead v1), UnsatisfiedArgHead (GenHead v2)) ->
+                 optional $ withBase [aux1,aux2] [mite $ Unify v1 v2, mite $ GenHead v1]
              _ -> []
            in unifications
         combineThyself = case pullThyself m1 leftMites ++ pullThyself m2 rightMites of
           both@[Mite {cxt = ReflexiveReference ref1}, Mite { cxt = ReflexiveReference ref2 }] -> withBase both [mite $ ReflexiveReference ref1, mite $ Unify ref1 ref2]
           combined -> combined
-        adjHeadCompanions child kind = withBase [m2] [mite $ AdjHead seqV kind (Agr Nothing (Just Pl) Nothing)]
+        adjHeadCompanions child kind = if kind `elem` cases then withBase [m2] [mite $ AdjHead seqV kind (Agr Nothing (Just Pl) Nothing)] else []
         in case cxt m1 of
           Argument kind child -> case maybeKind of -- todo kindMatches
             Just (Argument kind2 _) | kind == kind2 ->

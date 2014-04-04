@@ -7,7 +7,7 @@ module Constructor.Sense
   earlier,
   allFrames, allFrameFacts,
   flatten, isNumber, unSeq, seqSiblings, prevSiblings, nextSiblings,
-  isHuman,
+  isHuman, isAnimate, isInanimate,
   makeSense)
   where
 
@@ -162,7 +162,10 @@ resolve frame = case (getType frame, fValue "target" frame) of
 
 isNumber frame = any (\f -> sValue "number" f == Just "true") $ flatten frame
 
-isHuman frame = hasAnyType ["NEIGHBOR", "NEIGHBORS", "CASHIER"] frame
+isHuman frame = hasAnyType ["NEIGHBOR", "NEIGHBORS", "CASHIER", "NAMED_PERSON"] frame
+isAnimate frame = isHuman frame || Just "true" == sValue "animate" frame
+
+isInanimate frame = hasType "wh" frame && Just "true" /= sValue "animate" frame
 
 unSeq frame = case msum [usage "member1" frame, usage "member2" frame] of
   Just s -> unSeq s

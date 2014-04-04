@@ -22,11 +22,18 @@ issues mites = let
     Just "CASHIER" -> if any (hasType "OTHERS") (flatten $ fValue "place" frame) then ["cashier of other people"] else []
     Just "OPINION" -> if isNothing (fValue "arg1" frame >>= getType) then ["opinion without subj"] else []
     Just "WORDS" -> if isNothing (fValue "author" frame >>= getType) then ["words without author"] else []
-    Just "COME_SCALARLY" -> case fValue "arg1" frame of
-      Just subj ->
-        if Nothing == sDeclaredValue "type" subj then ["unknown subj"] else
-         case fValue "order" frame of
-          Just order | earlier frame "order" subj "type" && earlier frame "type" frame "order" -> ["come_scalarly order subj"]
-          _ -> []
+    Just "GO" -> if Just True /= fmap isAnimate (fValue "arg1" frame) then ["inanimate GO subject"] else []
+    Just "COME_SCALARLY" -> let
+      fSubj = fValue "arg1" frame
+      fOrder = fValue "order" frame
+      anchorIssues = if Just True == fmap isAnimate (fOrder >>= fValue "anchor") then ["come_scalarly with animate anchor"] else []
+      subjIssues = case fSubj of
+        Just subj ->
+          if Nothing == sDeclaredValue "type" subj then ["unknown subj"] else
+           case fOrder of
+            Just order | earlier order "type" subj "type" && earlier frame "type" order "type" -> ["come_scalarly order subj"]
+            _ -> []
+        _ -> []
+      in anchorIssues ++ subjIssues
     _ -> []
   in {-traceIt "issues" $ -}(frames >>= frameIssues) ++ (if hasCP then [] else ["no clause"])

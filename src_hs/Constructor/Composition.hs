@@ -60,8 +60,8 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
 
       (ConjEmphasis attr _, Verb head) -> right [semS head attr "true"]
 
-      (Adverb attr val, Verb head) -> right [semS head attr val]
-      (Verb head, Adverb attr val) -> left [semS head attr val]
+      (Adverb v, Verb head) -> right [mite $ Unify v head]
+      (Verb head, Adverb v) -> left [mite $ Unify v head]
       (AdjHead head _ _, NounAdjunct attr var) -> left [semV head attr var]
 
       (Quantifier kind1 agr1 v1, Argument kind2 v2) | kind1 == kind2 -> rightMites >>= \m3 -> case cxt m3 of
@@ -72,6 +72,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (ArgHead kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left $ argVariants var1 var2 leftMites rightMites
       (Argument kind2 var2, ArgHead kind1 var1) | kind1 == kind2 -> right $ argVariants var1 var2 rightMites leftMites
 
+      (SemPreposition kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
       (PrepHead prep1 kind1 var1, Argument kind2 var2) | kind1 == kind2 ->
         let argMites = leftMites >>= \m3 -> case cxt m3 of
               Argument (PP prep3 kind3) var3 | prep3 == prep1 && kind1 == kind3 ->
@@ -102,7 +103,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (QuestionVariants (Just v) (Just _), Argument Nom child) -> left [semV v "variants" child]
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
       (Verb v, Word _ "бы") -> left [semS v "irrealis" "true"]
-      (Word _ "очень", adverb@(Adverb attr val)) -> right [mite $ adverb]
+      (Word _ "очень", adverb@(Adverb {})) -> right [mite $ adverb]
       
       (Copula v0, CopulaTense v1) -> left [mite $ Unify v0 v1]
       (CopulaTense v0, Copula v1) -> right [mite $ Unify v0 v1]

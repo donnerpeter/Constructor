@@ -26,12 +26,13 @@ data Construction = Word Variable String
                   | GenHead Variable
                   | ArgHead ArgKind Variable
                   | PrepHead String ArgKind Variable
+                  | SemPreposition ArgKind Variable
                   | PrepositionActivator String ArgKind Variable Construction
                   | ActivePreposition Variable
                   | UnsatisfiedArgHead Construction
                   | Quantifier ArgKind Agr Variable
                   | Argument ArgKind Variable
-                  | Adverb String String
+                  | Adverb Variable
                   | NounAdjunct String Variable
                   | Elaboration Variable
                   | Unclosed Construction
@@ -79,7 +80,7 @@ data Construction = Word Variable String
 
 isHappy cxt = case cxt of
   Adj {} -> False; Adverb {} -> False; NounAdjunct {} -> False
-  ArgHead {} -> False; PrepHead {} -> False; Argument {} -> False; ElidedArgHead {} -> False
+  ArgHead {} -> False; PrepHead {} -> False; SemPreposition {} -> False; Argument {} -> False; ElidedArgHead {} -> False
   UnsatisfiedArgHead {} -> False
   Quantifier {} -> False
   CompHead {} -> False; ConditionCompHead {} -> False; ConditionComp {} -> False; ReasonComp {} -> False

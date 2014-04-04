@@ -92,7 +92,7 @@ np_internal nom mayHaveDeterminer frame = do
     else if hasType "WE" frame then if nom then return "we" else return "us"
     else if hasType "wh" frame then return $
       if isJust $ usage "arg1" frame >>= usage "content" >>= usage "relative" then "that"
-      else if Just "true" == sValue "animate" frame then "who" else "what"
+      else if isAnimate frame then "who" else "what"
     else do
       let n = noun (getType frame) frame
           adjs = foldl cat "" $ adjectives frame
@@ -321,7 +321,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "ARGUE" -> if verbForm == Gerund then "arguing" else if Just "true" == sValue "irrealis" frame then "were arguing" else "argue"
   "RECALL" -> "recall"
   "REMEMBER" -> if verbForm == PastVerb then "remembered" else if verbForm == Sg3Verb then "remembers" else "remember"
-  "SMILE" -> "gave us a " ++ (if sValue "manner" frame == Just "SADLY" then "sad " else "") ++ "smile"
+  "SMILE" -> "gave us a " ++ (if (fValue "manner" frame >>= getType) == Just "SADLY" then "sad " else "") ++ "smile"
   "THANK" -> "thanked"
   "RUN_OUT" -> "ran"
   "TAKE_OUT" -> "took"
@@ -367,8 +367,8 @@ clause fVerb = do
     let intro = conjIntroduction fVerb
     let emphasis = if (fValue "optativeModality" fVerb >>= getType) == Just "LUCK" then "by some sheer luck,"
                   else if sValue "emphasis" fVerb == Just "true" then "there"
-                   else if sValue "relTime" fVerb == Just "AFTER" then "then"
-                   else if sValue "relTime" fVerb == Just "BEFORE" then "before,"
+                   else if (fValue "relTime" fVerb >>= getType) == Just "AFTER" && isNothing (fValue "relTime" fVerb >>= fValue "anchor") then "then"
+                   else if (fValue "relTime" fVerb >>= getType) == Just "BEFORE" && isNothing (fValue "relTime" fVerb >>= fValue "anchor") then "before,"
                    else ""
     let verbForm = if past state then PastVerb else if Just True == fmap (hasAnyType ["HE", "SHE"]) fSubject then Sg3Verb else BaseVerb
         isModality = hasType "modality" fVerb
@@ -407,7 +407,7 @@ clause fVerb = do
     background <- case fValue "perfectBackground" fVerb of
       Just back -> case getType back of
         Just "MOVE" -> do
-          let slightly = if Just "SLIGHTLY" == sValue "manner" back then "slightly" else ""
+          let slightly = if Just "SLIGHTLY" == (fValue "manner" back >>= getType) then "slightly" else ""
           moved <- np False (fValue "arg2" back)
           return $ "moving" `cat` moved `cat` slightly `cat` "back and forth"
         Just "THINK" -> return "thinking carefully about" `catM` np False (fValue "theme" back)
@@ -466,7 +466,7 @@ beForm fSubject verbForm =
 
 vp :: Frame -> VerbForm -> String -> State GenerationState String
 vp fVerb verbForm subject = do
-  let preAdverb = case sValue "manner" fVerb of
+  let preAdverb = case fValue "manner" fVerb >>= getType of
         Just "SUDDENLY" -> "suddenly"
         Just "JUST" -> "just"
         Just "SADLY" -> if getType fVerb == Just "SMILE" then "" else "sadly"
@@ -482,7 +482,7 @@ vp fVerb verbForm subject = do
               else verb (if null aux then verbForm else if isGerund fVerb then Gerund else BaseVerb) fVerb
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
-        Just "MOVE" -> (if Just "SLIGHTLY" == sValue "manner" fVerb then "slightly" else "") `cat` "back and forth"
+        Just "MOVE" -> (if Just "SLIGHTLY" == (fValue "manner" fVerb >>= getType) then "slightly" else "") `cat` "back and forth"
         _ -> ""
       negation = if sValue "negated" fVerb == Just "true" && isGerund fVerb then "not" else ""
       aux =
@@ -526,7 +526,9 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
      if isVerbEllipsis fVerb && Just value /= (usage "content" fVerb >>= fValue "ellipsisAnchor2") then [] else
      case (typ, attr) of
       ("COME_SCALARLY", "order") -> case getType value of
-        Just "EARLIER" -> [Adverb "first"]
+        Just "EARLIER" -> case fValue "anchor" value of
+          Just anchor -> [PPArg "before" anchor]
+          _ -> [Adverb "first"]
         Just "NEXT" -> [Adverb "next"]
         Just "AFTER" -> case fValue "anchor" value of 
           Just anchor -> [PPArg "after" anchor]
@@ -556,13 +558,16 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
         Just "JOY" | isNothing (fValue "size" value)-> [Adverb "cheerfully"]
         Just _ -> [PPAdjunct "with" value]
         _ -> []
-      (_, "location") -> [PPArg "on" value]
+      (_, "location") -> if hasType "THERE" value then [] else [PPArg "on" value]
       (_, "arg2") -> if isCPOrSeq value || isQuestioned value then [] else [NPArg value]
+      (_, "duration") -> if hasType "LONG" value then [Adverb "for a long time"] else []
+      (_, "relTime") -> case fValue "anchor" value of
+        Just anchor -> [PPArg (if hasType "AFTER" value then "after" else "before") anchor]
+        _ -> []
       _ -> []
     StrValue value -> case (attr, value) of
       ("anchor", "AGAIN") -> [Adverb "again"]
       ("anchor", "ALREADY") -> [Adverb "already"]
-      ("duration", "LONG") -> [Adverb "for a long time"]
       _ -> []
   where
   isNPArg arg = case arg of

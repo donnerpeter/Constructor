@@ -733,6 +733,9 @@ varUnsorted = TestLabel "sonnetVariations unsorted" $ TestList [
   translateTest "Она забыла, что идет после Васи."
                 "She forgot, that she went after Vasya."
   ,
+  translateTest "Она забыла, кто идет после Васи."
+                "She forgot who went after Vasya."
+  ,
   -- HeForgotThatBrokeHisJaw
   translateTest "Он забыл, что сломал себе челюсть."
                 "He forgot, that he broke his jaw."

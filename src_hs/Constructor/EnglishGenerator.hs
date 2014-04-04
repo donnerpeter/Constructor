@@ -475,7 +475,7 @@ vp fVerb verbForm subject = do
         Just s -> s
         _ -> ""
       cp = usage "content" fVerb
-      fSubject = fValue "arg1" fVerb
+      fSubject = if hasType "SEEM" fVerb then fValue "theme" fVerb >>= fValue "arg1" else fValue "arg1" fVerb
       nonSubjectQuestion = Just True == fmap (hasType "question") cp && (cp >>= fValue "questioned") /= fSubject
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue "question_mark")
       sVerb = if isVerbEllipsis fVerb && fSubject == (cp >>= fValue "ellipsisAnchor2")
@@ -503,8 +503,8 @@ vp fVerb verbForm subject = do
       _ -> return ""
     _ -> return ""
   let args = arguments fVerb
-  let topicalizedArg = case (getType fVerb, fValue "theme" fVerb >>= fValue "arg1", args) of
-        (Just "SEEM", Just subj, hd@(PPAdjunct _ value):_) | earlier value "type" fVerb "type" && earlier value "type" subj "type" -> Just hd
+  let topicalizedArg = case (fSubject, args) of
+        (Just subj, hd@(PPAdjunct _ value):_) | earlier value "type" fVerb "type" && earlier value "type" subj "type" -> Just hd
         _ -> Nothing
   let otherArgs = fromMaybe args $ fmap (flip Data.List.delete args) topicalizedArg
   sArgs <- foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) otherArgs
@@ -563,7 +563,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       (_, "arg2") -> if isCPOrSeq value || isQuestioned value then [] else [NPArg value]
       (_, "duration") -> if hasType "LONG" value then [Adverb "for a long time"] else []
       (_, "relTime") -> case fValue "anchor" value of
-        Just anchor -> [PPArg (if hasType "AFTER" value then "after" else "before") anchor]
+        Just anchor -> [PPAdjunct (if hasType "AFTER" value then "after" else "before") anchor]
         _ -> []
       _ -> []
     StrValue value -> case (attr, value) of

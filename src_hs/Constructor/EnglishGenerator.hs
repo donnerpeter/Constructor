@@ -232,6 +232,7 @@ noun (Just typ) frame = case typ of
   "ROOMS" -> "rooms"
   "APARTMENTS" -> "apartments"
   "OFFICES" -> "offices"
+  "WORK" -> "work"
   "ARGUE" -> "argument"
   "THIS" -> "that"
   "NAMED_PERSON" -> fromMaybe "??name" $ sValue "name" frame

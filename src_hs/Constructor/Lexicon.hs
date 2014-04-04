@@ -196,6 +196,7 @@ wordMites word index =
   "приуныли" -> finVerb "GET_SAD" "PAST" A.pl v
   "просто" -> adverb "manner" "JUST" v
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ arg (PP "v" Acc) "goal" v
+  "работы" -> nounSg Gen Fem "WORK" v
   "радостью" -> nounSg Instr Fem "JOY" v ++ optional [mite $ PrepositionActivator "s" Instr v0 $ VerbalModifier "mood" False v0]
   "разошлись" -> finVerb "DISPERSE" "PAST" A.pl v ++ arg (PP "po" Dat) "goal" v
   "раньше" -> xor [[mite $ Argument ScalarAdverb v0, semT v0 "EARLIER"], adverb "relTime" "BEFORE" v] ++ optional (semPreposition Gen "anchor" v)

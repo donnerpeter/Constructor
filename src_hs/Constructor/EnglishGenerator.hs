@@ -163,6 +163,7 @@ determiner frame nbar =
           Just "THEY" -> return "their"
           Just "WE" -> return "our"
           Just "SHE" -> return "her"
+          Just "wh" -> return "whose"
           Just s -> do
             state <- get
             if Set.member det (visitedFrames state) then return $ case sValue "rusGender" det of
@@ -460,7 +461,7 @@ clause fVerb = do
     according <- generateAccording fVerb
     return $ intro `cat` emphasis `cat` according `cat` coreWithBackground `cat` condComp `cat` reasonComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
 
-isQuestioned frame = hasType "wh" frame
+isQuestioned frame = hasType "wh" frame || Just True == fmap (hasType "wh") (fValue "arg1" frame)
 
 beForm fSubject verbForm =
   if verbForm == PastVerb then
@@ -493,10 +494,6 @@ vp fVerb verbForm subject = do
         if isGerund fVerb && isNothing (usage "content" fVerb >>= usage "member2") then beForm fSubject verbForm
         else if inverted then if verbForm == PastVerb then "did" else "do"
         else ""
-  whWord <- if nonSubjectQuestion then np False (cp >>= fValue "questioned") else return ""
-  according <- if null whWord && Just True /= fmap (hasType "wh") fSubject then return "" else do
-    acc <- generateAccording fVerb
-    return $ if null acc then "" else "," `cat` acc
   controlled <- case getType fVerb of
     Just "CAN" -> case fValue "theme" fVerb of
       Just slave -> vp slave BaseVerb ""
@@ -505,15 +502,26 @@ vp fVerb verbForm subject = do
       Just slave -> vp slave Gerund ""
       _ -> return ""
     _ -> return ""
-  let args = arguments fVerb
-  let topicalizedArg = case (fSubject, args) of
+  let allArgs = arguments fVerb
+      topicalizedArg = case (fSubject, allArgs) of
         (Just subj, hd@(PPAdjunct _ value):_) | earlier value "type" fVerb "type" && earlier value "type" subj "type" -> Just hd
         _ -> Nothing
-  let otherArgs = fromMaybe args $ fmap (flip Data.List.delete args) topicalizedArg
-  sArgs <- foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) otherArgs
+      questionedArg = if not nonSubjectQuestion then Nothing else Data.List.find isQuestionedArg allArgs
+      isQuestionedArg arg = case arg of
+        (NPArg frame) -> isQuestioned frame
+        _ -> False
+      removeMaybe maybeVal list = fromMaybe list $ fmap (flip Data.List.delete list) maybeVal
+      normalArgs = removeMaybe questionedArg $ removeMaybe topicalizedArg $ allArgs
+  sArgs <- foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) normalArgs
   sTopicalized <- case topicalizedArg of
     Just arg -> generateArg arg `catM` return ","
     _ -> return ""
+  whWord <- case questionedArg of
+    Just (NPArg qFrame) -> np False (Just qFrame)
+    _ -> return ""
+  according <- if null whWord && Just True /= fmap (hasType "wh") fSubject then return "" else do
+    acc <- generateAccording fVerb
+    return $ if null acc then "" else "," `cat` acc
   let contracted = if null preAdverb && null negation && null aux && null according then
                      if sVerb == "am" then subject ++ "'m"
                      else if sVerb == "is" then subject ++ "'s"
@@ -521,7 +529,7 @@ vp fVerb verbForm subject = do
                    else (if inverted then according `cat` aux `cat` negation `cat` subject else subject `cat` according `cat` aux `cat` negation) `cat` preAdverb `cat` sVerb
   return $ sTopicalized `cat` whWord `cat` contracted `cat` controlled `cat` sArgs `cat` finalAdverb
 
-data Argument = Adverb String | NPArg Frame | PPArg String Frame | PPAdjunct String Frame deriving (Eq)
+data Argument = Adverb String | NPArg Frame | PPArg String Frame | PPAdjunct String Frame deriving (Eq,Show)
 
 arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ ->
   allFrameFacts fVerb >>= \ Fact { attrName = attr, value = semValue} ->
@@ -563,7 +571,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
         Just _ -> [PPAdjunct "with" value]
         _ -> []
       (_, "location") -> if hasType "THERE" value then [] else [PPArg "on" value]
-      (_, "arg2") -> if isCPOrSeq value || isQuestioned value then [] else [NPArg value]
+      (_, "arg2") -> if isCPOrSeq value then [] else [NPArg value]
       (_, "duration") -> if hasType "LONG" value then [Adverb "for a long time"] else []
       (_, "relTime") -> case fValue "anchor" value of
         Just anchor -> [PPAdjunct (if hasType "AFTER" value then "after" else "before") anchor]

@@ -131,6 +131,7 @@ wordMites word index =
   "когда" -> [mite $ ConditionComp v0 "when" False] -- todo wh-questions with когда
   "коммерческий" -> adj Acc A.m "kind" "COMMERCIAL" v
   "комнатам" -> nounPl Dat "ROOMS" v ++ genHead "owner" v
+  "кому" -> whWord v ++ [mite $ Argument Dat v0, mite $ AdjHead v0 Dat A.sg, semS v0 "animate" "true"]
   "кто" -> whWord v ++ [mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.m3, semS v0 "animate" "true"]
   "летний" -> adj Acc A.m "name" "летний" v -- todo летний is not only a name
   "лишенными" -> [mite $ Raiseable A.pl v0, semT v0 "LACK"] ++ arg Gen "theme" v

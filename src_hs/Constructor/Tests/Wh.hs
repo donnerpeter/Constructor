@@ -77,4 +77,31 @@ whTests = [TestLabel "wh tests" $ TestList [
   -- ,
   -- translateTest "Мы никуда не идём"
   --               "We go nowhere"
+--todo  translateTest "Я забыл, о чём он спросил соседей."
+--                "I forgot what he asked his neighbors about."
+--  ,
+--todo  translateTest "О чём я?"
+--                "What was I talking about?"
+--  ,
+--todo  translateTest "Я увидел дом, где они сидят"
+--                "I saw the house where they were sitting"
+--  ,
+--todo  translateTest "Я увидел дом, в котором они сидят"
+--                "I saw the house which they were sitting in"
+--  ,
+--todo  translateTest "Я увидел дом, у которого они сидят"
+--                "I saw the house which they were sitting next to"
+--  ,
+--todo  translateTest "Я спросил про дом, что он увидел"
+--                "What do they think on this matter?"
+--  ,
+--todo  translateTest "Кому он велел помочь?"
+--                "What do they think on this matter?"
+--  ,
+--todo  translateTest "Кому он велел ей помочь?"
+--                "What do they think on this matter?"
+--  ,
+--todo  translateTest "Кому он велел помочь, ей?"
+--                "What do they think on this matter?"
+--  ,
   ]]

@@ -689,6 +689,10 @@ var13 = TestLabel "sonnetVariations 13" $ TestList [
   -- 13_BothJawsAndEightFingers
   translateTest "Ребенок сломал себе обе челюсти и восемь пальцев"
                 "The child broke both of his jaws and eight fingers"
+--  ,
+  -- 13_LuckMissingComma2
+--todo  translateTest "Мы спорили бы очень долго, но, по счастию тут со скамейки свалился какой-то ребенок"
+--                "We were arguing for a long time, when by some sheer luck, a child fell off a bench"
  ]
 
 var14 = TestLabel "sonnetVariations 14" $ TestList [
@@ -778,6 +782,46 @@ varUnsorted = TestLabel "sonnetVariations unsorted" $ TestList [
   -- CashierGoesAfterVasya
   translateTest "Кассир идет после Васи"
                 "The cashier goes after Vasya"
+-- _testWhoseOpinion
+--todo  translateTest "Я забыл, по чьему мнению семь идет после восьми."
+--                "I forgot in whose opinion a seven comes after an eight."
+--  ,
+-- _testAccordingToWhom
+--todo  translateTest "Я забыл, по чьим словам семь идет после восьми."
+--                "I forgot according to whom a seven comes after an eight."
+--  ,
+-- _testAccorgindToAndInOpinionOfWhomPossessive
+--todo  translateTest "Я забыл, по чьим словам и мнению семь идет после восьми."
+--                "I forgot according to and in the opinion of who a seven comes after an eight."
+--  ,
+-- _testAccordingToWordsOfWho
+--todo  translateTest "Я забыл, по словам кого семь идет после восьми."
+--                "I forgot according to whom a seven comes after an eight."
+--  ,
+-- _testAccorgindToAndInOpinionOfWhomGenitive
+--todo  translateTest "Я забыл, по словам и мнению кого семь идет после восьми."
+--                "I forgot according to and in the opinion of who a seven comes after an eight."
+--  ,
+-- _testCashierFromBasseinayaGoesToTheShop
+--todo  translateTest "Кассирша с Бассейной идет в магазин"
+--                "The cashier from Basseinaya street goes to the store"
+--  ,
+-- _testCashierFromBasseinayaStreetGoesToTheShop
+--todo  translateTest "Кассирша с Бассейной улицы идет в магазин"
+--                "The cashier from Basseinaya street goes to the store"
+--  ,
+-- _testCashierFromStreetBasseinayaGoesToTheShop
+--todo  translateTest "Кассирша с улицы Бассейной идет в магазин"
+--                "The cashier from the street Basseinaya goes to the store"
+--  ,
+-- _testCashierGoesFromStreetBasseinayaToTheShop
+--todo  translateTest "Кассирша идет с улицы Бассейной в магазин"
+--                "The cashier goes from the street Basseinaya to the store"
+--  ,
+-- _testFemaleCashierGoesToTheShopMaleToGarden
+--todo  translateTest "Кассирша идет в магазин, а кассир - в сад"
+--                "The female cashier goes to the store, and the male cashier - to the garden"
+--  ,
  ]
 
 sonnetVariations = [var1, var2, var3, var4, var5, var6, var7, var67, var8, var9, 

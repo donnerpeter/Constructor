@@ -131,8 +131,7 @@ fValue attr frame =
   else
     case attr of
       "arg1" ->
-        if hasType "NEIGHBORS" frame then usage "goal" frame >>= fValue "arg1"
-        else if hasAnyType ["MOUTH", "NOSE", "JAW", "JAWS", "FINGER"] frame then let
+        if hasAnyType ["MOUTH", "NOSE", "JAW", "JAWS", "FINGER", "NEIGHBORS"] frame then let
           verbs = catMaybes [usage "source" $ unSeq frame, usage "arg2" $ unSeq frame, usage "goal" $ unSeq frame]
           foregrounds = catMaybes $ map (usage "perfectBackground") verbs
           in fmap resolve $ msum $ map (fValue "receiver") (verbs ++ foregrounds) ++ map (fValue "arg1") (verbs ++ foregrounds)

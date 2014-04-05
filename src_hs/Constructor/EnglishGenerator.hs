@@ -509,6 +509,7 @@ vp fVerb verbForm subject = do
       questionedArg = if not nonSubjectQuestion then Nothing else Data.List.find isQuestionedArg allArgs
       isQuestionedArg arg = case arg of
         (NPArg frame) -> isQuestioned frame
+        (PPArg _ frame) -> isQuestioned frame
         _ -> False
       removeMaybe maybeVal list = fromMaybe list $ fmap (flip Data.List.delete list) maybeVal
       normalArgs = removeMaybe questionedArg $ removeMaybe topicalizedArg $ allArgs
@@ -518,7 +519,11 @@ vp fVerb verbForm subject = do
     _ -> return ""
   whWord <- case questionedArg of
     Just (NPArg qFrame) -> np False (Just qFrame)
+    Just (PPArg _ qFrame) -> np False (Just qFrame)
     _ -> return ""
+  let stranded = case questionedArg of
+        Just (PPArg prep _) -> prep
+        _ -> ""
   according <- if null whWord && Just True /= fmap (hasType "wh") fSubject then return "" else do
     acc <- generateAccording fVerb
     return $ if null acc then "" else "," `cat` acc
@@ -527,7 +532,7 @@ vp fVerb verbForm subject = do
                      else if sVerb == "is" then subject ++ "'s"
                      else subject `cat` sVerb
                    else (if inverted then according `cat` aux `cat` negation `cat` subject else subject `cat` according `cat` aux `cat` negation) `cat` preAdverb `cat` sVerb
-  return $ sTopicalized `cat` whWord `cat` contracted `cat` controlled `cat` sArgs `cat` finalAdverb
+  return $ sTopicalized `cat` whWord `cat` contracted `cat` controlled `cat` sArgs `cat` stranded `cat` finalAdverb
 
 data Argument = Adverb String | NPArg Frame | PPArg String Frame | PPAdjunct String Frame deriving (Eq,Show)
 
@@ -554,7 +559,9 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       ("RUN_OUT", "source") -> [PPArg "out of" value]
       ("FALL", "source") -> [PPArg "off" value]
       ("SAY", "addressee") -> [NPArg value]
-      ("ASK", "topic") -> if all (hasType "question") $ flatten $ Just value then [] else [PPArg "on" value]
+      ("ASK", "topic") ->
+        if all (hasType "question") $ flatten $ Just value then []
+        else [PPArg (if hasType "PREDICAMENT" value then "on" else "about") value]
       ("LACK", "theme") -> [NPArg value]
       ("DISTRACT", "theme") -> [PPArg "from" value]
       ("THINK", "topic") -> [PPArg "on" value]

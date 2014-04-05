@@ -85,7 +85,10 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
                 ActivePreposition {} -> withBase [m1,m2,m3,m4] $ [mite innerCxt]
                 _ -> []
               _ -> []
-            extra = Seq.pullThyself m2 rightMites ++ Seq.liftArguments m2 rightMites
+            extra = Seq.pullThyself m2 rightMites ++ Seq.liftArguments m2 rightMites ++ whPropagation
+            whPropagation = rightMites >>= \m3 -> case cxt m3 of
+              Wh {} -> withBase [m1,m2,m3] [mite $ cxt m3]
+              _ -> []
         in [MergeInfo (argMites ++ adjunctMites ++ extra) LeftSide]
       (DirectSpeechHead head Nothing, Colon "directSpeech" v) -> left [mite $ DirectSpeechHead head $ Just v, semV head "message" v]
       --(DirectSpeechHead head (Just v), DirectSpeech v1) -> left [mite $ Unify v v1]

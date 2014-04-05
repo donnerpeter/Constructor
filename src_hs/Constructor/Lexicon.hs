@@ -235,7 +235,7 @@ wordMites word index =
   "смысла" -> nounSg Gen Masc "MEANING" v
   "со" -> xor [preposition "s" Instr v, preposition "s" Gen v]
   "соседа" -> nounSg Gen Masc "NEIGHBOR" v
-  "соседей" -> nounPl Gen "NEIGHBORS" v
+  "соседей" -> xor [nounPl Acc "NEIGHBORS" v, nounPl Gen "NEIGHBORS" v]
   "соседям" -> nounPl Dat "NEIGHBORS" v
   "спора" -> nounSg Gen Masc "ARGUE" v ++ genHead "arg1" v
   "спорили" -> finVerb "ARGUE" "PAST" A.pl v
@@ -268,6 +268,7 @@ wordMites word index =
   "челюсти" -> xor[nounSg Gen Fem "JAW" v, nounPl Nom "JAWS" v, nounPl Acc "JAWS" v]
   "челюсть" -> nounSg Acc Fem "JAW" v
   "челюстью" -> nounSg Instr Fem "JAW" v
+  "чём" -> whWord v ++ [mite $ Argument Prep v0, mite $ AdjHead v0 Prep A.n3]
   "что" -> xor [whWord v ++ xor [[mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.n3], [mite $ Argument Acc v0, mite $ AdjHead v0 Acc A.n3]],
                 [mite $ Complementizer v0],
                 [mite $ TwoWordCxt "потому что" False [] v0]]

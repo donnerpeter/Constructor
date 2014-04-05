@@ -346,14 +346,14 @@ distinguish frame = isNothing (usage "member2" frame) || Just "true" == sValue "
 elideableArgument frame parent = if any (\f -> source f == frame) (nextSiblings parent) then return "" else np False frame where
   source f = if hasType "WORDS" f then fValue "author" f else fValue "arg1" f
 
-generateAccording fVerb = case fValue "accordingTo" fVerb of
+generateAccording parent = case fValue "accordingTo" parent of
   Just source -> do
     state <- get
     if Set.member source (visitedFrames state) then return ""
     else handleSeq oneOpinion (Just source) `catM` return comma
   _ -> return ""
   where
-    comma = if isVerbEllipsis fVerb && fValue "arg1" fVerb == (usage "content" fVerb >>= fValue "ellipsisAnchor2") then "" else ","
+    comma = if isVerbEllipsis parent && fValue "arg1" parent == (usage "content" parent >>= fValue "ellipsisAnchor2") then "" else ","
     oneOpinion source = case getType source of
       Just "OPINION" -> return (if distinguish source then "in" else "") `catM` np False (Just source)
       Just "WORDS" -> return "according to" `catM` elideableArgument (fValue "author" source) source
@@ -441,7 +441,10 @@ clause fVerb = do
         Just fComp -> return ", if" `catM` sentence fComp
         _ -> case fValue "condition" fVerb of
           Just caze | hasType "CASE" caze -> case msum [fValue "whenCondition" caze, fValue "ifCondition" caze] of
-            Just fComp -> do comp <- sentence fComp; return $ ", only if" `cat` comp
+            Just fComp -> do
+              comp <- sentence fComp
+              according <- generateAccording caze
+              return $ ", only if" `cat` (if null according then "" else ", " ++ according) `cat` comp
             _ -> return ""
           _ -> return ""
     reasonComp <- case fValue "reason" fVerb of

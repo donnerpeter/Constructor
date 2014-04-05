@@ -139,7 +139,9 @@ wordMites word index =
   "маленький" -> adj Acc A.m "size" "LITTLE" v
   "меня" -> pronoun Gen A.sg "ME" v
   "мне" -> pronoun Dat A.sg "ME" v
-  "мнению" -> nounSg Dat Neu "OPINION" v ++ genHead "arg1" v ++ optional [mite $ PrepositionActivator "po" Dat v0 $ VerbalModifier "accordingTo" True v0]
+  "мнению" -> nounSg Dat Neu "OPINION" v ++ genHead "arg1" v ++
+    optional (xor [[mite $ PrepositionActivator "po" Dat v0 $ VerbalModifier "accordingTo" True v0],
+                   [mite $ PrepositionActivator "po" Dat v0 $ NounAdjunct "accordingTo" True v0]])
   "мной" -> pronoun Instr A.sg "ME" v
   "может" -> finVerb "CAN" "PRESENT" A.sg3 v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
   "могут" -> finVerb "CAN" "PRESENT" A.pl3 v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
@@ -180,7 +182,7 @@ wordMites word index =
   "пальца" -> nounSg Gen Masc "FINGER" v
   "пальцев" -> nounPl Gen "FINGER" v
   "по" -> preposition "po" Dat v
-  "по-моему" -> [mite $ VerbalModifier "accordingTo" True v0, semT v0 "OPINION", semV v0 "arg1" (v "me"), semT (v "me") "ME"]
+  "по-моему" -> xor [[mite $ VerbalModifier "accordingTo" True v0], [mite $ NounAdjunct "accordingTo" True v0]] ++ [semT v0 "OPINION", semV v0 "arg1" (v "me"), semT (v "me") "ME"]
   "поблагодарили" -> finVerb "THANK" "PAST" A.pl v ++ directObject v
   "поводу" -> nounSg Dat Masc "MATTER" v
   "подвигав" -> perfectBackground "MOVE" v ++ arg Instr "arg2" v
@@ -221,7 +223,9 @@ wordMites word index =
   "слегка" -> adverb "manner" "SLIGHTLY" v
   "следовало" -> finVerb "COME_SCALARLY" "PAST" A.n3 v ++ xor [arg ScalarAdverb "order" v, arg (PP "posle" Gen) "order" v]
   "слова" -> xor [nounPl Nom "WORDS" v, nounPl Acc "WORDS" v] ++ genHead "author" v
-  "словам" -> nounPl Dat "WORDS" v ++ genHead "author" v ++ optional [mite $ PrepositionActivator "po" Dat v0 $ VerbalModifier "accordingTo" True v0]
+  "словам" -> nounPl Dat "WORDS" v ++ genHead "author" v ++
+    optional (xor [[mite $ PrepositionActivator "po" Dat v0 $ VerbalModifier "accordingTo" True v0],
+                   [mite $ PrepositionActivator "po" Dat v0 $ NounAdjunct "accordingTo" True v0]])
   "сломал" -> finVerb "BREAK" "PAST" A.m v ++ directObject v ++ arg Dat "receiver" v
   "сломала" -> finVerb "BREAK" "PAST" A.f v ++ directObject v ++ arg Dat "receiver" v
   "случай" -> nounSg Nom Masc "CASE" v
@@ -253,7 +257,7 @@ wordMites word index =
     -- todo copula for prepositions besides 'u'
     xor [preposition "u" Gen v, [mite $ PrepHead "u" Gen v0, mite $ Copula (v "x"), semT (v "x") "copula", semV (v "x") "owner" v0] ++ finiteClause A.empty True (modifyV v 'x')]
   "удивительный" -> adj Nom A.m "property" "AMAZING" v
-  "углу" -> nounSg Prep Masc "CORNER" v ++ genHead "arg1" v ++ optional [mite $ PrepositionActivator "na" Prep v0 $ NounAdjunct "location" v0]
+  "углу" -> nounSg Prep Masc "CORNER" v ++ genHead "arg1" v ++ optional [mite $ PrepositionActivator "na" Prep v0 $ NounAdjunct "location" False v0]
   "удивление" -> nounSg Nom Neu "AMAZE" v ++ genHead "arg1" v
   "уже" -> sAdverb "anchor" "ALREADY" v
   "улиц" -> nounPl Gen "STREETS" v

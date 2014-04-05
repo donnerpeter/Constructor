@@ -287,7 +287,10 @@ var7 = TestLabel "sonnetVariations 7" $ TestList [
   ,
   -- 7_IMO_End1Clause
   translateTest "Семь идет после восьми в том случае, по-моему, когда восемь идет после семи"
-                "In my opinion, a seven comes after an eight, only if an eight comes after a seven"
+                "A seven comes after an eight, only if, in my opinion, an eight comes after a seven"
+  ,
+  translateTest "Семь идет после восьми в том случае, по мнению кассирши, когда восемь идет после семи"
+                "A seven comes after an eight, only if, in the opinion of the cashier, an eight comes after a seven"
   ,
   -- 7_Earlier
   translateTest "Семь идет раньше восьми в том случае, когда восемь идет раньше семи"

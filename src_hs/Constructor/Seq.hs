@@ -83,7 +83,7 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
           _ -> []
         stripVar c = case c of
           VerbalModifier attr comma _ -> VerbalModifier attr comma
-          NounAdjunct attr _ -> NounAdjunct attr
+          NounAdjunct attr comma _ -> NounAdjunct attr comma
         argUnifications = let
            unifications = concat [unifyMissingArgument mite1 mite2 | mite1 <- filter (not . contradict m1) leftMites,
                                                                      mite2 <- filter (not . contradict m2) rightMites]

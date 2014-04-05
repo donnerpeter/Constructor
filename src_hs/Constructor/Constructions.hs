@@ -33,7 +33,7 @@ data Construction = Word Variable String
                   | Quantifier ArgKind Agr Variable
                   | Argument ArgKind Variable
                   | Adverb Variable
-                  | NounAdjunct String Variable
+                  | NounAdjunct {-attr-} String {-requires comma-} Bool Variable
                   | Elaboration Variable
                   | Unclosed Construction
                   | CompHead Variable
@@ -111,4 +111,5 @@ isCommaSurroundable cxt = case cxt of
   Complement {} -> True
   RelativeClause {} -> True
   VerbalModifier _ True _ -> True
+  NounAdjunct _ True _ -> True
   _ -> False

@@ -76,4 +76,4 @@ calcCandidateSets mites = {-trace ("---contradictors:", length mites, length res
 
 stateIssueCount state = sum [length $ _issues tree | tree <- roots state]
 
-activeStateMites trees = concat (map allActiveMites $ reverse trees)
+activeStateMites trees = concat (map allActiveMiteList $ reverse trees)

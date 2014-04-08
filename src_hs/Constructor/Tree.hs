@@ -18,7 +18,7 @@ select RightSide _ x = x
 
 data Tree = Tree {
   mites::[Mite], left::Maybe Tree, right::Maybe Tree, headSide::Side,
-  active::Set.Set Mite, allActiveMiteSet :: Set.Set Mite,
+  active::Set.Set Mite, allActiveMiteList :: [Mite], allActiveMiteSet :: Set.Set Mite,
   activeHeadMites :: [Mite],
   _uncoveredActiveMites :: Set.Set Mite,
   _unhappyLeft :: [Mite], _unhappyRight :: [Mite], _unhappyHead :: [Mite],
@@ -77,8 +77,6 @@ activeBase activeSet = Set.fromList [mite | activeMite <- Set.elems activeSet, m
 
 isBranch tree = isJust (left tree)
 
-allActiveMites tree = filter (flip Set.member activeSet) (allTreeMites tree) where activeSet = allActiveMiteSet tree
-
 unhappyActiveMites tree = result where
   allActive = allActiveMiteSet tree
   spine = activeBase allActive
@@ -88,7 +86,7 @@ createLeaf mites candidateSets = head trees where
   trees = sortAVs $ map eachLeaf candidateSets
   eachLeaf active = let activeSet = Set.fromList active in Tree {
       mites = mites, left = Nothing, right = Nothing, headSide = LeftSide,
-      active = activeSet, allActiveMiteSet = activeSet, _uncoveredActiveMites = activeSet,
+      active = activeSet, allActiveMiteList = active, allActiveMiteSet = activeSet, _uncoveredActiveMites = activeSet,
       activeHeadMites = active,
       _unhappyLeft = [], _unhappyRight = [], _unhappyHead = filter (not. happy) active,
       _issues = issues active,
@@ -117,17 +115,19 @@ createBranch mites _leftChild _rightChild headSide candidateSets = listToMaybe a
       let childrenActive = {-trace ("ok", active) $ -}Set.union (_uncoveredActiveMites aLeft) (_uncoveredActiveMites aRight)
           activeSet = Set.fromList active
           headChild = select headSide aLeft aRight
+          allActiveList = allActiveMiteList aLeft ++ active ++ allActiveMiteList aRight
       in
       return $ Tree {
         mites = mites, left = Just aLeft, right = Just aRight, headSide = headSide,
         active = activeSet,
+        allActiveMiteList = allActiveList,
         allActiveMiteSet = Set.union activeSet $ Set.union (allActiveMiteSet aLeft) (allActiveMiteSet $ aRight),
         activeHeadMites = active ++ filter (\mite -> isUncovered mite || happy mite) (activeHeadMites headChild),
         _uncoveredActiveMites = Set.union (Set.filter (\mite -> isUncovered mite || happy mite) childrenActive) activeSet,
         _unhappyLeft  = filter isUncovered $ _unhappyLeft aLeft   ++ select headSide [] (_unhappyHead aLeft),
         _unhappyRight = filter isUncovered $ _unhappyRight aRight ++ select headSide (_unhappyHead aRight) [],
         _unhappyHead = filter isUncovered $ _unhappyHead headChild ++ filter (not. happy) active,
-        _issues = issues $ allActiveMites aLeft ++ active ++ allActiveMites aRight,
+        _issues = issues allActiveList,
         allVariants = allBranchVariants
       }
     else []

@@ -5,7 +5,7 @@ module Constructor.Sense
   usages, usage, allUsages,
   getType, hasType, hasAnyType, resolve,
   earlier,
-  allFrames, allFrameFacts,
+  allFrameFacts,
   flatten, isNumber, unSeq, seqSiblings, prevSiblings, nextSiblings,
   isHuman, isAnimate, isInanimate,
   makeSense)
@@ -18,7 +18,6 @@ import Constructor.Util
 import Control.Monad
 import Data.List (intercalate, findIndex, find)
 import Data.Maybe
-import Debug.Trace
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Constructor.LinkedSet as LS
@@ -54,13 +53,28 @@ calcBaseVars mites =
 data Fact = Fact { variable:: Variable, attrName:: String, value:: SemValue } deriving (Eq, Ord)
 instance Show Fact where show (Fact var attr value) = (show var)++"."++attr++"="++(show value)
 
-data Sense = Sense { facts:: [Fact] } deriving (Eq, Ord)
-instance Show Sense where show (Sense facts) = Data.List.intercalate "\n" (map show facts)
+data Sense = Sense { facts:: [Fact], allFrames:: [Frame], frame2Facts:: Map.Map Frame [Fact], frame2Usages:: Map.Map Frame [(Frame, String)] }
+instance Show Sense where show sense = Data.List.intercalate "\n" (map show $ facts sense)
+instance Eq Sense where s1 == s2 = facts s1 == facts s2
+instance Ord Sense where compare s1 s2 = compare (facts s1) (facts s2)
 
-data Frame = Frame { var:: Variable, sense:: Sense } deriving (Eq, Ord)
+data Frame = Frame { var:: Variable, sense:: Sense } deriving (Eq)
 instance Show Frame where show frame = "{" ++ (Data.List.intercalate "," (map show $ allFrameFacts frame)) ++ "}"
+instance Ord Frame where compare s1 s2 = compare (var s1) (var s2)
 
-makeSense allMites = Sense $ calcFacts allMites $ calcBaseVars allMites
+makeSense allMites = sense where
+  sense = Sense facts allFrames frame2Facts frame2Usages
+  facts = calcFacts allMites $ calcBaseVars allMites
+
+  allFrames = [Frame var sense | var <- LS.removeDups allVars ]
+  allVars = [variable fact | fact <- facts ] ++ valueVars
+  valueVars = catMaybes [extractValueVar $ value fact | fact <- facts ]
+
+  frame2Facts = Map.fromListWith (flip (++)) [(Frame (variable fact) sense, [fact]) | fact <- facts]
+
+  frame2Usages = Map.fromListWith (flip (++)) $ facts >>= \fact -> case extractValueVar (value fact) of
+    Just v -> [(Frame v sense, [(Frame (variable fact) sense, attrName fact)])]
+    Nothing -> []
 
 extractValueString (StrValue s) = Just s
 extractValueString _ = Nothing
@@ -68,11 +82,7 @@ extractValueString _ = Nothing
 extractValueVar (VarValue v) = Just v
 extractValueVar _ = Nothing
 
-allFrames sense = [Frame var sense | var <- LS.removeDups allVars ] where
-  allVars = [variable fact | fact <- facts sense ] ++ valueVars
-  valueVars = catMaybes [extractValueVar $ value fact | fact <- facts sense ]
-
-allFrameFacts frame = [fact | fact <- facts (sense frame), var frame == variable fact]
+allFrameFacts frame = Map.findWithDefault [] frame $ frame2Facts (sense frame)
 allValues attr frame = [value fact | fact <- allFrameFacts frame, attrName fact == attr]
 singleListElement list = case list of
   [single] -> Just single
@@ -144,8 +154,8 @@ hasType t frame = getType frame == Just t
 hasAnyType types frame = fromMaybe False $ getType frame >>= \t -> Just $ elem t types
 getType frame = sValue "type" frame
 
-allUsages attrs frame = [f | f <- allFrames (sense frame), any (\attr -> fDeclaredValue attr f == Just frame) attrs]
-usages attr frame = [f | f <- allFrames (sense frame), fDeclaredValue attr f == Just frame]
+allUsages attrs frame = LS.removeDups $ [f | (f, s) <- Map.findWithDefault [] frame $ frame2Usages (sense frame), s `elem` attrs]
+usages attr frame = LS.removeDups $ [f | (f, s) <- Map.findWithDefault [] frame $ frame2Usages (sense frame), s == attr]
 usage attr frame = singleListElement $ usages attr frame
 
 flatten Nothing = []

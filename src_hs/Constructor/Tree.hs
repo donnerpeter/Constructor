@@ -2,7 +2,6 @@ module Constructor.Tree where
 
 import Data.Maybe
 import Data.List
-import Data.Function (on)
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Constructor.LinkedSet as LS
@@ -82,8 +81,8 @@ unhappyActiveMites tree = result where
   spine = activeBase allActive
   result = filter (\mite -> not (happy mite || Set.member mite spine)) $ Set.elems allActive
 
-createLeaf mites candidateSets = head trees where
-  trees = sortAVs $ map eachLeaf candidateSets
+createLeaf mites candidateSets = bestTree trees where
+  trees = map eachLeaf candidateSets
   eachLeaf active = let activeSet = Set.fromList active in Tree {
       mites = mites, left = Nothing, right = Nothing, headSide = LeftSide,
       active = activeSet, allActiveMiteList = active, allActiveMiteSet = activeSet, _uncoveredActiveMites = activeSet,
@@ -93,8 +92,11 @@ createLeaf mites candidateSets = head trees where
       allVariants = trees
     }
 
-createBranch mites _leftChild _rightChild headSide candidateSets = listToMaybe allBranchVariants where
-  allBranchVariants = sortAVs $ map leastUnhappy $ Map.elems grouped
+createBranch mites _leftChild _rightChild headSide candidateSets = bestVariant where
+  bestVariant = case allBranchVariants of
+    [] -> Nothing
+    _ -> Just $ bestTree allBranchVariants
+  allBranchVariants = map bestTree $ Map.elems grouped
   leftAVs = filter (null . _unhappyRight) (allVariants _leftChild)
   rightAVs = filter (null . _unhappyLeft) (allVariants _rightChild)
   allAVCandidates = {-traceShow ("-------------------leftAVs", leftAVs) $ -}do
@@ -132,10 +134,9 @@ createBranch mites _leftChild _rightChild headSide candidateSets = listToMaybe a
       }
     else []
   grouped = Map.fromListWith (++) [(activeHeadMites av, [av]) | av <- allAVCandidates]
-  leastUnhappy avs = head $ sortAVs avs
 
 treeWidth tree = if isBranch tree then treeWidth (justLeft tree) + treeWidth (justRight tree) else 1
 
-sortAVs avs = Data.List.sortBy (compare `on` (\av -> (unhappyCount av, avIssueCount av))) avs where
+bestTree avs = head $ leastValued avIssueCount $ leastValued unhappyCount avs where
   unhappyCount av = length (_unhappyLeft av) + length (_unhappyHead av) + length (_unhappyRight av)
   avIssueCount av = length $ _issues av

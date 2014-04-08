@@ -40,8 +40,7 @@ emptyState = ParsingState [] []
 
 mergeTrees:: ParsingState -> ParsingState
 mergeTrees state = {-trace ("--------------", length allVariants, [(sortingKey v, v) | v <- allVariants]) $ -}result where
-  result = head $ Data.List.sortBy (compare `on` sortingKey) $ allVariants
-  sortingKey state = (length $ roots state, unhappyCount state, stateIssueCount state)
+  result = head $ leastValued stateIssueCount $ leastValued unhappyCount $ leastValued (length . roots) allVariants
   unhappyCount state = sum [length $ unhappyActiveMites tree | tree <- roots state]
   allVariants = tryStealing (roots state)
   tryStealing :: [Tree] -> [ParsingState]

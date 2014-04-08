@@ -20,14 +20,14 @@ createEdges leftTree rightTree infos = --trace infos $
   in catMaybes [lTree, rTree]
 
 calcMergeInfos leftTree rightTree = infos where
-  leftMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ map (flip applyAV leftTree) $ avs leftTree
-  rightMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ map (flip applyAV rightTree) $ avs rightTree
+  leftMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ allVariants leftTree
+  rightMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ allVariants rightTree
   infos = interactNodes leftTree leftMites rightMites
 
 stealLeft:: Tree -> Tree -> Set.Set MergeInfo -> [Tree]
 stealLeft leftTree rightTree processedInfos =
   let ownResults = createEdges leftTree rightTree $ filter (not. flip Set.member processedInfos) infos
-      infos = if null (avUnhappyRight $ head $ avs leftTree) && null (avUnhappyLeft $ head $ avs rightTree)
+      infos = if null (_unhappyRight leftTree) && null (_unhappyLeft rightTree)
               then calcMergeInfos leftTree rightTree
               else []
       nextProcessed = if headSide leftTree == LeftSide then Set.empty else Set.union processedInfos (Set.fromList infos)
@@ -74,6 +74,6 @@ calcCandidateSets mites = {-trace ("---contradictors:", length mites, length res
         omitMite = enumerate rest chosen (mite:uncovered)
   result = enumerate mites [] []
 
-stateIssueCount state = sum [length $ avIssues $ head $ avs tree | tree <- roots state]
+stateIssueCount state = sum [length $ _issues tree | tree <- roots state]
 
 activeStateMites trees = concat (map allActiveMites $ reverse trees)

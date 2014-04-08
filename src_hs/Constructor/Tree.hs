@@ -16,12 +16,15 @@ invert RightSide = LeftSide
 select LeftSide x _ = x
 select RightSide _ x = x
 
-data Tree = Tree {mites::[Mite], left::Maybe Tree, right::Maybe Tree, headSide::Side, active::Set.Set Mite, avs:: [ActiveVariant], allActiveMiteSet :: Set.Set Mite}
+data Tree = Tree {
+  mites::[Mite], left::Maybe Tree, right::Maybe Tree, headSide::Side,
+  active::Set.Set Mite, allActiveMiteSet :: Set.Set Mite,
+  _uncoveredActiveMites :: Set.Set Mite,
+  _unhappyLeft :: [Mite], _unhappyRight :: [Mite], _unhappyHead :: [Mite],
+  _issues :: [Issue],
+  allVariants:: [Tree]
+}
 
-cmpKey tree = (headSide tree, mites tree, active tree, left tree, right tree)
-
-instance Eq Tree where t1 == t2 = cmpKey t1 == cmpKey t2
-instance Ord Tree where compare t1 t2 = compare (cmpKey t1) (cmpKey t2)
 instance Show Tree where
   show tree =
     let inner tree prefix allowTop allowBottom = top ++ center ++ bottom where
@@ -83,39 +86,22 @@ unhappyActiveMites tree = result where
   spine = activeBase allActive
   result = filter (\mite -> not (happy mite || Set.member mite spine)) $ Set.elems allActive
 
-data ActiveVariant = ActiveVariant { avMites :: [Mite], avLeft :: Maybe Tree, avRight :: Maybe Tree,
-  avAllActive :: Set.Set Mite,
-  avUnhappyLeft :: [Mite], avUnhappyHead :: [Mite], avUnhappyRight :: [Mite],
-  avIssues :: [Issue]
-  } deriving (Show)
+createLeaf mites candidateSets = head trees where
+  trees = sortAVs $ map eachLeaf candidateSets
+  eachLeaf active = let activeSet = Set.fromList active in Tree {
+      mites = mites, left = Nothing, right = Nothing, headSide = LeftSide,
+      active = activeSet, allActiveMiteSet = activeSet, _uncoveredActiveMites = activeSet,
+      _unhappyLeft = [], _unhappyRight = [], _unhappyHead = filter (not. happy) active,
+      _issues = issues active,
+      allVariants = trees
+    }
 
-createLeaf mites candidateSets = let avs = leafAVs candidateSets in
-  applyAV (head avs) $ Tree mites Nothing Nothing LeftSide Set.empty avs Set.empty
-
-createBranch mites leftChild rightChild headSide candidateSets = let avs = branchAVs leftChild rightChild headSide candidateSets in
-  case avs of
-    [] -> Nothing
-    av:_ -> Just $ applyAV av $ Tree mites (Just leftChild) (Just rightChild) headSide Set.empty avs Set.empty
-
-applyAV av tree = let activeSet = Set.fromList $ avMites av in
-  tree { active = activeSet, left = avLeft av, right = avRight av,
-         allActiveMiteSet =
-           if isBranch tree
-           then Set.union activeSet $ Set.union (allActiveMiteSet $ fromJust $ avLeft av) (allActiveMiteSet $ fromJust $ avRight av)
-           else activeSet
-       }
-
-leafAVs :: [[Mite]] -> [ActiveVariant]
-leafAVs activeSets = sortAVs $ map (\active ->
-  ActiveVariant active Nothing Nothing (Set.fromList active) [] (filter (not. happy) active) [] (issues active))
-  activeSets
-
-branchAVs :: Tree -> Tree -> Side -> [[Mite]] -> [ActiveVariant]
-branchAVs leftChild rightChild headSide activeSets = {-traceShow ("------------------activeSets", activeSets) $ -}let
-  leftAVs = filter (null . avUnhappyRight) (avs leftChild)
-  rightAVs = filter (null . avUnhappyLeft) (avs rightChild)
+createBranch mites _leftChild _rightChild headSide candidateSets = listToMaybe allBranchVariants where
+  allBranchVariants = sortAVs $ map leastUnhappy $ Map.elems grouped
+  leftAVs = filter (null . _unhappyRight) (allVariants _leftChild)
+  rightAVs = filter (null . _unhappyLeft) (allVariants _rightChild)
   allAVCandidates = {-traceShow ("-------------------leftAVs", leftAVs) $ -}do
-    active <- activeSets
+    active <- candidateSets
     let covered = base active
         base mites = LS.removeDups [mite | activeMite <- mites, mite <- baseMites activeMite]
         isUncovered mite = not $ mite `elem` covered
@@ -123,36 +109,32 @@ branchAVs leftChild rightChild headSide activeSets = {-traceShow ("-------------
         isCompatible av = not $ any (flip Set.member unhappyBase) $ base $ activeHeadMites av
     aLeft <- {-trace ("----------------active", length activeSets, active) $ -}leftAVs
     if not (isCompatible aLeft) then [] else do
-    let leftChildCandidate = applyAV aLeft leftChild
-    let missingInLeft = filter (not . flip Set.member (allActiveMiteSet leftChildCandidate)) covered
+    let missingInLeft = filter (not . flip Set.member (allActiveMiteSet aLeft)) covered
     aRight <- rightAVs
     if not (isCompatible aRight) then [] else do
-    let rightChildCandidate = applyAV aRight rightChild
-    let missingInRight = filter (not . flip Set.member (allActiveMiteSet rightChildCandidate)) missingInLeft
+    let missingInRight = filter (not . flip Set.member (allActiveMiteSet aRight)) missingInLeft
     if {-trace ("-----------checkRight", active) $ traceShow ("missingInRight", missingInRight) $ -}null missingInRight
     then
-      let childrenActive = {-trace ("ok", active) $ -}Set.union (avAllActive aLeft) (avAllActive aRight) in
-      return $ ActiveVariant {
-        avMites = active,
-        avLeft = Just leftChildCandidate,
-        avRight = Just rightChildCandidate,
-        avAllActive = Set.union (Set.filter (\mite -> isUncovered mite || happy mite) childrenActive) $ Set.fromList active,
-        avUnhappyLeft = filter isUncovered $ avUnhappyLeft aLeft ++ (if headSide == LeftSide then [] else avUnhappyHead aLeft),
-        avUnhappyHead = filter isUncovered $ avUnhappyHead (if headSide == LeftSide then aLeft else aRight) ++ filter (not. happy) active,
-        avUnhappyRight = filter isUncovered $ avUnhappyRight aRight ++ (if headSide == RightSide then [] else avUnhappyHead aRight),
-        avIssues = issues $ allActiveMites leftChildCandidate ++ active ++ allActiveMites rightChildCandidate
+      let childrenActive = {-trace ("ok", active) $ -}Set.union (_uncoveredActiveMites aLeft) (_uncoveredActiveMites aRight)
+          activeSet = Set.fromList active
+      in
+      return $ Tree {
+        mites = mites, left = Just aLeft, right = Just aRight, headSide = headSide,
+        active = activeSet,
+        allActiveMiteSet = Set.union activeSet $ Set.union (allActiveMiteSet aLeft) (allActiveMiteSet $ aRight),
+        _uncoveredActiveMites = Set.union (Set.filter (\mite -> isUncovered mite || happy mite) childrenActive) activeSet,
+        _unhappyLeft  = filter isUncovered $ _unhappyLeft aLeft   ++ select headSide [] (_unhappyHead aLeft),
+        _unhappyRight = filter isUncovered $ _unhappyRight aRight ++ select headSide (_unhappyHead aRight) [],
+        _unhappyHead = filter isUncovered $ _unhappyHead (select headSide aLeft aRight) ++ filter (not. happy) active,
+        _issues = issues $ allActiveMites aLeft ++ active ++ allActiveMites aRight,
+        allVariants = allBranchVariants
       }
     else []
   grouped = Map.fromListWith (++) [(activeHeadMites av, [av]) | av <- allAVCandidates]
-  result = sortAVs $ map leastUnhappy $ Map.elems grouped
-  activeHeadMites av = filter (flip Set.member (avAllActive av)) inHead where
-    inHead = avMites av ++ headMites (if headSide == LeftSide then leftChild else rightChild)
   leastUnhappy avs = head $ sortAVs avs
-  in
-  {-trace ("branchAVs", result) $ -}result
 
 treeWidth tree = if isBranch tree then treeWidth (justLeft tree) + treeWidth (justRight tree) else 1
 
 sortAVs avs = Data.List.sortBy (compare `on` (\av -> (unhappyCount av, avIssueCount av))) avs where
-  unhappyCount av = length (avUnhappyLeft av) + length (avUnhappyHead av) + length (avUnhappyRight av)
-  avIssueCount av = length $ avIssues av
+  unhappyCount av = length (_unhappyLeft av) + length (_unhappyHead av) + length (_unhappyRight av)
+  avIssueCount av = length $ _issues av

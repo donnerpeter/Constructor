@@ -689,10 +689,10 @@ var13 = TestLabel "sonnetVariations 13" $ TestList [
   -- 13_BothJawsAndEightFingers
   translateTest "Ребенок сломал себе обе челюсти и восемь пальцев"
                 "The child broke both of his jaws and eight fingers"
---  ,
+  ,
   -- 13_LuckMissingComma2
---todo  translateTest "Мы спорили бы очень долго, но, по счастию тут со скамейки свалился какой-то ребенок"
---                "We were arguing for a long time, when by some sheer luck, a child fell off a bench"
+  translateTest "Мы спорили бы очень долго, но, по счастию тут со скамейки свалился какой-то ребенок"
+                "We were arguing for a long time, when by some sheer luck, a child fell off a bench"
  ]
 
 var14 = TestLabel "sonnetVariations 14" $ TestList [

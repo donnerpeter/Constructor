@@ -160,6 +160,7 @@ wordMites word index =
   "нашем" -> [semT v0 "WE", mite $ Possessive Prep A.n v0]
   "недоумении" -> nounSg Prep Neu "PREDICAMENT" v ++ genHead "arg1" v
   "нечего" -> [mite $ Argument Acc v0, semT v0 "nonWh"]
+  "ничего" -> [mite $ Argument Gen v0, semT v0 "nonWh"]
   "но" ->  xor [conjunction v0 "but" False, [mite $ ConjEmphasis "butEmphasis" v0]]
   "носом" -> nounSg Instr Masc "NOSE" v
   "нужно" -> [semT v0 "NEED", mite $ NomHead A.n (v "arg2") False, semV v0 "arg2" (v "arg2"), mite $ Copula v0] ++ optional (arg Dat "arg1" v) ++ clause v

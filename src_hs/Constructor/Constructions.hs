@@ -6,7 +6,7 @@ import Data.Maybe
 
 cases = [Nom,Acc,Gen,Dat,Instr,Prep]
 
-data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | ScalarAdverb deriving (Show, Eq, Ord)
+data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | ScalarAdverb | DirectionAdverb deriving (Show, Eq, Ord)
 data ClauseForce = Declarative | Interrogative deriving (Show, Eq, Ord)
 data SeqData = SeqData { seqVar :: Variable, seqConj :: String, seqReady :: Bool,
                          seqKind :: Maybe Construction, seqHasLeft :: Bool, seqRightVar :: Maybe Variable } deriving (Eq, Ord)

@@ -583,7 +583,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
         else if hasType "CLEVER" value then [Adverb "clever"]
         else [Adverb (fromMaybe "??" $ getType value)]
       ("DISPERSE", "goal") -> if hasType "HOMES" value then [Adverb "home"] else [PPArg "to" value]
-      (_, "goal") -> [PPArg "to" value]
+      (_, "goal") -> if typ == "GO" && hasType "HOME" value then [Adverb "home"] else [PPArg "to" value]
       (_, "mood") -> case getType value of
         Just "JOY" | isNothing (fValue "size" value)-> [Adverb "cheerfully"]
         Just _ -> [PPAdjunct "with" value]

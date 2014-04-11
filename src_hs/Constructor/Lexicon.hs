@@ -94,6 +94,7 @@ wordMites word index =
   "дойдя" -> perfectBackground "COME_TO" v ++ optional (arg (PP "v" Prep) "domain" v) ++ optional (arg (PP "do" Gen) "goal" v)
   "долго" -> adverb "duration" "LONG" v
   "домам" -> nounPl Dat "HOMES" v ++ genHead "owner" v
+  "домой" -> [mite $ Argument DirectionAdverb v0, semT v0 "HOME"]
   "других" -> nounPl Gen "OTHERS" v
   "думает" -> finVerb "THINK" "PRESENT" A.sg3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) "topic" v)
   "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) "topic" v)
@@ -200,7 +201,7 @@ wordMites word index =
   "потому" -> [mite $ TwoWordCxt "потому что" True [ReasonComp v0 False] v0]
   "приуныли" -> finVerb "GET_SAD" "PAST" A.pl v
   "просто" -> adverb "manner" "JUST" v
-  "пошли" -> finVerb "GO" "PAST" A.pl v ++ arg (PP "v" Acc) "goal" v
+  "пошли" -> finVerb "GO" "PAST" A.pl v ++ xor[arg (PP "v" Acc) "goal" v, arg DirectionAdverb "goal" v]
   "работы" -> nounSg Gen Fem "WORK" v
   "радостью" -> nounSg Instr Fem "JOY" v ++ optional [mite $ PrepositionActivator "s" Instr v0 $ VerbalModifier "mood" False v0]
   "разошлись" -> finVerb "DISPERSE" "PAST" A.pl v ++ arg (PP "po" Dat) "goal" v

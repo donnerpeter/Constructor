@@ -385,7 +385,7 @@ clause fVerb = do
       _ -> return ""
     core <- if hasType "degree" fVerb && (fromMaybe False $ fmap (hasType "wh") $ fValue "arg2" fVerb)
            then return $ "Great was" `cat` subject
-           else if isModality then
+           else if isModality && Just True == fmap (hasType "question") (usage "content" fVerb) then
              let supposed = if isJust fSubject then beForm fSubject verbForm `cat` subject `cat` "supposed" else ""
              in return $ "what" `cat` supposed `cat` "to" `cat` (fromMaybe "???" $ fmap (verb BaseVerb) (fValue "theme" fVerb))
            else if hasType "copula" fVerb && isJust (fValue "owner" fVerb) then do
@@ -484,6 +484,7 @@ vp fVerb verbForm subject = do
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue "question_mark")
       sVerb = if isVerbEllipsis fVerb && fSubject == (cp >>= fValue "ellipsisAnchor2")
               then if verbForm == PastVerb then "did" else "does"
+              else if hasType "modality" fVerb then if verbForm == PastVerb then "had" else "have"
               else verb (if null aux then verbForm else if isGerund fVerb then Gerund else BaseVerb) fVerb
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
@@ -498,6 +499,9 @@ vp fVerb verbForm subject = do
     Just "CAN" -> case fValue "theme" fVerb of
       Just slave -> vp slave BaseVerb ""
       _ -> return ""
+    Just "modality" -> case fValue "theme" fVerb of
+       Just slave -> return "to" `catM` vp slave BaseVerb ""
+       _ -> return ""
     Just "BEGIN" -> case fValue "theme" fVerb of
       Just slave -> vp slave Gerund ""
       _ -> return ""
@@ -507,12 +511,16 @@ vp fVerb verbForm subject = do
         (Just subj, hd@(PPAdjunct _ value):_) | earlier value "type" fVerb "type" && earlier value "type" subj "type" -> Just hd
         _ -> Nothing
       questionedArg = if not nonSubjectQuestion then Nothing else Data.List.find isQuestionedArg allArgs
+      nonWhArg = Data.List.find isNonWhArg allArgs
       isQuestionedArg arg = case arg of
         (NPArg frame) -> isQuestioned frame
         (PPArg _ frame) -> isQuestioned frame
         _ -> False
+      isNonWhArg arg = case arg of
+        (NPArg frame) -> hasType "nonWh" frame
+        _ -> False
       removeMaybe maybeVal list = fromMaybe list $ fmap (flip Data.List.delete list) maybeVal
-      normalArgs = removeMaybe questionedArg $ removeMaybe topicalizedArg $ allArgs
+      normalArgs = removeMaybe questionedArg $ removeMaybe topicalizedArg $ removeMaybe nonWhArg $ allArgs
   sArgs <- foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) normalArgs
   sTopicalized <- case topicalizedArg of
     Just arg -> generateArg arg `catM` return ","
@@ -520,6 +528,9 @@ vp fVerb verbForm subject = do
   whWord <- case questionedArg of
     Just (NPArg qFrame) -> np False (Just qFrame)
     Just (PPArg _ qFrame) -> np False (Just qFrame)
+    _ -> return ""
+  nonWhWord <- case nonWhArg of
+    Just (NPArg frame) -> return "nothing"
     _ -> return ""
   let stranded = case questionedArg of
         Just (PPArg prep _) -> prep
@@ -532,7 +543,7 @@ vp fVerb verbForm subject = do
                      else if sVerb == "is" then subject ++ "'s"
                      else subject `cat` sVerb
                    else (if inverted then according `cat` aux `cat` negation `cat` subject else subject `cat` according `cat` aux `cat` negation) `cat` preAdverb `cat` sVerb
-  return $ sTopicalized `cat` whWord `cat` contracted `cat` controlled `cat` sArgs `cat` stranded `cat` finalAdverb
+  return $ sTopicalized `cat` whWord `cat` contracted `cat` nonWhWord `cat` controlled `cat` sArgs `cat` stranded `cat` finalAdverb
 
 data Argument = Adverb String | NPArg Frame | PPArg String Frame | PPAdjunct String Frame deriving (Eq,Show)
 

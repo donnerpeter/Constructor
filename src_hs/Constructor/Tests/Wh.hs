@@ -3,42 +3,36 @@ import Constructor.Tests.Testing
 import Test.HUnit
 
 whTests = [TestLabel "wh tests" $ TestList [
-  --  what do they think on this matter
   translateTest "Что они думают по этому поводу?"
                 "What do they think on this matter?"
   ,
-  --  whose jaw did she break
   translateTest "Кому она сломала челюсть?"
                 "Whose jaw did she break?"
   ,
-  --  what did she break
   translateTest "Что она ему сломала?"
                 "What did she break?"
   ,
-  --  who did he ask?
   translateTest "Кого он спросил?"
                 "Who did he ask?"
   ,
-  --  what did he ask the neighbors about
   translateTest "О чём он спросил соседей?"
                 "What did he ask his neighbors about?"
   ,
-  --  what comes first 7 or 8
   translateTest "Что идёт раньше - 7 или 8?"
                 "What comes first - 7 or 8?"
-  -- todo нечего
-  -- translateTest "Делать нам было нечего"
-  --               "We had nothing to do"
-  -- ,
-  -- translateTest "Нам было нечего делать"
-  --               "We had nothing to do"
-  -- ,
-  -- translateTest "Нам нечего было делать"
-  --               "We had nothing to do"
-  -- ,
-  -- translateTest "Делать нам нечего"
-  --               "We have nothing to do"
-  -- ,
+  ,
+  translateTest "Делать нам было нечего"
+                 "We had nothing to do"
+  ,
+  translateTest "Нам было нечего делать"
+                 "We had nothing to do"
+  ,
+  translateTest "Нам нечего было делать"
+                 "We had nothing to do"
+  ,
+  translateTest "Делать нам нечего"
+                 "We have nothing to do"
+--  ,
   -- translateTest "Нам есть что делать"
   --               "We have something to do"
   -- ,
@@ -77,6 +71,7 @@ whTests = [TestLabel "wh tests" $ TestList [
   -- ,
   -- translateTest "Мы никуда не идём"
   --               "We go nowhere"
+  -- todo нечего
   ,
   translateTest "Я забыл, о чём он спросил соседей."
                 "I forgot what he asked his neighbors about."

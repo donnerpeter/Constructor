@@ -328,7 +328,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "RUN_OUT" -> "ran"
   "TAKE_OUT" -> "took"
   "GET_SAD" -> "got sad"
-  "SAY" -> if isJust $ fValue "addressee" frame then "told" else "said"
+  "SAY" -> if isJust $ fValue "addressee" frame then "told" else if verbForm == PastVerb then "said" else "say"
   "MOVE" -> "moved"
   "SEEM" -> if isJust (usage "content" frame >>= usage "reason") then
      if verbForm == PastVerb then "were" else "is"

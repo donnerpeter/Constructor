@@ -16,6 +16,7 @@ issues mites = let
   frameIssues frame = case getType frame of
     Just "seq" | Nothing == sValue "conj" frame -> ["comma-only seq"]
     Just "SIT" -> if Nothing == (fValue "arg1" frame >>= sDeclaredValue "type") then ["unknown sit subj "] else []
+    Just "SAY" -> if Nothing == (fValue "arg1" frame >>= sDeclaredValue "type") then ["unknown say subj "] else []
     Just "ASK" -> if any (hasType "fact") (flatten $ fValue "topic" frame) then ["asking fact"] else []
     Just "THEY" -> if isJust $ fValue "relative" frame then ["relative clause for pronoun"] else []
     Just "WE" -> if isJust $ fValue "relative" frame then ["relative clause for pronoun"] else []

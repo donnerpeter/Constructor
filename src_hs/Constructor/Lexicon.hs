@@ -112,6 +112,8 @@ wordMites word index =
                  finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ arg ScalarAdverb "order" v]
   "идёт" -> xor [finVerb "GO" "PRESENT" A.sg3 v ++ optional (arg (PP "v" Acc) "goal" v),
                  finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ arg ScalarAdverb "order" v]
+  "идти" -> xor [infinitive "GO" v ++ optional (xor [arg (PP "v" Acc) "goal" v, arg DirectionAdverb "goal" v]),
+                 infinitive "COME_SCALARLY" v ++ arg ScalarAdverb "order" v]
   "из" -> preposition "iz" Gen v
   "изо" -> preposition "iz" Gen v
   "или" -> conjunction v0 "or" True
@@ -134,6 +136,7 @@ wordMites word index =
   "комнатам" -> nounPl Dat "ROOMS" v ++ genHead "owner" v
   "кому" -> whWord v ++ [mite $ Argument Dat v0, mite $ AdjHead v0 Dat A.sg, semS v0 "animate" "true"]
   "кто" -> whWord v ++ [mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.m3, semS v0 "animate" "true"]
+  "куда" -> whWord v ++ [mite $ Argument DirectionAdverb v0]
   "летний" -> adj Acc A.m "name" "летний" v -- todo летний is not only a name
   "лишенными" -> [mite $ Raiseable A.pl v0, semT v0 "LACK"] ++ arg Gen "theme" v
   "магазин" -> xor [nounSg Nom Masc "SHOP" v, nounSg Acc Masc "SHOP" v] -- todo который + agr

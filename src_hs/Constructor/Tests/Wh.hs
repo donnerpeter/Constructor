@@ -22,16 +22,16 @@ whTests = [TestLabel "wh tests" $ TestList [
                 "What comes first - 7 or 8?"
   ,
   translateTest "Делать нам было нечего"
-                 "We had nothing to do"
+                "We had nothing to do"
   ,
   translateTest "Нам было нечего делать"
-                 "We had nothing to do"
+                "We had nothing to do"
   ,
   translateTest "Нам нечего было делать"
-                 "We had nothing to do"
+                "We had nothing to do"
   ,
   translateTest "Делать нам нечего"
-                 "We have nothing to do"
+                "We have nothing to do"
 --  ,
   -- translateTest "Нам есть что делать"
   --               "We have something to do"
@@ -43,13 +43,13 @@ whTests = [TestLabel "wh tests" $ TestList [
   --               "We'll have something to do"
   ,
   translateTest "Мы ничего не делали"
-                 "We did nothing"
+                "We did nothing"
   -- ,
   -- translateTest "Некому танцевать"
   --               "There's nobody to dance"
   ,
   translateTest "Мне нечего сказать"
-                 "I have nothing to say"
+                "I have nothing to say"
   -- ,
   -- translateTest "Мне есть что сказать"
   --               "I have something to say"
@@ -59,9 +59,9 @@ whTests = [TestLabel "wh tests" $ TestList [
   -- ,
   -- translateTest "Мне некуда идти"
   --               "I have nowhere to go"
-  -- ,
-  -- translateTest "Куда мне идти?"
-  --               "Where should I go?"
+  ,
+  translateTest "Куда мне идти?"
+                "Where should I go?"
   -- ,
   -- translateTest "Куда они пошли?"
   --               "Where did they go?"

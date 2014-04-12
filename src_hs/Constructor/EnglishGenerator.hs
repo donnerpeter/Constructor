@@ -92,7 +92,9 @@ np_internal nom mayHaveDeterminer frame = do
     else if hasType "WE" frame then if nom then return "we" else return "us"
     else if hasType "wh" frame then return $
       if isJust $ usage "arg1" frame >>= usage "content" >>= usage "relative" then "that"
-      else if isAnimate frame then "who" else "what"
+      else if isAnimate frame then "who"
+      else if isJust (usage "goal" frame) then "where"
+      else "what"
     else do
       let n = noun (getType frame) frame
           adjs = foldl cat "" $ adjectives frame
@@ -302,7 +304,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "HAPPEN" -> "happened"
   "FORGET" -> "forgot"
   "DO" -> if verbForm == BaseVerb then "do" else "did"
-  "GO" -> if verbForm == PastVerb then "went" else "goes"
+  "GO" -> if verbForm == PastVerb then "went" else if verbForm == BaseVerb then "go" else "goes"
   "GO_OFF" -> "went"
   "ASK" -> if (fValue "topic" frame >>= getType) == Just "PREDICAMENT" then if verbForm == PastVerb then "consulted" else "consult" else if verbForm == BaseVerb then "ask" else "asked"
   "COME_SCALARLY" -> if sValue "time" frame == Just "PAST" then "went" else "comes"
@@ -372,7 +374,7 @@ clause fVerb = do
                    else if (fValue "relTime" fVerb >>= getType) == Just "AFTER" && isNothing (fValue "relTime" fVerb >>= fValue "anchor") then "then"
                    else if (fValue "relTime" fVerb >>= getType) == Just "BEFORE" && isNothing (fValue "relTime" fVerb >>= fValue "anchor") then "before,"
                    else ""
-    let verbForm = if past state then PastVerb else if Just True == fmap (hasAnyType ["HE", "SHE"]) fSubject then Sg3Verb else BaseVerb
+    let verbForm = if past state then PastVerb else if Just True == fmap (hasAnyType ["ME", "WE", "THEY"]) fSubject then BaseVerb else Sg3Verb
         isModality = hasType "modality" fVerb
         isRaising = hasType "SEEM" fVerb
         fSubject = if isModality || isRaising then fValue "theme" fVerb >>= fValue "arg1" else fValue "arg1" fVerb
@@ -384,10 +386,7 @@ clause fVerb = do
         else return ""
       _ -> return ""
     core <- if hasType "degree" fVerb && (fromMaybe False $ fmap (hasType "wh") $ fValue "arg2" fVerb)
-           then return $ "Great was" `cat` subject
-           else if isModality && Just True == fmap (hasType "question") (usage "content" fVerb) then
-             let supposed = if isJust fSubject then beForm fSubject verbForm `cat` subject `cat` "supposed" else ""
-             in return $ "what" `cat` supposed `cat` "to" `cat` (fromMaybe "???" $ fmap (verb BaseVerb) (fValue "theme" fVerb))
+           then return "Great was" `catM` np True fSubject
            else if hasType "copula" fVerb && isJust (fValue "owner" fVerb) then do
              let owner = fValue "owner" fVerb
              subj <- np True owner
@@ -479,12 +478,18 @@ vp fVerb verbForm subject = do
         Just s -> s
         _ -> ""
       cp = usage "content" fVerb
-      fSubject = if hasType "SEEM" fVerb then fValue "theme" fVerb >>= fValue "arg1" else fValue "arg1" fVerb
-      nonSubjectQuestion = Just True == fmap (hasType "question") cp && (cp >>= fValue "questioned") /= fSubject
+      theme = fValue "theme" fVerb
+      fSubject = if hasType "SEEM" fVerb || isModality then theme >>= fValue "arg1" else fValue "arg1" fVerb
+      isQuestion = Just True == fmap (hasType "question") cp
+      nonSubjectQuestion = isQuestion && (cp >>= fValue "questioned") /= fSubject
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue "question_mark")
+      isModality = hasType "modality" fVerb
+      isDoModality = isModality && Just True == fmap (hasType "DO") theme
       sVerb = if isVerbEllipsis fVerb && fSubject == (cp >>= fValue "ellipsisAnchor2")
               then if verbForm == PastVerb then "did" else "does"
-              else if hasType "modality" fVerb then if verbForm == PastVerb then "had" else "have"
+              else if isModality then
+                if isQuestion then if isJust fSubject && isDoModality then "supposed" else ""
+                else if verbForm == PastVerb then "had" else "have"
               else verb (if null aux then verbForm else if isGerund fVerb then Gerund else BaseVerb) fVerb
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
@@ -493,16 +498,20 @@ vp fVerb verbForm subject = do
       negation = if sValue "negated" fVerb == Just "true" && isGerund fVerb then "not" else ""
       aux =
         if isGerund fVerb && isNothing (usage "content" fVerb >>= usage "member2") then beForm fSubject verbForm
+        else if isModality && isQuestion then
+          if isNothing fSubject then ""
+          else if isDoModality then beForm fSubject verbForm
+          else "should"
         else if inverted then if verbForm == PastVerb then "did" else "do"
         else ""
   controlled <- case getType fVerb of
-    Just "CAN" -> case fValue "theme" fVerb of
+    Just "CAN" -> case theme of
       Just slave -> vp slave BaseVerb ""
       _ -> return ""
-    Just "modality" -> case fValue "theme" fVerb of
-       Just slave -> return "to" `catM` vp slave BaseVerb ""
+    Just "modality" -> case theme of
+       Just slave -> return (if isDoModality || not isQuestion || isNothing fSubject then "to" else "") `catM` vp slave BaseVerb ""
        _ -> return ""
-    Just "BEGIN" -> case fValue "theme" fVerb of
+    Just "BEGIN" -> case theme of
       Just slave -> vp slave Gerund ""
       _ -> return ""
     _ -> return ""
@@ -521,6 +530,9 @@ vp fVerb verbForm subject = do
         _ -> False
       removeMaybe maybeVal list = fromMaybe list $ fmap (flip Data.List.delete list) maybeVal
       normalArgs = removeMaybe questionedArg $ removeMaybe topicalizedArg $ removeMaybe nonWhArg $ allArgs
+      stranded = case questionedArg of
+        Just (PPArg prep val) -> if isJust (usage "goal" val) then "" else prep
+        _ -> ""
   sArgs <- foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) normalArgs
   sTopicalized <- case topicalizedArg of
     Just arg -> generateArg arg `catM` return ","
@@ -532,9 +544,6 @@ vp fVerb verbForm subject = do
   nonWhWord <- case nonWhArg of
     Just (NPArg frame) -> return "nothing"
     _ -> return ""
-  let stranded = case questionedArg of
-        Just (PPArg prep _) -> prep
-        _ -> ""
   according <- if null whWord && Just True /= fmap (hasType "wh") fSubject then return "" else do
     acc <- generateAccording fVerb
     return $ if null acc then "" else "," `cat` acc

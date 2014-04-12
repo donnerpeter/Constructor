@@ -428,7 +428,7 @@ var10 = TestLabel "sonnetVariations 10" $ TestList [
   ,
   -- 10_WhatToAsk_Me
   translateTest "Что мне спросить?"
-                "What am I supposed to ask?"
+                "What should I ask?"
   ,
   -- 10_Me
   translateTest "Что мне было делать?"

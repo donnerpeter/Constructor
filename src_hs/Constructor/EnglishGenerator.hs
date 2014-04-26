@@ -480,7 +480,7 @@ vp fVerb verbForm clauseType = do
       nonSubjectQuestion = isQuestion && (cp >>= fValue "questioned") /= fSubject
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue "question_mark")
       isDoModality = isModality && Just True == fmap (hasType "DO") theme
-      thereSubject = clauseType == FiniteClause && (Just True == fmap (hasType "nonWh") fSubject || isNothing (fSubject >>= getType)) && not isQuestion
+      thereSubject = clauseType == FiniteClause && (Just True == fmap (hasType "wh") fSubject || isNothing (fSubject >>= getType)) && not isQuestion
       sVerb = if isVerbEllipsis fVerb && fSubject == (cp >>= fValue "ellipsisAnchor2")
               then if verbForm == PastVerb then "did" else "does"
               else if isModality then
@@ -506,16 +506,16 @@ vp fVerb verbForm clauseType = do
         (Just subj, hd@(PPAdjunct _ value):_) | earlier value "type" fVerb "type" && earlier value "type" subj "type" -> Just hd
         _ -> Nothing
       questionedArg = if not nonSubjectQuestion then Nothing else Data.List.find isQuestionedArg allArgs
-      nonWhArg = if clauseType == FiniteClause && Just True == fmap (hasType "nonWh") fSubject then Just (NPArg $ fromJust fSubject) else Data.List.find isNonWhArg allArgs
+      existentialWhArg =
+        if isQuestion then Nothing
+        else if clauseType == FiniteClause && Just True == fmap isQuestioned fSubject then Just (NPArg $ fromJust fSubject)
+        else Data.List.find isQuestionedArg allArgs
       isQuestionedArg arg = case arg of
         (NPArg frame) -> isQuestioned frame
         (PPArg _ frame) -> isQuestioned frame
         _ -> False
-      isNonWhArg arg = case arg of
-        (NPArg frame) -> hasType "nonWh" frame
-        _ -> False
       removeMaybe maybeVal list = fromMaybe list $ fmap (flip Data.List.delete list) maybeVal
-      normalArgs = removeMaybe questionedArg $ removeMaybe topicalizedArg $ removeMaybe nonWhArg $ allArgs
+      normalArgs = removeMaybe questionedArg $ removeMaybe topicalizedArg $ removeMaybe existentialWhArg $ allArgs
       stranded = case questionedArg of
         Just (PPArg prep val) -> if isJust (usage "goal" val) then "" else prep
         _ -> ""
@@ -535,8 +535,11 @@ vp fVerb verbForm clauseType = do
     Just (NPArg qFrame) -> np False (Just qFrame)
     Just (PPArg _ qFrame) -> np False (Just qFrame)
     _ -> return ""
-  nonWhWord <- case nonWhArg of
-    Just (NPArg frame) -> return $ if Just "true" == sValue "animate" frame then "nobody" else "nothing"
+  nonWhWord <- case existentialWhArg of
+    Just (NPArg frame) -> return $
+      if Just "true" == sValue "negated" frame then
+        if Just "true" == sValue "animate" frame then "nobody" else "nothing"
+      else if Just "true" == sValue "animate" frame then "somebody" else "something"
     _ -> return ""
   according <- if null whWord && Just True /= fmap (hasType "wh") fSubject then return "" else do
     acc <- generateAccording fVerb

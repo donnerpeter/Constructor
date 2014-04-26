@@ -38,7 +38,9 @@ data Construction = Word Variable String
                   | Unclosed Construction
                   | CompHead Variable
                   | ConditionCompHead Variable
-                  | Wh Variable Variable
+                  | Wh Variable
+                  | ExistentialWh {-wh-} Variable {-tensed-} Variable
+                  | WhAsserter Variable
                   | QuestionVariants (Maybe Variable) (Maybe String)
                   | Conjunction SeqData
                   | Clause ClauseForce Variable
@@ -46,13 +48,14 @@ data Construction = Word Variable String
                   | ElidedArgHead Construction
                   | Possessive ArgKind Agr Variable
                   | EmptyCxt Construction
-                  | CopulaTense Variable
+                  | Tense Variable
+                  | TenseHead Variable
                   | Copula Variable
                   | ShortAdj Variable
                   | ConditionComp Variable {-if/when-} String {-has cp-} Bool
                   | CommaSurrounded {-opened-} Bool {-closed-} Bool Construction
                   | Control Variable
-                  | ModalityInfinitive Variable
+                  | ModalityInfinitive {-modality-} Variable {-cp-} Variable
                   | ControlledInfinitive Variable
                   | RelativeHead Variable
                   | RelativeClause Variable
@@ -88,9 +91,11 @@ isHappy cxt = case cxt of
   Conjunction sd -> seqHasLeft sd && isJust (seqRightVar sd)
   NomHead _ _ satisfied -> satisfied
   GenHead {} -> False; Possessive {} -> False
-  CopulaTense {} -> False
+  Tense {} -> False
   CommaSurrounded {} -> False; SurroundingComma {} -> False
   ControlledInfinitive {} -> False; Control {} -> False
+  ModalityInfinitive {} -> False
+  ExistentialWh {} -> False; WhAsserter {} -> False
   Clause {} -> False; TopLevelQuestion {} -> False
   QuotedWord _ False -> False; Quote _ False -> False
   DirectSpeechDash {} -> False; DirectSpeechHead _ Nothing -> False

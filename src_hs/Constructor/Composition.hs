@@ -11,17 +11,20 @@ data MergeInfo = MergeInfo {mergeResult::[Mite], mergedHeadSide::Side} deriving 
 interactNodes:: Tree -> [Mite] -> [Mite] -> [MergeInfo]
 interactNodes leftTree leftMites rightMites = if null whResults then noWh else whResults where
   noWh = interactNodesNoWh leftTree leftMites rightMites
-  whResults = leftMites >>= \whMite -> case cxt whMite of
-    Wh wh cp -> rightMites >>= \rightMite1 -> case cxt rightMite1 of
-      Clause Interrogative cp2 ->
+  whResults = leftMites >>= \whMite -> let
+    whIncompatible info = any (contradict whMite) (mergeResult info)
+    fillGap cp whVar clauseMite =
         let fillers = filter (\info -> mergedHeadSide info == RightSide) noWh
-            whLinks = withBase [whMite, rightMite1] $
-              [mite $ Unify cp cp2, semV cp "questioned" wh] ++ xor [[mite $ Complement cp], [mite $ RelativeClause cp], [mite $ TopLevelQuestion cp2]]
+            whLinks = withBase [whMite, clauseMite] $
+              [semV cp "questioned" whVar, semT cp "question"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause cp], [mite $ TopLevelQuestion cp]]
             infos = map (\ info -> MergeInfo (mergeResult info ++ whLinks) LeftSide) fillers
-            whIncompatible info = any (contradict whMite) (mergeResult info)
         in infos ++ filter whIncompatible noWh
+    in case cxt whMite of
+      Wh whVar -> rightMites >>= \clauseMite -> case cxt clauseMite of
+        Clause Interrogative cp -> fillGap cp whVar clauseMite
+        ModalityInfinitive _ cp -> fillGap cp whVar clauseMite
+        _ -> []
       _ -> []
-    _ -> []
 
 isInteractive mite = case cxt mite of
   Sem {} -> False
@@ -70,8 +73,8 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
           [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2]) LeftSide]
         _ -> []
 
-      (ArgHead kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left $ argVariants var1 var2 leftMites rightMites
-      (Argument kind2 var2, ArgHead kind1 var1) | kind1 == kind2 -> right $ argVariants var1 var2 rightMites leftMites
+      (ArgHead kind1 head, Argument kind2 arg) | kind1 == kind2 -> left $ argVariants head arg leftMites rightMites
+      (Argument kind2 arg, ArgHead kind1 head) | kind1 == kind2 -> right $ argVariants head arg rightMites leftMites
 
       (SemPreposition kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
       (PrepHead prep1 kind1 var1, Argument kind2 var2) | kind1 == kind2 ->
@@ -109,10 +112,10 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (Verb v, Word _ "бы") -> left [semS v "irrealis" "true"]
       (Word _ "очень", adverb@(Adverb {})) -> right [mite $ adverb]
       
-      (Copula v0, CopulaTense v1) -> left [mite $ Unify v0 v1]
-      (CopulaTense v0, Copula v1) -> right [mite $ Unify v0 v1]
-      (CopulaTense v1, ModalityInfinitive v2) -> right [mite $ Unify v1 v2]
-      (ModalityInfinitive v2, CopulaTense v1) -> left [mite $ Unify v1 v2]
+      (TenseHead v0, Tense v1) -> left [mite $ Unify v0 v1]
+      (Tense v0, TenseHead v1) -> right [mite $ Unify v0 v1]
+
+      (WhAsserter verb, Wh wh) -> right [mite $ ExistentialWh wh verb]
 
       (ConditionComp v0 s False, Clause Declarative cp) -> left [mite $ Unify v0 cp, mite $ ConditionComp v0 s True]
       (ConditionCompHead head, CommaSurrounded True _ (ConditionComp cp cond _)) -> left [semV head (cond++"Condition") cp]
@@ -154,9 +157,14 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
   seqLeft = Seq.seqLeft leftTree leftMites rightMites
   seqRight = Seq.seqRight leftMites rightMites
 
-argVariants v1 v2 headMites childMites = [mite $ Unify v1 v2] ++ reflexive where
+argVariants headVar childVar headMites childMites = [mite $ Unify headVar childVar] ++ reflexive ++ existentials where
   reflexive = headMites >>= \m1 -> case cxt m1 of
     ReflexiveTarget target -> childMites >>= \m2 -> case cxt m2 of
       ReflexiveReference ref -> withBase [m1,m2] [semV ref "target" target]
+      _ -> []
+    _ -> []
+  existentials = headMites >>= \m1 -> case cxt m1 of
+    ModalityInfinitive v cp -> childMites >>= \m2 -> case cxt m2 of
+      ExistentialWh whVar tensedVar | whVar == childVar -> withBase [m1,m2] [semT cp "fact", mite $ Unify v tensedVar]
       _ -> []
     _ -> []

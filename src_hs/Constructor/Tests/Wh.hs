@@ -38,12 +38,12 @@ whTests = [TestLabel "wh tests" $ TestList [
   ,
   translateTest "Делать было нечего"
                 "There was nothing to do"
---  ,
-  -- translateTest "Нам есть что делать"
-  --               "We have something to do"
-  -- ,
-  -- translateTest "Нам было что делать"
-  --               "We had something to do"
+  ,
+  translateTest "Нам есть что делать"
+                "We have something to do"
+  ,
+  translateTest "Нам было что делать"
+                "We had something to do"
   -- ,
   -- translateTest "Нам будет что делать"
   --               "We'll have something to do"
@@ -56,15 +56,21 @@ whTests = [TestLabel "wh tests" $ TestList [
   ,
   translateTest "Мне нечего сказать"
                 "I have nothing to say"
-  -- ,
-  -- translateTest "Мне есть что сказать"
-  --               "I have something to say"
-  -- ,
+  ,
+  translateTest "Мне есть что сказать"
+                "I have something to say"
+-- todo nonprojective есть что ,
+--  translateTest "Есть мне что сказать"
+--                "I have something to say"
+--  ,
   -- translateTest "Мне не к кому идти"
-  --               "I have nobody to go to"
+  --              "I have nobody to go to"
+  -- ,
+  -- translateTest "Мне есть к кому идти"
+  --              "I have somebody to go to"
   -- ,
   -- translateTest "Мне некуда идти"
-  --               "I have nowhere to go"
+  --              "I have nowhere to go"
   ,
   translateTest "Куда мне идти?"
                 "Where should I go?"

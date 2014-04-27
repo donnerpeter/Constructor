@@ -44,9 +44,12 @@ whTests = [TestLabel "wh tests" $ TestList [
   ,
   translateTest "Нам было что делать"
                 "We had something to do"
-  -- ,
-  -- translateTest "Нам будет что делать"
-  --               "We'll have something to do"
+  ,
+  translateTest "Нам будет что делать"
+                "We'll have something to do"
+  ,
+  translateTest "Нам будет нечего делать"
+                "We'll have nothing to do"
   ,
   translateTest "Мы ничего не делали"
                 "We did nothing"

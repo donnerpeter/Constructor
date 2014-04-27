@@ -473,6 +473,7 @@ vp fVerb verbForm clauseType = do
         _ -> ""
       cp = usage "content" fVerb
       theme = fValue "theme" fVerb
+      isFuture = Just "FUTURE" == sValue "time" fVerb
       isModality = hasType "modality" fVerb
       isRaising = hasType "SEEM" fVerb
       fSubject = if hasType "SEEM" fVerb || isModality || isRaising then theme >>= fValue "arg1" else fValue "arg1" fVerb
@@ -486,7 +487,7 @@ vp fVerb verbForm clauseType = do
               else if isModality then
                 if isQuestion then if isJust fSubject && isDoModality then "supposed" else ""
                 else if thereSubject then if verbForm == PastVerb then "was" else "is"
-                else if verbForm == PastVerb then "had" else "have"
+                else if verbForm == PastVerb then "had" else if isFuture then "will have" else "have"
               else verb (if null aux then verbForm else if isGerund fVerb then Gerund else BaseVerb) fVerb
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
@@ -558,6 +559,7 @@ vp fVerb verbForm clauseType = do
   let contracted = if null preAdverb && null negation && null aux && null according then
                      if sVerb == "am" then subject ++ "'m"
                      else if sVerb == "is" then subject ++ "'s"
+                     else if "will " `isPrefixOf` sVerb then subject ++ "'ll" ++ drop (length "will") sVerb
                      else subject `cat` sVerb
                    else (if inverted then according `cat` aux `cat` negation `cat` subject else subject `cat` according `cat` aux `cat` negation) `cat` preAdverb `cat` sVerb
   return $ sTopicalized `cat` whWord `cat` contracted `cat` nonWhWord `cat` controlled `cat` sArgs `cat` stranded `cat` finalAdverb

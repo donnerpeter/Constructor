@@ -67,6 +67,7 @@ wordMites word index =
   "бессмысленными" -> [mite $ Raiseable A.pl v0, semT v0 "MEANINGLESS"]
   "большим" -> xor[adj Instr A.m "size" "BIG" v, adj Instr A.n "size" "BIG" v]
   "большой" -> xor[adj Instr A.f "size" "BIG" v, adj Nom A.m "size" "BIG" v, adj Acc A.m "size" "BIG" v]
+  "будет" -> [semS v0 "time" "FUTURE"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0]]
   "был" -> [mite $ Tense v0, semS v0 "time" "PAST"]
   "было" -> [semS v0 "time" "PAST"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0]]
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]

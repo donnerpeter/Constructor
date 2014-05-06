@@ -511,15 +511,14 @@ vp fVerb verbForm clauseType = do
         if isQuestion then Nothing
         else if clauseType == FiniteClause && Just True == fmap isQuestioned fSubject then Just (NPArg $ fromJust fSubject)
         else Data.List.find isQuestionedArg allArgs
-      isQuestionedArg arg = case arg of
-        (NPArg frame) -> isQuestioned frame
-        (PPArg _ frame) -> isQuestioned frame
-        _ -> False
+      isQuestionedArg arg = Just True == fmap isQuestioned (argumentFrame arg)
       removeMaybe maybeVal list = fromMaybe list $ fmap (flip Data.List.delete list) maybeVal
       normalArgs = removeMaybe questionedArg $ removeMaybe topicalizedArg $ removeMaybe existentialWhArg $ allArgs
       stranded = case questionedArg of
         Just (PPArg prep val) -> if isJust (usage "goal" val) then "" else prep
-        _ -> ""
+        _ -> case existentialWhArg of
+          Just (PPArg prep val) -> prep
+          _ -> ""
   subject <- if thereSubject then return "there" else case (fSubject, clauseType) of
     (Just f, FiniteClause) ->
       if thereSubject then return "there"
@@ -532,12 +531,11 @@ vp fVerb verbForm clauseType = do
   sTopicalized <- case topicalizedArg of
     Just arg -> generateArg arg `catM` return ","
     _ -> return ""
-  whWord <- case questionedArg of
-    Just (NPArg qFrame) -> np False (Just qFrame)
-    Just (PPArg _ qFrame) -> np False (Just qFrame)
+  whWord <- case questionedArg >>= argumentFrame of
+    Just qFrame -> np False (Just qFrame)
     _ -> return ""
-  nonWhWord <- case existentialWhArg of
-    Just (NPArg frame) -> return $
+  nonWhWord <- case existentialWhArg >>= argumentFrame of
+    Just frame -> return $
       if Just "true" == sValue "negated" frame then
         if Just "true" == sValue "animate" frame then "nobody" else "nothing"
       else if Just "true" == sValue "animate" frame then "somebody" else "something"
@@ -565,6 +563,10 @@ vp fVerb verbForm clauseType = do
   return $ sTopicalized `cat` whWord `cat` contracted `cat` nonWhWord `cat` controlled `cat` sArgs `cat` stranded `cat` finalAdverb
 
 data Argument = Adverb String | NPArg Frame | PPArg String Frame | PPAdjunct String Frame deriving (Eq,Show)
+
+argumentFrame (NPArg f) = Just f
+argumentFrame (PPArg _ f) = Just f
+argumentFrame _ = Nothing
 
 arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ ->
   allFrameFacts fVerb >>= \ Fact { attrName = attr, value = semValue} ->

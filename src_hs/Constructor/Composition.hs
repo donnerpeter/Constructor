@@ -137,6 +137,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (QuotedWord word False, Quote _ True) -> left [mite $ QuotedWord word True]
       (AdjHead noun _ _, QuotedWord (Word _ word) _) -> left [semS noun "name" word]
       (Word _ "не", Complement cp) -> right [semS cp "negated" "true", mite $ Complement cp]
+      (Word ne "не", Wh v) -> right [mite $ ExistentialWh v ne, semS v "negated" "true"]
       (Word _ "не", Verb v) -> let
         negateDirectObject = rightMites >>= \m3 -> case cxt m3 of
           ArgHead Acc v -> let
@@ -165,6 +166,6 @@ argVariants headVar childVar headMites childMites = [mite $ Unify headVar childV
     _ -> []
   existentials = headMites >>= \m1 -> case cxt m1 of
     ModalityInfinitive v cp -> childMites >>= \m2 -> case cxt m2 of
-      ExistentialWh whVar tensedVar | whVar == childVar -> withBase [m1,m2] [semT cp "fact", mite $ Unify v tensedVar]
+      ExistentialWh whVar tensedVar -> withBase [m1,m2] [semT cp "fact", mite $ Unify v tensedVar]
       _ -> []
     _ -> []

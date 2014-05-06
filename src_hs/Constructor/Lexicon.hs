@@ -91,7 +91,7 @@ wordMites word index =
   "деньги" -> nounPl Acc "MONEY" v
   "деревья" -> nounPl Acc "TREES" v
   "до" -> preposition "do" Gen v
-  "дойдя" -> perfectBackground "COME_TO" v ++ optional (arg (PP "v" Prep) "domain" v) ++ optional (arg (PP "do" Gen) "goal" v)
+  "дойдя" -> perfectBackground "COME_TO" v ++ optional (arg (PP "v" Prep) "domain" v) ++ optional (arg (PP "do" Gen) "goal_by" v)
   "долго" -> adverb "duration" "LONG" v
   "домам" -> nounPl Dat "HOMES" v ++ genHead "owner" v
   "домой" -> [mite $ Argument DirectionAdverb v0, semT v0 "HOME"]
@@ -108,11 +108,11 @@ wordMites word index =
   "забыла" -> finVerb "FORGET" "PAST" A.f v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
   "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
   "и" -> conjunction v0 "and" True
-  "идет" -> xor [finVerb "GO" "PRESENT" A.sg3 v ++ optional (arg (PP "v" Acc) "goal" v),
+  "идет" -> xor [finVerb "GO" "PRESENT" A.sg3 v ++ optional (arg (PP "v" Acc) "goal_in" v),
                  finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ arg ScalarAdverb "order" v]
-  "идёт" -> xor [finVerb "GO" "PRESENT" A.sg3 v ++ optional (arg (PP "v" Acc) "goal" v),
+  "идёт" -> xor [finVerb "GO" "PRESENT" A.sg3 v ++ optional (arg (PP "v" Acc) "goal_in" v),
                  finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ arg ScalarAdverb "order" v]
-  "идти" -> xor [infinitive "GO" v ++ optional (xor [arg (PP "v" Acc) "goal" v, arg DirectionAdverb "goal" v]),
+  "идти" -> xor [infinitive "GO" v ++ optional (xor [arg (PP "v" Acc) "goal_in" v, arg DirectionAdverb "goal" v]) ++ optional (arg (PP "k" Dat) "goal_to" v),
                  infinitive "COME_SCALARLY" v ++ arg ScalarAdverb "order" v]
   "из" -> preposition "iz" Gen v
   "изо" -> preposition "iz" Gen v
@@ -184,7 +184,7 @@ wordMites word index =
   "остановились" -> finVerb "STOP" "PAST" A.pl v
   "от" -> preposition "ot" Gen v
   "отвлекло" -> finVerb "DISTRACT" "PAST" A.n v ++ directObject v ++ arg (PP "ot" Gen) "theme" v
-  "отправился" -> finVerb "GO_OFF" "PAST" A.m v ++ arg (PP "k" Dat) "goal" v
+  "отправился" -> finVerb "GO_OFF" "PAST" A.m v ++ arg (PP "k" Dat) "goal_to" v
   "офисам" -> nounPl Dat "OFFICES" v ++ genHead "owner" v
   "палец" -> nounSg Acc Masc "FINGER" v
   "пальца" -> nounSg Gen Masc "FINGER" v
@@ -205,7 +205,7 @@ wordMites word index =
   "потому" -> [mite $ TwoWordCxt "потому что" True [ReasonComp v0 False] v0]
   "приуныли" -> finVerb "GET_SAD" "PAST" A.pl v
   "просто" -> adverb "manner" "JUST" v
-  "пошли" -> finVerb "GO" "PAST" A.pl v ++ xor[arg (PP "v" Acc) "goal" v, arg DirectionAdverb "goal" v]
+  "пошли" -> finVerb "GO" "PAST" A.pl v ++ xor[arg (PP "v" Acc) "goal_in" v, arg DirectionAdverb "goal" v]
   "работы" -> nounSg Gen Fem "WORK" v
   "радостью" -> nounSg Instr Fem "JOY" v ++ optional [mite $ PrepositionActivator "s" Instr v0 $ VerbalModifier "mood" False v0]
   "разошлись" -> finVerb "DISPERSE" "PAST" A.pl v ++ arg (PP "po" Dat) "goal" v

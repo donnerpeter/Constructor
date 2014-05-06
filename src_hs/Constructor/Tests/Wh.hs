@@ -62,6 +62,9 @@ whTests = [TestLabel "wh tests" $ TestList [
   ,
   translateTest "Мне есть что сказать"
                 "I have something to say"
+  ,
+  translateTest "К кому нам идти?"
+                "Who should we go to?"
 -- todo nonprojective есть что ,
 --  translateTest "Есть мне что сказать"
 --                "I have something to say"

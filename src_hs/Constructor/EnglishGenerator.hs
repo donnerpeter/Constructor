@@ -409,7 +409,7 @@ clause fVerb = do
           let domain = case fValue "domain" back of
                          Just dom | isJust (sValue "type" dom) -> return "in" `catM` np False (Just dom)
                          _ -> return ""
-          in return (conjIntroduction back `cat` "reaching") `catM` np False (fValue "goal" back) `catM` domain
+          in return (conjIntroduction back `cat` "reaching") `catM` np False (fValue "goal_by" back) `catM` domain
         _ -> return ""
       _ -> return ""
     comp <- case fComp of
@@ -603,6 +603,8 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
         else [Adverb (fromMaybe "??" $ getType value)]
       ("DISPERSE", "goal") -> if hasType "HOMES" value then [Adverb "home"] else [PPArg "to" value]
       (_, "goal") -> if typ == "GO" && hasType "HOME" value then [Adverb "home"] else [PPArg "to" value]
+      (_, "goal_to") -> [PPArg "to" value]
+      (_, "goal_in") -> [PPArg "to" value]
       (_, "mood") -> case getType value of
         Just "JOY" | isNothing (fValue "size" value)-> [Adverb "cheerfully"]
         Just _ -> [PPAdjunct "with" value]

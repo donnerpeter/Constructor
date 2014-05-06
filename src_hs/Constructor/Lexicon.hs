@@ -164,6 +164,7 @@ wordMites word index =
   "нашем" -> [semT v0 "WE", mite $ Possessive Prep A.n v0]
   "недоумении" -> nounSg Prep Neu "PREDICAMENT" v ++ genHead "arg1" v
   "некому" -> [mite $ Argument Dat v0, semT v0 "wh", mite $ ExistentialWh v0 (v "z"), semS v0 "animate" "true", semS v0 "negated" "true"]
+  "некуда" -> [mite $ Argument DirectionAdverb v0, semT v0 "wh", mite $ ExistentialWh v0 (v "z"), semS v0 "negated" "true"]
   "нечего" -> [mite $ Argument Acc v0, semT v0 "wh", mite $ ExistentialWh v0 (v "z"), semS v0 "negated" "true"]
   "ничего" -> [mite $ Argument Gen v0, semT v0 "wh", semS v0 "negated" "true"]
   "но" ->  xor [conjunction v0 "but" False, [mite $ ConjEmphasis "butEmphasis" v0]]

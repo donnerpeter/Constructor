@@ -74,9 +74,9 @@ whTests = [TestLabel "wh tests" $ TestList [
   ,
   translateTest "Мне есть к кому идти"
                 "I have somebody to go to"
-  -- ,
-  -- translateTest "Мне некуда идти"
-  --              "I have nowhere to go"
+  ,
+  translateTest "Мне некуда идти"
+                "I have nowhere to go"
   ,
   translateTest "Куда мне идти?"
                 "Where should I go?"

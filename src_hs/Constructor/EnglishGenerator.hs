@@ -1,6 +1,7 @@
 module Constructor.EnglishGenerator (generate) where
 import Constructor.Sense
 import Control.Monad.State
+import Control.Monad
 import Data.List
 import Data.Char (toUpper)
 import Data.Maybe
@@ -514,11 +515,9 @@ vp fVerb verbForm clauseType = do
       isQuestionedArg arg = Just True == fmap isQuestioned (argumentFrame arg)
       removeMaybe maybeVal list = fromMaybe list $ fmap (flip Data.List.delete list) maybeVal
       normalArgs = removeMaybe questionedArg $ removeMaybe topicalizedArg $ removeMaybe existentialWhArg $ allArgs
-      stranded = case questionedArg of
+      stranded = case mplus questionedArg existentialWhArg of
         Just (PPArg prep val) -> if isJust (usage "goal" val) then "" else prep
-        _ -> case existentialWhArg of
-          Just (PPArg prep val) -> prep
-          _ -> ""
+        _ -> ""
   subject <- if thereSubject then return "there" else case (fSubject, clauseType) of
     (Just f, FiniteClause) ->
       if thereSubject then return "there"
@@ -537,7 +536,7 @@ vp fVerb verbForm clauseType = do
   nonWhWord <- case existentialWhArg >>= argumentFrame of
     Just frame -> return $
       if Just "true" == sValue "negated" frame then
-        if Just "true" == sValue "animate" frame then "nobody" else "nothing"
+        if Just "true" == sValue "animate" frame then "nobody" else if isJust $ usage "goal" frame then "nowhere" else "nothing"
       else if Just "true" == sValue "animate" frame then "somebody" else "something"
     _ -> return ""
   according <- if null whWord && Just True /= fmap (hasType "wh") fSubject then return "" else do

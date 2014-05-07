@@ -313,6 +313,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "DISTRACT" -> "distracted"
   "NEED" -> "need"
   "DISPERSE" -> "went"
+  "LOVE" -> "love"
   "THINK" -> if verbForm == BaseVerb then "think" else "thinking"
   "SIT" -> "sitting"
   "FALL" -> "fell"

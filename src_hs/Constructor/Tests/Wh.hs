@@ -83,9 +83,12 @@ whTests = [TestLabel "wh tests" $ TestList [
   ,
   translateTest "Куда они пошли?"
                 "Where did they go?"
+  ,
+  translateTest "Мне некого любить"
+                "I have nobody to love"
 --  ,
-  -- translateTest "Мне некого больше любить"
-  --               "I have nobody to love anymore"
+--  translateTest "Мне некого больше любить"
+--                "I have nobody to love anymore"
   -- ,
   -- translateTest "Меня некому больше любить"
   --               "There's nobody to love me anymore"

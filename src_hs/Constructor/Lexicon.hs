@@ -139,6 +139,7 @@ wordMites word index =
   "куда" -> whWord v ++ [mite $ Argument DirectionAdverb v0]
   "летний" -> adj Acc A.m "name" "летний" v -- todo летний is not only a name
   "лишенными" -> [mite $ Raiseable A.pl v0, semT v0 "LACK"] ++ arg Gen "theme" v
+  "любить" -> infinitive "LOVE" v ++ optional (directObject v)
   "магазин" -> xor [nounSg Nom Masc "SHOP" v, nounSg Acc Masc "SHOP" v] -- todo который + agr
   "магазина" -> nounSg Gen Masc "SHOP" v
   "маленький" -> adj Acc A.m "size" "LITTLE" v
@@ -163,6 +164,7 @@ wordMites word index =
   "нашего" -> [semT v0 "WE", mite $ Possessive Gen A.m v0]
   "нашем" -> [semT v0 "WE", mite $ Possessive Prep A.n v0]
   "недоумении" -> nounSg Prep Neu "PREDICAMENT" v ++ genHead "arg1" v
+  "некого" -> [mite $ Argument Acc v0, semT v0 "wh", mite $ ExistentialWh v0 (v "z"), semS v0 "animate" "true", semS v0 "negated" "true"]
   "некому" -> [mite $ Argument Dat v0, semT v0 "wh", mite $ ExistentialWh v0 (v "z"), semS v0 "animate" "true", semS v0 "negated" "true"]
   "некуда" -> [mite $ Argument DirectionAdverb v0, semT v0 "wh", mite $ ExistentialWh v0 (v "z"), semS v0 "negated" "true"]
   "нечего" -> [mite $ Argument Acc v0, semT v0 "wh", mite $ ExistentialWh v0 (v "z"), semS v0 "negated" "true"]

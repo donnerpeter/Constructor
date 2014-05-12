@@ -143,7 +143,7 @@ wordMites word index =
   "магазин" -> xor [nounSg Nom Masc "SHOP" v, nounSg Acc Masc "SHOP" v] -- todo который + agr
   "магазина" -> nounSg Gen Masc "SHOP" v
   "маленький" -> adj Acc A.m "size" "LITTLE" v
-  "меня" -> pronoun Gen A.sg "ME" v
+  "меня" -> xor [pronoun Acc A.sg "ME" v, pronoun Gen A.sg "ME" v]
   "мне" -> pronoun Dat A.sg "ME" v
   "мнению" -> nounSg Dat Neu "OPINION" v ++ genHead "arg1" v ++
     optional (xor [[mite $ PrepositionActivator "po" Dat v0 $ VerbalModifier "accordingTo" True v0],

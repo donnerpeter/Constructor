@@ -99,9 +99,9 @@ whTests = [TestLabel "wh tests" $ TestList [
 --  ,
 --  translateTest "Мне некого любить больше"
 --               "I have nobody to love anymore"
-  -- ,
-  -- translateTest "Меня некому больше любить"
-  --               "There's nobody to love me anymore"
+  ,
+  translateTest "Меня некому больше любить"
+                "There's nobody to love me anymore"
   -- ,
   -- translateTest "Меня никто больше не любит"
   --               "Nobody loves me anymore"

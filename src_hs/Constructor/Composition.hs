@@ -136,6 +136,10 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (Quote _ False, word@(Word {})) -> left [mite $ QuotedWord word False]
       (QuotedWord word False, Quote _ True) -> left [mite $ QuotedWord word True]
       (AdjHead noun _ _, QuotedWord (Word _ word) _) -> left [semS noun "name" word]
+
+      (Word _ "больше", Negated v) -> right [semS v "not_anymore" "true"]
+      (Negated v, Word _ "больше") -> left [semS v "not_anymore" "true"]
+
       (Word _ "не", Complement cp) -> right [semS cp "negated" "true", mite $ Complement cp]
       (Word ne "не", Wh v) -> right [mite $ ExistentialWh v ne, semS v "negated" "true"]
       (Word _ "не", Verb v) -> let
@@ -146,6 +150,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
             in result
           _ -> []
         in [MergeInfo (withBase [m1,m2] [semS v "negated" "true"] ++ negateDirectObject) RightSide]
+
       (Word _ "тоже", Verb v) -> right [semS v "also" "true"]
       (Complementizer cp1, Clause Declarative cp2) -> left [mite $ Unify cp1 cp2, mite $ Complement cp1]
       (Control slave, ControlledInfinitive inf) -> left [mite $ Unify slave inf]

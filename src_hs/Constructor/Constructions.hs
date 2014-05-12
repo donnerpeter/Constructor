@@ -78,6 +78,7 @@ data Construction = Word Variable String
                   | ReflexiveTarget Variable
                   | Sentence Variable
                   | ConjEmphasis String Variable
+                  | Negated Variable
                   -- | S1 | S2 | S3 | S4
                   deriving (Show, Ord, Eq)
 

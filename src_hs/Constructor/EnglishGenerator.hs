@@ -519,6 +519,9 @@ vp fVerb verbForm clauseType = do
       stranded = case mplus questionedArg existentialWhArg of
         Just (PPArg prep val) -> if isJust (usage "goal" val) then "" else prep
         _ -> ""
+      anymore = case existentialWhArg >>= argumentFrame >>= sValue "not_anymore" of
+        Just "true" -> "anymore"
+        _ -> ""
   subject <- if thereSubject then return "there" else case (fSubject, clauseType) of
     (Just f, FiniteClause) ->
       if thereSubject then return "there"
@@ -560,7 +563,7 @@ vp fVerb verbForm clauseType = do
                      else if "will " `isPrefixOf` sVerb then subject ++ "'ll" ++ drop (length "will") sVerb
                      else subject `cat` sVerb
                    else (if inverted then according `cat` aux `cat` negation `cat` subject else subject `cat` according `cat` aux `cat` negation) `cat` preAdverb `cat` sVerb
-  return $ sTopicalized `cat` whWord `cat` contracted `cat` nonWhWord `cat` controlled `cat` sArgs `cat` stranded `cat` finalAdverb
+  return $ sTopicalized `cat` whWord `cat` contracted `cat` nonWhWord `cat` controlled `cat` sArgs `cat` stranded `cat` anymore `cat` finalAdverb
 
 data Argument = Adverb String | NPArg Frame | PPArg String Frame | PPAdjunct String Frame deriving (Eq,Show)
 

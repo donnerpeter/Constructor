@@ -149,7 +149,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
             colleagues = concat [withBase [m1,m2,m] [mite (cxt m)] | m <- rightMites, not (contradict m m2), contradict m m3]
             in result
           _ -> []
-        in [MergeInfo (withBase [m1,m2] [semS v "negated" "true"] ++ negateDirectObject) RightSide]
+        in [MergeInfo (withBase [m1,m2] [semS v "negated" "true", mite $ Negated v] ++ negateDirectObject) RightSide]
 
       (Word _ "тоже", Verb v) -> right [semS v "also" "true"]
       (Complementizer cp1, Clause Declarative cp2) -> left [mite $ Unify cp1 cp2, mite $ Complement cp1]

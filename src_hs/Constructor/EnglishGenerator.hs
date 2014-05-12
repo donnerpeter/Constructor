@@ -93,7 +93,8 @@ np_internal nom mayHaveDeterminer frame = do
     else if hasType "WE" frame then if nom then return "we" else return "us"
     else if hasType "wh" frame then return $
       if isJust $ usage "arg1" frame >>= usage "content" >>= usage "relative" then "that"
-      else if isAnimate frame then "who"
+      else if isAnimate frame then
+        if Just "true" == sValue "negated" frame then "nobody" else "who"
       else if isJust (usage "goal" frame) then "where"
       else "what"
     else do
@@ -300,7 +301,7 @@ isGerund fVerb = hasAnyType ["SIT", "THINK"] fVerb &&
   Just "ASK" == (usage "content" (unSeq fVerb) >>= usage "topic" . unSeq >>= getType))
 
 verb verbForm frame = if isNothing (getType frame) then "???vp" else
-  let negated = Just "true" == sValue "negated" frame in
+  let negated = Just "true" == sValue "negated" frame && not (Just "true" == (fValue "arg1" frame >>= sValue "negated")) in
   case fromJust $ getType frame of
   "HAPPEN" -> "happened"
   "FORGET" -> "forgot"
@@ -313,7 +314,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "DISTRACT" -> "distracted"
   "NEED" -> "need"
   "DISPERSE" -> "went"
-  "LOVE" -> "love"
+  "LOVE" -> if verbForm == BaseVerb then "love" else if negated then "doesn't love" else "loves"
   "THINK" -> if verbForm == BaseVerb then "think" else "thinking"
   "SIT" -> "sitting"
   "FALL" -> "fell"
@@ -483,7 +484,7 @@ vp fVerb verbForm clauseType = do
       nonSubjectQuestion = isQuestion && (cp >>= fValue "questioned") /= fSubject
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue "question_mark")
       isDoModality = isModality && Just True == fmap (hasType "DO") theme
-      thereSubject = clauseType == FiniteClause && (Just True == fmap (hasType "wh") fSubject || isNothing (fSubject >>= getType)) && not isQuestion
+      thereSubject = clauseType == FiniteClause && (Just "wh" == (fSubject >>= getType) && isModality || isNothing (fSubject >>= getType)) && not isQuestion
       sVerb = if isVerbEllipsis fVerb && fSubject == (cp >>= fValue "ellipsisAnchor2")
               then if verbForm == PastVerb then "did" else "does"
               else if isModality then
@@ -511,7 +512,7 @@ vp fVerb verbForm clauseType = do
       questionedArg = if not nonSubjectQuestion then Nothing else Data.List.find isQuestionedArg allArgs
       existentialWhArg =
         if isQuestion then Nothing
-        else if clauseType == FiniteClause && Just True == fmap isQuestioned fSubject then Just (NPArg $ fromJust fSubject)
+        else if clauseType == FiniteClause && Just True == fmap isQuestioned fSubject && isModality then Just (NPArg $ fromJust fSubject)
         else Data.List.find isQuestionedArg allArgs
       isQuestionedArg arg = Just True == fmap isQuestioned (argumentFrame arg)
       removeMaybe maybeVal list = fromMaybe list $ fmap (flip Data.List.delete list) maybeVal
@@ -519,9 +520,11 @@ vp fVerb verbForm clauseType = do
       stranded = case mplus questionedArg existentialWhArg of
         Just (PPArg prep val) -> if isJust (usage "goal" val) then "" else prep
         _ -> ""
-      anymore = case existentialWhArg >>= argumentFrame >>= sValue "not_anymore" of
-        Just "true" -> "anymore"
-        _ -> ""
+      anymore = let
+        isAnymore = Just "true" == (existentialWhArg >>= argumentFrame >>= sValue "not_anymore") ||
+                    clauseType == FiniteClause && Just "wh" == (fSubject >>= getType) && Just "true" == (fSubject >>= sValue "not_anymore") ||
+                    Just "true" == sValue "not_anymore" fVerb
+        in if isAnymore then "anymore" else ""
   subject <- if thereSubject then return "there" else case (fSubject, clauseType) of
     (Just f, FiniteClause) ->
       if thereSubject then return "there"

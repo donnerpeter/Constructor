@@ -108,9 +108,11 @@ wordMites word index =
   "забыла" -> finVerb "FORGET" "PAST" A.f v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
   "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
   "и" -> conjunction v0 "and" True
-  "идет" -> xor [finVerb "GO" "PRESENT" A.sg3 v ++ optional (arg (PP "v" Acc) "goal_in" v),
+  "идет" -> xor [finVerb "GO" "PRESENT" A.sg3 v ++ optional (xor [arg (PP "v" Acc) "goal_in" v, arg DirectionAdverb "goal" v]),
                  finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ arg ScalarAdverb "order" v]
-  "идёт" -> xor [finVerb "GO" "PRESENT" A.sg3 v ++ optional (arg (PP "v" Acc) "goal_in" v),
+  "идём" -> xor [finVerb "GO" "PRESENT" A.pl1 v ++ optional (xor [arg (PP "v" Acc) "goal_in" v, arg DirectionAdverb "goal" v]),
+                 finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ arg ScalarAdverb "order" v]
+  "идёт" -> xor [finVerb "GO" "PRESENT" A.sg3 v ++ optional (xor [arg (PP "v" Acc) "goal_in" v, arg DirectionAdverb "goal" v]),
                  finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ arg ScalarAdverb "order" v]
   "идти" -> xor [infinitive "GO" v ++ optional (xor [arg (PP "v" Acc) "goal_in" v, arg DirectionAdverb "goal" v]) ++ optional (arg (PP "k" Dat) "goal_to" v),
                  infinitive "COME_SCALARLY" v ++ arg ScalarAdverb "order" v]
@@ -170,6 +172,7 @@ wordMites word index =
   "некуда" -> [mite $ Argument DirectionAdverb v0, semT v0 "wh", mite $ ExistentialWh v0 (v "z"), semS v0 "negated" "true", mite $ Negated v0]
   "нечего" -> [mite $ Argument Acc v0, semT v0 "wh", mite $ ExistentialWh v0 (v "z"), semS v0 "negated" "true", mite $ Negated v0]
   "никто" -> [mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.sg3, semT v0 "wh", semS v0 "negated" "true", semS v0 "animate" "true", mite $ Negated v0]
+  "никуда" -> [mite $ Argument DirectionAdverb v0, semT v0 "wh", semS v0 "negated" "true", mite $ Negated v0]
   "ничего" -> [mite $ Argument Gen v0, semT v0 "wh", semS v0 "negated" "true", mite $ Negated v0]
   "но" ->  xor [conjunction v0 "but" False, [mite $ ConjEmphasis "butEmphasis" v0]]
   "носом" -> nounSg Instr Masc "NOSE" v

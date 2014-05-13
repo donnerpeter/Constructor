@@ -111,10 +111,9 @@ whTests = [TestLabel "wh tests" $ TestList [
   ,
   translateTest "Она больше меня не любит"
                 "She doesn't love me anymore"
---  ,
-  -- translateTest "Мы никуда не идём"
-  --               "We go nowhere"
-  -- todo нечего
+  ,
+  translateTest "Мы никуда не идём"
+                "We go nowhere"
   ,
   translateTest "Я забыл, о чём он спросил соседей."
                 "I forgot what he asked his neighbors about."

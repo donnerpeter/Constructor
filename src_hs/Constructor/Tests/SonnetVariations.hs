@@ -3,9 +3,10 @@ import Constructor.Tests.Testing
 import Test.HUnit
 
 var1 = TestLabel "sonnetVariations 1" $ TestList [
---  translateTest "Я вдруг забыл, что идет дальше." 
---          "I suddenly forgot what comes next."
---  ,
+  translateTest "Я вдруг забыл, что идет дальше."
+                "I suddenly forgot what comes next."
+  ,
+--todo non-final questionVariants
 --  translateTest "Я вдруг забыл, что - 7 или 8 - идет раньше" "I suddenly forgot what comes first - 7 or 8"
 --  ,
 --  translateTest "Я вдруг забыл, что, 7 или 8, идет раньше" "I suddenly forgot what comes first - 7 or 8"

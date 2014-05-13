@@ -53,6 +53,8 @@ wordNumber caze typ v = xor [nounSg caze Masc typ v, numQuantifier caze (quantif
 quantifierChildCase caze typ = if typ == "1" then caze else Gen
 quantifierChildAgr typ = if typ `elem` ["1","2","3","4"] then A.sg else A.pl
 
+go_args v = optional (xor [arg (PP "v" Acc) "goal_in" v, arg DirectionAdverb "goal" v]) ++ optional (arg (PP "k" Dat) "goal_to" v)
+
 wordMites :: String -> Int -> [Mite]
 wordMites word index =
   let v = \i -> Variable index i
@@ -108,13 +110,13 @@ wordMites word index =
   "забыла" -> finVerb "FORGET" "PAST" A.f v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
   "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
   "и" -> conjunction v0 "and" True
-  "идет" -> xor [finVerb "GO" "PRESENT" A.sg3 v ++ optional (xor [arg (PP "v" Acc) "goal_in" v, arg DirectionAdverb "goal" v]),
+  "идет" -> xor [finVerb "GO" "PRESENT" A.sg3 v ++ go_args v,
                  finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ arg ScalarAdverb "order" v]
-  "идём" -> xor [finVerb "GO" "PRESENT" A.pl1 v ++ optional (xor [arg (PP "v" Acc) "goal_in" v, arg DirectionAdverb "goal" v]),
+  "идём" -> xor [finVerb "GO" "PRESENT" A.pl1 v ++ go_args v,
                  finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ arg ScalarAdverb "order" v]
-  "идёт" -> xor [finVerb "GO" "PRESENT" A.sg3 v ++ optional (xor [arg (PP "v" Acc) "goal_in" v, arg DirectionAdverb "goal" v]),
+  "идёт" -> xor [finVerb "GO" "PRESENT" A.sg3 v ++ go_args v,
                  finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ arg ScalarAdverb "order" v]
-  "идти" -> xor [infinitive "GO" v ++ optional (xor [arg (PP "v" Acc) "goal_in" v, arg DirectionAdverb "goal" v]) ++ optional (arg (PP "k" Dat) "goal_to" v),
+  "идти" -> xor [infinitive "GO" v ++ go_args v,
                  infinitive "COME_SCALARLY" v ++ arg ScalarAdverb "order" v]
   "из" -> preposition "iz" Gen v
   "изо" -> preposition "iz" Gen v

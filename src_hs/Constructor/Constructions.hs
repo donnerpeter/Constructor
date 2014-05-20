@@ -42,7 +42,7 @@ data Construction = Word Variable String
                   | Wh Variable
                   | ExistentialWh {-wh-} Variable {-tensed-} Variable
                   | WhAsserter Variable
-                  | QuestionVariants Variable
+                  | QuestionVariants Variable ArgKind
                   | Conjunction SeqData
                   | Clause ClauseForce Variable
                   | TopLevelQuestion Variable

@@ -30,7 +30,7 @@ infinitive typ v =
   xor [[mite $ ControlledInfinitive $ v "", mite $ Unify (v "") (v "x")],
        [mite $ ModalityInfinitive (v "") (v "cp"), semT (v "") "modality", semV (v "") "theme" (v "x"), semV (v "cp") "content" (v ""), mite $ Verb (v ""), mite $ TenseHead (v "")]]
 arg argType relation v = [mite $ ArgHead argType (v relation), semV (v "") relation (v relation)]
-whWord v = [mite $ Wh (v ""), mite $ QuestionVariants (v ""), semT (v "") "wh"]
+whWord kind v = [mite $ Wh (v ""), mite $ QuestionVariants (v "") kind, semT (v "") "wh"]
 compHead attr v = [mite $ CompHead (v "comp"), semV (v "") attr (v "comp")] 
 adj caze agr attr value v = [mite $ Adj (v "") caze agr, semV (v "") attr (v "adj"), semT (v "adj") value]
 perfectBackground typ v = [mite $ Verb (v ""), semT (v "") typ, mite $ VerbalModifier "perfectBackground" True (v "")]
@@ -76,6 +76,7 @@ wordMites word index =
   "васи" -> nounSg Gen Masc "NAMED_PERSON" v ++ [semS v0 "name" "Vasya"]
   "вдруг" -> adverb "manner" "SUDDENLY" v
   "вдумываясь" -> perfectBackground "THINK" v ++ arg (PP "v" Acc) "theme" v
+  "видел" -> finVerb "SEE" "PAST" A.m v ++ directObject v
   "восемь" -> xor [wordNumber Nom "8" v, wordNumber Acc "8" v]
   "восьми" -> wordNumber Gen "8" v
   "всякого" -> adj Gen A.m "determiner" "ANY" v
@@ -134,13 +135,13 @@ wordMites word index =
   "кассирши" -> nounSg Gen Fem "CASHIER" v ++ genHead "place" v
   "кассиршу" -> nounSg Acc Fem "CASHIER" v ++ genHead "place" v
   "квартирам" -> nounPl Dat "APARTMENTS" v ++ genHead "owner" v
-  "кого" -> whWord v ++ [mite $ Argument Acc v0, mite $ AdjHead v0 Acc A.sg, semS v0 "animate" "true"]
+  "кого" -> whWord Acc v ++ [mite $ Argument Acc v0, mite $ AdjHead v0 Acc A.sg, semS v0 "animate" "true"]
   "когда" -> [mite $ ConditionComp v0 "when" False] -- todo wh-questions with когда
   "коммерческий" -> adj Acc A.m "kind" "COMMERCIAL" v
   "комнатам" -> nounPl Dat "ROOMS" v ++ genHead "owner" v
-  "кому" -> whWord v ++ [mite $ Argument Dat v0, mite $ AdjHead v0 Dat A.sg, semS v0 "animate" "true"]
-  "кто" -> whWord v ++ [mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.m3, semS v0 "animate" "true"]
-  "куда" -> whWord v ++ [mite $ Argument DirectionAdverb v0]
+  "кому" -> whWord Dat v ++ [mite $ Argument Dat v0, mite $ AdjHead v0 Dat A.sg, semS v0 "animate" "true"]
+  "кто" -> whWord Nom v ++ [mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.m3, semS v0 "animate" "true"]
+  "куда" -> whWord DirectionAdverb v ++ [mite $ Argument DirectionAdverb v0]
   "летний" -> adj Acc A.m "name" "летний" v -- todo летний is not only a name
   "лишенными" -> [mite $ Raiseable A.pl v0, semT v0 "LACK"] ++ arg Gen "theme" v
   "любит" -> finVerb "LOVE" "PRESENT" A.sg3 v ++ optional (directObject v)
@@ -286,8 +287,9 @@ wordMites word index =
   "челюсти" -> xor[nounSg Gen Fem "JAW" v, nounPl Nom "JAWS" v, nounPl Acc "JAWS" v]
   "челюсть" -> nounSg Acc Fem "JAW" v
   "челюстью" -> nounSg Instr Fem "JAW" v
-  "чём" -> whWord v ++ [mite $ Argument Prep v0, mite $ AdjHead v0 Prep A.n3]
-  "что" -> xor [whWord v ++ xor [[mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.n3], [mite $ Argument Acc v0, mite $ AdjHead v0 Acc A.n3]],
+  "чём" -> whWord Prep v ++ [mite $ Argument Prep v0, mite $ AdjHead v0 Prep A.n3]
+  "что" -> xor [whWord Nom v ++ [mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.n3],
+                whWord Acc v ++ [mite $ Argument Acc v0, mite $ AdjHead v0 Acc A.n3],
                 [mite $ Complementizer v0],
                 [mite $ TwoWordCxt "потому что" False [] v0]]
   "шести" -> wordNumber Gen "6" v

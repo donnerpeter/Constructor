@@ -314,6 +314,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "DISTRACT" -> "distracted"
   "NEED" -> "need"
   "DISPERSE" -> "went"
+  "SEE" -> "saw"
   "LOVE" -> if verbForm == BaseVerb then "love" else if negated then "doesn't love" else "loves"
   "THINK" -> if verbForm == BaseVerb then "think" else "thinking"
   "SIT" -> "sitting"
@@ -381,6 +382,7 @@ clause fVerb = do
         isModality = hasType "modality" fVerb
         isRaising = hasType "SEEM" fVerb
         fSubject = if isModality || isRaising then fValue "theme" fVerb >>= fValue "arg1" else fValue "arg1" fVerb
+        cp = usage "content" fVerb
     core <- if hasType "degree" fVerb && (fromMaybe False $ fmap (hasType "wh") $ fValue "arg2" fVerb)
            then return "Great was" `catM` np True fSubject
            else if hasType "copula" fVerb && isJust (fValue "owner" fVerb) then do
@@ -425,7 +427,7 @@ clause fVerb = do
         else let comma = if not (hasType "SAY" fVerb) && hasType "fact" (head $ flatten fComp) then "," else ""
              in return comma `catM` handleSeq genComplement fComp
     externalComp <- if getType fVerb == Just "GO" then 
-      case usage "content" fVerb >>= usage "member1" >>= fValue "member2" of
+      case cp >>= usage "member1" >>= fValue "member2" of
        Just nextClause | (fValue "content" nextClause >>= getType) == Just "ASK" -> do
          frameGenerated nextClause
          return "to" `catM` vp (fromJust $ fValue "content" nextClause) BaseVerb InfiniteClause
@@ -446,8 +448,8 @@ clause fVerb = do
     reasonComp <- case fValue "reason" fVerb of
       Just fComp -> return "because" `catM` sentence fComp
       _ -> return ""
-    questionVariants <- case fmap (\subj -> (getType subj, fValue "variants" subj)) fSubject of
-      Just (Just "wh", Just variants) -> (return "-") `catM` (np True (Just variants))
+    questionVariants <- case cp >>= fValue "questioned" >>= fValue "variants" of
+      Just variants -> (return "-") `catM` (np True (Just variants))
       _ -> return ""
     let coreWithBackground =
           if null background then core

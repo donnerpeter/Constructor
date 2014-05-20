@@ -106,7 +106,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (Verb verb, VerbalModifier attr False advP) -> left [semV verb attr advP]
       (VerbalModifier attr _ advP, Verb verb) -> right [semV verb attr advP]
 
-      (QuestionVariants v, DashSurrounded True closed (Argument Nom child)) ->
+      (QuestionVariants v kind, DashSurrounded True closed (Argument kind2 child)) | kind == kind2 ->
         left $ [semV v "variants" child] ++ (if closed then [] else [mite $ Unclosed $ cxt m2])
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
       (Verb v, Word _ "бы") -> left [semS v "irrealis" "true"]

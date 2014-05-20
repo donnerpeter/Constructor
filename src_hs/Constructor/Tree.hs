@@ -50,11 +50,17 @@ allTreeMites tree =
   if isNothing $ left tree then mites tree
   else (allTreeMites $ fromJust $ left tree)++mites tree++(allTreeMites $ fromJust $ right tree)
 
+-- | Returns all trees adjacent to this one from the specified side
 subTrees side tree =
   if not $ isBranch tree then []
   else if headSide tree == LeftSide && side == RightSide then justRight tree : subTrees side (justLeft tree)
   else if headSide tree == RightSide && side == LeftSide then justLeft tree : subTrees side (justRight tree)
   else subTrees side $ (if side == LeftSide then justLeft else justRight) tree
+
+-- | top-level visible trees from the specified side
+edgeTrees side tree = (:) tree $ case subTrees side tree of
+  child:_ -> edgeTrees side child
+  [] -> []
 
 headTrees tree =
   if isBranch tree then tree:headTrees (if headSide tree == LeftSide then justLeft tree else justRight tree)
@@ -97,7 +103,6 @@ createBranch mites _leftChild _rightChild headSide candidateSets = bestVariant w
     [] -> Nothing
     _ -> Just $ bestTree allBranchVariants
   allBranchVariants = map bestTree $ Map.elems grouped
-  leftAVs = filter (null . _unhappyRight) (allVariants _leftChild)
   rightAVs = filter (null . _unhappyLeft) (allVariants _rightChild)
   allAVCandidates = {-traceShow ("-------------------leftAVs", leftAVs) $ -}do
     active <- candidateSets
@@ -106,8 +111,8 @@ createBranch mites _leftChild _rightChild headSide candidateSets = bestVariant w
         isUncovered mite = not $ mite `elem` covered
         unhappyBase = Set.fromList $ filter (not . happy) covered
         isCompatible av = not $ any (flip Set.member unhappyBase) $ base $ activeHeadMites av
-    aLeft <- {-trace ("----------------active", length activeSets, active) $ -}leftAVs
-    if not (isCompatible aLeft) then [] else do
+    aLeft <- {-trace ("----------------active", length activeSets, active) $ -}allVariants _leftChild
+    if (not $ null $ filter isUncovered $ _unhappyRight aLeft) || not (isCompatible aLeft) then [] else do
     let missingInLeft = filter (not . flip Set.member (allActiveMiteSet aLeft)) covered
     aRight <- rightAVs
     if not (isCompatible aRight) then [] else do

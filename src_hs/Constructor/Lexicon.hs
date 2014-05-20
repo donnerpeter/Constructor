@@ -30,7 +30,7 @@ infinitive typ v =
   xor [[mite $ ControlledInfinitive $ v "", mite $ Unify (v "") (v "x")],
        [mite $ ModalityInfinitive (v "") (v "cp"), semT (v "") "modality", semV (v "") "theme" (v "x"), semV (v "cp") "content" (v ""), mite $ Verb (v ""), mite $ TenseHead (v "")]]
 arg argType relation v = [mite $ ArgHead argType (v relation), semV (v "") relation (v relation)]
-whWord v = [mite $ Wh (v ""), mite $ QuestionVariants (Just $ v "") Nothing,  semT (v "") "wh"]
+whWord v = [mite $ Wh (v ""), mite $ QuestionVariants (v ""), semT (v "") "wh"]
 compHead attr v = [mite $ CompHead (v "comp"), semV (v "") attr (v "comp")] 
 adj caze agr attr value v = [mite $ Adj (v "") caze agr, semV (v "") attr (v "adj"), semT (v "adj") value]
 perfectBackground typ v = [mite $ Verb (v ""), semT (v "") typ, mite $ VerbalModifier "perfectBackground" True (v "")]
@@ -295,9 +295,10 @@ wordMites word index =
   "этому" -> adj Dat A.sg "determiner" "THIS" v
   "я" -> pronoun Nom (A.Agr Nothing (Just A.Sg) $ Just 1) "ME" v
   ":" -> xor [[mite $ Colon "directSpeech" v0], [mite $ Colon "elaboration" v0]]
-  "-" -> xor [[mite $ QuestionVariants Nothing (Just "-")],
+  "-" -> xor [[mite $ SurroundingDash False v0],
+              [mite $ SurroundingDash True v0],
               [mite $ DirectSpeechDash v0],
-              [mite $ Ellipsis v0 Nothing Nothing, semS v0 "ellipsis" "true"] ++ (xor [[mite $ Clause Declarative v0], [mite $ Clause Interrogative v0]])
+              [mite $ Ellipsis v0 Nothing Nothing, semS v0 "ellipsis" "true"]
              ]
   "," -> xor [[mite $ SurroundingComma False v0], [mite $ SurroundingComma True v0], conjunction v0 "," True]
   "\"" -> xor [[mite $ Quote v0 True], [mite $ Quote v0 False]]

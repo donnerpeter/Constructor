@@ -27,9 +27,7 @@ calcMergeInfos leftTree rightTree = infos where
 stealLeft:: Tree -> Tree -> Set.Set MergeInfo -> [Tree]
 stealLeft leftTree rightTree processedInfos =
   let ownResults = createEdges leftTree rightTree $ filter (not. flip Set.member processedInfos) infos
-      infos = if null (_unhappyRight leftTree) && null (_unhappyLeft rightTree)
-              then calcMergeInfos leftTree rightTree
-              else []
+      infos = calcMergeInfos leftTree rightTree
       nextProcessed = if headSide leftTree == LeftSide then Set.empty else Set.union processedInfos (Set.fromList infos)
       leftSubResults = if isBranch leftTree then stealLeft (justRight leftTree) rightTree nextProcessed else []
   in leftSubResults ++ ownResults

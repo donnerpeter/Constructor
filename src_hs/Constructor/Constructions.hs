@@ -36,12 +36,13 @@ data Construction = Word Variable String
                   | NounAdjunct {-attr-} String {-requires comma-} Bool Variable
                   | Elaboration Variable
                   | Unclosed Construction
+                  | Closed Construction
                   | CompHead Variable
                   | ConditionCompHead Variable
                   | Wh Variable
                   | ExistentialWh {-wh-} Variable {-tensed-} Variable
                   | WhAsserter Variable
-                  | QuestionVariants (Maybe Variable) (Maybe String)
+                  | QuestionVariants Variable
                   | Conjunction SeqData
                   | Clause ClauseForce Variable
                   | TopLevelQuestion Variable
@@ -54,6 +55,7 @@ data Construction = Word Variable String
                   | ShortAdj Variable
                   | ConditionComp Variable {-if/when-} String {-has cp-} Bool
                   | CommaSurrounded {-opened-} Bool {-closed-} Bool Construction
+                  | DashSurrounded {-opened-} Bool {-closed-} Bool Construction
                   | Control Variable
                   | ModalityInfinitive {-modality-} Variable {-cp-} Variable
                   | ControlledInfinitive Variable
@@ -62,6 +64,7 @@ data Construction = Word Variable String
                   | Complement Variable
                   | Complementizer Variable
                   | SurroundingComma {-closing-} Bool Variable
+                  | SurroundingDash {-closing-} Bool Variable
                   | Colon {-role-} String Variable
                   | Quote Variable {-closing-} Bool
                   | QuotedWord Construction {-closed-} Bool
@@ -94,6 +97,7 @@ isHappy cxt = case cxt of
   GenHead {} -> False; Possessive {} -> False
   Tense {} -> False
   CommaSurrounded {} -> False; SurroundingComma {} -> False
+  DashSurrounded {} -> False; SurroundingDash {} -> False
   ControlledInfinitive {} -> False; Control {} -> False
   ModalityInfinitive {} -> False
   ExistentialWh {} -> False; WhAsserter {} -> False

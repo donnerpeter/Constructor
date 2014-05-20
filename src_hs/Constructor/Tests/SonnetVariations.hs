@@ -7,8 +7,9 @@ var1 = TestLabel "sonnetVariations 1" $ TestList [
                 "I suddenly forgot what comes next."
   ,
 --todo non-final questionVariants
---  translateTest "Я вдруг забыл, что - 7 или 8 - идет раньше" "I suddenly forgot what comes first - 7 or 8"
---  ,
+  translateTest "Я вдруг забыл, что - 7 или 8 - идет раньше"
+                "I suddenly forgot what comes first - 7 or 8"
+  ,
 --  translateTest "Я вдруг забыл, что, 7 или 8, идет раньше" "I suddenly forgot what comes first - 7 or 8"
 --  ,
 --  translateTest "Я вдруг забыл, кого я видел - кассиршу или соседей" 

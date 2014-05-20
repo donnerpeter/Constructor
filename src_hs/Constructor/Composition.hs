@@ -105,9 +105,9 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (Verb verb, CommaSurrounded True _ (VerbalModifier attr True advP)) -> left [semV verb attr advP]
       (Verb verb, VerbalModifier attr False advP) -> left [semV verb attr advP]
       (VerbalModifier attr _ advP, Verb verb) -> right [semV verb attr advP]
-      
-      (QuestionVariants (Just v) Nothing, QuestionVariants Nothing (Just s)) -> left [mite $ QuestionVariants (Just v) (Just s)]
-      (QuestionVariants (Just v) (Just _), Argument Nom child) -> left [semV v "variants" child]
+
+      (QuestionVariants v, DashSurrounded True closed (Argument Nom child)) ->
+        left $ [semV v "variants" child] ++ (if closed then [] else [mite $ Unclosed $ cxt m2])
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
       (Verb v, Word _ "бы") -> left [semS v "irrealis" "true"]
       (Word _ "очень", adverb@(Adverb {})) -> right [mite $ adverb]
@@ -126,13 +126,22 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       
       (TwoWordCxt s1 True wrapped _, TwoWordCxt s2 False _ _) | s1 == s2 -> left $ map mite wrapped
       
-      (Clause Declarative cp, Word _ ".") -> left [semS cp "dot" "true", mite $ Sentence cp]
+      (Clause Declarative cp, Word _ ".") -> let
+        closed = edgeTrees RightSide leftTree >>= headMites >>= \m -> case cxt m of
+          Unclosed c -> withBase [m, m2] $ optional [mite $ Closed c]
+          _ -> []
+        in [MergeInfo (withBase [m1,m2] [semS cp "dot" "true", mite $ Sentence cp] ++ closed) LeftSide]
       (TopLevelQuestion cp, Word _ "?") -> left [semS cp "question_mark" "true", mite $ Sentence cp]
       (Conjunction (SeqData {seqVar=v1, seqConj=",", seqHasLeft=False, seqRightVar=Nothing}), Conjunction sd@(SeqData {seqVar=v2, seqConj="but", seqReady=False})) ->
           right [mite $ Conjunction $ sd {seqReady=True}, mite $ Unify v1 v2]
+
       (SurroundingComma False _, toWrap) | isCommaSurroundable toWrap -> left [mite $ CommaSurrounded True False toWrap]
       (toWrap, SurroundingComma True _) | isCommaSurroundable toWrap -> right [mite $ CommaSurrounded False True toWrap]
       (CommaSurrounded True False cxt, SurroundingComma True _) -> left [mite $ CommaSurrounded True True cxt]
+
+      (SurroundingDash False _, toWrap@(Argument {})) -> left [mite $ DashSurrounded True False toWrap]
+      (DashSurrounded True False cxt, SurroundingDash True _) -> left [mite $ DashSurrounded True True cxt]
+
       (Quote _ False, word@(Word {})) -> left [mite $ QuotedWord word False]
       (QuotedWord word False, Quote _ True) -> left [mite $ QuotedWord word True]
       (AdjHead noun _ _, QuotedWord (Word _ word) _) -> left [semS noun "name" word]
@@ -156,8 +165,9 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (Control slave, ControlledInfinitive inf) -> left [mite $ Unify slave inf]
       (RaisingVerb verb subj, Raiseable agr child) -> left [semV child "arg1" subj, semV verb "theme" child]
        
-      (leftCxt@(VerbalModifier _ _ anchor), Ellipsis v Nothing rightCxt) -> right [mite $ Ellipsis v (Just leftCxt) rightCxt, semV v "ellipsisAnchor1" anchor]
-      (Ellipsis v leftCxt Nothing, rightCxt@(Argument _ anchor)) -> left [mite $ Ellipsis v leftCxt (Just rightCxt), semV v "ellipsisAnchor2" anchor]
+      (leftCxt@(VerbalModifier _ _ anchor), Ellipsis v Nothing rightCxt@(Just _)) -> right $ [mite $ Ellipsis v (Just leftCxt) rightCxt, semV v "ellipsisAnchor1" anchor]
+        ++ (xor [[mite $ Clause Declarative v], [mite $ Clause Interrogative v]])
+      (Ellipsis v leftCxt Nothing, rightCxt@(Argument _ anchor)) -> left $ [mite $ Ellipsis v leftCxt (Just rightCxt), semV v "ellipsisAnchor2" anchor]
       _ -> []
   seqVariants = (if null seqRight then [] else [MergeInfo seqRight LeftSide]) ++ (if null seqLeft then [] else [MergeInfo seqLeft RightSide])
   seqLeft = Seq.seqLeft leftTree leftMites rightMites

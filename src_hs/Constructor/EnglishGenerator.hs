@@ -94,7 +94,7 @@ np_internal nom mayHaveDeterminer frame = do
     else if hasType "wh" frame then return $
       if isJust $ usage "arg1" frame >>= usage "content" >>= usage "relative" then "that"
       else if isAnimate frame then
-        if Just "true" == sValue "negated" frame then "nobody" else "who"
+        if Just "true" == sValue "negated" frame then "nobody" else if nom then "who" else "whom"
       else if isJust (usage "goal" frame) then "where"
       else "what"
     else do
@@ -309,7 +309,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "GO" -> if verbForm == PastVerb then "went" else if verbForm == BaseVerb then "go" else "goes"
   "GO_OFF" -> "went"
   "ASK" -> if (fValue "topic" frame >>= getType) == Just "PREDICAMENT" then if verbForm == PastVerb then "consulted" else "consult" else if verbForm == BaseVerb then "ask" else "asked"
-  "COME_SCALARLY" -> if sValue "time" frame == Just "PAST" then "went" else "comes"
+  "COME_SCALARLY" -> if sValue "time" frame == Just "PAST" then "went" else if verbForm == BaseVerb then "come" else "comes"
   "DISCOVER" -> "discovered"
   "DISTRACT" -> "distracted"
   "NEED" -> "need"
@@ -355,16 +355,16 @@ elideableArgument frame parent = if any (\f -> source f == frame) (nextSiblings 
 
 generateAccording parent = case fValue "accordingTo" parent of
   Just source -> do
+    let isWh = isQuestioned source
+        comma = if isVerbEllipsis parent && fValue "arg1" parent == (usage "content" parent >>= fValue "ellipsisAnchor2") || isWh then "" else ","
+        oneOpinion source = case getType source of
+          Just "OPINION" -> return (if distinguish source then "in" else "") `catM` np False (Just source)
+          Just "WORDS" -> return "according to" `catM` elideableArgument (fValue "author" source) source
+          s -> return $ show s
     state <- get
     if Set.member source (visitedFrames state) then return ""
     else handleSeq oneOpinion (Just source) `catM` return comma
   _ -> return ""
-  where
-    comma = if isVerbEllipsis parent && fValue "arg1" parent == (usage "content" parent >>= fValue "ellipsisAnchor2") then "" else ","
-    oneOpinion source = case getType source of
-      Just "OPINION" -> return (if distinguish source then "in" else "") `catM` np False (Just source)
-      Just "WORDS" -> return "according to" `catM` elideableArgument (fValue "author" source) source
-      s -> return $ show s
 
 clause :: Frame -> State GenerationState String
 clause fVerb = do
@@ -458,7 +458,7 @@ clause fVerb = do
     according <- generateAccording fVerb
     return $ intro `cat` emphasis `cat` according `cat` coreWithBackground `cat` condComp `cat` reasonComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
 
-isQuestioned frame = hasType "wh" frame || Just True == fmap (hasType "wh") (fValue "arg1" frame)
+isQuestioned frame = hasType "wh" frame || Just True == fmap isQuestioned (fValue "arg1" frame) || Just True == fmap isQuestioned (fValue "author" frame)
 
 beForm fSubject verbForm =
   if verbForm == PastVerb then
@@ -505,7 +505,7 @@ vp fVerb verbForm clauseType = do
           if isNothing fSubject then ""
           else if isDoModality then beForm fSubject verbForm
           else "should"
-        else if inverted then if verbForm == PastVerb then "did" else "do"
+        else if inverted then if verbForm == PastVerb then "did" else if Just True == fmap (hasAnyType ["ME", "THEY"]) fSubject then "do" else "does"
         else ""
       allArgs = arguments fVerb
       topicalizedArg = case (fSubject, allArgs) of
@@ -540,7 +540,7 @@ vp fVerb verbForm clauseType = do
     Just arg -> generateArg arg `catM` return ","
     _ -> return ""
   whWord <- case questionedArg >>= argumentFrame of
-    Just qFrame -> np False (Just qFrame)
+    Just qFrame -> np (hasType "wh" qFrame) (Just qFrame)
     _ -> return ""
   nonWhWord <- case existentialWhArg >>= argumentFrame of
     Just frame -> return $

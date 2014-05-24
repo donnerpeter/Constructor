@@ -50,7 +50,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (Possessive adjCase agr1 child, AdjHead noun nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> rightMites >>= \m3 -> case cxt m3 of
         GenHead h -> [MergeInfo (withBase [m1,m2,m3] $ [mite $ Unify h child] ++ Seq.pullThyself m1 leftMites) RightSide]
         _ -> []
-      (GenHead v1, Argument Gen v2) -> left [mite $ Unify v1 v2] 
+      (GenHead v1, Argument Gen v2) -> left $ [mite $ Unify v1 v2] ++ whPropagation m1 m2 rightMites
 
       (Argument Nom v1, NomHead agr1 v2 False) -> leftMites >>= \m3 -> case cxt m3 of
         AdjHead v3 Nom agr2 | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) -> 
@@ -88,10 +88,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
                 ActivePreposition {} -> withBase [m1,m2,m3,m4] $ [mite innerCxt]
                 _ -> []
               _ -> []
-            extra = Seq.pullThyself m2 rightMites ++ Seq.liftArguments m2 rightMites ++ whPropagation
-            whPropagation = rightMites >>= \m3 -> case cxt m3 of
-              Wh {} -> withBase [m1,m2,m3] [mite $ cxt m3]
-              _ -> []
+            extra = Seq.pullThyself m2 rightMites ++ Seq.liftArguments m2 rightMites ++ whPropagation m1 m2 rightMites
         in [MergeInfo (argMites ++ adjunctMites ++ extra) LeftSide]
       (DirectSpeechHead head Nothing, Colon "directSpeech" v) -> left [mite $ DirectSpeechHead head $ Just v, semV head "message" v]
       --(DirectSpeechHead head (Just v), DirectSpeech v1) -> left [mite $ Unify v v1]
@@ -184,3 +181,7 @@ argVariants headVar childVar headMites childMites = [mite $ Unify headVar childV
       ExistentialWh whVar tensedVar -> withBase [m1,m2] [semT cp "fact", mite $ Unify v tensedVar]
       _ -> []
     _ -> []
+
+whPropagation headMite childMite childMites = childMites >>= \m3 -> case cxt m3 of
+  Wh {} -> withBase [headMite, childMite, m3] [mite $ cxt m3]
+  _ -> []

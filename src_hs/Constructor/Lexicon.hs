@@ -135,7 +135,7 @@ wordMites word index =
   "кассирши" -> nounSg Gen Fem "CASHIER" v ++ genHead "place" v
   "кассиршу" -> nounSg Acc Fem "CASHIER" v ++ genHead "place" v
   "квартирам" -> nounPl Dat "APARTMENTS" v ++ genHead "owner" v
-  "кого" -> whWord Acc v ++ [mite $ Argument Acc v0, mite $ AdjHead v0 Acc A.sg, semS v0 "animate" "true"]
+  "кого" -> xor [whWord Acc v ++ [mite $ Argument Acc v0, mite $ AdjHead v0 Acc A.sg, semS v0 "animate" "true"], whWord Gen v ++ [mite $ Argument Gen v0, mite $ AdjHead v0 Gen A.sg, semS v0 "animate" "true"]]
   "когда" -> [mite $ ConditionComp v0 "when" False] -- todo wh-questions with когда
   "коммерческий" -> adj Acc A.m "kind" "COMMERCIAL" v
   "комнатам" -> nounPl Dat "ROOMS" v ++ genHead "owner" v

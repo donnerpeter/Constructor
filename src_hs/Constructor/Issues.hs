@@ -15,15 +15,15 @@ issues mites = let
   hasCP = any (hasAnyType ["fact", "question"]) frames
   frameIssues frame = case getType frame of
     Just "seq" | Nothing == sValue "conj" frame -> ["comma-only seq"]
-    Just "SIT" -> if Nothing == (fValue "arg1" frame >>= sDeclaredValue "type") then ["unknown sit subj "] else []
-    Just "SAY" -> if Nothing == (fValue "arg1" frame >>= sDeclaredValue "type") then ["unknown say subj "] else []
-    Just "ASK" -> if any (hasType "fact") (flatten $ fValue "topic" frame) then ["asking fact"] else []
-    Just "THEY" -> if isJust $ fValue "relative" frame then ["relative clause for pronoun"] else []
-    Just "WE" -> if isJust $ fValue "relative" frame then ["relative clause for pronoun"] else []
-    Just "CASHIER" -> if any (hasType "OTHERS") (flatten $ fValue "place" frame) then ["cashier of other people"] else []
-    Just "OPINION" -> if isNothing (fValue "arg1" frame >>= getType) then ["opinion without subj"] else []
-    Just "WORDS" -> if isNothing (fValue "author" frame >>= getType) then ["words without author"] else []
-    Just "GO" -> if Just True /= fmap isAnimate (fValue "arg1" frame) then ["inanimate GO subject"] else []
+    Just s | (s == "SIT" || s == "SAY") && isNothing (fValue "arg1" frame >>= sDeclaredValue "type") ->
+      ["unknown " ++ s ++ "subj "]
+    Just "ASK" | any (hasType "fact") (flatten $ fValue "topic" frame) -> ["asking fact"]
+    Just s | (s == "WE" || s == "THEY") && isJust (fValue "relative" frame) ->
+      ["relative clause for pronoun"]
+    Just "CASHIER" | any (hasType "OTHERS") (flatten $ fValue "place" frame) -> ["cashier of other people"]
+    Just "OPINION" | isNothing (fValue "arg1" frame >>= getType) -> ["opinion without subj"]
+    Just "WORDS" | isNothing (fValue "author" frame >>= getType) -> ["words without author"]
+    Just "GO" | Just True /= fmap isAnimate (fValue "arg1" frame) -> ["inanimate GO subject"]
     Just "COME_SCALARLY" -> let
       fSubj = fValue "arg1" frame
       fOrder = fValue "order" frame

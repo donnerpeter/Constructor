@@ -9,7 +9,7 @@ import java.util.List
 @Canonical class CallInfo { String place; String module; int entries; double totalTime;
   List<CallInfo> callees = []
   String getId() { module + '.' + place }
-  String toString() { return "$place   time $totalTime%, count $entries" }
+  String toString() { return "$place ($module)  time $totalTime%, count $entries" }
 }
 
 class MergedCallInfo extends CallInfo {
@@ -31,7 +31,7 @@ CallInfo readProfile() {
     if (prefixLength == 0) return
 
     def areas = line.split(" +")
-    def newNode = new CallInfo(place:areas[1], module:areas[2], entries:areas[4] as int, totalTime:areas[7] as double)
+    def newNode = new CallInfo(place:areas[1], module:areas[2], entries:(areas[4] as double) as int, totalTime:areas[7] as double)
 
     def parent = nodeStack[prefixLength - 1]
     parent.callees.add(newNode)

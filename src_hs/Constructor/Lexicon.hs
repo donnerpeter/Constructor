@@ -16,7 +16,7 @@ preposition prep nounArg v = [mite $ PrepHead prep nounArg (v "")] ++ xor [[mite
 semPreposition nounArg attr v = [mite $ SemPreposition nounArg (v "noun"), semV (v "") attr (v "noun")]
 finVerb typ time agr v = [semT (v "") typ, semS (v "") "time" time] ++ finiteClause agr True v
 raisingVerb typ time agr v = [semT (v "") typ, semS (v "") "time" time, mite $ RaisingVerb (v "") (v "arg1")] ++ finiteClause agr False v
-finiteClause agr withSemSubject v = optional [mite $ NomHead agr (v "arg1") False] ++
+finiteClause agr withSemSubject v = optional [mite $ NomHead agr (v "arg1") Unsatisfied] ++
                      [mite $ ReflexiveTarget (v "arg1")] ++
                      (if withSemSubject then [semV (v "") "arg1" (v "arg1")] else []) ++
                      (rusAgr A.number "rusNumber") ++ (rusAgr A.gender "rusGender") ++ (rusAgr A.person "rusPerson") ++
@@ -179,7 +179,7 @@ wordMites word index =
   "ничего" -> [mite $ Argument Gen v0, semT v0 "wh", semS v0 "negated" "true", mite $ Negated v0]
   "но" ->  xor [conjunction v0 "but" False, [mite $ ConjEmphasis "butEmphasis" v0]]
   "носом" -> nounSg Instr Masc "NOSE" v
-  "нужно" -> [semT v0 "NEED", mite $ NomHead A.n (v "arg2") False, semV v0 "arg2" (v "arg2"), mite $ Copula v0, mite $ TenseHead v0] ++ optional (arg Dat "arg1" v) ++ clause v
+  "нужно" -> [semT v0 "NEED", mite $ NomHead A.n (v "arg2") Unsatisfied, semV v0 "arg2" (v "arg2"), mite $ Copula v0, mite $ TenseHead v0] ++ optional (arg Dat "arg1" v) ++ clause v
   "о" -> preposition "o" Prep v
   "обе" -> numQuantifier Acc Gen A.f v ++ [semT (v "q") "BOTH"]
   "облегчением" -> nounSg Instr Neu "RELIEF" v ++ optional [mite $ PrepositionActivator "s" Instr v0 $ VerbalModifier "mood" False v0]

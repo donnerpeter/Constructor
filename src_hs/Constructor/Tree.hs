@@ -9,12 +9,6 @@ import Constructor.Mite
 import Constructor.Util
 import Constructor.Issues
 
-data Side = LeftSide | RightSide deriving (Eq, Show, Ord)
-invert LeftSide = RightSide
-invert RightSide = LeftSide
-select LeftSide x _ = x
-select RightSide _ x = x
-
 data Tree = Tree {
   mites::[Mite], left::Maybe Tree, right::Maybe Tree, headSide::Side,
   active::Set.Set Mite, allActiveMiteList :: [Mite], allActiveMiteSet :: Set.Set Mite,

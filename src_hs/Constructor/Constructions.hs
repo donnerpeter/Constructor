@@ -2,12 +2,14 @@ module Constructor.Constructions where
 
 import Constructor.Agreement
 import Constructor.Variable
+import Constructor.Util
 import Data.Maybe
 
 cases = [Nom,Acc,Gen,Dat,Instr,Prep]
 
 data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | ScalarAdverb | DirectionAdverb deriving (Show, Eq, Ord)
 data ClauseForce = Declarative | Interrogative deriving (Show, Eq, Ord)
+data Satisfied = Unsatisfied | Satisfied deriving (Show, Eq, Ord)
 data SeqData = SeqData { seqVar :: Variable, seqConj :: String, seqReady :: Bool,
                          seqKind :: Maybe Construction, seqHasLeft :: Bool, seqRightVar :: Maybe Variable } deriving (Eq, Ord)
 instance Show SeqData where
@@ -18,11 +20,13 @@ instance Show SeqData where
 data Construction = Word Variable String
                   | Sem Variable String SemValue
                   | Unify Variable Variable
+                  | MissingPunctuation Side Variable
+                  | Punctuation String Satisfied Variable
                   | Adj Variable ArgKind Agr
                   | CompositeAdj Variable ArgKind Agr
                   | AdjHead Variable ArgKind Agr
                   | Verb Variable
-                  | NomHead Agr Variable {-satisfied-} Bool
+                  | NomHead Agr Variable Satisfied
                   | GenHead Variable
                   | ArgHead ArgKind Variable
                   | PrepHead String ArgKind Variable
@@ -93,7 +97,7 @@ isHappy cxt = case cxt of
   CompHead {} -> False; ConditionCompHead {} -> False; ConditionComp {} -> False; ReasonComp {} -> False
   Elaboration {} -> False
   Conjunction sd -> seqHasLeft sd && isJust (seqRightVar sd)
-  NomHead _ _ satisfied -> satisfied
+  NomHead _ _ Unsatisfied -> False
   GenHead {} -> False; Possessive {} -> False
   Tense {} -> False
   CommaSurrounded {} -> False; SurroundingComma {} -> False
@@ -114,6 +118,8 @@ isHappy cxt = case cxt of
   Complement {} -> False
   Wh {} -> False
   RelativeClause {} -> False
+  Punctuation _ Unsatisfied _ -> False
+  MissingPunctuation {} -> False
   _ -> True
 
 isCommaSurroundable cxt = case cxt of

@@ -50,7 +50,7 @@ seqRight leftMites rightMites = {-traceIt "seqRight" $ -}result where
         let unhappy = filter elideable $ filter (not . happy) rightMites
             wrapped = [(mite $ ElidedArgHead $ cxt m) {baseMites = [m,m1,m2]} | m <- unhappy]
             elideable mite = case cxt mite of
-              NomHead _ _ False -> True
+              NomHead _ _ Unsatisfied -> True
               _ -> False
             ellipsis = rightMites >>= \e -> case cxt e of
               Ellipsis child (Just _) (Just _) -> withBase [e] [mite $ cxt e] 
@@ -117,7 +117,7 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
                    [unifyMissingArgument mite1 mite2 | mite1 <- filter (not . contradict m1) leftMites,
                                                        mite2 <- filter (not . contradict m2) rightMites]
                  unifyMissingArgument aux1 aux2 = case (cxt aux1, cxt aux2) of
-                   (NomHead agr1 v1 satisfied, ElidedArgHead (NomHead agr2 v2 False)) | agree agr1 agr2 ->
+                   (NomHead agr1 v1 satisfied, ElidedArgHead (NomHead agr2 v2 Unsatisfied)) | agree agr1 agr2 ->
                        withBase [aux1,aux2] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v1 satisfied]
                    _ -> []
                  ellipsisVariants = rightMites >>= \m3 -> case cxt m3 of

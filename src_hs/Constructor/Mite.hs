@@ -8,6 +8,7 @@ module Constructor.Mite
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Constructor.LinkedSet as LS
+import Data.List
 import Control.Exception (assert)
 import Constructor.Constructions
 import Constructor.Variable
@@ -74,10 +75,11 @@ withBase base mites = let
   handleMite m = let
     newBase = LS.removeDups $ (baseMites m ++ base)
     issues = concat [if contradict m1 m2 then [(m1, m2)] else [] | m1 <- newBase, m2 <- newBase]
+    prettyIssues = intercalate "\n" $ map (\(m1, m2) -> show m1 ++ "\n  contradicts\n  " ++ show m2) issues
     in
     if null issues
     then _initMite (cxt m) (Set.map addBaseToContra $ contradictors m) newBase
-    else error $ "contradictory base for mite " ++ show m ++ ": " ++ show issues ++ "\nallBase=" ++ show newBase
+    else error $ "contradictory base for mite " ++ show m ++ ":\n" ++ prettyIssues ++ "\nallBase=" ++ show newBase
   in map handleMite mites
 
 optional mites = xor [mites, [mite $ EmptyCxt $ cxt $ head mites]]

@@ -44,7 +44,8 @@ isInteractive mite = case cxt mite of
   EmptyCxt {} -> False
   _ -> True
 
-mergeInfoHelpers m1 m2 = ( \mites -> mergeLeft (withBase [m1, m2] mites), \mites -> mergeRight (withBase [m1, m2] mites))
+mergeInfoHelpers m1 m2 = ( \mites -> mergeLeft (base12 mites), \mites -> mergeRight (base12 mites), base12) where
+  base12 = withBase [m1,m2]
 
 propagateUnclosed leftMites rightMites info = info { mergeResult = mergeResult info ++ liftUnclosed childMites } where
   childMites = select (mergedHeadSide info) rightMites leftMites
@@ -54,28 +55,28 @@ liftUnclosed childMites = childMites >>= \m -> case cxt m of
   _ -> []
 
 punctuationAware leftMites rightMites (m1, m2) =
-    let (left, right) = mergeInfoHelpers m1 m2
-        checkClosed closed = xor $ map (\x -> [x]) $ liftUnclosed rightMites ++ (if closed then [] else withBase [m1,m2] [mite $ Unclosed $ cxt m2])
+    let (left, right, base12) = mergeInfoHelpers m1 m2
+        checkClosed closed = xor $ map (\x -> [x]) $ liftUnclosed rightMites ++ (if closed then [] else base12 [mite $ Unclosed $ cxt m2])
     in case (cxt m1, cxt m2) of
       (AdjHead head _ _, CommaSurrounded True closed (NounAdjunct attr True var)) ->
-        mergeLeft $ withBase [m1,m2] [semV head attr var] ++ checkClosed closed
+        mergeLeft $ base12 [semV head attr var] ++ checkClosed closed
       (CompHead comp, CommaSurrounded True closed (Complement cp)) ->
-        mergeLeft $ withBase [m1,m2] [mite $ Unify comp cp] ++ checkClosed closed
+        mergeLeft $ base12 [mite $ Unify comp cp] ++ checkClosed closed
       (RelativeHead noun, CommaSurrounded True closed (RelativeClause cp)) ->
-        mergeLeft $ withBase [m1,m2] [semV noun "relative" cp] ++ checkClosed closed
+        mergeLeft $ base12 [semV noun "relative" cp] ++ checkClosed closed
 
       (CommaSurrounded _ _ (VerbalModifier attr True advP), Verb verb) -> right [semV verb attr advP]
       (Verb verb, CommaSurrounded True _ (VerbalModifier attr True advP)) -> left [semV verb attr advP]
 
       (ConditionCompHead head, CommaSurrounded True closed (ConditionComp cp cond _)) ->
-        mergeLeft $ withBase [m1,m2] [semV head (cond++"Condition") cp] ++ checkClosed closed
+        mergeLeft $ base12 [semV head (cond++"Condition") cp] ++ checkClosed closed
       (Verb head, CommaSurrounded True closed (ConditionComp cp cond _)) ->
-        mergeLeft $ withBase [m1,m2] [semV head (cond++"Condition") cp] ++ checkClosed closed
+        mergeLeft $ base12 [semV head (cond++"Condition") cp] ++ checkClosed closed
       (Verb head, CommaSurrounded True closed (ReasonComp cp _)) ->
-        mergeLeft $ withBase [m1,m2] [semV head "reason" cp] ++ checkClosed closed
+        mergeLeft $ base12 [semV head "reason" cp] ++ checkClosed closed
 
       (SurroundingComma False _, toWrap) | isCommaSurroundable toWrap ->
-        mergeLeft $ withBase [m1,m2] [mite $ CommaSurrounded True False toWrap] ++ liftUnclosed rightMites
+        mergeLeft $ base12 [mite $ CommaSurrounded True False toWrap] ++ liftUnclosed rightMites
       (toWrap, SurroundingComma True _) | isCommaSurroundable toWrap -> right [mite $ CommaSurrounded False True toWrap]
       (CommaSurrounded True False cxt, SurroundingComma True _) -> left [mite $ CommaSurrounded True True cxt]
 
@@ -83,13 +84,13 @@ punctuationAware leftMites rightMites (m1, m2) =
       (DashSurrounded True False cxt, SurroundingDash True _) -> left [mite $ DashSurrounded True True cxt]
 
       (QuestionVariants v kind, DashSurrounded True closed (Argument kind2 child)) | kind == kind2 ->
-        mergeLeft $ withBase [m1,m2] [semV v "variants" child] ++ checkClosed closed
+        mergeLeft $ base12 [semV v "variants" child] ++ checkClosed closed
 
       (Clause Declarative cp, Word _ ".") -> let
         closed = leftMites >>= \m -> case cxt m of
           Unclosed c -> withBase [m, m2] $ optional [mite $ Closed c]
           _ -> []
-        in mergeLeft $ withBase [m1,m2] [semS cp "dot" "true", mite $ Sentence cp] ++ closed
+        in mergeLeft $ base12 [semS cp "dot" "true", mite $ Sentence cp] ++ closed
       (TopLevelQuestion cp, Word _ "?") -> left [semS cp "question_mark" "true", mite $ Sentence cp]
 
       (leftCxt@(VerbalModifier _ _ anchor), Ellipsis v Nothing rightCxt@(Just _)) ->
@@ -101,7 +102,7 @@ punctuationAware leftMites rightMites (m1, m2) =
       _ -> []
 
 questionableArguments leftMites rightMites (m1, m2) = map (propagateUnclosed leftMites rightMites) $
-    let (left, right) = mergeInfoHelpers m1 m2
+    let (left, right, base12) = mergeInfoHelpers m1 m2
     in case (cxt m1, cxt m2) of
       (ArgHead kind1 head, Argument kind2 arg) | kind1 == kind2 -> left $ argVariants head arg leftMites rightMites
       (Argument kind2 arg, ArgHead kind1 head) | kind1 == kind2 -> right $ argVariants head arg rightMites leftMites
@@ -121,7 +122,7 @@ questionableArguments leftMites rightMites (m1, m2) = map (propagateUnclosed lef
       _ -> []
 
 interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMites rightMites) $
-    let (left, right) = mergeInfoHelpers m1 m2
+    let (left, right, base12) = mergeInfoHelpers m1 m2
     in case (cxt m1, cxt m2) of
       (Adj var2 adjCase agr1, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> 
         right [mite $ Unify var var2]
@@ -200,7 +201,7 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
             colleagues = concat [withBase [m1,m2,m] [mite (cxt m)] | m <- rightMites, not (contradict m m2), contradict m m3]
             in result
           _ -> []
-        in mergeRight $ withBase [m1,m2] [semS v "negated" "true", mite $ Negated v] ++ negateDirectObject
+        in mergeRight $ base12 [semS v "negated" "true", mite $ Negated v] ++ negateDirectObject
 
       (Word _ "тоже", Verb v) -> right [semS v "also" "true"]
       (Complementizer cp1, Clause Declarative cp2) -> left [mite $ Unify cp1 cp2, mite $ Complement cp1]

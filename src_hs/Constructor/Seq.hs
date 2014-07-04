@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase, ViewPatterns #-}
 module Constructor.Seq (seqLeft, seqRight, pullThyself, liftArguments) where
 import qualified Constructor.LinkedSet as LS
 import qualified Data.Set as Set
@@ -19,13 +20,11 @@ liftArguments base mites = wrapped where
     _ -> []
 
 seqRight leftMites rightMites = {-traceIt "seqRight" $ -}result where
-  hasSeqFull conj = flip any rightMites $ \mite -> case cxt mite of
-    Conjunction (SeqData { seqHasLeft=True, seqRightVar=(Just _), seqConj=c}) | isSeqContinuation conj c -> True
+  hasSeqFull conj = flip any rightMites $ \case
+    (cxt -> Conjunction (SeqData { seqHasLeft=True, seqRightVar=(Just _), seqConj=c})) | isSeqContinuation conj c -> True
     _ -> False
   hasConjEmphasis = any (any isConjEmphasis . baseMites) rightMites
-  isConjEmphasis mite = case cxt mite of
-    ConjEmphasis {} -> True
-    _ -> False
+  isConjEmphasis = \case (cxt -> ConjEmphasis {}) -> True; _ -> False
   result = leftMites >>= \m1 -> case cxt m1 of
    Conjunction sd@(SeqData { seqVar=v, seqReady=True, seqHasLeft=False, seqRightVar=Nothing, seqConj=conj}) ->
     if hasSeqFull conj || hasConjEmphasis then [] else rightMites >>= \m2 -> let

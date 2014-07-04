@@ -1,4 +1,5 @@
-module Constructor.Sense 
+{-# LANGUAGE LambdaCase, ViewPatterns #-}
+module Constructor.Sense
   (Sense(..), Frame(..), Fact(..),
   fValue, sValue,
   fDeclaredValue, sDeclaredValue,
@@ -23,9 +24,8 @@ import qualified Data.Set as Set
 import qualified Constructor.LinkedSet as LS
 
 calcFacts allMites baseVars =
-  let mapper mite =
-        case cxt mite of
-          Sem var attr value ->
+  let mapper = \case
+          (cxt -> Sem var attr value) ->
             let normalizedValue = case value of
                   StrValue _ -> value
                   VarValue var -> VarValue $ Map.findWithDefault var var baseVars
@@ -36,9 +36,8 @@ calcFacts allMites baseVars =
 
 calcBaseVars:: [Mite] -> Map.Map Variable Variable
 calcBaseVars mites =
-  let inner = \ groups mite ->
-        case cxt mite of
-          Unify var1 var2 ->
+  let inner = \ groups -> \case
+          (cxt -> Unify var1 var2) ->
             let ensured = ensureGroup var1 $ ensureGroup var2 groups
                 mergedGroup = Set.union (ensured Map.! var1) (ensured Map.! var2)
                 groupsMap = foldl (\ groups var -> Map.insert var mergedGroup groups) groups (Set.elems mergedGroup)

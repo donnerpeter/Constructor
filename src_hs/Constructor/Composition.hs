@@ -10,7 +10,7 @@ data MergeInfo = MergeInfo {mergeResult::[Mite], mergedHeadSide::Side} deriving 
 
 interactNodes:: Tree -> [Mite] -> [Mite] -> [MergeInfo]
 interactNodes leftTree leftMites rightMites = (if null whResults then noWh else whResults) >>= propagateBorder where
-  noWh = interactNodesNoWh leftTree leftMites rightMites
+  noWh = interactNodesNoWh leftTree leftMites rightMites ++ punctuationAware leftTree leftMites rightMites
   propagateBorder (MergeInfo mites side) = let
     parentBorders = []
     in [MergeInfo { mergeResult = mites ++ parentBorders, mergedHeadSide = side }]
@@ -35,13 +35,39 @@ isInteractive mite = case cxt mite of
   EmptyCxt {} -> False
   _ -> True
 
-interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants where
-  leftInteractive = filter isInteractive leftMites
-  rightInteractive = filter isInteractive rightMites
-  pairVariants = concat [interactPair m1 m2 | m1 <- leftInteractive, m2 <- rightInteractive]
+mergeInfoHelpers m1 m2 = (
+  \mites -> [MergeInfo (withBase [m1, m2] mites) LeftSide],
+  \mites -> [MergeInfo (withBase [m1, m2] mites) RightSide])
+
+punctuationAware leftTree leftMites rightMites =
+  concat [interactPair m1 m2 | m1 <- leftMites, isInteractive m1, m2 <- rightMites, isInteractive m2] where
   interactPair m1 m2 =
-    let left mites = [MergeInfo (withBase [m1, m2] mites) LeftSide]
-        right mites = [MergeInfo (withBase [m1, m2] mites) RightSide]
+    let (left, right) = mergeInfoHelpers m1 m2
+    in case (cxt m1, cxt m2) of
+      (AdjHead head _ _, CommaSurrounded True _ (NounAdjunct attr True var)) -> left [semV head attr var]
+      (CompHead comp, CommaSurrounded True _ (Complement cp)) -> left [mite $ Unify comp cp]
+      (RelativeHead noun, CommaSurrounded True _ (RelativeClause cp)) -> left [semV noun "relative" cp]
+
+      (CommaSurrounded _ _ (VerbalModifier attr True advP), Verb verb) -> right [semV verb attr advP]
+      (Verb verb, CommaSurrounded True _ (VerbalModifier attr True advP)) -> left [semV verb attr advP]
+
+      (ConditionCompHead head, CommaSurrounded True _ (ConditionComp cp cond _)) -> left [semV head (cond++"Condition") cp]
+      (Verb head, CommaSurrounded True _ (ConditionComp cp cond _)) -> left [semV head (cond++"Condition") cp]
+      (Verb head, CommaSurrounded True _ (ReasonComp cp _)) -> left [semV head "reason" cp]
+
+      (SurroundingComma False _, toWrap) | isCommaSurroundable toWrap -> left [mite $ CommaSurrounded True False toWrap]
+      (toWrap, SurroundingComma True _) | isCommaSurroundable toWrap -> right [mite $ CommaSurrounded False True toWrap]
+      (CommaSurrounded True False cxt, SurroundingComma True _) -> left [mite $ CommaSurrounded True True cxt]
+
+      (SurroundingDash False _, toWrap@(Argument {})) -> left [mite $ DashSurrounded True False toWrap]
+      (DashSurrounded True False cxt, SurroundingDash True _) -> left [mite $ DashSurrounded True True cxt]
+
+      _ -> []
+
+interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants where
+  pairVariants = concat [interactPair m1 m2 | m1 <- leftMites, isInteractive m1, m2 <- rightMites, isInteractive m2]
+  interactPair m1 m2 =
+    let (left, right) = mergeInfoHelpers m1 m2
     in case (cxt m1, cxt m2) of
       (Adj var2 adjCase agr1, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> 
         right [mite $ Unify var var2]
@@ -69,7 +95,6 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (Adverb v, Verb head) -> right [mite $ Unify v head]
       (Verb head, Adverb v) -> left [mite $ Unify v head]
       (AdjHead head _ _, NounAdjunct attr False var) -> left [semV head attr var]
-      (AdjHead head _ _, CommaSurrounded True _ (NounAdjunct attr True var)) -> left [semV head attr var]
 
       (Quantifier kind1 agr1 v1, Argument kind2 v2) | kind1 == kind2 -> rightMites >>= \m3 -> case cxt m3 of
         AdjHead v3 kind3 agr2 | kind3 == kind1 && agree agr1 agr2 && v2 == v3 && not (contradict m2 m3) ->
@@ -98,11 +123,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (DirectSpeechDash v, Sentence cp) -> left [mite $ DirectSpeech cp, semS cp "directSpeech" "true"]
       (Colon "elaboration" _, Clause Declarative cp) -> left [mite $ Elaboration cp]
       (Verb head, Elaboration child) -> left [semV head "elaboration" child, mite $ Unclosed (cxt m2)]
-      (CompHead comp, CommaSurrounded True _ (Complement cp)) -> left [mite $ Unify comp cp]
-      (RelativeHead noun, CommaSurrounded True _ (RelativeClause cp)) -> left [semV noun "relative" cp]
-      
-      (CommaSurrounded _ _ (VerbalModifier attr True advP), Verb verb) -> right [semV verb attr advP]
-      (Verb verb, CommaSurrounded True _ (VerbalModifier attr True advP)) -> left [semV verb attr advP]
+
       (Verb verb, VerbalModifier attr False advP) -> left [semV verb attr advP]
       (VerbalModifier attr _ advP, Verb verb) -> right [semV verb attr advP]
 
@@ -118,12 +139,9 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (WhAsserter verb, Wh wh) -> right [mite $ ExistentialWh wh verb]
 
       (ConditionComp v0 s False, Clause Declarative cp) -> left [mite $ Unify v0 cp, mite $ ConditionComp v0 s True]
-      (ConditionCompHead head, CommaSurrounded True _ (ConditionComp cp cond _)) -> left [semV head (cond++"Condition") cp]
-      (Verb head, CommaSurrounded True _ (ConditionComp cp cond _)) -> left [semV head (cond++"Condition") cp]
 
       (ReasonComp v0 False, Clause Declarative cp) -> left [mite $ Unify v0 cp, mite $ ReasonComp v0 True]
-      (Verb head, CommaSurrounded True _ (ReasonComp cp _)) -> left [semV head "reason" cp]
-      
+
       (TwoWordCxt s1 True wrapped _, TwoWordCxt s2 False _ _) | s1 == s2 -> left $ map mite wrapped
       
       (Clause Declarative cp, Word _ ".") -> let
@@ -134,13 +152,6 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (TopLevelQuestion cp, Word _ "?") -> left [semS cp "question_mark" "true", mite $ Sentence cp]
       (Conjunction (SeqData {seqVar=v1, seqConj=",", seqHasLeft=False, seqRightVar=Nothing}), Conjunction sd@(SeqData {seqVar=v2, seqConj="but", seqReady=False})) ->
           right [mite $ Conjunction $ sd {seqReady=True}, mite $ Unify v1 v2]
-
-      (SurroundingComma False _, toWrap) | isCommaSurroundable toWrap -> left [mite $ CommaSurrounded True False toWrap]
-      (toWrap, SurroundingComma True _) | isCommaSurroundable toWrap -> right [mite $ CommaSurrounded False True toWrap]
-      (CommaSurrounded True False cxt, SurroundingComma True _) -> left [mite $ CommaSurrounded True True cxt]
-
-      (SurroundingDash False _, toWrap@(Argument {})) -> left [mite $ DashSurrounded True False toWrap]
-      (DashSurrounded True False cxt, SurroundingDash True _) -> left [mite $ DashSurrounded True True cxt]
 
       (Quote _ False, word@(Word {})) -> left [mite $ QuotedWord word False]
       (QuotedWord word False, Quote _ True) -> left [mite $ QuotedWord word True]

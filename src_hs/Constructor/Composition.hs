@@ -9,19 +9,26 @@ import qualified Constructor.Seq as Seq
 data MergeInfo = MergeInfo {mergeResult::[Mite], mergedHeadSide::Side} deriving (Show,Eq,Ord)
 
 interactNodes:: Tree -> [Mite] -> [Mite] -> [MergeInfo]
-interactNodes leftTree leftMites rightMites = (if null whResults then noWh else whResults) >>= propagateBorder where
-  noWh = interactNodesNoWh leftTree leftMites rightMites ++ punctuationAware leftTree leftMites rightMites
-  propagateBorder (MergeInfo mites side) = let
-    parentBorders = []
-    in [MergeInfo { mergeResult = mites ++ parentBorders, mergedHeadSide = side }]
+interactNodes leftTree leftMites rightMites = if null whResults then noWh else whResults where
+
+  seqVariants = (if null seqRight then [] else [MergeInfo seqRight LeftSide]) ++ (if null seqLeft then [] else [MergeInfo seqLeft RightSide])
+  seqLeft = Seq.seqLeft leftTree leftMites rightMites
+  seqRight = Seq.seqRight leftMites rightMites
+
+  pairs = [(m1, m2) | m1 <- leftMites, isInteractive m1, m2 <- rightMites, isInteractive m2]
+  questionable = pairs >>= questionableArguments leftMites rightMites
+  nonQuestionable = (pairs >>= interactUnsorted leftMites rightMites) ++ (pairs >>= punctuationAware leftTree leftMites rightMites) ++ seqVariants
+
+  noWh = questionable ++ nonQuestionable
+
   whResults = leftMites >>= \whMite -> let
     whIncompatible info = any (contradict whMite) (mergeResult info)
     fillGap cp whVar clauseMite =
-        let fillers = filter (\info -> mergedHeadSide info == RightSide) noWh
+        let fillers = filter (\info -> mergedHeadSide info == RightSide) questionable
             whLinks = withBase [whMite, clauseMite] $
               [semV cp "questioned" whVar, semT cp "question"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause cp], [mite $ TopLevelQuestion cp]]
             infos = map (\ info -> MergeInfo (mergeResult info ++ whLinks) LeftSide) fillers
-        in infos ++ filter whIncompatible noWh
+        in infos ++ filter whIncompatible nonQuestionable
     in case cxt whMite of
       Wh whVar -> rightMites >>= \clauseMite -> case cxt clauseMite of
         Clause Interrogative cp -> fillGap cp whVar clauseMite
@@ -39,9 +46,7 @@ mergeInfoHelpers m1 m2 = (
   \mites -> [MergeInfo (withBase [m1, m2] mites) LeftSide],
   \mites -> [MergeInfo (withBase [m1, m2] mites) RightSide])
 
-punctuationAware leftTree leftMites rightMites =
-  concat [interactPair m1 m2 | m1 <- leftMites, isInteractive m1, m2 <- rightMites, isInteractive m2] where
-  interactPair m1 m2 =
+punctuationAware leftTree leftMites rightMites (m1, m2) =
     let (left, right) = mergeInfoHelpers m1 m2
     in case (cxt m1, cxt m2) of
       (AdjHead head _ _, CommaSurrounded True _ (NounAdjunct attr True var)) -> left [semV head attr var]
@@ -62,11 +67,45 @@ punctuationAware leftTree leftMites rightMites =
       (SurroundingDash False _, toWrap@(Argument {})) -> left [mite $ DashSurrounded True False toWrap]
       (DashSurrounded True False cxt, SurroundingDash True _) -> left [mite $ DashSurrounded True True cxt]
 
+      (QuestionVariants v kind, DashSurrounded True closed (Argument kind2 child)) | kind == kind2 ->
+        left $ [semV v "variants" child] ++ (if closed then [] else [mite $ Unclosed $ cxt m2])
+
+      (Clause Declarative cp, Word _ ".") -> let
+        closed = edgeTrees RightSide leftTree >>= headMites >>= \m -> case cxt m of
+          Unclosed c -> withBase [m, m2] $ optional [mite $ Closed c]
+          _ -> []
+        in [MergeInfo (withBase [m1,m2] [semS cp "dot" "true", mite $ Sentence cp] ++ closed) LeftSide]
+      (TopLevelQuestion cp, Word _ "?") -> left [semS cp "question_mark" "true", mite $ Sentence cp]
+
+      (leftCxt@(VerbalModifier _ _ anchor), Ellipsis v Nothing rightCxt@(Just _)) ->
+        right $ [mite $ Ellipsis v (Just leftCxt) rightCxt, semV v "ellipsisAnchor1" anchor]
+                ++ (xor [[mite $ Clause Declarative v], [mite $ Clause Interrogative v]])
+      (Ellipsis v leftCxt Nothing, rightCxt@(Argument _ anchor)) ->
+        left $ [mite $ Ellipsis v leftCxt (Just rightCxt), semV v "ellipsisAnchor2" anchor]
+
       _ -> []
 
-interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants where
-  pairVariants = concat [interactPair m1 m2 | m1 <- leftMites, isInteractive m1, m2 <- rightMites, isInteractive m2]
-  interactPair m1 m2 =
+questionableArguments leftMites rightMites (m1, m2) =
+    let (left, right) = mergeInfoHelpers m1 m2
+    in case (cxt m1, cxt m2) of
+      (ArgHead kind1 head, Argument kind2 arg) | kind1 == kind2 -> left $ argVariants head arg leftMites rightMites
+      (Argument kind2 arg, ArgHead kind1 head) | kind1 == kind2 -> right $ argVariants head arg rightMites leftMites
+
+      (Argument Nom v1, NomHead agr1 v2 Unsatisfied) -> leftMites >>= \m3 -> case cxt m3 of
+        AdjHead v3 Nom agr2 | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) ->
+          [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 Satisfied]) RightSide]
+        _ -> []
+      (NomHead agr1 v2 Unsatisfied, Argument Nom v1) -> rightMites >>= \m3 -> case cxt m3 of
+        AdjHead v3 Nom agr2 | agree agr1 agr2 && v1 == v3 && not (contradict m2 m3) ->
+          [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 Satisfied]) LeftSide]
+        _ -> []
+
+      (Verb verb, VerbalModifier attr False advP) -> left [semV verb attr advP]
+      (VerbalModifier attr _ advP, Verb verb) -> right [semV verb attr advP]
+
+      _ -> []
+
+interactUnsorted leftMites rightMites (m1, m2) =
     let (left, right) = mergeInfoHelpers m1 m2
     in case (cxt m1, cxt m2) of
       (Adj var2 adjCase agr1, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> 
@@ -81,15 +120,6 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
         _ -> []
       (GenHead v1, Argument Gen v2) -> left $ [mite $ Unify v1 v2] ++ whPropagation m1 m2 rightMites
 
-      (Argument Nom v1, NomHead agr1 v2 Unsatisfied) -> leftMites >>= \m3 -> case cxt m3 of
-        AdjHead v3 Nom agr2 | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) -> 
-          [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 Satisfied]) RightSide]
-        _ -> []
-      (NomHead agr1 v2 Unsatisfied, Argument Nom v1) -> rightMites >>= \m3 -> case cxt m3 of
-        AdjHead v3 Nom agr2 | agree agr1 agr2 && v1 == v3 && not (contradict m2 m3) ->
-          [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 Satisfied]) LeftSide]
-        _ -> []
-
       (ConjEmphasis attr _, Verb head) -> right [semS head attr "true"]
 
       (Adverb v, Verb head) -> right [mite $ Unify v head]
@@ -100,9 +130,6 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
         AdjHead v3 kind3 agr2 | kind3 == kind1 && agree agr1 agr2 && v2 == v3 && not (contradict m2 m3) ->
           [MergeInfo (withBase [m1, m2, m3] [mite $ Unify v1 v2]) LeftSide]
         _ -> []
-
-      (ArgHead kind1 head, Argument kind2 arg) | kind1 == kind2 -> left $ argVariants head arg leftMites rightMites
-      (Argument kind2 arg, ArgHead kind1 head) | kind1 == kind2 -> right $ argVariants head arg rightMites leftMites
 
       (SemPreposition kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
       (PrepHead prep1 kind1 var1, Argument kind2 var2) | kind1 == kind2 ->
@@ -124,11 +151,6 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (Colon "elaboration" _, Clause Declarative cp) -> left [mite $ Elaboration cp]
       (Verb head, Elaboration child) -> left [semV head "elaboration" child, mite $ Unclosed (cxt m2)]
 
-      (Verb verb, VerbalModifier attr False advP) -> left [semV verb attr advP]
-      (VerbalModifier attr _ advP, Verb verb) -> right [semV verb attr advP]
-
-      (QuestionVariants v kind, DashSurrounded True closed (Argument kind2 child)) | kind == kind2 ->
-        left $ [semV v "variants" child] ++ (if closed then [] else [mite $ Unclosed $ cxt m2])
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
       (Verb v, Word _ "бы") -> left [semS v "irrealis" "true"]
       (Word _ "очень", adverb@(Adverb {})) -> right [mite $ adverb]
@@ -144,12 +166,6 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
 
       (TwoWordCxt s1 True wrapped _, TwoWordCxt s2 False _ _) | s1 == s2 -> left $ map mite wrapped
       
-      (Clause Declarative cp, Word _ ".") -> let
-        closed = edgeTrees RightSide leftTree >>= headMites >>= \m -> case cxt m of
-          Unclosed c -> withBase [m, m2] $ optional [mite $ Closed c]
-          _ -> []
-        in [MergeInfo (withBase [m1,m2] [semS cp "dot" "true", mite $ Sentence cp] ++ closed) LeftSide]
-      (TopLevelQuestion cp, Word _ "?") -> left [semS cp "question_mark" "true", mite $ Sentence cp]
       (Conjunction (SeqData {seqVar=v1, seqConj=",", seqHasLeft=False, seqRightVar=Nothing}), Conjunction sd@(SeqData {seqVar=v2, seqConj="but", seqReady=False})) ->
           right [mite $ Conjunction $ sd {seqReady=True}, mite $ Unify v1 v2]
 
@@ -176,13 +192,7 @@ interactNodesNoWh leftTree leftMites rightMites = pairVariants ++ seqVariants wh
       (Control slave, ControlledInfinitive inf) -> left [mite $ Unify slave inf]
       (RaisingVerb verb subj, Raiseable agr child) -> left [semV child "arg1" subj, semV verb "theme" child]
        
-      (leftCxt@(VerbalModifier _ _ anchor), Ellipsis v Nothing rightCxt@(Just _)) -> right $ [mite $ Ellipsis v (Just leftCxt) rightCxt, semV v "ellipsisAnchor1" anchor]
-        ++ (xor [[mite $ Clause Declarative v], [mite $ Clause Interrogative v]])
-      (Ellipsis v leftCxt Nothing, rightCxt@(Argument _ anchor)) -> left $ [mite $ Ellipsis v leftCxt (Just rightCxt), semV v "ellipsisAnchor2" anchor]
       _ -> []
-  seqVariants = (if null seqRight then [] else [MergeInfo seqRight LeftSide]) ++ (if null seqLeft then [] else [MergeInfo seqLeft RightSide])
-  seqLeft = Seq.seqLeft leftTree leftMites rightMites
-  seqRight = Seq.seqRight leftMites rightMites
 
 argVariants headVar childVar headMites childMites = [mite $ Unify headVar childVar] ++ reflexive ++ existentials where
   reflexive = headMites >>= \m1 -> case cxt m1 of

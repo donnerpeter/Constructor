@@ -51,29 +51,29 @@ propagateUnclosed leftMites rightMites info = info { mergeResult = mergeResult i
   childMites = select (mergedHeadSide info) rightMites leftMites
 
 liftUnclosed childMites = childMites >>= \m -> case cxt m of
-  Unclosed _ -> withBase [m] $ [mite $ cxt m]
+  Unclosed RightSide _ -> withBase [m] $ [mite $ cxt m]
   _ -> []
 
 punctuationAware leftMites rightMites (m1, m2) =
     let (left, right, base12) = mergeInfoHelpers m1 m2
-        checkClosed closed = xor $ map (\x -> [x]) $ liftUnclosed rightMites ++ (if closed then [] else base12 [mite $ Unclosed $ cxt m2])
+        checkClosed closed v = xor $ map (\x -> [x]) $ liftUnclosed rightMites ++ (if closed then [] else base12 [mite $ Unclosed RightSide v])
     in case (cxt m1, cxt m2) of
       (AdjHead head _ _, CommaSurrounded True closed (NounAdjunct attr True var)) ->
-        mergeLeft $ base12 [semV head attr var] ++ checkClosed closed
+        mergeLeft $ base12 [semV head attr var] ++ checkClosed closed var
       (CompHead comp, CommaSurrounded True closed (Complement cp)) ->
-        mergeLeft $ base12 [mite $ Unify comp cp] ++ checkClosed closed
+        mergeLeft $ base12 [mite $ Unify comp cp] ++ checkClosed closed cp
       (RelativeHead noun, CommaSurrounded True closed (RelativeClause cp)) ->
-        mergeLeft $ base12 [semV noun "relative" cp] ++ checkClosed closed
+        mergeLeft $ base12 [semV noun "relative" cp] ++ checkClosed closed cp
 
       (CommaSurrounded _ _ (VerbalModifier attr True advP), Verb verb) -> right [semV verb attr advP]
       (Verb verb, CommaSurrounded True _ (VerbalModifier attr True advP)) -> left [semV verb attr advP]
 
       (ConditionCompHead head, CommaSurrounded True closed (ConditionComp cp cond _)) ->
-        mergeLeft $ base12 [semV head (cond++"Condition") cp] ++ checkClosed closed
+        mergeLeft $ base12 [semV head (cond++"Condition") cp] ++ checkClosed closed cp
       (Verb head, CommaSurrounded True closed (ConditionComp cp cond _)) ->
-        mergeLeft $ base12 [semV head (cond++"Condition") cp] ++ checkClosed closed
+        mergeLeft $ base12 [semV head (cond++"Condition") cp] ++ checkClosed closed cp
       (Verb head, CommaSurrounded True closed (ReasonComp cp _)) ->
-        mergeLeft $ base12 [semV head "reason" cp] ++ checkClosed closed
+        mergeLeft $ base12 [semV head "reason" cp] ++ checkClosed closed cp
 
       (SurroundingComma False _, toWrap) | isCommaSurroundable toWrap ->
         mergeLeft $ base12 [mite $ CommaSurrounded True False toWrap] ++ liftUnclosed rightMites
@@ -84,11 +84,11 @@ punctuationAware leftMites rightMites (m1, m2) =
       (DashSurrounded True False cxt, SurroundingDash True _) -> left [mite $ DashSurrounded True True cxt]
 
       (QuestionVariants v kind, DashSurrounded True closed (Argument kind2 child)) | kind == kind2 ->
-        mergeLeft $ base12 [semV v "variants" child] ++ checkClosed closed
+        mergeLeft $ base12 [semV v "variants" child] ++ checkClosed closed child
 
       (Clause Declarative cp, Word _ ".") -> let
         closed = leftMites >>= \m -> case cxt m of
-          Unclosed c -> withBase [m, m2] $ optional [mite $ Closed c]
+          Unclosed RightSide v -> withBase [m, m2] $ optional [mite $ Closed v]
           _ -> []
         in mergeLeft $ base12 [semS cp "dot" "true", mite $ Sentence cp] ++ closed
       (TopLevelQuestion cp, Word _ "?") -> left [semS cp "question_mark" "true", mite $ Sentence cp]
@@ -165,7 +165,7 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
       --(DirectSpeechHead head (Just v), DirectSpeech v1) -> left [mite $ Unify v v1]
       (DirectSpeechDash v, Sentence cp) -> left [mite $ DirectSpeech cp, semS cp "directSpeech" "true"]
       (Colon "elaboration" _, Clause Declarative cp) -> left [mite $ Elaboration cp]
-      (Verb head, Elaboration child) -> left [semV head "elaboration" child, mite $ Unclosed (cxt m2)]
+      (Verb head, Elaboration child) -> left [semV head "elaboration" child, mite $ Unclosed RightSide child]
 
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
       (Verb v, Word _ "бы") -> left [semS v "irrealis" "true"]

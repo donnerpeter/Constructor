@@ -20,8 +20,6 @@ instance Show SeqData where
 data Construction = Word Variable String
                   | Sem Variable String SemValue
                   | Unify Variable Variable
-                  | MissingPunctuation Side Variable
-                  | Punctuation String Satisfied Variable
                   | Adj Variable ArgKind Agr
                   | CompositeAdj Variable ArgKind Agr
                   | AdjHead Variable ArgKind Agr
@@ -39,8 +37,8 @@ data Construction = Word Variable String
                   | Adverb Variable
                   | NounAdjunct {-attr-} String {-requires comma-} Bool Variable
                   | Elaboration Variable
-                  | Unclosed Construction
-                  | Closed Construction
+                  | Unclosed Side Variable
+                  | Closed Variable
                   | CompHead Variable
                   | ConditionCompHead Variable
                   | Wh Variable
@@ -118,8 +116,6 @@ isHappy cxt = case cxt of
   Complement {} -> False
   Wh {} -> False
   RelativeClause {} -> False
-  Punctuation _ Unsatisfied _ -> False
-  MissingPunctuation {} -> False
   _ -> True
 
 isCommaSurroundable cxt = case cxt of

@@ -11,7 +11,7 @@ mergeLeft mites = [MergeInfo mites LeftSide]
 mergeRight mites = [MergeInfo mites RightSide]
 
 interactNodes:: Tree -> [Mite] -> [Mite] -> [MergeInfo]
-interactNodes leftTree leftMites rightMites = if null whResults then noWh else whResults where
+interactNodes leftTree leftMites rightMites = {-traceIt ("    interact") $ -}if null whResults then noWh else whResults where
 
   seqVariants = map (propagateUnclosed leftMites rightMites) $ (if null seqRight then [] else mergeLeft seqRight) ++ (if null seqLeft then [] else mergeRight seqLeft)
   seqLeft = Seq.seqLeft leftTree leftMites rightMites
@@ -56,29 +56,36 @@ liftUnclosed childMites = childMites >>= \m -> case cxt m of
 
 punctuationAware leftMites rightMites (m1, m2) =
     let (left, right, base12) = mergeInfoHelpers m1 m2
-        checkClosed closed v = xor $ map (\x -> [x]) $ liftUnclosed rightMites ++ (if closed then [] else base12 [mite $ Unclosed RightSide v])
+        liftUnclosedRight = liftUnclosed $ filter (not. contradict m2) rightMites
+        checkClosed closed v = xor $ filter (not . null) $ [liftUnclosedRight] ++ (if closed then [] else [base12 [mite $ Unclosed RightSide v]])
+        closeUnclosed = leftMites >>= \m -> case cxt m of
+          Unclosed RightSide v -> withBase [m, m2] $ optional [mite $ Closed v, semS v "rightIsolated" "true"]
+          _ -> []
     in case (cxt m1, cxt m2) of
       (AdjHead head _ _, CommaSurrounded True closed (NounAdjunct attr True var)) ->
-        mergeLeft $ base12 [semV head attr var] ++ checkClosed closed var
+        mergeLeft $ base12 [semV head attr var] ++ liftUnclosedRight
       (CompHead comp, CommaSurrounded True closed (Complement cp)) ->
-        mergeLeft $ base12 [mite $ Unify comp cp] ++ checkClosed closed cp
+        mergeLeft $ base12 [mite $ Unify comp cp] ++ liftUnclosedRight
       (RelativeHead noun, CommaSurrounded True closed (RelativeClause cp)) ->
-        mergeLeft $ base12 [semV noun "relative" cp] ++ checkClosed closed cp
+        mergeLeft $ base12 [semV noun "relative" cp] ++ liftUnclosedRight
 
-      (CommaSurrounded _ _ (VerbalModifier attr True advP), Verb verb) -> right [semV verb attr advP]
-      (Verb verb, CommaSurrounded True _ (VerbalModifier attr True advP)) -> left [semV verb attr advP]
+      (CommaSurrounded _ _ (VerbalModifier attr True advP), Verb verb) ->
+        mergeRight $ base12 [semV verb attr advP] ++ closeUnclosed
+      (Verb verb, CommaSurrounded True _ (VerbalModifier attr True advP)) ->
+        mergeLeft $ base12 [semV verb attr advP] ++ liftUnclosedRight
 
       (ConditionCompHead head, CommaSurrounded True closed (ConditionComp cp cond _)) ->
-        mergeLeft $ base12 [semV head (cond++"Condition") cp] ++ checkClosed closed cp
+        mergeLeft $ base12 [semV head (cond++"Condition") cp] ++ liftUnclosedRight
       (Verb head, CommaSurrounded True closed (ConditionComp cp cond _)) ->
-        mergeLeft $ base12 [semV head (cond++"Condition") cp] ++ checkClosed closed cp
+        mergeLeft $ base12 [semV head (cond++"Condition") cp] ++ liftUnclosedRight
       (Verb head, CommaSurrounded True closed (ReasonComp cp _)) ->
-        mergeLeft $ base12 [semV head "reason" cp] ++ checkClosed closed cp
+        mergeLeft $ base12 [semV head "reason" cp] ++ liftUnclosedRight
 
-      (SurroundingComma False _, toWrap) | isCommaSurroundable toWrap ->
-        mergeLeft $ base12 [mite $ CommaSurrounded True False toWrap] ++ liftUnclosed rightMites
-      (toWrap, SurroundingComma True _) | isCommaSurroundable toWrap -> right [mite $ CommaSurrounded False True toWrap]
-      (CommaSurrounded True False cxt, SurroundingComma True _) -> left [mite $ CommaSurrounded True True cxt]
+      (SurroundingComma False _, toWrap) | Just v <- getCommaSurroundableVar toWrap ->
+        mergeLeft $ base12 [mite $ CommaSurrounded True False toWrap, semS v "isolation" "comma", semS v "leftIsolated" "true"] ++ checkClosed False v
+      (toWrap, SurroundingComma True _) | Just v <- getCommaSurroundableVar toWrap -> right [mite $ CommaSurrounded False True toWrap]
+      (CommaSurrounded True False cxt, SurroundingComma True _) ->
+        mergeLeft $ base12 [mite $ CommaSurrounded True True cxt] ++ closeUnclosed
 
       (SurroundingDash False _, toWrap@(Argument {})) -> left [mite $ DashSurrounded True False toWrap]
       (DashSurrounded True False cxt, SurroundingDash True _) -> left [mite $ DashSurrounded True True cxt]
@@ -86,12 +93,12 @@ punctuationAware leftMites rightMites (m1, m2) =
       (QuestionVariants v kind, DashSurrounded True closed (Argument kind2 child)) | kind == kind2 ->
         mergeLeft $ base12 [semV v "variants" child] ++ checkClosed closed child
 
-      (Clause Declarative cp, Word _ ".") -> let
-        closed = leftMites >>= \m -> case cxt m of
-          Unclosed RightSide v -> withBase [m, m2] $ optional [mite $ Closed v]
-          _ -> []
-        in mergeLeft $ base12 [semS cp "dot" "true", mite $ Sentence cp] ++ closed
+      (Clause Declarative cp, Word _ ".") ->
+        mergeLeft $ base12 [semS cp "dot" "true", mite $ Sentence cp] ++ closeUnclosed
       (TopLevelQuestion cp, Word _ "?") -> left [semS cp "question_mark" "true", mite $ Sentence cp]
+
+      (DirectSpeechHead head Nothing, Colon "directSpeech" v) ->
+        mergeLeft $ base12 [mite $ DirectSpeechHead head $ Just v, semV head "message" v] ++ closeUnclosed
 
       (leftCxt@(VerbalModifier _ _ anchor), Ellipsis v Nothing rightCxt@(Just _)) ->
         right $ [mite $ Ellipsis v (Just leftCxt) rightCxt, semV v "ellipsisAnchor1" anchor]
@@ -161,8 +168,7 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
               _ -> []
             extra = Seq.pullThyself m2 rightMites ++ Seq.liftArguments m2 rightMites ++ whPropagation m1 m2 rightMites
         in mergeLeft (argMites ++ adjunctMites ++ extra)
-      (DirectSpeechHead head Nothing, Colon "directSpeech" v) -> left [mite $ DirectSpeechHead head $ Just v, semV head "message" v]
-      --(DirectSpeechHead head (Just v), DirectSpeech v1) -> left [mite $ Unify v v1]
+
       (DirectSpeechDash v, Sentence cp) -> left [mite $ DirectSpeech cp, semS cp "directSpeech" "true"]
       (Colon "elaboration" _, Clause Declarative cp) -> left [mite $ Elaboration cp]
       (Verb head, Elaboration child) -> left [semV head "elaboration" child, mite $ Unclosed RightSide child]

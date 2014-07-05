@@ -171,10 +171,12 @@ resolve frame = case (getType frame, fValue "target" frame) of
 
 isNumber frame = any (\f -> sValue "number" f == Just "true") $ flatten frame
 
-isHuman frame = hasAnyType ["NEIGHBOR", "NEIGHBORS", "CASHIER", "NAMED_PERSON"] frame
+isHuman frame = hasAnyType ["NEIGHBOR", "NEIGHBORS", "CASHIER", "NAMED_PERSON",
+  "HE", "SHE", "THEY" -- todo pronouns are not necessarily animate
+  ] frame
 isAnimate frame = isHuman frame || Just "true" == sValue "animate" frame
 
-isInanimate frame = hasType "wh" frame && Just "true" /= sValue "animate" frame
+isInanimate frame = hasType "wh" frame && Just "true" /= sValue "animate" frame || Just True == fmap isNumberString (getType frame)
 
 unSeq frame = case msum [usage "member1" frame, usage "member2" frame] of
   Just s -> unSeq s

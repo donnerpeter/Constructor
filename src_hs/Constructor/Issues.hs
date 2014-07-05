@@ -23,7 +23,8 @@ issues mites = let
     Just "CASHIER" | any (hasType "OTHERS") (flatten $ fValue "place" frame) -> ["cashier of other people"]
     Just "OPINION" | isNothing (fValue "arg1" frame >>= getType) -> ["opinion without subj"]
     Just "WORDS" | isNothing (fValue "author" frame >>= getType) -> ["words without author"]
-    Just "GO" | Just True /= fmap isAnimate (fValue "arg1" frame) -> ["inanimate GO subject"]
+    Just s | (s == "GO" || s == "CAN" || s == "REMEMBER") && Just True /= fmap isAnimate (fValue "arg1" frame) -> ["inanimate " ++ s ++ " subject"]
+    Just "GO" | Just True == fmap isInanimate (fValue "relTime" frame >>= fValue "anchor") -> ["inanimate GO relTime anchor"]
     Just "COME_SCALARLY" -> let
       fSubj = fValue "arg1" frame
       fOrder = fValue "order" frame

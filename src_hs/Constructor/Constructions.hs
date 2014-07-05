@@ -118,10 +118,11 @@ isHappy cxt = case cxt of
   RelativeClause {} -> False
   _ -> True
 
-isCommaSurroundable cxt = case cxt of
-  ConditionComp _ _ True -> True; ReasonComp _ True -> True
-  Complement {} -> True
-  RelativeClause {} -> True
-  VerbalModifier _ True _ -> True
-  NounAdjunct _ True _ -> True
-  _ -> False
+getCommaSurroundableVar cxt = case cxt of
+  ConditionComp v _ True -> Just v
+  ReasonComp v True -> Just v
+  Complement v -> Just v
+  RelativeClause v -> Just v
+  VerbalModifier _ True v -> Just v
+  NounAdjunct _ True v -> Just v
+  _ -> Nothing

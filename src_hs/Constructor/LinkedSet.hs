@@ -6,7 +6,8 @@ data LinkedSet a = LinkedSet [a] (Set.Set a) deriving (Show)
 empty = LinkedSet [] Set.empty
 
 add :: Ord a => a -> LinkedSet a -> LinkedSet a
-add e set@(LinkedSet l s) = if Set.member e s then set else LinkedSet (e:l) (Set.insert e s)
+add e set@(LinkedSet l s) = if Set.size newSet == Set.size s then set else LinkedSet (e:l) newSet
+  where newSet = Set.insert e s
 
 addAll list set = foldl (\acc e -> add e acc) set list
 

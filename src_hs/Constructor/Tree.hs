@@ -13,6 +13,7 @@ data Tree = Tree {
   mites::[Mite], left::Maybe Tree, right::Maybe Tree, headSide::Side,
   active::Set.Set Mite, allActiveMiteList :: [Mite], allActiveMiteSet :: Set.Set Mite,
   activeHeadMites :: [Mite],
+  activeHeadMitesBase :: [Mite],
   _uncoveredActiveMites :: Set.Set Mite,
   _unhappyLeft :: [Mite], _unhappyRight :: [Mite], _unhappyHead :: [Mite],
   _issues :: [Issue],
@@ -87,6 +88,7 @@ createLeaf mites candidateSets = bestTree trees where
       mites = mites, left = Nothing, right = Nothing, headSide = LeftSide,
       active = activeSet, allActiveMiteList = active, allActiveMiteSet = activeSet, _uncoveredActiveMites = activeSet,
       activeHeadMites = active,
+      activeHeadMitesBase = LS.removeDups (active >>= baseMites),
       _unhappyLeft = [], _unhappyRight = [], _unhappyHead = filter (not. happy) active,
       _issues = issues active,
       allVariants = trees
@@ -104,26 +106,29 @@ createBranch mites _leftChild _rightChild headSide candidateSets = bestVariant w
         base mites = LS.removeDups [mite | activeMite <- mites, mite <- baseMites activeMite]
         isUncovered mite = not $ mite `elem` covered
         unhappyBase = Set.fromList $ filter (not . happy) covered
-        isCompatible av = not $ any (flip Set.member unhappyBase) $ base $ activeHeadMites av
-    aLeft <- {-trace ("----------------active", length activeSets, active) $ -}allVariants _leftChild
-    if (not $ null $ filter isUncovered $ _unhappyRight aLeft) || not (isCompatible aLeft) then [] else do
+        isCompatible av = not $ any (flip Set.member unhappyBase) $ activeHeadMitesBase av
+        leftCompatible = filter isCompatible $ allVariants _leftChild
+        rightCompatible = filter isCompatible $ rightAVs
+    aLeft <- leftCompatible
+    if (not $ null $ filter isUncovered $ _unhappyRight aLeft) then [] else do
     let missingInLeft = filter (not . flip Set.member (allActiveMiteSet aLeft)) covered
-    aRight <- rightAVs
-    if not (isCompatible aRight) then [] else do
+    aRight <- rightCompatible
     let missingInRight = filter (not . flip Set.member (allActiveMiteSet aRight)) missingInLeft
-    if {-trace ("-----------checkRight", active) $ traceShow ("missingInRight", missingInRight) $ -}null missingInRight
+    if {-trace ("-----------candidate", active) $ trace ("-----------checkRight", aRight) $ -}null missingInRight
     then
-      let childrenActive = {-trace ("ok", active) $ -}Set.union (_uncoveredActiveMites aLeft) (_uncoveredActiveMites aRight)
+      let childrenActive = Set.union (_uncoveredActiveMites aLeft) (_uncoveredActiveMites aRight)
           activeSet = Set.fromList active
           headChild = select headSide aLeft aRight
           allActiveList = allActiveMiteList aLeft ++ active ++ allActiveMiteList aRight
+          _activeHeadMites = active ++ filter (\mite -> isUncovered mite || happy mite) (activeHeadMites headChild)
       in
-      return $ Tree {
+      return $ {-trace ("ok", aRight) $ -}Tree {
         mites = mites, left = Just aLeft, right = Just aRight, headSide = headSide,
         active = activeSet,
         allActiveMiteList = allActiveList,
         allActiveMiteSet = Set.union activeSet $ Set.union (allActiveMiteSet aLeft) (allActiveMiteSet $ aRight),
-        activeHeadMites = active ++ filter (\mite -> isUncovered mite || happy mite) (activeHeadMites headChild),
+        activeHeadMites = _activeHeadMites,
+        activeHeadMitesBase = LS.removeDups (_activeHeadMites >>= baseMites),
         _uncoveredActiveMites = Set.union (Set.filter (\mite -> isUncovered mite || happy mite) childrenActive) activeSet,
         _unhappyLeft  = filter isUncovered $ _unhappyLeft aLeft   ++ select headSide [] (_unhappyHead aLeft),
         _unhappyRight = filter isUncovered $ _unhappyRight aRight ++ select headSide (_unhappyHead aRight) [],

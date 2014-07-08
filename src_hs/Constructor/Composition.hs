@@ -18,15 +18,15 @@ interactNodes leftTree leftMites rightMites = {-traceIt ("    interact") $ -}if 
   seqRight = Seq.seqRight leftMites rightMites
 
   pairs = [(m1, m2) | m1 <- leftMites, isInteractive m1, m2 <- rightMites, isInteractive m2]
-  questionable = pairs >>= questionableArguments leftMites rightMites
+  questionable whContext = pairs >>= questionableArguments leftMites rightMites whContext
   nonQuestionable = (pairs >>= interactUnsorted leftMites rightMites) ++ (pairs >>= punctuationAware leftMites rightMites) ++ seqVariants
 
-  noWh = questionable ++ nonQuestionable
+  noWh = questionable False ++ nonQuestionable
 
   whResults = leftMites >>= \whMite -> let
     whIncompatible info = any (contradict whMite) (mergeResult info)
     fillGap cp whVar clauseMite =
-        let fillers = filter (\info -> mergedHeadSide info == RightSide) questionable
+        let fillers = filter (\info -> mergedHeadSide info == RightSide) $ questionable True
             whLinks = withBase [whMite, clauseMite] $
               [semV cp "questioned" whVar, semT cp "question"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause cp], [mite $ TopLevelQuestion cp]]
             infos = fillers >>= \ info -> mergeLeft (mergeResult info ++ whLinks)
@@ -119,7 +119,7 @@ punctuationAware leftMites rightMites (m1, m2) =
 
       _ -> []
 
-questionableArguments leftMites rightMites (m1, m2) = map (propagateUnclosed leftMites rightMites) $
+questionableArguments leftMites rightMites whContext (m1, m2) = map (propagateUnclosed leftMites rightMites) $
     let (left, right, base12) = mergeInfoHelpers m1 m2
     in case (cxt m1, cxt m2) of
       (ArgHead kind1 head, Argument kind2 arg) | kind1 == kind2 -> left $ argVariants head arg leftMites rightMites
@@ -135,7 +135,8 @@ questionableArguments leftMites rightMites (m1, m2) = map (propagateUnclosed lef
         _ -> []
 
       (Verb verb, VerbalModifier attr False advP) -> left [semV verb attr advP]
-      (VerbalModifier attr needComma advP, Verb verb) -> right $ [semV verb attr advP] ++ (if needComma then [semS advP "isolation" "comma", mite $ Unclosed LeftSide advP] else [])
+      (VerbalModifier attr needComma advP, Verb verb) -> right $
+        [semV verb attr advP] ++ (if needComma && not whContext then [semS advP "isolation" "comma", mite $ Unclosed LeftSide advP] else [])
 
       _ -> []
 

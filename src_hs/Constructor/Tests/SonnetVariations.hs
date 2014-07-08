@@ -798,10 +798,9 @@ varUnsorted = TestLabel "sonnetVariations unsorted" $ TestList [
   ,
   translateTest "По словам кого семь идет после восьми?"
                 "According to whom does a seven come after an eight?"
---  ,
--- _testAccordingToWordsOfWho
---todo  translateTest "Я забыл, по словам кого семь идет после восьми."
---                "I forgot according to whom a seven comes after an eight."
+  ,
+  translateTest "Я забыл, по словам кого семь идет после восьми."
+                "I forgot according to whom a seven comes after an eight."
 --  ,
 -- _testAccorgindToAndInOpinionOfWhomGenitive
 --todo  translateTest "Я забыл, по словам и мнению кого семь идет после восьми."

@@ -107,9 +107,9 @@ wordMites word index =
   "ему" -> pronoun Dat A.sg "HE" v
   "если" -> [mite $ ConditionComp v0 "if" False]
   "есть" -> [semS v0 "time" "PRESENT"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0]]
-  "забыл" -> finVerb "FORGET" "PAST" A.m v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
-  "забыла" -> finVerb "FORGET" "PAST" A.f v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
-  "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ xor [compHead "arg2" v, directObject v, whatComesNext v]
+  "забыл" -> finVerb "FORGET" "PAST" A.m v ++ optional (xor [compHead "arg2" v, directObject v, whatComesNext v])
+  "забыла" -> finVerb "FORGET" "PAST" A.f v ++ optional (xor [compHead "arg2" v, directObject v, whatComesNext v])
+  "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ optional (xor [compHead "arg2" v, directObject v, whatComesNext v])
   "и" -> conjunction v0 "and" True
   "идет" -> xor [finVerb "GO" "PRESENT" A.sg3 v ++ go_args v,
                  finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ arg ScalarAdverb "order" v]

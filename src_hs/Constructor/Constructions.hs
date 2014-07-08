@@ -125,4 +125,5 @@ getCommaSurroundableVar cxt = case cxt of
   RelativeClause v -> Just v
   VerbalModifier _ True v -> Just v
   NounAdjunct _ True v -> Just v
+  Argument _ v -> Just v
   _ -> Nothing

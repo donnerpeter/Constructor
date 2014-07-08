@@ -47,58 +47,69 @@ isInteractive mite = case cxt mite of
 mergeInfoHelpers m1 m2 = ( \mites -> mergeLeft (base12 mites), \mites -> mergeRight (base12 mites), base12) where
   base12 = withBase [m1,m2]
 
-propagateUnclosed leftMites rightMites info = info { mergeResult = mergeResult info ++ liftUnclosed childMites } where
-  childMites = select (mergedHeadSide info) rightMites leftMites
+propagateUnclosed leftMites rightMites (MergeInfo mites side) = MergeInfo (mites ++ liftUnclosed (invert side) childMites) side where
+  childMites = select side rightMites leftMites
 
-liftUnclosed childMites = childMites >>= \m -> case cxt m of
-  Unclosed RightSide _ -> withBase [m] $ [mite $ cxt m]
+liftUnclosed side childMites = childMites >>= \m -> case cxt m of
+  Unclosed s _ | s == side -> withBase [m] $ [mite $ cxt m]
   _ -> []
 
 punctuationAware leftMites rightMites (m1, m2) =
     let (left, right, base12) = mergeInfoHelpers m1 m2
-        liftUnclosedRight = liftUnclosed $ filter (not. contradict m2) rightMites
-        checkClosed closed v = xor $ filter (not . null) $ [liftUnclosedRight] ++ (if closed then [] else [base12 [mite $ Unclosed RightSide v]])
-        closeUnclosed = leftMites >>= \m -> case cxt m of
-          Unclosed RightSide v -> withBase [m, m2] $ optional [mite $ Closed v, semS v "rightIsolated" "true"]
+        liftUnclosedCompatible side = liftUnclosed side $ filter (not. contradict (select side m1 m2)) $ select side leftMites rightMites
+        checkClosed closed side v = xor $ filter (not . null) $ [liftUnclosedCompatible side] ++ (if closed then [] else [base12 [mite $ Unclosed side v]])
+        closeUnclosed side satisfied = (select side leftMites rightMites) >>= \m -> case cxt m of
+          Unclosed s v | s == invert side -> withBase [m, m2] $
+            optional $ [mite $ Closed v] ++ (if satisfied == Satisfied then [semS v (select side "left" "right" ++ "Isolated") "true"] else [])
           _ -> []
     in case (cxt m1, cxt m2) of
       (AdjHead head _ _, CommaSurrounded True closed (NounAdjunct attr True var)) ->
-        mergeLeft $ base12 [semV head attr var] ++ liftUnclosedRight
+        mergeLeft $ base12 [semV head attr var] ++ liftUnclosedCompatible RightSide
       (CompHead comp, CommaSurrounded True closed (Complement cp)) ->
-        mergeLeft $ base12 [mite $ Unify comp cp] ++ liftUnclosedRight
+        mergeLeft $ base12 [mite $ Unify comp cp] ++ liftUnclosedCompatible RightSide
       (RelativeHead noun, CommaSurrounded True closed (RelativeClause cp)) ->
-        mergeLeft $ base12 [semV noun "relative" cp] ++ liftUnclosedRight
+        mergeLeft $ base12 [semV noun "relative" cp] ++ liftUnclosedCompatible RightSide
 
-      (CommaSurrounded _ _ (VerbalModifier attr True advP), Verb verb) ->
-        mergeRight $ base12 [semV verb attr advP] ++ closeUnclosed
+      (CommaSurrounded _ closed (VerbalModifier attr True advP), Verb verb) ->
+        mergeRight $ base12 [semV verb attr advP] ++ closeUnclosed LeftSide (if closed then Satisfied else Unsatisfied) ++ liftUnclosedCompatible LeftSide
       (Verb verb, CommaSurrounded True _ (VerbalModifier attr True advP)) ->
-        mergeLeft $ base12 [semV verb attr advP] ++ liftUnclosedRight
+        mergeLeft $ base12 [semV verb attr advP] ++ liftUnclosedCompatible RightSide ++ liftUnclosedCompatible RightSide
 
-      (ConditionCompHead head, CommaSurrounded True closed (ConditionComp cp cond _)) ->
-        mergeLeft $ base12 [semV head (cond++"Condition") cp] ++ liftUnclosedRight
-      (Verb head, CommaSurrounded True closed (ConditionComp cp cond _)) ->
-        mergeLeft $ base12 [semV head (cond++"Condition") cp] ++ liftUnclosedRight
-      (Verb head, CommaSurrounded True closed (ReasonComp cp _)) ->
-        mergeLeft $ base12 [semV head "reason" cp] ++ liftUnclosedRight
+      (ConditionCompHead head, CommaSurrounded True _ (ConditionComp cp cond _)) ->
+        mergeLeft $ base12 [semV head (cond++"Condition") cp] ++ liftUnclosedCompatible RightSide
+      (Verb head, CommaSurrounded True _ (ConditionComp cp cond _)) ->
+        mergeLeft $ base12 [semV head (cond++"Condition") cp] ++ liftUnclosedCompatible RightSide
+      (Verb head, CommaSurrounded True _ (ReasonComp cp _)) ->
+        mergeLeft $ base12 [semV head "reason" cp] ++ liftUnclosedCompatible RightSide
 
       (SurroundingComma False _, toWrap) | Just v <- getCommaSurroundableVar toWrap ->
-        mergeLeft $ base12 [mite $ CommaSurrounded True False toWrap, semS v "isolation" "comma", semS v "leftIsolated" "true"] ++ checkClosed False v
-      (toWrap, SurroundingComma True _) | Just v <- getCommaSurroundableVar toWrap -> right [mite $ CommaSurrounded False True toWrap]
+        mergeLeft $
+          base12 [mite $ CommaSurrounded True False toWrap, semS v "isolation" "comma", semS v "leftIsolated" "true"]
+          ++ checkClosed False RightSide v
+      (toWrap, SurroundingComma True _) | Just v <- getCommaSurroundableVar toWrap ->
+        mergeRight $
+          base12 [mite $ CommaSurrounded False True toWrap, semS v "isolation" "comma", semS v "rightIsolated" "true"]
+          ++ checkClosed False LeftSide v
       (CommaSurrounded True False cxt, SurroundingComma True _) ->
-        mergeLeft $ base12 [mite $ CommaSurrounded True True cxt] ++ closeUnclosed
+        mergeLeft $ base12 [mite $ CommaSurrounded True True cxt] ++ closeUnclosed LeftSide Satisfied
 
       (SurroundingDash False _, toWrap@(Argument {})) -> left [mite $ DashSurrounded True False toWrap]
       (DashSurrounded True False cxt, SurroundingDash True _) -> left [mite $ DashSurrounded True True cxt]
 
       (QuestionVariants v kind, DashSurrounded True closed (Argument kind2 child)) | kind == kind2 ->
-        mergeLeft $ base12 [semV v "variants" child] ++ checkClosed closed child
+        mergeLeft $ base12 [semV v "variants" child] ++ checkClosed closed RightSide child
+      (QuestionVariants v kind, CommaSurrounded True closed (Argument kind2 child)) | kind == kind2 ->
+        mergeLeft $ base12 [semV v "variants" child] ++ checkClosed closed RightSide child
 
       (Clause Declarative cp, Word _ ".") ->
-        mergeLeft $ base12 [semS cp "dot" "true", mite $ Sentence cp] ++ closeUnclosed
+        mergeLeft $ base12 [semS cp "dot" "true", mite $ Sentence cp] ++ closeUnclosed LeftSide Satisfied
       (TopLevelQuestion cp, Word _ "?") -> left [semS cp "question_mark" "true", mite $ Sentence cp]
 
       (DirectSpeechHead head Nothing, Colon "directSpeech" v) ->
-        mergeLeft $ base12 [mite $ DirectSpeechHead head $ Just v, semV head "message" v] ++ closeUnclosed
+        mergeLeft $ base12 [mite $ DirectSpeechHead head $ Just v, semV head "message" v] ++ closeUnclosed LeftSide Satisfied
+
+      (DirectSpeechDash v, Sentence cp) ->
+        mergeLeft $ base12 [mite $ DirectSpeech cp, semS cp "directSpeech" "true"] ++ closeUnclosed RightSide Satisfied
 
       (leftCxt@(VerbalModifier _ _ anchor), Ellipsis v Nothing rightCxt@(Just _)) ->
         right $ [mite $ Ellipsis v (Just leftCxt) rightCxt, semV v "ellipsisAnchor1" anchor]
@@ -124,7 +135,7 @@ questionableArguments leftMites rightMites (m1, m2) = map (propagateUnclosed lef
         _ -> []
 
       (Verb verb, VerbalModifier attr False advP) -> left [semV verb attr advP]
-      (VerbalModifier attr _ advP, Verb verb) -> right [semV verb attr advP]
+      (VerbalModifier attr needComma advP, Verb verb) -> right $ [semV verb attr advP] ++ (if needComma then [semS advP "isolation" "comma", mite $ Unclosed LeftSide advP] else [])
 
       _ -> []
 
@@ -169,7 +180,6 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
             extra = Seq.pullThyself m2 rightMites ++ Seq.liftArguments m2 rightMites ++ whPropagation m1 m2 rightMites
         in mergeLeft (argMites ++ adjunctMites ++ extra)
 
-      (DirectSpeechDash v, Sentence cp) -> left [mite $ DirectSpeech cp, semS cp "directSpeech" "true"]
       (Colon "elaboration" _, Clause Declarative cp) -> left [mite $ Elaboration cp]
       (Verb head, Elaboration child) -> left [semV head "elaboration" child, mite $ Unclosed RightSide child]
 

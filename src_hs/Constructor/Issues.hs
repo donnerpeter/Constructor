@@ -13,6 +13,12 @@ issues mites = let
   sense = makeSense mites
   frames = allFrames sense
   hasCP = any (hasAnyType ["fact", "question"]) frames
+  incompleteIsolation frame =
+    if isJust (sValue "isolation" frame) && (isNothing (sValue "leftIsolated" frame) || isNothing (sValue "rightIsolated" frame))
+    then ["Incomplete isolation"] else []
+  incompleteSeq frame =
+    if hasType "seq" frame && (isNothing (fValue "member1" frame) || isNothing (fValue "member2" frame))
+    then ["incomplete seq"] else []
   frameIssues frame = case getType frame of
     Just "seq" | Nothing == sValue "conj" frame -> ["comma-only seq"]
     Just s | (s == "SIT" || s == "SAY") && isNothing (fValue "arg1" frame >>= sDeclaredValue "type") ->
@@ -38,4 +44,7 @@ issues mites = let
         _ -> []
       in anchorIssues ++ subjIssues
     _ -> []
-  in {-traceIt "issues" $ -}(frames >>= frameIssues) ++ (if hasCP then [] else ["no clause"])
+  in {-traceIt "issues" $ -}(frames >>= frameIssues)
+    ++ (if hasCP then [] else ["no clause"])
+    ++ (frames >>= incompleteIsolation)
+    ++ (frames >>= incompleteSeq)

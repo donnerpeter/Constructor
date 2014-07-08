@@ -9,9 +9,9 @@ var1 = TestLabel "sonnetVariations 1" $ TestList [
   translateTest "Я вдруг забыл, что - 7 или 8 - идет раньше"
                 "I suddenly forgot what comes first - 7 or 8"
   ,
---todo comma-separated questionVariants
---  translateTest "Я вдруг забыл, что, 7 или 8, идет раньше" "I suddenly forgot what comes first - 7 or 8"
---  ,
+  translateTest "Я вдруг забыл, что, 7 или 8, идет раньше"
+                "I suddenly forgot what comes first - 7 or 8"
+  ,
   translateTest "Я вдруг забыл, кого я видел - кассиршу или соседей"
                 "I suddenly forgot who I saw - the cashier or my neighbors"
   ,

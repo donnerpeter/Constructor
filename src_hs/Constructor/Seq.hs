@@ -107,7 +107,7 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
           Possessive caze1 agr1 child -> handleAdj child caze1 agr1 $ \newAgr -> Possessive caze1 newAgr seqV
           Adj child caze1 agr1 -> handleAdj child caze1 agr1 $ \newAgr -> CompositeAdj seqV caze1 newAgr
           CompositeAdj child caze1 agr1 -> handleAdj child caze1 agr1 $ \newAgr -> CompositeAdj seqV caze1 newAgr
-          Complement child | kindMatches Complement -> withBase [m1,m2] [semV seqV "member1" child, conjWithLeft, mite $ Complement seqV]
+          Complement child | kindMatches Complement -> withBase [m1,m2] [semV seqV "member1" child] ++ [conjWithLeft, mite $ Complement seqV]
           PrepositionActivator prep kind child cxt | kindMatches (\var -> PrepositionActivator prep kind var $ stripVar cxt var) ->
            withBase [m1,m2] [semV seqV "member1" child, conjWithLeft, mite $ PrepositionActivator prep kind seqV $ stripVar cxt seqV]
           Clause force child -> case maybeKind of

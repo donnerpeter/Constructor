@@ -458,7 +458,8 @@ clause fVerb = do
     according <- generateAccording fVerb
     return $ intro `cat` emphasis `cat` according `cat` coreWithBackground `cat` condComp `cat` reasonComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
 
-isQuestioned frame = hasType "wh" frame || Just True == fmap isQuestioned (fValue "arg1" frame) || Just True == fmap isQuestioned (fValue "author" frame)
+isQuestioned frame = flip any (flatten $ Just frame) $ \frame ->
+  hasType "wh" frame || Just True == fmap isQuestioned (fValue "arg1" frame) || Just True == fmap isQuestioned (fValue "author" frame)
 
 beForm fSubject verbForm =
   if verbForm == PastVerb then

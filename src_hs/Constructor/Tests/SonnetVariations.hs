@@ -784,9 +784,9 @@ varUnsorted = TestLabel "sonnetVariations unsorted" $ TestList [
   -- CashierGoesAfterVasya
   translateTest "Кассир идет после Васи"
                 "The cashier goes after Vasya"
--- _testWhoseOpinion
---todo  translateTest "Я забыл, по чьему мнению семь идет после восьми."
---                "I forgot in whose opinion a seven comes after an eight."
+  ,
+  translateTest "Я забыл, по чьему мнению семь идет после восьми."
+                "I forgot in whose opinion a seven comes after an eight."
 --  ,
 -- _testAccordingToWhom
 --todo  translateTest "Я забыл, по чьим словам семь идет после восьми."

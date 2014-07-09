@@ -292,6 +292,7 @@ wordMites word index =
                 whWord Acc v ++ [mite $ Argument Acc v0, mite $ AdjHead v0 Acc A.n3],
                 [mite $ Complementizer v0],
                 [mite $ TwoWordCxt "потому что" False [] v0]]
+  "чьему" -> whWord Gen v ++ [semS v0 "animate" "true"] ++ xor [[mite $ Possessive Dat A.m v0], [mite $ Possessive Dat A.n v0]]
   "шести" -> wordNumber Gen "6" v
   "это" -> xor [pronoun Nom (A.Agr (Just A.Neu) (Just A.Sg) $ Just 3) "THIS" v, pronoun Acc (A.Agr (Just A.Neu) (Just A.Sg) $ Just 3) "THIS" v]
   "этому" -> adj Dat A.sg "determiner" "THIS" v

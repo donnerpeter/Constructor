@@ -157,7 +157,7 @@ fDeterminer frame =
   else if hasAnyType ["CASHIER"] frame then fValue "place" frame
   else Nothing
 
-isDeterminerOpinion frame = all (hasAnyType ["ME", "THEY", "HE", "SHE"]) (flatten $ fValue "arg1" frame)
+isDeterminerOpinion frame = unSeq frame == frame && all (hasAnyType ["ME", "THEY", "HE", "SHE", "wh"]) (flatten $ fValue "arg1" frame)
 determiner frame nbar =
   let det = fDeterminer frame
       genitiveSpecifier det =

@@ -65,8 +65,8 @@ data Construction = Word Variable String
                   | RelativeClause Variable
                   | Complement Variable
                   | Complementizer Variable
-                  | SurroundingComma {-closing-} Bool Variable
-                  | SurroundingDash {-closing-} Bool Variable
+                  | SurroundingComma Variable
+                  | SurroundingDash Variable
                   | Colon {-role-} String Variable
                   | Quote Variable {-closing-} Bool
                   | QuotedWord Construction {-closed-} Bool

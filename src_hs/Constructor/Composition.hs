@@ -100,19 +100,19 @@ punctuationAware leftMites rightMites (m1, m2) =
       (Verb head, CommaSurrounded True _ (ReasonComp cp _)) ->
         mergeLeft $ base12 [semV head "reason" cp] ++ liftUnclosedCompatible RightSide
 
-      (SurroundingComma False _, toWrap) | Just v <- getCommaSurroundableVar toWrap ->
+      (SurroundingComma _, toWrap) | Just v <- getCommaSurroundableVar toWrap ->
         mergeLeft $
           base12 [mite $ CommaSurrounded True False toWrap, semS v "isolation" "comma", semS v "leftIsolated" "true"]
           ++ checkClosed False RightSide v
-      (toWrap, SurroundingComma True _) | Just v <- getCommaSurroundableVar toWrap ->
+      (toWrap, SurroundingComma _) | Just v <- getCommaSurroundableVar toWrap ->
         mergeRight $
           base12 [mite $ CommaSurrounded False True toWrap, semS v "isolation" "comma", semS v "rightIsolated" "true"]
           ++ checkClosed False LeftSide v
-      (CommaSurrounded True False cxt, SurroundingComma True _) ->
+      (CommaSurrounded True False cxt, SurroundingComma _) ->
         mergeLeft $ base12 [mite $ CommaSurrounded True True cxt] ++ closeUnclosed LeftSide Satisfied
 
-      (SurroundingDash False _, toWrap@(Argument {})) -> left [mite $ DashSurrounded True False toWrap]
-      (DashSurrounded True False cxt, SurroundingDash True _) -> left [mite $ DashSurrounded True True cxt]
+      (SurroundingDash _, toWrap@(Argument {})) -> left [mite $ DashSurrounded True False toWrap]
+      (DashSurrounded True False cxt, SurroundingDash _) -> left [mite $ DashSurrounded True True cxt]
 
       (QuestionVariants v kind, DashSurrounded True closed (Argument kind2 child)) | kind == kind2 ->
         mergeLeft $ base12 [semV v "variants" child] ++ checkClosed closed RightSide child

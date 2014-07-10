@@ -299,12 +299,11 @@ wordMites word index =
   "этому" -> adj Dat A.sg "determiner" "THIS" v
   "я" -> pronoun Nom (A.Agr Nothing (Just A.Sg) $ Just 1) "ME" v
   ":" -> xor [[mite $ Colon "directSpeech" v0], [mite $ Colon "elaboration" v0]]
-  "-" -> xor [[mite $ SurroundingDash False v0],
-              [mite $ SurroundingDash True v0],
+  "-" -> xor [[mite $ SurroundingDash v0],
               [mite $ DirectSpeechDash v0],
               [mite $ Ellipsis v0 Nothing Nothing, semS v0 "ellipsis" "true"]
              ]
-  "," -> xor [[mite $ SurroundingComma False v0], [mite $ SurroundingComma True v0], conjunction v0 "," True]
+  "," -> xor [[mite $ SurroundingComma v0], conjunction v0 "," True]
   "\"" -> xor [[mite $ Quote v0 True], [mite $ Quote v0 False]]
   _ ->
     if "ой" `isSuffixOf` word then 

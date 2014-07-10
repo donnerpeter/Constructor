@@ -63,6 +63,7 @@ ellipsisLeftVariants leftMites rightMites = if null result then [] else mergeRig
     Ellipsis v Nothing rightCxt@(Just _) -> leftMites >>= \m1 -> case cxt m1 of
       VerbalModifier _ _ anchor -> withBase [m1,m2] [mite $ Ellipsis v (Just $ cxt m1) rightCxt]
         ++ [semV v "ellipsisAnchor1" anchor] ++ xor [[mite $ Clause Declarative v], [mite $ Clause Interrogative v]]
+        ++ liftUnclosed LeftSide (filter (not . contradict m1) leftMites)
       _ -> []
     _ -> []
 
@@ -70,7 +71,7 @@ punctuationAware leftMites rightMites (m1, m2) =
     let (left, right, base12) = mergeInfoHelpers m1 m2
         compatibleChildren side = filter (not. contradict (select side m1 m2)) $ select side leftMites rightMites
         liftUnclosedCompatible side = liftUnclosed side (compatibleChildren side)
-        checkClosed closed side v = if closed then liftUnclosedCompatible side else let
+        addUnclosed side v = let
           lifted = compatibleChildren side >>= \m -> case cxt m of
             Unclosed s vars | s == side -> withBase [m,m1,m2] [mite $ Unclosed side (v:vars)]
             _ -> []
@@ -81,15 +82,17 @@ punctuationAware leftMites rightMites (m1, m2) =
             ++ (if satisfied == Satisfied then map (\v -> semS v (select side "left" "right" ++ "Isolated") "true") vars else [])
           _ -> []
     in case (cxt m1, cxt m2) of
-      (AdjHead head _ _, CommaSurrounded True closed (NounAdjunct attr True var)) ->
-        mergeLeft $ base12 [semV head attr var] ++ liftUnclosedCompatible RightSide
-      (CompHead comp, CommaSurrounded True closed (Complement cp)) ->
-        mergeLeft $ base12 [mite $ Unify comp cp] ++ liftUnclosedCompatible RightSide
-      (RelativeHead noun, CommaSurrounded True closed (RelativeClause cp)) ->
-        mergeLeft $ base12 [semV noun "relative" cp] ++ liftUnclosedCompatible RightSide
+      (AdjHead head _ _, CommaSurrounded True _ (NounAdjunct attr True var)) -> mergeLeft $
+        base12 [semV head attr var] ++ liftUnclosedCompatible RightSide
+      (CompHead comp, CommaSurrounded True _ (Complement cp)) -> mergeLeft $
+        base12 [mite $ Unify comp cp] ++ liftUnclosedCompatible RightSide
+      (RelativeHead noun, CommaSurrounded True _ (RelativeClause cp)) -> mergeLeft $
+        base12 [semV noun "relative" cp] ++ liftUnclosedCompatible RightSide
 
-      (CommaSurrounded _ closed (VerbalModifier attr True advP), Verb verb) ->
-        mergeRight $ base12 [semV verb attr advP] ++ closeUnclosed LeftSide (if closed then Satisfied else Unsatisfied) ++ liftUnclosedCompatible LeftSide
+      (CommaSurrounded _ closed (VerbalModifier attr True advP), Verb verb) -> mergeRight $
+        base12 [semV verb attr advP]
+        ++ closeUnclosed LeftSide (if closed then Satisfied else Unsatisfied)
+        ++ liftUnclosedCompatible LeftSide
       (Verb verb, CommaSurrounded True _ (VerbalModifier attr True advP)) ->
         mergeLeft $ base12 [semV verb attr advP] ++ liftUnclosedCompatible RightSide
 
@@ -100,24 +103,24 @@ punctuationAware leftMites rightMites (m1, m2) =
       (Verb head, CommaSurrounded True _ (ReasonComp cp _)) ->
         mergeLeft $ base12 [semV head "reason" cp] ++ liftUnclosedCompatible RightSide
 
-      (SurroundingComma _, toWrap) | Just v <- getCommaSurroundableVar toWrap ->
-        mergeLeft $
-          base12 [mite $ CommaSurrounded True False toWrap, semS v "isolation" "comma", semS v "leftIsolated" "true"]
-          ++ checkClosed False RightSide v
-      (toWrap, SurroundingComma _) | Just v <- getCommaSurroundableVar toWrap ->
-        mergeRight $
-          base12 [mite $ CommaSurrounded False True toWrap, semS v "isolation" "comma", semS v "rightIsolated" "true"]
-          ++ checkClosed False LeftSide v
+      (SurroundingComma _, toWrap) | Just v <- getCommaSurroundableVar toWrap -> mergeLeft $
+        base12 [mite $ CommaSurrounded True False toWrap, semS v "isolation" "comma", semS v "leftIsolated" "true"]
+        ++ addUnclosed RightSide v
+      (toWrap, SurroundingComma _) | Just v <- getCommaSurroundableVar toWrap -> mergeRight $
+        base12 [mite $ CommaSurrounded False True toWrap, semS v "isolation" "comma", semS v "rightIsolated" "true"]
+        ++ addUnclosed LeftSide v
       (CommaSurrounded True False cxt, SurroundingComma _) ->
         mergeLeft $ base12 [mite $ CommaSurrounded True True cxt] ++ closeUnclosed LeftSide Satisfied
 
-      (SurroundingDash _, toWrap@(Argument {})) -> left [mite $ DashSurrounded True False toWrap]
-      (DashSurrounded True False cxt, SurroundingDash _) -> left [mite $ DashSurrounded True True cxt]
+      (SurroundingDash _, toWrap@(Argument _ v)) -> mergeRight $
+        base12 [mite $ DashSurrounded True False toWrap, semS v "isolation" "dash", semS v "leftIsolated" "true"] ++ addUnclosed RightSide v
+      (DashSurrounded True False cxt, SurroundingDash _) ->
+        mergeLeft $ base12 [mite $ DashSurrounded True True cxt] ++ closeUnclosed LeftSide Satisfied
 
       (QuestionVariants v kind, DashSurrounded True closed (Argument kind2 child)) | kind == kind2 ->
-        mergeLeft $ base12 [semV v "variants" child] ++ checkClosed closed RightSide child
+        mergeLeft $ base12 [semV v "variants" child] ++ liftUnclosedCompatible RightSide
       (QuestionVariants v kind, CommaSurrounded True closed (Argument kind2 child)) | kind == kind2 ->
-        mergeLeft $ base12 [semV v "variants" child] ++ checkClosed closed RightSide child
+        mergeLeft $ base12 [semV v "variants" child] ++ liftUnclosedCompatible RightSide
 
       (Clause Declarative cp, Word _ ".") ->
         mergeLeft $ base12 [semS cp "dot" "true", mite $ Sentence cp] ++ closeUnclosed LeftSide Satisfied

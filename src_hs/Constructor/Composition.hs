@@ -5,6 +5,7 @@ import Constructor.Agreement
 import Constructor.Tree
 import Constructor.Util
 import qualified Constructor.Seq as Seq
+import qualified Constructor.LinkedSet as LS
 
 data MergeInfo = MergeInfo {mergeResult::[Mite], mergedHeadSide::Side} deriving (Show,Eq,Ord)
 mergeLeft mites = [MergeInfo mites LeftSide]
@@ -19,8 +20,10 @@ interactNodes leftTree leftMites rightMites = {-traceIt ("    interact") $ -}if 
 
   pairs = [(m1, m2) | m1 <- leftMites, isInteractive m1, m2 <- rightMites, isInteractive m2]
   questionable whContext = pairs >>= questionableArguments leftMites rightMites whContext
-  nonQuestionable = (pairs >>= interactUnsorted leftMites rightMites) ++ (pairs >>= punctuationAware leftMites rightMites) ++ seqVariants
-
+  nonQuestionable = (pairs >>= interactUnsorted leftMites rightMites)
+                 ++ (pairs >>= punctuationAware leftMites rightMites)
+                 ++ seqVariants
+                 ++ ellipsisLeftVariants leftMites rightMites
   noWh = questionable False ++ nonQuestionable
 
   whResults = leftMites >>= \whMite -> let
@@ -53,6 +56,14 @@ propagateUnclosed leftMites rightMites (MergeInfo mites side) = MergeInfo (mites
 liftUnclosed side childMites = childMites >>= \m -> case cxt m of
   Unclosed s _ | s == side -> withBase [m] $ [mite $ cxt m]
   _ -> []
+
+ellipsisLeftVariants leftMites rightMites = if null result then [] else mergeRight $ LS.removeDups result where
+  result = rightMites >>= \m2 -> case cxt m2 of
+    Ellipsis v Nothing rightCxt@(Just _) -> leftMites >>= \m1 -> case cxt m1 of
+      VerbalModifier _ _ anchor -> withBase [m1,m2] [mite $ Ellipsis v (Just $ cxt m1) rightCxt]
+        ++ [semV v "ellipsisAnchor1" anchor] ++ xor [[mite $ Clause Declarative v], [mite $ Clause Interrogative v]]
+      _ -> []
+    _ -> []
 
 punctuationAware leftMites rightMites (m1, m2) =
     let (left, right, base12) = mergeInfoHelpers m1 m2
@@ -111,9 +122,6 @@ punctuationAware leftMites rightMites (m1, m2) =
       (DirectSpeechDash v, Sentence cp) ->
         mergeLeft $ base12 [mite $ DirectSpeech cp, semS cp "directSpeech" "true"] ++ closeUnclosed RightSide Satisfied
 
-      (leftCxt@(VerbalModifier _ _ anchor), Ellipsis v Nothing rightCxt@(Just _)) ->
-        right $ [mite $ Ellipsis v (Just leftCxt) rightCxt, semV v "ellipsisAnchor1" anchor]
-                ++ (xor [[mite $ Clause Declarative v], [mite $ Clause Interrogative v]])
       (Ellipsis v leftCxt Nothing, rightCxt@(Argument _ anchor)) ->
         left $ [mite $ Ellipsis v leftCxt (Just rightCxt), semV v "ellipsisAnchor2" anchor]
 

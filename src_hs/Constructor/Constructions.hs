@@ -37,8 +37,8 @@ data Construction = Word Variable String
                   | Adverb Variable
                   | NounAdjunct {-attr-} String {-requires comma-} Bool Variable
                   | Elaboration Variable
-                  | Unclosed Side Variable
-                  | Closed Variable
+                  | Unclosed Side [Variable]
+                  | Closed [Variable]
                   | CompHead Variable
                   | ConditionCompHead Variable
                   | Wh Variable

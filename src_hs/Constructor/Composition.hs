@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase, ViewPatterns #-}
 module Constructor.Composition (interactNodes, MergeInfo(..)) where
 import Constructor.Constructions
 import Constructor.Mite
@@ -67,11 +68,17 @@ ellipsisLeftVariants leftMites rightMites = if null result then [] else mergeRig
 
 punctuationAware leftMites rightMites (m1, m2) =
     let (left, right, base12) = mergeInfoHelpers m1 m2
-        liftUnclosedCompatible side = liftUnclosed side $ filter (not. contradict (select side m1 m2)) $ select side leftMites rightMites
-        checkClosed closed side v = xor $ filter (not . null) $ [liftUnclosedCompatible side] ++ (if closed then [] else [base12 [mite $ Unclosed side v]])
+        compatibleChildren side = filter (not. contradict (select side m1 m2)) $ select side leftMites rightMites
+        liftUnclosedCompatible side = liftUnclosed side (compatibleChildren side)
+        checkClosed closed side v = if closed then liftUnclosedCompatible side else let
+          lifted = compatibleChildren side >>= \m -> case cxt m of
+            Unclosed s vars | s == side -> withBase [m,m1,m2] [mite $ Unclosed side (v:vars)]
+            _ -> []
+          in xor $ (if null lifted then [] else [lifted]) ++ [base12 [mite $ Unclosed side [v]]]
         closeUnclosed side satisfied = (select side leftMites rightMites) >>= \m -> case cxt m of
-          Unclosed s v | s == invert side -> withBase [m, m2] $
-            optional $ [mite $ Closed v] ++ (if satisfied == Satisfied then [semS v (select side "left" "right" ++ "Isolated") "true"] else [])
+          Unclosed s vars | s == invert side -> withBase [m, m2] $
+            optional $ [mite $ Closed vars]
+            ++ (if satisfied == Satisfied then map (\v -> semS v (select side "left" "right" ++ "Isolated") "true") vars else [])
           _ -> []
     in case (cxt m1, cxt m2) of
       (AdjHead head _ _, CommaSurrounded True closed (NounAdjunct attr True var)) ->
@@ -84,7 +91,7 @@ punctuationAware leftMites rightMites (m1, m2) =
       (CommaSurrounded _ closed (VerbalModifier attr True advP), Verb verb) ->
         mergeRight $ base12 [semV verb attr advP] ++ closeUnclosed LeftSide (if closed then Satisfied else Unsatisfied) ++ liftUnclosedCompatible LeftSide
       (Verb verb, CommaSurrounded True _ (VerbalModifier attr True advP)) ->
-        mergeLeft $ base12 [semV verb attr advP] ++ liftUnclosedCompatible RightSide ++ liftUnclosedCompatible RightSide
+        mergeLeft $ base12 [semV verb attr advP] ++ liftUnclosedCompatible RightSide
 
       (ConditionCompHead head, CommaSurrounded True _ (ConditionComp cp cond _)) ->
         mergeLeft $ base12 [semV head (cond++"Condition") cp] ++ liftUnclosedCompatible RightSide
@@ -144,7 +151,7 @@ questionableArguments leftMites rightMites whContext (m1, m2) = map (propagateUn
 
       (Verb verb, VerbalModifier attr False advP) -> left [semV verb attr advP]
       (VerbalModifier attr needComma advP, Verb verb) -> right $
-        [semV verb attr advP] ++ (if needComma && not whContext then [semS advP "isolation" "comma", mite $ Unclosed LeftSide advP] else [])
+        [semV verb attr advP] ++ (if needComma && not whContext then [semS advP "isolation" "comma", mite $ Unclosed LeftSide [advP]] else [])
 
       _ -> []
 
@@ -190,7 +197,7 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
         in mergeLeft (argMites ++ adjunctMites ++ extra)
 
       (Colon "elaboration" _, Clause Declarative cp) -> left [mite $ Elaboration cp]
-      (Verb head, Elaboration child) -> left [semV head "elaboration" child, mite $ Unclosed RightSide child]
+      (Verb head, Elaboration child) -> left [semV head "elaboration" child, mite $ Unclosed RightSide [child]]
 
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
       (Verb v, Word _ "бы") -> left [semS v "irrealis" "true"]

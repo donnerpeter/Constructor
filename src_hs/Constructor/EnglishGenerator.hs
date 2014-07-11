@@ -103,6 +103,7 @@ np_internal nom mayHaveDeterminer frame = do
           nbar1 = adjs `cat` n
       nbar <- case getType frame of
          Just "ORDER" | Just poss <- fValue "arg1" frame -> handleSeq (np_internal True False) (Just poss) `catM` return nbar1
+         Just "STREET" | not (prefixName frame) -> return nbar1 `catM` return (streetName frame)
          _ | Just loc <- fValue "location" frame -> return nbar1 `catM` return "on" `catM` np False (Just loc)
          _ | Just src <- fValue "source" frame -> return nbar1 `catM` return "from" `catM` np False (Just src)
          _ -> return nbar1
@@ -186,7 +187,7 @@ determiner frame nbar =
       if sDet == Just "THIS" then "this"
       else if sDet == Just "ANY" then "any"
       else if isJust (fValue "quantifier" frame) then ""
-      else if hasType "STREET" frame then streetName frame
+      else if hasType "STREET" frame && prefixName frame then streetName frame
       else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING", "MONEY", "COUNTING", "APARTMENTS", "OFFICES", "HOMES"] frame then ""
       else if hasAnyType ["NAMED_PERSON"] frame then ""
       else if hasType "OPINION" frame && Just True == fmap isVerbEllipsis (usage "accordingTo" frame) then ""
@@ -194,6 +195,8 @@ determiner frame nbar =
       else if "a" `isPrefixOf` nbar || "e" `isPrefixOf` nbar || "8" `isPrefixOf` nbar then "an"
       else if isSingular frame then "a"
       else ""
+
+prefixName frame = earlier frame "name" frame "type"
 
 isVerbEllipsis verb = Just "true" == (usage "content" verb >>= sValue "ellipsis")
 

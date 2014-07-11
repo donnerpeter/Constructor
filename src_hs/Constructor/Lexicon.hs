@@ -308,6 +308,7 @@ wordMites word index =
   _ ->
     if "ой" `isSuffixOf` word then 
       let nomName = take (length word - 2) word ++ "ая" in
-      xor [[mite $ Adj (v "") Gen A.f, semS v0 "name" nomName],
-           nounSg Gen Fem "STREET" v ++ [semS v0 "name" nomName, semS v0 "inferredNoun" "true"] ++ optional [mite $ PrepositionActivator "s" Gen v0 $ NounAdjunct "source" False v0]]
+      [semS v0 "name" nomName] ++
+      xor [[mite $ Adj (v "") Gen A.f],
+           nounSg Gen Fem "STREET" v ++ [semS v0 "inferredNoun" "true"] ++ optional [mite $ PrepositionActivator "s" Gen v0 $ NounAdjunct "source" False v0]]
     else [mite $ Word v0 word]

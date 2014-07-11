@@ -63,7 +63,7 @@ calcCandidateSets mites = {-trace ("---contradictors:", length mites, length res
   enumerate mites chosen uncovered =
     if any (\mite -> not $ hasContradictors mite mites) uncovered then []
     else case mites of
-      [] -> assert (null uncovered) [chosen]
+      [] -> assert (null uncovered) [reverse chosen]
       mite:rest -> includeMite++omitMite where
         includeMite = if contradictsChosen then [] else enumerate nextUnprocessed (mite:chosen) nextUncovered where
           contradictsChosen = any (flip Set.member contras) chosen

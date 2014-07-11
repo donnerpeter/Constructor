@@ -131,7 +131,7 @@ wordMites word index =
     finiteClause A.n3 True v ++ [mite $ Copula v0, mite $ TenseHead v0, semT (v "wh") "wh", semT v0 "degree", semV v0 "arg2" (v "wh"), mite $ ShortAdj (v "wh")]
   "какой-то" -> adj Nom A.sg "determiner" "SOME" v
   "кассир" -> nounSg Nom Masc "CASHIER" v ++ genHead "place" v
-  "кассирша" -> nounSg Nom Fem "CASHIER" v ++ genHead "place" v
+  "кассирша" -> nounSg Nom Fem "CASHIER" v -- ++ genHead "place" v
   "кассирши" -> nounSg Gen Fem "CASHIER" v ++ genHead "place" v
   "кассиршу" -> nounSg Acc Fem "CASHIER" v ++ genHead "place" v
   "квартирам" -> nounPl Dat "APARTMENTS" v ++ genHead "owner" v
@@ -281,7 +281,7 @@ wordMites word index =
   "удивление" -> nounSg Nom Neu "AMAZE" v ++ genHead "arg1" v
   "уже" -> sAdverb "anchor" "ALREADY" v
   "улиц" -> nounPl Gen "STREETS" v
-  "улицы" -> nounSg Gen Fem "STREET" v
+  "улицы" -> nounSg Gen Fem "STREET" v ++ optional [mite $ PrepositionActivator "s" Gen v0 $ NounAdjunct "source" False v0]
   "улыбнулась" -> finVerb "SMILE" "PAST" A.f v
   "умной" -> [mite $ Raiseable A.f v0, semT v0 "CLEVER"]
   "челюсти" -> xor[nounSg Gen Fem "JAW" v, nounPl Nom "JAWS" v, nounPl Acc "JAWS" v]
@@ -309,5 +309,5 @@ wordMites word index =
     if "ой" `isSuffixOf` word then 
       let nomName = take (length word - 2) word ++ "ая" in
       xor [[mite $ Adj (v "") Gen A.f, semS v0 "name" nomName],
-           nounSg Gen Fem "STREET" v ++ [semS v0 "name" nomName] ++ optional [mite $ PrepositionActivator "s" Gen v0 $ NounAdjunct "source" False v0]]
+           nounSg Gen Fem "STREET" v ++ [semS v0 "name" nomName, semS v0 "inferredNoun" "true"] ++ optional [mite $ PrepositionActivator "s" Gen v0 $ NounAdjunct "source" False v0]]
     else [mite $ Word v0 word]

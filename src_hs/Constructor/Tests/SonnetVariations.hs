@@ -805,10 +805,9 @@ varUnsorted = TestLabel "sonnetVariations unsorted" $ TestList [
   ,
   translateTest "Кассирша с Бассейной идет в магазин"
                 "The cashier from Basseinaya street goes to the store"
---  ,
--- _testCashierFromBasseinayaStreetGoesToTheShop
---todo  translateTest "Кассирша с Бассейной улицы идет в магазин"
---                "The cashier from Basseinaya street goes to the store"
+  ,
+  translateTest "Кассирша с Бассейной улицы идет в магазин"
+                "The cashier from Basseinaya street goes to the store"
 --  ,
 -- _testCashierFromStreetBasseinayaGoesToTheShop
 --todo  translateTest "Кассирша с улицы Бассейной идет в магазин"

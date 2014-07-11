@@ -127,3 +127,6 @@ getCommaSurroundableVar cxt = case cxt of
   NounAdjunct _ True v -> Just v
   Argument _ v -> Just v
   _ -> Nothing
+
+isStable (Conjunction sd) = seqHasLeft sd == isJust (seqRightVar sd) || seqConj sd == ","
+isStable _ = True

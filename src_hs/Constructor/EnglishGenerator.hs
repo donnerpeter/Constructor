@@ -102,12 +102,10 @@ np_internal nom mayHaveDeterminer frame = do
           adjs = foldl cat "" $ adjectives frame
           nbar1 = adjs `cat` n
       nbar <- case getType frame of
-         Just "ORDER" -> case fValue "arg1" frame of
-           Just poss -> handleSeq (np_internal True False) (Just poss) `catM` return nbar1
-           _ -> return nbar1
-         _ -> case fValue "location" frame of
-           Just loc -> return nbar1 `catM` return "on" `catM` np False (Just loc)
-           _ -> return nbar1
+         Just "ORDER" | Just poss <- fValue "arg1" frame -> handleSeq (np_internal True False) (Just poss) `catM` return nbar1
+         _ | Just loc <- fValue "location" frame -> return nbar1 `catM` return "on" `catM` np False (Just loc)
+         _ | Just src <- fValue "source" frame -> return nbar1 `catM` return "from" `catM` np False (Just src)
+         _ -> return nbar1
       genitiveComplement <- case getType frame of
         Just "CORNER" -> case fValue "arg1" frame of
           Just gen -> return "of" `catM` np False (Just gen)

@@ -224,7 +224,7 @@ wordMites word index =
   "ребенок" -> nounSg Nom Masc "CHILD" v
   "речь" -> nounSg Nom Fem "SPEECH" v ++ genHead "arg1" v
   "рта" -> nounSg Gen Masc "MOUTH" v
-  "с" -> preposition "s" Instr v
+  "с" -> xor [preposition "s" Instr v, preposition "s" Gen v]
   "сад" -> nounSg Acc Masc "GARDEN" v
   "сада" -> nounSg Gen Masc "GARDEN" v
   "свалился" -> finVerb "FALL" "PAST" A.m v ++ arg (PP "s" Gen) "source" v
@@ -308,5 +308,6 @@ wordMites word index =
   _ ->
     if "ой" `isSuffixOf` word then 
       let nomName = take (length word - 2) word ++ "ая" in
-      xor [[mite $ Adj (v "") Gen A.f, semS v0 "name" nomName], nounSg Gen Fem "STREET" v ++ [semS v0 "name" nomName]]
+      xor [[mite $ Adj (v "") Gen A.f, semS v0 "name" nomName],
+           nounSg Gen Fem "STREET" v ++ [semS v0 "name" nomName] ++ optional [mite $ PrepositionActivator "s" Gen v0 $ NounAdjunct "source" False v0]]
     else [mite $ Word v0 word]

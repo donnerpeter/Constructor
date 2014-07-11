@@ -2,6 +2,7 @@ module Constructor.ParsingState where
 
 import Data.Maybe
 import Data.List
+import Constructor.Constructions (isStable)
 import Constructor.Mite
 import Constructor.Tree
 import Constructor.Util
@@ -40,7 +41,8 @@ mergeTrees:: ParsingState -> ParsingState
 mergeTrees state = {-trace ("--------------", length allVariants, [(sortingKey v, v) | v <- allVariants]) $ -}result where
   result = head $ leastValued stateIssueCount $ leastValued unhappyCount $ leastValued (length . roots) allVariants
   unhappyCount state = sum [length $ unhappyActiveMites tree | tree <- roots state]
-  allVariants = tryStealing (roots state)
+  isStableState state = all isStable $ map cxt $ (roots state >>= mites)
+  allVariants = filter isStableState $ tryStealing (roots state)
   tryStealing :: [Tree] -> [ParsingState]
   tryStealing trees = [state { roots = trees }] ++ case trees of
     right:left:rest -> let

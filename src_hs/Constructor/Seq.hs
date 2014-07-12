@@ -26,7 +26,7 @@ seqRight leftMites rightMites = {-traceIt "seqRight" $ -}result where
   hasConjEmphasis = any (any isConjEmphasis . baseMites) rightMites
   isConjEmphasis = \case (cxt -> ConjEmphasis {}) -> True; _ -> False
   result = leftMites >>= \m1 -> case cxt m1 of
-   Conjunction sd@(SeqData { seqVar=v, seqReady=True, seqHasLeft=False, seqRightVar=Nothing, seqConj=conj}) ->
+   Conjunction sd@(SeqData { seqVar=v, seqHasLeft=False, seqRightVar=Nothing, seqConj=conj}) ->
     if hasSeqFull conj || hasConjEmphasis then [] else rightMites >>= \m2 -> let
      conjWithRight var = mite $ Conjunction $ sd {seqKind=Just (cxt m2), seqRightVar=Just var}
      distinguished mite = case cxt mite of
@@ -67,15 +67,12 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
     Conjunction (SeqData { seqHasLeft=True, seqRightVar=(Just _), seqConj=c}) | not $ isSeqContinuation c conj -> True
     _ -> False
   result = rightMites >>= \m2 -> case cxt m2 of
-    Conjunction sd@(SeqData { seqVar=seqV, seqReady=True, seqKind=maybeKind, seqHasLeft=False, seqConj=conj}) ->
+    Conjunction sd@(SeqData { seqVar=seqV, seqReady=True, seqKind=Just seqKind, seqRightVar=Just rightVar, seqHasLeft=False, seqConj=conj}) ->
       if contradictsSeq conj then [] else leftMites >>= \m1 -> let
-        conjWithLeft = mite $ Conjunction $ sd {seqKind=Just (cxt m1), seqHasLeft=True}
-        kindMatches kind = case (maybeKind, seqRightVar sd) of
-          (Just x, Just v) -> x == kind v
-          _ -> maybeKind == Nothing
+        conjWithLeft = mite $ Conjunction $ sd {seqHasLeft=True}
         handleAdj :: Variable -> ArgKind -> Agr -> (Agr -> Construction) -> [Mite]
-        handleAdj child caze1 agr1 result = case maybeKind of
-          Just (Adj _ caze2 agr2) | caze1 == caze2 && adjAgree agr1 agr2 -> let
+        handleAdj child caze1 agr1 result = case seqKind of
+          Adj _ caze2 agr2 | caze1 == caze2 && adjAgree agr1 agr2 -> let
             adjAgrVariants = [mite $ result (Agr Nothing (Just Pl) Nothing)]
             allVariants = if agree agr1 agr2 then xor [adjAgrVariants, [mite $ result (commonAgr agr1 agr2)]] else adjAgrVariants
             in withBase [m1,m2] $ [semV seqV "member1" child, conjWithLeft] ++ allVariants
@@ -98,18 +95,18 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
           combined -> combined
         adjHeadCompanions child kind = if kind `elem` cases then withBase [m2] [mite $ AdjHead seqV kind (Agr Nothing (Just Pl) Nothing)] else []
         in case cxt m1 of
-          Argument kind child | kindMatches (Argument kind) -> -- traceIt "arg" $
+          Argument kind child | seqKind == Argument kind rightVar -> -- traceIt "arg" $
             withBase [m1,m2] ([semV seqV "member1" child, conjWithLeft, mite $ Argument kind seqV] ++ combineThyself)
             ++ adjHeadCompanions child kind ++ argUnifications
-          VerbalModifier attr comma child | kindMatches (VerbalModifier attr comma) -> withBase [m1,m2] [semV seqV "member1" child, conjWithLeft, mite $ VerbalModifier attr comma seqV]
+          VerbalModifier attr comma child | seqKind == VerbalModifier attr comma rightVar -> withBase [m1,m2] [semV seqV "member1" child, conjWithLeft, mite $ VerbalModifier attr comma seqV]
           Possessive caze1 agr1 child -> handleAdj child caze1 agr1 $ \newAgr -> Possessive caze1 newAgr seqV
           Adj child caze1 agr1 -> handleAdj child caze1 agr1 $ \newAgr -> CompositeAdj seqV caze1 newAgr
           CompositeAdj child caze1 agr1 -> handleAdj child caze1 agr1 $ \newAgr -> CompositeAdj seqV caze1 newAgr
-          Complement child | kindMatches Complement -> withBase [m1,m2] [semV seqV "member1" child] ++ [conjWithLeft, mite $ Complement seqV]
-          PrepositionActivator prep kind child cxt | kindMatches (\var -> PrepositionActivator prep kind var $ stripVar cxt var) ->
+          Complement child | seqKind == Complement rightVar -> withBase [m1,m2] [semV seqV "member1" child] ++ [conjWithLeft, mite $ Complement seqV]
+          PrepositionActivator prep kind child cxt | seqKind == PrepositionActivator prep kind rightVar (stripVar cxt rightVar) ->
             optional $ withBase [m1,m2] [semV seqV "member1" child, conjWithLeft, mite $ PrepositionActivator prep kind seqV $ stripVar cxt seqV]
-          Clause force child -> case maybeKind of
-            Just (Clause force2 _) | force == force2 -> let
+          Clause force child -> case seqKind of
+            Clause force2 _ | force == force2 -> let
                  unifications = xor $ filter (not . null) $
                    [unifyMissingArgument mite1 mite2 | mite1 <- filter (not . contradict m1) leftMites,
                                                        mite2 <- filter (not . contradict m2) rightMites]

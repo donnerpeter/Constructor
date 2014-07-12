@@ -217,7 +217,8 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
 
       (TwoWordCxt s1 True wrapped _, TwoWordCxt s2 False _ _) | s1 == s2 -> left $ map mite wrapped
       
-      (Conjunction (SeqData {seqVar=v1, seqConj=",", seqHasLeft=False, seqRightVar=Nothing}), Conjunction sd@(SeqData {seqVar=v2, seqConj="but", seqReady=False})) ->
+      (Conjunction    (SeqData {seqVar=v1, seqConj=",", seqHasLeft=False, seqRightVar=Nothing}),
+       Conjunction sd@(SeqData {seqVar=v2, seqConj="but", seqReady=False, seqRightVar=Just _})) ->
           right [mite $ Conjunction $ sd {seqReady=True}, mite $ Unify v1 v2]
 
       (Quote _ False, word@(Word {})) -> left [mite $ QuotedWord word False]

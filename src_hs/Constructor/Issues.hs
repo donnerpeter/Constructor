@@ -1,4 +1,4 @@
-module Constructor.Issues where
+module Constructor.Issues (Issue, issues) where
 
 import Constructor.Mite
 import Constructor.Sense
@@ -34,14 +34,24 @@ issues mites = let
       fOrder = fValue "order" frame
       anchorIssues = if Just True == fmap isAnimate (fOrder >>= fValue "anchor") then ["come_scalarly with animate anchor"] else []
       subjIssues = case fSubj of
-        Just subj ->
-          if Nothing == sDeclaredValue "type" subj then ["unknown subj"] else
-           case fOrder of
-            Just order | earlier order "type" subj "type" && earlier frame "type" order "type" -> ["come_scalarly order subj"]
-            _ -> []
+        Just subj | Nothing == sDeclaredValue "type" subj -> ["unknown subj"]
         _ -> []
       in anchorIssues ++ subjIssues
     _ -> []
   in {-traceIt "issues" $ -}(frames >>= frameIssues)
     ++ (if hasCP then [] else ["no clause"])
     ++ (frames >>= incompleteIsolation)
+    ++ (frames >>= orderingIssues)
+
+orderingIssues frame = case getType frame of
+  Just "COME_SCALARLY" |
+    Just subj <- fValue "arg1" frame,
+    isJust (sDeclaredValue "type" subj),
+    Just order <- fValue "order" frame,
+    earlier order "type" subj "type" && earlier frame "type" order "type" ->
+      ["come_scalarly order subj"]
+  Just "GO" |
+    Just source <- fValue "source" frame,
+    earlier source "type" frame "type" ->
+      ["source before GO"]
+  _ -> []

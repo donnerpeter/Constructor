@@ -578,10 +578,20 @@ argumentFrame (NPArg f) = Just f
 argumentFrame (PPArg _ f) = Just f
 argumentFrame _ = Nothing
 
-arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ ->
-  allFrameFacts fVerb >>= \ Fact { attrName = attr, value = semValue} ->
+arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ -> let
+  sens = sense fVerb
+  compareFacts f1@(Fact frame1 attr1 val1) f2@(Fact frame2 attr2 val2) =
+    if f1 == f2 then EQ
+    else case (val1, val2) of
+      (VarValue v1, VarValue v2) |
+        fVal1 <- Frame v1 sens,
+        fVal2 <- Frame v2 sens,
+        isJust (getType $ Frame v1 sens) && isJust (getType $ Frame v2 sens) ->
+          if earlier fVal1 "type" fVal2 "type" then LT else GT
+      _ -> EQ
+  in Data.List.sortBy compareFacts (allFrameFacts fVerb) >>= \(Fact _ attr semValue) ->
   case semValue of
-    VarValue v -> let value = Frame v (sense fVerb) in
+    VarValue v -> let value = Frame v sens in
      if isVerbEllipsis fVerb && Just value /= (usage "content" fVerb >>= fValue "ellipsisAnchor2") then [] else
      case (typ, attr) of
       ("COME_SCALARLY", "order") -> case getType value of
@@ -617,6 +627,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       (_, "goal") -> if typ == "GO" && hasType "HOME" value then [Adverb "home"] else [PPArg "to" value]
       (_, "goal_to") -> [PPArg "to" value]
       (_, "goal_in") -> [PPArg "to" value]
+      (_, "source") -> [PPArg "from" value]
       (_, "mood") -> case getType value of
         Just "JOY" | isNothing (fValue "size" value)-> [Adverb "cheerfully"]
         Just _ -> [PPAdjunct "with" value]

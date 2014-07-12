@@ -1,5 +1,7 @@
 module Constructor.EnglishGenerator (generate) where
 import Constructor.Sense
+import Constructor.ArgumentPlanning
+import Constructor.EnglishNouns
 import Control.Monad.State
 import Control.Monad
 import Data.List
@@ -31,8 +33,6 @@ generate sense =
 
 capitalize (c:rest) = (toUpper c):rest
 
-isCP frame = hasAnyType ["fact", "question"] frame
-isCPOrSeq frame = any isCP $ flatten $ Just frame
 getTopFrame frame = if isCP frame then upmostSeq frame else Nothing where
   upmostSeq frame =
     case usage "member1" frame of
@@ -197,73 +197,6 @@ determiner frame nbar =
       else ""
 
 prefixName frame = earlier frame "name" frame "type"
-
-isVerbEllipsis verb = Just "true" == (usage "content" verb >>= sValue "ellipsis")
-
-noun Nothing _ = "??"
-noun (Just typ) frame = case typ of
-  "CASE" -> "thing"
-  "ME" -> "me"
-  "HE" -> "he"
-  "NEIGHBORS" -> "neighbors"
-  "NEIGHBOR" -> "neighbor"
-  "TREES" -> "trees"
-  "WATERMELON" -> "watermelon"
-  "MATTER" -> "matter"
-  "AMAZE" -> "amazement"
-  "ORDER" -> "order"
-  "COUNTING" -> if isJust (usage "domain" frame) then "count" else "counting"
-  "CASHIER" -> "cashier"
-  "WORDS" -> "words"
-  "PREDICAMENT" -> "predicament"
-  "JOY" -> "joy"
-  "RELIEF" -> "relief"
-  "SPEECH" -> "speech"
-  "SHOP" -> "store"
-  "CORNER" -> "corner"
-  "STREET" -> "street"
-  "MONEY" -> "money"
-  "HAMMER" -> "hammer"
-  "MOUTH" -> "mouth"
-  "NOSE" -> "nose"
-  "OPINION" -> "opinion"
-  "MEANING" -> "meaning"
-  "SOME" -> "some"
-  "OTHERS" -> "others"
-  "CHILD" -> "child"
-  "BENCH" -> "bench"
-  "FINGER" -> if isSingular frame then "finger" else "fingers"
-  "JAW" -> if isSingular frame then "jaw" else "jaws"
-  "JAWS" -> "jaws"
-  "ROOMS" -> "rooms"
-  "APARTMENTS" -> "apartments"
-  "OFFICES" -> "offices"
-  "WORK" -> "work"
-  "ARGUE" -> "argument"
-  "THIS" -> "that"
-  "NAMED_PERSON" -> fromMaybe "??name" $ sValue "name" frame
-  "GARDEN" -> if (fValue "name" frame >>= getType) == Just "летний" then "Summer Garden" else "garden"
-  _ ->
-    if isNumberString typ && renderAsWord frame then case typ of
-      "1" -> "one"
-      "2" -> "two"
-      "3" -> "three"
-      "4" -> "four"
-      "5" -> "five"
-      "6" -> "six"
-      "7" -> "seven"
-      "8" -> "eight"
-      _ -> typ
-    else typ
-
-renderAsWord frame = not $ isNumber $ Just frame
-
-isSingular frame = case getType frame of
-  Just "NEIGHBORS" -> False
-  Just "TREES" -> False
-  _ -> case fValue "quantifier" frame >>= getType of
-    Just s -> s == "1"
-    _ -> True
 
 cat "" t2 = t2
 cat t1 "" = t1
@@ -571,83 +504,6 @@ vp fVerb verbForm clauseType = do
                      else subject `cat` sVerb
                    else (if inverted then according `cat` aux `cat` negation `cat` subject else subject `cat` according `cat` aux `cat` negation) `cat` preAdverb `cat` sVerb
   return $ sTopicalized `cat` whWord `cat` contracted `cat` nonWhWord `cat` controlled `cat` sArgs `cat` stranded `cat` anymore `cat` finalAdverb
-
-data Argument = Adverb String | NPArg Frame | PPArg String Frame | PPAdjunct String Frame deriving (Eq,Show)
-
-argumentFrame (NPArg f) = Just f
-argumentFrame (PPArg _ f) = Just f
-argumentFrame _ = Nothing
-
-arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ -> let
-  sens = sense fVerb
-  compareFacts f1@(Fact frame1 attr1 val1) f2@(Fact frame2 attr2 val2) =
-    if f1 == f2 then EQ
-    else case (val1, val2) of
-      (VarValue v1, VarValue v2) |
-        fVal1 <- Frame v1 sens,
-        fVal2 <- Frame v2 sens,
-        isJust (getType $ Frame v1 sens) && isJust (getType $ Frame v2 sens) ->
-          if earlier fVal1 "type" fVal2 "type" then LT else GT
-      _ -> EQ
-  in Data.List.sortBy compareFacts (allFrameFacts fVerb) >>= \(Fact _ attr semValue) ->
-  case semValue of
-    VarValue v -> let value = Frame v sens in
-     if isVerbEllipsis fVerb && Just value /= (usage "content" fVerb >>= fValue "ellipsisAnchor2") then [] else
-     case (typ, attr) of
-      ("COME_SCALARLY", "order") -> case getType value of
-        Just "EARLIER" -> case fValue "anchor" value of
-          Just anchor -> [PPArg "before" anchor]
-          _ -> [Adverb "first"]
-        Just "NEXT" -> [Adverb "next"]
-        Just "AFTER" -> case fValue "anchor" value of 
-          Just anchor -> [PPArg "after" anchor]
-          _ -> [Adverb "after"]
-        Just "BEFORE" -> case fValue "anchor" value of 
-          Just anchor -> [PPArg "before" anchor]
-          _ -> [Adverb "before"]
-        _ -> []
-      ("HAPPEN", "experiencer") -> [PPArg "to" value]
-      ("TAKE_OUT", "source") -> [PPArg "out of" value]
-      ("RUN_OUT", "source") -> [PPArg "out of" value]
-      ("FALL", "source") -> [PPArg "off" value]
-      ("SAY", "addressee") -> [NPArg value]
-      ("ASK", "topic") ->
-        if all (hasType "question") $ flatten $ Just value then []
-        else [PPArg (if hasType "PREDICAMENT" value then "on" else "about") value]
-      ("LACK", "theme") -> [NPArg value]
-      ("DISTRACT", "theme") -> [PPArg "from" value]
-      ("THINK", "topic") -> [PPArg "on" value]
-      ("SEEM", "experiencer") -> if isJust (usage "content" fVerb >>= usage "reason") then [] else [PPAdjunct "to" value]
-      ("SEEM", "theme") ->
-        if hasType "LACK" value then [PPArg "void of" (fromJust $ fValue "theme" value)]
-        else if hasType "MEANINGLESS" value then [Adverb "meaningless"]
-        else if hasType "CLEVER" value then [Adverb "clever"]
-        else [Adverb (fromMaybe "??" $ getType value)]
-      ("DISPERSE", "goal") -> if hasType "HOMES" value then [Adverb "home"] else [PPArg "to" value]
-      (_, "goal") -> if typ == "GO" && hasType "HOME" value then [Adverb "home"] else [PPArg "to" value]
-      (_, "goal_to") -> [PPArg "to" value]
-      (_, "goal_in") -> [PPArg "to" value]
-      (_, "source") -> [PPArg "from" value]
-      (_, "mood") -> case getType value of
-        Just "JOY" | isNothing (fValue "size" value)-> [Adverb "cheerfully"]
-        Just _ -> [PPAdjunct "with" value]
-        _ -> []
-      (_, "location") -> if hasType "THERE" value then [] else [PPArg "on" value]
-      (_, "arg2") -> if isCPOrSeq value then [] else [NPArg value]
-      (_, "duration") -> if hasType "LONG" value then [Adverb "for a long time"] else []
-      (_, "relTime") -> case fValue "anchor" value of
-        Just anchor -> [PPAdjunct (if hasType "AFTER" value then "after" else "before") anchor]
-        _ -> []
-      _ -> []
-    StrValue value -> case (attr, value) of
-      ("anchor", "AGAIN") -> [Adverb "again"]
-      ("anchor", "ALREADY") -> [Adverb "already"]
-      _ -> []
-  where
-  isNPArg arg = case arg of
-    NPArg {} -> True
-    _ -> False
-  reorderArgs args = filter isNPArg args ++ filter (not . isNPArg) args 
 
 generateArg :: Argument -> State GenerationState String
 generateArg arg = case arg of

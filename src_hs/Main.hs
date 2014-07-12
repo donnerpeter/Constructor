@@ -1,5 +1,3 @@
-import Data.Char (toLower)
-
 import Constructor.Tree
 import Constructor.ParsingState
 import Constructor.Lexicon
@@ -16,4 +14,3 @@ import Test.HUnit
 allTests = runTestTT $ TestList $ sonnetTests++sonnetVariations++whTests++randomStuffTests
 
 main = allTests
---main = putStrLn $ translate "Я забыл, что я забыл, что идет после 8 и что идет раньше 7"

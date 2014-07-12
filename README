@@ -4,4 +4,6 @@ As a way of ensuring that the parser produces something that makes sense, I tran
 
 Currently I'm translating Daniil Kharms' 'Sonnet' into English.
 
-This project is created by IntelliJ IDEA 13 (http://www.jetbrains.com/idea/). The tests can be run using './runghc.sh Parser' from 'src_hs' subdirectory.
+This project is created by IntelliJ IDEA 13 (http://www.jetbrains.com/idea/). The tests can be run using './runghc.sh' from 'src_hs' subdirectory.
+
+Setting up Cabal with sandbox: http://stackoverflow.com/questions/21199189/setting-up-yesod-on-ubuntu-13-10

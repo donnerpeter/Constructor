@@ -1,2 +1,6 @@
 .idea/workspace.xml
 /out
+/src_hs/profiled.prof
+/src_hs/dist
+/src_hs/.cabal-sandbox
+/src_hs/.cabal.sandbox.config

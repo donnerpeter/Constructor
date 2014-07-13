@@ -59,6 +59,7 @@ handleSeq f (Just frame) =
                           else if (Just True == fmap isGerund secondContent || Just True == fmap isGerund firstContent) &&
                                   isNothing (firstContent >>= sValue "negated")
                             then "and"
+                          else if Just True == fmap shouldContrastSubject (firstContent >>= fValue "arg1") then ", and"
                           else ", but"
                         else if conj == "and" then
                           if Just True == fmap isCP second && Just True == fmap (hasType "seq") first then ", and"
@@ -130,16 +131,33 @@ np_internal nom mayHaveDeterminer frame = do
   relative <- fromMaybe (return "") $ liftM (catM $ return ", the one") $ fmap sentence $ fValue "relative" frame
   return $ preQuantifier `cat` unquantified `cat` postQuantifier `cat` relative
 
-adjectives nounFrame = catMaybes [property, kind, shopKind, size, quality] where
+adjectives nounFrame = catMaybes [property, kind, shopKind, size, quality, gender] where
   property = fValue "property" nounFrame >>= getType >>= \p -> if p == "AMAZING" then Just "amazing" else Nothing
   kind = fValue "kind" nounFrame >>= getType >>= \p -> if p == "COMMERCIAL" then Just "commercial" else Nothing
   quality = fValue "quality" nounFrame >>= getType >>= \p -> if p == "HUMBLE" then Just "humble" else Nothing
   shopKind = sValue "name" nounFrame >>= \p -> if p == "гастроном" then Just "grocery" else Nothing
+  gender =
+    if shouldContrastSubject nounFrame && isHuman nounFrame
+    then case sValue "rusGender" nounFrame of
+      Just "Masc" -> Just "male"
+      Just "Fem" -> Just "female"
+      _ -> Nothing
+    else Nothing
   size = fValue "size" nounFrame >>= getType >>= \p ->
     if p == "LITTLE" then Just "small"
     else if p == "BIG" then
       if hasType "GARDEN" nounFrame then Just "big" else Just "great"
     else Nothing
+
+shouldContrastSubject frame = let
+  cp = usage "arg1" frame >>= usage "content"
+  allCPs = flatten (fmap unSeq cp)
+  allVerbs = catMaybes $ map (fValue "content") allCPs
+  contrastibleSubject fVerb = let
+    fSubj = fValue "arg1" fVerb
+    in if not (isVerbEllipsis fVerb) || isEllipsisAnchor fSubj fVerb then fSubj >>= getType else Nothing
+  allSubjTypes = catMaybes $ map contrastibleSubject allVerbs
+  in length allSubjTypes > length (nub allSubjTypes)
 
 streetName frame = case sValue "name" frame of
  Just "знаменская" -> "Znamenskaya"
@@ -290,7 +308,7 @@ elideableArgument frame parent = if any (\f -> source f == frame) (nextSiblings 
 generateAccording parent = case fValue "accordingTo" parent of
   Just source -> do
     let isWh = isQuestioned source
-        comma = if isVerbEllipsis parent && fValue "arg1" parent == (usage "content" parent >>= fValue "ellipsisAnchor2") || isWh then "" else ","
+        comma = if isEllipsisAnchor (fValue "arg1" parent) parent || isWh then "" else ","
         oneOpinion source = case getType source of
           Just "OPINION" -> return (if distinguish source then "in" else "") `catM` np False (Just source)
           Just "WORDS" -> return "according to" `catM` elideableArgument (fValue "author" source) source
@@ -422,8 +440,10 @@ vp fVerb verbForm clauseType = do
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue "question_mark")
       isDoModality = isModality && Just True == fmap (hasType "DO") theme
       thereSubject = clauseType == FiniteClause && (Just "wh" == (fSubject >>= getType) && isModality || isNothing (fSubject >>= getType)) && not isQuestion
-      sVerb = if isVerbEllipsis fVerb && fSubject == (cp >>= fValue "ellipsisAnchor2")
-              then if verbForm == PastVerb then "did" else "does"
+      sVerb = if isEllipsisAnchor fSubject fVerb
+              then
+                if fSubject == (cp >>= fValue "ellipsisAnchor2") then if verbForm == PastVerb then "did" else "does"
+                else "-"
               else if isModality then
                 if isQuestion then if isJust fSubject && isDoModality then "supposed" else ""
                 else if thereSubject then if verbForm == PastVerb then "was" else "is"
@@ -465,7 +485,7 @@ vp fVerb verbForm clauseType = do
   subject <- if thereSubject then return "there" else case (fSubject, clauseType) of
     (Just f, FiniteClause) ->
       if thereSubject then return "there"
-      else if isVerbEllipsis fVerb && fSubject /= (usage "content" fVerb >>= fValue "ellipsisAnchor2") then return "it"
+      else if isVerbEllipsis fVerb && not (isEllipsisAnchor fSubject fVerb) then return "it"
       else if [fVerb] `isPrefixOf` (usages "arg1" f) || isModality || isRaising then np True fSubject
       else if (isJust $ fValue "perfectBackground" fVerb) then return $ if sValue "rusGender" f == Just "Masc" then "he" else "she"
       else return ""

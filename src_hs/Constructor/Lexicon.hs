@@ -11,7 +11,13 @@ import Data.List
 
 nounSg caze gender typ v = pronoun caze (A.Agr (Just gender) (Just A.Sg) (Just 3)) typ v
 nounPl caze typ v = pronoun caze (A.Agr Nothing (Just A.Pl) (Just 3)) typ v
-pronoun caze agr typ v = [mite $ Argument caze (v ""), semS (v "") "type" typ, mite $ AdjHead (v "") caze agr, mite $ RelativeHead (v "")]
+pronoun caze agr typ v =
+  [mite $ Argument caze (v ""), semT (v "") typ, mite $ AdjHead (v "") caze agr, mite $ RelativeHead (v "")]
+  ++ rusGender where
+  rusGender = case A.gender agr of
+    Just g -> [semS (v "") "rusGender" (show g)]
+    _ -> []
+
 preposition prep nounArg v = [mite $ PrepHead prep nounArg (v "")] ++ xor [[mite $ Argument (PP prep nounArg) (v "")], [mite $ ActivePreposition (v "")]]
 semPreposition nounArg attr v = [mite $ SemPreposition nounArg (v "noun"), semV (v "") attr (v "noun")]
 finVerb typ time agr v = [semT (v "") typ, semS (v "") "time" time] ++ finiteClause agr True v

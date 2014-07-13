@@ -60,12 +60,16 @@ liftUnclosed side childMites = childMites >>= \m -> case cxt m of
 
 ellipsisLeftVariants leftMites rightMites = if null result then [] else mergeRight $ LS.removeDups result where
   result = rightMites >>= \m2 -> case cxt m2 of
-    Ellipsis v Nothing rightCxt@(Just _) -> leftMites >>= \m1 -> case cxt m1 of
-      VerbalModifier _ _ anchor -> withBase [m1,m2] [mite $ Ellipsis v (Just $ cxt m1) rightCxt]
+    Ellipsis v Nothing rightCxt@(Just _) -> leftMites >>= \m1 -> case ellipsisAnchor (cxt m1) of
+      Just anchor -> withBase [m1,m2] [mite $ Ellipsis v (Just $ cxt m1) rightCxt]
         ++ [semV v "ellipsisAnchor1" anchor] ++ xor [[mite $ Clause Declarative v], [mite $ Clause Interrogative v]]
         ++ liftUnclosed LeftSide (filter (not . contradict m1) leftMites)
       _ -> []
     _ -> []
+
+ellipsisAnchor (VerbalModifier _ _ v) = Just v
+ellipsisAnchor (Argument _ v) = Just v
+ellipsisAnchor _ = Nothing
 
 punctuationAware leftMites rightMites (m1, m2) =
     let (left, right, base12) = mergeInfoHelpers m1 m2
@@ -132,7 +136,7 @@ punctuationAware leftMites rightMites (m1, m2) =
       (DirectSpeechDash v, Sentence cp) ->
         mergeLeft $ base12 [mite $ DirectSpeech cp, semS cp "directSpeech" "true"] ++ closeUnclosed RightSide Satisfied
 
-      (Ellipsis v leftCxt Nothing, rightCxt@(Argument _ anchor)) ->
+      (Ellipsis v leftCxt Nothing, rightCxt) | Just anchor <- ellipsisAnchor rightCxt ->
         left $ [mite $ Ellipsis v leftCxt (Just rightCxt), semV v "ellipsisAnchor2" anchor]
 
       _ -> []

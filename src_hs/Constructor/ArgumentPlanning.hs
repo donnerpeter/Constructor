@@ -1,4 +1,4 @@
-module Constructor.ArgumentPlanning (Argument(..), argumentFrame, arguments, isCP, isVerbEllipsis) where
+module Constructor.ArgumentPlanning (Argument(..), argumentFrame, arguments, isCP, isVerbEllipsis, isEllipsisAnchor) where
 import Constructor.Sense
 import Data.List
 import Data.Maybe
@@ -9,6 +9,9 @@ isCP frame = hasAnyType ["fact", "question"] frame
 isCPOrSeq frame = any isCP $ flatten $ Just frame
 
 isVerbEllipsis verb = Just "true" == (usage "content" verb >>= sValue "ellipsis")
+
+isEllipsisAnchor arg fVerb = isJust arg && (arg == (cp >>= fValue "ellipsisAnchor1") || arg == (cp >>= fValue "ellipsisAnchor2")) where
+  cp = usage "content" fVerb
 
 data Argument = Adverb String | NPArg Frame | PPArg String Frame | PPAdjunct String Frame deriving (Eq,Show)
 
@@ -30,7 +33,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
   in Data.List.sortBy compareFacts (allFrameFacts fVerb) >>= \(Fact _ attr semValue) ->
   case semValue of
     VarValue v -> let value = Frame v sens in
-     if isVerbEllipsis fVerb && Just value /= (usage "content" fVerb >>= fValue "ellipsisAnchor2") then [] else
+     if isVerbEllipsis fVerb && not (isEllipsisAnchor (Just value) fVerb) then [] else
      case (typ, attr) of
       ("COME_SCALARLY", "order") -> case getType value of
         Just "EARLIER" -> case fValue "anchor" value of

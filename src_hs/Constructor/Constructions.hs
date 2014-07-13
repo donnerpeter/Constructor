@@ -129,4 +129,5 @@ getCommaSurroundableVar cxt = case cxt of
   _ -> Nothing
 
 isStable (Conjunction sd) = seqHasLeft sd == isJust (seqRightVar sd) || seqConj sd == ","
+isStable (Ellipsis _ leftAnchor rightAnchor) = isJust leftAnchor == isJust rightAnchor
 isStable _ = True

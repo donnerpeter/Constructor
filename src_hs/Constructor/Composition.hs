@@ -136,8 +136,8 @@ punctuationAware leftMites rightMites (m1, m2) =
       (DirectSpeechDash v, Sentence cp) ->
         mergeLeft $ base12 [mite $ DirectSpeech cp, semS cp "directSpeech" "true"] ++ closeUnclosed RightSide Satisfied
 
-      (Ellipsis v leftCxt Nothing, rightCxt) | Just anchor <- ellipsisAnchor rightCxt ->
-        left $ [mite $ Ellipsis v leftCxt (Just rightCxt), semV v "ellipsisAnchor2" anchor]
+      (Ellipsis v Nothing Nothing, rightCxt) | Just anchor <- ellipsisAnchor rightCxt ->
+        left $ [mite $ Ellipsis v Nothing (Just rightCxt), semV v "ellipsisAnchor2" anchor]
 
       _ -> []
 

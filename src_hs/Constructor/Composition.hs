@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase, ViewPatterns #-}
 module Constructor.Composition (interactNodes, MergeInfo(..)) where
 import Constructor.Constructions
 import Constructor.Mite

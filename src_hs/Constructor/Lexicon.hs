@@ -93,6 +93,7 @@ wordMites word index =
   "вынула" -> finVerb "TAKE_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) "source" v ++ directObject v
   "все" -> adj Nom A.pl "quantifier" "ALL" v
   "вспомнить" -> infinitive "RECALL" v ++ directObject v
+  "глупый" -> adj Nom A.m "quality" "STUPID" v
   "грустно" -> adverb "manner" "SADLY" v
   "дальше" -> [mite $ Argument ScalarAdverb v0, semT v0 "NEXT"]
   "два" -> wordNumber Acc "2" v
@@ -292,6 +293,7 @@ wordMites word index =
   "улицы" -> nounSg Gen Fem "STREET" v ++ optional [mite $ PrepositionActivator "s" Gen v0 $ NounAdjunct "source" False v0]
   "улыбнулась" -> finVerb "SMILE" "PAST" A.f v
   "умной" -> [mite $ Raiseable A.f v0, semT v0 "CLEVER"]
+  "умный" -> adj Nom A.m "quality" "CLEVER" v
   "челюсти" -> xor[nounSg Gen Fem "JAW" v, nounPl Nom "JAWS" v, nounPl Acc "JAWS" v]
   "челюсть" -> nounSg Acc Fem "JAW" v
   "челюстью" -> nounSg Instr Fem "JAW" v

@@ -16,7 +16,7 @@ cabal-version:       >=1.8
 
 executable constructor
   ghc-options: -O2
-  extensions: DoAndIfThenElse,PatternGuards
+  extensions: DoAndIfThenElse,PatternGuards,LambdaCase,ViewPatterns
   main-is: Main.hs
   -- other-modules:       
   build-depends:       base ==4.6.*,

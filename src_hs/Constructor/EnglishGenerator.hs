@@ -134,7 +134,11 @@ np_internal nom mayHaveDeterminer frame = do
 adjectives nounFrame = catMaybes [property, kind, shopKind, size, quality, gender] where
   property = fValue "property" nounFrame >>= getType >>= \p -> if p == "AMAZING" then Just "amazing" else Nothing
   kind = fValue "kind" nounFrame >>= getType >>= \p -> if p == "COMMERCIAL" then Just "commercial" else Nothing
-  quality = fValue "quality" nounFrame >>= getType >>= \p -> if p == "HUMBLE" then Just "humble" else Nothing
+  quality = fValue "quality" nounFrame >>= getType >>= \case
+    "HUMBLE" -> Just "humble"
+    "CLEVER" -> Just "smart"
+    "STUPID" -> Just "stupid"
+    _ -> Nothing
   shopKind = sValue "name" nounFrame >>= \p -> if p == "гастроном" then Just "grocery" else Nothing
   gender =
     if shouldContrastSubject nounFrame && isHuman nounFrame
@@ -155,9 +159,11 @@ shouldContrastSubject frame = let
   allVerbs = catMaybes $ map (fValue "content") allCPs
   contrastibleSubject fVerb = let
     fSubj = fValue "arg1" fVerb
-    in if not (isVerbEllipsis fVerb) || isEllipsisAnchor fSubj fVerb then fSubj >>= getType else Nothing
-  allSubjTypes = catMaybes $ map contrastibleSubject allVerbs
-  in length allSubjTypes > length (nub allSubjTypes)
+    in if not (isVerbEllipsis fVerb) || isEllipsisAnchor fSubj fVerb then fSubj else Nothing
+  allSubjects = catMaybes $ map contrastibleSubject allVerbs
+  allSubjTypes = catMaybes $ map getType allSubjects
+  allSubjGenders = catMaybes $ map (sValue "rusGender") allSubjects
+  in length allSubjTypes > length (nub allSubjTypes) && length allSubjGenders == length (nub allSubjGenders)
 
 streetName frame = case sValue "name" frame of
  Just "знаменская" -> "Znamenskaya"

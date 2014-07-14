@@ -292,7 +292,9 @@ wordMites word index =
   "улиц" -> nounPl Gen "STREETS" v
   "улицы" -> nounSg Gen Fem "STREET" v ++ optional [mite $ PrepositionActivator "s" Gen v0 $ NounAdjunct "source" False v0]
   "улыбнулась" -> finVerb "SMILE" "PAST" A.f v
+  "умная" -> adj Nom A.f "quality" "CLEVER" v
   "умной" -> [mite $ Raiseable A.f v0, semT v0 "CLEVER"]
+  "умные" -> adj Nom A.pl "quality" "CLEVER" v
   "умный" -> adj Nom A.m "quality" "CLEVER" v
   "челюсти" -> xor[nounSg Gen Fem "JAW" v, nounPl Nom "JAWS" v, nounPl Acc "JAWS" v]
   "челюсть" -> nounSg Acc Fem "JAW" v

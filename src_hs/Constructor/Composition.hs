@@ -68,6 +68,7 @@ ellipsisLeftVariants leftMites rightMites = if null result then [] else mergeRig
 
 ellipsisAnchor (VerbalModifier _ _ v) = Just v
 ellipsisAnchor (Argument _ v) = Just v
+ellipsisAnchor (Adj v _ _) = Just v
 ellipsisAnchor _ = Nothing
 
 punctuationAware leftMites rightMites (m1, m2) =

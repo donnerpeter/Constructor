@@ -99,7 +99,7 @@ np_internal nom mayHaveDeterminer frame = do
       else if isJust (usage "goal" frame) then "where"
       else "what"
     else do
-      let n = noun (getType frame) frame
+      let n = if Just "true" == sValue "elided" frame then "one" else noun (getType frame) frame
           adjs = foldl cat "" $ adjectives frame
           nbar1 = adjs `cat` n
       nbar <- case getType frame of

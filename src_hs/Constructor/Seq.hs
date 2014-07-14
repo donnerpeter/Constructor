@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase, ViewPatterns #-}
 module Constructor.Seq (seqLeft, seqRight, pullThyself, liftArguments) where
 import qualified Constructor.LinkedSet as LS
 import qualified Data.Set as Set
@@ -124,15 +123,16 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
           _ -> []
     _ -> []
 
-data AnchorMapping = AnchorMapping {-original-} Mite Variable {-anchor-} Construction Variable
+data AnchorMapping = AnchorMapping {-original-} Mite Variable {-anchor-} Construction Variable deriving (Show)
 
 checkOriginal ::  Construction -> Mite -> Maybe AnchorMapping
 checkOriginal anchor candidate = case (cxt candidate, anchor) of
   (VerbalModifier a1 _ v1, VerbalModifier a2 _ v2) | a1 == a2 -> Just $ AnchorMapping candidate v1 anchor v2
   (Argument kind1 v1, Argument kind2 v2) | kind1 == kind2 -> Just $ AnchorMapping candidate v1 anchor v2
+  (Adj v1 kind1 _, Adj v2 kind2 _) | kind1 == kind2 -> Just $ AnchorMapping candidate v1 anchor v2
   _ -> Nothing
 
-findOriginals mites anchor = catMaybes $ map (checkOriginal anchor) mites 
+findOriginals mites anchor = catMaybes $ map (checkOriginal anchor) mites
 
 processEllipsis :: Mite -> Variable -> Construction -> Construction -> Tree -> [[Mite]]
 processEllipsis oldClause ellipsisVar@(Variable varIndex _) e1 e2 prevTree = let
@@ -151,7 +151,7 @@ processEllipsis oldClause ellipsisVar@(Variable varIndex _) e1 e2 prevTree = let
       else Variable varIndex ("_" ++ show _v)
     mapMite m = withBase [m] $ case cxt m of
       Unify _v1 _v2 -> [mite $ Unify (mapVariable _v1) (mapVariable _v2)]
-      Sem _v1 attr (StrValue s) -> [mite $ Sem (mapVariable _v1) attr (StrValue s)]
+      Sem _v1 attr (StrValue s) -> [semS (mapVariable _v1) attr s] ++ (if attr == "type" then [semS (mapVariable _v1) "elided" "true"] else [])
       Sem _v1 attr (VarValue _v2)  -> [mite $ Sem (mapVariable _v1) attr (VarValue $ mapVariable _v2)]
       _ -> []
     walkTree :: Tree -> ([Mite], [Construction])

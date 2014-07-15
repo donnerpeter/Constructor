@@ -826,9 +826,9 @@ varUnsorted = TestLabel "sonnetVariations unsorted" $ TestList [
   ,
   translateTest "Глупый кассир идет в магазин, а умная кассирша - в сад"
                 "The stupid male cashier goes to the store, and the smart female cashier - to the garden"
---  ,
---todo  translateTest "Глупый кассир идет в магазин, а умные - в сад"
---                "The stupid cashier goes to the store, but the smart ones - to the garden"
+  ,
+  translateTest "Глупый кассир идет в магазин, а умные - в сад"
+                "The stupid cashier goes to the store, but the smart ones - to the garden"
 --  ,
 --todo  translateTest "Глупый кассир идет на работу, а умный - гулять"
 --                "The stupid cashier goes to the work, but the smart one - for a walk"

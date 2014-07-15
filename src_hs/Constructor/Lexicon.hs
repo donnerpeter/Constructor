@@ -13,10 +13,19 @@ nounSg caze gender typ v = pronoun caze (A.Agr (Just gender) (Just A.Sg) (Just 3
 nounPl caze typ v = pronoun caze (A.Agr Nothing (Just A.Pl) (Just 3)) typ v
 pronoun caze agr typ v =
   [mite $ Argument caze (v ""), semT (v "") typ, mite $ AdjHead (v "") caze agr, mite $ RelativeHead (v "")]
-  ++ rusGender where
-  rusGender = case A.gender agr of
-    Just g -> [semS (v "") "rusGender" (show g)]
-    _ -> []
+  ++ rusGender agr (v "")
+
+rusGender agr v = case A.gender agr of
+  Just g -> [semS v "rusGender" (show g)]
+  _ -> []
+
+rusPerson agr v = case A.person agr of
+  Just g -> [semS v "rusPerson" (show g)]
+  _ -> []
+
+rusNumber agr v = case A.number agr of
+  Just g -> [semS v "rusNumber" (show g)]
+  _ -> []
 
 preposition prep nounArg v = [mite $ PrepHead prep nounArg (v "")] ++ xor [[mite $ Argument (PP prep nounArg) (v "")], [mite $ ActivePreposition (v "")]]
 semPreposition nounArg attr v = [mite $ SemPreposition nounArg (v "noun"), semV (v "") attr (v "noun")]
@@ -25,10 +34,9 @@ raisingVerb typ time agr v = [semT (v "") typ, semS (v "") "time" time, mite $ R
 finiteClause agr withSemSubject v = optional [mite $ NomHead agr (v "arg1") Unsatisfied] ++
                      [mite $ ReflexiveTarget (v "arg1")] ++
                      (if withSemSubject then [semV (v "") "arg1" (v "arg1")] else []) ++
-                     (rusAgr A.number "rusNumber") ++ (rusAgr A.gender "rusGender") ++ (rusAgr A.person "rusPerson") ++
+                     rusNumber agr (v "arg1") ++ rusGender agr (v "arg1") ++ rusPerson agr (v "arg1") ++
                      clause v where
-  rusAgr :: (Show a) => (A.Agr -> Maybe a) -> String -> [Mite]
-  rusAgr f attr = maybeToList $ f agr >>= \x -> Just $ semS (v "arg1") attr (show x)
+
 clause v = [mite $ Verb (v ""), semV (v "cp") "content" (v "")] ++
            (xor [[mite $ Clause Declarative (v "cp"), semT (v "cp") "fact"], [mite $ Clause Interrogative (v "cp")]])
 infinitive typ v =
@@ -38,7 +46,10 @@ infinitive typ v =
 arg argType relation v = [mite $ ArgHead argType (v relation), semV (v "") relation (v relation)]
 whWord kind v = [mite $ Wh (v ""), mite $ QuestionVariants (v "") kind, semT (v "") "wh"]
 compHead attr v = [mite $ CompHead (v "comp"), semV (v "") attr (v "comp")] 
+
 adj caze agr attr value v = [mite $ Adj (v "") caze agr, semV (v "") attr (v "adj"), semT (v "adj") value]
+  ++ rusNumber agr (v "")
+
 perfectBackground typ v = [mite $ Verb (v ""), semT (v "") typ, mite $ VerbalModifier "perfectBackground" True (v "")]
 sAdverb attr value v = [mite $ Adverb (v "verb"), semS (v "verb") attr value]
 adverb attr value v = [mite $ Adverb (v "verb"), semV (v "verb") attr (v ""), semT (v "") value]

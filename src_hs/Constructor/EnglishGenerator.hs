@@ -99,7 +99,9 @@ np_internal nom mayHaveDeterminer frame = do
       else if isJust (usage "goal" frame) then "where"
       else "what"
     else do
-      let n = if Just "true" == sValue "elided" frame then "one" else noun (getType frame) frame
+      let n = if Just "true" == sValue "elided" frame then
+                if Just "Pl" == sValue "rusNumber" frame then "ones" else "one"
+              else noun (getType frame) frame
           adjs = foldl cat "" $ adjectives frame
           nbar1 = adjs `cat` n
       nbar <- case getType frame of
@@ -157,13 +159,11 @@ shouldContrastSubject frame = let
   cp = usage "arg1" frame >>= usage "content"
   allCPs = flatten (fmap unSeq cp)
   allVerbs = catMaybes $ map (fValue "content") allCPs
-  contrastibleSubject fVerb = let
-    fSubj = fValue "arg1" fVerb
-    in if not (isVerbEllipsis fVerb) || isEllipsisAnchor fSubj fVerb then fSubj else Nothing
-  allSubjects = catMaybes $ map contrastibleSubject allVerbs
-  allSubjTypes = catMaybes $ map getType allSubjects
-  allSubjGenders = catMaybes $ map (sValue "rusGender") allSubjects
-  in length allSubjTypes > length (nub allSubjTypes) && length allSubjGenders == length (nub allSubjGenders)
+  contrastibleSubject fVerb = case fValue "arg1" fVerb of
+    Just fSubj | not (isNumber $ Just fSubj), Just g1 <- sValue "rusGender" fSubj, Just g2 <- sValue "rusGender" frame, g1 /= g2 ->
+      not (isVerbEllipsis fVerb) || isEllipsisAnchor (Just fSubj) fVerb
+    _ -> False
+  in any contrastibleSubject allVerbs
 
 streetName frame = case sValue "name" frame of
  Just "знаменская" -> "Znamenskaya"

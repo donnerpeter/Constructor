@@ -151,7 +151,9 @@ processEllipsis oldClause ellipsisVar@(Variable varIndex _) e1 e2 prevTree = let
       else Variable varIndex ("_" ++ show _v)
     mapMite m = withBase [m] $ case cxt m of
       Unify _v1 _v2 -> [mite $ Unify (mapVariable _v1) (mapVariable _v2)]
-      Sem _v1 attr (StrValue s) -> [semS (mapVariable _v1) attr s] ++ (if attr == "type" then [semS (mapVariable _v1) "elided" "true"] else [])
+      Sem _v1 attr (StrValue s) ->
+        if attr == "rusNumber" || attr == "rusGender" || attr == "rusPerson" then []
+        else [semS (mapVariable _v1) attr s] ++ (if attr == "type" then [semS (mapVariable _v1) "elided" "true"] else [])
       Sem _v1 attr (VarValue _v2)  -> [mite $ Sem (mapVariable _v1) attr (VarValue $ mapVariable _v2)]
       _ -> []
     walkTree :: Tree -> ([Mite], [Construction])

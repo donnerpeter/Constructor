@@ -193,7 +193,7 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
         let argMites = leftMites >>= \m3 -> case cxt m3 of
               Argument (PP prep3 kind3) var3 | prep3 == prep1 && kind1 == kind3 ->
                 withBase [m1,m2,m3] $ [mite $ Unify var1 var2, mite $ Argument (PP prep3 kind3) var3]
-              Copula var3 -> withBase [m1,m2,m3] [mite $ Unify var1 var2]
+              Copula var3 | not (contradict m1 m3) -> withBase [m1,m2,m3] [mite $ Unify var1 var2]
               _ -> []
             adjunctMites = rightMites >>= \m3 -> case cxt m3 of
               PrepositionActivator prep3 kind3 _ innerCxt | prep3 == prep1 && kind3 == kind1 -> leftMites >>= \m4 -> case cxt m4 of

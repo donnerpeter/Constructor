@@ -72,6 +72,8 @@ quantifierChildAgr typ = if typ `elem` ["1","2","3","4"] then A.sg else A.pl
 
 go_args v = optional (xor [arg (PP "v" Acc) "goal_in" v, arg DirectionAdverb "goal" v])
          ++ optional (arg (PP "k" Dat) "goal_to" v)
+         ++ optional (arg (PP "na" Acc) "goal_on" v)
+         ++ optional [mite $ Control (v "goal_action"), semV (v "") "goal_action" (v "goal_action")]
          ++ optional (arg (PP "s" Gen) "source" v)
 
 wordMites :: String -> Int -> [Mite]
@@ -93,6 +95,7 @@ wordMites word index =
   "было" -> [semS v0 "time" "PAST"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0]]
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
   "васи" -> nounSg Gen Masc "NAMED_PERSON" v ++ [semS v0 "name" "Vasya"]
+  "вася" -> nounSg Nom Masc "NAMED_PERSON" v ++ [semS v0 "name" "Vasya"]
   "вдруг" -> adverb "manner" "SUDDENLY" v
   "вдумываясь" -> perfectBackground "THINK" v ++ arg (PP "v" Acc) "theme" v
   "видел" -> finVerb "SEE" "PAST" A.m v ++ directObject v
@@ -106,6 +109,7 @@ wordMites word index =
   "вспомнить" -> infinitive "RECALL" v ++ directObject v
   "глупый" -> adj Nom A.m "quality" "STUPID" v
   "грустно" -> adverb "manner" "SADLY" v
+  "гулять" -> infinitive "WALK" v
   "дальше" -> [mite $ Argument ScalarAdverb v0, semT v0 "NEXT"]
   "два" -> wordNumber Acc "2" v
   "делал" -> finVerb "DO" "PAST" A.m v ++ directObject v
@@ -183,7 +187,9 @@ wordMites word index =
   "мы" -> pronoun Nom A.pl1 "WE" v
   "на" ->
     -- todo copula for prepositions besides 'na' 
-    xor [preposition "na" Prep v, [mite $ PrepHead "na" Prep v0, mite $ Copula (v "x"), mite $ TenseHead (v "x"), semT (v "x") "copula", semV (v "x") "location" v0] ++ finiteClause A.empty True (modifyV v 'x')]
+    xor [preposition "na" Prep v,
+         preposition "na" Acc v,
+         [mite $ PrepHead "na" Prep v0, mite $ Copula (v "x"), mite $ TenseHead (v "x"), semT (v "x") "copula", semV (v "x") "location" v0] ++ finiteClause A.empty True (modifyV v 'x')]
   "нам" -> pronoun Dat A.pl1 "WE" v
   "нас" -> pronoun Acc A.pl1 "WE" v
   "начали" -> finVerb "BEGIN" "PAST" A.pl v ++ [mite $ Control (v "theme"), semV v0 "theme" (v "theme")]
@@ -237,6 +243,7 @@ wordMites word index =
   "приуныли" -> finVerb "GET_SAD" "PAST" A.pl v
   "просто" -> adverb "manner" "JUST" v
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ xor[arg (PP "v" Acc) "goal_in" v, arg DirectionAdverb "goal" v]
+  "работу" -> nounSg Acc Fem "WORK" v
   "работы" -> nounSg Gen Fem "WORK" v
   "радостью" -> nounSg Instr Fem "JOY" v ++ optional [mite $ PrepositionActivator "s" Instr v0 $ VerbalModifier "mood" False v0]
   "разошлись" -> finVerb "DISPERSE" "PAST" A.pl v ++ arg (PP "po" Dat) "goal" v

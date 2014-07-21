@@ -15,7 +15,13 @@ issues mites = let
   hasCP = any (hasAnyType ["fact", "question"]) frames
   incompleteIsolation frame =
     if isJust (sValue "isolation" frame) && (isNothing (sValue "leftIsolated" frame) || isNothing (sValue "rightIsolated" frame))
-    then ["Incomplete isolation"] else []
+    then ["Incomplete isolation " ++ show frame] else []
+  wrongAccording frame =
+    if any (not . hasAnyType ["WORDS", "OPINION"]) (flatten $ fValue "accordingTo" frame)
+    then ["invalid accordingTo"] else []
+  wrongOptative frame =
+    if any (not . hasType "LUCK") (flatten $ fValue "optativeModality" frame)
+    then ["invalid optativeModality"] else []
   frameIssues frame = case getType frame of
     Just "seq" | Nothing == sValue "conj" frame -> ["comma-only seq"]
     Just s | (s == "SIT" || s == "SAY") && isNothing (fValue "arg1" frame >>= sDeclaredValue "type") ->
@@ -42,6 +48,8 @@ issues mites = let
     ++ (if hasCP then [] else ["no clause"])
     ++ (frames >>= incompleteIsolation)
     ++ (frames >>= orderingIssues)
+    ++ (frames >>= wrongAccording)
+    ++ (frames >>= wrongOptative)
 
 orderingIssues frame = case getType frame of
   Just "COME_SCALARLY" |

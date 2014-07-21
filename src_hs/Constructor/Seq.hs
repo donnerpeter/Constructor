@@ -43,7 +43,6 @@ seqRight leftMites rightMites = {-traceIt "seqRight" $ -}result where
       Adj child caze agr -> withBase [m1,m2] [semV v "member2" child, conjWithRight child]
       Possessive caze agr child -> withBase [m1,m2] [semV v "member2" child, mite $ Conjunction $ sd {seqKind=Just (Adj child caze agr), seqRightVar=Just child}]
       Complement child -> withBase [m1,m2] [semV v "member2" child, semS child "distinguished" "true", conjWithRight child]
-      PrepositionActivator _ _ child _ -> optional $ withBase [m1,m2] [semV v "member2" child, conjWithRight child]
       Clause force child ->
         let unhappy = filter elideable $ filter (not . happy) rightMites
             wrapped = [(mite $ ElidedArgHead $ cxt m) {baseMites = [m,m1,m2]} | m <- unhappy]
@@ -102,8 +101,6 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
           Adj child caze1 agr1 -> handleAdj child caze1 agr1 $ \newAgr -> CompositeAdj seqV caze1 newAgr
           CompositeAdj child caze1 agr1 -> handleAdj child caze1 agr1 $ \newAgr -> CompositeAdj seqV caze1 newAgr
           Complement child | seqKind == Complement rightVar -> withBase [m1,m2] [semV seqV "member1" child] ++ [conjWithLeft, mite $ Complement seqV]
-          PrepositionActivator prep kind child cxt | seqKind == PrepositionActivator prep kind rightVar (stripVar cxt rightVar) ->
-            optional $ withBase [m1,m2] [semV seqV "member1" child, conjWithLeft, mite $ PrepositionActivator prep kind seqV $ stripVar cxt seqV]
           Clause force child -> case seqKind of
             Clause force2 _ | force == force2 -> let
                  unifications = xor $ filter (not . null) $

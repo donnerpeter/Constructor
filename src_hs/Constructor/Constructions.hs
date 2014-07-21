@@ -29,8 +29,6 @@ data Construction = Word Variable String
                   | ArgHead ArgKind Variable
                   | PrepHead String ArgKind Variable
                   | SemPreposition ArgKind Variable
-                  | PrepositionActivator String ArgKind Variable Construction
-                  | ActivePreposition Variable
                   | UnsatisfiedArgHead Construction
                   | Quantifier ArgKind Agr Variable
                   | Argument ArgKind Variable
@@ -108,7 +106,6 @@ isHappy cxt = case cxt of
   DirectSpeechDash {} -> False; DirectSpeechHead _ Nothing -> False
   Colon {} -> False
   VerbalModifier {} -> False
-  PrepositionActivator {} -> False; ActivePreposition {} -> False
   RaisingVerb {} -> False; Raiseable {} -> False
   TwoWordCxt {} -> False
   Ellipsis {} -> False

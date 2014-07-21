@@ -51,7 +51,8 @@ mergeInfoHelpers m1 m2 = ( \mites -> mergeLeft (base12 mites), \mites -> mergeRi
   base12 = withBase [m1,m2]
 
 propagateUnclosed leftMites rightMites (MergeInfo mites side) = MergeInfo (mites ++ liftUnclosed (invert side) childMites) side where
-  childMites = select side rightMites leftMites
+  childMites = filter (not . contradictResult) $ select side rightMites leftMites
+  contradictResult mite = any (contradict mite) mites
 
 liftUnclosed side childMites = childMites >>= \m -> case cxt m of
   Unclosed s _ | s == side -> withBase [m] $ [mite $ cxt m]
@@ -61,7 +62,7 @@ ellipsisLeftVariants leftMites rightMites = if null result then [] else mergeRig
   result = rightMites >>= \m2 -> case cxt m2 of
     Ellipsis v Nothing rightCxt@(Just _) -> leftMites >>= \m1 -> case ellipsisAnchor (cxt m1) of
       Just anchor -> withBase [m1,m2] [mite $ Ellipsis v (Just $ cxt m1) rightCxt]
-        ++ [semV v "ellipsisAnchor1" anchor] ++ xor [[mite $ Clause Declarative v], [mite $ Clause Interrogative v]]
+        ++ [semV v "ellipsisAnchor1" anchor, mite $ Clause Declarative v]
         ++ liftUnclosed LeftSide (filter (not . contradict m1) leftMites)
       _ -> []
     _ -> []
@@ -192,16 +193,20 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
       (PrepHead prep1 kind1 var1, Argument kind2 var2) | kind1 == kind2 ->
         let argMites = leftMites >>= \m3 -> case cxt m3 of
               Argument (PP prep3 kind3) var3 | prep3 == prep1 && kind1 == kind3 ->
-                withBase [m1,m2,m3] $ [mite $ Unify var1 var2, mite $ Argument (PP prep3 kind3) var3]
+                withBase [m1,m2,m3] $ [mite $ Unify var1 var2] ++ xor [[mite $ Argument (PP prep3 kind3) var3], adjunctMites]
               Copula var3 | not (contradict m1 m3) -> withBase [m1,m2,m3] [mite $ Unify var1 var2]
               _ -> []
-            adjunctMites = rightMites >>= \m3 -> case cxt m3 of
-              PrepositionActivator prep3 kind3 _ innerCxt | prep3 == prep1 && kind3 == kind1 -> leftMites >>= \m4 -> case cxt m4 of
-                ActivePreposition {} -> withBase [m1,m2,m3,m4] $ [mite innerCxt]
-                _ -> []
+            adjunctMites = case (prep1, kind1) of
+              ("po", Dat) -> xor [[mite $ VerbalModifier "accordingTo" True var2],
+                                  [mite $ NounAdjunct "accordingTo" True var2],
+                                  [mite $ VerbalModifier "optativeModality" True var2]]
+              ("s", Instr) -> [mite $ VerbalModifier "mood" False var2]
+              ("s", Gen) -> [mite $ NounAdjunct "source" False var2]
+              ("v", Prep) -> [mite $ VerbalModifier "condition" False var2]
+              ("na", Prep) -> [mite $ NounAdjunct "location" False var2]
               _ -> []
             extra = Seq.pullThyself m2 rightMites ++ Seq.liftArguments m2 rightMites ++ whPropagation m1 m2 rightMites
-        in mergeLeft (argMites ++ adjunctMites ++ extra)
+        in mergeLeft (argMites ++ extra)
 
       (Colon "elaboration" _, Clause Declarative cp) -> left [mite $ Elaboration cp]
       (Verb head, Elaboration child) -> left [semV head "elaboration" child, mite $ Unclosed RightSide [child]]

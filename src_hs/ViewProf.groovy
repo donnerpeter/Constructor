@@ -22,7 +22,7 @@ class MergedCallInfo extends CallInfo {
 CallInfo readProfile() {
   boolean started = false
   List<CallInfo> nodeStack = [new CallInfo("root", "root", 0, 0)]
-  new File("Main.prof").eachLine { line ->
+  new File("profiled.prof").eachLine { line ->
     if (line.startsWith("MAIN")) started = true
     if (!started) return
 

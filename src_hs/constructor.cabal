@@ -18,7 +18,6 @@ executable constructor
   ghc-options: -O2
   extensions: DoAndIfThenElse,PatternGuards,LambdaCase,ViewPatterns
   main-is: Main.hs
-  -- other-modules:       
   build-depends:       base ==4.6.*,
                        HUnit,
                        transformers,
@@ -28,9 +27,8 @@ executable constructor
 
 executable profiled
   ghc-options: -O2 -fprof-auto -rtsopts
-  extensions: DoAndIfThenElse,PatternGuards
+  extensions: DoAndIfThenElse,PatternGuards,LambdaCase,ViewPatterns
   main-is: Profile.hs
-  -- other-modules:
   build-depends:       base ==4.6.*,
                        HUnit,
                        transformers,

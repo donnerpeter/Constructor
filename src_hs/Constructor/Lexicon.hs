@@ -156,7 +156,7 @@ wordMites word index =
     finiteClause A.n3 True v ++ [mite $ Copula v0, mite $ TenseHead v0, semT (v "wh") "wh", semT v0 "degree", semV v0 "arg2" (v "wh"), mite $ ShortAdj (v "wh")]
   "какой-то" -> adj Nom A.sg "determiner" "SOME" v
   "кассир" -> nounSg Nom Masc "CASHIER" v ++ genHead "place" v
-  "кассирша" -> nounSg Nom Fem "CASHIER" v -- ++ genHead "place" v
+  "кассирша" -> nounSg Nom Fem "CASHIER" v ++ genHead "place" v
   "кассирши" -> nounSg Gen Fem "CASHIER" v ++ genHead "place" v
   "кассиршу" -> nounSg Acc Fem "CASHIER" v ++ genHead "place" v
   "квартирам" -> nounPl Dat "APARTMENTS" v ++ genHead "owner" v

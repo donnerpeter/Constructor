@@ -70,12 +70,8 @@ wordNumber caze typ v = xor [nounSg caze Masc typ v, numQuantifier caze (quantif
 quantifierChildCase caze typ = if typ == "1" then caze else Gen
 quantifierChildAgr typ = if typ `elem` ["1","2","3","4"] then A.sg else A.pl
 
-go_args v = optional (xor [arg (PP "v" Acc) "goal_in" v,
-                           arg DirectionAdverb "goal" v,
-                           arg (PP "k" Dat) "goal_to" v,
-                           arg (PP "na" Acc) "goal_on" v,
+go_args v = optional (xor [arg DirectionAdverb "goal" v,
                            [mite $ Control (v "goal_action"), semV (v "") "goal_action" (v "goal_action")]])
-         ++ optional (arg (PP "s" Gen) "source" v)
 
 wordMites :: String -> Int -> [Mite]
 wordMites word index =

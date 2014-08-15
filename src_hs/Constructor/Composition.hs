@@ -157,9 +157,11 @@ questionableArguments leftMites rightMites whContext (m1, m2) = map (propagateUn
           mergeLeft $ withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 Satisfied]
         _ -> []
 
-      (Verb verb, VerbalModifier attr False advP) -> left [semV verb attr advP]
+      (Verb verb, VerbalModifier attr False advP) -> left $ [semV verb attr advP] ++ existentials leftMites rightMites
       (VerbalModifier attr needComma advP, Verb verb) -> right $
-        [semV verb attr advP] ++ (if needComma && not whContext then [semS advP "isolation" "comma", mite $ Unclosed LeftSide [advP]] else [])
+        [semV verb attr advP]
+        ++ (if needComma && not whContext then [semS advP "isolation" "comma", mite $ Unclosed LeftSide [advP]] else [])
+        ++ existentials rightMites leftMites
 
       _ -> []
 
@@ -197,12 +199,15 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
               Copula var3 | not (contradict m1 m3) -> withBase [m1,m2,m3] [mite $ Unify var1 var2]
               _ -> []
             adjunctMites = case (prep1, kind1) of
+              ("k", Dat) -> [mite $ VerbalModifier "goal_to" False var2]
               ("po", Dat) -> xor [[mite $ VerbalModifier "accordingTo" True var2],
                                   [mite $ NounAdjunct "accordingTo" True var2],
                                   [mite $ VerbalModifier "optativeModality" True var2]]
               ("s", Instr) -> [mite $ VerbalModifier "mood" False var2]
-              ("s", Gen) -> [mite $ NounAdjunct "source" False var2]
+              ("s", Gen) -> xor [[mite $ NounAdjunct "source" False var2], [mite $ VerbalModifier "source" False var2]]
+              ("v", Acc) -> [mite $ VerbalModifier "goal_in" False var2]
               ("v", Prep) -> [mite $ VerbalModifier "condition" False var2]
+              ("na", Acc) -> [mite $ VerbalModifier "goal_on" False var2]
               ("na", Prep) -> [mite $ NounAdjunct "location" False var2]
               _ -> []
             extra = Seq.pullThyself m2 rightMites ++ Seq.liftArguments m2 rightMites ++ whPropagation m1 m2 rightMites
@@ -255,17 +260,18 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
        
       _ -> []
 
-argVariants headVar childVar headMites childMites = [mite $ Unify headVar childVar] ++ reflexive ++ existentials where
+argVariants headVar childVar headMites childMites = [mite $ Unify headVar childVar] ++ reflexive ++ existentials headMites childMites where
   reflexive = headMites >>= \m1 -> case cxt m1 of
     ReflexiveTarget target -> childMites >>= \m2 -> case cxt m2 of
       ReflexiveReference ref -> withBase [m1,m2] [semV ref "target" target]
       _ -> []
     _ -> []
-  existentials = headMites >>= \m1 -> case cxt m1 of
-    ModalityInfinitive v cp -> childMites >>= \m2 -> case cxt m2 of
-      ExistentialWh whVar tensedVar -> withBase [m1,m2] [semT cp "fact", mite $ Unify v tensedVar]
-      _ -> []
+
+existentials headMites childMites = headMites >>= \m1 -> case cxt m1 of
+  ModalityInfinitive v cp -> childMites >>= \m2 -> case cxt m2 of
+    ExistentialWh whVar tensedVar -> withBase [m1,m2] [semT cp "fact", mite $ Unify v tensedVar]
     _ -> []
+  _ -> []
 
 whPropagation headMite childMite childMites = childMites >>= \m3 -> case cxt m3 of
   Wh {} -> withBase [headMite, childMite, m3] [mite $ cxt m3]

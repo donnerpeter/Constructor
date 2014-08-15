@@ -22,6 +22,17 @@ issues mites = let
   wrongOptative frame =
     if any (not . hasType "LUCK") (flatten $ fValue "optativeModality" frame)
     then ["invalid optativeModality"] else []
+  directionIssues frame =
+    if hasType "GO" frame && not (hasDirection frame) then ["missing direction"]
+    else if hasType "COME_SCALARLY" frame && hasDirection frame then ["unexpected direction"]
+    else []
+  hasDirection frame =
+    let attrs = ["goal", "goal_in", "goal_to", "goal_action", "goal_on", "source", "relTime"]
+        anyValue = msum $ flip map attrs $ \attr ->
+          let val = fValue attr frame in
+          if isJust (val >>= getType) then val else Nothing
+    in
+    isJust anyValue
   frameIssues frame = case getType frame of
     Just "seq" | Nothing == sValue "conj" frame -> ["comma-only seq"]
     Just s | (s == "SIT" || s == "SAY") && isNothing (fValue "arg1" frame >>= sDeclaredValue "type") ->
@@ -50,6 +61,7 @@ issues mites = let
     ++ (frames >>= orderingIssues)
     ++ (frames >>= wrongAccording)
     ++ (frames >>= wrongOptative)
+    ++ (frames >>= directionIssues)
 
 orderingIssues frame = case getType frame of
   Just "COME_SCALARLY" |

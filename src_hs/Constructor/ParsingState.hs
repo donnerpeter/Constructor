@@ -13,25 +13,25 @@ import qualified Data.Map as Map
 import Constructor.Composition
 import Control.Exception (assert)
 
-createEdges leftTree rightTree infos = --trace infos $
-  let lh = xor [merged | (MergeInfo merged side) <- infos, side == LeftSide]
-      rh = xor [merged | (MergeInfo merged side) <- infos, side == RightSide]
-      lTree = if null lh then Nothing else createBranch lh leftTree rightTree LeftSide $ calcCandidateSets lh
-      rTree = if null rh then Nothing else createBranch rh leftTree rightTree RightSide $ calcCandidateSets rh
-  in catMaybes [lTree, rTree]
-
-calcMergeInfos leftTree rightTree = infos where
+calcMergeInfos leftTree rightMites = infos where
   leftMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ allVariants leftTree
-  rightMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ allVariants rightTree
   infos = interactNodes leftTree leftMites rightMites
 
-stealLeft:: Tree -> Tree -> Set.Set MergeInfo -> [Tree]
-stealLeft leftTree rightTree processedInfos =
-  let ownResults = createEdges leftTree rightTree $ filter (not. flip Set.member processedInfos) infos
-      infos = calcMergeInfos leftTree rightTree
-      nextProcessed = if headSide leftTree == LeftSide then Set.empty else Set.union processedInfos (Set.fromList infos)
-      leftSubResults = if isBranch leftTree then stealLeft (justRight leftTree) rightTree nextProcessed else []
-  in leftSubResults ++ ownResults
+stealLeft leftTree rightTree = let
+  stealableTrees tree = (:) tree $
+    if isBranch tree && headSide tree == RightSide then stealableTrees (justRight tree) else []
+  rightMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ allVariants rightTree
+  stealFromHead tree = let
+    allInfos = [(lt, calcMergeInfos lt rightMites) | lt <- stealableTrees tree]
+    createBranches side infoPairs processedInfos = case infoPairs of
+      [] -> []
+      (leftTree, infos):rest -> let
+        toProcess = filter (\info -> mergedHeadSide info == side && not (Set.member info processedInfos)) infos
+        mites = xor [merged | (MergeInfo merged mhs) <- toProcess, mhs == side]
+        maybeBranch = if null mites then Nothing else createBranch mites leftTree rightTree side $ calcCandidateSets mites
+        in maybeToList maybeBranch ++ createBranches side rest (Set.union processedInfos (Set.fromList toProcess))
+    in (reverse $ createBranches LeftSide (reverse allInfos) Set.empty) ++ createBranches RightSide allInfos Set.empty
+  in reverse (edgeTrees RightSide leftTree) >>= stealFromHead
 
 data ParsingState = ParsingState { roots :: [Tree], history :: [ParsingState] }
 instance Show ParsingState where show state = show $ roots state
@@ -46,7 +46,7 @@ mergeTrees state = {-trace ("--------------", length allVariants, [(sortingKey v
   tryStealing :: [Tree] -> [ParsingState]
   tryStealing trees = [state { roots = trees }] ++ case trees of
     right:left:rest -> let
-      stolen = stealLeft left right Set.empty
+      stolen = stealLeft left right
       prevState tree = (history state) !! (treeWidth tree - 1)
       nextStates = map (\tree -> tree : roots (prevState tree)) stolen
       in nextStates >>= tryStealing

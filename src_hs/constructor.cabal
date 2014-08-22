@@ -16,22 +16,26 @@ cabal-version:       >=1.8
 
 executable constructor
   ghc-options: -O2
-  extensions: DoAndIfThenElse,PatternGuards,LambdaCase,ViewPatterns
+  extensions: DoAndIfThenElse,PatternGuards,LambdaCase,ViewPatterns,DeriveGeneric
   main-is: Main.hs
   build-depends:       base ==4.6.*,
                        HUnit,
                        transformers,
                        mtl,
                        deepseq,
+                       hashable,
+                       unordered-containers,
                        containers
 
 executable profiled
   ghc-options: -O2 -fprof-auto -rtsopts
-  extensions: DoAndIfThenElse,PatternGuards,LambdaCase,ViewPatterns
+  extensions: DoAndIfThenElse,PatternGuards,LambdaCase,ViewPatterns,DeriveGeneric
   main-is: Profile.hs
   build-depends:       base ==4.6.*,
                        HUnit,
                        transformers,
                        mtl,
                        deepseq,
+                       hashable,
+                       unordered-containers,
                        containers

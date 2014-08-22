@@ -126,6 +126,7 @@ checkOriginal ::  Construction -> Mite -> Maybe AnchorMapping
 checkOriginal anchor candidate = case (cxt candidate, anchor) of
   (VerbalModifier a1 _ v1, VerbalModifier a2 _ v2) | a1 == a2 -> Just $ AnchorMapping candidate v1 anchor v2
   (Argument kind1 v1, Argument kind2 v2) | kind1 == kind2 -> Just $ AnchorMapping candidate v1 anchor v2
+  (SemArgument kind1 v1 _, SemArgument kind2 v2 _) | kind1 == kind2 -> Just $ AnchorMapping candidate v1 anchor v2
   (Adj v1 kind1 _, Adj v2 kind2 _) | kind1 == kind2 -> Just $ AnchorMapping candidate v1 anchor v2
   _ -> Nothing
 
@@ -158,7 +159,7 @@ processEllipsis oldClause ellipsisVar@(Variable varIndex _) e1 e2 prevTree = let
       activeHeadMites = Constructor.Tree.activeHeadMites tree
       headCxts = map cxt activeHeadMites
       ownMapped = filter (not . contradict oldClause) activeHeadMites >>= mapMite
-      folder (allMapped, allCovered) tree = let (mapped, covered) = walkTree tree in (allMapped++mapped, allCovered++covered) 
+      folder (allMapped, allCovered) tree = let (mapped, covered) = walkTree tree in (allMapped++mapped, allCovered++covered)
       (leftMapped, leftCovered) = foldl folder ([], []) $ subTrees LeftSide tree
       (rightMapped, rightCovered) = foldl folder ([], []) $ subTrees RightSide tree
       in

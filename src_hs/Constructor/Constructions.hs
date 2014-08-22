@@ -7,7 +7,8 @@ import Data.Maybe
 
 cases = [Nom,Acc,Gen,Dat,Instr,Prep]
 
-data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | ScalarAdverb | DirectionAdverb deriving (Show, Eq, Ord)
+data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | ScalarAdverb deriving (Show, Eq, Ord)
+data SemArgKind = Direction deriving (Show, Eq, Ord)
 data ClauseForce = Declarative | Interrogative deriving (Show, Eq, Ord)
 data Satisfied = Unsatisfied | Satisfied deriving (Show, Eq, Ord)
 data SeqData = SeqData { seqVar :: Variable, seqConj :: String, seqReady :: Bool,
@@ -27,11 +28,13 @@ data Construction = Word Variable String
                   | NomHead Agr Variable Satisfied
                   | GenHead Variable
                   | ArgHead ArgKind Variable
+                  | SemArgHead SemArgKind Variable
                   | PrepHead String ArgKind Variable
                   | SemPreposition ArgKind Variable
                   | UnsatisfiedArgHead Construction
                   | Quantifier ArgKind Agr Variable
                   | Argument ArgKind Variable
+                  | SemArgument SemArgKind {-head-} Variable {-child-} Variable
                   | Adverb Variable
                   | NounAdjunct {-attr-} String {-requires comma-} Bool Variable
                   | Elaboration Variable
@@ -88,6 +91,7 @@ data Construction = Word Variable String
 isHappy cxt = case cxt of
   Adj {} -> False; Adverb {} -> False; NounAdjunct {} -> False
   ArgHead {} -> False; PrepHead {} -> False; SemPreposition {} -> False; Argument {} -> False; ElidedArgHead {} -> False
+  SemArgHead {} -> False; SemArgument {} -> False
   UnsatisfiedArgHead {} -> False
   Quantifier {} -> False
   CompHead {} -> False; ConditionCompHead {} -> False; ConditionComp {} -> False; ReasonComp {} -> False

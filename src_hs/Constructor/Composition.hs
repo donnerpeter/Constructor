@@ -1,9 +1,11 @@
 module Constructor.Composition (interactNodes, MergeInfo(..)) where
 import Constructor.Constructions
 import Constructor.Mite
+import Constructor.Variable
 import Constructor.Agreement
 import Constructor.Tree
 import Constructor.Util
+import Constructor.Lexicon
 import qualified Constructor.Seq as Seq
 import qualified Constructor.LinkedSet as LS
 
@@ -69,6 +71,7 @@ ellipsisLeftVariants leftMites rightMites = if null result then [] else mergeRig
 
 ellipsisAnchor (VerbalModifier _ _ v) = Just v
 ellipsisAnchor (Argument _ v) = Just v
+ellipsisAnchor (SemArgument _ _ v) = Just v
 ellipsisAnchor (Adj v _ _) = Just v
 ellipsisAnchor _ = Nothing
 
@@ -147,6 +150,8 @@ questionableArguments leftMites rightMites whContext (m1, m2) = map (propagateUn
     in case (cxt m1, cxt m2) of
       (ArgHead kind1 head, Argument kind2 arg) | kind1 == kind2 -> left $ argVariants head arg leftMites rightMites
       (Argument kind2 arg, ArgHead kind1 head) | kind1 == kind2 -> right $ argVariants head arg rightMites leftMites
+      (SemArgHead kind1 head, SemArgument kind2 arg _) | kind1 == kind2 -> left $ argVariants head arg leftMites rightMites
+      (SemArgument kind2 arg _, SemArgHead kind1 head) | kind1 == kind2 -> right $ argVariants head arg rightMites leftMites
 
       (Argument Nom v1, NomHead agr1 v2 Unsatisfied) -> leftMites >>= \m3 -> case cxt m3 of
         AdjHead v3 Nom agr2 | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) ->
@@ -199,15 +204,15 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
               Copula var3 | not (contradict m1 m3) -> withBase [m1,m2,m3] [mite $ Unify var1 var2]
               _ -> []
             adjunctMites = case (prep1, kind1) of
-              ("k", Dat) -> [mite $ VerbalModifier "goal_to" False var2]
+              ("k", Dat) -> semArg Direction "goal_to" var2
               ("po", Dat) -> xor [[mite $ VerbalModifier "accordingTo" True var2],
                                   [mite $ NounAdjunct "accordingTo" True var2],
                                   [mite $ VerbalModifier "optativeModality" True var2]]
               ("s", Instr) -> [mite $ VerbalModifier "mood" False var2]
               ("s", Gen) -> xor [[mite $ NounAdjunct "source" False var2], [mite $ VerbalModifier "source" False var2]]
-              ("v", Acc) -> [mite $ VerbalModifier "goal_in" False var2]
+              ("v", Acc) -> semArg Direction "goal_in" var2
               ("v", Prep) -> [mite $ VerbalModifier "condition" False var2]
-              ("na", Acc) -> [mite $ VerbalModifier "goal_on" False var2]
+              ("na", Acc) -> semArg Direction "goal_on" var2
               ("na", Prep) -> [mite $ NounAdjunct "location" False var2]
               _ -> []
             extra = Seq.pullThyself m2 rightMites ++ Seq.liftArguments m2 rightMites ++ whPropagation m1 m2 rightMites

@@ -46,6 +46,9 @@ infinitive typ v =
 arg argType relation v = [mite $ ArgHead argType (v relation), semV (v "") relation (v relation)]
 compHead attr v = [mite $ CompHead (v "comp"), semV (v "") attr (v "comp")]
 
+semArg argType relation childVar@(Variable index s) = let headVar = Variable index (s ++ "_head") in
+  [mite $ SemArgument argType headVar childVar, semV headVar relation childVar]
+
 whWord v = [mite $ Wh (v ""), semT (v "") "wh"]
 caseWhWord kind agr v = whWord v ++ [mite $ QuestionVariants (v "") kind, mite $ Argument kind (v ""), mite $ AdjHead (v "") kind agr]
 negatedWh v = [semT (v "") "wh", semS (v "") "negated" "true", mite $ Negated (v "")]
@@ -74,7 +77,7 @@ wordNumber caze typ v = xor [nounSg caze Masc typ v, numQuantifier caze (quantif
 quantifierChildCase caze typ = if typ == "1" then caze else Gen
 quantifierChildAgr typ = if typ `elem` ["1","2","3","4"] then A.sg else A.pl
 
-go_args v = optional (xor [arg DirectionAdverb "goal" v,
+go_args v = optional (xor [[mite $ SemArgHead Direction (v "")],
                            [mite $ Control (v "goal_action"), semV (v "") "goal_action" (v "goal_action")]])
 
 wordMites :: String -> Int -> [Mite]
@@ -122,7 +125,7 @@ wordMites word index =
   "дойдя" -> perfectBackground "COME_TO" v ++ optional (arg (PP "v" Prep) "domain" v) ++ optional (arg (PP "do" Gen) "goal_by" v)
   "долго" -> adverb "duration" "LONG" v
   "домам" -> nounPl Dat "HOMES" v ++ genHead "owner" v
-  "домой" -> [mite $ Argument DirectionAdverb v0, semT v0 "HOME"]
+  "домой" -> semArg Direction "goal" v0 ++ [semT v0 "HOME"]
   "других" -> nounPl Gen "OTHERS" v
   "думает" -> finVerb "THINK" "PRESENT" A.sg3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) "topic" v)
   "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) "topic" v)
@@ -166,7 +169,7 @@ wordMites word index =
   "комнатам" -> nounPl Dat "ROOMS" v ++ genHead "owner" v
   "кому" -> caseWhWord Dat A.sg v ++ animate v
   "кто" -> caseWhWord Nom A.sg v ++ animate v
-  "куда" -> whWord v ++ [mite $ Argument DirectionAdverb v0]
+  "куда" -> whWord v ++ semArg Direction "goal" v0
   "летний" -> adj Acc A.m "name" "летний" v -- todo летний is not only a name
   "лишенными" -> [mite $ Raiseable A.pl v0, semT v0 "LACK"] ++ arg Gen "theme" v
   "любит" -> finVerb "LOVE" "PRESENT" A.sg3 v ++ optional (directObject v)
@@ -197,10 +200,10 @@ wordMites word index =
   "недоумении" -> nounSg Prep Neu "PREDICAMENT" v ++ genHead "arg1" v
   "некого" -> negatedWh v ++ [mite $ Argument Acc v0, mite $ ExistentialWh v0 (v "z")] ++ animate v
   "некому" -> negatedWh v ++ [mite $ Argument Dat v0, mite $ ExistentialWh v0 (v "z")] ++ animate v
-  "некуда" -> negatedWh v ++ [mite $ Argument DirectionAdverb v0, mite $ ExistentialWh v0 (v "z")]
+  "некуда" -> negatedWh v ++ semArg Direction "goal" v0 ++ [mite $ ExistentialWh v0 (v "z")]
   "нечего" -> negatedWh v ++ [mite $ Argument Acc v0, mite $ ExistentialWh v0 (v "z")]
   "никто" -> negatedWh v ++ [mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.sg3] ++ animate v
-  "никуда" -> negatedWh v ++ [mite $ Argument DirectionAdverb v0]
+  "никуда" -> negatedWh v ++ semArg Direction "goal" v0
   "ничего" -> negatedWh v ++ [mite $ Argument Gen v0]
   "но" ->  xor [conjunction v0 "but" False, [mite $ ConjEmphasis "butEmphasis" v0]]
   "носом" -> nounSg Instr Masc "NOSE" v
@@ -241,7 +244,7 @@ wordMites word index =
   "потому" -> [mite $ TwoWordCxt "потому что" True [ReasonComp v0 False] v0]
   "приуныли" -> finVerb "GET_SAD" "PAST" A.pl v
   "просто" -> adverb "manner" "JUST" v
-  "пошли" -> finVerb "GO" "PAST" A.pl v ++ xor[arg (PP "v" Acc) "goal_in" v, arg DirectionAdverb "goal" v]
+  "пошли" -> finVerb "GO" "PAST" A.pl v ++ [mite $ SemArgHead Direction v0]
   "работу" -> nounSg Acc Fem "WORK" v
   "работы" -> nounSg Gen Fem "WORK" v
   "радостью" -> nounSg Instr Fem "JOY" v

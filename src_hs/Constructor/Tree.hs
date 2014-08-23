@@ -69,7 +69,7 @@ uncoveredHeadMites tree =
         in
         if isNothing $ left tree then concat $ reverse (ownMites:result)
         else inner (if headSide tree == LeftSide then justLeft tree else justRight tree)
-                    (Set.union suppressed $ Set.filter (not . happy) $ activeBase $ active tree)
+                    (Set.union suppressed $ Set.filter isCoverable $ activeBase $ active tree)
                     (ownMites:result)
   in inner tree Set.empty []
 
@@ -97,7 +97,8 @@ createLeaf mites candidateSets = bestTree trees where
 createBranch mites _leftChild _rightChild headSide candidateSets = bestVariant where
   bestVariant = case allBranchVariants of
     [] -> Nothing
-    _ -> Just $ bestTree allBranchVariants
+    _ -> let result = Just $ bestTree allBranchVariants in
+         {-if length allBranchVariants < 10 then result else trace ("-----allBranchVariants", length allBranchVariants, mites) -}result
   allBranchVariants = map bestTree $ Map.elems grouped
   rightAVs = filter (null . _unhappyLeft) (allVariants _rightChild)
   allAVCandidates = {-traceShow ("-------------------leftAVs", leftAVs) $ -}do
@@ -105,8 +106,8 @@ createBranch mites _leftChild _rightChild headSide candidateSets = bestVariant w
     let covered = base active
         base mites = LS.removeDups [mite | activeMite <- mites, mite <- baseMites activeMite]
         isUncovered mite = not $ mite `elem` covered
-        unhappyBase = Set.fromList $ filter (not . happy) covered
-        isCompatible av = not $ any (flip Set.member unhappyBase) $ activeHeadMitesBase av
+        coverableBase = Set.fromList $ filter isCoverable covered
+        isCompatible av = not $ any (flip Set.member coverableBase) $ activeHeadMitesBase av
         leftCompatible = filter isCompatible $ allVariants _leftChild
         rightCompatible = filter isCompatible $ rightAVs
     aLeft <- leftCompatible
@@ -120,7 +121,7 @@ createBranch mites _leftChild _rightChild headSide candidateSets = bestVariant w
           activeSet = Set.fromList active
           headChild = select headSide aLeft aRight
           allActiveList = allActiveMiteList aLeft ++ active ++ allActiveMiteList aRight
-          _activeHeadMites = active ++ filter (\mite -> isUncovered mite || happy mite) (activeHeadMites headChild)
+          _activeHeadMites = active ++ filter (\mite -> isUncovered mite || not (isCoverable mite)) (activeHeadMites headChild)
       in
       return $ {-trace ("ok", aRight) $ -}Tree {
         mites = mites, left = Just aLeft, right = Just aRight, headSide = headSide,
@@ -129,7 +130,7 @@ createBranch mites _leftChild _rightChild headSide candidateSets = bestVariant w
         allActiveMiteSet = Set.union activeSet $ Set.union (allActiveMiteSet aLeft) (allActiveMiteSet $ aRight),
         activeHeadMites = _activeHeadMites,
         activeHeadMitesBase = LS.removeDups (_activeHeadMites >>= baseMites),
-        _uncoveredActiveMites = Set.union (Set.filter (\mite -> isUncovered mite || happy mite) childrenActive) activeSet,
+        _uncoveredActiveMites = Set.union (Set.filter (\mite -> isUncovered mite || not (isCoverable mite)) childrenActive) activeSet,
         _unhappyLeft  = filter isUncovered $ _unhappyLeft aLeft   ++ select headSide [] (_unhappyHead aLeft),
         _unhappyRight = filter isUncovered $ _unhappyRight aRight ++ select headSide (_unhappyHead aRight) [],
         _unhappyHead = filter isUncovered $ _unhappyHead headChild ++ filter (not. happy) active,

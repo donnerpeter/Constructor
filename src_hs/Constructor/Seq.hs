@@ -44,8 +44,7 @@ seqRight leftMites rightMites = {-traceIt "seqRight" $ -}result where
       Possessive caze agr child -> withBase [m1,m2] [semV v "member2" child, mite $ Conjunction $ sd {seqKind=Just (Adj child caze agr), seqRightVar=Just child}]
       Complement child -> withBase [m1,m2] [semV v "member2" child, semS child "distinguished" "true", conjWithRight child]
       Clause force child ->
-        let unhappy = filter elideable $ filter (not . happy) rightMites
-            wrapped = [(mite $ ElidedArgHead $ cxt m) {baseMites = [m,m1,m2]} | m <- unhappy]
+        let wrapped = [(mite $ ElidedArgHead $ cxt m) {baseMites = [m,m1,m2]} | m <- filter elideable rightMites]
             elideable mite = case cxt mite of
               NomHead _ _ Unsatisfied -> True
               _ -> False

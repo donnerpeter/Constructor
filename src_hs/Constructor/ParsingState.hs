@@ -56,7 +56,7 @@ addMites:: ParsingState -> [Mite] -> ParsingState
 addMites state mites = mergeTrees $ ParsingState { roots = (createLeaf mites $ calcCandidateSets mites):roots state, history = state:history state }
 
 calcCandidateSets:: [Mite] -> [[Mite]]
-calcCandidateSets mites = {-trace ("---contradictors:", length mites, length result, mites) $ -}result where
+calcCandidateSets mites = {-if length result < 10 then result else trace ("---contradictors:", length mites, length result, mites) $ -}result where
   contradictorCache = Map.fromList [(m, Set.fromList $ filter (contradict m) mites) | m <- mites]
   hasContradictors mite inList = let contras = (Map.!) contradictorCache mite in any (flip Set.member contras) inList
   enumerate :: [Mite] -> [Mite] -> [Mite] -> [[Mite]]

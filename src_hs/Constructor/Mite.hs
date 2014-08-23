@@ -2,6 +2,7 @@ module Constructor.Mite
  (Mite(Mite, cxt, happy, baseMites), mite,
  xor, withBase, contradict,
  optional,
+ isCoverable,
  semS, semV, semT)
  where
 
@@ -35,7 +36,9 @@ _initMite cxt _contradictors baseMites = let
       flattenContradictors = foldl Set.union Set.empty (map contradictors fbm)
     }
   fbm = mite : (LS.removeDups (baseMites >>= flattenBaseMites))
-  in mite
+  in
+  if contradict mite mite then error $ "self-contradicting mite " ++ show mite ++ "; flattenContradictors=" ++ show (flattenContradictors mite)
+  else mite
 
 instance Show Mite where
   show (Mite {cxt=c, happy=h, contradictors=cc, baseMites = b}) =
@@ -83,3 +86,7 @@ withBase base mites = let
   in map handleMite mites
 
 optional mites = xor [mites, [mite $ EmptyCxt $ cxt $ head mites]]
+
+isCoverable mite = if not (happy mite) then True else case cxt mite of
+  NomHead {} -> True
+  _ -> False

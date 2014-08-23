@@ -22,7 +22,7 @@ issues mites = let
   wrongOptative frame =
     if any (not . hasType "LUCK") (flatten $ fValue "optativeModality" frame)
     then ["invalid optativeModality"] else []
-  frameIssues frame = case getType frame of
+  frameIssues frame = case getDeclaredType frame of
     Just "seq" | Nothing == sValue "conj" frame -> ["comma-only seq"]
     Just s | (s == "SIT" || s == "SAY") && isNothing (fValue "arg1" frame >>= sDeclaredValue "type") ->
       ["unknown " ++ s ++ "subj "]
@@ -51,7 +51,7 @@ issues mites = let
     ++ (frames >>= wrongAccording)
     ++ (frames >>= wrongOptative)
 
-orderingIssues frame = case getType frame of
+orderingIssues frame = case getDeclaredType frame of
   Just "COME_SCALARLY" |
     Just subj <- fValue "arg1" frame,
     isJust (sDeclaredValue "type" subj),

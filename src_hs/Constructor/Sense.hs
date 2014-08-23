@@ -4,7 +4,7 @@ module Constructor.Sense
   fValue, sValue,
   fDeclaredValue, sDeclaredValue,
   usages, usage, allUsages,
-  getType, hasType, hasAnyType, resolve,
+  getType, getDeclaredType, hasType, hasAnyType, resolve,
   earlier,
   allFrameFacts,
   flatten, isNumber, unSeq, seqSiblings, prevSiblings, nextSiblings,
@@ -47,7 +47,7 @@ calcBaseVars mites =
         if Map.member var groups then groups
         else Map.insert var (Set.singleton var) groups
       groups = foldl inner Map.empty mites
-  in Map.map (head . Set.elems) groups  
+  in Map.map (head . Set.elems) groups
 
 data Fact = Fact { variable:: Variable, attrName:: String, value:: SemValue } deriving (Eq, Ord)
 instance Show Fact where show (Fact var attr value) = (show var)++"."++attr++"="++(show value)
@@ -153,6 +153,7 @@ commandingSubject frame = msum [usage "content" frame >>= usage "theme", usage "
 hasType t frame = getType frame == Just t
 hasAnyType types frame = fromMaybe False $ getType frame >>= \t -> Just $ elem t types
 getType frame = sValue "type" frame
+getDeclaredType frame = sDeclaredValue "type" frame
 
 allUsages attrs frame = LS.removeDups $ [f | (f, s) <- Map.findWithDefault [] frame $ frame2Usages (sense frame), s `elem` attrs]
 usages attr frame = LS.removeDups $ [f | (f, s) <- Map.findWithDefault [] frame $ frame2Usages (sense frame), s == attr]

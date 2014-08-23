@@ -35,7 +35,7 @@ finiteClause agr withSemSubject v = optional [mite $ NomHead agr (v "arg1") Unsa
                      [mite $ ReflexiveTarget (v "arg1")] ++
                      (if withSemSubject then [semV (v "") "arg1" (v "arg1")] else []) ++
                      rusNumber agr (v "arg1") ++ rusGender agr (v "arg1") ++ rusPerson agr (v "arg1") ++
-                     clause v where
+                     clause v
 
 clause v = [mite $ Verb (v ""), semV (v "cp") "content" (v "")] ++
            (xor [[mite $ Clause Declarative (v "cp"), semT (v "cp") "fact"], [mite $ Clause Interrogative (v "cp")]])

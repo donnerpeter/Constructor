@@ -80,10 +80,11 @@ punctuationAware leftMites rightMites (m1, m2) =
         compatibleChildren side = filter (not. contradict (select side m1 m2)) $ select side leftMites rightMites
         liftUnclosedCompatible side = liftUnclosed side (compatibleChildren side)
         addUnclosed side v = let
+          baseMite = select side m2 m1
           lifted = compatibleChildren side >>= \m -> case cxt m of
-            Unclosed s vars | s == side -> withBase [m,m1,m2] [mite $ Unclosed side (v:vars)]
+            Unclosed s vars | s == side -> withBase [m,baseMite] [mite $ Unclosed side (v:vars)]
             _ -> []
-          in xor $ (if null lifted then [] else [lifted]) ++ [base12 [mite $ Unclosed side [v]]]
+          in if null lifted then withBase [baseMite] [mite $ Unclosed side [v]] else lifted
         closeUnclosed side satisfied = (select side leftMites rightMites) >>= \m -> case cxt m of
           Unclosed s vars | s == invert side -> withBase [m, m2] $
             optional $ [mite $ Closed vars]

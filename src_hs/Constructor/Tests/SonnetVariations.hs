@@ -835,9 +835,9 @@ varUnsorted = TestLabel "sonnetVariations unsorted" $ TestList [
   ,
   translateTest "Вася идет гулять"
                 "Vasya goes for a walk"
---  ,
---todo  translateTest "Глупый кассир идет на работу, а умный - гулять"
---                "The stupid cashier goes to the work, but the smart one - for a walk"
+  ,
+  translateTest "Глупый кассир идет на работу, а умный - гулять"
+                "The stupid cashier goes to the work, but the smart one - for a walk"
  ]
 
 sonnetVariations = [var1, var2, var3, var4, var5, var6, var7, var67, var8, var9, 

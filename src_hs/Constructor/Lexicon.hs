@@ -42,7 +42,8 @@ clause v = [mite $ Verb (v ""), semV (v "cp") "content" (v "")] ++
 infinitive typ v =
   [semT (v "x") typ] ++ optional (arg Dat "arg1" $ modifyV v 'x') ++
   xor [[mite $ ControlledInfinitive $ v "", mite $ Unify (v "") (v "x")],
-       [mite $ ModalityInfinitive (v "") (v "cp"), semT (v "") "modality", semV (v "") "theme" (v "x"), semV (v "cp") "content" (v ""), mite $ Verb (v ""), mite $ TenseHead (v "")]]
+       [mite $ ModalityInfinitive (v "") (v "cp"), semT (v "") "modality", semV (v "") "theme" (v "x"), semV (v "cp") "content" (v ""), mite $ Verb (v ""), mite $ TenseHead (v "")],
+       semArg Direction "goal_action" (v "x")]
 arg argType relation v = [mite $ ArgHead argType (v relation), semV (v "") relation (v relation)]
 compHead attr v = [mite $ CompHead (v "comp"), semV (v "") attr (v "comp")]
 
@@ -77,8 +78,7 @@ wordNumber caze typ v = xor [nounSg caze Masc typ v, numQuantifier caze (quantif
 quantifierChildCase caze typ = if typ == "1" then caze else Gen
 quantifierChildAgr typ = if typ `elem` ["1","2","3","4"] then A.sg else A.pl
 
-go_args v = optional (xor [[mite $ SemArgHead Direction (v "")],
-                           [mite $ Control (v "goal_action"), semV (v "") "goal_action" (v "goal_action")]])
+go_args v = optional [mite $ SemArgHead Direction (v "")]
 
 wordMites :: String -> Int -> [Mite]
 wordMites word index =

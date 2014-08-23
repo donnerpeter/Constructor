@@ -19,51 +19,47 @@ import Constructor.Util
 import Control.Monad
 import Data.List (intercalate, findIndex, find)
 import Data.Maybe
-import Data.Hashable
-import GHC.Generics (Generic)
-import qualified Data.HashMap.Lazy as Map
-import qualified Data.HashSet as Set
-import qualified Constructor.LinkedHashSet as LS
+import qualified Data.Map as Map
+import qualified Data.Set as Set
+import qualified Constructor.LinkedSet as LS
 
 calcFacts allMites baseVars =
   let mapper = \case
           (cxt -> Sem var attr value) ->
             let normalizedValue = case value of
                   StrValue _ -> value
-                  VarValue var -> VarValue $ Map.lookupDefault var var baseVars
-            in [Fact (Map.lookupDefault var var baseVars) attr normalizedValue]
+                  VarValue var -> VarValue $ Map.findWithDefault var var baseVars
+            in [Fact (Map.findWithDefault var var baseVars) attr normalizedValue]
           _ -> []
   in
   LS.removeDups $ concat $ map mapper allMites
 
-calcBaseVars:: [Mite] -> Map.HashMap Variable Variable
+calcBaseVars:: [Mite] -> Map.Map Variable Variable
 calcBaseVars mites =
   let inner = \ groups -> \case
           (cxt -> Unify var1 var2) ->
             let ensured = ensureGroup var1 $ ensureGroup var2 groups
                 mergedGroup = Set.union (ensured Map.! var1) (ensured Map.! var2)
-                groupsMap = foldl (\ groups var -> Map.insert var mergedGroup groups) groups (Set.toList mergedGroup)
+                groupsMap = foldl (\ groups var -> Map.insert var mergedGroup groups) groups (Set.elems mergedGroup)
             in groupsMap
           _ -> groups
       ensureGroup = \ var groups ->
         if Map.member var groups then groups
         else Map.insert var (Set.singleton var) groups
       groups = foldl inner Map.empty mites
-  in Map.map (head . Set.toList) groups
+  in Map.map (head . Set.elems) groups  
 
-data Fact = Fact { variable:: Variable, attrName:: String, value:: SemValue } deriving (Eq, Ord, Generic)
+data Fact = Fact { variable:: Variable, attrName:: String, value:: SemValue } deriving (Eq, Ord)
 instance Show Fact where show (Fact var attr value) = (show var)++"."++attr++"="++(show value)
-instance Hashable Fact
 
-data Sense = Sense { facts:: [Fact], allFrames:: [Frame], frame2Facts:: Map.HashMap Frame [Fact], frame2Usages:: Map.HashMap Frame [(Frame, String)] }
+data Sense = Sense { facts:: [Fact], allFrames:: [Frame], frame2Facts:: Map.Map Frame [Fact], frame2Usages:: Map.Map Frame [(Frame, String)] }
 instance Show Sense where show sense = Data.List.intercalate "\n" (map show $ facts sense)
 instance Eq Sense where s1 == s2 = facts s1 == facts s2
+instance Ord Sense where compare s1 s2 = compare (facts s1) (facts s2)
 
-data Frame = Frame { var:: Variable, sense:: Sense }
+data Frame = Frame { var:: Variable, sense:: Sense } deriving (Eq)
 instance Show Frame where show frame = "{" ++ (Data.List.intercalate "," (map show $ allFrameFacts frame)) ++ "}"
 instance Ord Frame where compare s1 s2 = compare (var s1) (var s2)
-instance Eq Frame where (==) s1 s2 = (==) (var s1) (var s2)
-instance Hashable Frame where hashWithSalt s (Frame var _) = s `hashWithSalt` var
 
 makeSense allMites = sense where
   sense = Sense facts allFrames frame2Facts frame2Usages
@@ -85,7 +81,7 @@ extractValueString _ = Nothing
 extractValueVar (VarValue v) = Just v
 extractValueVar _ = Nothing
 
-allFrameFacts frame = Map.lookupDefault [] frame $ frame2Facts (sense frame)
+allFrameFacts frame = Map.findWithDefault [] frame $ frame2Facts (sense frame)
 allValues attr frame = [value fact | fact <- allFrameFacts frame, attrName fact == attr]
 singleListElement list = case list of
   [single] -> Just single
@@ -158,8 +154,8 @@ hasType t frame = getType frame == Just t
 hasAnyType types frame = fromMaybe False $ getType frame >>= \t -> Just $ elem t types
 getType frame = sValue "type" frame
 
-allUsages attrs frame = LS.removeDups $ [f | (f, s) <- Map.lookupDefault [] frame $ frame2Usages (sense frame), s `elem` attrs]
-usages attr frame = LS.removeDups $ [f | (f, s) <- Map.lookupDefault [] frame $ frame2Usages (sense frame), s == attr]
+allUsages attrs frame = LS.removeDups $ [f | (f, s) <- Map.findWithDefault [] frame $ frame2Usages (sense frame), s `elem` attrs]
+usages attr frame = LS.removeDups $ [f | (f, s) <- Map.findWithDefault [] frame $ frame2Usages (sense frame), s == attr]
 usage attr frame = singleListElement $ usages attr frame
 
 flatten Nothing = []

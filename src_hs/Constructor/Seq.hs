@@ -43,7 +43,7 @@ seqRight leftMites rightMites = {-traceIt "seqRight" $ -}result where
       Adj child caze agr -> withBase [m1,m2] [semV v "member2" child, conjWithRight child]
       Possessive caze agr child -> withBase [m1,m2] [semV v "member2" child, mite $ Conjunction $ sd {seqKind=Just (Adj child caze agr), seqRightVar=Just child}]
       Complement child -> withBase [m1,m2] [semV v "member2" child, semS child "distinguished" "true", conjWithRight child]
-      Clause force child ->
+      Clause child ->
         let wrapped = [(mite $ ElidedArgHead $ cxt m) {baseMites = [m,m1,m2]} | m <- filter elideable rightMites]
             elideable mite = case cxt mite of
               NomHead _ _ Unsatisfied -> True
@@ -100,8 +100,8 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
           Adj child caze1 agr1 -> handleAdj child caze1 agr1 $ \newAgr -> CompositeAdj seqV caze1 newAgr
           CompositeAdj child caze1 agr1 -> handleAdj child caze1 agr1 $ \newAgr -> CompositeAdj seqV caze1 newAgr
           Complement child | seqKind == Complement rightVar -> withBase [m1,m2] [semV seqV "member1" child] ++ [conjWithLeft, mite $ Complement seqV]
-          Clause force child -> case seqKind of
-            Clause force2 _ | force == force2 -> let
+          Clause child -> case seqKind of
+            Clause _ -> let
                  unifications = xor $ filter (not . null) $
                    [unifyMissingArgument mite1 mite2 | mite1 <- filter (not . contradict m1) leftMites,
                                                        mite2 <- filter (not . contradict m2) rightMites]
@@ -113,7 +113,7 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
                    Ellipsis ellipsisVar (Just e1) (Just e2) | not $ contradict m3 m2 -> map (withBase [m3]) $ processEllipsis m1 ellipsisVar e1 e2 leftTree
                    _ -> []
                  result = withBase [m1, m2] $
-                   [semV seqV "member1" child, mite $ Clause force seqV, conjWithLeft] ++ unifications ++ xor ellipsisVariants
+                   [semV seqV "member1" child, mite $ Clause seqV, conjWithLeft] ++ unifications ++ xor ellipsisVariants
                  in result
             _ -> []
           _ -> []
@@ -133,7 +133,7 @@ findOriginals mites anchor = catMaybes $ map (checkOriginal anchor) mites
 
 processEllipsis :: Mite -> Variable -> Construction -> Construction -> Tree -> [[Mite]]
 processEllipsis oldClause ellipsisVar@(Variable varIndex _) e1 e2 prevTree = let
-  Clause _ oldCP = cxt oldClause
+  Clause oldCP = cxt oldClause
   allMites = allTreeMites prevTree
   activeMiteSet = allActiveMiteSet prevTree
   mappings = catMaybes [mapConstructions mapping1 mapping2 | mapping1 <- findOriginals allMites e1, mapping2 <- findOriginals allMites e2]
@@ -167,7 +167,7 @@ processEllipsis oldClause ellipsisVar@(Variable varIndex _) e1 e2 prevTree = let
       else if containsClause activeHeadMites then ([], [])
       else (leftMapped++ownMapped++rightMapped, leftCovered++rightCovered)
     (mapped, covered) = walkTree prevTree
-    containsClause = any (\m -> case cxt m of Clause _ cp -> oldCP /= cp; _ -> False)
+    containsClause = any (\m -> case cxt m of Clause cp -> oldCP /= cp; _ -> False)
     in
     if covered == [o1,o2] then Just mapped else Nothing
   in mappings

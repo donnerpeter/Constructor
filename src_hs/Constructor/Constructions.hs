@@ -9,7 +9,6 @@ cases = [Nom,Acc,Gen,Dat,Instr,Prep]
 
 data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | ScalarAdverb deriving (Show, Eq, Ord)
 data SemArgKind = Direction deriving (Show, Eq, Ord)
-data ClauseForce = Declarative | Interrogative deriving (Show, Eq, Ord)
 data Satisfied = Unsatisfied | Satisfied deriving (Show, Eq, Ord)
 data SeqData = SeqData { seqVar :: Variable, seqConj :: String, seqReady :: Bool,
                          seqKind :: Maybe Construction, seqHasLeft :: Bool, seqRightVar :: Maybe Variable } deriving (Eq, Ord)
@@ -47,7 +46,7 @@ data Construction = Word Variable String
                   | WhAsserter Variable
                   | QuestionVariants Variable ArgKind
                   | Conjunction SeqData
-                  | Clause ClauseForce Variable
+                  | Clause Variable
                   | TopLevelQuestion Variable
                   | ElidedArgHead Construction
                   | Possessive ArgKind Agr Variable

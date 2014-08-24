@@ -38,7 +38,7 @@ interactNodes leftTree leftMites rightMites = {-traceIt ("    interact") $ -}if 
         in infos ++ filter whIncompatible nonQuestionable
     in case cxt whMite of
       Wh whVar -> rightMites >>= \clauseMite -> case cxt clauseMite of
-        Clause Interrogative cp -> fillGap cp whVar clauseMite
+        Clause cp -> fillGap cp whVar clauseMite
         ModalityInfinitive _ cp -> fillGap cp whVar clauseMite
         _ -> []
       _ -> []
@@ -64,7 +64,7 @@ ellipsisLeftVariants leftMites rightMites = if null result then [] else mergeRig
   result = rightMites >>= \m2 -> case cxt m2 of
     Ellipsis v Nothing rightCxt@(Just _) -> leftMites >>= \m1 -> case ellipsisAnchor (cxt m1) of
       Just anchor -> withBase [m1,m2] [mite $ Ellipsis v (Just $ cxt m1) rightCxt]
-        ++ [semV v "ellipsisAnchor1" anchor, mite $ Clause Declarative v]
+        ++ [semV v "ellipsisAnchor1" anchor, mite $ Clause v]
         ++ liftUnclosed LeftSide (filter (not . contradict m1) leftMites)
       _ -> []
     _ -> []
@@ -131,7 +131,7 @@ punctuationAware leftMites rightMites (m1, m2) =
       (QuestionVariants v kind, CommaSurrounded True closed (Argument kind2 child)) | kind == kind2 ->
         mergeLeft $ base12 [semV v "variants" child] ++ liftUnclosedCompatible RightSide
 
-      (Clause Declarative cp, Word _ ".") ->
+      (Clause cp, Word _ ".") ->
         mergeLeft $ base12 [semS cp "dot" "true", mite $ Sentence cp] ++ closeUnclosed LeftSide Satisfied
       (TopLevelQuestion cp, Word _ "?") -> left [semS cp "question_mark" "true", mite $ Sentence cp]
 
@@ -219,7 +219,7 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
             extra = Seq.pullThyself m2 rightMites ++ Seq.liftArguments m2 rightMites ++ whPropagation m1 m2 rightMites
         in mergeLeft (argMites ++ extra)
 
-      (Colon "elaboration" _, Clause Declarative cp) -> left [mite $ Elaboration cp]
+      (Colon "elaboration" _, Clause cp) -> left [mite $ Elaboration cp]
       (Verb head, Elaboration child) -> left [semV head "elaboration" child, mite $ Unclosed RightSide [child]]
 
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
@@ -231,9 +231,9 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
 
       (WhAsserter verb, Wh wh) -> right [mite $ ExistentialWh wh verb]
 
-      (ConditionComp v0 s False, Clause Declarative cp) -> left [mite $ Unify v0 cp, mite $ ConditionComp v0 s True]
+      (ConditionComp v0 s False, Clause cp) -> left [mite $ Unify v0 cp, mite $ ConditionComp v0 s True]
 
-      (ReasonComp v0 False, Clause Declarative cp) -> left [mite $ Unify v0 cp, mite $ ReasonComp v0 True]
+      (ReasonComp v0 False, Clause cp) -> left [mite $ Unify v0 cp, mite $ ReasonComp v0 True]
 
       (TwoWordCxt s1 True wrapped _, TwoWordCxt s2 False _ _) | s1 == s2 -> left $ map mite wrapped
       
@@ -260,7 +260,7 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
         in mergeRight $ base12 [semS v "negated" "true", mite $ Negated v] ++ negateDirectObject
 
       (Word _ "тоже", Verb v) -> right [semS v "also" "true"]
-      (Complementizer cp1, Clause Declarative cp2) -> left [mite $ Unify cp1 cp2, mite $ Complement cp1]
+      (Complementizer cp1, Clause cp2) -> left [mite $ Unify cp1 cp2, mite $ Complement cp1]
       (Control slave, ControlledInfinitive inf) -> left [mite $ Unify slave inf]
       (RaisingVerb verb subj, Raiseable agr child) -> left [semV child "arg1" subj, semV verb "theme" child]
        

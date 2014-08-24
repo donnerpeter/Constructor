@@ -37,8 +37,8 @@ finiteClause agr withSemSubject v =
                      rusNumber agr (v "arg1") ++ rusGender agr (v "arg1") ++ rusPerson agr (v "arg1") ++
                      clause v
 
-clause v = [mite $ Verb (v ""), semV (v "cp") "content" (v ""), semT (v "cp") "situation"] ++
-           (xor [[mite $ Clause Declarative (v "cp")], [mite $ Clause Interrogative (v "cp")]])
+clause v = [mite $ Verb (v ""), semV (v "cp") "content" (v ""), semT (v "cp") "situation", mite $ Clause (v "cp")]
+
 infinitive typ v =
   [semT (v "x") typ] ++ optional (arg Dat "arg1" $ modifyV v 'x') ++
   xor [[mite $ ControlledInfinitive $ v "", mite $ Unify (v "") (v "x")],

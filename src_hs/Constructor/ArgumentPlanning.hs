@@ -1,10 +1,8 @@
-module Constructor.ArgumentPlanning (Argument(..), argumentFrame, arguments, isCP, isVerbEllipsis, isEllipsisAnchor) where
+module Constructor.ArgumentPlanning (Argument(..), argumentFrame, arguments, isCP, isFactCP, isQuestionCP, isVerbEllipsis, isEllipsisAnchor) where
 import Constructor.Sense
 import Data.List
 import Data.Maybe
 import Constructor.Variable
-
-isCP frame = hasAnyType ["fact", "question"] frame
 
 isCPOrSeq frame = any isCP $ flatten $ Just frame
 
@@ -53,7 +51,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       ("FALL", "source") -> [PPArg "off" value]
       ("SAY", "addressee") -> [NPArg value]
       ("ASK", "topic") ->
-        if all (hasType "question") $ flatten $ Just value then []
+        if all isQuestionCP $ flatten $ Just value then []
         else [PPArg (if hasType "PREDICAMENT" value then "on" else "about") value]
       ("LACK", "theme") -> [NPArg value]
       ("DISTRACT", "theme") -> [PPArg "from" value]

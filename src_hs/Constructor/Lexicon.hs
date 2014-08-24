@@ -37,8 +37,8 @@ finiteClause agr withSemSubject v =
                      rusNumber agr (v "arg1") ++ rusGender agr (v "arg1") ++ rusPerson agr (v "arg1") ++
                      clause v
 
-clause v = [mite $ Verb (v ""), semV (v "cp") "content" (v "")] ++
-           (xor [[mite $ Clause Declarative (v "cp"), semT (v "cp") "fact"], [mite $ Clause Interrogative (v "cp")]])
+clause v = [mite $ Verb (v ""), semV (v "cp") "content" (v ""), semT (v "cp") "situation"] ++
+           (xor [[mite $ Clause Declarative (v "cp")], [mite $ Clause Interrogative (v "cp")]])
 infinitive typ v =
   [semT (v "x") typ] ++ optional (arg Dat "arg1" $ modifyV v 'x') ++
   xor [[mite $ ControlledInfinitive $ v "", mite $ Unify (v "") (v "x")],
@@ -67,7 +67,7 @@ conjunction v0 conj ready = [mite $ Conjunction $ SeqData v0 conj ready Nothing 
 modifyV v c = \s -> v $ c:s 
 whatComesNext v = [mite $ ArgHead ScalarAdverb (v "scalar"),
   semV (v "") "arg2" (v "arg2"),
-  semT (v "arg2") "question", semV (v "arg2") "questioned" (v "wh"), semV (v "arg2") "content" (v "comes"),
+  semT (v "arg2") "situation", semV (v "arg2") "questioned" (v "wh"), semV (v "arg2") "content" (v "comes"),
   semT (v "comes") "COME_SCALARLY", semV (v "comes") "order" (v "scalar"),
   semV (v "comes") "arg1" (v "wh"), semT (v "wh") "wh"]
 numQuantifier ownCase childCase childAgr v = [mite $ Argument ownCase (v ""), semV (v "") "quantifier" (v "q"), mite $ Quantifier childCase childAgr (v "")]

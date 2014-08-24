@@ -12,7 +12,7 @@ issues :: [Mite] -> [Issue]
 issues mites = let
   sense = makeSense mites
   frames = allFrames sense
-  hasCP = any (hasAnyType ["fact", "question"]) frames
+  hasCP = any isCP frames
   incompleteIsolation frame =
     if isJust (sValue "isolation" frame) && (isNothing (sValue "leftIsolated" frame) || isNothing (sValue "rightIsolated" frame))
     then ["Incomplete isolation " ++ show frame] else []
@@ -26,7 +26,7 @@ issues mites = let
     Just "seq" | Nothing == sValue "conj" frame -> ["comma-only seq"]
     Just s | (s == "SIT" || s == "SAY") && isNothing (fValue "arg1" frame >>= sDeclaredValue "type") ->
       ["unknown " ++ s ++ "subj "]
-    Just "ASK" | any (hasType "fact") (flatten $ fValue "topic" frame) -> ["asking fact"]
+    Just "ASK" | any isFactCP (flatten $ fValue "topic" frame) -> ["asking fact"]
     Just s | (s == "WE" || s == "THEY") && isJust (fValue "relative" frame) ->
       ["relative clause for pronoun"]
     Just "CASHIER" | any (hasType "OTHERS") (flatten $ fValue "place" frame) -> ["cashier of other people"]

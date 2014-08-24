@@ -33,7 +33,7 @@ interactNodes leftTree leftMites rightMites = {-traceIt ("    interact") $ -}if 
     fillGap cp whVar clauseMite =
         let fillers = filter (\info -> mergedHeadSide info == RightSide) $ questionable True
             whLinks = withBase [whMite, clauseMite] $
-              [semV cp "questioned" whVar, semT cp "question"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause cp], [mite $ TopLevelQuestion cp]]
+              [semV cp "questioned" whVar, semT cp "situation"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause cp], [mite $ TopLevelQuestion cp]]
             infos = fillers >>= \ info -> mergeLeft (mergeResult info ++ whLinks)
         in infos ++ filter whIncompatible nonQuestionable
     in case cxt whMite of
@@ -275,7 +275,7 @@ argVariants headVar childVar headMites childMites = [mite $ Unify headVar childV
 
 existentials headMites childMites = headMites >>= \m1 -> case cxt m1 of
   ModalityInfinitive v cp -> childMites >>= \m2 -> case cxt m2 of
-    ExistentialWh whVar tensedVar -> withBase [m1,m2] [semT cp "fact", mite $ Unify v tensedVar]
+    ExistentialWh whVar tensedVar -> withBase [m1,m2] [semT cp "situation", mite $ Unify v tensedVar]
     _ -> []
   _ -> []
 

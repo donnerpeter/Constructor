@@ -9,6 +9,7 @@ module Constructor.Sense
   allFrameFacts,
   flatten, isNumber, unSeq, seqSiblings, prevSiblings, nextSiblings,
   isHuman, isAnimate, isInanimate,
+  isCP, isFactCP, isQuestionCP,
   makeSense)
   where
 
@@ -182,3 +183,8 @@ isInanimate frame = hasType "wh" frame && Just "true" /= sValue "animate" frame 
 unSeq frame = case msum [usage "member1" frame, usage "member2" frame] of
   Just s -> unSeq s
   _ -> frame
+
+isCP frame = hasType "situation" frame
+
+isFactCP frame = isCP frame && not (isQuestionCP frame)
+isQuestionCP frame = isCP frame && isJust (fValue "questioned" frame)

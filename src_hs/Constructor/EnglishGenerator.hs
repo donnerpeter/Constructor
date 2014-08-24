@@ -250,7 +250,7 @@ sentence frame = handleSeq singleSentence (Just frame) `catM` return finish wher
 genComplement cp = case fValue "content" cp of
   Nothing -> return ""
   Just fVerb -> let
-      prefix = if hasType "fact" cp && distinguish cp then "that" else ""
+      prefix = if isFactCP cp && distinguish cp then "that" else ""
       negation = if Just "true" == sValue "negated" cp then "not" else ""
     in return (negation `cat` prefix) `catM` sentence cp
 
@@ -378,11 +378,11 @@ clause fVerb = do
     comp <- case fComp of
       Nothing -> return "" 
       Just cp -> let compVerb = fValue "content" cp in
-        if hasType "question" cp && Just True == fmap (hasType "THINK") compVerb then
+        if isQuestionCP cp && Just True == fmap (hasType "THINK") compVerb then
            do
              frameGenerated cp
              (return "about their opinion on") `catM` (np False $ fValue "topic" $ fromJust compVerb)
-        else let comma = if not (hasType "SAY" fVerb) && hasType "fact" (head $ flatten fComp) then "," else ""
+        else let comma = if not (hasType "SAY" fVerb) && isFactCP (head $ flatten fComp) then "," else ""
              in return comma `catM` handleSeq genComplement fComp
     externalComp <- if getType fVerb == Just "GO" then 
       case cp >>= usage "member1" >>= fValue "member2" of
@@ -441,7 +441,7 @@ vp fVerb verbForm clauseType = do
       isModality = hasType "modality" fVerb
       isRaising = hasType "SEEM" fVerb
       fSubject = if hasType "SEEM" fVerb || isModality || isRaising then theme >>= fValue "arg1" else fValue "arg1" fVerb
-      isQuestion = Just True == fmap (hasType "question") cp
+      isQuestion = Just True == fmap isQuestionCP cp
       nonSubjectQuestion = isQuestion && (cp >>= fValue "questioned") /= fSubject
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue "question_mark")
       isDoModality = isModality && Just True == fmap (hasType "DO") theme

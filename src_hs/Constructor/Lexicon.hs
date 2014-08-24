@@ -150,7 +150,11 @@ wordMites word index =
   "из" -> preposition "iz" Gen v
   "изо" -> preposition "iz" Gen v
   "или" -> conjunction v0 "or" True
-  "их" -> xor [pronoun Acc A.pl "THEY" v, [semT v0 "THEY", mite $ Possessive Nom A.empty v0], [semT v0 "THEY", mite $ Possessive Gen A.empty v0], [semT v0 "THEY", mite $ Possessive Dat A.empty v0]]
+  "их" -> xor [pronoun Acc A.pl "THEY" v,
+               [semT v0 "THEY", mite $ Possessive Nom A.empty v0],
+               [semT v0 "THEY", mite $ Possessive Gen A.empty v0],
+               [semT v0 "THEY", mite $ Possessive Dat A.empty v0],
+               [semT v0 "THEY", mite $ Possessive Acc A.empty v0]]
   "к" -> preposition "k" Dat v
   "кажется" -> raisingVerb "SEEM" "PRESENT" A.sg3 v ++ optional (arg Dat "experiencer" v)
   "как" -> [mite $ TwoWordCxt "так как" False [] v0]
@@ -261,6 +265,7 @@ wordMites word index =
   "себе" -> pronoun Dat A.empty "SELF" v ++ [mite $ ReflexiveReference v0]
   "семи" -> wordNumber Gen "7" v
   "семь" -> xor [wordNumber Nom "7" v, wordNumber Acc "7" v]
+  "семью" -> nounSg Acc Fem "FAMILY" v ++ genHead "arg1" v
   "сидит" -> finVerb "SIT" "PRESENT" A.sg3 v
   "сидят" -> finVerb "SIT" "PRESENT" A.pl3 v
   "сказал" -> finVerb "SAY" "PAST" A.m v ++ optional (arg Dat "addressee" v) ++ xor [[mite $ DirectSpeechHead v0 Nothing], directObject v, compHead "message" v]
@@ -303,6 +308,7 @@ wordMites word index =
   "у" ->
     -- todo copula for prepositions besides 'u'
     xor [preposition "u" Gen v, [mite $ PrepHead "u" Gen v0, mite $ Copula (v "x"), mite $ TenseHead (v "x"), semT (v "x") "copula", semV (v "x") "owner" v0] ++ finiteClause A.empty True (modifyV v 'x')]
+  "увидел" -> finVerb "SEE" "PAST" A.m v ++ directObject v
   "удивительный" -> adj Nom A.m "property" "AMAZING" v
   "углу" -> nounSg Prep Masc "CORNER" v ++ genHead "arg1" v
   "удивление" -> nounSg Nom Neu "AMAZE" v ++ genHead "arg1" v

@@ -20,21 +20,30 @@ randomStuffTests = [TestLabel "random stuff tests" $ TestList [
   ,
   translateTest "Они пошли домой"
                 "They went home"
---  ,
---todo  translateTest "Он увидел их семью"
---                "To drink tea is to live long"
+  ,
+  translateTest "Он увидел их семью"
+                "He saw their family"
 --  ,
 --todo  translateTest "Он увидел их своими глазами"
---                "To drink tea is to live long"
+--                "He saw them with his own eyes"
+--  ,
+--todo  translateTest "Он печатал семью пальцами"
+--                "He typed using seven fingers"
 --  ,
 --todo  translateTest "Он увидел их семью своими глазами"
---                "To drink tea is to live long"
+--                "He saw their family with his own eyes"
+--  ,
+--todo  translateTest "Он велел им ей помочь"
+--                "He ordered them to help her"
+--  ,
+--todo  translateTest "Он велел им помочь ей"
+--                "He ordered them to help her"
 --  ,
 --todo  translateTest "Он велел ей помочь"
---                "To drink tea is to live long"
+--                "He ordered her to help"
 --  ,
 --todo  translateTest "Он велел помочь ей"
---                "To drink tea is to live long"
+--                "He ordered to help her"
 --  ,
 --todo  translateTest "Идет дождь"
 --                "It's raining"
@@ -47,8 +56,10 @@ randomStuffTests = [TestLabel "random stuff tests" $ TestList [
 --  ,
 --todo  translateTest "Чай пить - долго жить"
 --                "To drink tea is to live long"
---  ,
---todo  translateTest "Он увидел их"
---                "To drink tea is to live long"
---  ,
+  ,
+  translateTest "Он увидел их"
+                "He saw them"
+  ,
+  translateTest "Он увидел их и их семью"
+                "He saw them and their family"
   ]]

@@ -173,7 +173,7 @@ streetName frame = case sValue "name" frame of
  _ -> ""
 
 fDeterminer frame =
-  if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "JAWS", "ARGUE", "FINGER", "SPEECH"] frame then fValue "arg1" frame
+  if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "JAWS", "ARGUE", "FINGER", "SPEECH", "FAMILY"] frame then fValue "arg1" frame
   else if hasAnyType ["OPINION"] frame && isDeterminerOpinion frame then fValue "arg1" frame
   else if hasAnyType ["WORDS"] frame then fValue "author" frame
   else if hasAnyType ["ROOMS", "APARTMENTS", "OFFICES"] frame then fValue "owner" frame

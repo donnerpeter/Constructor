@@ -111,6 +111,7 @@ wordMites word index =
   "вынула" -> finVerb "TAKE_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) "source" v ++ directObject v
   "все" -> adj Nom A.pl "quantifier" "ALL" v
   "вспомнить" -> infinitive "RECALL" v ++ directObject v
+  "глазами" -> nounPl Instr "EYES" v ++ genHead "arg1" v
   "глупый" -> adj Nom A.m "quality" "STUPID" v
   "грустно" -> adverb "manner" "SADLY" v
   "гулять" -> infinitive "WALK" v
@@ -262,6 +263,7 @@ wordMites word index =
   "сада" -> nounSg Gen Masc "GARDEN" v
   "свалился" -> finVerb "FALL" "PAST" A.m v ++ arg (PP "s" Gen) "source" v
   "своим" -> [semT v0 "SELF", mite $ Possessive Dat A.pl v0, mite $ ReflexiveReference v0]
+  "своими" -> [semT v0 "SELF", mite $ Possessive Instr A.pl v0, mite $ ReflexiveReference v0]
   "себе" -> pronoun Dat A.empty "SELF" v ++ [mite $ ReflexiveReference v0]
   "семи" -> wordNumber Gen "7" v
   "семь" -> xor [wordNumber Nom "7" v, wordNumber Acc "7" v]
@@ -308,7 +310,7 @@ wordMites word index =
   "у" ->
     -- todo copula for prepositions besides 'u'
     xor [preposition "u" Gen v, [mite $ PrepHead "u" Gen v0, mite $ Copula (v "x"), mite $ TenseHead (v "x"), semT (v "x") "copula", semV (v "x") "owner" v0] ++ finiteClause A.empty True (modifyV v 'x')]
-  "увидел" -> finVerb "SEE" "PAST" A.m v ++ directObject v
+  "увидел" -> finVerb "SEE" "PAST" A.m v ++ directObject v ++ optional (arg Instr "instrument" v)
   "удивительный" -> adj Nom A.m "property" "AMAZING" v
   "углу" -> nounSg Prep Masc "CORNER" v ++ genHead "arg1" v
   "удивление" -> nounSg Nom Neu "AMAZE" v ++ genHead "arg1" v

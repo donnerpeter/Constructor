@@ -45,6 +45,7 @@ noun (Just typ) frame = case typ of
   "WORK" -> "work"
   "ARGUE" -> "argument"
   "FAMILY" -> "family"
+  "EYES" -> "eyes"
   "THIS" -> "that"
   "NAMED_PERSON" -> fromMaybe "??name" $ sValue "name" frame
   "GARDEN" -> if (fValue "name" frame >>= getType) == Just "летний" then "Summer Garden" else "garden"

@@ -173,7 +173,7 @@ streetName frame = case sValue "name" frame of
  _ -> ""
 
 fDeterminer frame =
-  if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "JAWS", "ARGUE", "FINGER", "SPEECH", "FAMILY"] frame then fValue "arg1" frame
+  if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "JAWS", "ARGUE", "FINGER", "SPEECH", "FAMILY", "EYES"] frame then fValue "arg1" frame
   else if hasAnyType ["OPINION"] frame && isDeterminerOpinion frame then fValue "arg1" frame
   else if hasAnyType ["WORDS"] frame then fValue "author" frame
   else if hasAnyType ["ROOMS", "APARTMENTS", "OFFICES"] frame then fValue "owner" frame
@@ -205,7 +205,9 @@ determiner frame nbar =
           _ -> return "???det"
   in
   case det of
-    Just _  | not $ any (\f -> fDeterminer frame == fDeterminer f) (prevSiblings frame) -> handleSeq genitiveSpecifier $ fmap resolve det
+    Just _det  | not $ any (\f -> fDeterminer frame == fDeterminer f) (prevSiblings frame) ->
+      let own = if hasType "SELF" _det && hasType "EYES" frame then "own" else ""
+      in handleSeq genitiveSpecifier (fmap resolve det) `catM` return own
     _ -> return $
       let sDet = fValue "determiner" frame >>= getType in
       if sDet == Just "THIS" then "this"

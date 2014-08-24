@@ -69,6 +69,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       (_, "goal_in") -> [PPArg "to" value]
       (_, "goal_on") -> [PPArg "to" value]
       (_, "source") -> [PPArg "from" value]
+      (_, "instrument") -> [PPArg "with" value]
       (_, "mood") -> case getType value of
         Just "JOY" | isNothing (fValue "size" value)-> [Adverb "cheerfully"]
         Just _ -> [PPAdjunct "with" value]

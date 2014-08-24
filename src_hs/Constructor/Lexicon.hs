@@ -75,7 +75,7 @@ number word v = xor (concat [nounAlternatives caze ++ [quantifierAlternative caz
   nounAlternatives caze = [nounSg caze gender word v  ++ [semS (v "") "number" "true"] | gender <- [Masc, Neu]]
   quantifierAlternative caze = numQuantifier caze (quantifierChildCase caze word) (quantifierChildAgr word) v ++ [semT (v "q") word, semS (v "q") "number" "true"]
 wordNumber caze typ v = xor [nounSg caze Masc typ v, numQuantifier caze (quantifierChildCase caze typ) (quantifierChildAgr typ) v ++ [semT (v "q") typ]]
-quantifierChildCase caze typ = if typ == "1" then caze else Gen
+quantifierChildCase caze typ = if typ /= "1" && (caze == Nom || caze == Acc) then Gen else caze
 quantifierChildAgr typ = if typ `elem` ["1","2","3","4"] then A.sg else A.pl
 
 go_args v = optional [mite $ SemArgHead Direction (v "")]
@@ -232,7 +232,9 @@ wordMites word index =
   "офисам" -> nounPl Dat "OFFICES" v ++ genHead "owner" v
   "палец" -> nounSg Acc Masc "FINGER" v
   "пальца" -> nounSg Gen Masc "FINGER" v
+  "пальцами" -> nounPl Instr "FINGER" v
   "пальцев" -> nounPl Gen "FINGER" v
+  "печатал" -> finVerb "TYPE" "PAST" A.m v ++ optional (arg Instr "instrument" v)
   "по" -> preposition "po" Dat v
   "по-моему" -> xor [[mite $ VerbalModifier "accordingTo" True v0], [mite $ NounAdjunct "accordingTo" True v0]] ++ [semT v0 "OPINION", semV v0 "arg1" (v "me"), semT (v "me") "ME"]
   "поблагодарили" -> finVerb "THANK" "PAST" A.pl v ++ directObject v
@@ -267,7 +269,7 @@ wordMites word index =
   "себе" -> pronoun Dat A.empty "SELF" v ++ [mite $ ReflexiveReference v0]
   "семи" -> wordNumber Gen "7" v
   "семь" -> xor [wordNumber Nom "7" v, wordNumber Acc "7" v]
-  "семью" -> nounSg Acc Fem "FAMILY" v ++ genHead "arg1" v
+  "семью" -> xor [nounSg Acc Fem "FAMILY" v ++ genHead "arg1" v, wordNumber Instr "7" v]
   "сидит" -> finVerb "SIT" "PRESENT" A.sg3 v
   "сидят" -> finVerb "SIT" "PRESENT" A.pl3 v
   "сказал" -> finVerb "SAY" "PAST" A.m v ++ optional (arg Dat "addressee" v) ++ xor [[mite $ DirectSpeechHead v0 Nothing], directObject v, compHead "message" v]

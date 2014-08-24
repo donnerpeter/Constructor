@@ -64,6 +64,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
         else [Adverb (fromMaybe "??" $ getType value)]
       ("DISPERSE", "goal") -> if hasType "HOMES" value then [Adverb "home"] else [PPArg "to" value]
       ("GO", "goal_action") -> if hasType "WALK" value then [Adverb "for a walk"] else [PPArg "to" value]
+      ("TYPE", "instrument") -> [PPArg "using" value]
       (_, "goal") -> if typ == "GO" && hasType "HOME" value then [Adverb "home"] else [PPArg "to" value]
       (_, "goal_to") -> [PPArg "to" value]
       (_, "goal_in") -> [PPArg "to" value]

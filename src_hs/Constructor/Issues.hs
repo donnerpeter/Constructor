@@ -22,6 +22,9 @@ issues mites = let
   wrongOptative frame =
     if any (not . hasType "LUCK") (flatten $ fValue "optativeModality" frame)
     then ["invalid optativeModality"] else []
+  wrongNumber frame =
+    if hasType "EYES" frame && Just False == fmap (hasType "2") (fValue "quantifier" frame)
+    then ["suspicious eye count"] else []
   frameIssues frame = case getDeclaredType frame of
     Just "seq" | Nothing == sValue "conj" frame -> ["comma-only seq"]
     Just s | (s == "SIT" || s == "SAY") && isNothing (fValue "arg1" frame >>= sDeclaredValue "type") ->
@@ -50,6 +53,7 @@ issues mites = let
     ++ (frames >>= orderingIssues)
     ++ (frames >>= wrongAccording)
     ++ (frames >>= wrongOptative)
+    ++ (frames >>= wrongNumber)
 
 orderingIssues frame = case getDeclaredType frame of
   Just "COME_SCALARLY" |

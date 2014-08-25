@@ -35,9 +35,9 @@ randomStuffTests = [TestLabel "random stuff tests" $ TestList [
 --  ,
 --todo  translateTest "Он печатал всеми пальцами"
 --                "He typed using all of his fingers"
---  ,
---todo  translateTest "Он увидел их семью своими глазами"
---                "He saw their family with his own eyes"
+  ,
+  translateTest "Он увидел их семью своими глазами"
+                "He saw their family with his own eyes"
 --  ,
 --todo  translateTest "Он увидел их всеми семью своими глазами"
 --                "He saw them with all his seven eyes"

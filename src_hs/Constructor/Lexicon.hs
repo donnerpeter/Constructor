@@ -11,9 +11,9 @@ import Data.List
 
 nounSg caze gender typ v = pronoun caze (A.Agr (Just gender) (Just A.Sg) (Just 3)) typ v
 nounPl caze typ v = pronoun caze (A.Agr Nothing (Just A.Pl) (Just 3)) typ v
-pronoun caze agr typ v =
-  [mite $ Argument caze (v ""), semT (v "") typ, mite $ AdjHead (v "") caze agr, mite $ RelativeHead (v "")]
-  ++ rusGender agr (v "")
+pronoun caze agr typ v = synNoun caze agr v ++ [semT (v "") typ] ++ rusGender agr (v "")
+
+synNoun caze agr v = [mite $ Argument caze (v ""), mite $ AdjHead (v "") caze agr, mite $ RelativeHead (v "")]
 
 rusGender agr v = case A.gender agr of
   Just g -> [semS v "rusGender" (show g)]
@@ -70,7 +70,7 @@ whatComesNext v = [mite $ ArgHead ScalarAdverb (v "scalar"),
   semT (v "arg2") "situation", semV (v "arg2") "questioned" (v "wh"), semV (v "arg2") "content" (v "comes"),
   semT (v "comes") "COME_SCALARLY", semV (v "comes") "order" (v "scalar"),
   semV (v "comes") "arg1" (v "wh"), semT (v "wh") "wh"]
-numQuantifier ownCase childCase childAgr v = [mite $ Argument ownCase (v ""), semV (v "") "quantifier" (v "q"), mite $ Quantifier childCase childAgr (v "")]
+numQuantifier ownCase childCase childAgr v = synNoun ownCase childAgr v ++ [semV (v "") "quantifier" (v "q"), mite $ Quantifier childCase childAgr (v "")]
 number word v = xor (concat [nounAlternatives caze ++ [quantifierAlternative caze] | caze <- [Nom, Gen, Acc]]) where
   nounAlternatives caze = [nounSg caze gender word v  ++ [semS (v "") "number" "true"] | gender <- [Masc, Neu]]
   quantifierAlternative caze = numQuantifier caze (quantifierChildCase caze word) (quantifierChildAgr word) v ++ [semT (v "q") word, semS (v "q") "number" "true"]
@@ -110,6 +110,7 @@ wordMites word index =
   "вынул" -> finVerb "TAKE_OUT" "PAST" A.m v ++ arg (PP "iz" Gen) "source" v ++ directObject v
   "вынула" -> finVerb "TAKE_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) "source" v ++ directObject v
   "все" -> adj Nom A.pl "quantifier" "ALL" v
+  "всеми" -> numQuantifier Instr Instr A.pl v ++ [semT (v "q") "ALL"]
   "вспомнить" -> infinitive "RECALL" v ++ directObject v
   "глазами" -> nounPl Instr "EYES" v ++ genHead "arg1" v
   "глупый" -> adj Nom A.m "quality" "STUPID" v

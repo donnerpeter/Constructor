@@ -121,12 +121,12 @@ np_internal nom mayHaveDeterminer frame = do
       det <- if mayHaveDeterminer then determiner frame nbar else return ""
       return $ det `cat` nbar `cat` genitiveComplement
   let fQuantifier = fValue "quantifier" frame
-  let postQuantifier = if (fQuantifier >>= getType) == Just "ALL" ||
+  let postQuantifier = if (fQuantifier >>= getType) == Just "ALL" && hasType "WE" frame ||
                           (usage "arg1" frame >>= getType) == Just "DISPERSE"
                        then "all" else ""
   preQuantifier <- case fQuantifier >>= getType of
     Just "BOTH" -> return "both of"
-    Just "ALL" -> return ""
+    Just "ALL" -> return $ if null postQuantifier then "all of" else ""
     Just typ -> let q = handleSeq (np_internal True False) fQuantifier in
       if typ == "1" || isNothing (fValue "arg1" frame >>= getType) || any (\f -> fDeterminer frame == fDeterminer f) (prevSiblings frame) then q else q `catM` return "of"
     _ -> return ""

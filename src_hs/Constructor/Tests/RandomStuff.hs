@@ -41,18 +41,18 @@ randomStuffTests = [TestLabel "random stuff tests" $ TestList [
   ,
   translateTest "Он увидел их всеми семью своими глазами"
                 "He saw them with all seven of his eyes"
---  ,
---todo  translateTest "Он велел им ей помочь"
---                "He ordered them to help her"
---  ,
---todo  translateTest "Он велел им помочь ей"
---                "He ordered them to help her"
---  ,
---todo  translateTest "Он велел ей помочь"
---                "He ordered her to help"
---  ,
---todo  translateTest "Он велел помочь ей"
---                "He ordered to help her"
+  ,
+  translateTest "Он велел им ей помочь"
+                "He ordered them to help her"
+  ,
+  translateTest "Он велел им помочь ей"
+                "He ordered them to help her"
+  ,
+  translateTest "Он велел ей помочь"
+                "He ordered to help her"
+  ,
+  translateTest "Он велел помочь ей"
+                "He ordered to help her"
 --  ,
 --todo  translateTest "Идет дождь"
 --                "It's raining"

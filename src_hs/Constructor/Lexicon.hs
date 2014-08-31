@@ -41,9 +41,9 @@ finiteClause agr withSemSubject v =
 clause v = [mite $ Verb (v ""), semV (v "cp") P.Content (v ""), semT (v "cp") "situation", mite $ Clause (v "cp")]
 
 infinitive typ v =
-  [semT (v "x") typ] ++ optional (arg Dat P.Arg1 $ modifyV v 'x') ++
+  [semT (v "x") typ] ++
   xor [[mite $ ControlledInfinitive $ v "", mite $ Unify (v "") (v "x")],
-       [mite $ ModalityInfinitive (v "") (v "cp"), semT (v "") "modality", semV (v "") P.Theme (v "x"), semV (v "cp") P.Content (v ""), mite $ Verb (v ""), mite $ TenseHead (v "")],
+       [mite $ ModalityInfinitive (v "") (v "cp"), semT (v "") "modality", semV (v "") P.Theme (v "x"), semV (v "cp") P.Content (v ""), mite $ Verb (v ""), mite $ TenseHead (v "")] ++ optional (arg Dat P.Arg1 $ modifyV v 'x'),
        semArg Direction P.Goal_action (v "x")]
 arg argType relation v = [mite $ ArgHead argType (v $ decapitalize $ show relation), semV (v "") relation (v $ decapitalize $ show relation)]
 compHead attr v = [mite $ CompHead (v "comp"), semV (v "") attr (v "comp")]
@@ -103,6 +103,7 @@ wordMites word index =
   "вася" -> nounSg Nom Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vasya"]
   "вдруг" -> adverb P.Manner "SUDDENLY" v
   "вдумываясь" -> perfectBackground "THINK" v ++ arg (PP "v" Acc) P.Theme v
+  "велел" -> finVerb "TO_ORDER" "PAST" A.m v ++ optional (arg Dat P.Arg2 v) ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")]
   "видел" -> finVerb "SEE" "PAST" A.m v ++ directObject v
   "восемь" -> xor [wordNumber Nom "8" v, wordNumber Acc "8" v]
   "восьми" -> wordNumber Gen "8" v
@@ -136,6 +137,7 @@ wordMites word index =
   "его" -> xor [pronoun Acc A.m "HE" v, [semT v0 "HE", mite $ Possessive Nom A.empty v0], [semT v0 "HE", mite $ Possessive Dat A.empty v0]]
   "ее" -> xor [pronoun Acc A.f "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.empty v0], [semT v0 "SHE", mite $ Possessive Dat A.empty v0]]
   "её" -> xor [pronoun Acc A.f "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.empty v0], [semT v0 "SHE", mite $ Possessive Dat A.empty v0]]
+  "ей" -> pronoun Dat A.f "SHE" v
   "ему" -> pronoun Dat A.sg "HE" v
   "если" -> [mite $ ConditionComp v0 "if" False]
   "есть" -> [semS v0 P.Time "PRESENT"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0]]
@@ -154,6 +156,7 @@ wordMites word index =
   "из" -> preposition "iz" Gen v
   "изо" -> preposition "iz" Gen v
   "или" -> conjunction v0 "or" True
+  "им" -> pronoun Dat A.f "THEY" v
   "их" -> xor [pronoun Acc A.pl "THEY" v,
                [semT v0 "THEY", mite $ Possessive Nom A.empty v0],
                [semT v0 "THEY", mite $ Possessive Gen A.empty v0],
@@ -248,6 +251,7 @@ wordMites word index =
   "поливать" -> infinitive "TO_WATER" v ++ directObject v
   "помнит" -> finVerb "REMEMBER" "PRESENT" A.sg3 v ++ directObject v
   "помнят" -> finVerb "REMEMBER" "PRESENT" A.pl3 v ++ directObject v
+  "помочь" -> infinitive "HELP" v ++ optional (arg Dat P.Arg2 v)
   "порядок" -> nounSg Acc Masc "ORDER" v ++ genHead P.Arg1 v
   "после" -> xor [[mite $ Argument ScalarAdverb v0, semT v0 "AFTER"], adverb P.RelTime "AFTER" v] ++ optional (semPreposition Gen P.Anchor v)
   "потом" -> xor [[mite $ Argument ScalarAdverb v0, semT v0 "NEXT"], adverb P.RelTime "AFTER" v]

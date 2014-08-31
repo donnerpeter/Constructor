@@ -275,6 +275,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "DISCOVER" -> "discovered"
   "DISTRACT" -> "distracted"
   "NEED" -> "need"
+  "HELP" -> "help"
   "DISPERSE" -> "went"
   "SEE" -> "saw"
   "LOVE" -> if verbForm == BaseVerb then "love" else if negated then "doesn't love" else "loves"
@@ -287,6 +288,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "BEGIN" -> "started"
   "COUNT" -> if verbForm == Gerund then "counting" else "count"
   "TO_WATER" -> if verbForm == Gerund then "watering" else "water"
+  "TO_ORDER" -> "ordered"
   "DANCE" -> if verbForm == Gerund then "dancing" else "dance"
   "ARGUE" -> if verbForm == Gerund then "arguing" else if Just "true" == sValue P.Irrealis frame then "were arguing" else "argue"
   "RECALL" -> "recall"
@@ -396,6 +398,12 @@ clause fVerb = do
          return "to" `catM` vp (fromJust $ fValue P.Content nextClause) BaseVerb InfiniteClause
        _ -> return ""
       else return ""
+    controlledComp <-
+      if hasType "TO_ORDER" fVerb then
+        case fValue P.Theme fVerb of
+          Just slave -> return "to" `catM` vp slave BaseVerb InfiniteClause
+          _ -> return ""
+      else return ""
     condComp <- case fValue P.WhenCondition fVerb of
       Just fComp -> return ", when" `catM` sentence fComp
       _ -> case fValue P.IfCondition fVerb of
@@ -419,7 +427,7 @@ clause fVerb = do
           else if earlier fVerb P.Type (fromJust $ fValue P.PerfectBackground fVerb) P.Type then core `cat` "," `cat` background `cat` ","
           else (if null emphasis then "" else ",") `cat` background `cat` "," `cat` core
     according <- generateAccording fVerb
-    return $ intro `cat` emphasis `cat` according `cat` coreWithBackground `cat` condComp `cat` reasonComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
+    return $ intro `cat` emphasis `cat` according `cat` coreWithBackground `cat` controlledComp `cat` condComp `cat` reasonComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
 
 isQuestioned frame = flip any (flatten $ Just frame) $ \frame ->
   hasType "wh" frame || Just True == fmap isQuestioned (fValue P.Arg1 frame) || Just True == fmap isQuestioned (fValue P.Author frame)

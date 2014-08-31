@@ -59,6 +59,8 @@ noun (Just typ) frame = case typ of
       "6" -> "six"
       "7" -> "seven"
       "8" -> "eight"
+      "9" -> "nine"
+      "10" -> "ten"
       _ -> typ
     else typ
 
@@ -69,4 +71,6 @@ isSingular frame = case getType frame of
   Just "TREES" -> False
   _ -> case fValue "quantifier" frame >>= getType of
     Just s -> s == "1"
-    _ -> True
+    _ -> case fValue "specifier_all" frame >>= getType of
+      Just "ALL" -> False
+      _ -> True

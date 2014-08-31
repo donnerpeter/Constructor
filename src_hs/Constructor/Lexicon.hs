@@ -109,8 +109,8 @@ wordMites word index =
   "выбежали" -> finVerb "RUN_OUT" "PAST" A.pl v ++ arg (PP "iz" Gen) "source" v
   "вынул" -> finVerb "TAKE_OUT" "PAST" A.m v ++ arg (PP "iz" Gen) "source" v ++ directObject v
   "вынула" -> finVerb "TAKE_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) "source" v ++ directObject v
-  "все" -> adj Nom A.pl "quantifier" "ALL" v
-  "всеми" -> numQuantifier Instr Instr A.pl v ++ [semT (v "q") "ALL"]
+  "все" -> adj Nom A.pl "specifier_all" "ALL" v
+  "всеми" -> adj Instr A.pl "specifier_all" "ALL" v
   "вспомнить" -> infinitive "RECALL" v ++ directObject v
   "глазами" -> nounPl Instr "EYES" v ++ genHead "arg1" v
   "глупый" -> adj Nom A.m "quality" "STUPID" v
@@ -123,6 +123,7 @@ wordMites word index =
   "делать" -> infinitive "DO" v ++ directObject v
   "деньги" -> nounPl Acc "MONEY" v
   "деревья" -> nounPl Acc "TREES" v
+  "десятью" -> wordNumber Instr "10" v
   "до" -> preposition "do" Gen v
   "дойдя" -> perfectBackground "COME_TO" v ++ optional (arg (PP "v" Prep) "domain" v) ++ optional (arg (PP "do" Gen) "goal_by" v)
   "долго" -> adverb "duration" "LONG" v

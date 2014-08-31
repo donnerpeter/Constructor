@@ -1,5 +1,6 @@
 module Constructor.Util where
 import qualified Debug.Trace as DT
+import Data.Char (toLower)
 import Data.List
 import Data.Function (on)
 
@@ -20,3 +21,5 @@ invert LeftSide = RightSide
 invert RightSide = LeftSide
 select LeftSide x _ = x
 select RightSide _ x = x
+
+decapitalize (c:cs) = (toLower c):cs

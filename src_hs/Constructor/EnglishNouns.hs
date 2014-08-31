@@ -3,6 +3,7 @@ module Constructor.EnglishNouns (noun, isSingular, renderAsWord) where
 import Constructor.Sense
 import Data.Maybe
 import Constructor.Util
+import qualified Constructor.SemanticProperties as P
 
 noun Nothing _ = "??"
 noun (Just typ) frame = case typ of
@@ -16,7 +17,7 @@ noun (Just typ) frame = case typ of
   "MATTER" -> "matter"
   "AMAZE" -> "amazement"
   "ORDER" -> "order"
-  "COUNTING" -> if isJust (usage "domain" frame) then "count" else "counting"
+  "COUNTING" -> if isJust (usage P.Domain frame) then "count" else "counting"
   "CASHIER" -> "cashier"
   "WORDS" -> "words"
   "PREDICAMENT" -> "predicament"
@@ -47,8 +48,8 @@ noun (Just typ) frame = case typ of
   "FAMILY" -> "family"
   "EYES" -> "eyes"
   "THIS" -> "that"
-  "NAMED_PERSON" -> fromMaybe "??name" $ sValue "name" frame
-  "GARDEN" -> if (fValue "name" frame >>= getType) == Just "летний" then "Summer Garden" else "garden"
+  "NAMED_PERSON" -> fromMaybe "??name" $ sValue P.Name frame
+  "GARDEN" -> if (fValue P.VName frame >>= getType) == Just "летний" then "Summer Garden" else "garden"
   _ ->
     if isNumberString typ && renderAsWord frame then case typ of
       "1" -> "one"
@@ -69,8 +70,8 @@ renderAsWord frame = not $ isNumber $ Just frame
 isSingular frame = case getType frame of
   Just "NEIGHBORS" -> False
   Just "TREES" -> False
-  _ -> case fValue "quantifier" frame >>= getType of
+  _ -> case fValue P.Quantifier frame >>= getType of
     Just s -> s == "1"
-    _ -> case fValue "specifier_all" frame >>= getType of
+    _ -> case fValue P.Specifier_all frame >>= getType of
       Just "ALL" -> False
       _ -> True

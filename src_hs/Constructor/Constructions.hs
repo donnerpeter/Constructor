@@ -4,6 +4,7 @@ import Constructor.Agreement
 import Constructor.Variable
 import Constructor.Util
 import Data.Maybe
+import qualified Constructor.SemanticProperties as P
 
 cases = [Nom,Acc,Gen,Dat,Instr,Prep]
 
@@ -18,7 +19,7 @@ instance Show SeqData where
             (if seqReady sd then "" else "!ready") ++ (if seqHasLeft sd then " left" else "") ++
             (if isJust (seqRightVar sd) then " right" else "")
 data Construction = Word Variable String
-                  | Sem Variable String SemValue
+                  | Sem Variable SemValue
                   | Unify Variable Variable
                   | Adj Variable ArgKind Agr
                   | CompositeAdj Variable ArgKind Agr
@@ -35,7 +36,7 @@ data Construction = Word Variable String
                   | Argument ArgKind Variable
                   | SemArgument SemArgKind {-head-} Variable {-child-} Variable
                   | Adverb Variable
-                  | NounAdjunct {-attr-} String {-requires comma-} Bool Variable
+                  | NounAdjunct P.VarProperty {-requires comma-} Bool Variable
                   | Elaboration Variable
                   | Unclosed Side [Variable]
                   | Closed [Variable]
@@ -70,7 +71,7 @@ data Construction = Word Variable String
                   | Colon {-role-} String Variable
                   | Quote Variable {-closing-} Bool
                   | QuotedWord Construction {-closed-} Bool
-                  | VerbalModifier {-attr-} String {-requires comma-} Bool Variable
+                  | VerbalModifier P.VarProperty {-requires comma-} Bool Variable
                   | DirectSpeechHead Variable {--child--} (Maybe Variable)
                   | DirectSpeech Variable
                   | DirectSpeechDash Variable
@@ -82,7 +83,7 @@ data Construction = Word Variable String
                   | ReflexiveReference Variable
                   | ReflexiveTarget Variable
                   | Sentence Variable
-                  | ConjEmphasis String Variable
+                  | ConjEmphasis P.StrProperty Variable
                   | Negated Variable
                   -- | S1 | S2 | S3 | S4
                   deriving (Show, Ord, Eq)

@@ -13,6 +13,7 @@ import Data.List
 import Control.Exception (assert)
 import Constructor.Constructions
 import Constructor.Variable
+import Constructor.SemanticProperties
 
 type XorKey = (Construction, [Mite])
 
@@ -49,9 +50,9 @@ instance Eq Mite where m1 == m2 = (xorKey m1) == (xorKey m2)
   
 mite cxt = _initMite cxt Set.empty []
   
-semS var prop value = mite $ Sem var prop (StrValue value)
-semV var prop value = mite $ Sem var prop (VarValue value)
-semT var _type = semS var "type" _type
+semS var prop value = mite $ Sem var (StrValue prop value)
+semV var prop value = mite $ Sem var (VarValue prop value)
+semT var _type = semS var Type _type
 
 xor :: [[Mite]] -> [Mite]
 xor miteGroups =

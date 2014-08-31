@@ -8,6 +8,7 @@ import Constructor.Util
 import Constructor.Lexicon
 import qualified Constructor.Seq as Seq
 import qualified Constructor.LinkedSet as LS
+import qualified Constructor.SemanticProperties as P
 
 data MergeInfo = MergeInfo {mergeResult::[Mite], mergedHeadSide::Side} deriving (Show,Eq,Ord)
 mergeLeft mites = [MergeInfo mites LeftSide]
@@ -33,7 +34,7 @@ interactNodes leftTree leftMites rightMites = {-traceIt ("    interact") $ -}if 
     fillGap cp whVar clauseMite =
         let fillers = filter (\info -> mergedHeadSide info == RightSide) $ questionable True
             whLinks = withBase [whMite, clauseMite] $
-              [semV cp "questioned" whVar, semT cp "situation"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause cp], [mite $ TopLevelQuestion cp]]
+              [semV cp P.Questioned whVar, semT cp "situation"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause cp], [mite $ TopLevelQuestion cp]]
             infos = fillers >>= \ info -> mergeLeft (mergeResult info ++ whLinks)
         in infos ++ filter whIncompatible nonQuestionable
     in case cxt whMite of
@@ -64,7 +65,7 @@ ellipsisLeftVariants leftMites rightMites = if null result then [] else mergeRig
   result = rightMites >>= \m2 -> case cxt m2 of
     Ellipsis v Nothing rightCxt@(Just _) -> leftMites >>= \m1 -> case ellipsisAnchor (cxt m1) of
       Just anchor -> withBase [m1,m2] [mite $ Ellipsis v (Just $ cxt m1) rightCxt]
-        ++ [semV v "ellipsisAnchor1" anchor, mite $ Clause v]
+        ++ [semV v P.EllipsisAnchor1 anchor, mite $ Clause v]
         ++ liftUnclosed LeftSide (filter (not . contradict m1) leftMites)
       _ -> []
     _ -> []
@@ -88,7 +89,7 @@ punctuationAware leftMites rightMites (m1, m2) =
         closeUnclosed side satisfied = (select side leftMites rightMites) >>= \m -> case cxt m of
           Unclosed s vars | s == invert side -> withBase [m, m2] $
             optional $ [mite $ Closed vars]
-            ++ (if satisfied == Satisfied then map (\v -> semS v (select side "left" "right" ++ "Isolated") "true") vars else [])
+            ++ (if satisfied == Satisfied then map (\v -> semS v (select side P.LeftIsolated P.RightIsolated) "true") vars else [])
           _ -> []
     in case (cxt m1, cxt m2) of
       (AdjHead head _ _, CommaSurrounded True _ (NounAdjunct attr True var)) -> mergeLeft $
@@ -96,7 +97,7 @@ punctuationAware leftMites rightMites (m1, m2) =
       (CompHead comp, CommaSurrounded True _ (Complement cp)) -> mergeLeft $
         base12 [mite $ Unify comp cp] ++ liftUnclosedCompatible RightSide
       (RelativeHead noun, CommaSurrounded True _ (RelativeClause cp)) -> mergeLeft $
-        base12 [semV noun "relative" cp] ++ liftUnclosedCompatible RightSide
+        base12 [semV noun P.Relative cp] ++ liftUnclosedCompatible RightSide
 
       (CommaSurrounded _ closed (VerbalModifier attr True advP), Verb verb) -> mergeRight $
         base12 [semV verb attr advP]
@@ -106,43 +107,43 @@ punctuationAware leftMites rightMites (m1, m2) =
         mergeLeft $ base12 [semV verb attr advP] ++ liftUnclosedCompatible RightSide
 
       (ConditionCompHead head, CommaSurrounded True _ (ConditionComp cp cond _)) ->
-        mergeLeft $ base12 [semV head (cond++"Condition") cp] ++ liftUnclosedCompatible RightSide
+        mergeLeft $ base12 [semV head (if cond=="if" then P.IfCondition else P.WhenCondition) cp] ++ liftUnclosedCompatible RightSide
       (Verb head, CommaSurrounded True _ (ConditionComp cp cond _)) ->
-        mergeLeft $ base12 [semV head (cond++"Condition") cp] ++ liftUnclosedCompatible RightSide
+        mergeLeft $ base12 [semV head (if cond=="if" then P.IfCondition else P.WhenCondition) cp] ++ liftUnclosedCompatible RightSide
       (Verb head, CommaSurrounded True _ (ReasonComp cp _)) ->
-        mergeLeft $ base12 [semV head "reason" cp] ++ liftUnclosedCompatible RightSide
+        mergeLeft $ base12 [semV head P.Reason cp] ++ liftUnclosedCompatible RightSide
 
       (SurroundingComma _, toWrap) | Just v <- getCommaSurroundableVar toWrap -> mergeLeft $
-        base12 [mite $ CommaSurrounded True False toWrap, semS v "isolation" "comma", semS v "leftIsolated" "true"]
+        base12 [mite $ CommaSurrounded True False toWrap, semS v P.Isolation "comma", semS v P.LeftIsolated "true"]
         ++ addUnclosed RightSide v
       (toWrap, SurroundingComma _) | Just v <- getCommaSurroundableVar toWrap -> mergeRight $
-        base12 [mite $ CommaSurrounded False True toWrap, semS v "isolation" "comma", semS v "rightIsolated" "true"]
+        base12 [mite $ CommaSurrounded False True toWrap, semS v P.Isolation "comma", semS v P.RightIsolated "true"]
         ++ addUnclosed LeftSide v
       (CommaSurrounded True False cxt, SurroundingComma _) ->
         mergeLeft $ base12 [mite $ CommaSurrounded True True cxt] ++ closeUnclosed LeftSide Satisfied
 
       (SurroundingDash _, toWrap@(Argument _ v)) -> mergeRight $
-        base12 [mite $ DashSurrounded True False toWrap, semS v "isolation" "dash", semS v "leftIsolated" "true"] ++ addUnclosed RightSide v
+        base12 [mite $ DashSurrounded True False toWrap, semS v P.Isolation "dash", semS v P.LeftIsolated "true"] ++ addUnclosed RightSide v
       (DashSurrounded True False cxt, SurroundingDash _) ->
         mergeLeft $ base12 [mite $ DashSurrounded True True cxt] ++ closeUnclosed LeftSide Satisfied
 
       (QuestionVariants v kind, DashSurrounded True closed (Argument kind2 child)) | kind == kind2 ->
-        mergeLeft $ base12 [semV v "variants" child] ++ liftUnclosedCompatible RightSide
+        mergeLeft $ base12 [semV v P.Variants child] ++ liftUnclosedCompatible RightSide
       (QuestionVariants v kind, CommaSurrounded True closed (Argument kind2 child)) | kind == kind2 ->
-        mergeLeft $ base12 [semV v "variants" child] ++ liftUnclosedCompatible RightSide
+        mergeLeft $ base12 [semV v P.Variants child] ++ liftUnclosedCompatible RightSide
 
       (Clause cp, Word _ ".") ->
-        mergeLeft $ base12 [semS cp "dot" "true", mite $ Sentence cp] ++ closeUnclosed LeftSide Satisfied
-      (TopLevelQuestion cp, Word _ "?") -> left [semS cp "question_mark" "true", mite $ Sentence cp]
+        mergeLeft $ base12 [semS cp P.Dot "true", mite $ Sentence cp] ++ closeUnclosed LeftSide Satisfied
+      (TopLevelQuestion cp, Word _ "?") -> left [semS cp P.Question_mark "true", mite $ Sentence cp]
 
       (DirectSpeechHead head Nothing, Colon "directSpeech" v) ->
-        mergeLeft $ base12 [mite $ DirectSpeechHead head $ Just v, semV head "message" v] ++ closeUnclosed LeftSide Satisfied
+        mergeLeft $ base12 [mite $ DirectSpeechHead head $ Just v, semV head P.Message v] ++ closeUnclosed LeftSide Satisfied
 
       (DirectSpeechDash v, Sentence cp) ->
-        mergeLeft $ base12 [mite $ DirectSpeech cp, semS cp "directSpeech" "true"] ++ closeUnclosed RightSide Satisfied
+        mergeLeft $ base12 [mite $ DirectSpeech cp, semS cp P.DirectSpeech "true"] ++ closeUnclosed RightSide Satisfied
 
       (Ellipsis v Nothing Nothing, rightCxt) | Just anchor <- ellipsisAnchor rightCxt ->
-        left $ [mite $ Ellipsis v Nothing (Just rightCxt), semV v "ellipsisAnchor2" anchor]
+        left $ [mite $ Ellipsis v Nothing (Just rightCxt), semV v P.EllipsisAnchor2 anchor]
 
       _ -> []
 
@@ -166,7 +167,7 @@ questionableArguments leftMites rightMites whContext (m1, m2) = map (propagateUn
       (Verb verb, VerbalModifier attr False advP) -> left $ [semV verb attr advP] ++ existentials leftMites rightMites
       (VerbalModifier attr needComma advP, Verb verb) -> right $
         [semV verb attr advP]
-        ++ (if needComma && not whContext then [semS advP "isolation" "comma", mite $ Unclosed LeftSide [advP]] else [])
+        ++ (if needComma && not whContext then [semS advP P.Isolation "comma", mite $ Unclosed LeftSide [advP]] else [])
         ++ existentials rightMites leftMites
 
       _ -> []
@@ -179,7 +180,7 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
       (AdjHead var nounCase agr2, Adj var2 adjCase agr1) | adjCase == nounCase && agree agr1 agr2 ->
         left [mite $ Unify var var2]
       (CompositeAdj var2 adjCase agr1, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 ->
-        right [semV var "components" var2]
+        right [semV var P.Components var2]
 
       (Possessive adjCase agr1 child, AdjHead noun nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> rightMites >>= \m3 -> case cxt m3 of
         GenHead h -> mergeRight $ withBase [m1,m2,m3] $ [mite $ Unify h child] ++ Seq.pullThyself m1 leftMites ++ whPropagation m1 m2 leftMites
@@ -205,25 +206,25 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
               Copula var3 | not (contradict m1 m3) -> withBase [m1,m2,m3] [mite $ Unify var1 var2]
               _ -> []
             adjunctMites = case (prep1, kind1) of
-              ("k", Dat) -> semArg Direction "goal_to" var2
-              ("po", Dat) -> xor [[mite $ VerbalModifier "accordingTo" True var2],
-                                  [mite $ NounAdjunct "accordingTo" True var2],
-                                  [mite $ VerbalModifier "optativeModality" True var2]]
-              ("s", Instr) -> [mite $ VerbalModifier "mood" False var2]
-              ("s", Gen) -> xor [[mite $ NounAdjunct "source" False var2], [mite $ VerbalModifier "source" False var2]]
-              ("v", Acc) -> semArg Direction "goal_in" var2
-              ("v", Prep) -> [mite $ VerbalModifier "condition" False var2]
-              ("na", Acc) -> semArg Direction "goal_on" var2
-              ("na", Prep) -> [mite $ NounAdjunct "location" False var2]
+              ("k", Dat) -> semArg Direction P.Goal_to var2
+              ("po", Dat) -> xor [[mite $ VerbalModifier P.AccordingTo True var2],
+                                  [mite $ NounAdjunct P.AccordingTo True var2],
+                                  [mite $ VerbalModifier P.OptativeModality True var2]]
+              ("s", Instr) -> [mite $ VerbalModifier P.Mood False var2]
+              ("s", Gen) -> xor [[mite $ NounAdjunct P.Source False var2], [mite $ VerbalModifier P.Source False var2]]
+              ("v", Acc) -> semArg Direction P.Goal_in var2
+              ("v", Prep) -> [mite $ VerbalModifier P.Condition False var2]
+              ("na", Acc) -> semArg Direction P.Goal_on var2
+              ("na", Prep) -> [mite $ NounAdjunct P.Location False var2]
               _ -> []
             extra = Seq.pullThyself m2 rightMites ++ Seq.liftArguments m2 rightMites ++ whPropagation m1 m2 rightMites
         in mergeLeft (argMites ++ extra)
 
       (Colon "elaboration" _, Clause cp) -> left [mite $ Elaboration cp]
-      (Verb head, Elaboration child) -> left [semV head "elaboration" child, mite $ Unclosed RightSide [child]]
+      (Verb head, Elaboration child) -> left [semV head P.Elaboration child, mite $ Unclosed RightSide [child]]
 
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
-      (Verb v, Word _ "бы") -> left [semS v "irrealis" "true"]
+      (Verb v, Word _ "бы") -> left [semS v P.Irrealis "true"]
       (Word _ "очень", adverb@(Adverb {})) -> right [mite $ adverb]
       
       (TenseHead v0, Tense v1) -> left [mite $ Unify v0 v1]
@@ -243,13 +244,13 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
 
       (Quote _ False, word@(Word {})) -> left [mite $ QuotedWord word False]
       (QuotedWord word False, Quote _ True) -> left [mite $ QuotedWord word True]
-      (AdjHead noun _ _, QuotedWord (Word _ word) _) -> left [semS noun "name" word]
+      (AdjHead noun _ _, QuotedWord (Word _ word) _) -> left [semS noun P.Name word]
 
-      (Word _ "больше", Negated v) -> right [semS v "not_anymore" "true"]
-      (Negated v, Word _ "больше") -> left [semS v "not_anymore" "true"]
+      (Word _ "больше", Negated v) -> right [semS v P.Not_anymore "true"]
+      (Negated v, Word _ "больше") -> left [semS v P.Not_anymore "true"]
 
-      (Word _ "не", Complement cp) -> right [semS cp "negated" "true", mite $ Complement cp]
-      (Word ne "не", Wh v) -> right [mite $ ExistentialWh v ne, semS v "negated" "true"]
+      (Word _ "не", Complement cp) -> right [semS cp P.Negated "true", mite $ Complement cp]
+      (Word ne "не", Wh v) -> right [mite $ ExistentialWh v ne, semS v P.Negated "true"]
       (Word _ "не", Verb v) -> let
         negateDirectObject = rightMites >>= \m3 -> case cxt m3 of
           ArgHead Acc v -> let
@@ -257,19 +258,19 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
             colleagues = concat [withBase [m1,m2,m] [mite (cxt m)] | m <- rightMites, not (contradict m m2), contradict m m3]
             in result
           _ -> []
-        in mergeRight $ base12 [semS v "negated" "true", mite $ Negated v] ++ negateDirectObject
+        in mergeRight $ base12 [semS v P.Negated "true", mite $ Negated v] ++ negateDirectObject
 
-      (Word _ "тоже", Verb v) -> right [semS v "also" "true"]
+      (Word _ "тоже", Verb v) -> right [semS v P.Also "true"]
       (Complementizer cp1, Clause cp2) -> left [mite $ Unify cp1 cp2, mite $ Complement cp1]
       (Control slave, ControlledInfinitive inf) -> left [mite $ Unify slave inf]
-      (RaisingVerb verb subj, Raiseable agr child) -> left [semV child "arg1" subj, semV verb "theme" child]
+      (RaisingVerb verb subj, Raiseable agr child) -> left [semV child P.Arg1 subj, semV verb P.Theme child]
        
       _ -> []
 
 argVariants headVar childVar headMites childMites = [mite $ Unify headVar childVar] ++ reflexive ++ existentials headMites childMites where
   reflexive = headMites >>= \m1 -> case cxt m1 of
     ReflexiveTarget target -> childMites >>= \m2 -> case cxt m2 of
-      ReflexiveReference ref -> withBase [m1,m2] [semV ref "target" target]
+      ReflexiveReference ref -> withBase [m1,m2] [semV ref P.Target target]
       _ -> []
     _ -> []
 

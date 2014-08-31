@@ -16,6 +16,7 @@ module Constructor.Sense
 import Constructor.Constructions (Construction(Sem, Unify))
 import Constructor.Mite (Mite(..))
 import Constructor.Variable
+import qualified Constructor.SemanticProperties as P
 import Constructor.Util
 import Control.Monad
 import Data.List (intercalate, findIndex, find)
@@ -26,11 +27,11 @@ import qualified Constructor.LinkedSet as LS
 
 calcFacts allMites baseVars =
   let mapper = \case
-          (cxt -> Sem var attr value) ->
+          (cxt -> Sem var value) ->
             let normalizedValue = case value of
-                  StrValue _ -> value
-                  VarValue var -> VarValue $ Map.findWithDefault var var baseVars
-            in [Fact (Map.findWithDefault var var baseVars) attr normalizedValue]
+                  StrValue _ _ -> value
+                  VarValue prop var -> VarValue prop $ Map.findWithDefault var var baseVars
+            in [Fact (Map.findWithDefault var var baseVars) normalizedValue]
           _ -> []
   in
   LS.removeDups $ concat $ map mapper allMites
@@ -50,10 +51,10 @@ calcBaseVars mites =
       groups = foldl inner Map.empty mites
   in Map.map (head . Set.elems) groups
 
-data Fact = Fact { variable:: Variable, attrName:: String, value:: SemValue } deriving (Eq, Ord)
-instance Show Fact where show (Fact var attr value) = (show var)++"."++attr++"="++(show value)
+data Fact = Fact { variable:: Variable, value:: SemValue } deriving (Eq, Ord)
+instance Show Fact where show (Fact var value) = (show var)++"."++(show value)
 
-data Sense = Sense { facts:: [Fact], allFrames:: [Frame], frame2Facts:: Map.Map Frame [Fact], frame2Usages:: Map.Map Frame [(Frame, String)] }
+data Sense = Sense { facts:: [Fact], allFrames:: [Frame], frame2Facts:: Map.Map Frame [Fact], frame2Usages:: Map.Map Frame [(Frame, P.VarProperty)] }
 instance Show Sense where show sense = Data.List.intercalate "\n" (map show $ facts sense)
 instance Eq Sense where s1 == s2 = facts s1 == facts s2
 instance Ord Sense where compare s1 s2 = compare (facts s1) (facts s2)
@@ -68,126 +69,129 @@ makeSense allMites = sense where
 
   allFrames = [Frame var sense | var <- LS.removeDups allVars ]
   allVars = [variable fact | fact <- facts ] ++ valueVars
-  valueVars = catMaybes [extractValueVar $ value fact | fact <- facts ]
+  valueVars = facts >>= \case
+    Fact {value=VarValue _ v} -> [v]
+    _ -> []
 
   frame2Facts = Map.fromListWith (flip (++)) [(Frame (variable fact) sense, [fact]) | fact <- facts]
 
-  frame2Usages = Map.fromListWith (flip (++)) $ facts >>= \fact -> case extractValueVar (value fact) of
-    Just v -> [(Frame v sense, [(Frame (variable fact) sense, attrName fact)])]
-    Nothing -> []
-
-extractValueString (StrValue s) = Just s
-extractValueString _ = Nothing
-
-extractValueVar (VarValue v) = Just v
-extractValueVar _ = Nothing
+  frame2Usages = Map.fromListWith (flip (++)) $ facts >>= \case
+    Fact {variable=var, value=VarValue prop v} -> [(Frame v sense, [(Frame var sense, prop)])]
+    _ -> []
 
 allFrameFacts frame = Map.findWithDefault [] frame $ frame2Facts (sense frame)
-allValues attr frame = [value fact | fact <- allFrameFacts frame, attrName fact == attr]
 singleListElement list = case list of
   [single] -> Just single
   _ -> Nothing
-singleValue attr frame = singleListElement $ allValues attr frame
 
 findFrames typ sense = [f | f <- allFrames sense, hasType typ f]
 
 earlier f1 attr1 f2 attr2 =
   let allFacts = facts $ sense f1
-      mi1 = findIndex (\ fact -> variable fact == var f1 && attrName fact == attr1) allFacts
-      mi2 = findIndex (\ fact -> variable fact == var f2 && attrName fact == attr2) allFacts
+      mi1 = findIndex (isStrAssignment (var f1) attr1) allFacts
+      mi2 = findIndex (isStrAssignment (var f2) attr2) allFacts
+      isStrAssignment var attr = \case
+        Fact {variable=v, value=StrValue a _} | a == attr && v == var -> True
+        _ -> False
   in case (mi1, mi2) of
     (Just i1, Just i2) | i1 < i2 -> True
     _ -> False
 
-sDeclaredValue attr frame = singleValue attr frame >>= extractValueString
+sDeclaredValue attr frame = singleListElement $ allFrameFacts frame >>= \case
+  Fact {value=StrValue a s} | a == attr -> [s]
+  _ -> []
+
 sValue attr frame =
   let declared = sDeclaredValue attr frame in
   if isJust declared then declared
   else
     case attr of
-      "given" ->
+      P.Given ->
         if hasAnyType ["CASE", "HAMMER", "TREES", "BENCH", "FINGER", "WATERMELON", "JAW"] frame then Just "false"
         else if Just True == fmap isNumberString (getType frame) then Just "false"
         else if hasType "CHILD" frame then
-          if Just "SOME" == (fValue "determiner" frame >>= getType) then Just "false" else Just "true"
+          if Just "SOME" == (fValue P.Determiner frame >>= getType) then Just "false" else Just "true"
         else if hasType "CASHIER" frame then
-          case find (\shop -> earlier shop "type" frame "type") $ findFrames "SHOP" $ sense frame of
-           Just shop -> sValue "given" shop
+          case find (\shop -> earlier shop P.Type frame P.Type) $ findFrames "SHOP" $ sense frame of
+           Just shop -> sValue P.Given shop
            _ -> Just "true"
         else if hasType "SHOP" frame then
-          if any (\cashier -> earlier cashier "type" frame "type") $ findFrames "CASHIER" $ sense frame then Just "true"
-          else if isJust $ msum [usage "arg1" frame, usage "source" frame] then Just "true"
+          if any (\cashier -> earlier cashier P.Type frame P.Type) $ findFrames "CASHIER" $ sense frame then Just "true"
+          else if isJust $ msum [usage P.Arg1 frame, usage P.Source frame] then Just "true"
           else Just "false"
         else Just "true"
-      "type" -> case usage "arg1" frame >>= commandingSubject >>= getType of
+      P.Type -> case usage P.Arg1 frame >>= commandingSubject >>= getType of
         Just commandingType -> Just commandingType
         Nothing ->
-          case (sDeclaredValue "rusNumber" frame, sDeclaredValue "rusPerson" frame, sDeclaredValue "rusGender" frame) of
+          case (sDeclaredValue P.RusNumber frame, sDeclaredValue P.RusPerson frame, sDeclaredValue P.RusGender frame) of
             (Just "Pl", Just "3", _) -> Just "THEY"
             (Just "Sg", Just "3", Just "Fem") -> Just "SHE"
             (Just "Sg", Just "3", _) -> Just "HE"
             _ -> Nothing
-      "rusNumber" -> case sDeclaredValue "type" frame of
+      P.RusNumber -> case sDeclaredValue P.Type frame of
         Just "WE" -> Just "Pl"
         Just "THEY" -> Just "Pl"
         Just "ME" -> Just "Sg"
         _ -> Nothing
       _ -> Nothing
 
-fDeclaredValue attr frame = singleValue attr frame >>= extractValueVar >>= \v -> Just $ Frame v (sense frame)
+fDeclaredValue attr frame = singleListElement $ allFrameFacts frame >>= \case
+  Fact {value=VarValue a v} | a == attr -> [Frame v (sense frame)]
+  _ -> []
+
 fValue attr frame =
   let declared = fDeclaredValue attr frame in
   if isJust declared then declared
   else
     case attr of
-      "arg1" ->
+      P.Arg1 ->
         if hasAnyType ["MOUTH", "NOSE", "JAW", "JAWS", "FINGER", "NEIGHBORS"] frame then let
-          verbs = catMaybes [usage "source" $ unVariants $ unSeq frame,
-                             usage "arg2" $ unVariants $ unSeq frame,
-                             usage "instrument" $ unVariants $ unSeq frame,
-                             usage "goal_to" $ unVariants $ unSeq frame]
-          foregrounds = catMaybes $ map (usage "perfectBackground") verbs
-          unVariants frame = unSeq $ fromMaybe frame (usage "variants" frame)
-          in fmap resolve $ msum $ map (fValue "receiver") (verbs ++ foregrounds) ++ map (fValue "arg1") (verbs ++ foregrounds)
+          verbs = catMaybes [usage P.Source $ unVariants $ unSeq frame,
+                             usage P.Arg2 $ unVariants $ unSeq frame,
+                             usage P.Instrument $ unVariants $ unSeq frame,
+                             usage P.Goal_to $ unVariants $ unSeq frame]
+          foregrounds = catMaybes $ map (usage P.PerfectBackground) verbs
+          unVariants frame = unSeq $ fromMaybe frame (usage P.Variants frame)
+          in fmap resolve $ msum $ map (fValue P.Receiver) (verbs ++ foregrounds) ++ map (fValue P.Arg1) (verbs ++ foregrounds)
         else Nothing
       _ -> Nothing
 
-commandingSubject frame = msum [usage "content" frame >>= usage "theme", usage "content" frame >>= usage "arg2"] >>= fValue "arg1"
+commandingSubject frame = msum [usage P.Content frame >>= usage P.Theme, usage P.Content frame >>= usage P.Arg2] >>= fValue P.Arg1
 
 hasType t frame = getType frame == Just t
 hasAnyType types frame = fromMaybe False $ getType frame >>= \t -> Just $ elem t types
-getType frame = sValue "type" frame
-getDeclaredType frame = sDeclaredValue "type" frame
+getType frame = sValue P.Type frame
+getDeclaredType frame = sDeclaredValue P.Type frame
 
 allUsages attrs frame = LS.removeDups $ [f | (f, s) <- Map.findWithDefault [] frame $ frame2Usages (sense frame), s `elem` attrs]
 usages attr frame = LS.removeDups $ [f | (f, s) <- Map.findWithDefault [] frame $ frame2Usages (sense frame), s == attr]
 usage attr frame = singleListElement $ usages attr frame
 
 flatten Nothing = []
-flatten (Just frame) = if hasType "seq" frame then flatten (fValue "member1" frame) ++ maybeToList (fValue "member2" frame) else [frame]
+flatten (Just frame) = if hasType "seq" frame then flatten (fValue P.Member1 frame) ++ maybeToList (fValue P.Member2 frame) else [frame]
 
 seqSiblings frame = flatten $ Just $ unSeq frame
 prevSiblings frame = takeWhile (/= frame) $ seqSiblings frame
 nextSiblings frame = tail $ dropWhile (/= frame) $ seqSiblings frame
 
-resolve frame = case (getType frame, fValue "target" frame) of
+resolve frame = case (getType frame, fValue P.Target frame) of
   (Just "SELF", Just target) -> target
   _ -> frame
 
-isNumber frame = any (\f -> sValue "number" f == Just "true") $ flatten frame
+isNumber frame = any (\f -> sValue P.Number f == Just "true") $ flatten frame
 
 isHuman frame = hasAnyType ["NEIGHBOR", "NEIGHBORS", "CASHIER", "NAMED_PERSON",
   "HE", "SHE", "THEY" -- todo pronouns are not necessarily animate
   ] frame
-isAnimate frame = isHuman frame || Just "true" == sValue "animate" frame
+isAnimate frame = isHuman frame || Just "true" == sValue P.Animate frame
 
-isInanimate frame = hasType "wh" frame && Just "true" /= sValue "animate" frame || Just True == fmap isNumberString (getType frame)
+isInanimate frame = hasType "wh" frame && Just "true" /= sValue P.Animate frame || Just True == fmap isNumberString (getType frame)
 
-unSeq frame = case msum [usage "member1" frame, usage "member2" frame] of
+unSeq frame = case msum [usage P.Member1 frame, usage P.Member2 frame] of
   Just s -> unSeq s
   _ -> frame
 
 isCP frame = hasType "situation" frame
 
 isFactCP frame = isCP frame && not (isQuestionCP frame)
-isQuestionCP frame = isCP frame && isJust (fValue "questioned" frame)
+isQuestionCP frame = isCP frame && isJust (fValue P.Questioned frame)

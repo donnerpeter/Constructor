@@ -207,7 +207,7 @@ determiner frame nbar =
   in
   case det of
     Just _det  | not $ any (\f -> fDeterminer frame == fDeterminer f) (prevSiblings frame) ->
-      let own = if hasType "SELF" _det && hasType "EYES" frame then "own" else ""
+      let own = if hasType "SELF" _det && hasType "EYES" frame && isNothing (fValue "quantifier" frame) then "own" else ""
       in handleSeq genitiveSpecifier (fmap resolve det) `catM` return own
     _ -> return $
       let sDet = fValue "determiner" frame >>= getType in

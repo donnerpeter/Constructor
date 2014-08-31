@@ -194,7 +194,7 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
 
       (Quantifier kind1 agr1 v1, Argument kind2 v2) | kind1 == kind2 -> rightMites >>= \m3 -> case cxt m3 of
         AdjHead v3 kind3 agr2 | kind3 == kind1 && agree agr1 agr2 && v2 == v3 && not (contradict m2 m3) ->
-          mergeLeft $ withBase [m1, m2, m3] [mite $ Unify v1 v2]
+          mergeLeft $ withBase [m1, m2, m3] [mite $ Unify v1 v2] ++ liftReflexive rightMites
         _ -> []
 
       (SemPreposition kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
@@ -272,6 +272,10 @@ argVariants headVar childVar headMites childMites = [mite $ Unify headVar childV
       ReflexiveReference ref -> withBase [m1,m2] [semV ref "target" target]
       _ -> []
     _ -> []
+
+liftReflexive childMites = childMites >>= \m -> case cxt m of
+  ReflexiveReference ref -> withBase [m] [mite $ cxt m]
+  _ -> []
 
 existentials headMites childMites = headMites >>= \m1 -> case cxt m1 of
   ModalityInfinitive v cp -> childMites >>= \m2 -> case cxt m2 of

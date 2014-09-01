@@ -288,7 +288,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "BEGIN" -> "started"
   "COUNT" -> if verbForm == Gerund then "counting" else "count"
   "TO_WATER" -> if verbForm == Gerund then "watering" else "water"
-  "TO_ORDER" -> "ordered"
+  "TO_ORDER" -> if verbForm == BaseVerb then "order" else "ordered"
   "DANCE" -> if verbForm == Gerund then "dancing" else "dance"
   "ARGUE" -> if verbForm == Gerund then "arguing" else if Just "true" == sValue P.Irrealis frame then "were arguing" else "argue"
   "RECALL" -> "recall"
@@ -420,7 +420,7 @@ clause fVerb = do
       Just fComp -> return "because" `catM` sentence fComp
       _ -> return ""
     questionVariants <- case cp >>= fValue P.Questioned >>= fValue P.Variants of
-      Just variants -> (return "-") `catM` (np True (Just variants))
+      Just variants -> return "-" `catM` np ((cp >>= fValue P.Questioned) == fSubject) (Just variants)
       _ -> return ""
     let coreWithBackground =
           if null background then core

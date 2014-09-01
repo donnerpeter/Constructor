@@ -121,6 +121,15 @@ whTests = [TestLabel "wh tests" $ TestList [
 --todo  translateTest "О чём я?"
 --                "What was I talking about?"
 --  ,
+--todo  translateTest "О чём бишь я?"
+--                "What was I talking about?"
+--  ,
+--todo  translateTest "О чём это бишь я?"
+--                "What was I talking about?"
+--  ,
+--todo  translateTest "О чём это я?"
+--                "What was I talking about?"
+--  ,
 --todo  translateTest "Я увидел дом, где они сидят"
 --                "I saw the house where they were sitting"
 --  ,
@@ -132,15 +141,15 @@ whTests = [TestLabel "wh tests" $ TestList [
 --  ,
 --todo  translateTest "Я спросил про дом, что он увидел"
 --                "I asked about that house that he saw"
---  ,
---todo  translateTest "Кому он велел помочь?"
---                "Who did he order to help?"
---  ,
---todo  translateTest "Кому он велел ей помочь?"
---                "Who did he order her to help?"
---  ,
---todo  translateTest "Кому он велел помочь, ей?"
---                "Who did he order to help, her?"
+  ,
+  translateTest "Кому он велел помочь?"
+                "Who did he order to help?"
+  ,
+  translateTest "Кому он велел ей помочь?"
+                "Who did he order to help her?"
+  ,
+  translateTest "Кому он велел помочь, ей?"
+                "Who did he order to help - her?"
 --  ,
 --todo  translateTest "Кто кому велел помочь?"
 --                "Who ordered to help whom?"

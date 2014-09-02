@@ -130,6 +130,33 @@ whTests = [TestLabel "wh tests" $ TestList [
 --todo  translateTest "О чём это я?"
 --                "What was I talking about?"
 --  ,
+--todo  translateTest "О чём эта книга?"
+--                "What is this book about?"
+--  ,
+--todo  translateTest "О чём была та книга?"
+--                "What was that book about?"
+--  ,
+--todo  translateTest "Что это?"
+--                "What's this?"
+--  ,
+--todo  translateTest "Что это было?"
+--                "What was this?"
+--  ,
+--todo  translateTest "Куда он?"
+--                "Where is he going?"
+--  ,
+--todo  translateTest "Куда он шёл?"
+--                "Where was he going?"
+--  ,
+--todo  translateTest "Когда он увидел дом?"
+--                "When did he see the house?"
+--  ,
+--todo  translateTest "Каково это — курить?"
+--                "What is it like to smoke?"
+--  ,
+--todo  translateTest "Каково его мнение?"
+--                "What's his opinion?"
+--  ,
 --todo  translateTest "Я увидел дом, где они сидят"
 --                "I saw the house where they were sitting"
 --  ,
@@ -162,5 +189,14 @@ whTests = [TestLabel "wh tests" $ TestList [
 --  ,
 --todo  translateTest "Что и кому он подарил?"
 --                "What and to whom did he give?"
+--  ,
+--todo  translateTest "Кто, что и кому подарил?"
+--                "Who gave what and to whom?"
+--  ,
+--todo  translateTest "Кто подарил что кому?"
+--                "Who gave what to whom?"
+--  ,
+--todo  translateTest "Кто подарил что и кому?"
+--                "Who gave what and to whom?"
 --  ,
   ]]

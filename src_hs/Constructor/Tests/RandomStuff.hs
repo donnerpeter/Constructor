@@ -54,17 +54,35 @@ randomStuffTests = [TestLabel "random stuff tests" $ TestList [
   translateTest "Он велел помочь ей"
                 "He ordered to help her"
 --  ,
---todo  translateTest "Идет дождь"
---                "It's raining"
+--todo  translateTest "Идет дождь. Дождь шёл. Дождь шел. Дождь будет идти."
+--                "It's raining. It was raining. It was raining. It will be raining."
 --  ,
 --todo  translateTest "Идет снег"
 --                "It's snowing"
 --  ,
 --todo  translateTest "Курить - здоровью вредить"
---                "To smoke is to damage one's health"
+--                "To smoke is to damage the health"
+--  ,
+--todo  translateTest "Курить вредно"
+--                "Smoking is harmful"
+--  ,
+--todo  translateTest "Курить - это вредно"
+--                "Smoking is harmful"
+--  ,
+--todo  translateTest "Курение - это вредно"
+--                "Smoking is harmful"
+--  ,
+--todo  translateTest "Курение вредно"
+--                "Smoking is harmful"
 --  ,
 --todo  translateTest "Чай пить - долго жить"
---                "To drink tea is to live long"
+--                "To drink tea means to live long"
+--  ,
+--todo  translateTest "Это арбуз. Он зелёный."
+--                "This is a water melon. It's green."
+--  ,
+--todo  translateTest "Она кассирша и работает в магазине."
+--                "She is a cashier and works in a store."
   ,
   translateTest "Он увидел их"
                 "He saw them"

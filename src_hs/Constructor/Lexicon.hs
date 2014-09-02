@@ -166,7 +166,6 @@ wordMites word index =
   "кажется" -> raisingVerb "SEEM" "PRESENT" A.sg3 v ++ optional (arg Dat P.Experiencer v)
   "как" -> [mite $ TwoWordCxt "так как" False [] v0]
   "каково" -> 
-    -- todo wh-questions with каково
     finiteClause A.n3 True v ++ [mite $ Copula v0, mite $ TenseHead v0, semT (v "wh") "wh", semT v0 "degree", semV v0 P.Arg2 (v "wh"), mite $ ShortAdj (v "wh")]
   "какой-то" -> adj Nom A.sg P.Determiner "SOME" v
   "кассир" -> nounSg Nom Masc "CASHIER" v ++ genHead P.Place v
@@ -175,7 +174,7 @@ wordMites word index =
   "кассиршу" -> nounSg Acc Fem "CASHIER" v ++ genHead P.Place v
   "квартирам" -> nounPl Dat "APARTMENTS" v ++ genHead P.Owner v
   "кого" -> xor [caseWhWord Acc A.sg v ++ animate v, caseWhWord Gen A.sg v ++ animate v]
-  "когда" -> [mite $ ConditionComp v0 "when" False] -- todo wh-questions with когда
+  "когда" -> [mite $ ConditionComp v0 "when" False]
   "коммерческий" -> adj Acc A.m P.Kind "COMMERCIAL" v
   "комнатам" -> nounPl Dat "ROOMS" v ++ genHead P.Owner v
   "кому" -> caseWhWord Dat A.sg v ++ animate v
@@ -199,7 +198,7 @@ wordMites word index =
   "моему" -> [semT v0 "ME", mite $ Possessive Dat A.n v0]
   "мы" -> pronoun Nom A.pl1 "WE" v
   "на" ->
-    -- todo copula for prepositions besides 'na' 
+    -- todo copula for prepositions besides 'na'
     xor [preposition "na" Prep v,
          preposition "na" Acc v,
          [mite $ PrepHead "na" Prep v0, mite $ Copula (v "x"), mite $ TenseHead (v "x"), semT (v "x") "copula", semV (v "x") P.Location v0] ++ finiteClause A.empty True (modifyV v 'x')]

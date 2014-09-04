@@ -69,7 +69,14 @@ xor miteGroups =
       contras c fromMap = Map.findWithDefault Set.empty c fromMap
       createMite key@(c, b) = _initMite c (Set.union (contras key cxt2ExistingContras) (contras key cxt2Contras)) b
       newMites = map createMite allCxts
-  in assert (LS.removeDups newMites == newMites) $ {-traceShow ("xor", miteGroups) $ traceShow ("->", newMites) $ -}newMites
+
+      subsetIssues = concat [subsetIssue g1 g2 | g1 <- miteGroups, g2 <- miteGroups, g1 /= g2]
+      subsetIssue g1 g2 = if all (flip elem g2) g1 then ["xor issue:\n" ++ show g1 ++ "\n  is a subset of\n" ++ show g2] else []
+
+  in
+    if any null miteGroups then error $ "Empty mite group: " ++ show miteGroups
+    else if not $ null subsetIssues then error $ head subsetIssues
+    else assert (LS.removeDups newMites == newMites) $ {-traceShow ("xor", miteGroups) $ traceShow ("->", newMites) $ -}newMites
 
 contradict mite1 mite2 = any (flip Set.member (flattenContradictors mite1)) $ flattenBaseKeys mite2
 

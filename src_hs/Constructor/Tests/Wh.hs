@@ -174,6 +174,24 @@ whTests = [TestLabel "wh tests" $ TestList [
 --  ,
 --todo  translateTest "Я спросил про дом, что он увидел"
 --                "I asked about that house that he saw"
+--  ,
+--todo  translateTest "Где они сидят?"
+--                "Where are they sitting?"
+--  ,
+--todo  translateTest "В каком доме они сидят?"
+--                "Which house are they sitting in?"
+--  ,
+--todo  translateTest "В котором доме они сидят?"
+--                "Which house are they sitting in?"
+--  ,
+--todo  translateTest "У какого дома они сидят?"
+--                "Which house are they sitting at?"
+--  ,
+--todo  translateTest "У которого дома они сидят?"
+--                "Which house are they sitting at?"
+--  ,
+--todo  translateTest "Какой дом он увидел?"
+--                "Which house did he see?"
   ,
   translateTest "Кому он велел помочь?"
                 "Who did he order to help?"

@@ -41,10 +41,10 @@ finiteClause agr withSemSubject v =
 clause v = [mite $ Verb (v ""), semV (v "cp") P.Content (v ""), semT (v "cp") "situation", mite $ Clause (v "cp")]
 
 infinitive typ v =
-  [semT (v "x") typ] ++
-  xor [[mite $ ControlledInfinitive $ v "", mite $ Unify (v "") (v "x")],
-       [mite $ ModalityInfinitive (v "") (v "cp"), semT (v "") "modality", semV (v "") P.Theme (v "x"), semV (v "cp") P.Content (v ""), mite $ Verb (v ""), mite $ TenseHead (v "")] ++ optional (arg Dat P.Arg1 $ modifyV v 'x'),
-       semArg Direction P.Goal_action (v "x")]
+  [semT (v "") typ] ++
+  xor [[mite $ ControlledInfinitive $ v ""],
+       [mite $ ModalityInfinitive (v "x") (v "cp"), semT (v "x") "modality", semV (v "x") P.Theme (v ""), semV (v "cp") P.Content (v "x"), mite $ Verb (v "x"), mite $ TenseHead (v "x")] ++ optional (arg Dat P.Arg1 v),
+       semArg Direction P.Goal_action (v "")]
 arg argType relation v = [mite $ ArgHead argType (v $ decapitalize $ show relation), semV (v "") relation (v $ decapitalize $ show relation)]
 compHead attr v = [mite $ CompHead (v "comp"), semV (v "") attr (v "comp")]
 
@@ -65,7 +65,7 @@ adverb attr value v = [mite $ Adverb (v "verb"), semV (v "verb") attr (v ""), se
 genHead attr v = optional [mite $ GenHead (v "gen"), semV (v "") attr (v "gen")]
 directObject v = arg Acc P.Arg2 v
 conjunction v0 conj ready = [mite $ Conjunction $ SeqData v0 conj ready Nothing False Nothing, semT v0 "seq"] ++ (if conj == "," then [] else [semS v0 P.Conj conj])
-modifyV v c = \s -> v $ c:s 
+modifyV v c = \s -> v $ c:s
 whatComesNext v = [mite $ ArgHead ScalarAdverb (v "scalar"),
   semV (v "") P.Arg2 (v "arg2"),
   semT (v "arg2") "situation", semV (v "arg2") P.Questioned (v "wh"), semV (v "arg2") P.Content (v "comes"),
@@ -165,7 +165,7 @@ wordMites word index =
   "к" -> preposition "k" Dat v
   "кажется" -> raisingVerb "SEEM" "PRESENT" A.sg3 v ++ optional (arg Dat P.Experiencer v)
   "как" -> [mite $ TwoWordCxt "так как" False [] v0]
-  "каково" -> 
+  "каково" ->
     finiteClause A.n3 True v ++ [mite $ Copula v0, mite $ TenseHead v0, semT (v "wh") "wh", semT v0 "degree", semV v0 P.Arg2 (v "wh"), mite $ ShortAdj (v "wh")]
   "какой-то" -> adj Nom A.sg P.Determiner "SOME" v
   "кассир" -> nounSg Nom Masc "CASHIER" v ++ genHead P.Place v

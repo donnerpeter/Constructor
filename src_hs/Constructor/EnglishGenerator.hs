@@ -298,7 +298,9 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "RUN_OUT" -> "ran"
   "TAKE_OUT" -> "took"
   "GET_SAD" -> "got sad"
-  "SAY" -> if isJust $ fValue P.Addressee frame then "told" else if verbForm == PastVerb then "said" else "say"
+  "SAY" -> if isJust $ fValue P.Addressee frame
+           then if verbForm == PastVerb then "told" else "tell"
+           else if verbForm == PastVerb then "said" else "say"
   "MOVE" -> "moved"
   "TYPE" -> "typed"
   "SEEM" -> if isJust (usage P.Content frame >>= usage P.Reason) then
@@ -353,7 +355,7 @@ clause fVerb = do
            else if hasType "copula" fVerb && isJust (fValue P.Owner fVerb) then do
              let owner = fValue P.Owner fVerb
              subj <- np True owner
-             let verb = if verbForm == PastVerb then "had" else if Just "ME" == (owner >>= getType) then "have" else "has"
+             let verb = haveForm owner fVerb verbForm
              obj <- np False (fValue P.Arg1 fVerb)
              return $ subj `cat` verb `cat` obj
            else vp fVerb verbForm FiniteClause
@@ -437,6 +439,12 @@ beForm fSubject verbForm =
     if Just "Pl" == (fSubject >>= sValue P.RusNumber) then "were" else "was"
   else if Just "ME" == (fSubject >>= getType) then "am" else "is"
 
+haveForm fSubject fVerb verbForm =
+  if verbForm == PastVerb then "had"
+  else if Just "FUTURE" == sValue P.Time fVerb then "will have"
+  else if Just True == fmap (hasAnyType ["ME", "WE"]) fSubject then "have"
+  else "has"
+
 data ClauseType = FiniteClause | InfiniteClause deriving (Eq)
 
 vp :: Frame -> VerbForm -> ClauseType -> State GenerationState String
@@ -453,7 +461,7 @@ vp fVerb verbForm clauseType = do
       isFuture = Just "FUTURE" == sValue P.Time fVerb
       isModality = hasType "modality" fVerb
       isRaising = hasType "SEEM" fVerb
-      fSubject = if hasType "SEEM" fVerb || isModality || isRaising then theme >>= fValue P.Arg1 else fValue P.Arg1 fVerb
+      fSubject = if isModality || isRaising then theme >>= fValue P.Arg1 else fValue P.Arg1 fVerb
       isQuestion = Just True == fmap isQuestionCP cp
       nonSubjectQuestion = isQuestion && (cp >>= fValue P.Questioned) /= fSubject
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue P.Question_mark)
@@ -466,7 +474,7 @@ vp fVerb verbForm clauseType = do
               else if isModality then
                 if isQuestion then if isJust fSubject && isDoModality then "supposed" else ""
                 else if thereSubject then if verbForm == PastVerb then "was" else "is"
-                else if verbForm == PastVerb then "had" else if isFuture then "will have" else "have"
+                else haveForm fSubject fVerb verbForm
               else verb (if null aux then verbForm else if isGerund fVerb then Gerund else BaseVerb) fVerb
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
@@ -481,7 +489,7 @@ vp fVerb verbForm clauseType = do
           else "should"
         else if inverted then if verbForm == PastVerb then "did" else if Just True == fmap (hasAnyType ["ME", "THEY"]) fSubject then "do" else "does"
         else ""
-      allArgs = arguments fVerb
+      allArgs = if isModality then fromMaybe [] (fmap arguments theme) else arguments fVerb
       topicalizedArg = case (fSubject, allArgs) of
         (Just subj, hd@(PPAdjunct _ value):_) | earlier value P.Type fVerb P.Type && earlier value P.Type subj P.Type -> Just hd
         _ -> Nothing
@@ -530,7 +538,7 @@ vp fVerb verbForm clauseType = do
       Just slave -> vp slave BaseVerb InfiniteClause
       _ -> return ""
     Just "modality" -> case theme of
-       Just slave -> return (if isDoModality || not isQuestion || isNothing fSubject then "to" else "") `catM` vp slave BaseVerb InfiniteClause
+       Just slave -> return $ (if isDoModality || not isQuestion || isNothing fSubject then "to" else "") `cat` verb BaseVerb slave
        _ -> return ""
     Just "BEGIN" -> case theme of
       Just slave -> vp slave Gerund InfiniteClause

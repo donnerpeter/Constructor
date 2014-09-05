@@ -99,9 +99,9 @@ createBranch mites _leftChild _rightChild headSide candidateSets = bestVariant w
     [] -> Nothing
     _ -> let result = Just $ bestTree allBranchVariants in
          {-if length allBranchVariants < 10 then result else trace ("-----allBranchVariants", length allBranchVariants, mites) -}result
-  allBranchVariants = map bestTree $ Map.elems grouped
+  allBranchVariants = map (\key -> bestTree $ (Map.!) grouped key) $ LS.elements orderedHeads
   rightAVs = filter (null . _unhappyLeft) (allVariants _rightChild)
-  allAVCandidates = {-traceShow ("-------------------leftAVs", leftAVs) $ -}do
+  allAVCandidates = do
     active <- candidateSets
     let covered = base active
         base mites = LS.removeDups [mite | activeMite <- mites, mite <- baseMites activeMite]
@@ -139,6 +139,7 @@ createBranch mites _leftChild _rightChild headSide candidateSets = bestVariant w
       }
     else []
   grouped = Map.fromListWith (++) [(activeHeadMites av, [av]) | av <- allAVCandidates]
+  orderedHeads = LS.fromList $ map activeHeadMites allAVCandidates
 
 treeWidth tree = if isBranch tree then treeWidth (justLeft tree) + treeWidth (justRight tree) else 1
 

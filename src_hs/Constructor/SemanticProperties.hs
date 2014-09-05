@@ -30,6 +30,7 @@ data VarProperty = Arg1 | Arg2
                  | Author
                  | Place
                  | Location
+                 | VTime
                  | Reason | Condition | WhenCondition | IfCondition
                  | Elaboration
                  | Size

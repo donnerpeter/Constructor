@@ -32,7 +32,11 @@ issues mites = let
       ["unknown " ++ s ++ "subj "]
     Just "ASK" | any isFactCP (flatten $ fValue P.Topic frame) -> ["asking fact"]
     Just s | (s == "WE" || s == "THEY") && isJust (fValue P.Relative frame) ->
-      ["relative clause for pronoun"]
+      ["relative clause for pronoun/number"]
+    Just _ | Just relativeCP <- fValue P.Relative frame,
+             Just wh <- fValue P.Questioned relativeCP,
+             Just wh == (fValue P.Content relativeCP >>= fValue P.VTime) ->
+      ["time relative clause"]
     Just "CASHIER" | any (hasType "OTHERS") (flatten $ fValue P.Place frame) -> ["cashier of other people"]
     Just "OPINION" | isNothing (fValue P.Arg1 frame >>= getType) -> ["opinion without subj"]
     Just "WORDS" | isNothing (fValue P.Author frame >>= getType) -> ["words without author"]

@@ -63,7 +63,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
         else if hasType "MEANINGLESS" value then [Adverb "meaningless"]
         else if hasType "CLEVER" value then [Adverb "clever"]
         else [Adverb (fromMaybe "??" $ getType value)]
-      ("DISPERSE", P.Goal) -> if hasType "HOMES" value then [Adverb "home"] else [PPArg "to" value]
+      ("DISPERSE", P.Goal) -> if hasType "HOUSES" value then [Adverb "home"] else [PPArg "to" value]
       ("GO", P.Goal_action) -> if hasType "WALK" value then [Adverb "for a walk"] else [PPArg "to" value]
       ("TYPE", P.Instrument) -> [PPArg "using" value]
       ("TO_PRESENT", P.Receiver) -> [PPArg "to" value]
@@ -80,6 +80,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       (_, P.Location) -> if hasType "THERE" value then [] else [PPArg "on" value]
       (_, P.Arg2) -> if isCPOrSeq value then [] else [NPArg value]
       (_, P.Duration) -> if hasType "LONG" value then [Adverb "for a long time"] else []
+      (_, P.VTime) | hasType "wh" value -> [NPArg value]
       (_, P.RelTime) -> case fValue P.Anchor value of
         Just anchor -> [PPAdjunct (if hasType "AFTER" value then "after" else "before") anchor]
         _ -> []

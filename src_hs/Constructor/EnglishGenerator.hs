@@ -98,6 +98,7 @@ np_internal nom mayHaveDeterminer frame = do
       else if isAnimate frame then
         if Just "true" == sValue P.Negated frame then "nobody" else if nom then "who" else "whom"
       else if isJust (usage P.Goal frame) then "where"
+      else if isJust (usage P.VTime frame) then "when"
       else "what"
     else do
       let n = if Just "true" == sValue P.Elided frame then
@@ -216,7 +217,7 @@ determiner frame nbar =
       else if sDet == Just "ANY" then "any"
       else if isJust (fValue P.Quantifier frame) then ""
       else if hasType "STREET" frame && prefixName frame then streetName frame
-      else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING", "MONEY", "COUNTING", "APARTMENTS", "OFFICES", "HOMES"] frame then ""
+      else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING", "MONEY", "COUNTING", "APARTMENTS", "OFFICES", "HOUSES"] frame then ""
       else if hasAnyType ["NAMED_PERSON"] frame then ""
       else if hasType "OPINION" frame && Just True == fmap isVerbEllipsis (usage P.AccordingTo frame) then ""
       else if sValue P.Given frame == Just "true" then "the"
@@ -277,7 +278,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "NEED" -> "need"
   "HELP" -> "help"
   "DISPERSE" -> "went"
-  "SEE" -> "saw"
+  "SEE" -> if verbForm == BaseVerb then "see" else "saw"
   "LOVE" -> if verbForm == BaseVerb then "love" else if negated then "doesn't love" else "loves"
   "THINK" -> if verbForm == BaseVerb then "think" else "thinking"
   "SIT" -> "sitting"

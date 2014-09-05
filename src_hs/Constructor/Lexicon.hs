@@ -130,7 +130,8 @@ wordMites word index =
   "до" -> preposition "do" Gen v
   "дойдя" -> perfectBackground "COME_TO" v ++ optional (arg (PP "v" Prep) P.Domain v) ++ optional (arg (PP "do" Gen) P.Goal_by v)
   "долго" -> adverb P.Duration "LONG" v
-  "домам" -> nounPl Dat "HOMES" v ++ genHead P.Owner v
+  "дом" -> xor [nounSg Nom A.Masc "HOUSE" v, nounSg Acc A.Masc "HOUSE" v] ++ genHead P.Owner v
+  "домам" -> nounPl Dat "HOUSES" v ++ genHead P.Owner v
   "домой" -> semArg Direction P.Goal v0 ++ [semT v0 "HOME"]
   "других" -> nounPl Gen "OTHERS" v
   "думает" -> finVerb "THINK" "PRESENT" A.sg3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) P.Topic v)
@@ -176,7 +177,7 @@ wordMites word index =
   "квартирам" -> nounPl Dat "APARTMENTS" v ++ genHead P.Owner v
   "книгу" -> nounSg Acc Fem "BOOK" v ++ genHead P.Author v
   "кого" -> xor [caseWhWord Acc A.sg v ++ animate v, caseWhWord Gen A.sg v ++ animate v]
-  "когда" -> [mite $ ConditionComp v0 "when" False]
+  "когда" -> xor [[mite $ ConditionComp v0 "when" False], whWord v ++ [mite $ VerbalModifier P.VTime False v0] ]
   "коммерческий" -> adj Acc A.m P.Kind "COMMERCIAL" v
   "комнатам" -> nounPl Dat "ROOMS" v ++ genHead P.Owner v
   "кому" -> caseWhWord Dat A.sg v ++ animate v

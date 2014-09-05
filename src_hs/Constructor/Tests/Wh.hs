@@ -153,9 +153,9 @@ whTests = [TestLabel "wh tests" $ TestList [
 --  ,
 --todo  translateTest "Куда он шёл?"
 --                "Where was he going?"
---  ,
---todo  translateTest "Когда он увидел дом?"
---                "When did he see the house?"
+  ,
+  translateTest "Когда он увидел дом?"
+                "When did he see the house?"
 --  ,
 --todo  translateTest "Каково это — курить?"
 --                "What is it like to smoke?"

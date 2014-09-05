@@ -177,7 +177,7 @@ streetName frame = case sValue P.Name frame of
 fDeterminer frame =
   if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "JAWS", "ARGUE", "FINGER", "SPEECH", "FAMILY", "EYES"] frame then fValue P.Arg1 frame
   else if hasAnyType ["OPINION"] frame && isDeterminerOpinion frame then fValue P.Arg1 frame
-  else if hasAnyType ["WORDS"] frame then fValue P.Author frame
+  else if hasAnyType ["WORDS", "BOOK"] frame then fValue P.Author frame
   else if hasAnyType ["ROOMS", "APARTMENTS", "OFFICES"] frame then fValue P.Owner frame
   else if hasAnyType ["CASHIER"] frame then fValue P.Place frame
   else Nothing
@@ -289,6 +289,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "COUNT" -> if verbForm == Gerund then "counting" else "count"
   "TO_WATER" -> if verbForm == Gerund then "watering" else "water"
   "TO_ORDER" -> if verbForm == BaseVerb then "order" else "ordered"
+  "TO_PRESENT" -> if verbForm == BaseVerb then "give" else "gave"
   "DANCE" -> if verbForm == Gerund then "dancing" else "dance"
   "ARGUE" -> if verbForm == Gerund then "arguing" else if Just "true" == sValue P.Irrealis frame then "were arguing" else "argue"
   "RECALL" -> "recall"

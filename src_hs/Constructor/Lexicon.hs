@@ -99,6 +99,7 @@ wordMites word index =
   "был" -> [mite $ Tense v0, semS v0 P.Time "PAST"]
   "было" -> [semS v0 P.Time "PAST"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0]]
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
+  "васе" -> nounSg Dat Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vasya"]
   "васи" -> nounSg Gen Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vasya"]
   "вася" -> nounSg Nom Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vasya"]
   "вдруг" -> adverb P.Manner "SUDDENLY" v
@@ -173,6 +174,7 @@ wordMites word index =
   "кассирши" -> nounSg Gen Fem "CASHIER" v ++ genHead P.Place v
   "кассиршу" -> nounSg Acc Fem "CASHIER" v ++ genHead P.Place v
   "квартирам" -> nounPl Dat "APARTMENTS" v ++ genHead P.Owner v
+  "книгу" -> nounSg Acc Fem "BOOK" v ++ genHead P.Author v
   "кого" -> xor [caseWhWord Acc A.sg v ++ animate v, caseWhWord Gen A.sg v ++ animate v]
   "когда" -> [mite $ ConditionComp v0 "when" False]
   "коммерческий" -> adj Acc A.m P.Kind "COMMERCIAL" v
@@ -244,6 +246,7 @@ wordMites word index =
   "по-моему" -> xor [[mite $ VerbalModifier P.AccordingTo True v0], [mite $ NounAdjunct P.AccordingTo True v0]] ++ [semT v0 "OPINION", semV v0 P.Arg1 (v "me"), semT (v "me") "ME"]
   "поблагодарили" -> finVerb "THANK" "PAST" A.pl v ++ directObject v
   "поводу" -> nounSg Dat Masc "MATTER" v
+  "подарил" -> finVerb "TO_PRESENT" "PAST" A.m v ++ directObject v ++ optional (arg Dat P.Receiver v)
   "подвигав" -> perfectBackground "MOVE" v ++ arg Instr P.Arg2 v
   "подвигала" -> finVerb "MOVE" "PAST" A.f v ++ arg Instr P.Arg2 v
   "показались" -> raisingVerb "SEEM" "PAST" A.pl v ++ optional (arg Dat P.Experiencer v)

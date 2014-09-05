@@ -7,6 +7,7 @@ import qualified Constructor.SemanticProperties as P
 
 noun Nothing _ = "??"
 noun (Just typ) frame = case typ of
+  "BOOK" -> "book"
   "CASE" -> "thing"
   "ME" -> "me"
   "HE" -> "he"

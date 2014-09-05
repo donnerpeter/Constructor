@@ -204,12 +204,18 @@ whTests = [TestLabel "wh tests" $ TestList [
 --  ,
 --todo  translateTest "Кто кому велел помочь?"
 --                "Who ordered to help whom?"
---  ,
---todo  translateTest "Что он подарил Васе?"
---                "What did he give to Vasya?"
---  ,
---todo  translateTest "Кому он подарил книгу?"
---                "Who did he give the book to?"
+  ,
+  translateTest "Что он подарил Васе?"
+                "What did he give to Vasya?"
+  ,
+  translateTest "Что он подарил?"
+                "What did he give?"
+  ,
+  translateTest "Кому он подарил книгу?"
+                "Who did he give the book to?"
+  ,
+  translateTest "Кому он подарил книгу Васи?"
+                "Who did he give Vasya's book to?"
 --  ,
 --todo  translateTest "Что и кому он подарил?"
 --                "What and to whom did he give?"

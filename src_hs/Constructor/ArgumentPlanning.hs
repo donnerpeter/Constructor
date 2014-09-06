@@ -27,7 +27,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
         fVal1 <- Frame v1 sens,
         fVal2 <- Frame v2 sens,
         isJust (getType $ Frame v1 sens) && isJust (getType $ Frame v2 sens) ->
-          if earlier fVal1 P.Type fVal2 P.Type then LT else GT
+          if typeEarlier fVal1 fVal2 then LT else GT
       _ -> EQ
   in Data.List.sortBy compareFacts (allFrameFacts fVerb) >>= \(Fact _ semValue) ->
   case semValue of

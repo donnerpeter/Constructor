@@ -65,15 +65,15 @@ orderingIssues frame = case getDeclaredType frame of
     Just subj <- fValue P.Arg1 frame,
     isJust (sDeclaredValue P.Type subj),
     Just order <- fValue P.Order frame,
-    earlier order P.Type subj P.Type && earlier frame P.Type order P.Type ->
+    typeEarlier order subj && typeEarlier frame order ->
       ["come_scalarly order subj"]
   Just "COME_SCALARLY" |
     Just order <- fValue P.Order frame,
     Just relTime <- fValue P.RelTime frame,
-    earlier order P.Type relTime P.Type && earlier relTime P.Type frame P.Type ->
+    typeEarlier order relTime && typeEarlier relTime frame ->
       ["order relTime COME_SCALARLY"]
   Just "GO" |
     Just source <- fValue P.Source frame,
-    earlier source P.Type frame P.Type ->
+    typeEarlier source frame ->
       ["source before GO"]
   _ -> []

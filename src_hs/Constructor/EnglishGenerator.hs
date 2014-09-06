@@ -428,7 +428,7 @@ clause fVerb = do
       _ -> return ""
     let coreWithBackground =
           if null background then core
-          else if earlier fVerb P.Type (fromJust $ fValue P.PerfectBackground fVerb) P.Type then core `cat` "," `cat` background `cat` ","
+          else if typeEarlier fVerb (fromJust $ fValue P.PerfectBackground fVerb) then core `cat` "," `cat` background `cat` ","
           else (if null emphasis then "" else ",") `cat` background `cat` "," `cat` core
     according <- generateAccording fVerb
     return $ intro `cat` emphasis `cat` according `cat` coreWithBackground `cat` controlledComp `cat` condComp `cat` reasonComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
@@ -493,7 +493,7 @@ vp fVerb verbForm clauseType = do
         else ""
       allArgs = if isModality then fromMaybe [] (fmap arguments theme) else arguments fVerb
       topicalizedArg = case (fSubject, allArgs) of
-        (Just subj, hd@(PPAdjunct _ value):_) | earlier value P.Type fVerb P.Type && earlier value P.Type subj P.Type -> Just hd
+        (Just subj, hd@(PPAdjunct _ value):_) | typeEarlier value fVerb && typeEarlier value subj -> Just hd
         _ -> Nothing
       questionedArg = if not nonSubjectQuestion then Nothing else Data.List.find isQuestionedArg allArgs
       existentialWhArg =

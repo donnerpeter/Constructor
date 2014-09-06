@@ -5,7 +5,7 @@ module Constructor.Sense
   fDeclaredValue, sDeclaredValue,
   usages, usage, allUsages,
   getType, getDeclaredType, hasType, hasAnyType, resolve,
-  earlier,
+  earlier, typeEarlier,
   allFrameFacts,
   flatten, isNumber, unSeq, seqSiblings, prevSiblings, nextSiblings,
   isHuman, isAnimate, isInanimate,
@@ -86,6 +86,8 @@ singleListElement list = case list of
 
 findFrames typ sense = [f | f <- allFrames sense, hasType typ f]
 
+typeEarlier f1 f2 = earlier f1 P.Type f2 P.Type
+
 earlier f1 attr1 f2 attr2 =
   let allFacts = facts $ sense f1
       mi1 = findIndex (isStrAssignment (var f1) attr1) allFacts
@@ -112,11 +114,11 @@ sValue attr frame =
         else if hasType "CHILD" frame then
           if Just "SOME" == (fValue P.Determiner frame >>= getType) then Just "false" else Just "true"
         else if hasType "CASHIER" frame then
-          case find (\shop -> earlier shop P.Type frame P.Type) $ findFrames "SHOP" $ sense frame of
+          case find (\shop -> typeEarlier shop frame) $ findFrames "SHOP" $ sense frame of
            Just shop -> sValue P.Given shop
            _ -> Just "true"
         else if hasType "SHOP" frame then
-          if any (\cashier -> earlier cashier P.Type frame P.Type) $ findFrames "CASHIER" $ sense frame then Just "true"
+          if any (\cashier -> typeEarlier cashier frame) $ findFrames "CASHIER" $ sense frame then Just "true"
           else if isJust $ msum [usage P.Arg1 frame, usage P.Source frame] then Just "true"
           else Just "false"
         else Just "true"

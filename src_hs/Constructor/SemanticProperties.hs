@@ -63,6 +63,7 @@ data StrProperty = Type
                  | Question_mark | Dot
                  | Time
                  | Distinguished
+                 | Imperfective
                  | Emphasis | ButEmphasis | AndEmphasis
                  | Isolation | LeftIsolated | RightIsolated
                  deriving (Ord, Eq, Show, Generic)

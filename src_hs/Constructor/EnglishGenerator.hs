@@ -99,6 +99,7 @@ np_internal nom mayHaveDeterminer frame = do
         if Just "true" == sValue P.Negated frame then "nobody" else if nom then "who" else "whom"
       else if isJust (usage P.Goal frame) then "where"
       else if isJust (usage P.VTime frame) then "when"
+      else if isJust (usage P.Location frame) then "where"
       else "what"
     else do
       let n = if Just "true" == sValue P.Elided frame then
@@ -283,7 +284,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "SEE" -> if verbForm == BaseVerb then "see" else "saw"
   "LOVE" -> if verbForm == BaseVerb then "love" else if negated then "doesn't love" else "loves"
   "THINK" -> if verbForm == BaseVerb then "think" else "thinking"
-  "SIT" -> "sitting"
+  "SIT" -> if verbForm == BaseVerb then "sit" else "sitting"
   "FALL" -> "fell"
   "BREAK" -> if verbForm == BaseVerb then "break" else "broke"
   "STOP" -> "stopped"

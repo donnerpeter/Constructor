@@ -115,6 +115,7 @@ wordMites word index =
   "все" -> adj Nom A.pl P.Specifier_all "ALL" v
   "всеми" -> adj Instr A.pl P.Specifier_all "ALL" v
   "вспомнить" -> infinitive "RECALL" v ++ directObject v
+  "где" -> whWord v ++ [mite $ VerbalModifier P.Location False v0]
   "глазами" -> nounPl Instr "EYES" v ++ genHead P.Arg1 v
   "глупый" -> adj Nom A.m P.Quality "STUPID" v
   "грустно" -> adverb P.Manner "SADLY" v

@@ -216,9 +216,9 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
               ("s", Instr) -> [mite $ VerbalModifier P.Mood False var2]
               ("s", Gen) -> xor [[mite $ NounAdjunct P.Source False var2], [mite $ VerbalModifier P.Source False var2]]
               ("v", Acc) -> semArg Direction P.Goal_in var2
-              ("v", Prep) -> [mite $ VerbalModifier P.Condition False var2]
+              ("v", Prep) -> xor [[mite $ VerbalModifier P.Condition False var2], [mite $ VerbalModifier P.Location_in False var2]]
               ("na", Acc) -> semArg Direction P.Goal_on var2
-              ("na", Prep) -> [mite $ NounAdjunct P.Location False var2]
+              ("na", Prep) -> [mite $ NounAdjunct P.Location_on False var2]
               _ -> []
             extra = Seq.pullThyself m2 rightMites ++ Seq.liftArguments m2 rightMites ++ whPropagation m1 m2 rightMites
         in mergeLeft (argMites ++ extra)

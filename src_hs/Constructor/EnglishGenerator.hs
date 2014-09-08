@@ -94,12 +94,12 @@ np_internal nom mayHaveDeterminer frame = do
     else if hasType "THEY" frame then if nom then return "they" else return "them"
     else if hasType "WE" frame then if nom then return "we" else return "us"
     else if hasType "wh" frame then return $
-      if isJust $ usage P.Arg1 frame >>= usage P.Content >>= usage P.Relative then "that"
-      else if isAnimate frame then
-        if Just "true" == sValue P.Negated frame then "nobody" else if nom then "who" else "whom"
-      else if isJust (usage P.Goal frame) then "where"
+      if isJust (usage P.Goal frame) then "where"
       else if isJust (usage P.VTime frame) then "when"
       else if isJust (usage P.Location frame) then "where"
+      else if isAnimate frame then
+        if Just "true" == sValue P.Negated frame then "nobody" else if nom then "who" else "whom"
+      else if isJust $ usage P.Questioned frame >>= usage P.Relative then "that"
       else "what"
     else do
       let n = if Just "true" == sValue P.Elided frame then
@@ -110,7 +110,7 @@ np_internal nom mayHaveDeterminer frame = do
       nbar <- case getType frame of
          Just "ORDER" | Just poss <- fValue P.Arg1 frame -> handleSeq (np_internal True False) (Just poss) `catM` return nbar1
          Just "STREET" | not (prefixName frame) -> return nbar1 `catM` return (streetName frame)
-         _ | Just loc <- fValue P.Location frame -> return nbar1 `catM` return "on" `catM` np False (Just loc)
+         _ | Just loc <- fValue P.Location_on frame -> return nbar1 `catM` return "on" `catM` np False (Just loc)
          _ | Just src <- fValue P.Source frame -> return nbar1 `catM` return "from" `catM` np False (Just src)
          _ -> return nbar1
       genitiveComplement <- case getType frame of

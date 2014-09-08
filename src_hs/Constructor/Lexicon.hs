@@ -182,6 +182,7 @@ wordMites word index =
   "коммерческий" -> adj Acc A.m P.Kind "COMMERCIAL" v
   "комнатам" -> nounPl Dat "ROOMS" v ++ genHead P.Owner v
   "кому" -> caseWhWord Dat A.sg v ++ animate v
+  "котором" -> xor [caseWhWord Prep A.m v, caseWhWord Prep A.n v]
   "кто" -> caseWhWord Nom A.sg v ++ animate v
   "куда" -> whWord v ++ semArg Direction P.Goal v0
   "летний" -> adj Acc A.m P.VName "летний" v -- todo летний is not only a name
@@ -205,7 +206,7 @@ wordMites word index =
     -- todo copula for prepositions besides 'na'
     xor [preposition "na" Prep v,
          preposition "na" Acc v,
-         [mite $ PrepHead "na" Prep v0, mite $ Copula (v "x"), mite $ TenseHead (v "x"), semT (v "x") "copula", semV (v "x") P.Location v0] ++ finiteClause A.empty True (modifyV v 'x')]
+         [mite $ PrepHead "na" Prep v0, mite $ Copula (v "x"), mite $ TenseHead (v "x"), semT (v "x") "copula", semV (v "x") P.Location_on v0] ++ finiteClause A.empty True (modifyV v 'x')]
   "нам" -> pronoun Dat A.pl1 "WE" v
   "нас" -> pronoun Acc A.pl1 "WE" v
   "начали" -> finVerb "BEGIN" "PAST" A.pl v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")]

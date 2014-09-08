@@ -26,6 +26,9 @@ issues mites = let
   wrongNumber frame =
     if hasType "EYES" frame && Just False == fmap (hasType "2") (fValue P.Quantifier frame)
     then ["suspicious eye count"] else []
+  wrongLocation frame =
+    if hasType "CASE" frame && isJust (msum $ map (flip usage frame) [P.Location, P.Location_on, P.Location_in])
+    then ["wrong location"] else []
   frameIssues frame = case getDeclaredType frame of
     Just "seq" | Nothing == sValue P.Conj frame -> ["comma-only seq"]
     Just s | (s == "SIT" || s == "SAY") && isNothing (fValue P.Arg1 frame >>= sDeclaredValue P.Type) ->
@@ -59,6 +62,7 @@ issues mites = let
     ++ (frames >>= wrongAccording)
     ++ (frames >>= wrongOptative)
     ++ (frames >>= wrongNumber)
+    ++ (frames >>= wrongLocation)
 
 orderingIssues frame = case getDeclaredType frame of
   Just "COME_SCALARLY" |

@@ -29,7 +29,7 @@ data VarProperty = Arg1 | Arg2
                  | AccordingTo
                  | Author
                  | Place
-                 | Location
+                 | Location | Location_in | Location_on
                  | VTime
                  | Reason | Condition | WhenCondition | IfCondition
                  | Elaboration

@@ -52,6 +52,7 @@ data Construction = Word Variable String
                   | ElidedArgHead Construction
                   | Possessive ArgKind Agr Variable
                   | EmptyCxt Construction
+                  | Diversifier Int
                   | Tense Variable
                   | TenseHead Variable
                   | Copula Variable

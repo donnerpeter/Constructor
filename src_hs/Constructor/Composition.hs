@@ -48,6 +48,7 @@ isInteractive mite = case cxt mite of
   Sem {} -> False
   Unify {} -> False
   EmptyCxt {} -> False
+  Diversifier {} -> False
   _ -> True
 
 mergeInfoHelpers m1 m2 = ( \mites -> mergeLeft (base12 mites), \mites -> mergeRight (base12 mites), base12) where

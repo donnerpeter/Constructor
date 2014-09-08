@@ -55,8 +55,9 @@ semV var prop value = mite $ Sem var (VarValue prop value)
 semT var _type = semS var Type _type
 
 xor :: [[Mite]] -> [Mite]
-xor miteGroups =
-  let cxtGroups = map (map xorKey) miteGroups
+xor _miteGroups = let
+      miteGroups = diversify $ LS.removeDups _miteGroups
+      cxtGroups = map (map xorKey) miteGroups
       allCxts = LS.removeDups $ concat cxtGroups
       allCxtSet = Set.fromList allCxts
 
@@ -70,15 +71,21 @@ xor miteGroups =
       createMite key@(c, b) = _initMite c (Set.union (contras key cxt2ExistingContras) (contras key cxt2Contras)) b
       newMites = map createMite allCxts
 
-      subsetIssues = concat [subsetIssue g1 g2 | g1 <- miteGroups, g2 <- miteGroups, g1 /= g2]
-      subsetIssue g1 g2 = if all (flip elem g2) g1 then ["xor issue:\n" ++ show g1 ++ "\n  is a subset of\n" ++ show g2] else []
-
   in
     if any null miteGroups then error $ "Empty mite group: " ++ show miteGroups
-    else if not $ null subsetIssues then error $ head subsetIssues
     else assert (LS.removeDups newMites == newMites) $ {-traceShow ("xor", miteGroups) $ traceShow ("->", newMites) $ -}newMites
 
 contradict mite1 mite2 = any (flip Set.member (flattenContradictors mite1)) $ flattenBaseKeys mite2
+
+diversify miteGroups = result where
+  cxt2Count = Map.fromListWith (+) [(cxt mite, 1) | mite <- concat miteGroups]
+  isUnique mite = 1 == Map.findWithDefault 0 (cxt mite) cxt2Count
+  toProcess = filter isToProcess miteGroups
+  isToProcess group = all (not . isUnique) group
+  diversifyGroup g = case elemIndex g toProcess of
+    Just i -> g ++ [mite $ Diversifier i]
+    _ -> g
+  result = map diversifyGroup miteGroups
 
 withBase base mites = let
   keys = Set.fromList $ map xorKey mites

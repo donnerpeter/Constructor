@@ -162,9 +162,9 @@ whTests = [TestLabel "wh tests" $ TestList [
 --  ,
 --todo  translateTest "Каково его мнение?"
 --                "What's his opinion?"
---  ,
---todo  translateTest "Я увидел дом, где они сидят"
---                "I saw the house where they were sitting"
+  ,
+  translateTest "Я увидел дом, где они сидят"
+                "I saw the house where they were sitting"
 --  ,
 --todo  translateTest "Я увидел дом, в котором они сидят"
 --                "I saw the house which they were sitting in"
@@ -176,7 +176,7 @@ whTests = [TestLabel "wh tests" $ TestList [
 --                "I asked about that house that he saw"
   ,
   translateTest "Где они сидят?"
-                "Where do they sit?"
+                "Where are they sitting?"
 --  ,
 --todo  translateTest "В каком доме они сидят?"
 --                "Which house are they sitting in?"

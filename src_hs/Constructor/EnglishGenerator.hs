@@ -134,7 +134,11 @@ np_internal nom mayHaveDeterminer frame = do
       if typ == "1" || isNothing (fValue P.Arg1 frame >>= getType) || any (\f -> fDeterminer frame == fDeterminer f) (prevSiblings frame)
       then q else return (if null allOf || not (null postQuantifier) then "" else "all") `catM` q `catM` return "of"
     _ -> return $ if null postQuantifier then allOf else ""
-  relative <- fromMaybe (return "") $ liftM (catM $ return ", the one") $ fmap sentence $ fValue P.Relative frame
+  relative <- case fValue P.Relative frame of
+    Just relativeCp -> let rel = sentence relativeCp in
+      if Just "copula" == (fValue P.Content relativeCp >>= getType) then return ", the one" `catM` rel
+      else rel
+    _ -> return ""
   return $ preQuantifier `cat` unquantified `cat` postQuantifier `cat` relative
 
 adjectives nounFrame = catMaybes [property, kind, shopKind, size, quality, gender] where
@@ -261,10 +265,9 @@ genComplement cp = case fValue P.Content cp of
     in return (negation `cat` prefix) `catM` sentence cp
 
 isGerund fVerb =
-  if Just "true" == sValue P.Imperfective fVerb then True
-  else hasAnyType ["SIT", "THINK"] fVerb &&
-  (Just "FORGET" == (usage P.Content (unSeq fVerb) >>= usage P.Arg2 . unSeq >>= getType) ||
-  Just "ASK" == (usage P.Content (unSeq fVerb) >>= usage P.Topic . unSeq >>= getType))
+  Just "true" == sValue P.Imperfective fVerb ||
+  hasType "SIT" fVerb ||
+  hasType "THINK" fVerb && isNothing (fValue P.Topic fVerb)
 
 verb verbForm frame = if isNothing (getType frame) then "???vp" else
   let negated = Just "true" == sValue P.Negated frame && not (Just "true" == (fValue P.Arg1 frame >>= sValue P.Negated)) in
@@ -284,7 +287,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "SEE" -> if verbForm == BaseVerb then "see" else "saw"
   "LOVE" -> if verbForm == BaseVerb then "love" else if negated then "doesn't love" else "loves"
   "THINK" -> if verbForm == BaseVerb then "think" else "thinking"
-  "SIT" -> if verbForm == BaseVerb then "sit" else "sitting"
+  "SIT" -> if verbForm == BaseVerb then "sit" else if verbForm == PastVerb then "sat" else "sitting"
   "FALL" -> "fell"
   "BREAK" -> if verbForm == BaseVerb then "break" else "broke"
   "STOP" -> "stopped"
@@ -442,7 +445,8 @@ isQuestioned frame = flip any (flatten $ Just frame) $ \frame ->
 beForm fSubject verbForm =
   if verbForm == PastVerb then
     if Just "Pl" == (fSubject >>= sValue P.RusNumber) then "were" else "was"
-  else if Just "ME" == (fSubject >>= getType) then "am" else "is"
+  else if Just "ME" == (fSubject >>= getType) then "am"
+  else if Just "Pl" == (fSubject >>= sValue P.RusNumber) then "are" else "is"
 
 haveForm fSubject fVerb verbForm =
   if verbForm == PastVerb then "had"
@@ -480,7 +484,7 @@ vp fVerb verbForm clauseType = do
                 if isQuestion then if isJust fSubject && isDoModality then "supposed" else ""
                 else if thereSubject then if verbForm == PastVerb then "was" else "is"
                 else haveForm fSubject fVerb verbForm
-              else verb (if null aux then verbForm else if isGerund fVerb then Gerund else BaseVerb) fVerb
+              else verb (if isGerund fVerb then Gerund else if null aux then verbForm else BaseVerb) fVerb
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         Just "MOVE" -> (if Just "SLIGHTLY" == (fValue P.Manner fVerb >>= getType) then "slightly" else "") `cat` "back and forth"

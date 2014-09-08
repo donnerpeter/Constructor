@@ -80,6 +80,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       (_, P.Location) | hasType "wh" value -> [NPArg value]
       (_, P.Location_on) -> [PPArg "on" value]
       (_, P.Location_in) -> [PPArg "in" value]
+      (_, P.Location_at) -> [PPArg "next to" value]
       (_, P.Arg2) -> if isCPOrSeq value then [] else [NPArg value]
       (_, P.Duration) -> if hasType "LONG" value then [Adverb "for a long time"] else []
       (_, P.VTime) | hasType "wh" value -> [NPArg value]

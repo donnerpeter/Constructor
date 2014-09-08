@@ -182,6 +182,7 @@ wordMites word index =
   "коммерческий" -> adj Acc A.m P.Kind "COMMERCIAL" v
   "комнатам" -> nounPl Dat "ROOMS" v ++ genHead P.Owner v
   "кому" -> caseWhWord Dat A.sg v ++ animate v
+  "которого" -> xor [caseWhWord Gen A.m v, caseWhWord Gen A.n v]
   "котором" -> xor [caseWhWord Prep A.m v, caseWhWord Prep A.n v]
   "кто" -> caseWhWord Nom A.sg v ++ animate v
   "куда" -> whWord v ++ semArg Direction P.Goal v0

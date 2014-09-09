@@ -27,11 +27,14 @@ issues mites = let
     if hasType "EYES" frame && Just False == fmap (hasType "2") (fValue P.Quantifier frame)
     then ["suspicious eye count"] else []
   wrongLocation frame =
-    if hasType "CASE" frame && isJust (msum $ map (flip usage frame) [P.Location, P.Location_on, P.Location_in])
+    if hasAnyType ["CASE", "COUNTING"] frame && isJust (msum $ map (flip usage frame) [P.Location, P.Location_on, P.Location_in])
     then ["wrong location"] else []
+  wrongCondition frame =
+    if not (hasType "CASE" frame) && isJust (usage P.Condition frame)
+    then ["wrong condition"] else []
   frameIssues frame = case getDeclaredType frame of
     Just "seq" | Nothing == sValue P.Conj frame -> ["comma-only seq"]
-    Just s | (s == "SIT" || s == "SAY") && isNothing (fValue P.Arg1 frame >>= sDeclaredValue P.Type) ->
+    Just s | (s == "SIT" || s == "SAY" || s == "FORGET") && isNothing (fValue P.Arg1 frame >>= sDeclaredValue P.Type) ->
       ["unknown " ++ s ++ "subj "]
     Just "ASK" | any isFactCP (flatten $ fValue P.Topic frame) -> ["asking fact"]
     Just s | (s == "WE" || s == "THEY") && isJust (fValue P.Relative frame) ->
@@ -63,6 +66,7 @@ issues mites = let
     ++ (frames >>= wrongOptative)
     ++ (frames >>= wrongNumber)
     ++ (frames >>= wrongLocation)
+    ++ (frames >>= wrongCondition)
 
 orderingIssues frame = case getDeclaredType frame of
   Just "COME_SCALARLY" |

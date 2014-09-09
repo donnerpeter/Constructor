@@ -23,7 +23,6 @@ data Mite = Mite {
   contradictors :: Set.Set XorKey,
   baseMites :: [Mite],
   flattenBaseMites :: [Mite],
-  flattenBaseKeys :: [XorKey],
   flattenContradictors :: Set.Set XorKey,
   xorKey :: XorKey
 }
@@ -33,7 +32,6 @@ _initMite cxt _contradictors baseMites = let
       cxt = cxt, happy = isHappy cxt, contradictors = _contradictors, baseMites = baseMites,
       xorKey = (cxt, baseMites),
       flattenBaseMites = fbm,
-      flattenBaseKeys = map xorKey fbm,
       flattenContradictors = foldl Set.union Set.empty (map contradictors fbm)
     }
   fbm = mite : (LS.removeDups (baseMites >>= flattenBaseMites))
@@ -75,7 +73,7 @@ xor _miteGroups = let
     if any null miteGroups then error $ "Empty mite group: " ++ show miteGroups
     else assert (LS.removeDups newMites == newMites) $ {-traceShow ("xor", miteGroups) $ traceShow ("->", newMites) $ -}newMites
 
-contradict mite1 mite2 = any (flip Set.member (flattenContradictors mite1)) $ flattenBaseKeys mite2
+contradict mite1 mite2 = any (\m -> Set.member (xorKey m) (flattenContradictors mite1)) $ flattenBaseMites mite2
 
 diversify miteGroups = result where
   cxt2Count = Map.fromListWith (+) [(cxt mite, 1) | mite <- concat miteGroups]

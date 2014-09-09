@@ -36,7 +36,7 @@ _initMite cxt _contradictors baseMites = let
     }
   fbm = mite : (LS.removeDups (baseMites >>= flattenBaseMites))
   in
-  if contradict mite mite then error $ "self-contradicting mite " ++ show mite ++ "; flattenContradictors=" ++ show (flattenContradictors mite)
+  if contradict mite mite then error $ "self-contradicting mite " ++ show mite ++ "\nbase=" ++ show baseMites ++ "\nflattenContradictors=" ++ show (flattenContradictors mite)
   else mite
 
 instance Show Mite where

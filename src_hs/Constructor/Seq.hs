@@ -40,7 +40,9 @@ seqRight leftMites rightMites = {-traceIt "seqRight" $ -}result where
       Argument kind child ->
         withBase [m1,m2] ([semV v P.Member2 child, conjWithRight child] ++ distinguished m2 ++ pullThyself m2 rightMites)
           ++ liftArguments m2 rightMites
-      VerbalModifier attr comma child -> withBase [m1,m2] $ [semV v P.Member2 child, conjWithRight child] ++ distinguished m2
+      VerbalModifier attr comma child ->
+        withBase [m1,m2] $ [semV v P.Member2 child, conjWithRight child]
+          ++ distinguished m2 ++ liftArguments m2 rightMites
       Adj child caze agr -> withBase [m1,m2] [semV v P.Member2 child, conjWithRight child]
       Possessive caze agr child -> withBase [m1,m2] [semV v P.Member2 child, mite $ Conjunction $ sd {seqKind=Just (Adj child caze agr), seqRightVar=Just child}]
       Complement child -> withBase [m1,m2] [semV v P.Member2 child, semS child P.Distinguished "true", conjWithRight child]
@@ -96,7 +98,9 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
           Argument kind child | seqKind == Argument kind rightVar -> -- traceIt "arg" $
             withBase [m1,m2] ([semV seqV P.Member1 child, conjWithLeft, mite $ Argument kind seqV] ++ combineThyself)
             ++ adjHeadCompanions child kind ++ argUnifications
-          VerbalModifier attr comma child | seqKind == VerbalModifier attr comma rightVar -> withBase [m1,m2] [semV seqV P.Member1 child, conjWithLeft, mite $ VerbalModifier attr comma seqV]
+          VerbalModifier attr comma child | seqKind == VerbalModifier attr comma rightVar ->
+            withBase [m1,m2] [semV seqV P.Member1 child, conjWithLeft, mite $ VerbalModifier attr comma seqV]
+            ++ argUnifications
           Possessive caze1 agr1 child -> handleAdj child caze1 agr1 $ \newAgr -> Possessive caze1 newAgr seqV
           Adj child caze1 agr1 -> handleAdj child caze1 agr1 $ \newAgr -> CompositeAdj seqV caze1 newAgr
           CompositeAdj child caze1 agr1 -> handleAdj child caze1 agr1 $ \newAgr -> CompositeAdj seqV caze1 newAgr

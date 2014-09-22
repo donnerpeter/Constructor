@@ -58,6 +58,8 @@ animate v = [semS (v "") P.Animate "true"]
 
 adj caze agr attr value v = [mite $ Adj (v "") caze agr, semV (v "") attr (v "adj"), semT (v "adj") value]
   ++ rusNumber agr (v "")
+adjWh caze agr attr v = [mite $ Adj (v "") caze agr, semV (v "") attr (v "adj"), semT (v "adj") "wh", mite $ Wh (v "adj")]
+  ++ rusNumber agr (v "")
 
 perfectBackground typ v = [mite $ Verb (v ""), semT (v "") typ, mite $ VerbalModifier P.PerfectBackground True (v "")]
 sAdverb attr value v = [mite $ Adverb (v "verb"), semS (v "verb") attr value]
@@ -133,6 +135,7 @@ wordMites word index =
   "долго" -> adverb P.Duration "LONG" v
   "дом" -> xor [nounSg Nom A.Masc "HOUSE" v, nounSg Acc A.Masc "HOUSE" v] ++ genHead P.Owner v
   "домам" -> nounPl Dat "HOUSES" v ++ genHead P.Owner v
+  "доме" -> nounSg Prep A.Masc "HOUSE" v ++ genHead P.Owner v
   "домой" -> semArg Direction P.Goal v0 ++ [semT v0 "HOME"]
   "других" -> nounPl Gen "OTHERS" v
   "думает" -> finVerb "THINK" "PRESENT" A.sg3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) P.Topic v)
@@ -171,6 +174,7 @@ wordMites word index =
   "каково" ->
     finiteClause A.n3 True v ++ [mite $ Copula v0, mite $ TenseHead v0, semT (v "wh") "wh", semT v0 "degree", semV v0 P.Arg2 (v "wh"), mite $ ShortAdj (v "wh")]
   "какой-то" -> adj Nom A.sg P.Determiner "SOME" v
+  "каком" -> adjWh Prep A.m P.Determiner v
   "кассир" -> nounSg Nom Masc "CASHIER" v ++ genHead P.Place v
   "кассирша" -> nounSg Nom Fem "CASHIER" v ++ genHead P.Place v
   "кассирши" -> nounSg Gen Fem "CASHIER" v ++ genHead P.Place v

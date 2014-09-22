@@ -220,6 +220,7 @@ determiner frame nbar =
       let sDet = fValue P.Determiner frame >>= getType in
       if sDet == Just "THIS" then "this"
       else if sDet == Just "ANY" then "any"
+      else if sDet == Just "wh" then "which"
       else if isJust (fValue P.Quantifier frame) then ""
       else if hasType "STREET" frame && prefixName frame then streetName frame
       else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING", "MONEY", "COUNTING", "APARTMENTS", "OFFICES", "HOUSES"] frame then ""
@@ -440,7 +441,10 @@ clause fVerb = do
     return $ intro `cat` emphasis `cat` according `cat` coreWithBackground `cat` controlledComp `cat` condComp `cat` reasonComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
 
 isQuestioned frame = flip any (flatten $ Just frame) $ \frame ->
-  hasType "wh" frame || Just True == fmap isQuestioned (fValue P.Arg1 frame) || Just True == fmap isQuestioned (fValue P.Author frame)
+  hasType "wh" frame ||
+  Just True == fmap isQuestioned (fValue P.Arg1 frame) ||
+  Just True == fmap isQuestioned (fValue P.Author frame) ||
+  Just True == fmap isQuestioned (fValue P.Determiner frame)
 
 beForm fSubject verbForm =
   if verbForm == PastVerb then

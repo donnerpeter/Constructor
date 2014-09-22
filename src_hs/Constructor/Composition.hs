@@ -177,9 +177,9 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
     let (left, right, base12) = mergeInfoHelpers m1 m2
     in case (cxt m1, cxt m2) of
       (Adj var2 adjCase agr1, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> 
-        right [mite $ Unify var var2]
+        mergeRight $ base12 [mite $ Unify var var2] ++ whPropagation m2 m1 leftMites
       (AdjHead var nounCase agr2, Adj var2 adjCase agr1) | adjCase == nounCase && agree agr1 agr2 ->
-        left [mite $ Unify var var2]
+        mergeLeft $ base12 [mite $ Unify var var2] ++ whPropagation m1 m2 rightMites
       (CompositeAdj var2 adjCase agr1, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 ->
         right [semV var P.Components var2]
 

@@ -183,9 +183,9 @@ whTests = [TestLabel "wh tests" $ TestList [
 --  ,
 --todo  translateTest "В котором доме они сидят?"
 --                "Which house are they sitting in?"
---  ,
---todo  translateTest "У какого дома они сидят?"
---                "Which house are they sitting at?"
+  ,
+  translateTest "У какого дома они сидят?"
+                "Which house are they sitting next to?"
 --  ,
 --todo  translateTest "У которого дома они сидят?"
 --                "Which house are they sitting at?"

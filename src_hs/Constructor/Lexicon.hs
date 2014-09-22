@@ -175,6 +175,7 @@ wordMites word index =
   "каково" ->
     finiteClause A.n3 True v ++ [mite $ Copula v0, mite $ TenseHead v0, semT (v "wh") "wh", semT v0 "degree", semV v0 P.Arg2 (v "wh"), mite $ ShortAdj (v "wh")]
   "какого" -> adjWh Gen A.m P.Determiner v
+  "какой" -> xor [adjWh Nom A.m P.Determiner v, adjWh Acc A.m P.Determiner v]
   "какой-то" -> adj Nom A.sg P.Determiner "SOME" v
   "каком" -> adjWh Prep A.m P.Determiner v
   "кассир" -> nounSg Nom Masc "CASHIER" v ++ genHead P.Place v

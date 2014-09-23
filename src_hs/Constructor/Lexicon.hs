@@ -189,8 +189,8 @@ wordMites word index =
   "коммерческий" -> adj Acc A.m P.Kind "COMMERCIAL" v
   "комнатам" -> nounPl Dat "ROOMS" v ++ genHead P.Owner v
   "кому" -> caseWhWord Dat A.sg v ++ animate v
-  "которого" -> xor [caseWhWord Gen A.m v, caseWhWord Gen A.n v]
-  "котором" -> xor [caseWhWord Prep A.m v, caseWhWord Prep A.n v]
+  "которого" -> xor [caseWhWord Gen A.m v, caseWhWord Gen A.n v, adjWh Gen A.m P.Determiner v]
+  "котором" -> xor [caseWhWord Prep A.m v, caseWhWord Prep A.n v, adjWh Prep A.m P.Determiner v]
   "кто" -> caseWhWord Nom A.sg v ++ animate v
   "куда" -> whWord v ++ semArg Direction P.Goal v0
   "летний" -> adj Acc A.m P.VName "летний" v -- todo летний is not only a name

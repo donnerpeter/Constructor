@@ -180,15 +180,15 @@ whTests = [TestLabel "wh tests" $ TestList [
   ,
   translateTest "В каком доме они сидят?"
                 "Which house are they sitting in?"
---  ,
---todo  translateTest "В котором доме они сидят?"
---                "Which house are they sitting in?"
+  ,
+  translateTest "В котором доме они сидят?"
+                "Which house are they sitting in?"
   ,
   translateTest "У какого дома они сидят?"
                 "Which house are they sitting next to?"
---  ,
---todo  translateTest "У которого дома они сидят?"
---                "Which house are they sitting at?"
+  ,
+  translateTest "У которого дома они сидят?"
+                "Which house are they sitting next to?"
   ,
   translateTest "Какой дом он увидел?"
                 "Which house did he see?"

@@ -291,5 +291,5 @@ existentials headMites childMites = headMites >>= \m1 -> case cxt m1 of
   _ -> []
 
 whPropagation headMite childMite childMites = childMites >>= \m3 -> case cxt m3 of
-  Wh {} -> withBase [headMite, childMite, m3] [mite $ cxt m3]
+  Wh {} | not (contradict m3 childMite) -> withBase [headMite, childMite, m3] [mite $ cxt m3]
   _ -> []

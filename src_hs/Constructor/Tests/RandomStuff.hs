@@ -56,12 +56,12 @@ randomStuffTests = [TestLabel "random stuff tests" $ TestList [
 --  ,
 --todo  translateTest "Все и всё знают"
 --                "Everybody knows everything"
---  ,
---todo  translateTest "Все всё знают"
---                "Everybody knows everything"
---  ,
---todo  translateTest "Все знают всё"
---                "Everybody knows everything"
+  ,
+  translateTest "Все всё знают"
+                "Everybody knows everything"
+  ,
+  translateTest "Все знают всё"
+                "Everybody knows everything"
 --  ,
 --todo  translateTest "Никто не знает ничего"
 --                "Nobody knows anything"

@@ -114,7 +114,8 @@ wordMites word index =
   "выбежали" -> finVerb "RUN_OUT" "PAST" A.pl v ++ arg (PP "iz" Gen) P.Source v
   "вынул" -> finVerb "TAKE_OUT" "PAST" A.m v ++ arg (PP "iz" Gen) P.Source v ++ directObject v
   "вынула" -> finVerb "TAKE_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) P.Source v ++ directObject v
-  "все" -> adj Nom A.pl P.Specifier_all "ALL" v
+  "все" -> xor [adj Nom A.pl P.Specifier_all "ALL" v, pronoun Nom A.pl "EVERYBODY" v]
+  "всё" -> xor [pronoun Nom A.n3 "EVERYTHING" v, pronoun Acc A.n3 "EVERYTHING" v]
   "всеми" -> adj Instr A.pl P.Specifier_all "ALL" v
   "вспомнить" -> infinitive "RECALL" v ++ directObject v
   "где" -> whWord v ++ [mite $ VerbalModifier P.Location False v0]
@@ -151,6 +152,7 @@ wordMites word index =
   "забыл" -> finVerb "FORGET" "PAST" A.m v ++ optional (xor [compHead P.Arg2 v, directObject v, whatComesNext v])
   "забыла" -> finVerb "FORGET" "PAST" A.f v ++ optional (xor [compHead P.Arg2 v, directObject v, whatComesNext v])
   "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ optional (xor [compHead P.Arg2 v, directObject v, whatComesNext v])
+  "знают" -> finVerb "KNOW" "PRESENT" A.pl3 v ++ optional (directObject v)
   "и" -> conjunction v0 "and" True
   "идет" -> xor [finVerb "GO" "PRESENT" A.sg3 v ++ go_args v,
                  finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ arg ScalarAdverb P.Order v]

@@ -543,7 +543,10 @@ vp fVerb verbForm clauseType = do
   nonWhWord <- case existentialWhArg >>= argumentFrame of
     Just frame -> return $
       if Just "true" == sValue P.Negated frame then
-        if Just "true" == sValue P.Animate frame then "nobody" else if isJust $ usage P.Goal frame then "nowhere" else "nothing"
+        if Just "true" == sValue P.Animate frame then "nobody"
+        else if isJust $ usage P.Goal frame then "nowhere"
+        else if Just "true" == (fSubject >>= sValue P.Negated) then "anything"
+        else "nothing"
       else if Just "true" == sValue P.Animate frame then "somebody" else "something"
     _ -> return ""
   according <- if null whWord && Just True /= fmap (hasType "wh") fSubject then return "" else do

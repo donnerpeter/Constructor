@@ -66,7 +66,7 @@ sAdverb attr value v = [mite $ Adverb (v "verb"), semS (v "verb") attr value]
 adverb attr value v = [mite $ Adverb (v "verb"), semV (v "verb") attr (v ""), semT (v "") value]
 genHead attr v = optional [mite $ GenHead (v "gen"), semV (v "") attr (v "gen")]
 directObject v = arg Acc P.Arg2 v
-conjunction v0 conj ready = [mite $ Conjunction $ SeqData v0 conj ready Nothing False Nothing, semT v0 "seq"] ++ (if conj == "," then [] else [semS v0 P.Conj conj])
+conjunction v0 conj ready = [mite $ Conjunction $ SeqData v0 conj ready False False, semT v0 "seq"] ++ (if conj == "," then [] else [semS v0 P.Conj conj])
 modifyV v c = \s -> v $ c:s
 whatComesNext v = [mite $ ArgHead ScalarAdverb (v "scalar"),
   semV (v "") P.Arg2 (v "arg2"),

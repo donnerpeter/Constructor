@@ -11,13 +11,10 @@ cases = [Nom,Acc,Gen,Dat,Instr,Prep]
 data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | ScalarAdverb deriving (Show, Eq, Ord)
 data SemArgKind = Direction deriving (Show, Eq, Ord)
 data Satisfied = Unsatisfied | Satisfied deriving (Show, Eq, Ord)
-data SeqData = SeqData { seqVar :: Variable, seqConj :: String, seqReady :: Bool,
-                         seqKind :: Maybe Construction, seqHasLeft :: Bool, seqRightVar :: Maybe Variable } deriving (Eq, Ord)
+data SeqData = SeqData { seqVar :: Variable, seqConj :: String, seqReady :: Bool, seqHasLeft :: Bool, seqHasRight :: Bool } deriving (Eq, Ord)
 instance Show SeqData where
-  show sd = show (seqVar sd) ++ " " ++ seqConj sd ++
-            (if isJust $ seqKind sd then " (" ++ show (fromJust $ seqKind sd) ++ ")" else "") ++
-            (if seqReady sd then "" else "!ready") ++ (if seqHasLeft sd then " left" else "") ++
-            (if isJust (seqRightVar sd) then " right" else "")
+  show sd = show (seqVar sd) ++ " " ++ seqConj sd ++ (if seqReady sd then "" else "!ready") ++
+            (if seqHasLeft sd then " left" else "") ++(if seqHasRight sd then " right" else "")
 data Construction = Word Variable String
                   | Sem Variable SemValue
                   | Unify Variable Variable
@@ -31,7 +28,6 @@ data Construction = Word Variable String
                   | SemArgHead SemArgKind Variable
                   | PrepHead String ArgKind Variable
                   | SemPreposition ArgKind Variable
-                  | UnsatisfiedArgHead Construction
                   | Quantifier ArgKind Agr Variable
                   | Argument ArgKind Variable
                   | SemArgument SemArgKind {-head-} Variable {-child-} Variable
@@ -47,9 +43,10 @@ data Construction = Word Variable String
                   | WhAsserter Variable
                   | QuestionVariants Variable ArgKind
                   | Conjunction SeqData
+                  | SeqLeft Construction
+                  | SeqRight Construction
                   | Clause Variable
                   | TopLevelQuestion Variable
-                  | ElidedArgHead Construction
                   | Possessive ArgKind Agr Variable
                   | EmptyCxt Construction
                   | Diversifier Int
@@ -91,13 +88,12 @@ data Construction = Word Variable String
 
 isHappy cxt = case cxt of
   Adj {} -> False; Adverb {} -> False; NounAdjunct {} -> False
-  ArgHead {} -> False; PrepHead {} -> False; SemPreposition {} -> False; Argument {} -> False; ElidedArgHead {} -> False
+  ArgHead {} -> False; PrepHead {} -> False; SemPreposition {} -> False; Argument {} -> False;
   SemArgHead {} -> False; SemArgument {} -> False
-  UnsatisfiedArgHead {} -> False
   Quantifier {} -> False
   CompHead {} -> False; ConditionCompHead {} -> False; ConditionComp {} -> False; ReasonComp {} -> False
   Elaboration {} -> False
-  Conjunction sd -> seqHasLeft sd && isJust (seqRightVar sd)
+  Conjunction sd -> seqHasLeft sd && seqHasRight sd
   GenHead {} -> False; Possessive {} -> False
   Tense {} -> False
   CommaSurrounded {} -> False; SurroundingComma {} -> False
@@ -129,6 +125,6 @@ getCommaSurroundableVar cxt = case cxt of
   Argument _ v -> Just v
   _ -> Nothing
 
-isStable (Conjunction sd) = seqHasLeft sd == isJust (seqRightVar sd) || seqConj sd == ","
+isStable (Conjunction sd) = seqHasLeft sd == seqHasRight sd || seqConj sd == ","
 isStable (Ellipsis _ leftAnchor rightAnchor) = isJust leftAnchor == isJust rightAnchor
 isStable _ = True

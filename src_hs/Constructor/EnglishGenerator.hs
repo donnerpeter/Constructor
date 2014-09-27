@@ -212,7 +212,7 @@ determiner frame nbar =
               let human = isHuman det
               sDet <- np_internal False (not human) det
               return $ if human then if "s" `isSuffixOf` sDet then sDet ++ "'" else sDet ++ "'s" else sDet
-          _ -> return "???det"
+          _ -> return ""
   in
   case det of
     Just _det  | not $ any (\f -> fDeterminer frame == fDeterminer f) (prevSiblings frame) ->

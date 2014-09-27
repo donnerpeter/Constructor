@@ -223,7 +223,10 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
               ("v", Prep) -> xor [[mite $ VerbalModifier P.Condition False var2],
                                   [mite $ VerbalModifier P.Location_in False var2]]
               _ -> []
-            extra = Seq.pullThyself m2 rightMites ++ Seq.liftArguments m2 rightMites ++ whPropagation m1 m2 rightMites
+            extra = Seq.pullThyself m2 rightMites ++ liftGen ++ whPropagation m1 m2 rightMites
+            liftGen = rightMites >>= \m3 -> case cxt m3 of
+              GenHead {} | not (contradict m2 m3) -> optional $ withBase [m3] [mite $ cxt m3]
+              _ -> []
         in mergeLeft (argMites ++ extra)
 
       (Colon "elaboration" _, Clause cp) -> left [mite $ Elaboration cp]
@@ -244,8 +247,8 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
 
       (TwoWordCxt s1 True wrapped _, TwoWordCxt s2 False _ _) | s1 == s2 -> left $ map mite wrapped
       
-      (Conjunction    (SeqData {seqVar=v1, seqConj=",", seqHasLeft=False, seqRightVar=Nothing}),
-       Conjunction sd@(SeqData {seqVar=v2, seqConj="but", seqReady=False, seqRightVar=Just _})) ->
+      (Conjunction    (SeqData {seqVar=v1, seqConj=",", seqHasLeft=False, seqHasRight=False}),
+       Conjunction sd@(SeqData {seqVar=v2, seqConj="but", seqReady=False, seqHasRight=True})) ->
           right [mite $ Conjunction $ sd {seqReady=True}, mite $ Unify v1 v2]
 
       (Quote _ False, word@(Word {})) -> left [mite $ QuotedWord word False]

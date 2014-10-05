@@ -11,10 +11,11 @@ cases = [Nom,Acc,Gen,Dat,Instr,Prep]
 data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | ScalarAdverb deriving (Show, Eq, Ord)
 data SemArgKind = Direction deriving (Show, Eq, Ord)
 data Satisfied = Unsatisfied | Satisfied deriving (Show, Eq, Ord)
-data SeqData = SeqData { seqVar :: Variable, seqConj :: String, seqReady :: Bool, seqHasLeft :: Bool, seqHasRight :: Bool } deriving (Eq, Ord)
+data SeqData = SeqData { seqVar :: Variable, seqConj :: String, seqReady :: Bool, seqHasLeft :: Bool, seqHasRight :: Bool, seqHybrid :: Bool } deriving (Eq, Ord)
 instance Show SeqData where
   show sd = show (seqVar sd) ++ " " ++ seqConj sd ++ (if seqReady sd then "" else "!ready") ++
-            (if seqHasLeft sd then " left" else "") ++(if seqHasRight sd then " right" else "")
+            (if seqHasLeft sd then " left" else "") ++(if seqHasRight sd then " right" else "")++
+            (if seqHybrid sd then " hybrid" else "")
 data Construction = Word Variable String
                   | Sem Variable SemValue
                   | Unify Variable Variable
@@ -41,6 +42,7 @@ data Construction = Word Variable String
                   | Wh Variable
                   | ExistentialWh {-wh-} Variable {-tensed-} Variable
                   | WhAsserter Variable
+                  | UniversalPronoun Variable
                   | QuestionVariants Variable ArgKind
                   | Conjunction SeqData
                   | SeqLeft Construction

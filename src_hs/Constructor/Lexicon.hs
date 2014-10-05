@@ -66,7 +66,7 @@ sAdverb attr value v = [mite $ Adverb (v "verb"), semS (v "verb") attr value]
 adverb attr value v = [mite $ Adverb (v "verb"), semV (v "verb") attr (v ""), semT (v "") value]
 genHead attr v = optional [mite $ GenHead (v "gen"), semV (v "") attr (v "gen")]
 directObject v = arg Acc P.Arg2 v
-conjunction v0 conj ready = [mite $ Conjunction $ SeqData v0 conj ready False False, semT v0 "seq"] ++ (if conj == "," then [] else [semS v0 P.Conj conj])
+conjunction v0 conj ready = [mite $ Conjunction $ SeqData v0 conj ready False False False, semT v0 "seq"] ++ (if conj == "," then [] else [semS v0 P.Conj conj])
 modifyV v c = \s -> v $ c:s
 whatComesNext v = [mite $ ArgHead ScalarAdverb (v "scalar"),
   semV (v "") P.Arg2 (v "arg2"),
@@ -114,9 +114,9 @@ wordMites word index =
   "выбежали" -> finVerb "RUN_OUT" "PAST" A.pl v ++ arg (PP "iz" Gen) P.Source v
   "вынул" -> finVerb "TAKE_OUT" "PAST" A.m v ++ arg (PP "iz" Gen) P.Source v ++ directObject v
   "вынула" -> finVerb "TAKE_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) P.Source v ++ directObject v
-  "все" -> xor [adj Nom A.pl P.Specifier_all "ALL" v, pronoun Nom A.pl "EVERYBODY" v]
-  "всё" -> xor [pronoun Nom A.n3 "EVERYTHING" v, pronoun Acc A.n3 "EVERYTHING" v]
-  "всеми" -> adj Instr A.pl P.Specifier_all "ALL" v
+  "все" -> xor [adj Nom A.pl P.Specifier_all "ALL" v, pronoun Nom A.pl "EVERYBODY" v ++ [mite $ UniversalPronoun v0]]
+  "всё" -> xor [pronoun Nom A.n3 "EVERYTHING" v, pronoun Acc A.n3 "EVERYTHING" v] ++ [mite $ UniversalPronoun v0]
+  "всеми" -> adj Instr A.pl P.Specifier_all "ALL" v ++ [mite $ UniversalPronoun v0]
   "вспомнить" -> infinitive "RECALL" v ++ directObject v
   "где" -> whWord v ++ [mite $ VerbalModifier P.Location False v0]
   "глазами" -> nounPl Instr "EYES" v ++ genHead P.Arg1 v

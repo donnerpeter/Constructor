@@ -18,22 +18,28 @@ seqRight leftMites rightMites = {-traceIt "seqRight" $ -}result where
   hasConjEmphasis = any (any isConjEmphasis . baseMites) rightMites
   isConjEmphasis = \case (cxt -> ConjEmphasis {}) -> True; _ -> False
   result = leftMites >>= \m1 -> case cxt m1 of
-   Conjunction sd@(SeqData { seqHasLeft=False, seqHasRight=False, seqConj=conj}) ->
-    if hasSeqFull conj || hasConjEmphasis then [] else let
-     wrapped = filter wrappable rightMites >>= \m -> withBase [m] [mite $ SeqRight $ cxt m]
-     conjResult = if null wrapped then [] else withBase [m1] [mite $ Conjunction $ sd {seqHasRight=True}] ++ wrapped
-     wrappable m2 = case cxt m2 of
-        Argument {} -> True
-        VerbalModifier {} -> True
-        Adj {} -> True; Possessive {} -> True
-        Complement {} -> True
-        Clause {} -> True
+    Conjunction sd@(SeqData { seqHasLeft=False, seqHasRight=False, seqConj=conj}) -> let
+      wrapped = filter seqWrappable rightMites >>= \m -> withBase [m] [mite $ SeqRight $ cxt m]
+      in
+        if hasSeqFull conj || hasConjEmphasis || null wrapped then []
+        else withBase [m1] [mite $ Conjunction $ sd {seqHasRight=True}] ++ wrapped
+    _ -> []
 
-        NomHead _ _ Unsatisfied -> True; GenHead {} -> True
-        Ellipsis {} -> True
-        _ -> False
-     in conjResult
-   _ -> []
+seqWrappable mite = hybridConjoinable (cxt mite) || case cxt mite of
+  Adj {} -> True; Possessive {} -> True
+  Complement {} -> True
+  Clause {} -> True
+  NomHead _ _ Unsatisfied -> True
+  Ellipsis {} -> True
+  UniversalPronoun {} -> True
+  _ -> False
+
+hybridConjoinable c = case c of
+  Argument {} -> True
+  AdjHead {} -> True
+  VerbalModifier {} -> True
+  GenHead {} -> True
+  _ -> False
 
 isSeqContinuation conj1 conj2 = conj1 == ","
 
@@ -42,8 +48,13 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
     Conjunction (SeqData { seqHasLeft=True, seqHasRight=True, seqConj=c}) | not $ isSeqContinuation c conj -> True
     _ -> False
   result = rightMites >>= \m2 -> case cxt m2 of
-    Conjunction sd@(SeqData { seqVar=seqV, seqReady=True, seqHasRight=True, seqHasLeft=False, seqConj=conj}) ->
-      if contradictsSeq conj then [] else leftMites >>= \m1 -> let
+    Conjunction sd@(SeqData { seqReady=True, seqHasRight=True, seqHasLeft=False, seqConj=conj}) ->
+      if contradictsSeq conj then []
+      else xor $ filter (not. null) [normalSeqVariants m2 sd leftMites rightMites leftTree, hybridSeqVariants m2 sd leftMites rightMites]
+    _ -> []
+
+normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) leftMites rightMites leftTree =
+      leftMites >>= \m1 -> let
         fullConj mem1 mem2 = [semV seqV P.Member1 mem1, semV seqV P.Member2 mem2, mite $ Conjunction $ sd {seqHasLeft=True}]
         handleAdj :: Variable -> ArgKind -> Agr -> (Agr -> Construction) -> [Mite]
         handleAdj mem1 caze1 agr1 result = let
@@ -106,6 +117,14 @@ seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
                    fullConj mem1 mem2 ++ [mite $ Clause seqV] ++ unifications ++ xor ellipsisVariants
                  in result
           _ -> []
+
+hybridSeqVariants m2 sd@(SeqData { seqVar=seqV }) leftMites rightMites =
+  leftMites >>= \m1 -> case cxt m1 of
+    UniversalPronoun mem1 -> rightMites >>= \m3 -> case cxt m3 of
+      SeqRight (UniversalPronoun mem2) ->
+        withBase [m1,m2,m3] [mite $ Conjunction $ sd {seqHasLeft=True, seqHybrid=True}, mite $ UniversalPronoun seqV]
+        ++ (filter (hybridConjoinable . cxt) leftMites >>= \m -> withBase [m] [mite $ SeqLeft $ cxt m])
+      _ -> []
     _ -> []
 
 data AnchorMapping = AnchorMapping {-original-} Mite Variable {-anchor-} Construction Variable deriving (Show)

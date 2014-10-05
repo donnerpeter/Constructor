@@ -22,7 +22,7 @@ interactNodes leftTree leftMites rightMites = {-traceIt ("    interact") $ -}if 
   seqRight = Seq.seqRight leftMites rightMites
 
   pairs = [(m1, m2) | m1 <- leftMites, isInteractive m1, m2 <- rightMites, isInteractive m2]
-  questionable whContext = pairs >>= questionableArguments leftMites rightMites whContext
+  questionable whContext = questionableArguments leftMites rightMites whContext
   nonQuestionable = (pairs >>= interactUnsorted leftMites rightMites)
                  ++ (pairs >>= punctuationAware leftMites rightMites)
                  ++ seqVariants
@@ -148,28 +148,45 @@ punctuationAware leftMites rightMites (m1, m2) =
 
       _ -> []
 
-questionableArguments leftMites rightMites whContext (m1, m2) = map (propagateUnclosed leftMites rightMites) $
-    let (left, right, base12) = mergeInfoHelpers m1 m2
-    in case (cxt m1, cxt m2) of
-      (ArgHead kind1 head, Argument kind2 arg) | kind1 == kind2 -> left $ argVariants head arg leftMites rightMites
-      (Argument kind2 arg, ArgHead kind1 head) | kind1 == kind2 -> right $ argVariants head arg rightMites leftMites
-      (SemArgHead kind1 head, SemArgument kind2 arg _) | kind1 == kind2 -> left $ argVariants head arg leftMites rightMites
-      (SemArgument kind2 arg _, SemArgHead kind1 head) | kind1 == kind2 -> right $ argVariants head arg rightMites leftMites
+questionableArguments leftMites rightMites whContext = map (propagateUnclosed leftMites rightMites) $ let
+  leftPairs = map (\m -> (m, cxt m)) leftMites
+  rightPairs = map (\m -> (m, cxt m)) rightMites
+  doInteract lp rp = concat [interactQuestionable lp rp whContext p1 p2 | p1 <- lp, p2 <- rp]
+  normalResults = doInteract leftPairs rightPairs
+  unwrapLeft mites = mites >>= \m -> case cxt m of SeqLeft c -> [(m, c)]; _ -> []
+  unwrapRight mites = mites >>= \m -> case cxt m of SeqRight c -> [(m, c)]; _ -> []
+  hybridLeft = leftMites >>= \seqMite -> case cxt seqMite of
+    Conjunction (SeqData {seqHybrid=True}) -> let
+      leftVariants =  doInteract (unwrapLeft  leftMites) rightPairs
+      rightVariants = doInteract (unwrapRight leftMites) rightPairs
+      combinations = [r1 ++ r2 | MergeInfo r1 side1 <- leftVariants,  side1 == RightSide,
+                                 MergeInfo r2 side2 <- rightVariants, side2 == RightSide]
+      in map (\mites -> MergeInfo (withBase [seqMite] mites) RightSide) combinations
+    _ -> []
+  in normalResults ++ hybridLeft
 
-      (Argument Nom v1, NomHead agr1 v2 Unsatisfied) -> leftMites >>= \m3 -> case cxt m3 of
-        AdjHead v3 Nom agr2 | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) ->
+interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
+    let (left, right, base12) = mergeInfoHelpers m1 m2
+    in case (c1, c2) of
+      (ArgHead kind1 head, Argument kind2 arg) | kind1 == kind2 -> left $ argVariants head arg leftPairs rightPairs
+      (Argument kind2 arg, ArgHead kind1 head) | kind1 == kind2 -> right $ argVariants head arg rightPairs leftPairs
+      (SemArgHead kind1 head, SemArgument kind2 arg _) | kind1 == kind2 -> left $ argVariants head arg leftPairs rightPairs
+      (SemArgument kind2 arg _, SemArgHead kind1 head) | kind1 == kind2 -> right $ argVariants head arg rightPairs leftPairs
+
+      (Argument Nom v1, NomHead agr1 v2 Unsatisfied) -> leftPairs >>= \case
+        (m3, AdjHead v3 Nom agr2) | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) ->
           mergeRight $ withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 Satisfied]
         _ -> []
-      (NomHead agr1 v2 Unsatisfied, Argument Nom v1) -> rightMites >>= \m3 -> case cxt m3 of
-        AdjHead v3 Nom agr2 | agree agr1 agr2 && v1 == v3 && not (contradict m2 m3) ->
+      (NomHead agr1 v2 Unsatisfied, Argument Nom v1) -> rightPairs >>= \case
+        (m3, AdjHead v3 Nom agr2) | agree agr1 agr2 && v1 == v3 && not (contradict m2 m3) ->
           mergeLeft $ withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 Satisfied]
         _ -> []
 
-      (Verb verb, VerbalModifier attr False advP) -> left $ [semV verb attr advP] ++ existentials leftMites rightMites
+      (Verb verb, VerbalModifier attr False advP) -> left $ [semV verb attr advP] ++ existentials leftPairs rightPairs
       (VerbalModifier attr needComma advP, Verb verb) -> right $
         [semV verb attr advP]
         ++ (if needComma && not whContext then [semS advP P.Isolation "comma", mite $ Unclosed LeftSide [advP]] else [])
-        ++ existentials rightMites leftMites
+        ++ existentials rightPairs leftPairs
 
       _ -> []
 
@@ -276,10 +293,10 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
        
       _ -> []
 
-argVariants headVar childVar headMites childMites = [mite $ Unify headVar childVar] ++ reflexive ++ existentials headMites childMites where
-  reflexive = headMites >>= \m1 -> case cxt m1 of
-    ReflexiveTarget target -> childMites >>= \m2 -> case cxt m2 of
-      ReflexiveReference ref -> withBase [m1,m2] [semV ref P.Target target]
+argVariants headVar childVar headPairs childPairs = [mite $ Unify headVar childVar] ++ reflexive ++ existentials headPairs childPairs where
+  reflexive = headPairs >>= \case
+    (m1, ReflexiveTarget target) -> childPairs >>= \case
+      (m2, ReflexiveReference ref) -> withBase [m1,m2] [semV ref P.Target target]
       _ -> []
     _ -> []
 
@@ -287,9 +304,9 @@ liftReflexive childMites = childMites >>= \m -> case cxt m of
   ReflexiveReference ref -> withBase [m] [mite $ cxt m]
   _ -> []
 
-existentials headMites childMites = headMites >>= \m1 -> case cxt m1 of
-  ModalityInfinitive v cp -> childMites >>= \m2 -> case cxt m2 of
-    ExistentialWh whVar tensedVar -> withBase [m1,m2] [semT cp "situation", mite $ Unify v tensedVar]
+existentials headPairs childPairs = headPairs >>= \case
+  (m1, ModalityInfinitive v cp) -> childPairs >>= \case
+    (m2, ExistentialWh whVar tensedVar) -> withBase [m1,m2] [semT cp "situation", mite $ Unify v tensedVar]
     _ -> []
   _ -> []
 

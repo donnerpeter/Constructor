@@ -47,7 +47,8 @@ issues mites = let
     Just "OPINION" | isNothing (fValue P.Arg1 frame >>= getType) -> ["opinion without subj"]
     Just "WORDS" | isNothing (fValue P.Author frame >>= getType) -> ["words without author"]
     Just s | (s == "FORGET" || s == "THINK") && isNothing (fValue P.Arg2 frame >>= getType) -> [s ++ " without arg2"]
-    Just s | (s == "GO" || s == "CAN" || s == "REMEMBER") && Just True /= fmap isAnimate (fValue P.Arg1 frame) -> ["inanimate " ++ s ++ " subject"]
+    Just s | (s == "GO" || s == "CAN" || s == "REMEMBER" || s == "KNOW") &&
+             not (and $ map isAnimate $ flatten $ fValue P.Arg1 frame) -> ["inanimate " ++ s ++ " subject"]
     Just "GO" | Just True == fmap isInanimate (fValue P.RelTime frame >>= fValue P.Anchor) -> ["inanimate GO relTime anchor"]
     Just "COME_SCALARLY" -> let
       fSubj = fValue P.Arg1 frame

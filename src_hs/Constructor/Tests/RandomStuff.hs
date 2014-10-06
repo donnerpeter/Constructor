@@ -54,27 +54,6 @@ randomStuffTests = [TestLabel "random stuff tests" $ TestList [
   translateTest "Он велел помочь ей"
                 "He ordered to help her"
   ,
-  translateTest "Все и всё знают"
-                "Everybody knows everything"
---  ,
---todo  translateTest "Знают все и всё"
---                "Everybody knows everything"
-  ,
-  translateTest "Все всё знают"
-                "Everybody knows everything"
-  ,
-  translateTest "Все знают всё"
-                "Everybody knows everything"
-  ,
-  translateTest "Никто не знает ничего"
-                "Nobody knows anything"
---  ,
---todo  translateTest "Никто и ничего не знает"
---                "Nobody knows anything"
---  ,
---todo  translateTest "Не знает никто и ничего"
---                "Nobody knows anything"
---  ,
 --todo  translateTest "Кассирша, что подвигала носом, идёт в сад"
 --                "The cashier that moved her nose goes to the garden"
 --  ,
@@ -107,7 +86,7 @@ randomStuffTests = [TestLabel "random stuff tests" $ TestList [
 --  ,
 --todo  translateTest "Она кассирша и работает в магазине."
 --                "She is a cashier and works in a store."
-  ,
+--  ,
   translateTest "Он увидел их"
                 "He saw them"
   ,

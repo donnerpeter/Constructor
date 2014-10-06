@@ -155,15 +155,20 @@ questionableArguments leftMites rightMites whContext = map (propagateUnclosed le
   normalResults = doInteract leftPairs rightPairs
   unwrapLeft mites = mites >>= \m -> case cxt m of SeqLeft c -> [(m, c)]; _ -> []
   unwrapRight mites = mites >>= \m -> case cxt m of SeqRight c -> [(m, c)]; _ -> []
-  hybridLeft = leftMites >>= \seqMite -> case cxt seqMite of
-    Conjunction (SeqData {seqHybrid=True}) -> let
-      leftVariants =  doInteract (unwrapLeft  leftMites) rightPairs
-      rightVariants = doInteract (unwrapRight leftMites) rightPairs
-      combinations = [r1 ++ r2 | MergeInfo r1 side1 <- leftVariants,  side1 == RightSide,
-                                 MergeInfo r2 side2 <- rightVariants, side2 == RightSide]
-      in map (\mites -> MergeInfo (withBase [seqMite] mites) RightSide) combinations
-    _ -> []
-  in normalResults ++ hybridLeft
+  hybridVariants headSide = let
+    childMites = select headSide rightMites leftMites
+    headPairs = select headSide leftPairs rightPairs
+    constituents = [unwrapLeft childMites, unwrapRight childMites]
+    interactConstituent childPairs = select headSide (doInteract headPairs childPairs) (doInteract childPairs headPairs)
+    leftVariants =  interactConstituent (unwrapLeft  childMites)
+    rightVariants = interactConstituent (unwrapRight childMites)
+    combinations = [r1 ++ r2 | MergeInfo r1 side1 <- leftVariants,  side1 == headSide,
+                               MergeInfo r2 side2 <- rightVariants, side2 == headSide]
+    in childMites >>= \seqMite -> case cxt seqMite of
+      Conjunction (SeqData {seqHybrid=True}) ->
+        map (\mites -> MergeInfo (withBase [seqMite] mites) headSide) combinations
+      _ -> []
+  in normalResults ++ hybridVariants LeftSide ++ hybridVariants RightSide
 
 interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
     let (left, right, base12) = mergeInfoHelpers m1 m2

@@ -217,16 +217,4 @@ whTests = [TestLabel "wh tests" $ TestList [
   translateTest "Кому он подарил книгу Васи?"
                 "Who did he give Vasya's book to?"
 --  ,
---todo  translateTest "Что и кому он подарил?"
---                "What and to whom did he give?"
---  ,
---todo  translateTest "Кто, что и кому подарил?"
---                "Who gave what and to whom?"
---  ,
---todo  translateTest "Кто подарил что кому?"
---                "Who gave what to whom?"
---  ,
---todo  translateTest "Кто подарил что и кому?"
---                "Who gave what and to whom?"
---  ,
   ]]

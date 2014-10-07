@@ -53,7 +53,7 @@ semArg argType relation childVar@(Variable index s) = let headVar = Variable ind
 
 whWord v = [mite $ Wh (v ""), semT (v "") "wh"]
 caseWhWord kind agr v = whWord v ++ [mite $ QuestionVariants (v "") kind, mite $ Argument kind (v ""), mite $ AdjHead (v "") kind agr]
-negatedWh v = [semT (v "") "wh", semS (v "") P.Negated "true", mite $ Negated (v "")]
+negatedWh v = [semT (v "") "wh", semS (v "") P.Negated "true", mite $ Negated (v ""), mite $ NegativePronoun (v "")]
 animate v = [semS (v "") P.Animate "true"]
 
 adj caze agr attr value v = [mite $ Adj (v "") caze agr, semV (v "") attr (v "adj"), semT (v "adj") value]

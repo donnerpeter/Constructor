@@ -43,6 +43,7 @@ data Construction = Word Variable String
                   | ExistentialWh {-wh-} Variable {-tensed-} Variable
                   | WhAsserter Variable
                   | UniversalPronoun Variable
+                  | NegativePronoun Variable
                   | QuestionVariants Variable ArgKind
                   | Conjunction SeqData
                   | SeqLeft Construction

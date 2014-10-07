@@ -32,6 +32,7 @@ seqWrappable mite = hybridConjoinable (cxt mite) || case cxt mite of
   NomHead _ _ Unsatisfied -> True
   Ellipsis {} -> True
   UniversalPronoun {} -> True
+  NegativePronoun {} -> True
   _ -> False
 
 hybridConjoinable c = case c of
@@ -118,12 +119,16 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) leftMites rightMites leftTree 
                  in result
           _ -> []
 
-hybridSeqVariants m2 sd@(SeqData { seqVar=seqV }) leftMites rightMites =
-  leftMites >>= \m1 -> case cxt m1 of
+hybridSeqVariants m2 sd@(SeqData { seqVar=seqV }) leftMites rightMites = let
+  makeHybrid m1 m3 resultCxt =
+    withBase [m1,m2,m3] [mite $ Conjunction $ sd {seqHasLeft=True, seqHybrid=True}, mite resultCxt]
+            ++ (filter (hybridConjoinable . cxt) leftMites >>= \m -> withBase [m] [mite $ SeqLeft $ cxt m])
+  in leftMites >>= \m1 -> case cxt m1 of
     UniversalPronoun mem1 -> rightMites >>= \m3 -> case cxt m3 of
-      SeqRight (UniversalPronoun mem2) ->
-        withBase [m1,m2,m3] [mite $ Conjunction $ sd {seqHasLeft=True, seqHybrid=True}, mite $ UniversalPronoun seqV]
-        ++ (filter (hybridConjoinable . cxt) leftMites >>= \m -> withBase [m] [mite $ SeqLeft $ cxt m])
+      SeqRight (UniversalPronoun mem2) -> makeHybrid m1 m3 (UniversalPronoun seqV)
+      _ -> []
+    NegativePronoun mem1 -> rightMites >>= \m3 -> case cxt m3 of
+      SeqRight (NegativePronoun mem2) -> makeHybrid m1 m3 (NegativePronoun seqV)
       _ -> []
     _ -> []
 

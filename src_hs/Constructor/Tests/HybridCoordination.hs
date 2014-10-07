@@ -20,12 +20,12 @@ hybridCoordinationTests = [TestLabel "hybrid coordination tests" $ TestList [
   ,
   translateTest "Никто не знает ничего"
                 "Nobody knows anything"
---  ,
---todo  translateTest "Никто и ничего не знает"
---                "Nobody knows anything"
---  ,
---todo  translateTest "Не знает никто и ничего"
---                "Nobody knows anything"
+  ,
+  translateTest "Никто и ничего не знает"
+                "Nobody knows anything"
+  ,
+  translateTest "Не знает никто и ничего"
+                "Nobody knows anything"
 --  ,
 --todo  translateTest "Что и кому он подарил?"
 --                "What and to whom did he give?"

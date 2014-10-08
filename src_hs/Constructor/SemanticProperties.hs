@@ -52,7 +52,7 @@ data StrProperty = Type
                  | RusNumber | RusPerson | RusGender
                  | Given
                  | Number
-                 | Conj
+                 | Conj | Hybrid
                  | Ellipsis | Elided
                  | SAnchor
                  | Name

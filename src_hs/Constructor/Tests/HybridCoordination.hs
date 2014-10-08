@@ -26,17 +26,17 @@ hybridCoordinationTests = [TestLabel "hybrid coordination tests" $ TestList [
   ,
   translateTest "Не знает никто и ничего"
                 "Nobody knows anything"
---  ,
---todo  translateTest "Что и кому он подарил?"
---                "What and to whom did he give?"
+  ,
+  translateTest "Что и кому он подарил?"
+                "What did he give, and to whom?"
 --  ,
 --todo  translateTest "Кто, что и кому подарил?"
---                "Who gave what and to whom?"
+--                "Who gave, what, and to whom?"
 --  ,
 --todo  translateTest "Кто подарил что кому?"
 --                "Who gave what to whom?"
 --  ,
 --todo  translateTest "Кто подарил что и кому?"
---                "Who gave what and to whom?"
+--                "Who gave what, and to whom?"
 --  ,
   ]]

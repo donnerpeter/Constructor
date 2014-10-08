@@ -97,6 +97,7 @@ isHappy cxt = case cxt of
   CompHead {} -> False; ConditionCompHead {} -> False; ConditionComp {} -> False; ReasonComp {} -> False
   Elaboration {} -> False
   Conjunction sd -> seqHasLeft sd && seqHasRight sd
+  SeqRight (Wh {}) -> False
   GenHead {} -> False; Possessive {} -> False
   Tense {} -> False
   CommaSurrounded {} -> False; SurroundingComma {} -> False

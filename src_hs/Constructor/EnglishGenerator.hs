@@ -572,11 +572,17 @@ vp fVerb verbForm clauseType = do
   return $ sTopicalized `cat` whWord `cat` contracted `cat` nonWhWord `cat` controlled `cat` sArgs `cat` stranded `cat` anymore `cat` finalAdverb
 
 generateArg :: Argument -> State GenerationState String
-generateArg arg = case arg of
-  Adverb s -> return s
-  NPArg f -> np False $ Just f
-  PPArg prep f  -> if isJust (getType f) then return prep `catM` (np False $ Just f) else return ""
-  PPAdjunct prep f -> return prep `catM` (np False $ Just f)
+generateArg arg = let
+  hybridWhPrefix frame =
+    if hasType "wh" frame && Just "true" == (usage P.Member2 frame >>= sValue P.Hybrid) then
+      if Just "and" == (usage P.Member2 frame >>= sValue P.Conj) then ", and" else ","
+    else ""
+  in case arg of
+    Adverb s -> return s
+    NPArg f -> np False $ Just f
+    PPArg prep f ->
+      if isJust (getType f) then return (hybridWhPrefix f) `catM` return prep `catM` (np False $ Just f) else return ""
+    PPAdjunct prep f -> return prep `catM` (np False $ Just f)
 
 argOrder arg = case arg of
   PPAdjunct {} -> 1

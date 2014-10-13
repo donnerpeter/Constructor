@@ -3,6 +3,7 @@ module Constructor.Issues (Issue, issues) where
 import Constructor.Mite
 import Constructor.Sense
 import Constructor.Util
+import Constructor.Variable
 import Control.Monad
 import Data.Maybe
 import qualified Constructor.SemanticProperties as P
@@ -14,43 +15,42 @@ issues mites = let
   sense = makeSense mites
   frames = allFrames sense
   hasCP = any isCP frames
-  incompleteIsolation frame =
-    if isJust (sValue P.Isolation frame) && (isNothing (sValue P.LeftIsolated frame) || isNothing (sValue P.RightIsolated frame))
-    then ["Incomplete isolation " ++ show frame] else []
-  wrongAccording frame =
-    if any (not . hasAnyType ["WORDS", "OPINION"]) (flatten $ fValue P.AccordingTo frame)
-    then ["invalid accordingTo"] else []
-  wrongOptative frame =
-    if any (not . hasType "LUCK") (flatten $ fValue P.OptativeModality frame)
-    then ["invalid optativeModality"] else []
-  wrongNumber frame =
-    if hasType "EYES" frame && Just False == fmap (hasType "2") (fValue P.Quantifier frame)
-    then ["suspicious eye count"] else []
-  wrongLocation frame =
-    if hasAnyType ["CASE", "COUNTING"] frame && isJust (msum $ map (flip usage frame) [P.Location, P.Location_on, P.Location_in])
-    then ["wrong location"] else []
-  wrongCondition frame =
-    if not (hasType "CASE" frame) && isJust (usage P.Condition frame)
-    then ["wrong condition"] else []
-  frameIssues frame = case getDeclaredType frame of
-    Just "seq" | Nothing == sValue P.Conj frame -> ["comma-only seq"]
-    Just s | (s == "SIT" || s == "SAY" || s == "FORGET") && isNothing (fValue P.Arg1 frame >>= sDeclaredValue P.Type) ->
+  factIssues = facts sense >>= \fact -> let
+    frame = Frame (variable fact) sense
+    in case value fact of
+      StrValue attr val -> case (attr, val) of
+        (P.Isolation, _) | (isNothing (sValue P.LeftIsolated frame) || isNothing (sValue P.RightIsolated frame)) ->
+          ["Incomplete isolation " ++ show frame]
+        (P.Type, declaredType) -> typeIssues frame declaredType ++ orderingIssues frame declaredType
+        _ -> []
+      VarValue attr val -> let
+        valFrame = Frame val sense
+        in case attr of
+          P.AccordingTo | any (not . hasAnyType ["WORDS", "OPINION"]) (flatten $ Just valFrame) -> ["invalid accordingTo"]
+          P.OptativeModality | any (not . hasAnyType ["LUCK"]) (flatten $ Just valFrame) -> ["invalid optativeModality"]
+          P.Quantifier | hasType "EYES" frame && not (hasType "2" valFrame) -> ["suspicious eye count"]
+
+          P.Condition | not (hasType "CASE" valFrame) -> ["wrong condition"]
+          P.Relative | Just wh <- fValue P.Questioned valFrame ->
+            if hasAnyType ["WE", "THEY"] frame then ["relative clause for pronoun/number"]
+            else if Just wh == (fValue P.Content valFrame >>= fValue P.VTime) then ["time relative clause"]
+            else []
+          P.Topic | hasType "ASK" frame && any isFactCP (flatten $ Just valFrame) -> ["asking fact"]
+
+          _ | attr `elem` [P.Location, P.Location_on, P.Location_in] && hasAnyType ["CASE", "COUNTING"] valFrame -> ["wrong location"]
+          _ -> []
+  typeIssues frame declaredType = case declaredType of
+    "seq" | Nothing == sValue P.Conj frame -> ["comma-only seq"]
+    s | (s == "SIT" || s == "SAY" || s == "FORGET") && isNothing (fValue P.Arg1 frame >>= sDeclaredValue P.Type) ->
       ["unknown " ++ s ++ "subj "]
-    Just "ASK" | any isFactCP (flatten $ fValue P.Topic frame) -> ["asking fact"]
-    Just s | (s == "WE" || s == "THEY") && isJust (fValue P.Relative frame) ->
-      ["relative clause for pronoun/number"]
-    Just _ | Just relativeCP <- fValue P.Relative frame,
-             Just wh <- fValue P.Questioned relativeCP,
-             Just wh == (fValue P.Content relativeCP >>= fValue P.VTime) ->
-      ["time relative clause"]
-    Just "CASHIER" | any (hasType "OTHERS") (flatten $ fValue P.Place frame) -> ["cashier of other people"]
-    Just "OPINION" | isNothing (fValue P.Arg1 frame >>= getType) -> ["opinion without subj"]
-    Just "WORDS" | isNothing (fValue P.Author frame >>= getType) -> ["words without author"]
-    Just s | (s == "FORGET" || s == "THINK") && isNothing (fValue P.Arg2 frame >>= getType) -> [s ++ " without arg2"]
-    Just s | (s == "GO" || s == "CAN" || s == "REMEMBER" || s == "KNOW") &&
+    "CASHIER" | any (hasType "OTHERS") (flatten $ fValue P.Place frame) -> ["cashier of other people"]
+    "OPINION" | isNothing (fValue P.Arg1 frame >>= getType) -> ["opinion without subj"]
+    "WORDS" | isNothing (fValue P.Author frame >>= getType) -> ["words without author"]
+    s | (s == "FORGET" || s == "THINK") && isNothing (fValue P.Arg2 frame >>= getType) -> [s ++ " without arg2"]
+    s | (s == "GO" || s == "CAN" || s == "REMEMBER" || s == "KNOW") &&
              not (and $ map isAnimate $ flatten $ fValue P.Arg1 frame) -> ["inanimate " ++ s ++ " subject"]
-    Just "GO" | Just True == fmap isInanimate (fValue P.RelTime frame >>= fValue P.Anchor) -> ["inanimate GO relTime anchor"]
-    Just "COME_SCALARLY" -> let
+    "GO" | Just True == fmap isInanimate (fValue P.RelTime frame >>= fValue P.Anchor) -> ["inanimate GO relTime anchor"]
+    "COME_SCALARLY" -> let
       fSubj = fValue P.Arg1 frame
       fOrder = fValue P.Order frame
       anchorIssues = if Just True == fmap isAnimate (fOrder >>= fValue P.Anchor) then ["come_scalarly with animate anchor"] else []
@@ -59,29 +59,21 @@ issues mites = let
         _ -> []
       in anchorIssues ++ subjIssues
     _ -> []
-  in {-traceIt "issues" $ -}(frames >>= frameIssues)
-    ++ (if hasCP then [] else ["no clause"])
-    ++ (frames >>= incompleteIsolation)
-    ++ (frames >>= orderingIssues)
-    ++ (frames >>= wrongAccording)
-    ++ (frames >>= wrongOptative)
-    ++ (frames >>= wrongNumber)
-    ++ (frames >>= wrongLocation)
-    ++ (frames >>= wrongCondition)
+  in {-traceIt "issues" $ -}factIssues ++ (if hasCP then [] else ["no clause"])
 
-orderingIssues frame = case getDeclaredType frame of
-  Just "COME_SCALARLY" |
+orderingIssues frame declaredType = case declaredType of
+  "COME_SCALARLY" |
     Just subj <- fValue P.Arg1 frame,
     isJust (sDeclaredValue P.Type subj),
     Just order <- fValue P.Order frame,
     typeEarlier order subj && typeEarlier frame order ->
       ["come_scalarly order subj"]
-  Just "COME_SCALARLY" |
+  "COME_SCALARLY" |
     Just order <- fValue P.Order frame,
     Just relTime <- fValue P.RelTime frame,
     typeEarlier order relTime && typeEarlier relTime frame ->
       ["order relTime COME_SCALARLY"]
-  Just "GO" |
+  "GO" |
     Just source <- fValue P.Source frame,
     typeEarlier source frame ->
       ["source before GO"]

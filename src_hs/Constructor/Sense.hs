@@ -170,7 +170,7 @@ usages attr frame = LS.removeDups $ [f | (f, s) <- Map.findWithDefault [] frame 
 usage attr frame = singleListElement $ usages attr frame
 
 flatten Nothing = []
-flatten (Just frame) = if hasType "seq" frame then flatten (fValue P.Member1 frame) ++ maybeToList (fValue P.Member2 frame) else [frame]
+flatten (Just frame) = if Just "seq" == getDeclaredType frame then flatten (fValue P.Member1 frame) ++ maybeToList (fValue P.Member2 frame) else [frame]
 
 seqSiblings frame = flatten $ Just $ unSeq frame
 prevSiblings frame = takeWhile (/= frame) $ seqSiblings frame
@@ -187,13 +187,14 @@ isHuman frame = hasAnyType ["NEIGHBOR", "NEIGHBORS", "CASHIER", "NAMED_PERSON", 
   ] frame
 isAnimate frame = isHuman frame || Just "true" == sValue P.Animate frame
 
-isInanimate frame = hasType "wh" frame && Just "true" /= sValue P.Animate frame || Just True == fmap isNumberString (getType frame)
+isInanimate frame = Just "wh" == getDeclaredType frame && Just "true" /= sValue P.Animate frame
+                 || Just True == fmap isNumberString (getType frame)
 
 unSeq frame = case msum [usage P.Member1 frame, usage P.Member2 frame] of
   Just s -> unSeq s
   _ -> frame
 
-isCP frame = hasType "situation" frame
+isCP frame = Just "situation" == getDeclaredType frame
 
 isFactCP frame = isCP frame && not (isQuestionCP frame)
 isQuestionCP frame = isCP frame && isJust (fValue P.Questioned frame)

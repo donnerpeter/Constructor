@@ -15,7 +15,7 @@ mergeLeft mites = [MergeInfo mites LeftSide]
 mergeRight mites = [MergeInfo mites RightSide]
 
 interactNodes:: Tree -> [Mite] -> [Mite] -> [MergeInfo]
-interactNodes leftTree leftMites rightMites = {-traceIt ("    interact") $ -}if null whResults then noWh else whResults where
+interactNodes leftTree leftMites rightMites = {-traceIt ("    interact") $ -}whResults ++ noWh where
 
   seqVariants = map (propagateUnclosed leftMites rightMites) $ (if null seqRight then [] else mergeLeft seqRight) ++ (if null seqLeft then [] else mergeRight seqLeft)
   seqLeft = Seq.seqLeft leftTree leftMites rightMites
@@ -35,8 +35,11 @@ interactNodes leftTree leftMites rightMites = {-traceIt ("    interact") $ -}if 
         let fillers = filter (\info -> mergedHeadSide info == RightSide) $ questionable True
             whLinks = withBase [whMite, clauseMite] $
               [semV cp P.Questioned whVar, semT cp "situation"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause cp], [mite $ TopLevelQuestion cp]]
-            infos = fillers >>= \ info -> mergeLeft (mergeResult info ++ whLinks)
-        in infos ++ filter whIncompatible nonQuestionable
+            inSitus = rightMites >>= \inSitu -> case cxt inSitu of
+              Wh var | not (contradict inSitu clauseMite) -> withBase [inSitu] $ [semS var P.InSitu "true"]
+              _ -> []
+            infos = fillers >>= \ info -> mergeLeft (mergeResult info ++ whLinks ++ inSitus)
+        in infos
     in case cxt whMite of
       Wh whVar -> rightMites >>= \clauseMite -> case cxt clauseMite of
         Clause cp -> fillGap cp whVar clauseMite
@@ -173,8 +176,12 @@ questionableArguments leftMites rightMites whContext = map (propagateUnclosed le
 interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
     let (left, right, base12) = mergeInfoHelpers m1 m2
     in case (c1, c2) of
-      (ArgHead kind1 head, Argument kind2 arg) | kind1 == kind2 -> left $ argVariants head arg leftPairs rightPairs
-      (Argument kind2 arg, ArgHead kind1 head) | kind1 == kind2 -> right $ argVariants head arg rightPairs leftPairs
+      (ArgHead kind1 head, Argument kind2 arg) | kind1 == kind2 ->
+        left $ (argVariants head arg leftPairs rightPairs)
+        ++ (if whContext then [] else whPropagation m1 m2 (map fst rightPairs))
+      (Argument kind2 arg, ArgHead kind1 head) | kind1 == kind2 ->
+        right $ (argVariants head arg rightPairs leftPairs)
+        ++ (if whContext then [] else whPropagation m2 m1 (map fst leftPairs))
       (SemArgHead kind1 head, SemArgument kind2 arg _) | kind1 == kind2 -> left $ argVariants head arg leftPairs rightPairs
       (SemArgument kind2 arg _, SemArgHead kind1 head) | kind1 == kind2 -> right $ argVariants head arg rightPairs leftPairs
 

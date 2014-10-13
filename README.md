@@ -15,6 +15,9 @@ The source code is in Haskell.
     translateTest "Кому он велел ей помочь?"
                   "Who did he order to help her?"
 
+    translateTest "Кто кому велел помочь?"
+                  "Who ordered whom to help?"
+
 ### Subordinate clauses
 
     translateTest "Я вдруг забыл, что идет дальше."

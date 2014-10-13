@@ -53,6 +53,7 @@ data StrProperty = Type
                  | Given
                  | Number
                  | Conj | Hybrid
+                 | InSitu
                  | Ellipsis | Elided
                  | SAnchor
                  | Name

@@ -152,7 +152,7 @@ punctuationAware leftMites rightMites (m1, m2) =
       _ -> []
 
 questionableArguments leftMites rightMites whContext = map (propagateUnclosed leftMites rightMites) $ let
-  leftPairs = map (\m -> (m, cxt m)) leftMites
+  leftPairs  = map (\m -> (m, cxt m)) leftMites
   rightPairs = map (\m -> (m, cxt m)) rightMites
   doInteract :: [(Mite, Construction)] -> [(Mite, Construction)] -> [MergeInfo]
   doInteract lp rp = do
@@ -182,13 +182,9 @@ questionableArguments leftMites rightMites whContext = map (propagateUnclosed le
 interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
     let (left, right, base12) = mergeInfoHelpers m1 m2
     in case (c1, c2) of
-      (ArgHead kind1 head, Argument kind2 arg) | kind1 == kind2 ->
-        left $ (argVariants head arg leftPairs rightPairs)
-        ++ (if whContext then [] else whPropagation m1 m2 (map fst rightPairs))
-      (Argument kind2 arg, ArgHead kind1 head) | kind1 == kind2 ->
-        right $ (argVariants head arg rightPairs leftPairs)
-        ++ (if whContext then [] else whPropagation m2 m1 (map fst leftPairs))
-      (SemArgHead kind1 head, SemArgument kind2 arg _) | kind1 == kind2 -> left $ argVariants head arg leftPairs rightPairs
+      (ArgHead kind1 head, Argument kind2 arg) | kind1 == kind2 -> left $  argVariants head arg leftPairs rightPairs
+      (Argument kind2 arg, ArgHead kind1 head) | kind1 == kind2 -> right $ argVariants head arg rightPairs leftPairs
+      (SemArgHead kind1 head, SemArgument kind2 arg _) | kind1 == kind2 -> left $  argVariants head arg leftPairs rightPairs
       (SemArgument kind2 arg _, SemArgHead kind1 head) | kind1 == kind2 -> right $ argVariants head arg rightPairs leftPairs
 
       (Argument Nom v1, NomHead agr1 v2 Unsatisfied) -> leftPairs >>= \case

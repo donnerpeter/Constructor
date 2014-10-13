@@ -154,7 +154,13 @@ punctuationAware leftMites rightMites (m1, m2) =
 questionableArguments leftMites rightMites whContext = map (propagateUnclosed leftMites rightMites) $ let
   leftPairs = map (\m -> (m, cxt m)) leftMites
   rightPairs = map (\m -> (m, cxt m)) rightMites
-  doInteract lp rp = concat [interactQuestionable lp rp whContext p1 p2 | p1 <- lp, p2 <- rp]
+  doInteract :: [(Mite, Construction)] -> [(Mite, Construction)] -> [MergeInfo]
+  doInteract lp rp = do
+    p1 <- lp
+    p2 <- rp
+    info@(MergeInfo mites side) <- interactQuestionable lp rp whContext p1 p2
+    let liftedWh = select side (whPropagation (fst p1) (fst p2) rightMites) (whPropagation (fst p2) (fst p1) leftMites)
+    return $ if whContext then info else MergeInfo (mites ++ liftedWh) side
   normalResults = doInteract leftPairs rightPairs
   unwrapLeft mites = mites >>= \m -> case cxt m of SeqLeft c -> [(m, c)]; _ -> []
   unwrapRight mites = mites >>= \m -> case cxt m of SeqRight c -> [(m, c)]; _ -> []

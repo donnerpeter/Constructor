@@ -43,6 +43,11 @@ hybridConjoinable c = case c of
   GenHead {} -> True
   _ -> False
 
+hybridWrapped c = case c of
+  SeqLeft {} -> True
+  SeqRight {} -> True
+  _ -> False
+
 isSeqContinuation conj1 conj2 = conj1 == ","
 
 seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
@@ -125,7 +130,7 @@ hybridSeqVariants m2 sd@(SeqData { seqVar=seqV }) leftMites rightMites = let
     withBase [m1,m2,m3] [mite $ Conjunction $ sd {seqHasLeft=True, seqHybrid=True},
                          semV seqV P.Member1 mem1, semV seqV P.Member2 mem2, semS seqV P.Hybrid "true",
                          mite resultCxt]
-            ++ (filter (hybridConjoinable . cxt) leftMites >>= \m -> withBase [m] [mite $ SeqLeft $ cxt m])
+            ++ (filter (\m -> hybridConjoinable (cxt m) || hybridWrapped (cxt m)) leftMites >>= \m -> withBase [m] [mite $ SeqLeft $ cxt m])
   in leftMites >>= \m1 -> case cxt m1 of
     UniversalPronoun mem1 -> rightMites >>= \m3 -> case cxt m3 of
       SeqRight (UniversalPronoun mem2) -> makeHybrid m1 m3 mem1 mem2 (UniversalPronoun seqV)

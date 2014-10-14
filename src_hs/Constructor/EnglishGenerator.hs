@@ -575,7 +575,7 @@ generateArg :: Argument -> State GenerationState String
 generateArg arg = let
   hybridWhPrefix frame =
     if hasType "wh" frame && Just "true" == (usage P.Member2 frame >>= sValue P.Hybrid) then
-      if Just "and" == (usage P.Member2 frame >>= sValue P.Conj) then ", and" else ","
+      if Just "and" == sValue P.Conj (unSeq frame) then ", and" else ","
     else ""
   in case arg of
     Adverb s -> return s

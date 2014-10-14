@@ -36,7 +36,7 @@ interactNodes leftTree leftMites rightMites = {-traceIt ("    interact") $ -}whR
             whLinks = withBase [whMite, clauseMite] $
               [semV cp P.Questioned whVar, semT cp "situation"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause cp], [mite $ TopLevelQuestion cp]]
             inSitus = rightMites >>= \inSitu -> case cxt inSitu of
-              Wh var | not (contradict inSitu clauseMite) -> withBase [inSitu] $ [semS var P.InSitu "true"]
+              WhInSitu var | not (contradict inSitu clauseMite) -> withBase [inSitu] $ [semS var P.InSitu "true"]
               _ -> []
             infos = fillers >>= \ info -> mergeLeft (mergeResult info ++ whLinks ++ inSitus)
         in infos
@@ -159,7 +159,10 @@ questionableArguments leftMites rightMites whContext = map (propagateUnclosed le
     p1 <- lp
     p2 <- rp
     info@(MergeInfo mites side) <- interactQuestionable lp rp whContext p1 p2
-    let liftedWh = select side (whPropagation (fst p1) (fst p2) rightMites) (whPropagation (fst p2) (fst p1) leftMites)
+    let childMite = select side (fst p2) (fst p1)
+    let liftedWh = select side rightMites leftMites >>= \m3 -> case cxt m3 of
+          Wh var | not (contradict m3 childMite) -> withBase [m3] [mite $ WhInSitu var]
+          _ -> []
     return $ if whContext then info else MergeInfo (mites ++ liftedWh) side
   normalResults = doInteract leftPairs rightPairs
   unwrapLeft mites = mites >>= \m -> case cxt m of SeqLeft c -> [(m, c)]; _ -> []

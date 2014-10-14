@@ -40,6 +40,7 @@ data Construction = Word Variable String
                   | CompHead Variable
                   | ConditionCompHead Variable
                   | Wh Variable
+                  | WhInSitu Variable
                   | ExistentialWh {-wh-} Variable {-tensed-} Variable
                   | WhAsserter Variable
                   | UniversalPronoun Variable
@@ -115,7 +116,7 @@ isHappy cxt = case cxt of
   Ellipsis {} -> False
   Unclosed {} -> False
   Complement {} -> False
-  Wh {} -> False
+  Wh {} -> False; WhInSitu {} -> False
   RelativeClause {} -> False
   _ -> True
 

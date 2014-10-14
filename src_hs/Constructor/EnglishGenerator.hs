@@ -479,7 +479,7 @@ vp fVerb verbForm clauseType = do
       isRaising = hasType "SEEM" fVerb
       fSubject = if isModality || isRaising then theme >>= fValue P.Arg1 else fValue P.Arg1 fVerb
       isQuestion = Just True == fmap isQuestionCP cp
-      nonSubjectQuestion = isQuestion && (cp >>= fValue P.Questioned) /= fSubject
+      nonSubjectQuestion = isQuestion && (isNothing fSubject || not (fromJust fSubject `elem` flatten (cp >>= fValue P.Questioned)))
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue P.Question_mark)
       isDoModality = isModality && Just True == fmap (hasType "DO") theme
       thereSubject = clauseType == FiniteClause && (Just "wh" == (fSubject >>= getType) && isModality || isNothing (fSubject >>= getType)) && not isQuestion

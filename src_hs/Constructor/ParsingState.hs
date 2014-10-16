@@ -17,21 +17,28 @@ calcMergeInfos leftTree rightMites = infos where
   leftMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ allVariants leftTree
   infos = interactNodes leftTree leftMites rightMites
 
-stealLeft leftTree rightTree = let
+data Sprout = Sprout { sLeftTree:: Tree, sHeadSide:: Side, sMites:: [Mite], sActiveSets:: [[Mite]] }
+
+stealLeftSubtrees :: Tree -> Tree -> [Sprout]
+stealLeftSubtrees leftTree rightTree = let
   stealableTrees tree = (:) tree $
     if isBranch tree && headSide tree == RightSide then stealableTrees (justRight tree) else []
   rightMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ allVariants rightTree
   stealFromHead tree = let
     allInfos = [(lt, calcMergeInfos lt rightMites) | lt <- stealableTrees tree]
-    createBranches side infoPairs processedInfos = case infoPairs of
+    createSprouts side infoPairs processedInfos = case infoPairs of
       [] -> []
       (leftTree, infos):rest -> let
         toProcess = filter (\info -> mergedHeadSide info == side && not (Set.member info processedInfos)) infos
         mites = xor [merged | (MergeInfo merged mhs) <- toProcess, mhs == side]
-        maybeBranch = if null mites then Nothing else createBranch mites leftTree rightTree side $ calcCandidateSets mites
-        in maybeToList maybeBranch ++ createBranches side rest (Set.union processedInfos (Set.fromList toProcess))
-    in (reverse $ createBranches LeftSide (reverse allInfos) Set.empty) ++ createBranches RightSide allInfos Set.empty
+        maybeSprout = if null mites then [] else [Sprout leftTree side mites $ calcCandidateSets mites]
+        in maybeSprout ++ createSprouts side rest (Set.union processedInfos (Set.fromList toProcess))
+    in (reverse $ createSprouts LeftSide (reverse allInfos) Set.empty) ++ createSprouts RightSide allInfos Set.empty
   in reverse (edgeTrees RightSide leftTree) >>= stealFromHead
+
+growSprouts :: [Sprout] -> Tree -> [Tree]
+growSprouts sprouts rightTree =
+  catMaybes [createBranch mites leftTree rightTree side activeSets | Sprout leftTree side mites activeSets <- sprouts]
 
 data ParsingState = ParsingState { roots :: [Tree], history :: [ParsingState] }
 instance Show ParsingState where show state = show $ roots state
@@ -46,7 +53,7 @@ mergeTrees state = {-trace ("--------------", length allVariants, [(sortingKey v
   tryStealing :: [Tree] -> [ParsingState]
   tryStealing trees = [state { roots = trees }] ++ case trees of
     right:left:rest -> let
-      stolen = stealLeft left right
+      stolen = growSprouts (stealLeftSubtrees left right) right
       prevState tree = (history state) !! (treeWidth tree - 1)
       nextStates = map (\tree -> tree : roots (prevState tree)) stolen
       in nextStates >>= tryStealing

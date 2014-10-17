@@ -12,18 +12,19 @@ import qualified Data.Set as Set
 import qualified Data.Map as Map
 import Constructor.Composition
 import Control.Exception (assert)
+import Control.Monad
+import Control.Monad.State
 
 calcMergeInfos leftTree rightMites = infos where
   leftMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ allVariants leftTree
   infos = interactNodes leftTree leftMites rightMites
 
-data Sprout = Sprout { sLeftTree:: Tree, sHeadSide:: Side, sMites:: [Mite], sActiveSets:: [[Mite]] }
+data Sprout = Sprout { sLeftTree:: Tree, sHeadSide:: Side, sMites:: [Mite], sActiveSets:: [[Mite]] } deriving (Show)
 
-stealLeftSubtrees :: Tree -> Tree -> [Sprout]
-stealLeftSubtrees leftTree rightTree = let
+stealLeftSubtrees :: Tree -> [Mite] -> [Sprout]
+stealLeftSubtrees leftTree rightMites = let
   stealableTrees tree = (:) tree $
     if isBranch tree && headSide tree == RightSide then stealableTrees (justRight tree) else []
-  rightMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ allVariants rightTree
   stealFromHead tree = let
     allInfos = [(lt, calcMergeInfos lt rightMites) | lt <- stealableTrees tree]
     createSprouts side infoPairs processedInfos = case infoPairs of
@@ -40,27 +41,39 @@ growSprouts :: [Sprout] -> Tree -> [Tree]
 growSprouts sprouts rightTree =
   catMaybes [createBranch mites leftTree rightTree side activeSets | Sprout leftTree side mites activeSets <- sprouts]
 
-data ParsingState = ParsingState { roots :: [Tree], history :: [ParsingState] }
+data ParsingState = ParsingState { roots :: [Tree], history :: [ParsingState], sproutCache :: Map.Map [Mite] [Sprout] }
 instance Show ParsingState where show state = show $ roots state
-emptyState = ParsingState [] []
+emptyState = ParsingState [] [] Map.empty
 
 mergeTrees:: ParsingState -> ParsingState
 mergeTrees state = {-trace ("--------------", length allVariants, [(sortingKey v, v) | v <- allVariants]) $ -}result where
   result = head $ leastValued stateIssueCount $ leastValued unhappyCount $ leastValued (length . roots) allVariants
   unhappyCount state = sum [length $ unhappyActiveMites tree | tree <- roots state]
   isStableState state = all isStable $ map cxt $ (roots state >>= mites)
-  allVariants = filter isStableState $ tryStealing (roots state)
-  tryStealing :: [Tree] -> [ParsingState]
-  tryStealing trees = [state { roots = trees }] ++ case trees of
-    right:left:rest -> let
-      stolen = growSprouts (stealLeftSubtrees left right) right
-      prevState tree = (history state) !! (treeWidth tree - 1)
-      nextStates = map (\tree -> tree : roots (prevState tree)) stolen
-      in nextStates >>= tryStealing
-    _ -> []
+  allVariants = [state { history = updatedHistory } | state <- stateRecombinations, isStableState state]
+  (stateRecombinations, updatedHistory) = runState (tryStealing state) (history state)
+  tryStealing :: ParsingState -> State [ParsingState] [ParsingState]
+  tryStealing state = case roots state of
+    right:left:rest -> do
+      oldHistory <- get
+      let rightMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ Constructor.Tree.allVariants right
+          uncachedSprouts = stealLeftSubtrees left rightMites
+          rightWidth = treeWidth right
+          cachePoint = oldHistory !! (rightWidth - 1)
+          cache = sproutCache cachePoint
+          sprouts = Map.findWithDefault uncachedSprouts rightMites cache
+          newSprouts = Map.insert rightMites sprouts cache
+          newHistory = take (rightWidth - 1) oldHistory ++ [cachePoint { sproutCache = newSprouts }] ++ drop rightWidth oldHistory
+      put newHistory
+      let nextStates = map (\tree -> state { roots = tree:(roots $ (history state) !! (treeWidth tree - 1)) }) $ growSprouts sprouts right
+      nested <- mapM tryStealing nextStates
+      return $ [state] ++ concat nested
+    _ -> return [state]
 
 addMites:: ParsingState -> [Mite] -> ParsingState
-addMites state mites = mergeTrees $ ParsingState { roots = (createLeaf mites $ calcCandidateSets mites):roots state, history = state:history state }
+addMites state mites = mergeTrees $ ParsingState { roots = (createLeaf mites $ calcCandidateSets mites):roots state,
+                                                   history = state:history state,
+                                                   sproutCache = Map.empty }
 
 calcCandidateSets:: [Mite] -> [[Mite]]
 calcCandidateSets mites = {-if length result < 10 then result else trace ("---contradictors:", length mites, length result, mites) $ -}result where

@@ -160,7 +160,6 @@ processEllipsis :: Mite -> Variable -> Construction -> Construction -> Tree -> [
 processEllipsis oldClause ellipsisVar@(Variable varIndex _) e1 e2 prevTree = let
   Clause oldCP = cxt oldClause
   allMites = allTreeMites prevTree
-  activeMiteSet = allActiveMiteSet prevTree
   mappings = catMaybes [mapConstructions mapping1 mapping2 | mapping1 <- findOriginals allMites e1, mapping2 <- findOriginals allMites e2]
   mapConstructions :: AnchorMapping -> AnchorMapping -> Maybe [Mite]
   mapConstructions (AnchorMapping mo1 vo1 a1 va1) (AnchorMapping mo2 vo2 a2 va2) = let

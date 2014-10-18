@@ -100,7 +100,6 @@ createBranch mites _leftChild _rightChild headSide candidateSets = bestVariant w
     _ -> let result = Just $ bestTree allBranchVariants in
          {-if length allBranchVariants < 10 then result else trace ("-----allBranchVariants", length allBranchVariants, mites) -}result
   allBranchVariants = map (\key -> bestTree $ (Map.!) grouped key) $ LS.elements orderedHeads
-  rightAVs = filter (null . _unhappyLeft) (allVariants _rightChild)
   allAVCandidates = do
     active <- candidateSets
     let covered = base active
@@ -108,8 +107,8 @@ createBranch mites _leftChild _rightChild headSide candidateSets = bestVariant w
         isUncovered mite = not $ mite `elem` covered
         coverableBase = Set.fromList $ filter isCoverable covered
         isCompatible av = not $ any (flip Set.member coverableBase) $ activeHeadMitesBase av
-        leftCompatible = filter isCompatible $ allVariants _leftChild
-        rightCompatible = filter isCompatible $ rightAVs
+        leftCompatible  = filter isCompatible $ filter (null . _unhappyRight) $ allVariants _leftChild
+        rightCompatible = filter isCompatible $ filter (null . _unhappyLeft)  $ allVariants _rightChild
     aLeft <- leftCompatible
     if (not $ null $ filter isUncovered $ _unhappyRight aLeft) then [] else do
     let missingInLeft = filter (not . flip Set.member (allActiveMiteSet aLeft)) covered
@@ -127,7 +126,7 @@ createBranch mites _leftChild _rightChild headSide candidateSets = bestVariant w
         mites = mites, left = Just aLeft, right = Just aRight, headSide = headSide,
         active = activeSet,
         allActiveMiteList = allActiveList,
-        allActiveMiteSet = Set.union activeSet $ Set.union (allActiveMiteSet aLeft) (allActiveMiteSet $ aRight),
+        allActiveMiteSet = Set.union activeSet $ Set.union (allActiveMiteSet aLeft) (allActiveMiteSet aRight),
         activeHeadMites = _activeHeadMites,
         activeHeadMitesBase = LS.removeDups (_activeHeadMites >>= baseMites),
         _uncoveredActiveMites = Set.union (Set.filter (\mite -> isUncovered mite || not (isCoverable mite)) childrenActive) activeSet,

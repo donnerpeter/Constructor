@@ -131,7 +131,7 @@ hybridSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = let
     withBase [m1,m2,m3] [mite $ Conjunction $ sd {seqHasLeft=True, seqHybrid=True},
                          semV seqV P.Member1 mem1, semV seqV P.Member2 mem2, semS seqV P.Hybrid "true",
                          mite resultCxt]
-            ++ (filter (\m -> hybridConjoinable (cxt m) || hybridWrapped (cxt m)) (leftCombined env) >>= \m -> withBase [m] [mite $ SeqLeft $ cxt m])
+            ++ (filter (\m -> hybridConjoinable (cxt m) || hybridWrapped (cxt m)) (leftCompatible env m1) >>= \m -> withBase [m] [mite $ SeqLeft $ cxt m])
   in leftCombined env >>= \m1 -> case cxt m1 of
     UniversalPronoun mem1 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
       SeqRight (UniversalPronoun mem2) -> makeHybrid m1 m3 mem1 mem2 (UniversalPronoun seqV)

@@ -57,3 +57,4 @@ sonnetTests = [
   translateTest "А потом мы разошлись по домам."
                 "And then we all went home."
   ]
+  --todo full story + variations

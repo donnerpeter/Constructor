@@ -7,19 +7,20 @@ import Constructor.Agreement
 import Constructor.Variable
 import Constructor.Tree
 import Constructor.Util
+import Constructor.InteractionEnv
 import Control.Monad
 import Data.Maybe
 import qualified Constructor.SemanticProperties as P
 
-seqRight leftMites rightMites = {-traceIt "seqRight" $ -}result where
-  hasSeqFull conj = flip any rightMites $ \case
+seqRight env = {-traceIt "seqRight" $ -}result where
+  hasSeqFull conj = flip any (rightCombined env) $ \case
     (cxt -> Conjunction (SeqData { seqHasLeft=True, seqHasRight=True, seqConj=c})) | isSeqContinuation conj c -> True
     _ -> False
-  hasConjEmphasis = any (any isConjEmphasis . baseMites) rightMites
+  hasConjEmphasis = any (any isConjEmphasis . baseMites) $ rightCombined env
   isConjEmphasis = \case (cxt -> ConjEmphasis {}) -> True; _ -> False
-  result = leftMites >>= \m1 -> case cxt m1 of
+  result = leftCombined env >>= \m1 -> case cxt m1 of
     Conjunction sd@(SeqData { seqHasLeft=False, seqHasRight=False, seqConj=conj}) -> let
-      wrapped = filter seqWrappable rightMites >>= \m -> withBase [m] [mite $ SeqRight $ cxt m]
+      wrapped = filter seqWrappable (rightCombined env) >>= \m -> withBase [m] [mite $ SeqRight $ cxt m]
       in
         if hasSeqFull conj || hasConjEmphasis || null wrapped then []
         else withBase [m1] [mite $ Conjunction $ sd {seqHasRight=True}] ++ wrapped
@@ -50,18 +51,18 @@ hybridWrapped c = case c of
 
 isSeqContinuation conj1 conj2 = conj1 == ","
 
-seqLeft leftTree leftMites rightMites = {-traceIt "seqLeft" $ -}result where
-  contradictsSeq conj = flip any leftMites $ \mite -> case cxt mite of
+seqLeft env = {-traceIt "seqLeft" $ -}result where
+  contradictsSeq conj = flip any (leftCombined env) $ \mite -> case cxt mite of
     Conjunction (SeqData { seqHasLeft=True, seqHasRight=True, seqConj=c}) | not $ isSeqContinuation c conj -> True
     _ -> False
-  result = rightMites >>= \m2 -> case cxt m2 of
+  result = rightCombined env >>= \m2 -> case cxt m2 of
     Conjunction sd@(SeqData { seqReady=True, seqHasRight=True, seqHasLeft=False, seqConj=conj}) ->
       if contradictsSeq conj then []
-      else xor $ filter (not. null) [normalSeqVariants m2 sd leftMites rightMites leftTree, hybridSeqVariants m2 sd leftMites rightMites]
+      else xor $ filter (not. null) [normalSeqVariants m2 sd env, hybridSeqVariants m2 sd env]
     _ -> []
 
-normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) leftMites rightMites leftTree =
-      leftMites >>= \m1 -> let
+normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env =
+      leftCombined env >>= \m1 -> let
         fullConj mem1 mem2 = [semV seqV P.Member1 mem1, semV seqV P.Member2 mem2, mite $ Conjunction $ sd {seqHasLeft=True}]
         handleAdj :: Variable -> ArgKind -> Agr -> (Agr -> Construction) -> [Mite]
         handleAdj mem1 caze1 agr1 result = let
@@ -69,21 +70,21 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) leftMites rightMites leftTree 
             adjAgrVariants = [mite $ result (Agr Nothing (Just Pl) Nothing)]
             allVariants = if agree agr1 agr2 then xor [adjAgrVariants, [mite $ result (commonAgr agr1 agr2)]] else adjAgrVariants
             in fullConj mem1 mem2 ++ allVariants
-          in rightMites >>= \m3 -> case cxt m3 of
+          in rightCompatible env m2 >>= \m3 -> case cxt m3 of
             SeqRight (Adj mem2 caze2 agr2) | caze1 == caze2 && adjAgree agr1 agr2 -> withBase [m1,m2,m3] $ adjResult mem2 agr2
             SeqRight (Possessive caze2 agr2 mem2) | caze1 == caze2 && adjAgree agr1 agr2 -> withBase [m1,m2,m3] $ adjResult mem2 agr2
             _ -> []
         argUnifications = let
-           unifications = concat [unifyMissingArgument mite1 mite2 | mite1 <- filter (not . contradict m1) leftMites,
-                                                                     mite2 <- filter (not . contradict m2) rightMites]
+           unifications = concat [unifyMissingArgument mite1 mite2 | mite1 <- leftCompatible env m1,
+                                                                     mite2 <- rightCompatible env m2]
            unifyMissingArgument aux1 aux2 = case (cxt aux1, cxt aux2) of
              (GenHead v1, SeqRight (GenHead v2)) ->
                  optional $ withBase [aux1,aux2] [mite $ Unify v1 v2, mite $ GenHead v2]
              _ -> []
            in unifications
         combineThyself = let
-          leftRefs = leftMites >>= \m -> case cxt m of ReflexiveReference _ -> withBase [m] [mite $ cxt m]; _ -> []
-          rightRefs = rightMites >>= \m -> case cxt m of SeqRight (c@(ReflexiveReference _)) -> withBase [m] [mite c]; _ -> []
+          leftRefs  = leftCombined env  >>= \m -> case cxt m of ReflexiveReference _ -> withBase [m] [mite $ cxt m]; _ -> []
+          rightRefs = rightCombined env >>= \m -> case cxt m of SeqRight (c@(ReflexiveReference _)) -> withBase [m] [mite c]; _ -> []
           in leftRefs ++ rightRefs
         adjHeadCompanions child kind = if kind `elem` cases then withBase [m2] [mite $ AdjHead seqV kind (Agr Nothing (Just Pl) Nothing)] else []
         distinguished mite = case cxt mite of
@@ -91,7 +92,7 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) leftMites rightMites leftTree 
           VerbalModifier _ _ child | any isPrepHead (baseMites mite) -> [semS child P.Distinguished "true"]
           _ -> []
         isPrepHead mite = case cxt mite of PrepHead {} -> True; _ -> False
-        in rightMites >>= \m3 -> case (cxt m1, cxt m3) of
+        in rightCompatible env m2 >>= \m3 -> case (cxt m1, cxt m3) of
 
           (Argument kind mem1, SeqRight (Argument kind2 mem2)) | kind == kind2 ->
             withBase [m1,m2,m3] (fullConj mem1 mem2 ++ [mite $ Argument kind seqV] ++ combineThyself ++ (baseMites m3 >>= distinguished))
@@ -110,35 +111,35 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) leftMites rightMites leftTree 
 
           (Clause mem1, SeqRight (Clause mem2)) -> let
                  unifications = xor $ filter (not . null) $
-                   [unifyMissingArgument mite1 mite2 | mite1 <- filter (not . contradict m1) leftMites,
-                                                       mite2 <- filter (not . contradict m2) rightMites]
+                   [unifyMissingArgument mite1 mite2 | mite1 <- leftCompatible env m1,
+                                                       mite2 <- rightCompatible env m2]
                  unifyMissingArgument aux1 aux2 = case (cxt aux1, cxt aux2) of
                    (NomHead agr1 v1 satisfied, SeqRight (NomHead agr2 v2 Unsatisfied)) | agree agr1 agr2 ->
                        withBase [aux1,aux2] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v1 satisfied]
                    _ -> []
-                 ellipsisVariants = rightMites >>= \m4 -> case cxt m4 of
-                   SeqRight (Ellipsis ellipsisVar (Just e1) (Just e2)) | not $ contradict m4 m2 ->
-                     map (withBase [m4]) $ processEllipsis m1 ellipsisVar e1 e2 leftTree
+                 ellipsisVariants = rightCompatible env m2 >>= \m4 -> case cxt m4 of
+                   SeqRight (Ellipsis ellipsisVar (Just e1) (Just e2)) ->
+                     map (withBase [m4]) $ processEllipsis m1 ellipsisVar e1 e2 (leftTree env)
                    _ -> []
                  result = withBase [m1, m2] $
                    fullConj mem1 mem2 ++ [mite $ Clause seqV] ++ unifications ++ xor ellipsisVariants
                  in result
           _ -> []
 
-hybridSeqVariants m2 sd@(SeqData { seqVar=seqV }) leftMites rightMites = let
+hybridSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = let
   makeHybrid m1 m3 mem1 mem2 resultCxt =
     withBase [m1,m2,m3] [mite $ Conjunction $ sd {seqHasLeft=True, seqHybrid=True},
                          semV seqV P.Member1 mem1, semV seqV P.Member2 mem2, semS seqV P.Hybrid "true",
                          mite resultCxt]
-            ++ (filter (\m -> hybridConjoinable (cxt m) || hybridWrapped (cxt m)) leftMites >>= \m -> withBase [m] [mite $ SeqLeft $ cxt m])
-  in leftMites >>= \m1 -> case cxt m1 of
-    UniversalPronoun mem1 -> rightMites >>= \m3 -> case cxt m3 of
+            ++ (filter (\m -> hybridConjoinable (cxt m) || hybridWrapped (cxt m)) (leftCombined env) >>= \m -> withBase [m] [mite $ SeqLeft $ cxt m])
+  in leftCombined env >>= \m1 -> case cxt m1 of
+    UniversalPronoun mem1 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
       SeqRight (UniversalPronoun mem2) -> makeHybrid m1 m3 mem1 mem2 (UniversalPronoun seqV)
       _ -> []
-    NegativePronoun mem1 -> rightMites >>= \m3 -> case cxt m3 of
+    NegativePronoun mem1 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
       SeqRight (NegativePronoun mem2) -> makeHybrid m1 m3 mem1 mem2 (NegativePronoun seqV)
       _ -> []
-    Wh mem1 -> rightMites >>= \m3 -> case cxt m3 of
+    Wh mem1 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
       SeqRight (Wh mem2) -> makeHybrid m1 m3 mem1 mem2 (Wh seqV)
       _ -> []
     _ -> []
@@ -196,6 +197,6 @@ processEllipsis oldClause ellipsisVar@(Variable varIndex _) e1 e2 prevTree = let
     if covered == [o1,o2] then Just mapped else Nothing
   in mappings
 
-pullThyself base childMites = childMites >>= \m -> case cxt m of
-  ReflexiveReference ref | not $ contradict m base -> withBase [m] [mite $ cxt m]
+pullThyself childMites = childMites >>= \m -> case cxt m of
+  ReflexiveReference ref -> withBase [m] [mite $ cxt m]
   _ -> []

@@ -1,4 +1,4 @@
-module Constructor.Composition (interactNodes, MergeInfo(..)) where
+module Constructor.Composition (interactNodes) where
 import Constructor.Constructions
 import Constructor.Mite
 import Constructor.Variable
@@ -6,71 +6,60 @@ import Constructor.Agreement
 import Constructor.Tree
 import Constructor.Util
 import Constructor.Lexicon
+import Constructor.InteractionEnv
 import qualified Constructor.Seq as Seq
 import qualified Constructor.LinkedSet as LS
 import qualified Constructor.SemanticProperties as P
 
-data MergeInfo = MergeInfo {mergeResult::[Mite], mergedHeadSide::Side} deriving (Show,Eq,Ord)
-mergeLeft mites = [MergeInfo mites LeftSide]
-mergeRight mites = [MergeInfo mites RightSide]
+interactNodes:: InteractionEnv -> [MergeInfo]
+interactNodes env = {-traceIt ("    interact") $ -}whResults ++ noWh where
 
-interactNodes:: Tree -> [Mite] -> [Mite] -> [MergeInfo]
-interactNodes leftTree leftMites rightMites = {-traceIt ("    interact") $ -}whResults ++ noWh where
+  seqVariants = map (propagateUnclosed env) $ (if null seqRight then [] else mergeLeft seqRight) ++ (if null seqLeft then [] else mergeRight seqLeft)
+  seqLeft = Seq.seqLeft env
+  seqRight = Seq.seqRight env
 
-  seqVariants = map (propagateUnclosed leftMites rightMites) $ (if null seqRight then [] else mergeLeft seqRight) ++ (if null seqLeft then [] else mergeRight seqLeft)
-  seqLeft = Seq.seqLeft leftTree leftMites rightMites
-  seqRight = Seq.seqRight leftMites rightMites
-
-  pairs = [(m1, m2) | m1 <- leftMites, isInteractive m1, m2 <- rightMites, isInteractive m2]
-  questionable whContext = questionableArguments leftMites rightMites whContext
-  nonQuestionable = (pairs >>= interactUnsorted leftMites rightMites)
-                 ++ (pairs >>= punctuationAware leftMites rightMites)
+  questionable whContext = questionableArguments env whContext
+  nonQuestionable = (pairs env >>= interactUnsorted env)
+                 ++ (pairs env >>= punctuationAware env)
                  ++ seqVariants
-                 ++ ellipsisLeftVariants leftMites rightMites
+                 ++ ellipsisLeftVariants env
   noWh = questionable False ++ nonQuestionable
 
-  whResults = leftMites >>= \whMite -> let
+  whResults = leftCombined env >>= \whMite -> let
     whIncompatible info = any (contradict whMite) (mergeResult info)
     fillGap cp whVar clauseMite =
         let fillers = filter (\info -> mergedHeadSide info == RightSide) $ questionable True
             whLinks = withBase [whMite, clauseMite] $
               [semV cp P.Questioned whVar, semT cp "situation"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause cp], [mite $ TopLevelQuestion cp]]
-            inSitus = rightMites >>= \inSitu -> case cxt inSitu of
-              WhInSitu var | not (contradict inSitu clauseMite) -> withBase [inSitu] $ [semS var P.InSitu "true"]
+            inSitus = rightCompatible env clauseMite >>= \inSitu -> case cxt inSitu of
+              WhInSitu var -> withBase [inSitu] $ [semS var P.InSitu "true"]
               _ -> []
             infos = fillers >>= \ info -> mergeLeft (mergeResult info ++ whLinks ++ inSitus)
         in infos
     in case cxt whMite of
-      Wh whVar -> rightMites >>= \clauseMite -> case cxt clauseMite of
+      Wh whVar -> rightCombined env >>= \clauseMite -> case cxt clauseMite of
         Clause cp -> fillGap cp whVar clauseMite
         ModalityInfinitive _ cp -> fillGap cp whVar clauseMite
         _ -> []
       _ -> []
 
-isInteractive mite = case cxt mite of
-  Sem {} -> False
-  Unify {} -> False
-  EmptyCxt {} -> False
-  Diversifier {} -> False
-  _ -> True
-
 mergeInfoHelpers m1 m2 = ( \mites -> mergeLeft (base12 mites), \mites -> mergeRight (base12 mites), base12) where
   base12 = withBase [m1,m2]
 
-propagateUnclosed leftMites rightMites (MergeInfo mites side) = MergeInfo (mites ++ liftUnclosed (invert side) childMites) side where
-  childMites = filter (not . contradictResult) $ select side rightMites leftMites
+propagateUnclosed env (MergeInfo mites side) = MergeInfo (mites ++ liftUnclosed (invert side) childMites) side where
+  childMites = filter (not . contradictResult) $ (select side rightCombined leftCombined) env
   contradictResult mite = any (contradict mite) mites
 
 liftUnclosed side childMites = childMites >>= \m -> case cxt m of
   Unclosed s _ | s == side -> withBase [m] $ [mite $ cxt m]
   _ -> []
 
-ellipsisLeftVariants leftMites rightMites = if null result then [] else mergeRight $ LS.removeDups result where
-  result = rightMites >>= \m2 -> case cxt m2 of
-    Ellipsis v Nothing rightCxt@(Just _) -> leftMites >>= \m1 -> case ellipsisAnchor (cxt m1) of
+ellipsisLeftVariants env = if null result then [] else mergeRight $ LS.removeDups result where
+  result = rightCombined env >>= \m2 -> case cxt m2 of
+    Ellipsis v Nothing rightCxt@(Just _) -> leftCombined env >>= \m1 -> case ellipsisAnchor (cxt m1) of
       Just anchor -> withBase [m1,m2] [mite $ Ellipsis v (Just $ cxt m1) rightCxt]
         ++ [semV v P.EllipsisAnchor1 anchor, mite $ Clause v]
-        ++ liftUnclosed LeftSide (filter (not . contradict m1) leftMites)
+        ++ liftUnclosed LeftSide (leftCompatible env m1)
       _ -> []
     _ -> []
 
@@ -80,9 +69,9 @@ ellipsisAnchor (SemArgument _ _ v) = Just v
 ellipsisAnchor (Adj v _ _) = Just v
 ellipsisAnchor _ = Nothing
 
-punctuationAware leftMites rightMites (m1, m2) =
+punctuationAware env (m1, m2) =
     let (left, right, base12) = mergeInfoHelpers m1 m2
-        compatibleChildren side = filter (not. contradict (select side m1 m2)) $ select side leftMites rightMites
+        compatibleChildren side = select side (leftCompatible env m1) (rightCompatible env m2)
         liftUnclosedCompatible side = liftUnclosed side (compatibleChildren side)
         addUnclosed side v = let
           baseMite = select side m2 m1
@@ -90,7 +79,7 @@ punctuationAware leftMites rightMites (m1, m2) =
             Unclosed s vars | s == side -> withBase [m,baseMite] [mite $ Unclosed side (v:vars)]
             _ -> []
           in if null lifted then withBase [baseMite] [mite $ Unclosed side [v]] else lifted
-        closeUnclosed side satisfied = (select side leftMites rightMites) >>= \m -> case cxt m of
+        closeUnclosed side satisfied = (select side leftCombined rightCombined) env >>= \m -> case cxt m of
           Unclosed s vars | s == invert side -> withBase [m, m2] $
             optional $ [mite $ Closed vars]
             ++ (if satisfied == Satisfied then map (\v -> semS v (select side P.LeftIsolated P.RightIsolated) "true") vars else [])
@@ -151,22 +140,22 @@ punctuationAware leftMites rightMites (m1, m2) =
 
       _ -> []
 
-questionableArguments leftMites rightMites whContext = map (propagateUnclosed leftMites rightMites) $ let
-  leftPairs  = map (\m -> (m, cxt m)) leftMites
-  rightPairs = map (\m -> (m, cxt m)) rightMites
+questionableArguments env whContext = map (propagateUnclosed env) $ let
+  leftPairs  = map (\m -> (m, cxt m)) $ leftCombined env
+  rightPairs = map (\m -> (m, cxt m)) $ rightCombined env
   doInteract :: [(Mite, Construction)] -> [(Mite, Construction)] -> [MergeInfo]
   doInteract lp rp = do
     p1 <- lp
     p2 <- rp
     info@(MergeInfo mites side) <- interactQuestionable lp rp whContext p1 p2
     let childMite = select side (fst p2) (fst p1)
-    let liftedWh = select side rightMites leftMites >>= \m3 -> case cxt m3 of
-          Wh var | not (contradict m3 childMite) -> withBase [m3] [mite $ WhInSitu var]
+    let liftedWh = (select side rightCompatible leftCompatible) env childMite >>= \m3 -> case cxt m3 of
+          Wh var -> withBase [m3] [mite $ WhInSitu var]
           _ -> []
     return $ if whContext then info else MergeInfo (mites ++ liftedWh) side
   normalResults = doInteract leftPairs rightPairs
   hybridVariants headSide = let
-    childMites = select headSide rightMites leftMites
+    childMites = (select headSide rightCombined leftCombined) env
     headPairs = select headSide leftPairs rightPairs
     interactConstituent childPairs = let
       resultInfos = select headSide (doInteract headPairs childPairs) (doInteract childPairs headPairs)
@@ -209,20 +198,20 @@ interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
 
       _ -> []
 
-interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMites rightMites) $
+interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
     let (left, right, base12) = mergeInfoHelpers m1 m2
     in case (cxt m1, cxt m2) of
       (Adj var2 adjCase agr1, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> 
-        mergeRight $ base12 [mite $ Unify var var2] ++ whPropagation m2 m1 leftMites
+        mergeRight $ base12 [mite $ Unify var var2] ++ whPropagation m2 m1 (leftCompatible env m1)
       (AdjHead var nounCase agr2, Adj var2 adjCase agr1) | adjCase == nounCase && agree agr1 agr2 ->
-        mergeLeft $ base12 [mite $ Unify var var2] ++ whPropagation m1 m2 rightMites
+        mergeLeft $ base12 [mite $ Unify var var2] ++ whPropagation m1 m2 (rightCompatible env m2)
       (CompositeAdj var2 adjCase agr1, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 ->
         right [semV var P.Components var2]
 
-      (Possessive adjCase agr1 child, AdjHead noun nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> rightMites >>= \m3 -> case cxt m3 of
-        GenHead h -> mergeRight $ withBase [m1,m2,m3] $ [mite $ Unify h child] ++ Seq.pullThyself m1 leftMites ++ whPropagation m1 m2 leftMites
+      (Possessive adjCase agr1 child, AdjHead noun nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
+        GenHead h -> mergeRight $ withBase [m1,m2,m3] $ [mite $ Unify h child] ++ Seq.pullThyself (leftCompatible env m1) ++ whPropagation m1 m2 (leftCompatible env m1)
         _ -> []
-      (GenHead v1, Argument Gen v2) -> left $ [mite $ Unify v1 v2] ++ whPropagation m1 m2 rightMites
+      (GenHead v1, Argument Gen v2) -> left $ [mite $ Unify v1 v2] ++ whPropagation m1 m2 (rightCompatible env m2)
 
       (ConjEmphasis attr _, Verb head) -> right [semS head attr "true"]
 
@@ -230,20 +219,20 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
       (Verb head, Adverb v) -> left [mite $ Unify v head]
       (AdjHead head _ _, NounAdjunct attr False var) -> left [semV head attr var]
 
-      (Quantifier kind1 agr1 v1, Argument kind2 v2) | kind1 == kind2 -> rightMites >>= \m3 -> case cxt m3 of
-        AdjHead v3 kind3 agr2 | kind3 == kind1 && agree agr1 agr2 && v2 == v3 && not (contradict m2 m3) ->
-          mergeLeft $ withBase [m1, m2, m3] [mite $ Unify v1 v2] ++ liftReflexive rightMites
+      (Quantifier kind1 agr1 v1, Argument kind2 v2) | kind1 == kind2 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
+        AdjHead v3 kind3 agr2 | kind3 == kind1 && agree agr1 agr2 && v2 == v3 ->
+          mergeLeft $ withBase [m1, m2, m3] [mite $ Unify v1 v2] ++ liftReflexive (rightCompatible env m2)
         _ -> []
 
       (SemPreposition kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
       (PrepHead prep1 kind1 var1, Argument kind2 var2) | kind1 == kind2 ->
-        let argMites = leftMites >>= \m3 -> case cxt m3 of
+        let argMites = leftCompatible env m1 >>= \m3 -> case cxt m3 of
               Argument (PP prep3 kind3) var3 | prep3 == prep1 && kind1 == kind3 ->
                 withBase [m1,m2,m3] $
                   [mite $ Unify var1 var2]
                   ++ (if null adjunctMites then [mite $ Argument (PP prep3 kind3) var3]
                       else xor [[mite $ Argument (PP prep3 kind3) var3], adjunctMites])
-              Copula var3 | not (contradict m1 m3) -> withBase [m1,m2,m3] [mite $ Unify var1 var2]
+              Copula var3 -> withBase [m1,m2,m3] [mite $ Unify var1 var2]
               _ -> []
             adjunctMites = case (prep1, kind1) of
               ("k", Dat) -> semArg Direction P.Goal_to var2
@@ -259,9 +248,9 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
               ("v", Prep) -> xor [[mite $ VerbalModifier P.Condition False var2],
                                   [mite $ VerbalModifier P.Location_in False var2]]
               _ -> []
-            extra = Seq.pullThyself m2 rightMites ++ liftGen ++ whPropagation m1 m2 rightMites
-            liftGen = rightMites >>= \m3 -> case cxt m3 of
-              GenHead {} | not (contradict m2 m3) -> optional $ withBase [m3] [mite $ cxt m3]
+            extra = Seq.pullThyself (rightCompatible env m2) ++ liftGen ++ whPropagation m1 m2 (rightCompatible env m2)
+            liftGen = rightCompatible env m2 >>= \m3 -> case cxt m3 of
+              GenHead {} -> optional $ withBase [m3] [mite $ cxt m3]
               _ -> []
         in mergeLeft (argMites ++ extra)
 
@@ -297,10 +286,10 @@ interactUnsorted leftMites rightMites (m1, m2) = map (propagateUnclosed leftMite
       (Word _ "не", Complement cp) -> right [semS cp P.Negated "true", mite $ Complement cp]
       (Word ne "не", Wh v) -> right [mite $ ExistentialWh v ne, semS v P.Negated "true"]
       (Word _ "не", Verb v) -> let
-        negateDirectObject = rightMites >>= \m3 -> case cxt m3 of
+        negateDirectObject = rightCombined env >>= \m3 -> case cxt m3 of
           ArgHead Acc v -> let
             result = withBase [m1,m2,m3] [mite $ ArgHead Gen v] ++ colleagues
-            colleagues = concat [withBase [m1,m2,m] [mite (cxt m)] | m <- rightMites, not (contradict m m2), contradict m m3]
+            colleagues = concat [withBase [m1,m2,m] [mite (cxt m)] | m <- rightCompatible env m2, contradict m m3]
             in result
           _ -> []
         in mergeRight $ base12 [semS v P.Negated "true", mite $ Negated v] ++ negateDirectObject
@@ -330,5 +319,5 @@ existentials headPairs childPairs = headPairs >>= \case
   _ -> []
 
 whPropagation headMite childMite childMites = childMites >>= \m3 -> case cxt m3 of
-  Wh {} | not (contradict m3 childMite) -> withBase [headMite, childMite, m3] [mite $ cxt m3]
+  Wh {} -> withBase [headMite, childMite, m3] [mite $ cxt m3]
   _ -> []

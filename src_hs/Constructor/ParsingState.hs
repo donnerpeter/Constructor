@@ -6,6 +6,7 @@ import Constructor.Constructions (isStable)
 import Constructor.Mite
 import Constructor.Tree
 import Constructor.Util
+import Constructor.InteractionEnv
 import Data.Function (on)
 import qualified Constructor.LinkedSet as LS
 import qualified Data.Set as Set
@@ -15,18 +16,14 @@ import Control.Exception (assert)
 import Control.Monad
 import Control.Monad.State
 
-calcMergeInfos leftTree rightMites = infos where
-  leftMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ allVariants leftTree
-  infos = interactNodes leftTree leftMites rightMites
-
 data Sprout = Sprout { sLeftTree:: Tree, sHeadSide:: Side, sMites:: [Mite], sActiveSets:: [[Mite]] } deriving (Show)
 
-stealLeftSubtrees :: Tree -> [Mite] -> [Sprout]
-stealLeftSubtrees leftTree rightMites = let
+stealLeftSubtrees :: Tree -> [[Mite]] -> [Mite] -> [Sprout]
+stealLeftSubtrees leftTree rightSets rightCombined = let
   stealableTrees tree = (:) tree $
     if isBranch tree && headSide tree == RightSide then stealableTrees (justRight tree) else []
   stealFromHead tree = let
-    allInfos = [(lt, calcMergeInfos lt rightMites) | lt <- stealableTrees tree]
+    allInfos = [(lt, interactNodes $ interactionEnv lt rightSets rightCombined) | lt <- stealableTrees tree]
     createSprouts side infoPairs processedInfos = case infoPairs of
       [] -> []
       (leftTree, infos):rest -> let
@@ -56,13 +53,14 @@ mergeTrees state = {-trace ("--------------", length allVariants, [(sortingKey v
   tryStealing state = case roots state of
     right:left:rest -> do
       oldHistory <- get
-      let rightMites = LS.removeDups $ foldl (++) [] $ map activeHeadMites $ Constructor.Tree.allVariants right
-          uncachedSprouts = stealLeftSubtrees left rightMites
+      let rightSets = map activeHeadMites $ Constructor.Tree.allVariants right
+          rightCombined = LS.removeDups $ concat rightSets
+          uncachedSprouts = stealLeftSubtrees left rightSets rightCombined
           rightWidth = treeWidth right
           cachePoint = oldHistory !! (rightWidth - 1)
           cache = sproutCache cachePoint
-          sprouts = Map.findWithDefault uncachedSprouts rightMites cache
-          newSprouts = Map.insert rightMites sprouts cache
+          sprouts = Map.findWithDefault uncachedSprouts rightCombined cache
+          newSprouts = Map.insert rightCombined sprouts cache
           newHistory = take (rightWidth - 1) oldHistory ++ [cachePoint { sproutCache = newSprouts }] ++ drop rightWidth oldHistory
       put newHistory
       let nextStates = map (\tree -> state { roots = tree:(roots $ (history state) !! (treeWidth tree - 1)) }) $ growSprouts sprouts right

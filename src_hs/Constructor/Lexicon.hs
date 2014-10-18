@@ -260,7 +260,7 @@ wordMites word index =
   "по-моему" -> xor [[mite $ VerbalModifier P.AccordingTo True v0], [mite $ NounAdjunct P.AccordingTo True v0]] ++ [semT v0 "OPINION", semV v0 P.Arg1 (v "me"), semT (v "me") "ME"]
   "поблагодарили" -> finVerb "THANK" "PAST" A.pl v ++ directObject v
   "поводу" -> nounSg Dat Masc "MATTER" v
-  "подарил" -> finVerb "TO_PRESENT" "PAST" A.m v ++ directObject v ++ optional (arg Dat P.Receiver v)
+  "дал" -> finVerb "TO_PRESENT" "PAST" A.m v ++ directObject v ++ optional (arg Dat P.Receiver v)
   "подвигав" -> perfectBackground "MOVE" v ++ arg Instr P.Arg2 v
   "подвигала" -> finVerb "MOVE" "PAST" A.f v ++ arg Instr P.Arg2 v
   "показались" -> raisingVerb "SEEM" "PAST" A.pl v ++ optional (arg Dat P.Experiencer v)

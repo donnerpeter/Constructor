@@ -88,7 +88,7 @@ The source code is in Haskell.
     translateTest "Все и всё знают"
                   "Everybody knows everything"
 
-    translateTest "Кто, что и кому подарил?"
+    translateTest "Кто, что и кому дал?"
                   "Who gave what, and to whom?"
 
 ## Notes

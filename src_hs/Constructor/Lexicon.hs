@@ -362,7 +362,12 @@ wordMites word index =
   "чьему" -> whWord v ++ animate v ++ xor [[mite $ Possessive Dat A.m v0], [mite $ Possessive Dat A.n v0]]
   "чьим" -> whWord v ++ animate v ++ [mite $ Possessive Dat A.pl v0]
   "шести" -> wordNumber Gen "6" v
-  "шёл" -> finVerb "GO" "PAST" A.m v ++ [semS v0 P.Imperfective "true", mite $ SemArgHead Direction v0]
+  "шел" -> xor [finVerb "GO" "PAST" A.m v ++ go_args v,
+                 finVerb "WEATHER_BE" "PAST" A.m v,
+                 finVerb "COME_SCALARLY" "PAST" A.m v ++ arg ScalarAdverb P.Order v] ++ [semS v0 P.Imperfective "true"]
+  "шёл" -> xor [finVerb "GO" "PAST" A.m v ++ go_args v,
+                 finVerb "WEATHER_BE" "PAST" A.m v,
+                 finVerb "COME_SCALARLY" "PAST" A.m v ++ arg ScalarAdverb P.Order v] ++ [semS v0 P.Imperfective "true"]
   "это" -> xor [pronoun Nom (A.Agr (Just A.Neu) (Just A.Sg) $ Just 3) "THIS" v, pronoun Acc (A.Agr (Just A.Neu) (Just A.Sg) $ Just 3) "THIS" v]
   "этому" -> adj Dat A.sg P.Determiner "THIS" v
   "я" -> pronoun Nom (A.Agr Nothing (Just A.Sg) $ Just 1) "ME" v

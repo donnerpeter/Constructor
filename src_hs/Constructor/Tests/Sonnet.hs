@@ -1,3 +1,4 @@
+{-# LANGUAGE QuasiQuotes #-}
 module Constructor.Tests.Sonnet where
 import Constructor.Tests.Testing
 import Test.HUnit
@@ -28,10 +29,10 @@ sonnetTests = [
   translateTest "- По-моему, семь идет после восьми в том случае, когда восемь идет после семи."
                 "- In my opinion, a seven comes after an eight, only if an eight comes after a seven."
                 ,
-  translateTest "Кассирша грустно улыбнулась, вынула изо рта маленький молоточек и, слегка подвигав носом, сказала:\n\
-                \- По-моему, семь идет после восьми в том случае, когда восемь идет после семи."
-                "The cashier gave us a sad smile, took a small hammer out of her mouth, and moving her nose slightly back and forth, she said:\n\
-                \- In my opinion, a seven comes after an eight, only if an eight comes after a seven."
+  translateTest [str|Кассирша грустно улыбнулась, вынула изо рта маленький молоточек и, слегка подвигав носом, сказала:
+- По-моему, семь идет после восьми в том случае, когда восемь идет после семи.|]
+                [str|The cashier gave us a sad smile, took a small hammer out of her mouth, and moving her nose slightly back and forth, she said:
+- In my opinion, a seven comes after an eight, only if an eight comes after a seven.|]
                 ,
   translateTest "Мы поблагодарили кассиршу и с радостью выбежали из магазина."
                 "We thanked the cashier and ran cheerfully out of the store."

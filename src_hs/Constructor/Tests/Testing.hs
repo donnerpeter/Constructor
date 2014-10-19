@@ -10,6 +10,10 @@ import Control.DeepSeq
 import Control.Monad (when)
 import System.CPUTime
 import System.IO.Unsafe
+import Language.Haskell.TH
+import Language.Haskell.TH.Quote
+
+str = QuasiQuoter { quoteExp = stringE }
 
 translateTest src target = TestLabel src $ TestCase $
   let trees = parse src

@@ -297,6 +297,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (Word _ "тоже", Verb v) -> right [semS v P.Also "true"]
       (Complementizer cp1, Clause cp2) -> left [mite $ Unify cp1 cp2, mite $ Complement cp1]
       (Control slave, ControlledInfinitive inf) -> left [mite $ Unify slave inf]
+      (FutureTense agr tense, ControlledInfinitive inf) -> right $ [mite $ Unify tense inf] ++ finiteClause agr True (makeV tense "")
       (RaisingVerb verb subj, Raiseable agr child) -> left [semV child P.Arg1 subj, semV verb P.Theme child]
        
       _ -> []

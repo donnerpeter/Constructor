@@ -67,7 +67,10 @@ adverb attr value v = [mite $ Adverb (v "verb"), semV (v "verb") attr (v ""), se
 genHead attr v = optional [mite $ GenHead (v "gen"), semV (v "") attr (v "gen")]
 directObject v = arg Acc P.Arg2 v
 conjunction v0 conj ready = [mite $ Conjunction $ SeqData v0 conj ready False False False, semT v0 "seq"] ++ (if conj == "," then [] else [semS v0 P.Conj conj])
+
 modifyV v c = \s -> v $ c:s
+makeV (Variable index oldS) suffix = \s -> Variable index (oldS ++ suffix ++ s)
+
 whatComesNext v = [mite $ ArgHead ScalarAdverb (v "scalar"),
   semV (v "") P.Arg2 (v "arg2"),
   semT (v "arg2") "situation", semV (v "arg2") P.Questioned (v "wh"), semV (v "arg2") P.Content (v "comes"),
@@ -97,7 +100,7 @@ wordMites word index =
   "бессмысленными" -> [mite $ Raiseable A.pl v0, semT v0 "MEANINGLESS"]
   "большим" -> xor[adj Instr A.m P.Size "BIG" v, adj Instr A.n P.Size "BIG" v]
   "большой" -> xor[adj Instr A.f P.Size "BIG" v, adj Nom A.m P.Size "BIG" v, adj Acc A.m P.Size "BIG" v]
-  "будет" -> [semS v0 P.Time "FUTURE"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0]]
+  "будет" -> [semS v0 P.Time "FUTURE"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0], [mite $ FutureTense A.sg3 v0]]
   "был" -> [mite $ Tense v0, semS v0 P.Time "PAST"]
   "было" -> [semS v0 P.Time "PAST"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0]]
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]

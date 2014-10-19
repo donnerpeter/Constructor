@@ -56,6 +56,7 @@ data Construction = Word Variable String
                   | Diversifier Int
                   | Tense Variable
                   | TenseHead Variable
+                  | FutureTense Agr Variable
                   | Copula Variable
                   | ShortAdj Variable
                   | ConditionComp Variable {-if/when-} String {-has cp-} Bool
@@ -101,6 +102,7 @@ isHappy cxt = case cxt of
   SeqRight (Wh {}) -> False
   GenHead {} -> False; Possessive {} -> False
   Tense {} -> False
+  FutureTense {} -> False
   CommaSurrounded {} -> False; SurroundingComma {} -> False
   DashSurrounded {} -> False; SurroundingDash {} -> False
   ControlledInfinitive {} -> False; Control {} -> False

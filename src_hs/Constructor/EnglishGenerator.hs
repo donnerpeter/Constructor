@@ -497,8 +497,8 @@ vp fVerb verbForm clauseType = do
                 else if thereSubject then if verbForm == PastVerb then "was" else "is"
                 else haveForm fSubject fVerb (if isFuture then BaseVerb else verbForm)
               else if itSubject then case fSubject >>= getType of
-                Just "SNOW" -> "snowing"
-                Just "RAIN" -> "raining"
+                Just "SNOW" -> (if isFuture then "be" else "") `cat` "snowing"
+                Just "RAIN" -> (if isFuture then "be" else "") `cat` "raining"
                 _ -> "WEATHER"
               else verb (if isGerund fVerb then Gerund else if null aux then verbForm else BaseVerb) fVerb
       finalAdverb = case getType fVerb of

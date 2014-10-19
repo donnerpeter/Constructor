@@ -60,9 +60,9 @@ randomStuffTests = [TestLabel "random stuff tests" $ TestList [
 --todo  translateTest "Идет дождь. Дождь шёл. Дождь шел. Дождь будет идти."
 --                "It's raining. It was raining. It was raining. It will be raining."
 --  ,
---todo  translateTest "Идет снег"
---                "It's snowing"
---  ,
+  translateTest "Идет снег"
+                "It's snowing"
+  ,
 --todo  translateTest "Курить - здоровью вредить"
 --                "To smoke is to damage the health"
 --  ,

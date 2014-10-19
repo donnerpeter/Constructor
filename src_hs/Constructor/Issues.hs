@@ -50,6 +50,7 @@ issues mites = let
     s | (s == "GO" || s == "CAN" || s == "REMEMBER" || s == "KNOW") &&
              not (and $ map isAnimate $ flatten $ fValue P.Arg1 frame) -> ["inanimate " ++ s ++ " subject"]
     "GO" | Just True == fmap isInanimate (fValue P.RelTime frame >>= fValue P.Anchor) -> ["inanimate GO relTime anchor"]
+    "WEATHER_BE" | Just True /= fmap (hasAnyType ["SNOW", "RAIN"]) (fValue P.Arg1 frame) -> ["non-weather weather_be"]
     "COME_SCALARLY" -> let
       fSubj = fValue P.Arg1 frame
       fOrder = fValue P.Order frame

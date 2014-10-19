@@ -357,9 +357,14 @@ clause fVerb = do
                    else if (fValue P.RelTime fVerb >>= getType) == Just "AFTER" && isNothing (fValue P.RelTime fVerb >>= fValue P.Anchor) then "then"
                    else if (fValue P.RelTime fVerb >>= getType) == Just "BEFORE" && isNothing (fValue P.RelTime fVerb >>= fValue P.Anchor) then "before,"
                    else ""
-    let verbForm = if past state then PastVerb else if Just True == fmap (hasAnyType ["ME", "WE", "THEY"]) fSubject then BaseVerb else Sg3Verb
+    let verbForm =
+          if past state then PastVerb
+          else if isFuture then BaseVerb
+          else if Just True == fmap (hasAnyType ["ME", "WE", "THEY"]) fSubject then BaseVerb
+          else Sg3Verb
         isModality = hasType "modality" fVerb
         isRaising = hasType "SEEM" fVerb
+        isFuture = Just "FUTURE" == sValue P.Time fVerb
         fSubject = if isModality || isRaising then fValue P.Theme fVerb >>= fValue P.Arg1 else fValue P.Arg1 fVerb
         cp = usage P.Content fVerb
     core <- if hasType "degree" fVerb && (fromMaybe False $ fmap (hasType "wh") $ fValue P.Arg2 fVerb)
@@ -457,7 +462,6 @@ beForm fSubject verbForm =
 
 haveForm fSubject fVerb verbForm =
   if verbForm == PastVerb then "had"
-  else if Just "FUTURE" == sValue P.Time fVerb then "will have"
   else if Just True == fmap (hasAnyType ["ME", "WE"]) fSubject then "have"
   else "has"
 
@@ -483,6 +487,7 @@ vp fVerb verbForm clauseType = do
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue P.Question_mark)
       isDoModality = isModality && Just True == fmap (hasType "DO") theme
       thereSubject = clauseType == FiniteClause && (Just "wh" == (fSubject >>= getType) && isModality || isNothing (fSubject >>= getType)) && not isQuestion
+      itSubject = Just "WEATHER_BE" == getType fVerb
       sVerb = if isEllipsisAnchor fSubject fVerb
               then
                 if fSubject == (cp >>= fValue P.EllipsisAnchor2) then if verbForm == PastVerb then "did" else "does"
@@ -490,7 +495,11 @@ vp fVerb verbForm clauseType = do
               else if isModality then
                 if isQuestion then if isJust fSubject && isDoModality then "supposed" else ""
                 else if thereSubject then if verbForm == PastVerb then "was" else "is"
-                else haveForm fSubject fVerb verbForm
+                else haveForm fSubject fVerb (if isFuture then BaseVerb else verbForm)
+              else if itSubject then case fSubject >>= getType of
+                Just "SNOW" -> "snowing"
+                Just "RAIN" -> "raining"
+                _ -> "WEATHER"
               else verb (if isGerund fVerb then Gerund else if null aux then verbForm else BaseVerb) fVerb
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
@@ -499,11 +508,13 @@ vp fVerb verbForm clauseType = do
       negation = if sValue P.Negated fVerb == Just "true" && isGerund fVerb then "not" else ""
       aux =
         if isGerund fVerb && isNothing (usage P.Content fVerb >>= usage P.Member2) then beForm fSubject verbForm
+        else if isFuture then "will"
         else if isModality && isQuestion then
           if isNothing fSubject then ""
           else if isDoModality then beForm fSubject verbForm
           else "should"
         else if inverted then if verbForm == PastVerb then "did" else if Just True == fmap (hasAnyType ["ME", "THEY"]) fSubject then "do" else "does"
+        else if itSubject then "is"
         else ""
       allArgs = if isModality then fromMaybe [] (fmap arguments theme) else arguments fVerb
       topicalizedArg = case (fSubject, allArgs) of
@@ -525,7 +536,7 @@ vp fVerb verbForm clauseType = do
                     clauseType == FiniteClause && Just "wh" == (fSubject >>= getType) && Just "true" == (fSubject >>= sValue P.Not_anymore) ||
                     Just "true" == sValue P.Not_anymore fVerb
         in if isAnymore then "anymore" else ""
-  subject <- if thereSubject then return "there" else case (fSubject, clauseType) of
+  subject <- if thereSubject then return "there" else if itSubject then return "it" else case (fSubject, clauseType) of
     (Just f, FiniteClause) ->
       if thereSubject then return "there"
       else if isVerbEllipsis fVerb && not (isEllipsisAnchor fSubject fVerb) then return "it"
@@ -563,11 +574,15 @@ vp fVerb verbForm clauseType = do
       Just slave -> vp slave Gerund InfiniteClause
       _ -> return ""
     _ -> return ""
-  let contracted = if null preAdverb && null negation && null aux && null according then
-                     if sVerb == "am" then subject ++ "'m"
-                     else if sVerb == "is" then subject ++ "'s"
-                     else if "will " `isPrefixOf` sVerb then subject ++ "'ll" ++ drop (length "will") sVerb
-                     else subject `cat` sVerb
+  let (mainVerb, restVerb) = if null aux then (sVerb, "") else (aux, sVerb)
+  let shortForm = case mainVerb of
+        "am" -> "'m"
+        "is" -> "'s"
+        "will" -> "'ll"
+        _ -> ""
+  let contracted = if null preAdverb && null negation && null according && not inverted then
+                     if null shortForm then subject `cat` mainVerb `cat` restVerb
+                     else (subject ++ shortForm) `cat` restVerb
                    else (if inverted then according `cat` aux `cat` negation `cat` subject else subject `cat` according `cat` aux `cat` negation) `cat` preAdverb `cat` sVerb
   return $ sTopicalized `cat` whWord `cat` contracted `cat` nonWhWord `cat` controlled `cat` sArgs `cat` stranded `cat` anymore `cat` finalAdverb
 

@@ -132,6 +132,7 @@ wordMites word index =
   "деревья" -> nounPl Acc "TREES" v
   "десятью" -> wordNumber Instr "10" v
   "до" -> preposition "do" Gen v
+  "дождь" -> nounSg Nom A.Masc "RAIN" v
   "дойдя" -> perfectBackground "COME_TO" v ++ optional (arg (PP "v" Prep) P.Domain v) ++ optional (arg (PP "do" Gen) P.Goal_by v)
   "долго" -> adverb P.Duration "LONG" v
   "дом" -> xor [nounSg Nom A.Masc "HOUSE" v, nounSg Acc A.Masc "HOUSE" v] ++ genHead P.Owner v
@@ -156,12 +157,16 @@ wordMites word index =
   "знают" -> finVerb "KNOW" "PRESENT" A.pl3 v ++ optional (directObject v)
   "и" -> conjunction v0 "and" True
   "идет" -> xor [finVerb "GO" "PRESENT" A.sg3 v ++ go_args v,
+                 finVerb "WEATHER_BE" "PRESENT" A.sg3 v,
                  finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ arg ScalarAdverb P.Order v]
   "идём" -> xor [finVerb "GO" "PRESENT" A.pl1 v ++ go_args v,
+                 finVerb "WEATHER_BE" "PRESENT" A.pl1 v,
                  finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ arg ScalarAdverb P.Order v]
   "идёт" -> xor [finVerb "GO" "PRESENT" A.sg3 v ++ go_args v,
+                 finVerb "WEATHER_BE" "PRESENT" A.sg3 v,
                  finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ arg ScalarAdverb P.Order v]
   "идти" -> xor [infinitive "GO" v ++ go_args v,
+                 infinitive "WEATHER_BE" v,
                  infinitive "COME_SCALARLY" v ++ arg ScalarAdverb P.Order v]
   "из" -> preposition "iz" Gen v
   "изо" -> preposition "iz" Gen v
@@ -312,6 +317,7 @@ wordMites word index =
   "случае" -> nounSg Prep Masc "CASE" v ++ [mite $ ConditionCompHead v0]
   "случился" -> finVerb "HAPPEN" "PAST" A.m v ++ arg (PP "s" Instr) P.Experiencer v
   "смысла" -> nounSg Gen Masc "MEANING" v
+  "снег" -> nounSg Nom Masc "SNOW" v
   "со" -> xor [preposition "s" Instr v, preposition "s" Gen v]
   "соседа" -> nounSg Gen Masc "NEIGHBOR" v
   "соседей" -> xor [nounPl Acc "NEIGHBORS" v, nounPl Gen "NEIGHBORS" v]

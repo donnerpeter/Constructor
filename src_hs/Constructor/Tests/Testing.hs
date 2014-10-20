@@ -10,12 +10,10 @@ import Control.DeepSeq
 import Control.Monad (when)
 import System.CPUTime
 import System.IO.Unsafe
-import Language.Haskell.TH
-import Language.Haskell.TH.Quote
 
-str = QuasiQuoter { quoteExp = stringE }
+translateTest src target = textTranslateTest 100 src target
 
-translateTest src target = TestLabel src $ TestCase $
+textTranslateTest time src target = TestLabel src $ TestCase $
   let trees = parse src
       sense = Sense.makeSense $ activeStateMites trees
       result = generate sense
@@ -23,7 +21,7 @@ translateTest src target = TestLabel src $ TestCase $
         start <- getCPUTime
         finish <- result `deepseq` getCPUTime
         let ms = round $ fromIntegral (finish - start) / 1000 / 1000 / 1000
-        when (ms > 100) $ putStrLn $ show src ++ " took " ++ show ms
+        when (ms > time) $ putStrLn $ show src ++ " took " ++ show ms
         return result
   in
   assertEqual (show sense ++ "\n\n" ++ (show trees)) target timed

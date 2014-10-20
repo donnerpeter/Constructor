@@ -61,7 +61,7 @@ data StrProperty = Type
                  | DirectSpeech
                  | Not_anymore
                  | Also
-                 | Question_mark | Dot
+                 | Question_mark | Dot | ParagraphEnd
                  | Time
                  | Distinguished
                  | Imperfective

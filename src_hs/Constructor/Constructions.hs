@@ -120,6 +120,7 @@ isHappy cxt = case cxt of
   Complement {} -> False
   Wh {} -> False; WhInSitu {} -> False
   RelativeClause {} -> False
+  Word {} -> False
   _ -> True
 
 getCommaSurroundableVar cxt = case cxt of

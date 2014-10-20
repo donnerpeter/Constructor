@@ -13,7 +13,7 @@ tokenize s = [map toLower token | token <- tokens, length token > 0] where
   processChar = \(tokens, current) char ->
     case char of
       ' ' -> (current:tokens, "")
-      '\n' -> (current:tokens, "")
+      '\n' -> ("\n":current:tokens, "")
       c | c == ':' || c == ',' || c == '.' || c == '\"' || c == '?' -> ([char]:current:tokens, "")
       _ -> (tokens, current++[char])
 

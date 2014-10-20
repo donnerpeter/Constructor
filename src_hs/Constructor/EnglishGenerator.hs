@@ -27,7 +27,7 @@ generate sense =
         else do
           nextSentence <- sentence frame
           let start = if (sValue P.DirectSpeech frame) == Just "true" then "- " else ""
-              separator = if null output then "" else if start == "- " then "\n" else " "
+              separator = if null output || "\n" `isSuffixOf` output then "" else if start == "- " then "\n" else " "
           return $ output ++ separator ++ start ++ capitalize nextSentence
       text = evalState sentenceState $ GenerationState Set.empty False
   in stripLastComma text
@@ -249,7 +249,7 @@ catM t1 t2 = do s1 <- t1; s2 <- t2; return $ s1 `cat` s2
 frameGenerated frame = do state <- get; put $ state { visitedFrames = Set.insert frame $ visitedFrames state }
 
 sentence :: Frame -> State GenerationState String
-sentence frame = handleSeq singleSentence (Just frame) `catM` return finish where
+sentence frame = handleSeq singleSentence (Just frame) `catM` return (finish ++ newline) where
   singleSentence frame = do
     frameGenerated frame
     fromMaybe (return "???sentence") $ liftM clause $ fValue P.Content frame
@@ -258,6 +258,7 @@ sentence frame = handleSeq singleSentence (Just frame) `catM` return finish wher
            else case lastSentence >>= fValue P.Content >>= fValue P.Message of
              Just message -> if isNothing (getType message) then ":" else ""
              _ -> ""
+  newline = if sValue P.ParagraphEnd frame == Just "true" then "\n" else ""
   lastSentence = if hasType "seq" frame then fValue P.Member2 frame else Just frame
 
 genComplement cp = case fValue P.Content cp of

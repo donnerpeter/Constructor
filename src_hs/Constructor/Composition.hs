@@ -127,13 +127,19 @@ punctuationAware env (m1, m2) =
 
       (Clause cp, Word _ ".") ->
         mergeLeft $ base12 [semS cp P.Dot "true", mite $ Sentence cp] ++ closeUnclosed LeftSide Satisfied
+      (Sentence cp, Word _ "\n") ->
+        mergeRight $ base12 [semS cp P.ParagraphEnd "true"] ++ closeUnclosed LeftSide Satisfied
       (TopLevelQuestion cp, Word _ "?") -> left [semS cp P.Question_mark "true", mite $ Sentence cp]
 
       (DirectSpeechHead head Nothing, Colon "directSpeech" v) ->
         mergeLeft $ base12 [mite $ DirectSpeechHead head $ Just v, semV head P.Message v] ++ closeUnclosed LeftSide Satisfied
 
       (DirectSpeechDash v, Sentence cp) ->
-        mergeLeft $ base12 [mite $ DirectSpeech cp, semS cp P.DirectSpeech "true"] ++ closeUnclosed RightSide Satisfied
+        mergeLeft $ base12 [mite $ DirectSpeech cp, mite $ Sentence cp, semS cp P.DirectSpeech "true"] ++ closeUnclosed RightSide Satisfied
+
+      (Colon "elaboration" _, Clause cp) ->
+        mergeLeft $ base12 [mite $ Elaboration cp]
+        ++ closeUnclosed RightSide Satisfied ++ liftUnclosedCompatible RightSide
 
       (Ellipsis v Nothing Nothing, rightCxt) | Just anchor <- ellipsisAnchor rightCxt ->
         left $ [mite $ Ellipsis v Nothing (Just rightCxt), semV v P.EllipsisAnchor2 anchor]
@@ -254,7 +260,6 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
               _ -> []
         in mergeLeft (argMites ++ extra)
 
-      (Colon "elaboration" _, Clause cp) -> left [mite $ Elaboration cp]
       (Verb head, Elaboration child) -> left [semV head P.Elaboration child, mite $ Unclosed RightSide [child]]
 
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]

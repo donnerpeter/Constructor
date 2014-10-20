@@ -1,5 +1,5 @@
 This is a deterministic parser of a subset of Russian equipped with deep semantic representation/inference and human-like translation into English.
-Text samples are mostly based on Daniil Kharms' [Sonnet](kharms_text.txt) short story, hence their strangeness.
+Text samples are mostly based on Daniil Kharms' [Sonnet](sonnet_text.txt) short story, hence their strangeness.
 The source code is in Haskell.
 
 ## Examples

@@ -123,6 +123,7 @@ sValue attr frame =
           if any (\cashier -> typeEarlier cashier frame) $ findFrames "CASHIER" $ sense frame then Just "true"
           else if isJust $ msum [usage P.Arg1 frame, usage P.Source frame] then Just "true"
           else Just "false"
+        else if Just True == fmap isCP (usage P.Content frame) then Just "false"
         else Just "true"
       P.Type -> case usage P.Arg1 frame >>= commandingSubject >>= getType of
         Just commandingType -> Just commandingType

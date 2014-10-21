@@ -322,6 +322,7 @@ wordMites word index =
   "смысла" -> nounSg Gen Masc "MEANING" v
   "снег" -> nounSg Nom Masc "SNOW" v
   "со" -> xor [preposition "s" Instr v, preposition "s" Gen v]
+  "сонет" -> xor [nounSg Nom Masc "SONNET" v, nounSg Acc Masc "SONNET" v]
   "соседа" -> nounSg Gen Masc "NEIGHBOR" v
   "соседей" -> xor [nounPl Acc "NEIGHBORS" v, nounPl Gen "NEIGHBORS" v]
   "соседям" -> nounPl Dat "NEIGHBORS" v

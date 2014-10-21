@@ -239,7 +239,7 @@ cat "" t2 = t2
 cat t1 "" = t1
 cat t1 t2 = case t2 of
  [] -> t1
- c:_ -> if c `elem` ",.:;?" then stripLastComma t1 ++ t2 else t1 ++ " " ++ t2
+ c:_ -> if c `elem` ",.:;?\n" then stripLastComma t1 ++ t2 else t1 ++ " " ++ t2
 
 stripLastComma t1 = if "," `isSuffixOf` t1 then take (length t1 - 1) t1 else t1
 
@@ -252,13 +252,18 @@ sentence :: Frame -> State GenerationState String
 sentence frame = handleSeq singleSentence (Just frame) `catM` return (finish ++ newline) where
   singleSentence frame = do
     frameGenerated frame
-    fromMaybe (return "???sentence") $ liftM clause $ fValue P.Content frame
+    let content = fValue P.Content frame
+    if Just "object" == sValue P.SituationKind frame
+    then np True content
+    else fromMaybe (return " ???sentence") $ liftM clause content
   finish = if sValue P.Dot frame == Just "true" then "."
            else if sValue P.Question_mark frame == Just "true" then "?"
            else case lastSentence >>= fValue P.Content >>= fValue P.Message of
              Just message -> if isNothing (getType message) then ":" else ""
              _ -> ""
-  newline = if sValue P.ParagraphEnd frame == Just "true" then "\n" else ""
+  newline = if sValue P.ParagraphEnd frame == Just "true" then "\n"
+            else if sValue P.SectionEnd frame == Just "true" then "\n\n"
+            else ""
   lastSentence = if hasType "seq" frame then fValue P.Member2 frame else Just frame
 
 genComplement cp = case fValue P.Content cp of

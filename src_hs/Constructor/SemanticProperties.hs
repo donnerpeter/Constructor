@@ -59,9 +59,10 @@ data StrProperty = Type
                  | Name
                  | Irrealis
                  | DirectSpeech
+                 | SituationKind
                  | Not_anymore
                  | Also
-                 | Question_mark | Dot | ParagraphEnd
+                 | Question_mark | Dot | ParagraphEnd | SectionEnd
                  | Time
                  | Distinguished
                  | Imperfective

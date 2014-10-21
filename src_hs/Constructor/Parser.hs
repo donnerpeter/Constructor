@@ -8,14 +8,16 @@ import Constructor.Util
 import Data.Char (toLower)
 import Data.List
 
-tokenize s = [map toLower token | token <- tokens, length token > 0] where
-  tokens = reverse $ fst $ foldl processChar ([], "") (s++" ")
-  processChar = \(tokens, current) char ->
-    case char of
-      ' ' -> (current:tokens, "")
-      '\n' -> ("\n":current:tokens, "")
-      c | c == ':' || c == ',' || c == '.' || c == '\"' || c == '?' -> ([char]:current:tokens, "")
-      _ -> (tokens, current++[char])
+tokenize s = [map toLower token | token <- tokens s, length token > 0] where
+  punctuation c = c == ':' || c == ',' || c == '.' || c == '\"' || c == '?'
+  wordSymbol c = not (punctuation c) && c /= ' ' && c /= '\n'
+  tokens s = case s of
+    [] -> []
+    c:cs -> case c of
+      ' ' -> tokens cs
+      '\n' -> let (token, rest) = span (== '\n') s in token : tokens rest
+      _ | punctuation c -> [c]:tokens cs
+      _ -> let (token, rest) = span wordSymbol s in token : tokens rest
 
 parse:: String -> [Tree]
 parse s =

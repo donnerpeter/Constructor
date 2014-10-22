@@ -28,7 +28,7 @@ rusNumber agr v = case A.number agr of
   Just g -> [semS v P.RusNumber (show g)]
   _ -> []
 
-preposition prep nounArg v = [mite $ PrepHead prep nounArg (v ""), mite $ Argument (PP prep nounArg) (v "")]
+preposition prep nounArg v = [mite $ PrepHead prep nounArg (v "")]
 semPreposition nounArg attr v = [mite $ SemPreposition nounArg (v "noun"), semV (v "") attr (v "noun")]
 finVerb typ time agr v = [semT (v "") typ, semS (v "") P.Time time] ++ finiteClause agr True v
 raisingVerb typ time agr v = [semT (v "") typ, semS (v "") P.Time time, mite $ RaisingVerb (v "") (v "arg1")] ++ finiteClause agr False v
@@ -184,7 +184,7 @@ wordMites word index =
   "кажется" -> raisingVerb "SEEM" "PRESENT" A.sg3 v ++ optional (arg Dat P.Experiencer v)
   "как" -> [mite $ TwoWordCxt "так как" False [] v0]
   "каково" ->
-    finiteClause A.n3 True v ++ [mite $ Copula v0, mite $ TenseHead v0, semT (v "wh") "wh", semT v0 "degree", semV v0 P.Arg2 (v "wh"), mite $ ShortAdj (v "wh")]
+    finiteClause A.n3 True v ++ [mite $ TenseHead v0, semT (v "wh") "wh", semT v0 "degree", semV v0 P.Arg2 (v "wh"), mite $ ShortAdj (v "wh")]
   "какого" -> adjWh Gen A.m P.Determiner v
   "какой" -> xor [adjWh Nom A.m P.Determiner v, adjWh Acc A.m P.Determiner v]
   "какой-то" -> adj Nom A.sg P.Determiner "SOME" v
@@ -221,11 +221,7 @@ wordMites word index =
   "мое" -> [semT v0 "ME", mite $ Possessive Nom A.n v0]
   "моему" -> [semT v0 "ME", mite $ Possessive Dat A.n v0]
   "мы" -> pronoun Nom A.pl1 "WE" v
-  "на" ->
-    -- todo copula for prepositions besides 'na'
-    xor [preposition "na" Prep v,
-         preposition "na" Acc v,
-         [mite $ PrepHead "na" Prep v0, mite $ Copula (v "x"), mite $ TenseHead (v "x"), semT (v "x") "copula", semV (v "x") P.Location_on v0] ++ finiteClause A.empty True (modifyV v 'x')]
+  "на" -> xor [preposition "na" Prep v, preposition "na" Acc v]
   "нам" -> pronoun Dat A.pl1 "WE" v
   "нас" -> pronoun Acc A.pl1 "WE" v
   "начали" -> finVerb "BEGIN" "PAST" A.pl v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")]
@@ -241,7 +237,7 @@ wordMites word index =
   "ничего" -> negatedWh v ++ [mite $ Argument Gen v0]
   "но" ->  xor [conjunction v0 "but" False, [mite $ ConjEmphasis P.ButEmphasis v0]]
   "носом" -> nounSg Instr Masc "NOSE" v
-  "нужно" -> [semT v0 "NEED", mite $ NomHead A.n (v "arg2") Unsatisfied, semV v0 P.Arg2 (v "arg2"), mite $ Copula v0, mite $ TenseHead v0] ++ optional (arg Dat P.Arg1 v) ++ clause v
+  "нужно" -> [semT v0 "NEED", mite $ NomHead A.n (v "arg2") Unsatisfied, semV v0 P.Arg2 (v "arg2"), mite $ TenseHead v0] ++ optional (arg Dat P.Arg1 v) ++ clause v
   "о" -> preposition "o" Prep v
   "обе" -> numQuantifier Acc Gen A.f v ++ [semT (v "q") "BOTH"]
   "облегчением" -> nounSg Instr Neu "RELIEF" v
@@ -343,9 +339,7 @@ wordMites word index =
   "том" -> adj Prep A.sg P.Determiner "THAT" v
   "три" -> wordNumber Acc "3" v
   "тут" -> sAdverb P.Emphasis "true" v
-  "у" ->
-    -- todo copula for prepositions besides 'u'
-    xor [preposition "u" Gen v, [mite $ PrepHead "u" Gen v0, mite $ Copula (v "x"), mite $ TenseHead (v "x"), semT (v "x") "copula", semV (v "x") P.Owner v0] ++ finiteClause A.empty True (modifyV v 'x')]
+  "у" -> preposition "u" Gen v
   "увидел" -> finVerb "SEE" "PAST" A.m v ++ directObject v ++ optional (arg Instr P.Instrument v)
   "удивительный" -> adj Nom A.m P.Property "AMAZING" v
   "углу" -> nounSg Prep Masc "CORNER" v ++ genHead P.Arg1 v

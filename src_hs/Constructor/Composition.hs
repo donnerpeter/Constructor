@@ -234,14 +234,9 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
 
       (SemPreposition kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
       (PrepHead prep1 kind1 var1, Argument kind2 var2) | kind1 == kind2 ->
-        let argMites = leftCompatible env m1 >>= \m3 -> case cxt m3 of
-              Argument (PP prep3 kind3) var3 | prep3 == prep1 && kind1 == kind3 ->
-                withBase [m1,m2,m3] $
+        let argMites = withBase [m1,m2] $
                   [mite $ Unify var1 var2]
-                  ++ (if null adjunctMites then [mite $ Argument (PP prep3 kind3) var3]
-                      else xor [[mite $ Argument (PP prep3 kind3) var3], adjunctMites])
-              Copula var3 -> withBase [m1,m2,m3] [mite $ Unify var1 var2]
-              _ -> []
+                  ++ xor (filter (not. null) [[mite $ Argument (PP prep1 kind1) var1], adjunctMites, copulaVariants])
             adjunctMites = case (prep1, kind1) of
               ("k", Dat) -> semArg Direction P.Goal_to var2
               ("na", Acc) -> semArg Direction P.Goal_on var2
@@ -255,6 +250,12 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
               ("v", Acc) -> semArg Direction P.Goal_in var2
               ("v", Prep) -> xor [[mite $ VerbalModifier P.Condition False var2],
                                   [mite $ VerbalModifier P.Location_in False var2]]
+              _ -> []
+            v = makeV var1 "x"
+            copulaCommon = [mite $ TenseHead (v ""), semT (v "") "copula"] ++ finiteClause Constructor.Agreement.empty True v
+            copulaVariants = case (prep1, kind1) of
+              ("u", Gen) -> copulaCommon ++ [semV (v "") P.Owner var1]
+              ("na", Prep) -> copulaCommon ++ [semV (v "") P.Location_on var1]
               _ -> []
             extra = Seq.pullThyself (rightCompatible env m2) ++ liftGen ++ whPropagation m1 m2 (rightCompatible env m2)
             liftGen = rightCompatible env m2 >>= \m3 -> case cxt m3 of

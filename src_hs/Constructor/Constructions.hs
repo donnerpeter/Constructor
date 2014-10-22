@@ -57,7 +57,6 @@ data Construction = Word Variable String
                   | Tense Variable
                   | TenseHead Variable
                   | FutureTense Agr Variable
-                  | Copula Variable
                   | ShortAdj Variable
                   | ConditionComp Variable {-if/when-} String {-has cp-} Bool
                   | CommaSurrounded {-opened-} Bool {-closed-} Bool Construction

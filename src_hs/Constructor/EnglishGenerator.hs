@@ -221,6 +221,7 @@ determiner frame nbar =
     _ -> return $
       let sDet = fValue P.Determiner frame >>= getType in
       if sDet == Just "THIS" then "this"
+      else if sDet == Just "THAT" then "that"
       else if sDet == Just "ANY" then "any"
       else if sDet == Just "wh" then "which"
       else if isJust (fValue P.Quantifier frame) then ""

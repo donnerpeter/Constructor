@@ -102,6 +102,7 @@ wordMites word index =
   "большой" -> xor[adj Instr A.f P.Size "BIG" v, adj Nom A.m P.Size "BIG" v, adj Acc A.m P.Size "BIG" v]
   "будет" -> [semS v0 P.Time "FUTURE"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0], [mite $ FutureTense A.sg3 v0]]
   "был" -> [mite $ Tense v0, semS v0 P.Time "PAST"]
+  "была" -> [mite $ Tense v0, semS v0 P.Time "PAST"]
   "было" -> [semS v0 P.Time "PAST"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0]]
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
   "васе" -> xor [nounSg Dat Masc "NAMED_PERSON" v, nounSg Prep Masc "NAMED_PERSON" v] ++ [semS v0 P.Name "Vasya"]
@@ -334,6 +335,7 @@ wordMites word index =
   "счета" -> nounSg Gen Masc "COUNTING" v
   "счете" -> nounSg Prep Masc "COUNTING" v
   "считать" -> infinitive "COUNT" v ++ directObject v
+  "та" -> adj Nom A.f P.Determiner "THAT" v
   "так" -> [mite $ TwoWordCxt "так как" True [ReasonComp v0 False] v0]
   "там" -> adverb P.Location "THERE" v
   "танцевать" -> infinitive "DANCE" v

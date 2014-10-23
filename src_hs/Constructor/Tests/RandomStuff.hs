@@ -63,6 +63,9 @@ randomStuffTests = [TestLabel "random stuff tests" $ TestList [
   translateTest "Идет снег"
                 "It's snowing"
   ,
+  translateTest "Эта книга о Васе."
+                "This book is about Vasya."
+  ,
 --todo  translateTest "Курить - здоровью вредить"
 --                "To smoke is to damage the health"
 --  ,

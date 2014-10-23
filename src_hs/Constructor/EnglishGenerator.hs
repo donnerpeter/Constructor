@@ -282,6 +282,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   let negated = Just "true" == sValue P.Negated frame && not (Just "true" == (fValue P.Arg1 frame >>= sValue P.Negated)) in
   case fromJust $ getType frame of
   "copula" -> beForm (fValue P.Arg1 frame) (if sValue P.Time frame /= Just "PAST" then BaseVerb else verbForm)
+  "copula_about" -> beForm (fValue P.Arg1 frame) (if sValue P.Time frame /= Just "PAST" then BaseVerb else verbForm)
   "ARGUE" -> if verbForm == Gerund then "arguing" else if Just "true" == sValue P.Irrealis frame then "were arguing" else "argue"
   "ASK" -> if (fValue P.Topic frame >>= getType) == Just "PREDICAMENT" then if verbForm == PastVerb then "consulted" else "consult" else if verbForm == BaseVerb then "ask" else "asked"
   "BEGIN" -> "started"
@@ -586,7 +587,8 @@ vp fVerb verbForm clauseType = do
         "is" -> "'s"
         "will" -> "'ll"
         _ -> ""
-  let contracted = if null preAdverb && null negation && null according && not inverted then
+  let contractableSubject = Just True == fmap (hasAnyType ["ME", "HE", "SHE", "WE", "wh"]) fSubject || thereSubject || itSubject
+  let contracted = if null preAdverb && null negation && null according && not inverted && contractableSubject then
                      if null shortForm then subject `cat` mainVerb `cat` restVerb
                      else (subject ++ shortForm) `cat` restVerb
                    else (if inverted then according `cat` aux `cat` negation `cat` subject else subject `cat` according `cat` aux `cat` negation) `cat` preAdverb `cat` sVerb

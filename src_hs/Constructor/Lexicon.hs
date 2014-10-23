@@ -104,7 +104,7 @@ wordMites word index =
   "был" -> [mite $ Tense v0, semS v0 P.Time "PAST"]
   "было" -> [semS v0 P.Time "PAST"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0]]
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
-  "васе" -> nounSg Dat Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vasya"]
+  "васе" -> xor [nounSg Dat Masc "NAMED_PERSON" v, nounSg Prep Masc "NAMED_PERSON" v] ++ [semS v0 P.Name "Vasya"]
   "васи" -> nounSg Gen Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vasya"]
   "вася" -> nounSg Nom Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vasya"]
   "вдруг" -> adverb P.Manner "SUDDENLY" v
@@ -194,6 +194,7 @@ wordMites word index =
   "кассирши" -> nounSg Gen Fem "CASHIER" v ++ genHead P.Place v
   "кассиршу" -> nounSg Acc Fem "CASHIER" v ++ genHead P.Place v
   "квартирам" -> nounPl Dat "APARTMENTS" v ++ genHead P.Owner v
+  "книга" -> nounSg Nom Fem "BOOK" v ++ genHead P.Author v
   "книгу" -> nounSg Acc Fem "BOOK" v ++ genHead P.Author v
   "кого" -> xor [caseWhWord Acc A.sg v ++ animate v, caseWhWord Gen A.sg v ++ animate v]
   "когда" -> xor [[mite $ ConditionComp v0 "when" False], whWord v ++ [mite $ VerbalModifier P.VTime False v0] ]
@@ -366,6 +367,7 @@ wordMites word index =
   "шёл" -> xor [finVerb "GO" "PAST" A.m v ++ go_args v,
                  finVerb "WEATHER_BE" "PAST" A.m v,
                  finVerb "COME_SCALARLY" "PAST" A.m v ++ arg ScalarAdverb P.Order v] ++ [semS v0 P.Imperfective "true"]
+  "эта" -> adj Nom A.f P.Determiner "THIS" v
   "это" -> xor [pronoun Nom (A.Agr (Just A.Neu) (Just A.Sg) $ Just 3) "THIS" v, pronoun Acc (A.Agr (Just A.Neu) (Just A.Sg) $ Just 3) "THIS" v]
   "этому" -> adj Dat A.sg P.Determiner "THIS" v
   "я" -> pronoun Nom (A.Agr Nothing (Just A.Sg) $ Just 1) "ME" v

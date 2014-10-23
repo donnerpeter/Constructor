@@ -493,12 +493,14 @@ vp fVerb verbForm clauseType = do
       nonSubjectQuestion = isQuestion && (isNothing fSubject || not (fromJust fSubject `elem` flatten (cp >>= fValue P.Questioned)))
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue P.Question_mark)
       isDoModality = isModality && Just True == fmap (hasType "DO") theme
+      isCopula = hasAnyType ["copula", "copula_about"] fVerb
       thereSubject = clauseType == FiniteClause && (Just "wh" == (fSubject >>= getType) && isModality || isNothing (fSubject >>= getType)) && not isQuestion
       itSubject = Just "WEATHER_BE" == getType fVerb
       sVerb = if isEllipsisAnchor fSubject fVerb
               then
                 if fSubject == (cp >>= fValue P.EllipsisAnchor2) then if verbForm == PastVerb then "did" else "does"
                 else "-"
+              else if isCopula && inverted then ""
               else if isModality then
                 if isQuestion then if isJust fSubject && isDoModality then "supposed" else ""
                 else if thereSubject then if verbForm == PastVerb then "was" else "is"
@@ -520,7 +522,11 @@ vp fVerb verbForm clauseType = do
           if isNothing fSubject then ""
           else if isDoModality then beForm fSubject verbForm
           else "should"
-        else if inverted then if verbForm == PastVerb then "did" else if Just True == fmap (hasAnyType ["ME", "THEY"]) fSubject then "do" else "does"
+        else if inverted then
+          if isCopula then beForm fSubject verbForm
+          else if verbForm == PastVerb then "did"
+          else if Just True == fmap (hasAnyType ["ME", "THEY"]) fSubject then "do"
+          else "does"
         else if itSubject then "is"
         else ""
       allArgs = if isModality then fromMaybe [] (fmap arguments theme) else arguments fVerb

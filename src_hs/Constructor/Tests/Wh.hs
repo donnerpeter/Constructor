@@ -123,33 +123,6 @@ whTests = [TestLabel "wh tests" $ TestList [
   ,
   translateTest "Я забыл, о чём он спросил соседей."
                 "I forgot what he asked his neighbors about."
---  ,
---todo  translateTest "О чём я?"
---                "What was I talking about?"
---  ,
---todo  translateTest "О чём бишь я?"
---                "What was I talking about?"
---  ,
---todo  translateTest "О чём это бишь я?"
---                "What was I talking about?"
---  ,
---todo  translateTest "О чём это я?"
---                "What was I talking about?"
---  ,
---todo  translateTest "О чём эта книга?"
---                "What is this book about?"
---  ,
---todo  translateTest "О чём была та книга?"
---                "What was that book about?"
---  ,
---todo  translateTest "Что это?"
---                "What's this?"
---  ,
---todo  translateTest "Что это было?"
---                "What was this?"
---  ,
---todo  translateTest "Куда он?"
---                "Where is he going?"
   ,
   translateTest "Куда он шёл?"
                 "Where was he going?"

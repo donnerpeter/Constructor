@@ -29,12 +29,10 @@ interactNodes env = {-traceIt ("    interact") $ -}whResults ++ noWh where
     whIncompatible info = any (contradict whMite) (mergeResult info)
     fillGap cp whVar clauseMite =
         let fillers = filter (\info -> mergedHeadSide info == RightSide) $ questionable True
-            whLinks = withBase [whMite, clauseMite] $
-              [semV cp P.Questioned whVar, semT cp "situation"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause cp], [mite $ TopLevelQuestion cp]]
             inSitus = rightCompatible env clauseMite >>= \inSitu -> case cxt inSitu of
               WhInSitu var -> withBase [inSitu] $ [semS var P.InSitu "true"]
               _ -> []
-            infos = fillers >>= \ info -> mergeLeft (mergeResult info ++ whLinks ++ inSitus)
+            infos = fillers >>= \ info -> mergeLeft (mergeResult info ++ withBase [whMite, clauseMite] (whLinks cp whVar) ++ inSitus)
         in infos
     in case cxt whMite of
       Wh whVar -> rightCombined env >>= \clauseMite -> case cxt clauseMite of
@@ -42,6 +40,8 @@ interactNodes env = {-traceIt ("    interact") $ -}whResults ++ noWh where
         ModalityInfinitive _ cp -> fillGap cp whVar clauseMite
         _ -> []
       _ -> []
+
+whLinks cp whVar = [semV cp P.Questioned whVar, semT cp "situation"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause cp], [mite $ TopLevelQuestion cp]]
 
 mergeInfoHelpers m1 m2 = ( \mites -> mergeLeft (base12 mites), \mites -> mergeRight (base12 mites), base12) where
   base12 = withBase [m1,m2]
@@ -234,9 +234,12 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
 
       (SemPreposition kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
       (PrepHead prep1 kind1 var1, Argument kind2 var2) | kind1 == kind2 ->
-        let argMites = withBase [m1,m2] $
-                  [mite $ Unify var1 var2]
-                  ++ xor (filter (not. null) [[mite $ Argument (PP prep1 kind1) var1], adjunctMites, copulaVariants])
+        let argMites = base12 [mite $ Unify var1 var2]
+                       ++ xor (filter (not. null) [
+                         base12 [mite $ Argument (PP prep1 kind1) var1] ++ whPropagation m1 m2 (rightCompatible env m2),
+                         base12 adjunctMites ++ whPropagation m1 m2 (rightCompatible env m2),
+                         base12 copulaVariants ++ copulaWhLinks
+                         ])
             adjunctMites = case (prep1, kind1) of
               ("k", Dat) -> semArg Direction P.Goal_to var2
               ("na", Acc) -> semArg Direction P.Goal_on var2
@@ -253,12 +256,15 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
               _ -> []
             v = makeV var1 "x"
             copulaCommon = [mite $ TenseHead (v "")] ++ finiteClause Constructor.Agreement.empty True v
+            copulaWhLinks = rightCompatible env m2 >>= \m3 -> case cxt m3 of
+              Wh questioned -> withBase [m3] $ whLinks (v "cp") questioned
+              _ -> []
             copulaVariants = case (prep1, kind1) of
               ("u", Gen) -> copulaCommon ++ [semT (v "") "copula", semV (v "") P.Owner var1]
               ("na", Prep) -> copulaCommon ++ [semT (v "") "copula", semV (v "") P.Location_on var1]
               ("o", Prep) -> copulaCommon ++ [semT (v "") "copula_about", semV (v "") P.Arg2 var1]
               _ -> []
-            extra = Seq.pullThyself (rightCompatible env m2) ++ liftGen ++ whPropagation m1 m2 (rightCompatible env m2)
+            extra = Seq.pullThyself (rightCompatible env m2) ++ liftGen
             liftGen = rightCompatible env m2 >>= \m3 -> case cxt m3 of
               GenHead {} -> optional $ withBase [m3] [mite $ cxt m3]
               _ -> []

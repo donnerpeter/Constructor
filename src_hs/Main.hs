@@ -10,8 +10,9 @@ import Constructor.Tests.SonnetVariations
 import Constructor.Tests.Wh
 import Constructor.Tests.RandomStuff
 import Constructor.Tests.HybridCoordination
+import Constructor.Tests.Copula
 import Test.HUnit
 
-allTests = runTestTT $ TestList $ sonnetTests++sonnetVariations++whTests++randomStuffTests++hybridCoordinationTests
+allTests = runTestTT $ TestList $ sonnetTests++sonnetVariations++whTests++randomStuffTests++hybridCoordinationTests++copulaTests
 
 main = allTests

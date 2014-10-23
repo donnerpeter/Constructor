@@ -3,21 +3,6 @@ import Constructor.Tests.Testing
 import Test.HUnit
 
 randomStuffTests = [TestLabel "random stuff tests" $ TestList [
-  translateTest "Я уже на углу Бассейной и Знаменской улицы"
-                "I'm already on the corner of Basseinaya and Znamenskaya streets"
-  ,
-  translateTest "У меня есть арбуз."
-                "I have a watermelon."
-  ,
-  translateTest "У меня был арбуз."
-                "I had a watermelon."
-  ,
-  translateTest "У Васи был арбуз."
-                "Vasya had a watermelon."
-  ,
-  translateTest "Я на углу"
-                "I'm on the corner"
-  ,
   translateTest "Они пошли домой"
                 "They went home"
   ,
@@ -63,9 +48,6 @@ randomStuffTests = [TestLabel "random stuff tests" $ TestList [
   translateTest "Идет снег"
                 "It's snowing"
   ,
-  translateTest "Эта книга о Васе."
-                "This book is about Vasya."
-  ,
 --todo  translateTest "Курить - здоровью вредить"
 --                "To smoke is to damage the health"
 --  ,
@@ -83,12 +65,6 @@ randomStuffTests = [TestLabel "random stuff tests" $ TestList [
 --  ,
 --todo  translateTest "Чай пить - долго жить"
 --                "To drink tea means to live long"
---  ,
---todo  translateTest "Это арбуз. Он зелёный."
---                "This is a water melon. It's green."
---  ,
---todo  translateTest "Она кассирша и работает в магазине."
---                "She is a cashier and works in a store."
 --  ,
   translateTest "Он увидел их"
                 "He saw them"

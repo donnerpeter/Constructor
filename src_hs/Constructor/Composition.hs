@@ -229,7 +229,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
 
       (Quantifier kind1 agr1 v1, Argument kind2 v2) | kind1 == kind2 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
         AdjHead v3 kind3 agr2 | kind3 == kind1 && agree agr1 agr2 && v2 == v3 ->
-          mergeLeft $ withBase [m1, m2, m3] [mite $ Unify v1 v2] ++ liftReflexive (rightCompatible env m2)
+          mergeLeft $ withBase [m1, m2, m3] [mite $ Unify v1 v2] ++ Seq.pullThyself (rightCompatible env m2)
         _ -> []
 
       (SemPreposition kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
@@ -323,10 +323,6 @@ argVariants headVar childVar headPairs childPairs = [mite $ Unify headVar childV
       (m2, ReflexiveReference ref) -> withBase [m1,m2] [semV ref P.Target target]
       _ -> []
     _ -> []
-
-liftReflexive childMites = childMites >>= \m -> case cxt m of
-  ReflexiveReference ref -> withBase [m] [mite $ cxt m]
-  _ -> []
 
 existentials headPairs childPairs = headPairs >>= \case
   (m1, ModalityInfinitive v cp) -> childPairs >>= \case

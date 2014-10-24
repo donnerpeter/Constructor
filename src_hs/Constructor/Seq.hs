@@ -83,8 +83,8 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env =
              _ -> []
            in unifications
         combineThyself = let
-          leftRefs  = leftCombined env  >>= \m -> case cxt m of ReflexiveReference _ -> withBase [m] [mite $ cxt m]; _ -> []
-          rightRefs = rightCombined env >>= \m -> case cxt m of SeqRight (c@(ReflexiveReference _)) -> withBase [m] [mite c]; _ -> []
+          leftRefs  = [m | m@(cxt -> ReflexiveReference _) <- leftCombined env] >>= liftMite
+          rightRefs = [m | m@(cxt -> SeqRight(ReflexiveReference _)) <- rightCombined env] >>= liftMite
           in leftRefs ++ rightRefs
         adjHeadCompanions child kind = if kind `elem` cases then withBase [m2] [mite $ AdjHead seqV kind (Agr Nothing (Just Pl) Nothing)] else []
         distinguished mite = case cxt mite of
@@ -191,11 +191,11 @@ processEllipsis oldClause ellipsisVar@(Variable varIndex _) e1 e2 prevTree = let
       else if containsClause activeHeadMites then ([], [])
       else (leftMapped++ownMapped++rightMapped, leftCovered++rightCovered)
     (mapped, covered) = walkTree prevTree
-    containsClause = any (\m -> case cxt m of Clause cp -> oldCP /= cp; _ -> False)
+    containsClause mites = not $ null [m | m@(cxt -> Clause cp) <- mites, oldCP /=cp]
     in
     if covered == [o1,o2] then Just mapped else Nothing
   in mappings
 
-pullThyself childMites = childMites >>= \m -> case cxt m of
-  ReflexiveReference ref -> withBase [m] [mite $ cxt m]
-  _ -> []
+pullThyself childMites = [m | m@(cxt -> ReflexiveReference _) <- childMites] >>= liftMite
+
+liftMite m = withBase [m] [mite $ cxt m]

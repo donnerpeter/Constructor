@@ -47,8 +47,9 @@ issues mites = let
     "OPINION" | isNothing (fValue P.Arg1 frame >>= getType) -> ["opinion without subj"]
     "WORDS" | isNothing (fValue P.Author frame >>= getType) -> ["words without author"]
     s | (s == "FORGET" || s == "THINK") && isNothing (fValue P.Arg2 frame >>= getType) -> [s ++ " without arg2"]
-    s | (s == "GO" || s == "CAN" || s == "REMEMBER" || s == "KNOW") &&
+    s | (s == "GO" || s == "CAN" || s == "REMEMBER" || s == "KNOW" || s == "copula_talking_about") &&
              not (and $ map isAnimate $ flatten $ fValue P.Arg1 frame) -> ["inanimate " ++ s ++ " subject"]
+    "copula_about" | (or $ map isAnimate $ flatten $ fValue P.Arg1 frame) -> ["animate " ++ declaredType ++ " subject"]
     "GO" | Just True == fmap isInanimate (fValue P.RelTime frame >>= fValue P.Anchor) -> ["inanimate GO relTime anchor"]
     "WEATHER_BE" | Just True /= fmap (hasAnyType ["SNOW", "RAIN"]) (fValue P.Arg1 frame) -> ["non-weather weather_be"]
     "COME_SCALARLY" -> let

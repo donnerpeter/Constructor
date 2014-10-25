@@ -262,7 +262,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
             copulaVariants = case (prep1, kind1) of
               ("u", Gen) -> copulaCommon ++ [semT (v "") "copula", semV (v "") P.Owner var1]
               ("na", Prep) -> copulaCommon ++ [semT (v "") "copula", semV (v "") P.Location_on var1]
-              ("o", Prep) -> copulaCommon ++ [semT (v "") "copula_about", semV (v "") P.Arg2 var1]
+              ("o", Prep) -> copulaCommon ++ xor [[semT (v "") "copula_about", semV (v "") P.Arg2 var1], [semT (v "") "copula_talking_about", semV (v "") P.Arg2 var1]]
               _ -> []
             extra = Seq.pullThyself (rightCompatible env m2) ++ liftGen
             liftGen = rightCompatible env m2 >>= \m3 -> case cxt m3 of

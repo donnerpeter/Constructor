@@ -501,6 +501,7 @@ vp fVerb verbForm clauseType = do
               then
                 if fSubject == (cp >>= fValue P.EllipsisAnchor2) then if verbForm == PastVerb then "did" else "does"
                 else "-"
+              else if hasType "copula_talking_about" fVerb then "talking"
               else if isCopula && inverted then ""
               else if isModality then
                 if isQuestion then if isJust fSubject && isDoModality then "supposed" else ""
@@ -525,6 +526,7 @@ vp fVerb verbForm clauseType = do
           else "should"
         else if inverted then
           if isCopula then beForm fSubject verbForm
+          else if hasType "copula_talking_about" fVerb then beForm fSubject PastVerb
           else if verbForm == PastVerb then "did"
           else if Just True == fmap (hasAnyType ["ME", "THEY"]) fSubject then "do"
           else "does"

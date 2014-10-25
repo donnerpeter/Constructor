@@ -23,5 +23,6 @@ textTranslateTest time src target = TestLabel src $ TestCase $
         let ms = round $ fromIntegral (finish - start) / 1000 / 1000 / 1000
         when (ms > time) $ putStrLn $ show src ++ " took " ++ show ms
         return result
+      message = if length src > 100 then ""  else show sense ++ "\n\n" ++ show trees
   in
-  assertEqual (show sense ++ "\n\n" ++ (show trees)) target timed
+  assertEqual message target timed

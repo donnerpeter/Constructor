@@ -21,6 +21,9 @@ copulaTests = [TestLabel "copula tests" $ TestList [
   translateTest "О чём я?"
                 "What was I talking about?"
   ,
+  translateTest "О ком я? Я о Васе."
+                "Who was I talking about? I was talking about Vasya."
+  ,
 --todo  translateTest "О чём бишь я?"
 --                "What was I talking about?"
 --  ,

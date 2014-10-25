@@ -524,9 +524,9 @@ vp fVerb verbForm clauseType = do
           if isNothing fSubject then ""
           else if isDoModality then beForm fSubject verbForm
           else "should"
+        else if hasType "copula_talking_about" fVerb then beForm fSubject PastVerb
         else if inverted then
           if isCopula then beForm fSubject verbForm
-          else if hasType "copula_talking_about" fVerb then beForm fSubject PastVerb
           else if verbForm == PastVerb then "did"
           else if Just True == fmap (hasAnyType ["ME", "THEY"]) fSubject then "do"
           else "does"

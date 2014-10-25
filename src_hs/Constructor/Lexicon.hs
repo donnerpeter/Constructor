@@ -201,6 +201,7 @@ wordMites word index =
   "когда" -> xor [[mite $ ConditionComp v0 "when" False], whWord v ++ [mite $ VerbalModifier P.VTime False v0] ]
   "коммерческий" -> adj Acc A.m P.Kind "COMMERCIAL" v
   "комнатам" -> nounPl Dat "ROOMS" v ++ genHead P.Owner v
+  "ком" -> caseWhWord Prep A.sg v ++ animate v
   "кому" -> caseWhWord Dat A.sg v ++ animate v
   "которого" -> xor [caseWhWord Gen A.m v, caseWhWord Gen A.n v, adjWh Gen A.m P.Determiner v]
   "котором" -> xor [caseWhWord Prep A.m v, caseWhWord Prep A.n v, adjWh Prep A.m P.Determiner v]

@@ -193,6 +193,7 @@ wordMites word index =
   "какой-то" -> adj Nom A.sg P.Determiner "SOME" v
   "каком" -> adjWh Prep A.m P.Determiner v
   "кассир" -> nounSg Nom Masc "CASHIER" v ++ genHead P.Place v
+  "кассира" -> nounSg Gen Masc "CASHIER" v ++ genHead P.Place v
   "кассирша" -> nounSg Nom Fem "CASHIER" v ++ genHead P.Place v
   "кассирши" -> nounSg Gen Fem "CASHIER" v ++ genHead P.Place v
   "кассиршу" -> nounSg Acc Fem "CASHIER" v ++ genHead P.Place v
@@ -205,7 +206,7 @@ wordMites word index =
   "комнатам" -> nounPl Dat "ROOMS" v ++ genHead P.Owner v
   "ком" -> caseWhWord Prep A.sg v ++ animate v
   "кому" -> caseWhWord Dat A.sg v ++ animate v
-  "которого" -> xor [caseWhWord Gen A.m v, caseWhWord Gen A.n v, adjWh Gen A.m P.Determiner v]
+  "которого" -> xor [caseWhWord Gen A.m v, caseWhWord Gen A.n v, adjWh Gen A.m P.Determiner v, caseWhWord Acc A.m v, adjWh Acc A.m P.Determiner v]
   "котором" -> xor [caseWhWord Prep A.m v, caseWhWord Prep A.n v, adjWh Prep A.m P.Determiner v]
   "которую" -> xor [caseWhWord Acc A.f v, adjWh Acc A.f P.Determiner v]
   "кто" -> caseWhWord Nom A.sg v ++ animate v
@@ -286,6 +287,7 @@ wordMites word index =
   "про" -> preposition "pro" Acc v
   "просто" -> adverb P.Manner "JUST" v
   "пошел" -> finVerb "GO" "PAST" A.m v ++ [mite $ SemArgHead Direction v0]
+  "пошёл" -> finVerb "GO" "PAST" A.m v ++ [mite $ SemArgHead Direction v0]
   "пошла" -> finVerb "GO" "PAST" A.f v ++ [mite $ SemArgHead Direction v0]
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ [mite $ SemArgHead Direction v0]
   "работу" -> nounSg Acc Fem "WORK" v
@@ -306,6 +308,7 @@ wordMites word index =
   "семи" -> wordNumber Gen "7" v
   "семь" -> xor [wordNumber Nom "7" v, wordNumber Acc "7" v]
   "семью" -> xor [nounSg Acc Fem "FAMILY" v ++ genHead P.Arg1 v, wordNumber Instr "7" v]
+  "сестра" -> nounSg Nom Fem "SISTER" v ++ genHead P.Arg1 v
   "сидит" -> finVerb "SIT" "PRESENT" A.sg3 v
   "сидят" -> finVerb "SIT" "PRESENT" A.pl3 v
   "сказал" -> finVerb "SAY" "PAST" A.m v ++ optional (arg Dat P.Addressee v) ++ xor [[mite $ DirectSpeechHead v0 Nothing], directObject v, compHead P.Message v]

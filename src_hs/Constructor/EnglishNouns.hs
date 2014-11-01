@@ -44,6 +44,7 @@ noun (Just typ) frame = case typ of
   "PREDICAMENT" -> "predicament"
   "RELIEF" -> "relief"
   "SHOP" -> "store"
+  "SISTER" -> "sister"
   "SOME" -> "some"
   "SONNET" -> "sonnet"
   "SPEECH" -> "speech"

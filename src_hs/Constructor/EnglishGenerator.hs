@@ -116,7 +116,7 @@ np_internal nom mayHaveDeterminer frame = do
          _ | Just src <- fValue P.Source frame -> return nbar1 `catM` return "from" `catM` np False (Just src)
          _ -> return nbar1
       genitiveComplement <- case getType frame of
-        Just s | s `elem` ["BROTHER", "CORNER"] -> case fValue P.Arg1 frame of
+        Just s | s `elem` ["BROTHER", "SISTER", "CORNER"] -> case fValue P.Arg1 frame of
           Just gen -> return "of" `catM` np False (Just gen)
           _ -> return ""
         Just "OPINION" | not $ isDeterminerOpinion frame -> case fValue P.Arg1 frame of

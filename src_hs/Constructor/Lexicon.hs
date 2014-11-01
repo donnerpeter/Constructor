@@ -116,6 +116,7 @@ wordMites word index =
   "восьми" -> wordNumber Gen "8" v
   "всякого" -> adj Gen A.m P.Determiner "ANY" v
   "выбежали" -> finVerb "RUN_OUT" "PAST" A.pl v ++ arg (PP "iz" Gen) P.Source v
+  "вчера" -> adverb P.RelTime "YESTERDAY" v
   "вынул" -> finVerb "TAKE_OUT" "PAST" A.m v ++ arg (PP "iz" Gen) P.Source v ++ directObject v
   "вынула" -> finVerb "TAKE_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) P.Source v ++ directObject v
   "все" -> xor [adj Nom A.pl P.Specifier_all "ALL" v, pronoun Nom A.pl "EVERYBODY" v ++ [mite $ UniversalPronoun v0]]
@@ -205,6 +206,7 @@ wordMites word index =
   "кому" -> caseWhWord Dat A.sg v ++ animate v
   "которого" -> xor [caseWhWord Gen A.m v, caseWhWord Gen A.n v, adjWh Gen A.m P.Determiner v]
   "котором" -> xor [caseWhWord Prep A.m v, caseWhWord Prep A.n v, adjWh Prep A.m P.Determiner v]
+  "которую" -> xor [caseWhWord Acc A.f v, adjWh Acc A.f P.Determiner v]
   "кто" -> caseWhWord Nom A.sg v ++ animate v
   "куда" -> whWord v ++ semArg Direction P.Goal v0
   "летний" -> adj Acc A.m P.VName "летний" v -- todo летний is not only a name
@@ -282,6 +284,7 @@ wordMites word index =
   "приуныли" -> finVerb "GET_SAD" "PAST" A.pl v
   "про" -> preposition "pro" Acc v
   "просто" -> adverb P.Manner "JUST" v
+  "пошла" -> finVerb "GO" "PAST" A.f3 v ++ [mite $ SemArgHead Direction v0]
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ [mite $ SemArgHead Direction v0]
   "работу" -> nounSg Acc Fem "WORK" v
   "работы" -> nounSg Gen Fem "WORK" v

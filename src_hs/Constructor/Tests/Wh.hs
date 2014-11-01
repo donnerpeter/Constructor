@@ -192,12 +192,12 @@ whTests = [TestLabel "wh tests" $ TestList [
   ,
   translateTest "Кассирша, что подвигала носом, идёт в сад"
                 "The cashier that moved her nose back and forth goes to the garden"
---  ,
---todo  translateTest "Кассирша, что я видел вчера, пошла в сад"
---                "The cashier that I saw yesterday went to the garden"
---  ,
---todo  translateTest "Кассирша, которую я видел вчера, пошла в сад"
---                "The cashier that I saw yesterday went to the garden"
+  ,
+  translateTest "Кассирша, что я видел вчера, пошла в сад"
+                "The cashier that I saw yesterday went to the garden"
+  ,
+  translateTest "Кассирша, которую я видел вчера, пошла в сад"
+                "The cashier that I saw yesterday went to the garden"
 --  ,
 --todo  translateTest "Брат кассирши, которую я видел вчера, пошел в сад"
 --                "The brother of the cashier that I saw yesterday went to the garden"

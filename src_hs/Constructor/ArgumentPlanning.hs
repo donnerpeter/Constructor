@@ -88,7 +88,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       (_, P.VTime) | hasType "wh" value -> [NPArg value]
       (_, P.RelTime) -> case fValue P.Anchor value of
         Just anchor -> [PPAdjunct (if hasType "AFTER" value then "after" else "before") anchor]
-        _ -> []
+        _ -> if hasType "YESTERDAY" value then [Adverb "yesterday"] else []
       _ -> []
     StrValue attr value -> case (attr, value) of
       (P.SAnchor, "AGAIN") -> [Adverb "again"]

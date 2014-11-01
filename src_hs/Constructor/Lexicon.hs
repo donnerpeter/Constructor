@@ -100,6 +100,7 @@ wordMites word index =
   "бессмысленными" -> [mite $ Raiseable A.pl v0, semT v0 "MEANINGLESS"]
   "большим" -> xor[adj Instr A.m P.Size "BIG" v, adj Instr A.n P.Size "BIG" v]
   "большой" -> xor[adj Instr A.f P.Size "BIG" v, adj Nom A.m P.Size "BIG" v, adj Acc A.m P.Size "BIG" v]
+  "брат" -> nounSg Nom Masc "BROTHER" v ++ genHead P.Arg1 v
   "будет" -> [semS v0 P.Time "FUTURE"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0], [mite $ FutureTense A.sg3 v0]]
   "был" -> [mite $ Tense v0, semS v0 P.Time "PAST"]
   "была" -> [mite $ Tense v0, semS v0 P.Time "PAST"]
@@ -284,7 +285,8 @@ wordMites word index =
   "приуныли" -> finVerb "GET_SAD" "PAST" A.pl v
   "про" -> preposition "pro" Acc v
   "просто" -> adverb P.Manner "JUST" v
-  "пошла" -> finVerb "GO" "PAST" A.f3 v ++ [mite $ SemArgHead Direction v0]
+  "пошел" -> finVerb "GO" "PAST" A.m v ++ [mite $ SemArgHead Direction v0]
+  "пошла" -> finVerb "GO" "PAST" A.f v ++ [mite $ SemArgHead Direction v0]
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ [mite $ SemArgHead Direction v0]
   "работу" -> nounSg Acc Fem "WORK" v
   "работы" -> nounSg Gen Fem "WORK" v

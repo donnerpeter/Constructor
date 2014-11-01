@@ -12,6 +12,7 @@ noun (Just typ) frame = case typ of
   "ARGUE" -> "argument"
   "BENCH" -> "bench"
   "BOOK" -> "book"
+  "BROTHER" -> "brother"
   "CASE" -> "thing"
   "CASHIER" -> "cashier"
   "CHILD" -> "child"

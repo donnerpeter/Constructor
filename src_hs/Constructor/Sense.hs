@@ -179,8 +179,9 @@ seqSiblings frame = flatten $ Just $ unSeq frame
 prevSiblings frame = takeWhile (/= frame) $ seqSiblings frame
 nextSiblings frame = tail $ dropWhile (/= frame) $ seqSiblings frame
 
-resolve frame = case (getType frame, fValue P.Target frame) of
-  (Just "SELF", Just target) -> target
+resolve frame = case getType frame of
+  Just "SELF" | Just target <- fValue P.Target frame -> target
+  Just "wh" | Just relativized <- usage P.Questioned frame >>= usage P.Relative -> relativized
   _ -> frame
 
 isNumber frame = any (\f -> sValue P.Number f == Just "true") $ flatten frame

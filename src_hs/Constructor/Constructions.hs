@@ -65,7 +65,8 @@ data Construction = Word Variable String
                   | ModalityInfinitive {-modality-} Variable {-cp-} Variable
                   | ControlledInfinitive Variable
                   | RelativeHead Variable
-                  | RelativeClause Variable
+                  | RelativeClause Agr Variable
+                  | Relativizer Variable
                   | Complement Variable
                   | Complementizer Variable
                   | SurroundingComma Variable
@@ -126,7 +127,7 @@ getCommaSurroundableVar cxt = case cxt of
   ConditionComp v _ True -> Just v
   ReasonComp v True -> Just v
   Complement v -> Just v
-  RelativeClause v -> Just v
+  RelativeClause _ v -> Just v
   VerbalModifier _ True v -> Just v
   NounAdjunct _ True v -> Just v
   Argument _ v -> Just v

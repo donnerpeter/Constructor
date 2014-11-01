@@ -360,7 +360,7 @@ wordMites word index =
   "челюсть" -> nounSg Acc Fem "JAW" v
   "челюстью" -> nounSg Instr Fem "JAW" v
   "чём" -> caseWhWord Prep A.n3 v
-  "что" -> xor [caseWhWord Nom A.n3 v, caseWhWord Acc A.n3 v, [mite $ Complementizer v0], [mite $ TwoWordCxt "потому что" False [] v0]]
+  "что" -> xor [caseWhWord Nom A.n3 v, caseWhWord Acc A.n3 v, [mite $ Complementizer v0], [mite $ TwoWordCxt "потому что" False [] v0], [mite $ Relativizer v0, semT v0 "wh"]]
   "чьему" -> whWord v ++ animate v ++ xor [[mite $ Possessive Dat A.m v0], [mite $ Possessive Dat A.n v0]]
   "чьим" -> whWord v ++ animate v ++ [mite $ Possessive Dat A.pl v0]
   "шести" -> wordNumber Gen "6" v

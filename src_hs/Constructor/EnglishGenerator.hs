@@ -34,7 +34,7 @@ generate sense =
 
 capitalize (c:rest) = (toUpper c):rest
 
-getTopFrame frame = if isCP frame then upmostSeq frame else Nothing where
+getTopFrame frame = if isCP frame && isNothing (usage P.Relative frame) then upmostSeq frame else Nothing where
   upmostSeq frame =
     case usage P.Member1 frame of
       Just p -> upmostSeq p
@@ -194,7 +194,7 @@ isDeterminerOpinion frame = unSeq frame == frame && all (hasAnyType ["ME", "THEY
 determiner frame nbar =
   let det = fDeterminer frame
       genitiveSpecifier det =
-        case getType det of
+        case getType $ resolve det of
           Just "ME" -> return "my"
           Just "HE" -> return "his"
           Just "THEY" -> return "their"

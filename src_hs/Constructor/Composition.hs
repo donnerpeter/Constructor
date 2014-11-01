@@ -41,7 +41,7 @@ interactNodes env = {-traceIt ("    interact") $ -}whResults ++ noWh where
         _ -> []
       _ -> []
 
-whLinks cp whVar = [semV cp P.Questioned whVar, semT cp "situation"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause cp], [mite $ TopLevelQuestion cp]]
+whLinks cp whVar = [semV cp P.Questioned whVar, semT cp "situation"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause empty cp], [mite $ TopLevelQuestion cp]]
 
 mergeInfoHelpers m1 m2 = ( \mites -> mergeLeft (base12 mites), \mites -> mergeRight (base12 mites), base12) where
   base12 = withBase [m1,m2]
@@ -89,7 +89,7 @@ punctuationAware env (m1, m2) =
         base12 [semV head attr var] ++ liftUnclosedCompatible RightSide
       (CompHead comp, CommaSurrounded True _ (Complement cp)) -> mergeLeft $
         base12 [mite $ Unify comp cp] ++ liftUnclosedCompatible RightSide
-      (RelativeHead noun, CommaSurrounded True _ (RelativeClause cp)) -> mergeLeft $
+      (RelativeHead noun, CommaSurrounded True _ (RelativeClause _ cp)) -> mergeLeft $
         base12 [semV noun P.Relative cp] ++ liftUnclosedCompatible RightSide
 
       (CommaSurrounded _ closed (VerbalModifier attr True advP), Verb verb) -> mergeRight $
@@ -221,6 +221,10 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
         _ -> []
       (GenHead v1, Argument Gen v2) -> left $ [mite $ Unify v1 v2] ++ whPropagation m1 m2 (rightCompatible env m2)
 
+      (Relativizer wh, NomHead agr v2 Unsatisfied) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
+        Clause cp -> mergeLeft $ withBase [m1,m2,m3] [mite $ Unify v2 wh, mite $ RelativeClause agr cp, mite $ NomHead agr v2 Satisfied, semV cp P.Questioned wh]
+        _ -> []
+
       (ConjEmphasis attr _, Verb head) -> right [semS head attr "true"]
 
       (Adverb v, Verb head) -> right [mite $ Unify v head]
@@ -277,7 +281,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
 
       (Verb v, Word _ "бы") -> left [semS v P.Irrealis "true"]
       (Word _ "очень", adverb@(Adverb {})) -> right [mite $ adverb]
-      
+
       (TenseHead v0, Tense v1) -> left [mite $ Unify v0 v1]
       (Tense v0, TenseHead v1) -> right [mite $ Unify v0 v1]
 

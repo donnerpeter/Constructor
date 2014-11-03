@@ -803,6 +803,9 @@ varUnsorted = TestLabel "sonnetVariations unsorted" $ TestList [
   translateTest "Я забыл, по словам и мнению кого семь идет после восьми."
                 "I forgot according to and in the opinion of whom a seven comes after an eight."
   ,
+  translateTest "По словам и мнению кого 7 идет раньше 8?"
+                "According to and in the opinion of whom does a 7 come before an 8?"
+  ,
   translateTest "Кассирша с Бассейной идет в магазин"
                 "The cashier from Basseinaya street goes to the store"
   ,

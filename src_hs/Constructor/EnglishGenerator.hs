@@ -87,6 +87,8 @@ np nom frame =
 
 np_internal :: Bool -> Bool -> Frame -> State GenerationState String
 np_internal nom mayHaveDeterminer frame = do
+  state <- get
+  if Set.member frame (visitedFrames state) then return $ fromMaybe "ONE" $ getType frame else do
   frameGenerated frame
   unquantified <- if hasType "ME" frame then if nom then return "I" else return "me"
     else if hasType "HE" frame then if nom then return "he" else return "him"
@@ -109,22 +111,19 @@ np_internal nom mayHaveDeterminer frame = do
               else noun (getType frame) frame
           adjs = foldl cat "" $ adjectives frame
           nbar1 = adjs `cat` n
+          fDet = fDeterminer frame
       nbar <- case getType frame of
          Just "ORDER" | Just poss <- fValue P.Arg1 frame -> handleSeq (np_internal True False) (Just poss) `catM` return nbar1
          Just "STREET" | not (prefixName frame) -> return nbar1 `catM` return (streetName frame)
          _ | Just loc <- fValue P.Location_on frame -> return nbar1 `catM` return "on" `catM` np False (Just loc)
          _ | Just src <- fValue P.Source frame -> return nbar1 `catM` return "from" `catM` np False (Just src)
          _ -> return nbar1
-      genitiveComplement <- case getType frame of
-        Just s | s `elem` ["BROTHER", "SISTER", "CORNER"] -> case fValue P.Arg1 frame of
-          Just gen -> return "of" `catM` np False (Just gen)
-          _ -> return ""
-        Just "OPINION" | not $ isDeterminerOpinion frame -> case fValue P.Arg1 frame of
-          Just gen -> return "of" `catM` elideableArgument (Just gen) frame
-          _ -> return ""
+      spec <- if mayHaveDeterminer then determiner frame fDet nbar else return ""
+      genitiveComplement <- case fDet of
+        Just det | not mayHaveDeterminer || shouldGenerateDeterminer frame det state False ->
+          return "of" `catM` elideableArgument fDet frame
         _ -> return ""
-      det <- if mayHaveDeterminer then determiner frame nbar else return ""
-      return $ det `cat` nbar `cat` genitiveComplement
+      return $ spec `cat` nbar `cat` genitiveComplement
   let fQuantifier = fValue P.Quantifier frame
   let allOf = if (fValue P.Specifier_all frame >>= getType) == Just "ALL" then "all of" else ""
   let postQuantifier = if not (null allOf) && hasType "WE" frame ||
@@ -183,41 +182,62 @@ streetName frame = case sValue P.Name frame of
  _ -> ""
 
 fDeterminer frame =
-  if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "JAWS", "ARGUE", "FINGER", "SPEECH", "FAMILY", "EYES"] frame then fValue P.Arg1 frame
-  else if hasAnyType ["OPINION"] frame && isDeterminerOpinion frame then fValue P.Arg1 frame
+  if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "JAWS", "ARGUE", "FINGER", "SPEECH", "FAMILY", "EYES", "BROTHER", "SISTER", "CORNER"] frame then fValue P.Arg1 frame
+  else if hasAnyType ["OPINION"] frame then fValue P.Arg1 frame
   else if hasAnyType ["WORDS", "BOOK"] frame then fValue P.Author frame
   else if hasAnyType ["ROOMS", "APARTMENTS", "OFFICES"] frame then fValue P.Owner frame
   else if hasAnyType ["CASHIER"] frame then fValue P.Place frame
   else Nothing
 
-isDeterminerOpinion frame = unSeq frame == frame && all (hasAnyType ["ME", "THEY", "HE", "SHE", "wh"]) (flatten $ fValue P.Arg1 frame)
-determiner frame nbar =
-  let det = fDeterminer frame
-      genitiveSpecifier det =
+usePronoun state frame = Set.member frame (visitedFrames state)
+isPronoun = hasAnyType ["ME", "THEY", "HE", "SHE", "wh"]
+
+isHeavyNP :: GenerationState -> Maybe Frame -> Bool
+isHeavyNP state mNoun = Just True == fmap isHeavyNoun mNoun where
+  isHeavyNoun noun =
+    if usePronoun state noun then False
+    else if hasType "seq" noun then any (not . isPronoun) (flatten $ Just noun)
+    else isJust (fValue P.Relative noun) || isJust (fValue P.Components noun) || isHeavyNP state (fDeterminer noun)
+
+shouldGenerateDeterminer noun det state asSpecifier = let
+  prev = filter (\f -> fDeterminer f == Just det) $ prevSiblings noun
+  next = filter (\f -> fDeterminer f == Just det) $ nextSiblings noun
+  in
+  if not (null prev) && Set.member det (visitedFrames state) then False
+  else if hasType "OPINION" noun && not (isPronoun det) then not asSpecifier
+  else if isHeavyNP state $ Just det then not asSpecifier
+  else if any (hasType "WORDS") $ prev ++ next then not asSpecifier
+  else if null prev then asSpecifier
+  else if null next then not asSpecifier
+  else False
+
+determiner frame det nbar = do
+  state <- get
+  let genitiveSpecifier det =
+        let pronoun s = do frameGenerated det; return s in
         case getType $ resolve det of
-          Just "ME" -> return "my"
-          Just "HE" -> return "his"
-          Just "THEY" -> return "their"
-          Just "WE" -> return "our"
-          Just "SHE" -> return "her"
-          Just "wh" -> return "whose"
-          Just s -> do
-            state <- get
-            if Set.member det (visitedFrames state) then return $ case sValue P.RusGender det of
+          Just "ME" -> pronoun "my"
+          Just "HE" -> pronoun "his"
+          Just "THEY" -> pronoun "their"
+          Just "WE" -> pronoun "our"
+          Just "SHE" -> pronoun "her"
+          Just "wh" -> pronoun "whose"
+          Just s ->
+            if usePronoun state det then pronoun $ case sValue P.RusGender det of
                Just "Masc" -> "his"
                Just "Fem" -> "her"
                Just "Neu" -> "its"
                _ -> s
             else do
               let human = isHuman det
-              sDet <- np_internal False (not human) det
+              let allowInnerDeterminer = not $ hasAnyType ["OPINION", "WORDS"] frame
+              sDet <- np_internal False allowInnerDeterminer det
               return $ if human then if "s" `isSuffixOf` sDet then sDet ++ "'" else sDet ++ "'s" else sDet
           _ -> return ""
-  in
   case det of
-    Just _det  | not $ any (\f -> fDeterminer frame == fDeterminer f) (prevSiblings frame) ->
+    Just _det | shouldGenerateDeterminer frame _det state True ->
       let own = if hasType "SELF" _det && hasType "EYES" frame && isNothing (fValue P.Quantifier frame) then "own" else ""
-      in handleSeq genitiveSpecifier (fmap resolve det) `catM` return own
+      in handleSeq genitiveSpecifier det `catM` return own
     _ -> return $
       let sDet = fValue P.Determiner frame >>= getType in
       if sDet == Just "THIS" then "this"
@@ -337,8 +357,7 @@ conjIntroduction fVerb =
 distinguish frame = isNothing (usage P.Member2 frame) || Just "true" == sValue P.Distinguished frame ||
   hasType "OPINION" frame && Just "WORDS" == (usage P.Member2 frame >>= fValue P.Member1 >>= getType)
 
-elideableArgument frame parent = if any (\f -> source f == frame) (nextSiblings parent) then return "" else np False frame where
-  source f = if hasType "WORDS" f then fValue P.Author f else fValue P.Arg1 f
+elideableArgument frame parent = if any (\f -> fDeterminer f == frame) (nextSiblings parent) then return "" else np False frame
 
 generateAccording parent = case fValue P.AccordingTo parent of
   Just source -> do

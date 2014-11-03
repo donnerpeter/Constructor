@@ -68,4 +68,7 @@ randomStuffTests = [TestLabel "random stuff tests" $ TestList [
   ,
   translateTest "Он увидел их и их семью"
                 "He saw them and their family"
+  ,
+  translateTest "Сестра кассира пошла в сад"
+                "The cashier's sister went to the garden"
   ]]

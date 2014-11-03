@@ -39,7 +39,7 @@ data Construction = Word Variable String
                   | Closed [Variable]
                   | CompHead Variable
                   | ConditionCompHead Variable
-                  | Wh Variable
+                  | Wh Agr Variable
                   | WhInSitu Variable
                   | ExistentialWh {-wh-} Variable {-tensed-} Variable
                   | WhAsserter Variable

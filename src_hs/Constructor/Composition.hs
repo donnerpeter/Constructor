@@ -27,21 +27,21 @@ interactNodes env = {-traceIt ("    interact") $ -}whResults ++ noWh where
 
   whResults = leftCombined env >>= \whMite -> let
     whIncompatible info = any (contradict whMite) (mergeResult info)
-    fillGap cp whVar clauseMite =
+    fillGap cp whVar clauseMite agr =
         let fillers = filter (\info -> mergedHeadSide info == RightSide) $ questionable True
             inSitus = rightCompatible env clauseMite >>= \inSitu -> case cxt inSitu of
               WhInSitu var -> withBase [inSitu] $ [semS var P.InSitu "true"]
               _ -> []
-            infos = fillers >>= \ info -> mergeLeft (mergeResult info ++ withBase [whMite, clauseMite] (whLinks cp whVar) ++ inSitus)
+            infos = fillers >>= \ info -> mergeLeft (mergeResult info ++ withBase [whMite, clauseMite] (whLinks cp whVar agr) ++ inSitus)
         in infos
     in case cxt whMite of
-      Wh whVar -> rightCombined env >>= \clauseMite -> case cxt clauseMite of
-        Clause cp -> fillGap cp whVar clauseMite
-        ModalityInfinitive _ cp -> fillGap cp whVar clauseMite
+      Wh agr whVar -> rightCombined env >>= \clauseMite -> case cxt clauseMite of
+        Clause cp -> fillGap cp whVar clauseMite agr
+        ModalityInfinitive _ cp -> fillGap cp whVar clauseMite agr
         _ -> []
       _ -> []
 
-whLinks cp whVar = [semV cp P.Questioned whVar, semT cp "situation"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause empty cp], [mite $ TopLevelQuestion cp]]
+whLinks cp whVar agr = [semV cp P.Questioned whVar, semT cp "situation"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause agr cp], [mite $ TopLevelQuestion cp]]
 
 mergeInfoHelpers m1 m2 = ( \mites -> mergeLeft (base12 mites), \mites -> mergeRight (base12 mites), base12) where
   base12 = withBase [m1,m2]
@@ -89,9 +89,10 @@ punctuationAware env (m1, m2) =
         base12 [semV head attr var] ++ liftUnclosedCompatible RightSide
       (CompHead comp, CommaSurrounded True _ (Complement cp)) -> mergeLeft $
         base12 [mite $ Unify comp cp] ++ liftUnclosedCompatible RightSide
-      (RelativeHead noun, CommaSurrounded True _ (RelativeClause _ cp)) -> mergeLeft $
-        base12 [semV noun P.Relative cp] ++ liftUnclosedCompatible RightSide
-
+      (RelativeHead noun, CommaSurrounded True _ (RelativeClause agr2 cp)) -> leftCompatible env m1 >>= \m3 -> case cxt m3 of
+        AdjHead _ _ agr1 | agree agr1 agr2 -> mergeLeft $
+          withBase [m1,m2,m3] [semV noun P.Relative cp] ++ liftUnclosedCompatible RightSide
+        _ -> []
       (CommaSurrounded _ closed (VerbalModifier attr True advP), Verb verb) -> mergeRight $
         base12 [semV verb attr advP]
         ++ closeUnclosed LeftSide (if closed then Satisfied else Unsatisfied)
@@ -158,7 +159,7 @@ questionableArguments env whContext = map (propagateUnclosed env) $ let
     info@(MergeInfo mites side) <- interactQuestionable lp rp whContext p1 p2
     let childMite = select side (fst p2) (fst p1)
     let liftedWh = (select side rightCompatible leftCompatible) env childMite >>= \m3 -> case cxt m3 of
-          Wh var -> withBase [m3] [mite $ WhInSitu var]
+          Wh _ var -> withBase [m3] [mite $ WhInSitu var]
           _ -> []
     return $ if whContext then info else MergeInfo (mites ++ liftedWh) side
   normalResults = doInteract leftPairs rightPairs
@@ -224,6 +225,9 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (Relativizer wh, NomHead agr v2 Unsatisfied) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
         Clause cp -> mergeLeft $ withBase [m1,m2,m3] [mite $ Unify v2 wh, mite $ RelativeClause agr cp, mite $ NomHead agr v2 Satisfied, semV cp P.Questioned wh]
         _ -> []
+      (Relativizer wh, ArgHead Acc v2) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
+        Clause cp -> mergeLeft $ withBase [m1,m2,m3] [mite $ Unify v2 wh, mite $ RelativeClause empty cp, semV cp P.Questioned wh]
+        _ -> []
 
       (ConjEmphasis attr _, Verb head) -> right [semS head attr "true"]
 
@@ -261,7 +265,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
             v = makeV var1 "x"
             copulaCommon = [mite $ TenseHead (v "")] ++ finiteClause Constructor.Agreement.empty True v
             copulaWhLinks = rightCompatible env m2 >>= \m3 -> case cxt m3 of
-              Wh questioned -> withBase [m3] $ whLinks (v "cp") questioned
+              Wh agr questioned -> withBase [m3] $ whLinks (v "cp") questioned agr
               _ -> []
             copulaVariants = case (prep1, kind1) of
               ("u", Gen) -> copulaCommon ++ [semT (v "") "copula", semV (v "") P.Owner var1]
@@ -277,7 +281,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (Verb head, Elaboration child) -> left [semV head P.Elaboration child, mite $ Unclosed RightSide [child]]
 
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
-      (wh@(Wh _), Word _ "бишь") -> left [mite $ wh]
+      (wh@(Wh {}), Word _ "бишь") -> left [mite $ wh]
 
       (Verb v, Word _ "бы") -> left [semS v P.Irrealis "true"]
       (Word _ "очень", adverb@(Adverb {})) -> right [mite $ adverb]
@@ -285,7 +289,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (TenseHead v0, Tense v1) -> left [mite $ Unify v0 v1]
       (Tense v0, TenseHead v1) -> right [mite $ Unify v0 v1]
 
-      (WhAsserter verb, Wh wh) -> right [mite $ ExistentialWh wh verb]
+      (WhAsserter verb, Wh _ wh) -> right [mite $ ExistentialWh wh verb]
 
       (ConditionComp v0 s False, Clause cp) -> left [mite $ Unify v0 cp, mite $ ConditionComp v0 s True]
 
@@ -305,7 +309,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (Negated v, Word _ "больше") -> left [semS v P.Not_anymore "true"]
 
       (Word _ "не", Complement cp) -> right [semS cp P.Negated "true", mite $ Complement cp]
-      (Word ne "не", Wh v) -> right [mite $ ExistentialWh v ne, semS v P.Negated "true"]
+      (Word ne "не", Wh _ v) -> right [mite $ ExistentialWh v ne, semS v P.Negated "true"]
       (Word _ "не", Verb v) -> let
         negateDirectObject = rightCombined env >>= \m3 -> case cxt m3 of
           ArgHead Acc v -> let

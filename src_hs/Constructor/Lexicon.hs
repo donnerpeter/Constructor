@@ -51,14 +51,14 @@ compHead attr v = [mite $ CompHead (v "comp"), semV (v "") attr (v "comp")]
 semArg argType relation childVar@(Variable index s) = let headVar = Variable index (s ++ "_head") in
   [mite $ SemArgument argType headVar childVar, semV headVar relation childVar]
 
-whWord v = [mite $ Wh (v ""), semT (v "") "wh"]
-caseWhWord kind agr v = whWord v ++ [mite $ QuestionVariants (v "") kind, mite $ Argument kind (v ""), mite $ AdjHead (v "") kind agr]
+whWord agr v = [mite $ Wh agr (v ""), semT (v "") "wh"]
+caseWhWord kind agr v = whWord agr v ++ [mite $ QuestionVariants (v "") kind, mite $ Argument kind (v ""), mite $ AdjHead (v "") kind agr]
 negatedWh v = [semT (v "") "wh", semS (v "") P.Negated "true", mite $ Negated (v ""), mite $ NegativePronoun (v "")]
 animate v = [semS (v "") P.Animate "true"]
 
 adj caze agr attr value v = [mite $ Adj (v "") caze agr, semV (v "") attr (v "adj"), semT (v "adj") value]
   ++ rusNumber agr (v "")
-adjWh caze agr attr v = [mite $ Adj (v "") caze agr, semV (v "") attr (v "adj"), semT (v "adj") "wh", mite $ Wh (v "adj")]
+adjWh caze agr attr v = [mite $ Adj (v "") caze agr, semV (v "") attr (v "adj"), semT (v "adj") "wh", mite $ Wh agr (v "adj")]
   ++ rusNumber agr (v "")
 
 perfectBackground typ v = [mite $ Verb (v ""), semT (v "") typ, mite $ VerbalModifier P.PerfectBackground True (v "")]
@@ -124,7 +124,7 @@ wordMites word index =
   "всё" -> xor [pronoun Nom A.n3 "EVERYTHING" v, pronoun Acc A.n3 "EVERYTHING" v] ++ [mite $ UniversalPronoun v0]
   "всеми" -> adj Instr A.pl P.Specifier_all "ALL" v ++ [mite $ UniversalPronoun v0]
   "вспомнить" -> infinitive "RECALL" v ++ directObject v
-  "где" -> whWord v ++ [mite $ VerbalModifier P.Location False v0]
+  "где" -> whWord A.empty v ++ [mite $ VerbalModifier P.Location False v0]
   "глазами" -> nounPl Instr "EYES" v ++ genHead P.Arg1 v
   "глупый" -> adj Nom A.m P.Quality "STUPID" v
   "грустно" -> adverb P.Manner "SADLY" v
@@ -201,7 +201,7 @@ wordMites word index =
   "книга" -> nounSg Nom Fem "BOOK" v ++ genHead P.Author v
   "книгу" -> nounSg Acc Fem "BOOK" v ++ genHead P.Author v
   "кого" -> xor [caseWhWord Acc A.sg v ++ animate v, caseWhWord Gen A.sg v ++ animate v]
-  "когда" -> xor [[mite $ ConditionComp v0 "when" False], whWord v ++ [mite $ VerbalModifier P.VTime False v0] ]
+  "когда" -> xor [[mite $ ConditionComp v0 "when" False], whWord A.empty v ++ [mite $ VerbalModifier P.VTime False v0] ]
   "коммерческий" -> adj Acc A.m P.Kind "COMMERCIAL" v
   "комнатам" -> nounPl Dat "ROOMS" v ++ genHead P.Owner v
   "ком" -> caseWhWord Prep A.sg v ++ animate v
@@ -210,7 +210,7 @@ wordMites word index =
   "котором" -> xor [caseWhWord Prep A.m v, caseWhWord Prep A.n v, adjWh Prep A.m P.Determiner v]
   "которую" -> xor [caseWhWord Acc A.f v, adjWh Acc A.f P.Determiner v]
   "кто" -> caseWhWord Nom A.sg v ++ animate v
-  "куда" -> whWord v ++ semArg Direction P.Goal v0
+  "куда" -> whWord A.empty v ++ semArg Direction P.Goal v0
   "летний" -> adj Acc A.m P.VName "летний" v -- todo летний is not only a name
   "лишенными" -> [mite $ Raiseable A.pl v0, semT v0 "LACK"] ++ arg Gen P.Theme v
   "любит" -> finVerb "LOVE" "PRESENT" A.sg3 v ++ optional (directObject v)
@@ -369,8 +369,8 @@ wordMites word index =
   "челюстью" -> nounSg Instr Fem "JAW" v
   "чём" -> caseWhWord Prep A.n3 v
   "что" -> xor [caseWhWord Nom A.n3 v, caseWhWord Acc A.n3 v, [mite $ Complementizer v0], [mite $ TwoWordCxt "потому что" False [] v0], [mite $ Relativizer v0, semT v0 "wh"]]
-  "чьему" -> whWord v ++ animate v ++ xor [[mite $ Possessive Dat A.m v0], [mite $ Possessive Dat A.n v0]]
-  "чьим" -> whWord v ++ animate v ++ [mite $ Possessive Dat A.pl v0]
+  "чьему" -> whWord A.empty v ++ animate v ++ xor [[mite $ Possessive Dat A.m v0], [mite $ Possessive Dat A.n v0]]
+  "чьим" -> whWord A.empty v ++ animate v ++ [mite $ Possessive Dat A.pl v0]
   "шести" -> wordNumber Gen "6" v
   "шел" -> xor [finVerb "GO" "PAST" A.m v ++ go_args v,
                  finVerb "WEATHER_BE" "PAST" A.m v,

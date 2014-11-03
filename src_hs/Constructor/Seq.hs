@@ -139,8 +139,8 @@ hybridSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = let
     NegativePronoun mem1 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
       SeqRight (NegativePronoun mem2) -> makeHybrid m1 m3 mem1 mem2 (NegativePronoun seqV)
       _ -> []
-    Wh mem1 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
-      SeqRight (Wh mem2) -> makeHybrid m1 m3 mem1 mem2 (Wh seqV)
+    Wh agr1 mem1 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
+      SeqRight (Wh agr2 mem2) | agree agr1 agr2 -> makeHybrid m1 m3 mem1 mem2 (Wh empty seqV)
       _ -> []
     _ -> []
 

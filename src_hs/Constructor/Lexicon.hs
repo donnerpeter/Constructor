@@ -187,7 +187,9 @@ wordMites word index =
   "кажется" -> raisingVerb "SEEM" "PRESENT" A.sg3 v ++ optional (arg Dat P.Experiencer v)
   "как" -> [mite $ TwoWordCxt "так как" False [] v0]
   "каково" ->
-    finiteClause A.n3 True v ++ [mite $ TenseHead v0, semT (v "wh") "wh", semT v0 "degree", semV v0 P.Arg2 (v "wh"), mite $ ShortAdj (v "wh")]
+    finiteClause A.n3 True v ++ [mite $ TenseHead v0, semT (v "wh") "wh", semV v0 P.Arg2 (v "wh"), mite $ ShortAdj (v "wh")] ++
+    xor [[semT v0 "degree"],
+         [semT v0 "copula", semV (v "cp") P.Questioned (v "wh")] ++ xor [[mite $ Complement (v "cp")], [mite $ TopLevelQuestion (v "cp")]]]
   "какого" -> adjWh Gen A.m P.Determiner v
   "какой" -> xor [adjWh Nom A.m P.Determiner v, adjWh Acc A.m P.Determiner v]
   "какой-то" -> adj Nom A.sg P.Determiner "SOME" v
@@ -209,17 +211,19 @@ wordMites word index =
   "которого" -> xor [caseWhWord Gen A.m v, caseWhWord Gen A.n v, adjWh Gen A.m P.Determiner v, caseWhWord Acc A.m v, adjWh Acc A.m P.Determiner v]
   "котором" -> xor [caseWhWord Prep A.m v, caseWhWord Prep A.n v, adjWh Prep A.m P.Determiner v]
   "которую" -> xor [caseWhWord Acc A.f v, adjWh Acc A.f P.Determiner v]
+  "который" -> xor [caseWhWord Nom A.m v, adjWh Nom A.m P.Determiner v]
   "кто" -> caseWhWord Nom A.sg v ++ animate v
   "куда" -> whWord A.empty v ++ semArg Direction P.Goal v0
   "летний" -> adj Acc A.m P.VName "летний" v -- todo летний is not only a name
   "лишенными" -> [mite $ Raiseable A.pl v0, semT v0 "LACK"] ++ arg Gen P.Theme v
   "любит" -> finVerb "LOVE" "PRESENT" A.sg3 v ++ optional (directObject v)
   "любить" -> infinitive "LOVE" v ++ optional (directObject v)
-  "магазин" -> xor [nounSg Nom Masc "SHOP" v, nounSg Acc Masc "SHOP" v] -- todo который + agr
+  "магазин" -> xor [nounSg Nom Masc "SHOP" v, nounSg Acc Masc "SHOP" v]
   "магазина" -> nounSg Gen Masc "SHOP" v
   "маленький" -> adj Acc A.m P.Size "LITTLE" v
   "меня" -> xor [pronoun Acc A.sg "ME" v, pronoun Gen A.sg "ME" v]
   "мне" -> pronoun Dat A.sg "ME" v
+  "мнение" -> nounSg Nom Neu "OPINION" v ++ genHead P.Arg1 v
   "мнению" -> nounSg Dat Neu "OPINION" v ++ genHead P.Arg1 v
   "мной" -> pronoun Instr A.sg "ME" v
   "может" -> finVerb "CAN" "PRESENT" A.sg3 v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")]

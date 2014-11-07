@@ -45,8 +45,20 @@ copulaTests = [TestLabel "copula tests" $ TestList [
 --todo  translateTest "Что это было?"
 --                "What was this?"
 --  ,
---todo  translateTest "Куда он?"
---                "Where is he going?"
+--todo  translateTest "Куда он? Он домой."
+--                "Where is he going? He's going home."
+--  ,
+--todo  translateTest "Кто он? Он кассир."
+--                "Who is he? He's a cashier."
+--  ,
+--todo  translateTest "Кто Вася? Вася кассир."
+--                "Who is Vasya? Vasya is a cashier."
+--  ,
+--todo  translateTest "Кто такой Вася? Вася - это кассир."
+--                "Who is Vasya? Vasya is the cashier."
+--  ,
+--todo  translateTest "Кто здесь кассир? Кассир - Вася."
+--                "Who is the cashier here? Vasya is the cashier."
   ,
   translateTest "Эта книга о Васе."
                 "This book is about Vasya."

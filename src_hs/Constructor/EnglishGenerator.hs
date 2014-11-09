@@ -48,19 +48,14 @@ handleSeq f (Just frame) =
       let first = fValue P.Member1 frame
           second = fValue P.Member2 frame
       m1 <- handleSeq f first
-      state <- get
       let skipSecond frame = let
-            firstContent  = fValue P.Member1 frame >>= fValue P.Content
+            externalFrame = fValue P.Member1 frame >>= fValue P.Content >>= getExternalComp >>= argumentFrame
             secondContent = fValue P.Member2 frame >>= fValue P.Content
-            in
-             Just True == fmap (hasType "FALL_OUT") firstContent &&
-             Just True == fmap (hasType "FALL") secondContent &&
-             (firstContent >>= fValue P.Arg1) == (secondContent >>= fValue P.Arg1)
+            in isJust externalFrame && (externalFrame == secondContent || externalFrame == (secondContent >>= fValue P.Theme))
           lastGeneratedMember seqFrame =
             if not (hasType "seq" seqFrame) || not (skipSecond seqFrame) then Just seqFrame
             else fValue P.Member1 seqFrame >>= lastGeneratedMember
-      let secondProcessed = Just True == fmap (flip Set.member (visitedFrames state)) second
-      if secondProcessed || skipSecond frame then return m1 else do
+      if skipSecond frame then return m1 else do
         m2 <- handleSeq f second
         let conj = fromMaybe "" $ sValue P.Conj frame
             firstContent = first >>= fValue P.Content
@@ -254,6 +249,7 @@ determiner frame det nbar = do
       if sDet == Just "THIS" then "this"
       else if sDet == Just "THAT" then "that"
       else if sDet == Just "ANY" then "any"
+      else if sDet == Just "ANOTHER" then "another"
       else if sDet == Just "wh" then "which"
       else if isJust (fValue P.Quantifier frame) then ""
       else if hasType "STREET" frame && prefixName frame then streetName frame
@@ -336,6 +332,8 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "HAPPEN" -> "happened"
   "HELP" -> "help"
   "KNOW" -> if verbForm == Sg3Verb then "knows" else "know"
+  "LEAN_OUT" -> "looked out"
+  "LOOK" -> "staring"
   "LOVE" -> if verbForm == BaseVerb then "love" else if negated then "doesn't love" else "loves"
   "MOVE" -> "moved"
   "NEED" -> "need"
@@ -384,6 +382,15 @@ generateAccording parent = case fValue P.AccordingTo parent of
     if Set.member source (visitedFrames state) then return ""
     else handleSeq oneOpinion (Just source) `catM` return comma
   _ -> return ""
+
+getExternalComp fVerb = usage P.Content fVerb >>= usage P.Member1 >>= fValue P.Member2 >>= fValue P.Content >>= \nextVerb ->
+  if fValue P.Arg1 fVerb /= fValue P.Arg1 nextVerb then Nothing
+  else if hasType "GO" fVerb && hasType "ASK" nextVerb then Just $ ToInfinitive nextVerb
+  else if hasType "LEAN_OUT" fVerb && hasType "BEGIN" nextVerb then case fValue P.Theme nextVerb of
+    Just theme | hasType "LOOK" theme -> Just $ GerundBackground theme
+    _ -> Nothing
+  else if hasType "FALL_OUT" fVerb && hasType "FALL" nextVerb then Just $ Silence nextVerb
+  else Nothing
 
 clause :: Frame -> State GenerationState String
 clause fVerb = do
@@ -444,19 +451,17 @@ clause fVerb = do
     comp <- case fComp of
       Nothing -> return "" 
       Just cp -> let compVerb = fValue P.Content cp in
-        if isQuestionCP cp && Just True == fmap (hasType "THINK") compVerb then
+        if not $ isCPOrSeq cp then return ""
+        else if isQuestionCP cp && Just True == fmap (hasType "THINK") compVerb then
            do
              frameGenerated cp
              (return "about their opinion on") `catM` (np False $ fValue P.Topic $ fromJust compVerb)
         else let comma = if not (hasType "SAY" fVerb) && isFactCP (head $ flatten fComp) then "," else ""
              in return comma `catM` handleSeq genComplement fComp
-    externalComp <- if getType fVerb == Just "GO" then 
-      case cp >>= usage P.Member1 >>= fValue P.Member2 of
-       Just nextClause | (fValue P.Content nextClause >>= getType) == Just "ASK" -> do
-         frameGenerated nextClause
-         return "to" `catM` vp (fromJust $ fValue P.Content nextClause) BaseVerb InfiniteClause
-       _ -> return ""
-      else return ""
+    externalComp <- case getExternalComp fVerb of
+      Just (ToInfinitive nextVerb) -> return "to" `catM` vp nextVerb BaseVerb InfiniteClause
+      Just (GerundBackground nextVerb) -> return "," `catM` vp nextVerb Gerund InfiniteClause
+      _ -> return ""
     controlledComp <-
       if hasType "TO_ORDER" fVerb then
         case fValue P.Theme fVerb of
@@ -515,7 +520,7 @@ vp fVerb verbForm clauseType = do
         Just "SADLY" -> if getType fVerb == Just "SMILE" then "" else "sadly"
         Just "SLIGHTLY" -> if getType fVerb == Just "MOVE" then "" else "slightly"
         Just s -> s
-        _ -> ""
+        _ -> if Just "true" == sValue P.Also fVerb && not (hasType "CAN" fVerb) then "also" else ""
       cp = usage P.Content fVerb
       theme = fValue P.Theme fVerb
       isFuture = Just "FUTURE" == sValue P.Time fVerb
@@ -589,11 +594,16 @@ vp fVerb verbForm clauseType = do
       if thereSubject then return "there"
       else if isVerbEllipsis fVerb && not (isEllipsisAnchor fSubject fVerb) then return "it"
       else if [fVerb] `isPrefixOf` (usages P.Arg1 f) || isModality || isRaising then np True fSubject
-      else if (isJust $ fValue P.PerfectBackground fVerb) then return $ if sValue P.RusGender f == Just "Masc" then "he" else "she"
+      else if (isJust $ msum [fValue P.PerfectBackground fVerb, fValue P.Reason fVerb]) then return $ if sValue P.RusGender f == Just "Masc" then "he" else "she"
       else return ""
     _ -> return ""
   preReason <- case fValue P.Reason fVerb of
-    Just fComp | not (hasType "situation" fComp) -> return "because of" `catM` np False (Just fComp) `catM` return ","
+    Just fComp | not (hasType "situation" fComp) -> do
+       sReason <- np False (Just fComp)
+       let useOutOf = Just "but" == (fmap unSeq1 cp >>= usage P.Member2 >>= sValue P.Conj)
+       return $
+         if useOutOf then "out of" `cat` sReason
+         else "because of" `cat` sReason `cat` ","
     _ -> return ""
   sArgs <- foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) normalArgs
   sTopicalized <- case topicalizedArg of

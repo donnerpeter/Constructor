@@ -7,7 +7,7 @@ module Constructor.Sense
   getType, getDeclaredType, hasType, hasAnyType, resolve,
   earlier, typeEarlier,
   allFrameFacts,
-  flatten, isNumber, unSeq, seqSiblings, prevSiblings, nextSiblings,
+  flatten, isNumber, unSeq, unSeq1, unSeq2, seqSiblings, prevSiblings, nextSiblings,
   isHuman, isAnimate, isInanimate,
   isCP, isFactCP, isQuestionCP,
   makeSense)
@@ -198,6 +198,14 @@ isInanimate frame = Just "wh" == getDeclaredType frame && Just "true" /= sValue 
 
 unSeq frame = case msum [usage P.Member1 frame, usage P.Member2 frame] of
   Just s -> unSeq s
+  _ -> frame
+
+unSeq1 frame = case usage P.Member1 frame of
+  Just s -> unSeq1 s
+  _ -> frame
+
+unSeq2 frame = case usage P.Member2 frame of
+  Just s -> unSeq2 s
   _ -> frame
 
 isCP frame = Just "situation" == getDeclaredType frame

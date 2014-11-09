@@ -49,7 +49,7 @@ hybridWrapped c = case c of
   SeqRight {} -> True
   _ -> False
 
-isSeqContinuation conj1 conj2 = conj1 == ","
+isSeqContinuation conj1 conj2 = conj1 == "," || conj1 == "and" && conj2 == "but"
 
 seqLeft env = {-traceIt "seqLeft" $ -}result where
   contradictsSeq conj = flip any (leftCombined env) $ \mite -> case cxt mite of

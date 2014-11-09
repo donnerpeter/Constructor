@@ -187,8 +187,8 @@ interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
     in case (c1, c2) of
       (ArgHead kind1 head, Argument kind2 arg) | kind1 == kind2 -> left $  argVariants head arg leftPairs rightPairs
       (Argument kind2 arg, ArgHead kind1 head) | kind1 == kind2 -> right $ argVariants head arg rightPairs leftPairs
-      (SemArgHead kind1 head, SemArgument kind2 arg _) | kind1 == kind2 -> left $  argVariants head arg leftPairs rightPairs
-      (SemArgument kind2 arg _, SemArgHead kind1 head) | kind1 == kind2 -> right $ argVariants head arg rightPairs leftPairs
+      (SemArgHead kind1 head, SemArgument kind2 arg _) | kind1 == kind2 -> left $  argVariants head arg leftPairs rightPairs ++ optional [mite $ cxt m1]
+      (SemArgument kind2 arg _, SemArgHead kind1 head) | kind1 == kind2 -> right $ argVariants head arg rightPairs leftPairs ++ optional [mite $ cxt m2]
 
       (Argument Nom v1, NomHead agr1 v2 Unsatisfied) -> leftPairs >>= \case
         (m3, AdjHead v3 Nom agr2) | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) ->

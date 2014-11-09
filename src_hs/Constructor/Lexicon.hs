@@ -113,12 +113,14 @@ wordMites word index =
   "вдумываясь" -> perfectBackground "THINK" v ++ arg (PP "v" Acc) P.Theme v
   "велел" -> finVerb "TO_ORDER" "PAST" A.m v ++ optional (arg Dat P.Arg2 v) ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")]
   "видел" -> finVerb "SEE" "PAST" A.m v ++ directObject v
+  "вниз" -> semArg Direction P.Goal v0 ++ [semT v0 "DOWN"]
   "восемь" -> xor [wordNumber Nom "8" v, wordNumber Acc "8" v]
   "восьми" -> wordNumber Gen "8" v
   "всякого" -> adj Gen A.m P.Determiner "ANY" v
   "выбежали" -> finVerb "RUN_OUT" "PAST" A.pl v ++ arg (PP "iz" Gen) P.Source v
   "вывалилась" -> finVerb "FALL_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) P.Source v
   "вывалился" -> finVerb "FALL_OUT" "PAST" A.m v ++ arg (PP "iz" Gen) P.Source v
+  "высунулась" -> finVerb "LEAN_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) P.Source v
   "вчера" -> adverb P.RelTime "YESTERDAY" v
   "вынул" -> finVerb "TAKE_OUT" "PAST" A.m v ++ arg (PP "iz" Gen) P.Source v ++ directObject v
   "вынула" -> finVerb "TAKE_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) P.Source v ++ directObject v
@@ -148,6 +150,7 @@ wordMites word index =
   "домам" -> nounPl Dat "HOUSES" v ++ genHead P.Owner v
   "доме" -> nounSg Prep A.Masc "HOUSE" v ++ genHead P.Owner v
   "домой" -> semArg Direction P.Goal v0 ++ [semT v0 "HOME"]
+  "другая" -> adj Nom A.f P.Determiner "ANOTHER" v
   "других" -> nounPl Gen "OTHERS" v
   "думает" -> finVerb "THINK" "PRESENT" A.sg3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) P.Topic v)
   "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) P.Topic v)
@@ -302,6 +305,7 @@ wordMites word index =
   "работу" -> nounSg Acc Fem "WORK" v
   "работы" -> nounSg Gen Fem "WORK" v
   "радостью" -> nounSg Instr Fem "JOY" v
+  "разбившуюся" -> nounSg Acc Fem "SMASHED_ONE" v
   "разбилась" -> finVerb "SMASH" "PAST" A.f v
   "разбился" -> finVerb "SMASH" "PAST" A.m v
   "разошлись" -> finVerb "DISPERSE" "PAST" A.pl v ++ arg (PP "po" Dat) P.Goal v
@@ -337,6 +341,7 @@ wordMites word index =
   "случай" -> nounSg Nom Masc "CASE" v
   "случае" -> nounSg Prep Masc "CASE" v ++ [mite $ ConditionCompHead v0]
   "случился" -> finVerb "HAPPEN" "PAST" A.m v ++ arg (PP "s" Instr) P.Experiencer v
+  "смотреть" -> infinitive "LOOK" v ++ optional [mite $ SemArgHead Direction (v "")]
   "смысла" -> nounSg Gen Masc "MEANING" v
   "снег" -> nounSg Nom Masc "SNOW" v
   "со" -> xor [preposition "s" Instr v, preposition "s" Gen v]
@@ -350,6 +355,7 @@ wordMites word index =
   "спросил" -> finVerb "ASK" "PAST" A.m v ++ optional (directObject v) ++ optional (xor [compHead P.Topic v, arg (PP "o" Prep) P.Topic v, arg (PP "pro" Acc) P.Topic v])
   "спросили" -> finVerb "ASK" "PAST" A.pl v ++ optional (directObject v) ++ optional (xor [compHead P.Topic v, arg (PP "o" Prep) P.Topic v, arg (PP "pro" Acc) P.Topic v])
   "спросить" -> infinitive "ASK" v ++ optional (directObject v) ++ optional (xor [compHead P.Topic v, arg (PP "o" Prep) P.Topic v])
+  "стала" -> finVerb "BEGIN" "PAST" A.f v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")]
   "стали" -> finVerb "BEGIN" "PAST" A.pl v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")]
   "старик" -> nounSg Nom Masc "OLD_MAN" v
   "старуха" -> nounSg Nom Fem "OLD_LADY" v

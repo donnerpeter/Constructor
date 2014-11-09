@@ -1,4 +1,7 @@
-module Constructor.ArgumentPlanning (Argument(..), argumentFrame, arguments, isCP, isFactCP, isQuestionCP, isVerbEllipsis, isEllipsisAnchor) where
+module Constructor.ArgumentPlanning (
+  Argument(..), argumentFrame, arguments,
+  isCP, isCPOrSeq, isFactCP, isQuestionCP,
+  isVerbEllipsis, isEllipsisAnchor) where
 import Constructor.Sense
 import Data.List
 import Data.Maybe
@@ -12,10 +15,17 @@ isVerbEllipsis verb = Just "true" == (usage P.Content verb >>= sValue P.Ellipsis
 isEllipsisAnchor arg fVerb = isJust arg && (arg == (cp >>= fValue P.EllipsisAnchor1) || arg == (cp >>= fValue P.EllipsisAnchor2)) where
   cp = usage P.Content fVerb
 
-data Argument = Adverb String | NPArg Frame | PPArg String Frame | PPAdjunct String Frame deriving (Eq,Show)
+data Argument = Adverb String | NPArg Frame |
+                PPArg String Frame | PPAdjunct String Frame |
+                ToInfinitive Frame | GerundBackground Frame |
+                Silence Frame
+                deriving (Eq,Show)
 
 argumentFrame (NPArg f) = Just f
 argumentFrame (PPArg _ f) = Just f
+argumentFrame (ToInfinitive f) = Just f
+argumentFrame (GerundBackground f) = Just f
+argumentFrame (Silence f) = Just f
 argumentFrame _ = Nothing
 
 arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ -> let
@@ -67,10 +77,13 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       ("GO", P.Goal_action) -> if hasType "WALK" value then [Adverb "for a walk"] else [PPArg "to" value]
       ("TYPE", P.Instrument) -> [PPArg "using" value]
       ("TO_PRESENT", P.Receiver) -> [PPArg "to" value]
+      ("LOOK", P.Goal) -> if hasType "DOWN" value then [Adverb "down"] else [PPArg "at" value]
+      ("LOOK", P.Goal_on) -> [PPArg "at" value]
       (_, P.Goal) -> if typ == "GO" && hasType "HOME" value then [Adverb "home"] else [PPArg "to" value]
       (_, P.Goal_to) -> [PPArg "to" value]
       (_, P.Goal_in) -> [PPArg "to" value]
       (_, P.Goal_on) -> [PPArg "to" value]
+      ("LEAN_OUT", P.Source) -> [PPArg "of" value]
       ("FALL_OUT", P.Source) -> [PPArg "of" value]
       (_, P.Source) -> [PPArg "from" value]
       (_, P.Instrument) -> [PPArg "with" value]

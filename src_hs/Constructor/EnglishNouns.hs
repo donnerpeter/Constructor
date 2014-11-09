@@ -40,6 +40,7 @@ noun (Just typ) frame = case typ of
   "NOSE" -> "nose"
   "OFFICES" -> "offices"
   "OLD_LADY" -> "old lady"
+  "OLD_MAN" -> "old man"
   "OPINION" -> "opinion"
   "ORDER" -> "order"
   "OTHERS" -> "others"

@@ -49,8 +49,18 @@ handleSeq f (Just frame) =
           second = fValue P.Member2 frame
       m1 <- handleSeq f first
       state <- get
+      let skipSecond frame = let
+            firstContent  = fValue P.Member1 frame >>= fValue P.Content
+            secondContent = fValue P.Member2 frame >>= fValue P.Content
+            in
+             Just True == fmap (hasType "FALL_OUT") firstContent &&
+             Just True == fmap (hasType "FALL") secondContent &&
+             (firstContent >>= fValue P.Arg1) == (secondContent >>= fValue P.Arg1)
+          lastGeneratedMember seqFrame =
+            if not (hasType "seq" seqFrame) || not (skipSecond seqFrame) then Just seqFrame
+            else fValue P.Member1 seqFrame >>= lastGeneratedMember
       let secondProcessed = Just True == fmap (flip Set.member (visitedFrames state)) second
-      if secondProcessed then return m1 else do
+      if secondProcessed || skipSecond frame then return m1 else do
         m2 <- handleSeq f second
         let conj = fromMaybe "" $ sValue P.Conj frame
             firstContent = first >>= fValue P.Content
@@ -63,7 +73,7 @@ handleSeq f (Just frame) =
                           else if Just True == fmap shouldContrastSubject (firstContent >>= fValue P.Arg1) then ", and"
                           else ", but"
                         else if conj == "and" then
-                          if Just True == fmap isCP second && Just True == fmap (hasType "seq") first then ", and"
+                          if Just True == fmap isCP second && Just True == fmap (hasType "seq") (first >>= lastGeneratedMember) then ", and"
                           else if isJust (secondContent >>= fValue P.PerfectBackground) then ", and"
                           else "and"
                         else if conj == "" then
@@ -160,6 +170,7 @@ adjectives nounFrame = catMaybes [property, kind, shopKind, size, quality, gende
     else Nothing
   size = fValue P.Size nounFrame >>= getType >>= \p ->
     if p == "LITTLE" then Just "small"
+    else if p == "EXCESSIVE" then Just "excessive"
     else if p == "BIG" then
       if hasType "GARDEN" nounFrame then Just "big" else Just "great"
     else Nothing
@@ -182,7 +193,7 @@ streetName frame = case sValue P.Name frame of
  _ -> ""
 
 fDeterminer frame =
-  if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "JAWS", "ARGUE", "FINGER", "SPEECH", "FAMILY", "EYES", "BROTHER", "SISTER", "CORNER"] frame then fValue P.Arg1 frame
+  if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "JAWS", "ARGUE", "FINGER", "SPEECH", "FAMILY", "EYES", "BROTHER", "SISTER", "CORNER", "CURIOSITY"] frame then fValue P.Arg1 frame
   else if hasAnyType ["OPINION"] frame then fValue P.Arg1 frame
   else if hasAnyType ["WORDS", "BOOK"] frame then fValue P.Author frame
   else if hasAnyType ["ROOMS", "APARTMENTS", "OFFICES"] frame then fValue P.Owner frame
@@ -250,7 +261,7 @@ determiner frame det nbar = do
       else if hasAnyType ["NAMED_PERSON"] frame then ""
       else if hasType "OPINION" frame && Just True == fmap isVerbEllipsis (usage P.AccordingTo frame) then ""
       else if sValue P.Given frame == Just "true" then "the"
-      else if "a" `isPrefixOf` nbar || "e" `isPrefixOf` nbar || "8" `isPrefixOf` nbar then "an"
+      else if any (\c -> [c] `isPrefixOf` nbar) "aeiou8" then "an"
       else if isSingular frame then "a"
       else ""
 
@@ -317,6 +328,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "DISTRACT" -> "distracted"
   "DO" -> if verbForm == BaseVerb then "do" else "did"
   "FALL" -> "fell"
+  "FALL_OUT" -> "fell out"
   "FORGET" -> "forgot"
   "GET_SAD" -> "got sad"
   "GO" -> if verbForm == PastVerb then "went" else if verbForm == BaseVerb then "go" else if verbForm == Gerund then "going" else "goes"
@@ -338,6 +350,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
      if verbForm == PastVerb then "were" else "is"
      else if verbForm == PastVerb then "seemed" else "seems"
   "SIT" -> if verbForm == BaseVerb then "sit" else if verbForm == PastVerb then "sat" else "sitting"
+  "SMASH" -> "smashed into the ground"
   "SMILE" -> "gave us a " ++ (if (fValue P.Manner frame >>= getType) == Just "SADLY" then "sad " else "") ++ "smile"
   "STOP" -> "stopped"
   "TAKE_OUT" -> "took"
@@ -463,7 +476,7 @@ clause fVerb = do
             _ -> return ""
           _ -> return ""
     reasonComp <- case fValue P.Reason fVerb of
-      Just fComp -> return "because" `catM` sentence fComp
+      Just fComp | hasType "situation" fComp -> return "because" `catM` sentence fComp
       _ -> return ""
     questionVariants <- case cp >>= fValue P.Questioned >>= fValue P.Variants of
       Just variants -> return "-" `catM` np ((cp >>= fValue P.Questioned) == fSubject) (Just variants)
@@ -579,6 +592,9 @@ vp fVerb verbForm clauseType = do
       else if (isJust $ fValue P.PerfectBackground fVerb) then return $ if sValue P.RusGender f == Just "Masc" then "he" else "she"
       else return ""
     _ -> return ""
+  preReason <- case fValue P.Reason fVerb of
+    Just fComp | not (hasType "situation" fComp) -> return "because of" `catM` np False (Just fComp) `catM` return ","
+    _ -> return ""
   sArgs <- foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) normalArgs
   sTopicalized <- case topicalizedArg of
     Just arg -> generateArg arg `catM` return ","
@@ -620,7 +636,7 @@ vp fVerb verbForm clauseType = do
                      if null shortForm then subject `cat` mainVerb `cat` restVerb
                      else (subject ++ shortForm) `cat` restVerb
                    else (if inverted then according `cat` aux `cat` negation `cat` subject else subject `cat` according `cat` aux `cat` negation) `cat` preAdverb `cat` sVerb
-  return $ sTopicalized `cat` whWord `cat` contracted `cat` nonWhWord `cat` controlled `cat` sArgs `cat` stranded `cat` anymore `cat` finalAdverb
+  return $ sTopicalized `cat` whWord `cat` preReason `cat` contracted `cat` nonWhWord `cat` controlled `cat` sArgs `cat` stranded `cat` anymore `cat` finalAdverb
 
 generateArg :: Argument -> State GenerationState String
 generateArg arg = let

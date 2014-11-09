@@ -255,6 +255,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
               ("po", Dat) -> xor [[mite $ VerbalModifier P.AccordingTo True var2],
                                   [mite $ NounAdjunct P.AccordingTo True var2],
                                   [mite $ VerbalModifier P.OptativeModality True var2]]
+              ("ot", Gen) -> [mite $ VerbalModifier P.Reason False var2]
               ("s", Instr) -> [mite $ VerbalModifier P.Mood False var2]
               ("s", Gen) -> xor [[mite $ NounAdjunct P.Source False var2], [mite $ VerbalModifier P.Source False var2]]
               ("u", Gen) -> [mite $ VerbalModifier P.Location_at False var2]

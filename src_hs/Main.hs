@@ -11,8 +11,13 @@ import Constructor.Tests.Wh
 import Constructor.Tests.RandomStuff
 import Constructor.Tests.HybridCoordination
 import Constructor.Tests.Copula
+import Constructor.Tests.OldLadies
+import Constructor.Tests.OldLadyVariations
 import Test.HUnit
 
-allTests = runTestTT $ TestList $ sonnetTests++sonnetVariations++whTests++randomStuffTests++hybridCoordinationTests++copulaTests
+allTests = runTestTT $ TestList $
+  sonnetTests ++ sonnetVariations ++
+  whTests ++ randomStuffTests ++ hybridCoordinationTests ++ copulaTests ++
+  oldLadyTests ++ oldLadyVariationTests
 
 main = allTests

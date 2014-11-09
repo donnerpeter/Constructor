@@ -109,7 +109,8 @@ sValue attr frame =
   else
     case attr of
       P.Given ->
-        if hasAnyType ["CASE", "HAMMER", "TREES", "BENCH", "FINGER", "WATERMELON", "JAW"] frame then Just "false"
+        if Just True == fmap (hasAnyType ["SOME", "ONE"]) (fValue P.Determiner frame) then Just "false"
+        else if hasAnyType ["CASE", "HAMMER", "TREES", "BENCH", "FINGER", "WATERMELON", "JAW"] frame then Just "false"
         else if Just True == fmap isNumberString (getType frame) then Just "false"
         else if hasType "CHILD" frame then
           if Just "SOME" == (fValue P.Determiner frame >>= getType) then Just "false" else Just "true"
@@ -150,10 +151,11 @@ fValue attr frame =
   else
     case attr of
       P.Arg1 ->
-        if hasAnyType ["MOUTH", "NOSE", "JAW", "JAWS", "FINGER", "NEIGHBORS"] frame then let
+        if hasAnyType ["MOUTH", "NOSE", "JAW", "JAWS", "FINGER", "NEIGHBORS", "CURIOSITY"] frame then let
           verbs = catMaybes [usage P.Source $ unVariants $ unSeq frame,
                              usage P.Arg2 $ unVariants $ unSeq frame,
                              usage P.Instrument $ unVariants $ unSeq frame,
+                             usage P.Reason $ unVariants $ unSeq frame,
                              usage P.Goal_to $ unVariants $ unSeq frame]
           foregrounds = catMaybes $ map (usage P.PerfectBackground) verbs
           unVariants frame = unSeq $ fromMaybe frame (usage P.Variants frame)

@@ -71,6 +71,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
       (_, P.Goal_to) -> [PPArg "to" value]
       (_, P.Goal_in) -> [PPArg "to" value]
       (_, P.Goal_on) -> [PPArg "to" value]
+      ("FALL_OUT", P.Source) -> [PPArg "of" value]
       (_, P.Source) -> [PPArg "from" value]
       (_, P.Instrument) -> [PPArg "with" value]
       (_, P.Mood) -> case getType value of

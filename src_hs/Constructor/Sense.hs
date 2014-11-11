@@ -43,7 +43,7 @@ data Sense = Sense {
   allFrameVars:: [Variable],
   varClasses:: EqClasses,
   bvar2Facts:: Map.Map Variable [Fact],
-  bvar2Usages:: Map.Map Variable [(Variable, P.VarProperty)],
+  bvar2Usages:: Map.Map Variable [Fact],
   bareFacts:: [Fact]
   }
 instance Show Sense where show sense = Data.List.intercalate "\n" (map show $ facts sense)
@@ -66,10 +66,7 @@ makeSenseInternal bareFacts varClasses = Sense facts allFrameVars varClasses bva
   allFrameVars = LS.removeDups $ map variable facts ++ [v | Fact {value=VarValue _ v} <- facts]
 
   bvar2Facts = Map.fromListWith (flip (++)) [(variable fact, [fact]) | fact <- facts]
-
-  bvar2Usages = Map.fromListWith (flip (++)) $ facts >>= \case
-    Fact {variable=var, value=VarValue prop v} -> [(v, [(var, prop)])]
-    _ -> []
+  bvar2Usages = Map.map LS.removeDups $ Map.fromListWith (flip (++)) [(v, [fact]) | fact@(Fact {value=VarValue _ v}) <- facts]
 
 composeSense (Sense { bareFacts = f1, varClasses = ec1 }) (Sense { bareFacts = f2, varClasses = ec2 }) =
   makeSenseInternal (f1 ++ f2) mergedClasses where
@@ -168,10 +165,9 @@ hasAnyType types frame = fromMaybe False $ getType frame >>= \t -> Just $ elem t
 getType frame = sValue P.Type frame
 getDeclaredType frame = sDeclaredValue P.Type frame
 
-allUsages attrs frame = toFrames (sense frame) $ LS.removeDups $
-  [f | (f, s) <- Map.findWithDefault [] (var frame) $ bvar2Usages (sense frame), s `elem` attrs]
-usages attr frame = toFrames (sense frame)  $ LS.removeDups $
-  [f | (f, s) <- Map.findWithDefault [] (var frame) $ bvar2Usages (sense frame), s == attr]
+usageFacts frame = Map.findWithDefault [] (var frame) $ bvar2Usages (sense frame)
+allUsages attrs frame = toFrames (sense frame) $ [v | Fact {variable=v, value=VarValue s _} <- usageFacts frame, s `elem` attrs]
+usages attr frame = toFrames (sense frame)  $ [v | Fact {variable=v, value=VarValue s _} <- usageFacts frame, s == attr]
 usage attr frame = singleListElement $ usages attr frame
 
 flatten Nothing = []

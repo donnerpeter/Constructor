@@ -23,18 +23,17 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Constructor.LinkedSet as LS
 
-calcBaseVars:: [(Variable, Variable)] -> Map.Map Variable Variable
-calcBaseVars unifications =
-  let inner = \ groups -> \(var1, var2) ->
-            let ensured = ensureGroup var1 $ ensureGroup var2 groups
-                mergedGroup = Set.union (ensured Map.! var1) (ensured Map.! var2)
-                groupsMap = foldl (\ groups var -> Map.insert var mergedGroup groups) groups (Set.elems mergedGroup)
-            in groupsMap
-      ensureGroup = \ var groups ->
-        if Map.member var groups then groups
-        else Map.insert var (Set.singleton var) groups
-      groups = foldl inner Map.empty unifications
-  in Map.map (head . Set.elems) groups
+data EqClasses = EqClasses { baseVars:: Map.Map Variable Variable, eqClasses :: Map.Map Variable [Variable] }
+
+toBase (EqClasses baseVars _) var = Map.findWithDefault var var baseVars
+
+addEqClass :: EqClasses -> [Variable] -> EqClasses
+addEqClass ec@(EqClasses baseVars eqClasses) vars = EqClasses newBaseVars newClasses where
+  basesToUnify = catMaybes $ map (\v -> Map.lookup v baseVars) vars
+  mergedClass = LS.removeDups $ concat (map (\v -> eqClasses Map.! v) basesToUnify) ++ vars
+  singleBase = head mergedClass
+  newClasses = Map.insert singleBase mergedClass $ foldl (\m v -> Map.delete v m) eqClasses basesToUnify
+  newBaseVars = foldl (\m v -> Map.insert v singleBase m) baseVars mergedClass
 
 data Fact = Fact { variable:: Variable, value:: SemValue } deriving (Eq, Ord)
 instance Show Fact where show (Fact var value) = (show var)++"."++(show value)
@@ -42,11 +41,10 @@ instance Show Fact where show (Fact var value) = (show var)++"."++(show value)
 data Sense = Sense {
   facts:: [Fact],
   allFrameVars:: [Variable],
-  baseVars:: Map.Map Variable Variable,
+  varClasses:: EqClasses,
   bvar2Facts:: Map.Map Variable [Fact],
   bvar2Usages:: Map.Map Variable [(Variable, P.VarProperty)],
-  bareFacts:: [Fact],
-  unifications:: [(Variable, Variable)]
+  bareFacts:: [Fact]
   }
 instance Show Sense where show sense = Data.List.intercalate "\n" (map show $ facts sense)
 instance Eq Sense where s1 == s2 = facts s1 == facts s2
@@ -55,15 +53,16 @@ data Frame = Frame { var:: Variable, sense:: Sense } deriving (Eq)
 instance Show Frame where show frame = "{" ++ (Data.List.intercalate "," (map show $ allFrameFacts frame)) ++ "}"
 instance Ord Frame where compare s1 s2 = compare (var s1) (var s2)
 
-makeSense bareFacts unifications = Sense facts allFrameVars baseVars bvar2Facts bvar2Usages bareFacts unifications where
-  baseVars = calcBaseVars unifications
+makeSense bareFacts unifications = makeSenseInternal bareFacts varClasses where
+  varClasses = foldl (\ec (var1, var2) -> addEqClass ec [var1, var2]) (EqClasses Map.empty Map.empty) unifications
+
+makeSenseInternal bareFacts varClasses = Sense facts allFrameVars varClasses bvar2Facts bvar2Usages bareFacts where
   facts = LS.removeDups $ map normalizeFact bareFacts
-  toBase var = Map.findWithDefault var var baseVars
   normalizeFact (Fact var1 value) =
     let normalizedValue = case value of
           StrValue _ _ -> value
-          VarValue prop var2 -> VarValue prop $ toBase var2
-    in Fact (toBase var1) normalizedValue
+          VarValue prop var2 -> VarValue prop $ toBase varClasses var2
+    in Fact (toBase varClasses var1) normalizedValue
   allFrameVars = LS.removeDups $ map variable facts ++ [v | Fact {value=VarValue _ v} <- facts]
 
   bvar2Facts = Map.fromListWith (flip (++)) [(variable fact, [fact]) | fact <- facts]
@@ -72,8 +71,9 @@ makeSense bareFacts unifications = Sense facts allFrameVars baseVars bvar2Facts 
     Fact {variable=var, value=VarValue prop v} -> [(v, [(var, prop)])]
     _ -> []
 
-composeSense (Sense { bareFacts = f1, unifications = u1 }) (Sense { bareFacts = f2, unifications = u2 }) =
-  makeSense (f1 ++ f2) (u1 ++ u2)
+composeSense (Sense { bareFacts = f1, varClasses = ec1 }) (Sense { bareFacts = f2, varClasses = ec2 }) =
+  makeSenseInternal (f1 ++ f2) mergedClasses where
+    mergedClasses = foldl (\ec vars -> addEqClass ec vars) ec1 (Map.elems $ eqClasses ec2)
 
 toFrames sense vars = map (flip Frame sense) vars
 allFrames sense = toFrames sense $ allFrameVars sense

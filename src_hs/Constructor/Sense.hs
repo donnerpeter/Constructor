@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase, ViewPatterns #-}
 module Constructor.Sense
   (Sense(..), Frame(..), Fact(..),
   allFrames,
@@ -14,7 +13,6 @@ module Constructor.Sense
   makeSense, composeSense)
   where
 
-import Constructor.Mite (Mite(..))
 import Constructor.Variable
 import qualified Constructor.SemanticProperties as P
 import Constructor.Util

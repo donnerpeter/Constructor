@@ -11,10 +11,9 @@ module Constructor.Sense
   flatten, isNumber, unSeq, unSeq1, unSeq2, seqSiblings, prevSiblings, nextSiblings,
   isHuman, isAnimate, isInanimate,
   isCP, isFactCP, isQuestionCP,
-  makeSense)
+  makeSense, composeSense)
   where
 
-import Constructor.Constructions (Construction(Sem, Unify))
 import Constructor.Mite (Mite(..))
 import Constructor.Variable
 import qualified Constructor.SemanticProperties as P
@@ -26,23 +25,17 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Constructor.LinkedSet as LS
 
-calcFacts allMites = allMites >>= \case
-  (cxt -> Sem var value) -> [Fact var value]
-  _ -> []
-
-calcBaseVars:: [Mite] -> Map.Map Variable Variable
-calcBaseVars mites =
-  let inner = \ groups -> \case
-          (cxt -> Unify var1 var2) ->
+calcBaseVars:: [(Variable, Variable)] -> Map.Map Variable Variable
+calcBaseVars unifications =
+  let inner = \ groups -> \(var1, var2) ->
             let ensured = ensureGroup var1 $ ensureGroup var2 groups
                 mergedGroup = Set.union (ensured Map.! var1) (ensured Map.! var2)
                 groupsMap = foldl (\ groups var -> Map.insert var mergedGroup groups) groups (Set.elems mergedGroup)
             in groupsMap
-          _ -> groups
       ensureGroup = \ var groups ->
         if Map.member var groups then groups
         else Map.insert var (Set.singleton var) groups
-      groups = foldl inner Map.empty mites
+      groups = foldl inner Map.empty unifications
   in Map.map (head . Set.elems) groups
 
 data Fact = Fact { variable:: Variable, value:: SemValue } deriving (Eq, Ord)
@@ -53,7 +46,10 @@ data Sense = Sense {
   allFrameVars:: [Variable],
   baseVars:: Map.Map Variable Variable,
   bvar2Facts:: Map.Map Variable [Fact],
-  bvar2Usages:: Map.Map Variable [(Variable, P.VarProperty)] }
+  bvar2Usages:: Map.Map Variable [(Variable, P.VarProperty)],
+  bareFacts:: [Fact],
+  unifications:: [(Variable, Variable)]
+  }
 instance Show Sense where show sense = Data.List.intercalate "\n" (map show $ facts sense)
 instance Eq Sense where s1 == s2 = facts s1 == facts s2
 
@@ -61,9 +57,9 @@ data Frame = Frame { var:: Variable, sense:: Sense } deriving (Eq)
 instance Show Frame where show frame = "{" ++ (Data.List.intercalate "," (map show $ allFrameFacts frame)) ++ "}"
 instance Ord Frame where compare s1 s2 = compare (var s1) (var s2)
 
-makeSense allMites = Sense facts allFrameVars baseVars bvar2Facts bvar2Usages where
-  baseVars = calcBaseVars allMites
-  facts = LS.removeDups $ map normalizeFact $ calcFacts allMites
+makeSense bareFacts unifications = Sense facts allFrameVars baseVars bvar2Facts bvar2Usages bareFacts unifications where
+  baseVars = calcBaseVars unifications
+  facts = LS.removeDups $ map normalizeFact bareFacts
   toBase var = Map.findWithDefault var var baseVars
   normalizeFact (Fact var1 value) =
     let normalizedValue = case value of
@@ -77,6 +73,9 @@ makeSense allMites = Sense facts allFrameVars baseVars bvar2Facts bvar2Usages wh
   bvar2Usages = Map.fromListWith (flip (++)) $ facts >>= \case
     Fact {variable=var, value=VarValue prop v} -> [(v, [(var, prop)])]
     _ -> []
+
+composeSense (Sense { bareFacts = f1, unifications = u1 }) (Sense { bareFacts = f2, unifications = u2 }) =
+  makeSense (f1 ++ f2) (u1 ++ u2)
 
 toFrames sense vars = map (flip Frame sense) vars
 allFrames sense = toFrames sense $ allFrameVars sense

@@ -8,16 +8,19 @@ import qualified Constructor.LinkedSet as LS
 import Constructor.Mite
 import Constructor.Util
 import Constructor.Issues
+import Constructor.Sense (makeSense, composeSense, Sense, Fact(..))
+import Constructor.Constructions (Construction(Sem, Unify))
 
 data Tree = Tree {
   mites::[Mite], left::Maybe Tree, right::Maybe Tree, headSide::Side,
-  active::Set.Set Mite, allActiveMiteList :: [Mite], allActiveMiteSet :: Set.Set Mite,
+  active::Set.Set Mite, allActiveMiteSet :: Set.Set Mite,
   activeHeadMites :: [Mite],
   activeHeadMitesBase :: [Mite],
   _uncoveredActiveMites :: Set.Set Mite,
   _unhappyLeft :: [Mite], _unhappyRight :: [Mite], _unhappyHead :: [Mite],
   _issues :: [Issue],
-  allVariants:: [Tree]
+  allVariants:: [Tree],
+  sense :: Sense
 }
 
 instance Show Tree where
@@ -82,16 +85,24 @@ unhappyActiveMites tree = result where
   spine = activeBase allActive
   result = filter (\mite -> not (happy mite || Set.member mite spine)) $ Set.elems allActive
 
+nodeSense active = makeSense facts unifications where
+  facts = [Fact var value | (cxt -> Sem var value) <- active]
+  unifications = [(var1, var2) | (cxt -> Unify var1 var2) <- active]
+
 createLeaf mites candidateSets = bestTree trees where
   trees = map eachLeaf candidateSets
-  eachLeaf active = let activeSet = Set.fromList active in Tree {
+  eachLeaf active = let
+    activeSet = Set.fromList active
+    _sense = nodeSense active
+    in Tree {
       mites = mites, left = Nothing, right = Nothing, headSide = LeftSide,
-      active = activeSet, allActiveMiteList = active, allActiveMiteSet = activeSet, _uncoveredActiveMites = activeSet,
+      active = activeSet, allActiveMiteSet = activeSet, _uncoveredActiveMites = activeSet,
       activeHeadMites = active,
       activeHeadMitesBase = LS.removeDups (active >>= baseMites),
       _unhappyLeft = [], _unhappyRight = [], _unhappyHead = filter (not. happy) active,
-      _issues = issues active,
-      allVariants = trees
+      _issues = issues _sense,
+      allVariants = trees,
+      sense = _sense
     }
 
 createBranch mites _leftChild _rightChild headSide candidateSets = bestVariant where
@@ -119,13 +130,12 @@ createBranch mites _leftChild _rightChild headSide candidateSets = bestVariant w
       let childrenActive = Set.union (_uncoveredActiveMites aLeft) (_uncoveredActiveMites aRight)
           activeSet = Set.fromList active
           headChild = select headSide aLeft aRight
-          allActiveList = allActiveMiteList aLeft ++ active ++ allActiveMiteList aRight
           _activeHeadMites = active ++ filter (\mite -> isUncovered mite || not (isCoverable mite)) (activeHeadMites headChild)
+          _sense = sense aLeft `composeSense` nodeSense active `composeSense` sense aRight
       in
       return $ {-trace ("ok", aRight) $ -}Tree {
         mites = mites, left = Just aLeft, right = Just aRight, headSide = headSide,
         active = activeSet,
-        allActiveMiteList = allActiveList,
         allActiveMiteSet = Set.union activeSet $ Set.union (allActiveMiteSet aLeft) (allActiveMiteSet aRight),
         activeHeadMites = _activeHeadMites,
         activeHeadMitesBase = LS.removeDups (_activeHeadMites >>= baseMites),
@@ -133,8 +143,9 @@ createBranch mites _leftChild _rightChild headSide candidateSets = bestVariant w
         _unhappyLeft  = filter isUncovered $ _unhappyLeft aLeft   ++ select headSide [] (_unhappyHead aLeft),
         _unhappyRight = filter isUncovered $ _unhappyRight aRight ++ select headSide (_unhappyHead aRight) [],
         _unhappyHead = filter isUncovered $ _unhappyHead headChild ++ filter (not. happy) active,
-        _issues = issues allActiveList,
-        allVariants = allBranchVariants
+        _issues = issues _sense,
+        allVariants = allBranchVariants,
+        sense = _sense
       }
     else []
   grouped = Map.fromListWith (++) [(activeHeadMites av, [av]) | av <- allAVCandidates]

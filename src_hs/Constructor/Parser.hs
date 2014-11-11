@@ -28,4 +28,6 @@ parse s =
 
 translate s = generate $ makeSense s
 
-makeSense s = Sense.makeSense $ activeStateMites $ parse s
+makeSense s = resultSense $ parse s
+resultSense trees = foldl' Sense.composeSense emptySense $ reverse $ map sense trees where
+  emptySense = Sense.makeSense [] []

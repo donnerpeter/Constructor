@@ -92,5 +92,3 @@ calcCandidateSets mites = {-if length result < 10 then result else trace ("---co
   result = enumerate mites [] []
 
 stateIssueCount state = sum [length $ _issues tree | tree <- roots state]
-
-activeStateMites trees = concat (map allActiveMiteList $ reverse trees)

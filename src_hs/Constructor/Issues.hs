@@ -10,9 +10,8 @@ import qualified Constructor.SemanticProperties as P
 
 type Issue = String
 
-issues :: [Mite] -> [Issue]
-issues mites = let
-  sense = makeSense mites
+issues :: Sense -> [Issue]
+issues sense = let
   frames = allFrames sense
   hasCP = any isCP frames
   factIssues = facts sense >>= \fact -> let

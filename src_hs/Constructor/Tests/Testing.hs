@@ -15,7 +15,7 @@ translateTest src target = textTranslateTest 100 src target
 
 textTranslateTest time src target = TestLabel src $ TestCase $
   let trees = parse src
-      sense = Sense.makeSense $ activeStateMites trees
+      sense = resultSense trees
       result = generate sense
       timed = unsafePerformIO $ do
         start <- getCPUTime

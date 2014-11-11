@@ -1,6 +1,7 @@
 {-# LANGUAGE LambdaCase, ViewPatterns #-}
 module Constructor.Sense
   (Sense(..), Frame(..), Fact(..),
+  allFrames,
   fValue, sValue,
   fDeclaredValue, sDeclaredValue,
   usages, usage, allUsages,
@@ -25,16 +26,9 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Constructor.LinkedSet as LS
 
-calcFacts allMites baseVars =
-  let mapper = \case
-          (cxt -> Sem var value) ->
-            let normalizedValue = case value of
-                  StrValue _ _ -> value
-                  VarValue prop var -> VarValue prop $ Map.findWithDefault var var baseVars
-            in [Fact (Map.findWithDefault var var baseVars) normalizedValue]
-          _ -> []
-  in
-  LS.removeDups $ concat $ map mapper allMites
+calcFacts allMites = allMites >>= \case
+  (cxt -> Sem var value) -> [Fact var value]
+  _ -> []
 
 calcBaseVars:: [Mite] -> Map.Map Variable Variable
 calcBaseVars mites =
@@ -54,32 +48,39 @@ calcBaseVars mites =
 data Fact = Fact { variable:: Variable, value:: SemValue } deriving (Eq, Ord)
 instance Show Fact where show (Fact var value) = (show var)++"."++(show value)
 
-data Sense = Sense { facts:: [Fact], allFrames:: [Frame], frame2Facts:: Map.Map Frame [Fact], frame2Usages:: Map.Map Frame [(Frame, P.VarProperty)] }
+data Sense = Sense {
+  facts:: [Fact],
+  allFrameVars:: [Variable],
+  baseVars:: Map.Map Variable Variable,
+  bvar2Facts:: Map.Map Variable [Fact],
+  bvar2Usages:: Map.Map Variable [(Variable, P.VarProperty)] }
 instance Show Sense where show sense = Data.List.intercalate "\n" (map show $ facts sense)
 instance Eq Sense where s1 == s2 = facts s1 == facts s2
-instance Ord Sense where compare s1 s2 = compare (facts s1) (facts s2)
 
 data Frame = Frame { var:: Variable, sense:: Sense } deriving (Eq)
 instance Show Frame where show frame = "{" ++ (Data.List.intercalate "," (map show $ allFrameFacts frame)) ++ "}"
 instance Ord Frame where compare s1 s2 = compare (var s1) (var s2)
 
-makeSense allMites = sense where
-  sense = Sense facts allFrames frame2Facts frame2Usages
-  facts = calcFacts allMites $ calcBaseVars allMites
+makeSense allMites = Sense facts allFrameVars baseVars bvar2Facts bvar2Usages where
+  baseVars = calcBaseVars allMites
+  facts = LS.removeDups $ map normalizeFact $ calcFacts allMites
+  toBase var = Map.findWithDefault var var baseVars
+  normalizeFact (Fact var1 value) =
+    let normalizedValue = case value of
+          StrValue _ _ -> value
+          VarValue prop var2 -> VarValue prop $ toBase var2
+    in Fact (toBase var1) normalizedValue
+  allFrameVars = LS.removeDups $ map variable facts ++ [v | Fact {value=VarValue _ v} <- facts]
 
-  allFrames = [Frame var sense | var <- LS.removeDups allVars ]
-  allVars = [variable fact | fact <- facts ] ++ valueVars
-  valueVars = facts >>= \case
-    Fact {value=VarValue _ v} -> [v]
+  bvar2Facts = Map.fromListWith (flip (++)) [(variable fact, [fact]) | fact <- facts]
+
+  bvar2Usages = Map.fromListWith (flip (++)) $ facts >>= \case
+    Fact {variable=var, value=VarValue prop v} -> [(v, [(var, prop)])]
     _ -> []
 
-  frame2Facts = Map.fromListWith (flip (++)) [(Frame (variable fact) sense, [fact]) | fact <- facts]
-
-  frame2Usages = Map.fromListWith (flip (++)) $ facts >>= \case
-    Fact {variable=var, value=VarValue prop v} -> [(Frame v sense, [(Frame var sense, prop)])]
-    _ -> []
-
-allFrameFacts frame = Map.findWithDefault [] frame $ frame2Facts (sense frame)
+toFrames sense vars = map (flip Frame sense) vars
+allFrames sense = toFrames sense $ allFrameVars sense
+allFrameFacts frame = Map.findWithDefault [] (var frame) $ bvar2Facts (sense frame)
 singleListElement list = case list of
   [single] -> Just single
   _ -> Nothing
@@ -170,8 +171,10 @@ hasAnyType types frame = fromMaybe False $ getType frame >>= \t -> Just $ elem t
 getType frame = sValue P.Type frame
 getDeclaredType frame = sDeclaredValue P.Type frame
 
-allUsages attrs frame = LS.removeDups $ [f | (f, s) <- Map.findWithDefault [] frame $ frame2Usages (sense frame), s `elem` attrs]
-usages attr frame = LS.removeDups $ [f | (f, s) <- Map.findWithDefault [] frame $ frame2Usages (sense frame), s == attr]
+allUsages attrs frame = toFrames (sense frame) $ LS.removeDups $
+  [f | (f, s) <- Map.findWithDefault [] (var frame) $ bvar2Usages (sense frame), s `elem` attrs]
+usages attr frame = toFrames (sense frame)  $ LS.removeDups $
+  [f | (f, s) <- Map.findWithDefault [] (var frame) $ bvar2Usages (sense frame), s == attr]
 usage attr frame = singleListElement $ usages attr frame
 
 flatten Nothing = []

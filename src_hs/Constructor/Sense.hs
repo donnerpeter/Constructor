@@ -17,7 +17,7 @@ import Constructor.Variable
 import qualified Constructor.SemanticProperties as P
 import Constructor.Util
 import Control.Monad
-import Data.List (intercalate, findIndex, find)
+import Data.List (intercalate, findIndex, find, intersect, sort)
 import Data.Maybe
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -30,7 +30,7 @@ toBase (EqClasses baseVars _) var = Map.findWithDefault var var baseVars
 addEqClass :: EqClasses -> [Variable] -> EqClasses
 addEqClass ec@(EqClasses baseVars eqClasses) vars = EqClasses newBaseVars newClasses where
   basesToUnify = catMaybes $ map (\v -> Map.lookup v baseVars) vars
-  mergedClass = LS.removeDups $ concat (map (\v -> eqClasses Map.! v) basesToUnify) ++ vars
+  mergedClass = sort $ LS.removeDups $ concat (map (\v -> eqClasses Map.! v) basesToUnify) ++ vars
   singleBase = head mergedClass
   newClasses = Map.insert singleBase mergedClass $ foldl (\m v -> Map.delete v m) eqClasses basesToUnify
   newBaseVars = foldl (\m v -> Map.insert v singleBase m) baseVars mergedClass
@@ -38,12 +38,39 @@ addEqClass ec@(EqClasses baseVars eqClasses) vars = EqClasses newBaseVars newCla
 data Fact = Fact { variable:: Variable, value:: SemValue } deriving (Eq, Ord)
 instance Show Fact where show (Fact var value) = (show var)++"."++(show value)
 
+data (Ord a) => FactMap a = FactMap {
+  knownVariables :: Set.Set Variable,
+  var2Facts :: Map.Map [Variable] (LS.LinkedSet a),
+  children :: Maybe (FactMap a, FactMap a)
+}
+
+composeFactMaps fm1 fm2 varClasses = FactMap knownVars cache (Just (fm1, fm2)) where
+  knownVars = Set.union (knownVariables fm1) (knownVariables fm2)
+  cachePair v = let
+    baseVar = toBase varClasses v
+    eqVars = Map.findWithDefault [v] v $ eqClasses varClasses
+    in
+    if baseVar /= v then []
+    else [(eqVars, combineFacts fm1 fm2 eqVars)]
+  cache = Map.fromList (Set.elems knownVars >>= cachePair)
+
+combineFacts fm1 fm2 vars = if LS.isEmpty facts1 then facts2 else LS.union facts1 facts2 where
+  facts1 = getFactsFromMap fm1 $ filter (flip Set.member (knownVariables fm1)) vars
+  facts2 = getFactsFromMap fm2 $ filter (flip Set.member (knownVariables fm2)) vars
+
+getFactsFromMap factMap vars = if null vars then LS.empty else Map.findWithDefault calcValue vars $ var2Facts factMap where
+  calcValue = {-trace ("calc", vars, knownVariables factMap, var2Facts factMap, isJust (children factMap)) $ -}case children factMap of
+    Nothing -> foldl LS.union LS.empty [facts | (vs, facts) <- Map.toList $ var2Facts factMap, not (null $ intersect vs vars)]
+    Just (left, right) -> combineFacts left right vars
+
 data Sense = Sense {
   facts:: [Fact],
   allFrameVars:: [Variable],
   varClasses:: EqClasses,
-  bvar2Facts:: Map.Map Variable [Fact],
-  bvar2Usages:: Map.Map Variable [Fact],
+  factMap:: FactMap SemValue,
+  usageMap:: FactMap Fact,
+  factCache:: Map.Map Variable [Fact],
+  usageCache:: Map.Map Variable [Fact],
   bareFacts:: [Fact]
   }
 instance Show Sense where show sense = Data.List.intercalate "\n" (map show $ facts sense)
@@ -53,28 +80,43 @@ data Frame = Frame { var:: Variable, sense:: Sense } deriving (Eq)
 instance Show Frame where show frame = "{" ++ (Data.List.intercalate "," (map show $ allFrameFacts frame)) ++ "}"
 instance Ord Frame where compare s1 s2 = compare (var s1) (var s2)
 
-makeSense bareFacts unifications = makeSenseInternal bareFacts varClasses where
+makeSense bareFacts unifications = makeSenseInternal bareFacts allBaseVars varClasses factMap usageMap where
   varClasses = foldl (\ec (var1, var2) -> addEqClass ec [var1, var2]) (EqClasses Map.empty Map.empty) unifications
+  allVars = LS.removeDups $ map variable bareFacts ++ [v | Fact {value=VarValue _ v} <- bareFacts] ++ Map.keys (baseVars varClasses)
+  allBaseVars = LS.removeDups $ map (toBase varClasses) allVars
+  factMap  = leafFactMap [(variable fact, [value fact]) | fact <- bareFacts]
+  usageMap = leafFactMap [(v, [fact]) | fact@(Fact {value=VarValue _ v}) <- bareFacts]
+  leafFactMap pairs = let
+    baseVarMap = Map.fromListWith (flip (++)) [(toBase varClasses v, facts) | (v, facts) <- pairs]
+    in FactMap {
+      knownVariables = Set.fromList allVars,
+      var2Facts = Map.fromList [(cacheKey varClasses v, LS.fromList $ Map.findWithDefault [] v baseVarMap) | v <- allBaseVars],
+      children = Nothing
+     }
 
-makeSenseInternal bareFacts varClasses = Sense facts allFrameVars varClasses bvar2Facts bvar2Usages bareFacts where
-  facts = LS.removeDups $ map normalizeFact bareFacts
-  normalizeFact (Fact var1 value) =
-    let normalizedValue = case value of
-          StrValue _ _ -> value
-          VarValue prop var2 -> VarValue prop $ toBase varClasses var2
-    in Fact (toBase varClasses var1) normalizedValue
-  allFrameVars = LS.removeDups $ map variable facts ++ [v | Fact {value=VarValue _ v} <- facts]
+cacheKey varClasses v = Map.findWithDefault [v] v $ eqClasses varClasses
 
-  bvar2Facts = Map.fromListWith (flip (++)) [(variable fact, [fact]) | fact <- facts]
-  bvar2Usages = Map.map LS.removeDups $ Map.fromListWith (flip (++)) [(v, [fact]) | fact@(Fact {value=VarValue _ v}) <- facts]
+makeSenseInternal bareFacts allFrameVars varClasses factMap usageMap = Sense facts allFrameVars varClasses factMap usageMap factCache usageCache bareFacts where
+  facts = LS.removeDups $ map (normalizeFact varClasses) bareFacts
+  factCache  = Map.fromList [(var, [Fact var (normalizeValue varClasses value) | value <- LS.elements $ getFactsFromMap factMap $ cacheKey varClasses var]) | var <- allFrameVars]
+  usageCache = Map.fromList [(var, map (normalizeFact varClasses) $ LS.elements $ getFactsFromMap usageMap $ cacheKey varClasses var) | var <- allFrameVars]
 
-composeSense (Sense { bareFacts = f1, varClasses = ec1 }) (Sense { bareFacts = f2, varClasses = ec2 }) =
-  makeSenseInternal (f1 ++ f2) mergedClasses where
-    mergedClasses = foldl (\ec vars -> addEqClass ec vars) ec1 (Map.elems $ eqClasses ec2)
+normalizeFact varClasses (Fact var1 value) = Fact (toBase varClasses var1) (normalizeValue varClasses value)
+
+normalizeValue varClasses value = case value of
+  StrValue _ _ -> value
+  VarValue prop var2 -> VarValue prop $ toBase varClasses var2
+
+composeSense s1 s2 = makeSenseInternal _bareFacts _allFrameVars mergedClasses _factMap _usageMap where
+  _bareFacts = bareFacts s1 ++ bareFacts s2
+  mergedClasses = foldl (\ec vars -> addEqClass ec vars) (varClasses s1) (Map.elems $ eqClasses $ varClasses s2)
+  _allFrameVars = LS.removeDups $ map (toBase mergedClasses) $ allFrameVars s1 ++ allFrameVars s2
+  _factMap  = composeFactMaps (factMap s1)  (factMap s2)  mergedClasses
+  _usageMap = composeFactMaps (usageMap s1) (usageMap s2) mergedClasses
 
 toFrames sense vars = map (flip Frame sense) vars
 allFrames sense = toFrames sense $ allFrameVars sense
-allFrameFacts frame = Map.findWithDefault [] (var frame) $ bvar2Facts (sense frame)
+allFrameFacts frame = Map.findWithDefault [] (var frame) $ factCache (sense frame)
 singleListElement list = case list of
   [single] -> Just single
   _ -> Nothing
@@ -165,7 +207,7 @@ hasAnyType types frame = fromMaybe False $ getType frame >>= \t -> Just $ elem t
 getType frame = sValue P.Type frame
 getDeclaredType frame = sDeclaredValue P.Type frame
 
-usageFacts frame = Map.findWithDefault [] (var frame) $ bvar2Usages (sense frame)
+usageFacts frame = Map.findWithDefault [] (var frame) $ usageCache (sense frame)
 allUsages attrs frame = toFrames (sense frame) $ [v | Fact {variable=v, value=VarValue s _} <- usageFacts frame, s `elem` attrs]
 usages attr frame = toFrames (sense frame)  $ [v | Fact {variable=v, value=VarValue s _} <- usageFacts frame, s == attr]
 usage attr frame = singleListElement $ usages attr frame

@@ -11,6 +11,10 @@ add e set@(LinkedSet l s) = if Set.size newSet == Set.size s then set else Linke
 
 addAll list set = foldl (\acc e -> add e acc) set list
 
+union set1 set2 = addAll (elements set2) set1
+
+isEmpty (LinkedSet l _) = null l
+
 elements (LinkedSet l _) = reverse l
 
 member elem (LinkedSet l s) = Set.member elem s

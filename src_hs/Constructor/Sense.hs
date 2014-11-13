@@ -74,7 +74,7 @@ data Sense = Sense {
   bareFacts:: [Fact]
   }
 instance Show Sense where show sense = Data.List.intercalate "\n" (map show $ facts sense)
-instance Eq Sense where s1 == s2 = facts s1 == facts s2
+instance Eq Sense where s1 == s2 = bareFacts s1 == bareFacts s2
 
 data Frame = Frame { var:: Variable, sense:: Sense } deriving (Eq)
 instance Show Frame where show frame = "{" ++ (Data.List.intercalate "," (map show $ allFrameFacts frame)) ++ "}"
@@ -126,11 +126,12 @@ findFrames typ sense = [f | f <- allFrames sense, hasType typ f]
 typeEarlier f1 f2 = earlier f1 P.Type f2 P.Type
 
 earlier f1 attr1 f2 attr2 =
-  let allFacts = facts $ sense f1
+  let allFacts = bareFacts $ sense f1
+      eqClasses = varClasses $ sense f1
       mi1 = findIndex (isStrAssignment (var f1) attr1) allFacts
       mi2 = findIndex (isStrAssignment (var f2) attr2) allFacts
       isStrAssignment var attr = \case
-        Fact {variable=v, value=StrValue a _} | a == attr && v == var -> True
+        Fact {variable=v, value=StrValue a _} | a == attr && toBase eqClasses v == var -> True
         _ -> False
   in case (mi1, mi2) of
     (Just i1, Just i2) | i1 < i2 -> True

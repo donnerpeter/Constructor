@@ -14,8 +14,7 @@ issues :: Sense -> [Issue]
 issues sense = let
   frames = allFrames sense
   hasCP = any isCP frames
-  factIssues = facts sense >>= \fact -> let
-    frame = Frame (variable fact) sense
+  factIssues frame = allFrameFacts frame >>= \fact -> let
     in case value fact of
       StrValue attr val -> case (attr, val) of
         (P.Isolation, _) | (isNothing (sValue P.LeftIsolated frame) || isNothing (sValue P.RightIsolated frame)) ->
@@ -60,7 +59,7 @@ issues sense = let
         _ -> []
       in anchorIssues ++ subjIssues
     _ -> []
-  in {-traceIt "issues" $ -}factIssues ++ (if hasCP then [] else ["no clause"])
+  in {-traceIt "issues" $ -}(frames >>= factIssues) ++ (if hasCP then [] else ["no clause"])
 
 orderingIssues frame declaredType = case declaredType of
   "COME_SCALARLY" |

@@ -26,7 +26,7 @@ import qualified Constructor.LinkedSet as LS
 type EqClass = [Variable]
 data EqClasses = EqClasses { baseVars:: Map.Map Variable Variable, eqClasses :: Map.Map Variable EqClass }
 
-toBase (EqClasses baseVars _) var = Map.findWithDefault undefined var baseVars
+toBase (EqClasses baseVars _) var = baseVars Map.! var
 
 addEqClass :: EqClasses -> EqClass -> (EqClasses, ClassUpdate)
 addEqClass ec@(EqClasses baseVars eqClasses) vars = (EqClasses newBaseVars newClasses, ClassUpdate addedClasses removedClasses) where
@@ -54,10 +54,10 @@ data FactMap = FactMap {
   children :: Maybe (FactMap, FactMap)
 }
 
-composeFactMaps fm1 fm2 varClasses update = FactMap knownVars valueCache usageCache (Just (fm1, fm2)) where
+composeFactMaps fm1 fm2 baseFM varClasses update = FactMap knownVars valueCache usageCache (Just (fm1, fm2)) where
   knownVars = Set.union (knownVariables fm1) (knownVariables fm2)
   updateCache getter = let
-    withoutRemoved = Set.foldl (\m c -> Map.delete c m) (getter fm1) (removedClasses update)
+    withoutRemoved = Set.foldl (\m c -> Map.delete c m) (getter baseFM) (removedClasses update)
     withAdded = Set.foldl (\m c -> Map.insert c (combineFacts getter fm1 fm2 c) m) withoutRemoved (addedClasses update)
     in withAdded
   valueCache = updateCache var2Values
@@ -117,11 +117,13 @@ normalizeValue varClasses value = case value of
 
 composeSense s1 s2 = makeSenseInternal _bareFacts _allFrameVars mergedClasses _factMap where
   _bareFacts = bareFacts s1 ++ bareFacts s2
+  inverted = Map.size (eqClasses $ varClasses s1) < Map.size (eqClasses $ varClasses s2)
+  (baseSense, addedSense) = if inverted then (s2, s1) else (s1, s2)
   folder (ec1, u1) vars = let (ec2, u2) = addEqClass ec1 vars in (ec2, composeUpdates u1 u2)
-  classesToAdd = Map.elems $ eqClasses $ varClasses s2
-  (mergedClasses, compositeUpdate) = foldl folder (varClasses s1, ClassUpdate Set.empty Set.empty) classesToAdd
+  classesToAdd = Map.elems $ eqClasses $ varClasses addedSense
+  (mergedClasses, compositeUpdate) = foldl folder (varClasses baseSense, ClassUpdate Set.empty Set.empty) classesToAdd
   _allFrameVars = LS.removeDups $ map (toBase mergedClasses) $ allFrameVars s1 ++ allFrameVars s2
-  _factMap = composeFactMaps (factMap s1) (factMap s2) mergedClasses compositeUpdate
+  _factMap = composeFactMaps (factMap s1) (factMap s2) (factMap baseSense) mergedClasses compositeUpdate
 
 toFrames sense vars = map (flip Frame sense) vars
 allFrames sense = toFrames sense $ allFrameVars sense

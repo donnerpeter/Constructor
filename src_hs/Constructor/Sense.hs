@@ -23,11 +23,12 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Constructor.LinkedSet as LS
 
-data EqClasses = EqClasses { baseVars:: Map.Map Variable Variable, eqClasses :: Map.Map Variable [Variable] }
+type EqClass = [Variable]
+data EqClasses = EqClasses { baseVars:: Map.Map Variable Variable, eqClasses :: Map.Map Variable EqClass }
 
 toBase (EqClasses baseVars _) var = Map.findWithDefault var var baseVars
 
-addEqClass :: EqClasses -> [Variable] -> EqClasses
+addEqClass :: EqClasses -> EqClass -> EqClasses
 addEqClass ec@(EqClasses baseVars eqClasses) vars = EqClasses newBaseVars newClasses where
   basesToUnify = catMaybes $ map (\v -> Map.lookup v baseVars) vars
   mergedClass = sort $ LS.removeDups $ concat (map (\v -> eqClasses Map.! v) basesToUnify) ++ vars
@@ -40,8 +41,8 @@ instance Show Fact where show (Fact var value) = (show var)++"."++(show value)
 
 data FactMap = FactMap {
   knownVariables :: Set.Set Variable,
-  var2Values :: Map.Map [Variable] (LS.LinkedSet SemValue),
-  var2Usages :: Map.Map [Variable] (LS.LinkedSet Fact),
+  var2Values :: Map.Map EqClass (LS.LinkedSet SemValue),
+  var2Usages :: Map.Map EqClass (LS.LinkedSet Fact),
   children :: Maybe (FactMap, FactMap)
 }
 

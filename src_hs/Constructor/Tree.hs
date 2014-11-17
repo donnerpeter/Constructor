@@ -20,7 +20,8 @@ data Tree = Tree {
   _unhappyLeft :: [Mite], _unhappyRight :: [Mite], _unhappyHead :: [Mite],
   _issues :: [Issue],
   allVariants:: [Tree],
-  sense :: Sense
+  sense :: Sense,
+  bestVariant :: Tree
 }
 
 instance Show Tree where
@@ -89,8 +90,9 @@ nodeSense active = makeSense facts unifications where
   facts = [Fact var value | (cxt -> Sem var value) <- active]
   unifications = [(var1, var2) | (cxt -> Unify var1 var2) <- active]
 
-createLeaf mites candidateSets = bestTree trees where
+createLeaf mites candidateSets = head trees where
   trees = map eachLeaf candidateSets
+  best = bestTree trees
   eachLeaf active = let
     activeSet = Set.fromList active
     _sense = nodeSense active
@@ -102,15 +104,13 @@ createLeaf mites candidateSets = bestTree trees where
       _unhappyLeft = [], _unhappyRight = [], _unhappyHead = filter (not. happy) active,
       _issues = issues _sense,
       allVariants = trees,
-      sense = _sense
+      sense = _sense,
+      bestVariant = best
     }
 
-createBranch mites _leftChild _rightChild headSide candidateSets = bestVariant where
-  bestVariant = case allBranchVariants of
-    [] -> Nothing
-    _ -> let result = Just $ bestTree allBranchVariants in
-         {-if length allBranchVariants < 10 then result else trace ("-----allBranchVariants", length allBranchVariants, mites) -}result
+createBranch mites _leftChild _rightChild headSide candidateSets = listToMaybe allBranchVariants where
   allBranchVariants = map (\key -> bestTree $ (Map.!) grouped key) $ LS.elements orderedHeads
+  best = bestTree allBranchVariants
   allAVCandidates = do
     active <- candidateSets
     let covered = base active
@@ -145,7 +145,8 @@ createBranch mites _leftChild _rightChild headSide candidateSets = bestVariant w
         _unhappyHead = filter isUncovered $ _unhappyHead headChild ++ filter (not. happy) active,
         _issues = issues _sense,
         allVariants = allBranchVariants,
-        sense = _sense
+        sense = _sense,
+        bestVariant = best
       }
     else []
   grouped = Map.fromListWith (++) [(activeHeadMites av, [av]) | av <- allAVCandidates]

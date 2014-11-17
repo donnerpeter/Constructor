@@ -44,7 +44,8 @@ emptyState = ParsingState [] [] Map.empty
 
 mergeTrees:: ParsingState -> ParsingState
 mergeTrees state = {-trace ("--------------", length allVariants, [(sortingKey v, v) | v <- allVariants]) $ -}result where
-  result = head $ leastValued stateIssueCount $ leastValued unhappyCount $ leastValued (length . roots) allVariants
+  chooseBestRoots state = state { roots = map bestVariant $ roots state }
+  result = head $ leastValued stateIssueCount $ leastValued unhappyCount $ map chooseBestRoots $ leastValued (length . roots) allVariants
   unhappyCount state = sum [length $ unhappyActiveMites tree | tree <- roots state]
   isStableState state = all isStable $ map cxt $ (roots state >>= mites)
   allVariants = [state { history = updatedHistory } | state <- stateRecombinations, isStableState state]

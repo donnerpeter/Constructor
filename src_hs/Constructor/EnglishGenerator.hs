@@ -1,5 +1,6 @@
 module Constructor.EnglishGenerator (generate) where
 import Constructor.Sense
+import Constructor.Inference
 import Constructor.ArgumentPlanning
 import Constructor.EnglishNouns
 import Control.Monad.State

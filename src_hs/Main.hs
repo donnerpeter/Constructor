@@ -6,7 +6,6 @@ import Constructor.EnglishGenerator
 import Constructor.Sense as Sense
 
 import Test.HUnit
-import Debug.Trace
 import Control.DeepSeq
 import Control.Monad (when)
 import System.CPUTime

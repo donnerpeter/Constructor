@@ -1,6 +1,7 @@
 module Constructor.EnglishNouns (noun, isSingular, renderAsWord) where
 
 import Constructor.Sense
+import Constructor.Inference
 import Data.Maybe
 import Constructor.Util
 import qualified Constructor.SemanticProperties as P

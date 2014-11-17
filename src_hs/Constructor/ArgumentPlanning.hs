@@ -3,6 +3,7 @@ module Constructor.ArgumentPlanning (
   isCP, isCPOrSeq, isFactCP, isQuestionCP,
   isVerbEllipsis, isEllipsisAnchor) where
 import Constructor.Sense
+import Constructor.Inference
 import Data.List
 import Data.Maybe
 import Constructor.Variable

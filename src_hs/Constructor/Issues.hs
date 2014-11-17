@@ -2,6 +2,7 @@ module Constructor.Issues (Issue, issues) where
 
 import Constructor.Mite
 import Constructor.Sense
+import Constructor.Inference
 import Constructor.Util
 import Constructor.Variable
 import Control.Monad

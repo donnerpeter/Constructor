@@ -1,8 +1,7 @@
 module Constructor.Tests.RandomStuff where
 import Constructor.Tests.Testing
-import Test.HUnit
 
-randomStuffTests = [TestLabel "random stuff tests" $ TestList [
+randomStuffTests = [
   translateTest "Они пошли домой"
                 "They went home"
   ,
@@ -71,4 +70,4 @@ randomStuffTests = [TestLabel "random stuff tests" $ TestList [
   ,
   translateTest "Сестра кассира пошла в сад"
                 "The cashier's sister went to the garden"
-  ]]
+  ]

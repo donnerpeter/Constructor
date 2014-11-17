@@ -1,8 +1,7 @@
 module Constructor.Tests.HybridCoordination where
 import Constructor.Tests.Testing
-import Test.HUnit
 
-hybridCoordinationTests = [TestLabel "hybrid coordination tests" $ TestList [
+hybridCoordinationTests = [
   translateTest "Все и всё знают"
                 "Everybody knows everything"
   ,
@@ -45,4 +44,4 @@ hybridCoordinationTests = [TestLabel "hybrid coordination tests" $ TestList [
   translateTest "Кто дал что и кому?"
                 "Who gave what, and to whom?"
 --  ,
-  ]]
+  ]

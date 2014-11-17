@@ -1,8 +1,7 @@
 module Constructor.Tests.Copula where
 import Constructor.Tests.Testing
-import Test.HUnit
 
-copulaTests = [TestLabel "copula tests" $ TestList [
+copulaTests = [
   translateTest "Я уже на углу Бассейной и Знаменской улицы"
                 "I'm already on the corner of Basseinaya and Znamenskaya streets"
   ,
@@ -68,4 +67,4 @@ copulaTests = [TestLabel "copula tests" $ TestList [
 --  ,
 --todo  translateTest "Она кассирша и работает в магазине."
 --                "She is a cashier and works in a store."
-  ]]
+  ]

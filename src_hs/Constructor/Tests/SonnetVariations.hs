@@ -1,8 +1,7 @@
 module Constructor.Tests.SonnetVariations where
 import Constructor.Tests.Testing
-import Test.HUnit
 
-var1 = TestLabel "sonnetVariations 1" $ TestList [
+var1 = [
   translateTest "Я вдруг забыл, что идет дальше."
                 "I suddenly forgot what comes next."
   ,
@@ -72,7 +71,7 @@ var1 = TestLabel "sonnetVariations 1" $ TestList [
                 "I forgot what comes after a 7 and that a 4 comes before a 5."
  ]
 
-var2 = TestLabel "sonnetVariations 2" $ TestList [
+var2 = [
   -- 2_ThinkingNotSitting
   translateTest "Я забыл, что они думают, а не просто сидят."
                 "I forgot, that they were thinking and not just sitting."
@@ -104,7 +103,7 @@ var2 = TestLabel "sonnetVariations 2" $ TestList [
                 "I asked them about their opinion on this matter"
  ]
 
-var3 = TestLabel "sonnetVariations 3" $ TestList [
+var3 = [
   -- 3_My
   translateTest "Каково же было мое удивление"
                 "Great was my amazement"
@@ -126,7 +125,7 @@ var3 = TestLabel "sonnetVariations 3" $ TestList [
                 "He suddenly discovered, that he couldn't recall the counting order"
  ]
 
-var4 = TestLabel "sonnetVariations 4" $ TestList [
+var4 = [
   -- 4_TheyRemember123
   translateTest "Они помнят 1, 2 и 3"
                 "They remember 1, 2 and 3"
@@ -163,7 +162,7 @@ var4 = TestLabel "sonnetVariations 4" $ TestList [
                 "She remembers 1, but forgot what comes next"
  ]
 
-var5 = TestLabel "sonnetVariations 5" $ TestList [
+var5 = [
   -- 5_OnTheCorner
   translateTest "Мы все пошли в коммерческий магазин \"Гастроном\" на углу и спросили кассиршу о нашем недоумении"
                 "We all went to a commercial grocery store on the corner to consult a cashier on our predicament"
@@ -199,7 +198,7 @@ var5 = TestLabel "sonnetVariations 5" $ TestList [
                 "We consulted the cashier on our predicament"
  ]
 
-var6 = TestLabel "sonnetVariations 6" $ TestList [
+var6 = [
   -- 6_Shorter
   translateTest "Кассирша улыбнулась, вынула изо рта молоточек и сказала:"
                 "The cashier gave us a smile, took a hammer out of her mouth, and said:"
@@ -233,7 +232,7 @@ var6 = TestLabel "sonnetVariations 6" $ TestList [
                 "Moving her jaw slightly back and forth, the cashier said:"
  ]
 
-var67 = TestLabel "sonnetVariations 6+7" $ TestList [
+var67 = [
   -- 6_7_DirectNoConditions
   translateTest "Кассирша сказала, подвигав носом:\n\
 \ - Семь идет после восьми."
@@ -285,7 +284,7 @@ var67 = TestLabel "sonnetVariations 6+7" $ TestList [
                 "The cashier told us what comes after an eight"
  ]
 
-var7 = TestLabel "sonnetVariations 7" $ TestList [
+var7 = [
   -- 7_IMO_AfterSubject
   translateTest "Семь, по-моему, идет после восьми в том случае, когда восемь идет после семи"
                 "In my opinion, a seven comes after an eight, only if an eight comes after a seven"
@@ -318,7 +317,7 @@ var7 = TestLabel "sonnetVariations 7" $ TestList [
                 "A seven comes before an eight, if an eight comes before a seven"
  ]
 
-var8 = TestLabel "sonnetVariations 8" $ TestList [
+var8 = [
   -- 8_GreatJoy
   translateTest "Мы поблагодарили кассиршу и с большой радостью выбежали из магазина"
                 "We thanked the cashier and ran out of the store with great joy"
@@ -340,7 +339,7 @@ var8 = TestLabel "sonnetVariations 8" $ TestList [
                 "We thanked her and ran out of the store cheerfully"
  ]
 
-var9 = TestLabel "sonnetVariations 9" $ TestList [
+var9 = [
   -- 9_Short1
   translateTest "Но тут мы опять приуныли"
                 "But there we got sad again"
@@ -418,7 +417,7 @@ var9 = TestLabel "sonnetVariations 9" $ TestList [
                 "Her words seemed void of meaning to us"
  ]
 
-var10 = TestLabel "sonnetVariations 10" $ TestList [
+var10 = [
   -- 10_WhatToDo
   translateTest "Что делать?"
                 "What to do?"
@@ -460,7 +459,7 @@ var10 = TestLabel "sonnetVariations 10" $ TestList [
                 "I asked what to do."
  ]
 
-var11 = TestLabel "sonnetVariations 11" $ TestList [
+var11 = [
   -- 11_WaterTrees
   translateTest "Мы стали поливать деревья"
                 "We started watering trees"
@@ -486,7 +485,7 @@ var11 = TestLabel "sonnetVariations 11" $ TestList [
                 "We started counting money"
  ]
 
-var12 = TestLabel "sonnetVariations 12" $ TestList [
+var12 = [
   -- 12_StartedCounting
   translateTest "Мы начали считать деревья"
                 "We started counting trees"
@@ -611,7 +610,7 @@ var12 = TestLabel "sonnetVariations 12" $ TestList [
                 "According to and in the opinion of the cashier, a 7 comes before an 8"
  ]
 
-var13 = TestLabel "sonnetVariations 13" $ TestList [
+var13 = [
   -- 13_LuckMissingNoCommas
   translateTest "Мы спорили бы очень долго, но по счастию тут со скамейки свалился какой-то ребенок и сломал себе обе челюсти"
                 "We were arguing for a long time, when by some sheer luck, a child fell off a bench and broke both of his jaws"
@@ -700,7 +699,7 @@ var13 = TestLabel "sonnetVariations 13" $ TestList [
                 "We were arguing for a long time, when by some sheer luck, a child fell off a bench"
  ]
 
-var14 = TestLabel "sonnetVariations 14" $ TestList [
+var14 = [
   -- 14_Argument
   translateTest "Это отвлекло нас от спора"
                 "That distracted us from the argument"
@@ -710,7 +709,7 @@ var14 = TestLabel "sonnetVariations 14" $ TestList [
                 "That distracted them from their argument"
  ]
 
-var15 = TestLabel "sonnetVariations 15" $ TestList [
+var15 = [
   -- 15_AndThey
   translateTest "А они разошлись по домам."
                 "And they all went home."
@@ -740,7 +739,7 @@ var15 = TestLabel "sonnetVariations 15" $ TestList [
                 "We all went to their offices."
  ]
 
-varUnsorted = TestLabel "sonnetVariations unsorted" $ TestList [
+varUnsorted = [
   -- SheForgotThatGoesAfterVasya
   translateTest "Она забыла, что идет после Васи."
                 "She forgot, that she went after Vasya."
@@ -846,7 +845,7 @@ varUnsorted = TestLabel "sonnetVariations unsorted" $ TestList [
                 "The stupid cashier goes to the work, but the smart one - for a walk"
  ]
 
-sonnetVariations = [var1, var2, var3, var4, var5, var6, var7, var67, var8, var9, 
+sonnetVariations = concat [var1, var2, var3, var4, var5, var6, var7, var67, var8, var9,
   var10, var11, var12, var13, var14, var15, varUnsorted]
   
 

@@ -1,6 +1,5 @@
 module Constructor.Tests.Sonnet where
 import Constructor.Tests.Testing
-import Test.HUnit
 
 sonnetText = unlines [
   "Сонет\n",

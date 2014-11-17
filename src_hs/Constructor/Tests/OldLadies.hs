@@ -1,6 +1,5 @@
 module Constructor.Tests.OldLadies where
 import Constructor.Tests.Testing
-import Test.HUnit
 
 oldLadyTests = [
   translateTest "Одна старуха от чрезмерного любопытства вывалилась из окна, упала и разбилась."

@@ -1,8 +1,7 @@
 module Constructor.Tests.Wh where
 import Constructor.Tests.Testing
-import Test.HUnit
 
-whTests = [TestLabel "wh tests" $ TestList [
+whTests = [
   translateTest "Что они думают по этому поводу?"
                 "What do they think on this matter?"
   ,
@@ -213,4 +212,4 @@ whTests = [TestLabel "wh tests" $ TestList [
   ,
   translateTest "Сестра кассира, которую я видел вчера, пошла в сад"
                 "The cashier's sister that I saw yesterday went to the garden"
-  ]]
+  ]

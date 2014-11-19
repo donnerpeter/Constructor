@@ -81,10 +81,7 @@ activeBase activeSet = Set.fromList [mite | activeMite <- Set.elems activeSet, m
 
 isBranch tree = isJust (left tree)
 
-unhappyActiveMites tree = result where
-  allActive = allActiveMiteSet tree
-  spine = activeBase allActive
-  result = filter (\mite -> not (happy mite || Set.member mite spine)) $ Set.elems allActive
+unhappyCount tree = length (_unhappyLeft tree) + length (_unhappyHead tree) + length (_unhappyRight tree)
 
 nodeSense active = makeSense facts unifications where
   facts = [Fact var value | (cxt -> Sem var value) <- active]
@@ -160,6 +157,4 @@ createBranch mites _leftChild _rightChild headSide candidateSets = listToMaybe a
 
 treeWidth tree = if isBranch tree then treeWidth (justLeft tree) + treeWidth (justRight tree) else 1
 
-bestTree avs = head $ leastValued avIssueCount $ leastValued unhappyCount avs where
-  unhappyCount av = length (_unhappyLeft av) + length (_unhappyHead av) + length (_unhappyRight av)
-  avIssueCount av = length $ _issues av
+bestTree avs = head $ leastValued (length . _issues) $ leastValued unhappyCount avs

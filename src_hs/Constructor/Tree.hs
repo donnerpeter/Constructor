@@ -16,10 +16,11 @@ data Tree = Tree {
   active::Set.Set Mite, allActiveMiteSet :: Set.Set Mite,
   activeHeadMites :: [Mite],
   activeHeadMitesBase :: [Mite],
-  _unhappyLeft :: [Mite], _unhappyRight :: [Mite], _unhappyHead :: [Mite],
+  _unhappy :: Unhappy,
   _issues :: [Issue],
   allVariants:: [Tree],
-  sense :: Sense
+  sense :: Sense,
+  unhappyCount :: Int
 }
 
 instance Show Tree where
@@ -79,8 +80,6 @@ activeBase activeSet = Set.fromList [mite | activeMite <- Set.elems activeSet, m
 
 isBranch tree = isJust (left tree)
 
-unhappyCount tree = length (_unhappyLeft tree) + length (_unhappyHead tree) + length (_unhappyRight tree)
-
 nodeSense active = makeSense facts unifications where
   facts = [Fact var value | (cxt -> Sem var value) <- active]
   unifications = [(var1, var2) | (cxt -> Unify var1 var2) <- active]
@@ -90,15 +89,15 @@ createLeaf mites candidateSets = head trees where
   eachLeaf active = let
     activeSet = Set.fromList active
     _sense = nodeSense active
+    unhappy = Unhappy [] [] $ filter (not. happy) active
     in Tree {
       mites = mites, left = Nothing, right = Nothing, headSide = LeftSide,
       active = activeSet, allActiveMiteSet = activeSet,
       activeHeadMites = active,
       activeHeadMitesBase = LS.removeDups (active >>= baseMites),
-      _unhappyLeft = [], _unhappyRight = [], _unhappyHead = filter (not. happy) active,
-      _issues = issues _sense,
-      allVariants = trees,
-      sense = _sense
+      _unhappy = unhappy, unhappyCount = _unhappyCount unhappy,
+      sense = _sense, _issues = issues _sense,
+      allVariants = trees
     }
 
 createBranch mites _leftChild _rightChild headSide candidateSets = listToMaybe allBranchVariants where
@@ -109,41 +108,58 @@ createBranch mites _leftChild _rightChild headSide candidateSets = listToMaybe a
         isUncovered mite = not $ mite `elem` covered
         coverableBase = Set.fromList $ filter isCoverable covered
         isCompatible av = not $ any (flip Set.member coverableBase) $ activeHeadMitesBase av
-        leftCompatible  = filter isCompatible $ filter (null . _unhappyRight) $ allVariants _leftChild
-        rightCompatible = filter isCompatible $ filter (null . _unhappyLeft)  $ allVariants _rightChild
+        leftCompatible  = filter isCompatible $ filter (null . _unhappyRight . _unhappy) $ allVariants _leftChild
+        rightCompatible = filter isCompatible $ filter (null . _unhappyLeft  . _unhappy) $ allVariants _rightChild
     headChild <- select headSide leftCompatible rightCompatible
-    if (not $ null $ filter isUncovered $ (select headSide _unhappyRight _unhappyLeft) headChild) then []
+    if (not $ null $ filter isUncovered $ (select headSide _unhappyRight _unhappyLeft) $ _unhappy headChild) then []
     else
       let
         uncoveredByHeadChild = filter (not . flip Set.member (allActiveMiteSet headChild)) covered
         checkSideChild sideChild = null $ filter (not . flip Set.member (allActiveMiteSet sideChild)) uncoveredByHeadChild
         sideChildren = filter checkSideChild $ select headSide rightCompatible leftCompatible
         _activeHeadMites = active ++ filter (\mite -> isUncovered mite || not (isCoverable mite)) (activeHeadMites headChild)
-      in case branchCandidates active headChild sideChildren isUncovered _activeHeadMites of
+        createCandidate sideChild = let
+          aLeft =  select headSide headChild sideChild
+          aRight = select headSide sideChild headChild
+          _sense = sense aLeft `composeSense` nodeSense active `composeSense` sense aRight
+          in
+          BranchCandidate {
+              bcLeft = aLeft, bcRight = aRight,
+              bcUnhappy = composeUnhappy (_unhappy aLeft) (_unhappy aRight) headSide active isUncovered,
+              bcSense = _sense, bcIssues = issues _sense
+            }
+      in case map createCandidate sideChildren of
         [] -> []
-        candidates -> [bestTree candidates]
-  branchCandidates active headChild sideChildren isUncovered _activeHeadMites = let
-    allVariants = map createCandidate sideChildren
-    activeSet = Set.fromList active
-    activeHeadMitesBase = LS.removeDups (_activeHeadMites >>= baseMites)
-    createCandidate sideChild = let
-      aLeft =  select headSide headChild sideChild
-      aRight = select headSide sideChild headChild
-      _sense = sense aLeft `composeSense` nodeSense active `composeSense` sense aRight
-      in Tree {
-          mites = mites, left = Just aLeft, right = Just aRight, headSide = headSide,
-          active = activeSet,
-          allActiveMiteSet = Set.union activeSet $ Set.union (allActiveMiteSet aLeft) (allActiveMiteSet aRight),
-          activeHeadMites = _activeHeadMites,
-          activeHeadMitesBase = activeHeadMitesBase,
-          _unhappyLeft  = filter isUncovered $ _unhappyLeft aLeft     ++ select headSide [] (_unhappyHead aLeft),
-          _unhappyRight = filter isUncovered $ _unhappyRight aRight   ++ select headSide (_unhappyHead aRight) [],
-          _unhappyHead =  filter isUncovered $ _unhappyHead headChild ++ filter (not. happy) active,
-          _issues = issues _sense,
-          allVariants = allBranchVariants,
-          sense = _sense
-        }
-    in allVariants
+        candidates -> [candidatesToBranch mites headSide active _activeHeadMites allBranchVariants candidates]
+
+data BranchCandidate = BranchCandidate { bcLeft:: Tree, bcRight:: Tree, bcSense:: Sense, bcIssues:: [Issue], bcUnhappy:: Unhappy }
+
+candidatesToBranch mites headSide active _activeHeadMites allBranchVariants candidates = let
+  unhappyCount = minimum $ map (_unhappyCount . bcUnhappy) candidates
+  bc = head $ leastValued (length . bcIssues) $ filter (\c -> unhappyCount == _unhappyCount (bcUnhappy c)) candidates
+  aLeft = bcLeft bc
+  aRight = bcRight bc
+  activeSet = Set.fromList active
+  in Tree {
+    mites = mites, left = Just aLeft, right = Just aRight, headSide = headSide, active = activeSet,
+    allActiveMiteSet = Set.union activeSet $ Set.union (allActiveMiteSet aLeft) (allActiveMiteSet aRight),
+    activeHeadMites = _activeHeadMites,
+    activeHeadMitesBase = LS.removeDups (_activeHeadMites >>= baseMites),
+    _unhappy = bcUnhappy bc, unhappyCount = unhappyCount,
+    sense = bcSense bc, _issues = bcIssues bc,
+    allVariants = allBranchVariants
+  }
+
+data Unhappy = Unhappy { _unhappyLeft :: [Mite], _unhappyRight :: [Mite], _unhappyHead :: [Mite] }
+
+composeUnhappy left right headSide active isUncovered = Unhappy {
+  _unhappyLeft  = filter isUncovered $ _unhappyLeft left     ++ select headSide [] (_unhappyHead left),
+  _unhappyRight = filter isUncovered $ _unhappyRight right   ++ select headSide (_unhappyHead right) [],
+  _unhappyHead =  filter isUncovered $ _unhappyHead (select headSide left right) ++ filter (not. happy) active
+ }
+
+_unhappyCount u = length (_unhappyLeft u) + length (_unhappyHead u) + length (_unhappyRight u)
+
 
 treeWidth tree = if isBranch tree then treeWidth (justLeft tree) + treeWidth (justRight tree) else 1
 

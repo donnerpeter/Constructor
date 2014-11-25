@@ -38,13 +38,17 @@ growSprouts :: [Sprout] -> Tree -> [Tree]
 growSprouts sprouts rightTree =
   catMaybes [createBranch mites leftTree rightTree side activeSets | Sprout leftTree side mites activeSets <- sprouts]
 
-data ParsingState = ParsingState { roots :: [Tree], history :: [ParsingState], sproutCache :: Map.Map [Mite] [Sprout] }
+data ParsingState = ParsingState { lastVariants :: [Tree], history :: [ParsingState], sproutCache :: Map.Map [Mite] [Sprout] }
 instance Show ParsingState where show state = show $ roots state
 emptyState = ParsingState [] [] Map.empty
 
+roots state = case lastVariants state of
+  [] -> []
+  tree:_ -> tree:roots ((history state) !! (treeWidth tree - 1))
+
 mergeTrees:: ParsingState -> ParsingState
 mergeTrees state = {-trace ("--------------", length allVariants, [(sortingKey v, v) | v <- allVariants]) $ -}result where
-  chooseBestRoots state = state { roots = map bestVariant $ roots state }
+  chooseBestRoots state = state { lastVariants = map bestVariant $ lastVariants state }
   result = head $ leastValued stateIssueCount $ leastValued stateUnhappyCount $ map chooseBestRoots $ leastValued (length . roots) allVariants
   stateUnhappyCount state = sum [unhappyCount tree | tree <- roots state]
   isStableState state = all isStable $ map cxt $ (roots state >>= mites)
@@ -64,13 +68,13 @@ mergeTrees state = {-trace ("--------------", length allVariants, [(sortingKey v
           newSprouts = Map.insert rightCombined sprouts cache
           newHistory = take (rightWidth - 1) oldHistory ++ [cachePoint { sproutCache = newSprouts }] ++ drop rightWidth oldHistory
       put newHistory
-      let nextStates = map (\tree -> state { roots = tree:(roots $ (history state) !! (treeWidth tree - 1)) }) $ growSprouts sprouts right
+      let nextStates = map (\tree -> state { lastVariants = [tree] }) $ growSprouts sprouts right
       nested <- mapM tryStealing nextStates
       return $ [state] ++ concat nested
     _ -> return [state]
 
 addMites:: ParsingState -> [Mite] -> ParsingState
-addMites state mites = mergeTrees $ ParsingState { roots = (createLeaf mites $ calcCandidateSets mites):roots state,
+addMites state mites = mergeTrees $ ParsingState { lastVariants = [createLeaf mites $ calcCandidateSets mites],
                                                    history = state:history state,
                                                    sproutCache = Map.empty }
 

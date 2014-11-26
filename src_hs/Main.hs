@@ -3,7 +3,7 @@ import Constructor.ParsingState
 import Constructor.Lexicon
 import Constructor.Parser
 import Constructor.EnglishGenerator
-import Constructor.Sense as Sense
+import qualified Constructor.Sense as Sense
 
 import Test.HUnit
 import Control.DeepSeq

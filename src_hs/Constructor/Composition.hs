@@ -282,7 +282,8 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (Verb head, Elaboration child) -> left [semV head P.Elaboration child, mite $ Unclosed RightSide [child]]
 
       (emphasized@(ShortAdj _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
-      (wh@(Wh {}), Word _ "бишь") -> left [mite $ wh]
+      (wh@(WhLeaf {}), Word _ "бишь") -> left [mite $ EmptyCxt wh]
+      (wh@(WhLeaf {}), Word _ "это") -> left [mite $ EmptyCxt wh]
 
       (Verb v, Word _ "бы") -> left [semS v P.Irrealis "true"]
       (Word _ "очень", adverb@(Adverb {})) -> right [mite $ adverb]

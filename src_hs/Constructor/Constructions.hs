@@ -40,6 +40,7 @@ data Construction = Word Variable String
                   | CompHead Variable
                   | ConditionCompHead Variable
                   | Wh Agr Variable
+                  | WhLeaf Variable
                   | WhInSitu Variable
                   | ExistentialWh {-wh-} Variable {-tensed-} Variable
                   | WhAsserter Variable

@@ -26,11 +26,14 @@ copulaTests = [
   translateTest "О чём бишь я?"
                 "What was I talking about?"
   ,
---todo  translateTest "О чём это бишь я?"
---                "What was I talking about?"
---  ,
---todo  translateTest "О чём это я?"
---                "What was I talking about?"
+  translateTest "О чём это бишь я?"
+                "What was I talking about?"
+  ,
+  translateTest "О чём это я?"
+                "What was I talking about?"
+  ,
+--todo  translateTest "О чём это?"
+--                "What is this about?"
 --  ,
   translateTest "О чём эта книга?"
                 "What is this book about?"

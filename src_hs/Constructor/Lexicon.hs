@@ -51,7 +51,7 @@ compHead attr v = [mite $ CompHead (v "comp"), semV (v "") attr (v "comp")]
 semArg argType relation childVar@(Variable index s) = let headVar = Variable index (s ++ "_head") in
   [mite $ SemArgument argType headVar childVar, semV headVar relation childVar]
 
-whWord agr v = [mite $ Wh agr (v ""), semT (v "") "wh"]
+whWord agr v = [mite $ Wh agr (v ""), semT (v "") "wh", mite $ WhLeaf (v "")]
 caseWhWord kind agr v = whWord agr v ++ [mite $ QuestionVariants (v "") kind, mite $ Argument kind (v ""), mite $ AdjHead (v "") kind agr]
 negatedWh v = [semT (v "") "wh", semS (v "") P.Negated "true", mite $ Negated (v ""), mite $ NegativePronoun (v "")]
 animate v = [semS (v "") P.Animate "true"]
@@ -401,7 +401,7 @@ wordMites word index =
                  finVerb "WEATHER_BE" "PAST" A.m v,
                  finVerb "COME_SCALARLY" "PAST" A.m v ++ arg ScalarAdverb P.Order v] ++ [semS v0 P.Imperfective "true"]
   "эта" -> adj Nom A.f P.Determiner "THIS" v
-  "это" -> xor [pronoun Nom (A.Agr (Just A.Neu) (Just A.Sg) $ Just 3) "THIS" v, pronoun Acc (A.Agr (Just A.Neu) (Just A.Sg) $ Just 3) "THIS" v]
+  "это" -> xor [pronoun Nom (A.Agr (Just A.Neu) (Just A.Sg) $ Just 3) "THIS" v, pronoun Acc (A.Agr (Just A.Neu) (Just A.Sg) $ Just 3) "THIS" v, [mite $ Word v0 word]]
   "этому" -> adj Dat A.sg P.Determiner "THIS" v
   "я" -> pronoun Nom (A.Agr Nothing (Just A.Sg) $ Just 1) "ME" v
   ":" -> xor [[mite $ Colon "directSpeech" v0], [mite $ Colon "elaboration" v0]]

@@ -54,20 +54,26 @@ mergeTrees state = {-trace ("--------------", length allVariants, [(sortingKey v
   isStableState state = all isStable $ map cxt $ (roots state >>= mites)
   allVariants = [state { history = updatedHistory } | state <- stateRecombinations, isStableState state]
   (stateRecombinations, updatedHistory) = runState (tryStealing state) (history state)
+
+  obtainSprouts :: Tree -> Tree -> State [ParsingState] [Sprout]
+  obtainSprouts left right = do
+    oldHistory <- get
+    let rightSets = map activeHeadMites $ Constructor.Tree.allVariants right
+        rightCombined = LS.removeDups $ concat rightSets
+        uncachedSprouts = stealLeftSubtrees left rightSets rightCombined
+        rightWidth = treeWidth right
+        cachePoint = oldHistory !! (rightWidth - 1)
+        cache = sproutCache cachePoint
+        sprouts = Map.findWithDefault uncachedSprouts rightCombined cache
+        newSprouts = Map.insert rightCombined sprouts cache
+        newHistory = take (rightWidth - 1) oldHistory ++ [cachePoint { sproutCache = newSprouts }] ++ drop rightWidth oldHistory
+    put newHistory
+    return sprouts
+
   tryStealing :: ParsingState -> State [ParsingState] [ParsingState]
   tryStealing state = case roots state of
     right:left:rest -> do
-      oldHistory <- get
-      let rightSets = map activeHeadMites $ Constructor.Tree.allVariants right
-          rightCombined = LS.removeDups $ concat rightSets
-          uncachedSprouts = stealLeftSubtrees left rightSets rightCombined
-          rightWidth = treeWidth right
-          cachePoint = oldHistory !! (rightWidth - 1)
-          cache = sproutCache cachePoint
-          sprouts = Map.findWithDefault uncachedSprouts rightCombined cache
-          newSprouts = Map.insert rightCombined sprouts cache
-          newHistory = take (rightWidth - 1) oldHistory ++ [cachePoint { sproutCache = newSprouts }] ++ drop rightWidth oldHistory
-      put newHistory
+      sprouts <- obtainSprouts left right
       let nextStates = map (\tree -> state { lastVariants = [tree] }) $ growSprouts sprouts right
       nested <- mapM tryStealing nextStates
       return $ [state] ++ concat nested

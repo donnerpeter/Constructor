@@ -55,29 +55,37 @@ mergeTrees state = {-trace ("--------------", length allVariants, [(sortingKey v
   allVariants = [state { history = updatedHistory } | state <- stateRecombinations, isStableState state]
   (stateRecombinations, updatedHistory) = runState (tryStealing state) (history state)
 
-  obtainSprouts :: Tree -> Tree -> State [ParsingState] [Sprout]
-  obtainSprouts left right = do
-    oldHistory <- get
-    let rightSets = map activeHeadMites $ Constructor.Tree.allVariants right
-        rightCombined = LS.removeDups $ concat rightSets
-        uncachedSprouts = stealLeftSubtrees left rightSets rightCombined
-        rightWidth = treeWidth right
-        cachePoint = oldHistory !! (rightWidth - 1)
-        cache = sproutCache cachePoint
-        sprouts = Map.findWithDefault uncachedSprouts rightCombined cache
-        newSprouts = Map.insert rightCombined sprouts cache
-        newHistory = take (rightWidth - 1) oldHistory ++ [cachePoint { sproutCache = newSprouts }] ++ drop rightWidth oldHistory
-    put newHistory
-    return sprouts
-
   tryStealing :: ParsingState -> State [ParsingState] [ParsingState]
-  tryStealing state = case roots state of
-    right:left:rest -> do
-      sprouts <- obtainSprouts left right
-      let nextStates = map (\tree -> state { lastVariants = [tree] }) $ growSprouts sprouts right
-      nested <- mapM tryStealing nextStates
-      return $ [state] ++ concat nested
-    _ -> return [state]
+  tryStealing state = do
+    let interactPair (left, right) = do
+          sprouts <- obtainSprouts left right
+          return $ map (\tree -> state { lastVariants = [tree] }) $ growSprouts sprouts right
+    interacted <- mapM interactPair $ treePairs state
+    let nextStates = concat interacted
+    nested <- mapM tryStealing nextStates
+    return $ [state] ++ concat nested
+
+obtainSprouts :: Tree -> Tree -> State [ParsingState] [Sprout]
+obtainSprouts left right = do
+  oldHistory <- get
+  let rightSets = map activeHeadMites $ Constructor.Tree.allVariants right
+      rightCombined = LS.removeDups $ concat rightSets
+      uncachedSprouts = stealLeftSubtrees left rightSets rightCombined
+      rightWidth = treeWidth right
+      cachePoint = oldHistory !! (rightWidth - 1)
+      cache = sproutCache cachePoint
+      sprouts = Map.findWithDefault uncachedSprouts rightCombined cache
+      newSprouts = Map.insert rightCombined sprouts cache
+      newHistory = take (rightWidth - 1) oldHistory ++ [cachePoint { sproutCache = newSprouts }] ++ drop rightWidth oldHistory
+  put newHistory
+  return sprouts
+
+treePairs :: ParsingState -> [(Tree, Tree)]
+treePairs state = do
+  right <- lastVariants state
+  let prevState = (history state) !! (treeWidth right - 1)
+  left <- lastVariants prevState
+  return (left, right)
 
 addMites:: ParsingState -> [Mite] -> ParsingState
 addMites state mites = mergeTrees $ ParsingState { lastVariants = [createLeaf mites $ calcCandidateSets mites],

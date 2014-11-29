@@ -442,6 +442,21 @@ var10 = [
   translateTest "Что мне нужно?"
                 "What do I need?"
   ,
+--todo  translateTest "Мне нужно пойти в сад."
+--                "I need to go to the garden."
+--  ,
+--  translateTest "Мне нужно в сад."
+--                "I need to go to the garden."
+--  ,
+--  translateTest "Мне нужно было в сад."
+--                "I needed to go to the garden."
+--  ,
+--  translateTest "Мне нужно было пойти в магазин."
+--                "I needed to go to the store."
+--  ,
+--  translateTest "Нужно в магазин."
+--                "One needs to go to the store."
+--  ,
   -- 10_WhatDidIDo
   translateTest "Что я делал?"
                 "What did I do?"

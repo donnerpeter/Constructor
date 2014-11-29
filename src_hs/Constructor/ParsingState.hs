@@ -44,7 +44,9 @@ emptyState = ParsingState [] [] Map.empty
 
 roots state = case lastVariants state of
   [] -> []
-  tree:_ -> tree:roots ((history state) !! (treeWidth tree - 1))
+  tree:_ -> tree:roots (prevState state tree)
+
+prevState state tree = (history state) !! (treeWidth tree - 1)
 
 mergeTrees:: ParsingState -> ParsingState
 mergeTrees state = {-trace ("--------------", length allVariants, [(sortingKey v, v) | v <- allVariants]) $ -}result where
@@ -63,8 +65,7 @@ mergeTrees state = {-trace ("--------------", length allVariants, [(sortingKey v
   tryStealing :: ParsingState -> State [ParsingState] [ParsingState]
   tryStealing state = do
     let interactRight right = do
-          let leftState = (history state) !! (treeWidth right - 1)
-          sprouts <- obtainSprouts leftState right
+          sprouts <- obtainSprouts (prevState state right) right
           return $ map (\tree -> state { lastVariants = [tree] }) $ growSprouts sprouts right
     interacted <- mapM interactRight $ lastVariants state
     let nextStates = concat interacted

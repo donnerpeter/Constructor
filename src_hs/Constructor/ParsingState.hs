@@ -44,33 +44,29 @@ emptyState = ParsingState [] [] Map.empty
 
 roots state = case lastVariants state of
   [] -> []
-  tree:_ -> tree:roots (prevState state tree)
+  tree:_ -> tree : roots (history state !! (treeWidth tree - 1))
 
-prevState state tree = (history state) !! (treeWidth tree - 1)
-
-mergeTrees:: ParsingState -> ParsingState
-mergeTrees state = {-trace ("--------------", length allVariants, [(sortingKey v, v) | v <- allVariants]) $ -}result where
-  chooseBestRoots state = state { lastVariants = map bestVariant $ lastVariants state }
-  sortedVariants = sortBy (compare `on` stateUnhappyCount) $ sortBy (compare `on` stateIssueCount) $ map chooseBestRoots $ leastValued (length . roots) allVariants
-  sortedLastTrees = map (head . roots) sortedVariants
+chooseBestLastVariants :: [ParsingState] -> [Tree] -> [Tree]
+chooseBestLastVariants finalHistory allVariants = result where
+  competitors = map bestVariant $ leastValued (length . mergedRoots) $ filter isStableTree allVariants
+  isStableTree tree = all (isStable . cxt) $ mites tree
+  sortedVariants = sortBy (compare `on` mergedUnhappyCount) $ sortBy (compare `on` mergedIssueCount) competitors
   hasLastResort tree = any (isLastResort . cxt) $ activeHeadMites tree
-  bestLastTrees = takeWhile hasLastResort sortedLastTrees ++ maybeToList (listToMaybe $ dropWhile hasLastResort sortedLastTrees)
-  result = (head sortedVariants) { lastVariants = bestLastTrees }
+  (lastResortVariants, otherVariants) = partition hasLastResort sortedVariants
+  result = lastResortVariants ++ maybeToList (listToMaybe otherVariants)
 
-  stateUnhappyCount state = sum [unhappyCount tree | tree <- roots state]
-  isStableState state = all isStable $ map cxt $ (roots state >>= mites)
-  allVariants = [state { history = updatedHistory } | state <- stateRecombinations, isStableState state]
-  (stateRecombinations, updatedHistory) = runState (tryStealing state) (history state)
+  mergedRoots rightTree = rightTree : roots (finalHistory !! (treeWidth rightTree - 1))
+  mergedUnhappyCount rightTree = sum [unhappyCount tree | tree <- mergedRoots rightTree]
+  mergedIssueCount rightTree = sum [length $ _issues tree | tree <- mergedRoots rightTree]
 
-  tryStealing :: ParsingState -> State [ParsingState] [ParsingState]
-  tryStealing state = do
-    let interactRight right = do
-          sprouts <- obtainSprouts (prevState state right) right
-          return $ map (\tree -> state { lastVariants = [tree] }) $ growSprouts sprouts right
-    interacted <- mapM interactRight $ lastVariants state
-    let nextStates = concat interacted
-    nested <- mapM tryStealing nextStates
-    return $ [state] ++ concat nested
+allMergeVariants :: ParsingState -> Tree -> State [ParsingState] [Tree]
+allMergeVariants state rightTree = do
+  let rightWidth = treeWidth rightTree
+  sprouts <- obtainSprouts state rightTree
+  let mergedTrees = growSprouts sprouts rightTree
+  let continueMerging mergedTree = allMergeVariants ((history state) !! (treeWidth mergedTree - rightWidth - 1)) mergedTree
+  nested <- mapM continueMerging mergedTrees
+  return $ [rightTree] ++ concat nested
 
 obtainSprouts :: ParsingState -> Tree -> State [ParsingState] [Sprout]
 obtainSprouts leftState right = do
@@ -88,9 +84,11 @@ obtainSprouts leftState right = do
   return sprouts
 
 addMites:: ParsingState -> [Mite] -> ParsingState
-addMites state mites = mergeTrees $ ParsingState { lastVariants = [createLeaf mites $ calcCandidateSets mites],
-                                                   history = state:history state,
-                                                   sproutCache = Map.empty }
+addMites state mites = result where
+  (mergeVariants, updatedHistory) = runState (allMergeVariants state leaf) (state:history state)
+  leaf = createLeaf mites $ calcCandidateSets mites
+  lastVariants = chooseBestLastVariants updatedHistory mergeVariants
+  result = ParsingState { lastVariants = lastVariants, history = updatedHistory, sproutCache = Map.empty }
 
 calcCandidateSets:: [Mite] -> [[Mite]]
 calcCandidateSets mites = {-if length result < 10 then result else trace ("---contradictors:", length mites, length result, mites) $ -}result where
@@ -109,5 +107,3 @@ calcCandidateSets mites = {-if length result < 10 then result else trace ("---co
           contras = (Map.!) contradictorCache mite
         omitMite = enumerate rest chosen (mite:uncovered)
   result = enumerate mites [] []
-
-stateIssueCount state = sum [length $ _issues tree | tree <- roots state]

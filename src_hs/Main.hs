@@ -22,7 +22,7 @@ import Constructor.Tests.OldLadies
 import Constructor.Tests.OldLadyVariations
 
 createTest (TranslateTest src target time) = TestLabel src $ TestCase $ assertEqual message target timed where
-  trees = parse src
+  trees = roots $ parse src
   sense = resultSense trees
   result = generate sense
   timed = unsafePerformIO $ do

@@ -10,20 +10,33 @@ cases = [Nom,Acc,Gen,Dat,Instr,Prep]
 
 data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | ScalarAdverb deriving (Show, Eq, Ord)
 data SemArgKind = Direction deriving (Show, Eq, Ord)
+
 data Satisfied = Unsatisfied | Satisfied deriving (Show, Eq, Ord)
+data SubjectKind = FiniteSubject | CopulaSubject deriving (Show, Eq, Ord)
+
 data SeqData = SeqData { seqVar :: Variable, seqConj :: String, seqReady :: Bool, seqHasLeft :: Bool, seqHasRight :: Bool, seqHybrid :: Bool } deriving (Eq, Ord)
 instance Show SeqData where
   show sd = show (seqVar sd) ++ " " ++ seqConj sd ++ (if seqReady sd then "" else "!ready") ++
             (if seqHasLeft sd then " left" else "") ++(if seqHasRight sd then " right" else "")++
             (if seqHybrid sd then " hybrid" else "")
 data Construction = Word Variable String
+                  --semantic
                   | Sem Variable SemValue
                   | Unify Variable Variable
+                  -- auxiliary
+                  | Unclosed Side [Variable]
+                  | Closed [Variable]
+
+                  | EmptyCxt Construction
+                  | Diversifier Int
+
+                  | LastResort Variable
+                  --russian
                   | Adj Variable ArgKind Agr
                   | CompositeAdj Variable ArgKind Agr
                   | AdjHead Variable ArgKind Agr
                   | Verb Variable
-                  | NomHead Agr Variable Satisfied
+                  | NomHead Agr Variable Satisfied SubjectKind
                   | GenHead Variable
                   | ArgHead ArgKind Variable
                   | SemArgHead SemArgKind Variable
@@ -35,8 +48,6 @@ data Construction = Word Variable String
                   | Adverb Variable
                   | NounAdjunct P.VarProperty {-requires comma-} Bool Variable
                   | Elaboration Variable
-                  | Unclosed Side [Variable]
-                  | Closed [Variable]
                   | CompHead Variable
                   | ConditionCompHead Variable
                   | Wh Agr Variable
@@ -53,8 +64,6 @@ data Construction = Word Variable String
                   | Clause Variable
                   | TopLevelQuestion Variable
                   | Possessive ArgKind Agr Variable
-                  | EmptyCxt Construction
-                  | Diversifier Int
                   | Tense Variable
                   | TenseHead Variable
                   | FutureTense Agr Variable
@@ -95,6 +104,7 @@ data Construction = Word Variable String
 isHappy cxt = case cxt of
   Adj {} -> False; Adverb {} -> False; NounAdjunct {} -> False
   ArgHead {} -> False; PrepHead {} -> False; SemPreposition {} -> False; Argument {} -> False;
+  NomHead _ _ Unsatisfied CopulaSubject -> False
   SemArgHead {} -> False; SemArgument {} -> False
   Quantifier {} -> False
   CompHead {} -> False; ConditionCompHead {} -> False; ConditionComp {} -> False; ReasonComp {} -> False
@@ -109,7 +119,8 @@ isHappy cxt = case cxt of
   ControlledInfinitive {} -> False; Control {} -> False
   ModalityInfinitive {} -> False
   ExistentialWh {} -> False; WhAsserter {} -> False
-  Clause {} -> False; TopLevelQuestion {} -> False
+  --Clause {} -> False;
+  TopLevelQuestion {} -> False
   QuotedWord _ False -> False; Quote _ False -> False
   DirectSpeechDash {} -> False; DirectSpeechHead _ Nothing -> False
   Colon {} -> False
@@ -137,3 +148,6 @@ getCommaSurroundableVar cxt = case cxt of
 isStable (Conjunction sd) = seqHasLeft sd == seqHasRight sd || seqConj sd == ","
 isStable (Ellipsis _ leftAnchor rightAnchor) = isJust leftAnchor == isJust rightAnchor
 isStable _ = True
+
+isLastResort (LastResort _ ) = True
+isLastResort _ = False

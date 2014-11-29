@@ -2,7 +2,7 @@ module Constructor.ParsingState where
 
 import Data.Maybe
 import Data.List
-import Constructor.Constructions (isStable)
+import Constructor.Constructions (isStable, isLastResort)
 import Constructor.Mite
 import Constructor.Tree
 import Constructor.Util
@@ -49,7 +49,12 @@ roots state = case lastVariants state of
 mergeTrees:: ParsingState -> ParsingState
 mergeTrees state = {-trace ("--------------", length allVariants, [(sortingKey v, v) | v <- allVariants]) $ -}result where
   chooseBestRoots state = state { lastVariants = map bestVariant $ lastVariants state }
-  result = head $ leastValued stateIssueCount $ leastValued stateUnhappyCount $ map chooseBestRoots $ leastValued (length . roots) allVariants
+  sortedVariants = sortBy (compare `on` stateUnhappyCount) $ sortBy (compare `on` stateIssueCount) $ map chooseBestRoots $ leastValued (length . roots) allVariants
+  sortedLastTrees = map (head . roots) sortedVariants
+  hasLastResort tree = any (isLastResort . cxt) $ activeHeadMites tree
+  bestLastTrees = takeWhile hasLastResort sortedLastTrees ++ maybeToList (listToMaybe $ dropWhile hasLastResort sortedLastTrees)
+  result = (head sortedVariants) { lastVariants = bestLastTrees }
+
   stateUnhappyCount state = sum [unhappyCount tree | tree <- roots state]
   isStableState state = all isStable $ map cxt $ (roots state >>= mites)
   allVariants = [state { history = updatedHistory } | state <- stateRecombinations, isStableState state]
@@ -57,20 +62,21 @@ mergeTrees state = {-trace ("--------------", length allVariants, [(sortingKey v
 
   tryStealing :: ParsingState -> State [ParsingState] [ParsingState]
   tryStealing state = do
-    let interactPair (left, right) = do
-          sprouts <- obtainSprouts left right
+    let interactRight right = do
+          let leftState = (history state) !! (treeWidth right - 1)
+          sprouts <- obtainSprouts leftState right
           return $ map (\tree -> state { lastVariants = [tree] }) $ growSprouts sprouts right
-    interacted <- mapM interactPair $ treePairs state
+    interacted <- mapM interactRight $ lastVariants state
     let nextStates = concat interacted
     nested <- mapM tryStealing nextStates
     return $ [state] ++ concat nested
 
-obtainSprouts :: Tree -> Tree -> State [ParsingState] [Sprout]
-obtainSprouts left right = do
+obtainSprouts :: ParsingState -> Tree -> State [ParsingState] [Sprout]
+obtainSprouts leftState right = do
   oldHistory <- get
   let rightSets = map activeHeadMites $ Constructor.Tree.allVariants right
       rightCombined = LS.removeDups $ concat rightSets
-      uncachedSprouts = stealLeftSubtrees left rightSets rightCombined
+      uncachedSprouts = lastVariants leftState >>= \left -> stealLeftSubtrees left rightSets rightCombined
       rightWidth = treeWidth right
       cachePoint = oldHistory !! (rightWidth - 1)
       cache = sproutCache cachePoint
@@ -79,13 +85,6 @@ obtainSprouts left right = do
       newHistory = take (rightWidth - 1) oldHistory ++ [cachePoint { sproutCache = newSprouts }] ++ drop rightWidth oldHistory
   put newHistory
   return sprouts
-
-treePairs :: ParsingState -> [(Tree, Tree)]
-treePairs state = do
-  right <- lastVariants state
-  let prevState = (history state) !! (treeWidth right - 1)
-  left <- lastVariants prevState
-  return (left, right)
 
 addMites:: ParsingState -> [Mite] -> ParsingState
 addMites state mites = mergeTrees $ ParsingState { lastVariants = [createLeaf mites $ calcCandidateSets mites],

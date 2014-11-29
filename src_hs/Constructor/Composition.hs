@@ -190,13 +190,15 @@ interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
       (SemArgHead kind1 head, SemArgument kind2 arg _) | kind1 == kind2 -> left $  argVariants head arg leftPairs rightPairs ++ optional [mite $ cxt m1]
       (SemArgument kind2 arg _, SemArgHead kind1 head) | kind1 == kind2 -> right $ argVariants head arg rightPairs leftPairs ++ optional [mite $ cxt m2]
 
-      (Argument Nom v1, NomHead agr1 v2 Unsatisfied) -> leftPairs >>= \case
+      (Argument Nom v1, NomHead agr1 v2 Unsatisfied kind) -> leftPairs >>= \case
         (m3, AdjHead v3 Nom agr2) | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) ->
-          mergeRight $ withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 Satisfied]
+          mergeRight $ withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 Satisfied kind]
+            ++ (if kind == CopulaSubject then [mite $ LastResort v2] else [])
         _ -> []
-      (NomHead agr1 v2 Unsatisfied, Argument Nom v1) -> rightPairs >>= \case
+      (NomHead agr1 v2 Unsatisfied kind, Argument Nom v1) -> rightPairs >>= \case
         (m3, AdjHead v3 Nom agr2) | agree agr1 agr2 && v1 == v3 && not (contradict m2 m3) ->
-          mergeLeft $ withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 Satisfied]
+          mergeLeft $ withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 Satisfied kind]
+            ++ (if kind == CopulaSubject then [mite $ LastResort v2] else [])
         _ -> []
 
       (Verb verb, VerbalModifier attr False advP) -> left $ [semV verb attr advP] ++ existentials leftPairs rightPairs
@@ -222,8 +224,8 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
         _ -> []
       (GenHead v1, Argument Gen v2) -> left $ [mite $ Unify v1 v2] ++ whPropagation m1 m2 (rightCompatible env m2)
 
-      (Relativizer wh, NomHead agr v2 Unsatisfied) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
-        Clause cp -> mergeLeft $ withBase [m1,m2,m3] [mite $ Unify v2 wh, mite $ RelativeClause agr cp, mite $ NomHead agr v2 Satisfied, semV cp P.Questioned wh]
+      (Relativizer wh, NomHead agr v2 Unsatisfied kind) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
+        Clause cp -> mergeLeft $ withBase [m1,m2,m3] [mite $ Unify v2 wh, mite $ RelativeClause agr cp, mite $ NomHead agr v2 Satisfied kind, semV cp P.Questioned wh]
         _ -> []
       (Relativizer wh, ArgHead Acc v2) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
         Clause cp -> mergeLeft $ withBase [m1,m2,m3] [mite $ Unify v2 wh, mite $ RelativeClause empty cp, semV cp P.Questioned wh]
@@ -264,7 +266,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
                                   [mite $ VerbalModifier P.Location_in False var2]]
               _ -> []
             v = makeV var1 "x"
-            copulaCommon = [mite $ TenseHead (v "")] ++ finiteClause Constructor.Agreement.empty True v
+            copulaCommon = [mite $ TenseHead (v "")] ++ copulaClause v
             copulaWhLinks = rightCompatible env m2 >>= \m3 -> case cxt m3 of
               Wh agr questioned -> withBase [m3] $ whLinks (v "cp") questioned agr
               _ -> []

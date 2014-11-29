@@ -67,6 +67,42 @@ copulaTests = [
 --  ,
 --todo  translateTest "Кто здесь кассир? Кассир - Вася."
 --                "Who is the cashier here? Vasya is the cashier."
+--  ,
+--todo  translateTest "Я не кассир, кассир не я."
+--                "I'm not a cashier, the cashier is not me."
+--  ,
+--todo  translateTest "Сегодня Вася кассир."
+--                "Vasya is a cashier today."
+--  ,
+--todo  translateTest "Вася сегодня кассир."
+--                "Vasya is a cashier today."
+--  ,
+--todo  translateTest "Вася - кассир."
+--                "Vasya is a cashier."
+--  ,
+--todo  translateTest "Вася - кассир, а не продавец."
+--                "Vasya is a cashier and not a salesman."
+--  ,
+--todo  translateTest "Вася не кассир, а продавец."
+--                "Vasya is a not a cashier, but a salesman."
+--  ,
+--todo  translateTest "Маша не кассир, а продавец."
+--                "Masha is a not a cashier, but a saleswoman."
+--  ,
+--todo  translateTest "Вася сегодня кассир, а завтра - продавец."
+--                "Today Vasya is a cashier and tomorrow - a salesman."
+--  ,
+--todo  translateTest "Вася сегодня кассир, а завтра будет продавцом."
+--                "Today Vasya is a cashier and tomorrow he'll be a salesman."
+--  ,
+--todo  translateTest "Вася вчера был кассиром, а сегодня уже продавец."
+--                "Yesterday Vasya was a cashier and today he's already a salesman."
+--  ,
+--todo  translateTest "Вчера Василий был кассир, сегодня он уж продавец, а завтра будет бригадир. Такой вот он у нас хитрец!"
+--                "Yesterday Vassily was a cashier, today he's already a salesman, and tomorrow he'll be a brigadier. What a cunning fellow he is!"
+--  ,
+--todo  translateTest "Каков хитрец!"
+--                "What a cunning fellow!"
   ,
   translateTest "Эта книга о Васе."
                 "This book is about Vasya."

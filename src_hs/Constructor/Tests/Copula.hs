@@ -70,9 +70,9 @@ copulaTests = [
 --  ,
 --todo  translateTest "Я не кассир, кассир не я."
 --                "I'm not a cashier, the cashier is not me."
---  ,
---todo  translateTest "Сегодня Вася кассир."
---                "Vasya is a cashier today."
+  ,
+  translateTest "Сегодня Вася кассир."
+                "Vasya is a cashier today."
 --  ,
 --todo  translateTest "Вася сегодня кассир."
 --                "Vasya is a cashier today."

@@ -323,6 +323,7 @@ wordMites word index =
   "своим" -> [semT v0 "SELF", mite $ Possessive Dat A.pl v0, mite $ ReflexiveReference v0]
   "своими" -> [semT v0 "SELF", mite $ Possessive Instr A.pl v0, mite $ ReflexiveReference v0]
   "себе" -> pronoun Dat A.empty "SELF" v ++ [mite $ ReflexiveReference v0]
+  "сегодня" -> adverb P.RelTime "TODAY" v
   "семи" -> wordNumber Gen "7" v
   "семь" -> xor [wordNumber Nom "7" v, wordNumber Acc "7" v]
   "семью" -> xor [nounSg Acc Fem "FAMILY" v ++ genHead P.Arg1 v, wordNumber Instr "7" v]

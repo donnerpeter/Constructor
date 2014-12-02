@@ -46,9 +46,9 @@ copulaTests = [
   ,
   translateTest "О чём была та книга?"
                 "What was that book about?"
---  ,
---todo  translateTest "Что это?"
---                "What's this?"
+  ,
+  translateTest "Что это?"
+                "What is that?"
 --  ,
 --todo  translateTest "Что это было?"
 --                "What was this?"

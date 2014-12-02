@@ -201,10 +201,6 @@ interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
             ++ (if kind == CopulaSubject then [mite $ LastResort v2] else [])
         _ -> []
 
-      (Argument Nom v1, Argument Nom v2) -> let
-        v = makeV v2 "x"
-        in right $ clause v ++ [semV (v "") P.Arg1 v1, semV (v "") P.Arg2 v2, semT (v "") "copula", mite $ LastResort v2]
-
       (Verb verb, VerbalModifier attr False advP) -> left $ [semV verb attr advP] ++ existentials leftPairs rightPairs
       (VerbalModifier attr needComma advP, Verb verb) -> right $
         [semV verb attr advP]
@@ -284,6 +280,16 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
               GenHead {} -> optional $ withBase [m3] [mite $ cxt m3]
               _ -> []
         in mergeLeft (argMites ++ extra)
+
+      (Argument Nom v1, Argument Nom v2) -> let
+        v = makeV v2 "x"
+        common = clause v ++ [semT (v "") "copula", mite $ LastResort v2]
+        whVariants = leftCompatible env m1 >>= \m3 -> case cxt m3 of
+          Wh agr questioned -> mergeLeft $ withBase [m1,m2,m3] $
+            [semT (v "") "copula", mite $ LastResort v2, semV (v "") P.Arg1 v2, semV (v "") P.Arg2 v1, semV (v "cp") P.Content (v "")]
+            ++ whLinks (v "cp") questioned agr
+          _ -> []
+        in right (common ++ [semV (v "") P.Arg1 v1, semV (v "") P.Arg2 v2]) ++ whVariants
 
       (Verb head, Elaboration child) -> left [semV head P.Elaboration child, mite $ Unclosed RightSide [child]]
 

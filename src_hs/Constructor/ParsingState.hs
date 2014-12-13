@@ -47,18 +47,18 @@ roots state = case lastVariants state of
   tree:_ -> tree : roots (history state !! (treeWidth tree - 1))
 
 chooseBestLastVariants :: [ParsingState] -> [Tree] -> [Tree]
-chooseBestLastVariants finalHistory allVariants = {-if length result > 1 then trace (length result) result else -}result where
-  competitors = map bestVariant $ filter isStableTree allVariants
+chooseBestLastVariants finalHistory allVariants = {-trace (length result) -}result where
+  competitors = map bestVariant $ leastValued (length . mergedRoots) $ filter isStableTree allVariants
   isStableTree tree = all (isStable . cxt) $ mites tree
-  sortedVariants = sortBy (compare `on` (length . mergedRoots)) $ sortBy (compare `on` mergedUnhappyCount) $ sortBy (compare `on` mergedIssueCount) competitors
-  hasLastResort tree = any (isLastResort . cxt) $ Set.elems $ allActiveMiteSet tree
-  result = head sortedVariants : lastResortDescending (lastResortCount $ head sortedVariants) (tail sortedVariants)
+  sortedVariants = sortBy (compare `on` mergedUnhappyCount) $ sortBy (compare `on` mergedIssueCount) competitors
+  result = head sortedVariants : metricAscending (metric $ head sortedVariants) (tail sortedVariants)
 
-  lastResortDescending _ [] = []
-  lastResortDescending maxLR (x:xs) = let lrc = lastResortCount x in
-    if lrc < maxLR then x : lastResortDescending lrc xs else lastResortDescending maxLR xs
+  metricAscending _ [] = []
+  metricAscending prev (x:xs) = let m = metric x in
+    if m > prev then x : metricAscending m xs else metricAscending prev xs
 
-  lastResortCount rightTree = sum [length $ filter (isLastResort . cxt) $ Set.elems $ allActiveMiteSet tree | tree <- mergedRoots rightTree]
+  metric tree = let edgeSizes = map treeWidth (edgeTrees RightSide tree) in (length edgeSizes, edgeSizes)
+
   mergedRoots rightTree = rightTree : roots (finalHistory !! (treeWidth rightTree - 1))
   mergedUnhappyCount rightTree = sum [unhappyCount tree | tree <- mergedRoots rightTree]
   mergedIssueCount rightTree = sum [length $ _issues tree | tree <- mergedRoots rightTree]

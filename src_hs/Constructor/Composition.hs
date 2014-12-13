@@ -193,12 +193,10 @@ interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
       (Argument Nom v1, NomHead agr1 v2 Unsatisfied kind) -> leftPairs >>= \case
         (m3, AdjHead v3 Nom agr2) | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) ->
           mergeRight $ withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 Satisfied kind]
-            ++ (if kind == CopulaSubject then [mite $ LastResort v2] else [])
         _ -> []
       (NomHead agr1 v2 Unsatisfied kind, Argument Nom v1) -> rightPairs >>= \case
         (m3, AdjHead v3 Nom agr2) | agree agr1 agr2 && v1 == v3 && not (contradict m2 m3) ->
           mergeLeft $ withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 Satisfied kind]
-            ++ (if kind == CopulaSubject then [mite $ LastResort v2] else [])
         _ -> []
 
       (Verb verb, VerbalModifier attr False advP) -> left $ [semV verb attr advP] ++ existentials leftPairs rightPairs
@@ -283,10 +281,10 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
 
       (Argument Nom v1, Argument Nom v2) -> let
         v = makeV v2 "x"
-        common = clause v ++ [semT (v "") "copula", mite $ LastResort v2]
+        common = clause v ++ [semT (v "") "copula"]
         whVariants = leftCompatible env m1 >>= \m3 -> case cxt m3 of
           Wh agr questioned -> mergeLeft $ withBase [m1,m2,m3] $
-            [semT (v "") "copula", mite $ LastResort v2, semV (v "") P.Arg1 v2, semV (v "") P.Arg2 v1, semV (v "cp") P.Content (v "")]
+            [semT (v "") "copula", semV (v "") P.Arg1 v2, semV (v "") P.Arg2 v1, semV (v "cp") P.Content (v "")]
             ++ whLinks (v "cp") questioned agr
           _ -> []
         in right (common ++ [semV (v "") P.Arg1 v1, semV (v "") P.Arg2 v2]) ++ whVariants

@@ -2,7 +2,7 @@ module Constructor.ParsingState where
 
 import Data.Maybe
 import Data.List
-import Constructor.Constructions (isStable, isLastResort)
+import Constructor.Constructions (isStable)
 import Constructor.Mite
 import Constructor.Tree
 import Constructor.Util

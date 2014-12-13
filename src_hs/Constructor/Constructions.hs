@@ -30,7 +30,6 @@ data Construction = Word Variable String
                   | EmptyCxt Construction
                   | Diversifier Int
 
-                  | LastResort Variable
                   --russian
                   | Adj Variable ArgKind Agr
                   | CompositeAdj Variable ArgKind Agr
@@ -148,6 +147,3 @@ getCommaSurroundableVar cxt = case cxt of
 isStable (Conjunction sd) = seqHasLeft sd == seqHasRight sd || seqConj sd == ","
 isStable (Ellipsis _ leftAnchor rightAnchor) = isJust leftAnchor == isJust rightAnchor
 isStable _ = True
-
-isLastResort (LastResort _ ) = True
-isLastResort _ = False

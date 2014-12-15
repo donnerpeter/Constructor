@@ -86,9 +86,9 @@ punctuationAware env (m1, m2) =
           _ -> []
     in case (cxt m1, cxt m2) of
       (AdjHead head _ _, CommaSurrounded True _ (NounAdjunct attr True var)) -> mergeLeft $
-        base12 [semV head attr var] ++ liftUnclosedCompatible RightSide
+        base12 [semV head attr var] ++ liftUnclosedCompatible RightSide ++ closeUnclosed LeftSide Satisfied
       (CompHead comp, CommaSurrounded True _ (Complement cp)) -> mergeLeft $
-        base12 [mite $ Unify comp cp] ++ liftUnclosedCompatible RightSide
+        base12 [mite $ Unify comp cp] ++ liftUnclosedCompatible RightSide ++ closeUnclosed LeftSide Satisfied
       (RelativeHead noun, CommaSurrounded True _ (RelativeClause agr2 cp)) -> leftCompatible env m1 >>= \m3 -> case cxt m3 of
         AdjHead _ _ agr1 | agree agr1 agr2 -> mergeLeft $
           withBase [m1,m2,m3] [semV noun P.Relative cp] ++ liftUnclosedCompatible RightSide
@@ -98,7 +98,7 @@ punctuationAware env (m1, m2) =
         ++ closeUnclosed LeftSide (if closed then Satisfied else Unsatisfied)
         ++ liftUnclosedCompatible LeftSide
       (Verb verb, CommaSurrounded True _ (VerbalModifier attr True advP)) ->
-        mergeLeft $ base12 [semV verb attr advP] ++ liftUnclosedCompatible RightSide
+        mergeLeft $ base12 [semV verb attr advP] ++ liftUnclosedCompatible RightSide ++ closeUnclosed LeftSide Satisfied
 
       (ConditionCompHead head, CommaSurrounded True _ (ConditionComp cp cond _)) ->
         mergeLeft $ base12 [semV head (if cond=="if" then P.IfCondition else P.WhenCondition) cp] ++ liftUnclosedCompatible RightSide

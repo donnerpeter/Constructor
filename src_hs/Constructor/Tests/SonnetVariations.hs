@@ -275,6 +275,9 @@ var67 = [
   translateTest "Кассирша сказала, подвигав носом, что, по ее мнению, семь идет после восьми в том случае, когда восемь идет после семи"
                 "The cashier said, moving her nose back and forth, that in her opinion, a seven comes after an eight, only if an eight comes after a seven"
   ,
+  translateTest "Кассирша сказала, подвигав носом, что, по ее мнению, семь идет после восьми"
+                "The cashier said, moving her nose back and forth, that in her opinion, a seven comes after an eight"
+  ,
   -- 6_7_IndirectHeWhatOpinion
   translateTest "Кассир сказал нам, что, по его мнению, идет после восьми"
                 "The cashier told us what, in his opinion, comes after an eight"

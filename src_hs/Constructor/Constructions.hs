@@ -34,6 +34,7 @@ data Construction = Word Variable String
                   | Adj Variable ArgKind Agr
                   | CompositeAdj Variable ArgKind Agr
                   | AdjHead Variable ArgKind Agr
+                  | NounPhrase Variable
                   | Verb Variable
                   | NomHead Agr Variable Satisfied SubjectKind
                   | GenHead Variable
@@ -73,7 +74,6 @@ data Construction = Word Variable String
                   | Control Variable
                   | ModalityInfinitive {-modality-} Variable {-cp-} Variable
                   | ControlledInfinitive Variable
-                  | RelativeHead Variable
                   | RelativeClause Agr Variable
                   | Relativizer Variable
                   | Complement Variable

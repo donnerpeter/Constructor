@@ -85,11 +85,11 @@ punctuationAware env (m1, m2) =
             ++ (if satisfied == Satisfied then map (\v -> semS v (select side P.LeftIsolated P.RightIsolated) "true") vars else [])
           _ -> []
     in case (cxt m1, cxt m2) of
-      (AdjHead head _ _, CommaSurrounded True _ (NounAdjunct attr True var)) -> mergeLeft $
+      (NounPhrase head, CommaSurrounded True _ (NounAdjunct attr True var)) -> mergeLeft $
         base12 [semV head attr var] ++ liftUnclosedCompatible RightSide ++ closeUnclosed LeftSide Satisfied
       (CompHead comp, CommaSurrounded True _ (Complement cp)) -> mergeLeft $
         base12 [mite $ Unify comp cp] ++ liftUnclosedCompatible RightSide ++ closeUnclosed LeftSide Satisfied
-      (RelativeHead noun, CommaSurrounded True _ (RelativeClause agr2 cp)) -> leftCompatible env m1 >>= \m3 -> case cxt m3 of
+      (NounPhrase noun, CommaSurrounded True _ (RelativeClause agr2 cp)) -> leftCompatible env m1 >>= \m3 -> case cxt m3 of
         AdjHead _ _ agr1 | agree agr1 agr2 -> mergeLeft $
           withBase [m1,m2,m3] [semV noun P.Relative cp] ++ liftUnclosedCompatible RightSide
         _ -> []
@@ -233,7 +233,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
 
       (Adverb v, Verb head) -> right [mite $ Unify v head]
       (Verb head, Adverb v) -> left [mite $ Unify v head]
-      (AdjHead head _ _, NounAdjunct attr False var) -> left [semV head attr var]
+      (NounPhrase head, NounAdjunct attr False var) -> left [semV head attr var]
 
       (Quantifier kind1 agr1 v1, Argument kind2 v2) | kind1 == kind2 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
         AdjHead v3 kind3 agr2 | kind3 == kind1 && agree agr1 agr2 && v2 == v3 ->
@@ -315,7 +315,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
 
       (Quote _ False, word@(Word {})) -> left [mite $ QuotedWord word False]
       (QuotedWord word False, Quote _ True) -> left [mite $ QuotedWord word True]
-      (AdjHead noun _ _, QuotedWord (Word _ word) _) -> left [semS noun P.Name word]
+      (NounPhrase noun, QuotedWord (Word _ word) _) -> left [semS noun P.Name word]
 
       (Word _ "больше", Negated v) -> right [semS v P.Not_anymore "true"]
       (Negated v, Word _ "больше") -> left [semS v P.Not_anymore "true"]

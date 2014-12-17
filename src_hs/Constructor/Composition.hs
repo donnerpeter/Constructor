@@ -80,7 +80,7 @@ punctuationAware env (m1, m2) =
             _ -> []
           in if null lifted then withBase [baseMite] [mite $ Unclosed side [v]] else lifted
         closeUnclosed side satisfied = (select side leftCombined rightCombined) env >>= \m -> case cxt m of
-          Unclosed s vars | s == invert side -> withBase [m, m2] $
+          Unclosed s vars | s == invert side -> withBase [m] $
             optional $ [mite $ Closed vars]
             ++ (if satisfied == Satisfied then map (\v -> semS v (select side P.LeftIsolated P.RightIsolated) "true") vars else [])
           _ -> []
@@ -108,10 +108,10 @@ punctuationAware env (m1, m2) =
         mergeLeft $ base12 [semV head P.Reason cp] ++ liftUnclosedCompatible RightSide
 
       (SurroundingComma _, toWrap) | Just v <- getCommaSurroundableVar toWrap -> mergeLeft $
-        base12 [mite $ CommaSurrounded True False toWrap, semS v P.Isolation "comma", semS v P.LeftIsolated "true"]
+        base12 [mite $ CommaSurrounded True False toWrap] ++ withBase [m1] [semS v P.Isolation "comma", semS v P.LeftIsolated "true"]
         ++ addUnclosed RightSide v
       (toWrap, SurroundingComma _) | Just v <- getCommaSurroundableVar toWrap -> mergeRight $
-        base12 [mite $ CommaSurrounded False True toWrap, semS v P.Isolation "comma", semS v P.RightIsolated "true"]
+        base12 [mite $ CommaSurrounded False True toWrap] ++ withBase [m2] [semS v P.Isolation "comma", semS v P.RightIsolated "true"]
         ++ addUnclosed LeftSide v
       (CommaSurrounded True False cxt, SurroundingComma _) ->
         mergeLeft $ base12 [mite $ CommaSurrounded True True cxt] ++ closeUnclosed LeftSide Satisfied

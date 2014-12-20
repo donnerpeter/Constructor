@@ -12,9 +12,10 @@ import qualified Constructor.SemanticProperties as P
 type Issue = String
 
 issues :: Sense -> [Issue]
-issues sense = let
-  frames = allFrames sense
-  factIssues frame = allFrameFacts frame >>= \fact -> let
+issues sense = {-traceIt "issues" $ -}bareFacts sense >>= factIssues sense
+
+factIssues sense fact = let
+    frame = toFrame sense (variable fact)
     in case value fact of
       StrValue attr val -> case (attr, val) of
         (P.Isolation, _) | (isNothing (sValue P.LeftIsolated frame) || isNothing (sValue P.RightIsolated frame)) ->
@@ -22,7 +23,7 @@ issues sense = let
         (P.Type, declaredType) -> typeIssues frame declaredType ++ orderingIssues frame declaredType
         _ -> []
       VarValue attr val -> let
-        valFrame = Frame val sense
+        valFrame = toFrame sense val
         in case attr of
           P.AccordingTo | any (not . hasAnyType ["WORDS", "OPINION"]) (flatten $ Just valFrame) -> ["invalid accordingTo"]
           P.OptativeModality | any (not . hasAnyType ["LUCK"]) (flatten $ Just valFrame) -> ["invalid optativeModality"]
@@ -37,7 +38,8 @@ issues sense = let
 
           _ | attr `elem` [P.Location, P.Location_on, P.Location_in] && hasAnyType ["CASE", "COUNTING"] valFrame -> ["wrong location"]
           _ -> []
-  typeIssues frame declaredType = case declaredType of
+
+typeIssues frame declaredType = case declaredType of
     "seq" | Nothing == sValue P.Conj frame -> ["comma-only seq"]
     s | (s == "SIT" || s == "SAY" || s == "FORGET") && isNothing (fValue P.Arg1 frame >>= sDeclaredValue P.Type) ->
       ["unknown " ++ s ++ "subj "]
@@ -60,7 +62,6 @@ issues sense = let
         _ -> []
       in anchorIssues ++ subjIssues
     _ -> []
-  in {-traceIt "issues" $ -}frames >>= factIssues
 
 orderingIssues frame declaredType = case declaredType of
   "COME_SCALARLY" |

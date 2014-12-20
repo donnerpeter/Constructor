@@ -1,6 +1,6 @@
 module Constructor.Sense
   (Sense(..), Frame(..), Fact(..),
-  allFrames, allFrameFacts,
+  allFrames, allFrameFacts, toFrame,
   fDeclaredValue, sDeclaredValue,
   earlier,
   usages, usage, allUsages,
@@ -101,6 +101,8 @@ makeSenseInternal bareFacts allFrameVars varClasses factMap = Sense allFrameVars
   usageCache = Map.fromList [(var, map (normalizeFact varClasses) $ LS.elements $ getFactsFromMap var2Usages factMap $ cacheKey varClasses var) | var <- allFrameVars]
 
 normalizeFact varClasses (Fact var1 value) = Fact (toBase varClasses var1) (normalizeValue varClasses value)
+
+toFrame sense var = Frame (toBase (varClasses sense) var) sense
 
 normalizeValue varClasses value = case value of
   StrValue _ _ -> value

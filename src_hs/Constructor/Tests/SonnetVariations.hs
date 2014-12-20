@@ -28,11 +28,11 @@ var1 = [
   ,
   -- 1_ForgetRecursive
   translateTest "Я забыл, что я это забыл"
-                "I forgot, that I forgot that"
+                "I forgot, that I forgot this"
   ,
   -- 1_ForgetRecursiveVO
   translateTest "Я забыл, что я забыл это"
-                "I forgot, that I forgot that"
+                "I forgot, that I forgot this"
   ,
   -- 1_ForgetRecursive2
   translateTest "Я забыл, что я забыл"

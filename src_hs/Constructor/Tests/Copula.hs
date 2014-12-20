@@ -33,13 +33,13 @@ copulaTests = [
                 "What was I talking about?"
   ,
   translateTest "О чём это?"
-                "What is that about?"
+                "What is this about?"
   ,
   translateTest "О чём это было?"
-                "What was that about?"
+                "What was this about?"
   ,
   translateTest "О чем это было?"
-                "What was that about?"
+                "What was this about?"
   ,
   translateTest "О чём эта книга?"
                 "What is this book about?"
@@ -48,7 +48,7 @@ copulaTests = [
                 "What was that book about?"
   ,
   translateTest "Что это?"
-                "What is that?"
+                "What is this?"
 --  ,
 --todo  translateTest "Что это было?"
 --                "What was this?"

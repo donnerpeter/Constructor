@@ -54,7 +54,7 @@ noun (Just typ) frame = case typ of
   "SONNET" -> "sonnet"
   "SPEECH" -> "speech"
   "STREET" -> "street"
-  "THIS" -> "that"
+  "THIS" -> if Just "DISTRACT" == (usage P.Arg1 frame >>= getType) then "that" else "this"
   "TREES" -> "trees"
   "WATERMELON" -> "watermelon"
   "WINDOW" -> "window"

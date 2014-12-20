@@ -49,6 +49,7 @@ issues sense = let
     s | (s == "GO" || s == "CAN" || s == "REMEMBER" || s == "KNOW" || s == "copula_talking_about") &&
              not (and $ map isAnimate $ flatten $ fValue P.Arg1 frame) -> ["inanimate " ++ s ++ " subject"]
     "copula_about" | (or $ map isAnimate $ flatten $ fValue P.Arg1 frame) -> ["animate " ++ declaredType ++ " subject"]
+    "wh" | isNothing (usage P.Questioned frame) -> ["non-questioned wh"]
     "GO" | Just True == fmap isInanimate (fValue P.RelTime frame >>= fValue P.Anchor) -> ["inanimate GO relTime anchor"]
     "WEATHER_BE" | Just True /= fmap (hasAnyType ["SNOW", "RAIN"]) (fValue P.Arg1 frame) -> ["non-weather weather_be"]
     "COME_SCALARLY" -> let
@@ -60,7 +61,7 @@ issues sense = let
         _ -> []
       in anchorIssues ++ subjIssues
     _ -> []
-  in {-traceIt "issues" $ -}(frames >>= factIssues) ++ (if hasCP then [] else ["no clause"])
+  in {-traceIt "issues" $ -}frames >>= factIssues
 
 orderingIssues frame declaredType = case declaredType of
   "COME_SCALARLY" |

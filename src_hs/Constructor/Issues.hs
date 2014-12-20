@@ -14,7 +14,6 @@ type Issue = String
 issues :: Sense -> [Issue]
 issues sense = let
   frames = allFrames sense
-  hasCP = any isCP frames
   factIssues frame = allFrameFacts frame >>= \fact -> let
     in case value fact of
       StrValue attr val -> case (attr, val) of

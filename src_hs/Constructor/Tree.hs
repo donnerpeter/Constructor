@@ -122,7 +122,7 @@ createBranch mites _leftChild _rightChild headSide candidateSets = listToMaybe a
           aLeft =  select headSide headChild sideChild
           aRight = select headSide sideChild headChild
           _nodeSense = nodeSense active
-          _sense = sense aLeft `composeSense` _nodeSense `composeSense` sense aRight
+          _sense = composeSense [sense aLeft, _nodeSense, sense aRight]
           in
           BranchCandidate {
               bcLeft = aLeft, bcRight = aRight,

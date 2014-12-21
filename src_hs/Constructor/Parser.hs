@@ -29,5 +29,5 @@ parse s =
 translate s = generate $ makeSense s
 
 makeSense s = resultSense $ roots $ parse s
-resultSense trees = foldl' Sense.composeSense emptySense $ reverse $ map sense trees where
+resultSense trees = Sense.composeSense $ reverse $ map sense trees where
   emptySense = Sense.makeSense [] []

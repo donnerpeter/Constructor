@@ -112,15 +112,16 @@ normalizeValue varClasses value = case value of
   StrValue _ _ -> value
   VarValue prop var2 -> VarValue prop $ toBase varClasses var2
 
-composeSense s1 s2 = makeSenseInternal _bareFacts _allFrameVars mergedClasses _factMap where
-  _bareFacts = bareFacts s1 ++ bareFacts s2
-  inverted = Map.size (eqClasses $ varClasses s1) < Map.size (eqClasses $ varClasses s2)
-  (baseSense, addedSense) = if inverted then (s2, s1) else (s1, s2)
+composeSense senses = makeSenseInternal _bareFacts _allFrameVars mergedClasses _factMap where
+  _bareFacts = senses >>= bareFacts
+  baseIndex = snd $ maximum $ zip (map (Map.size . eqClasses . varClasses) senses) [0..]
+  baseSense = senses !! baseIndex
+  addedSenses = take baseIndex senses ++ drop (baseIndex + 1) senses
   folder (ec1, u1) vars = let (ec2, u2) = addEqClass ec1 vars in (ec2, composeUpdates u1 u2)
-  classesToAdd = Map.elems $ eqClasses $ varClasses addedSense
+  classesToAdd = addedSenses >>= Map.elems . eqClasses . varClasses
   (mergedClasses, compositeUpdate) = foldl folder (varClasses baseSense, ClassUpdate Set.empty Set.empty) classesToAdd
-  _allFrameVars = LS.removeDups $ map (toBase mergedClasses) $ allFrameVars s1 ++ allFrameVars s2
-  _factMap = composeFactMaps [factMap s1, factMap s2] (factMap baseSense) mergedClasses compositeUpdate
+  _allFrameVars = LS.removeDups $ map (toBase mergedClasses) $ (senses >>= allFrameVars)
+  _factMap = composeFactMaps (map factMap senses) (factMap baseSense) mergedClasses compositeUpdate
 
 toFrames sense vars = map (flip Frame sense) vars
 allFrames sense = toFrames sense $ allFrameVars sense

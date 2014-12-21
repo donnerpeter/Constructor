@@ -245,6 +245,7 @@ wordMites word index =
   "на" -> xor [preposition "na" Prep v, preposition "na" Acc v]
   "нам" -> pronoun Dat A.pl1 "WE" v
   "нас" -> pronoun Acc A.pl1 "WE" v
+  "начал" -> finVerb "BEGIN" "PAST" A.m v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")]
   "начали" -> finVerb "BEGIN" "PAST" A.pl v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")]
   "нашего" -> [semT v0 "WE", mite $ Possessive Gen A.m v0]
   "нашем" -> [semT v0 "WE", mite $ Possessive Prep A.n v0]

@@ -137,6 +137,9 @@ whTests = [
 --  ,
 --todo  translateTest "Я спросил, каково его мнение."
 --                "I asked, what his opinion was."
+--  ,
+--todo  translateTest "Кто пошёл в сад и начал считать деревья?"
+--                "Who went to the garden and started counting trees?"
   ,
   translateTest "Я увидел дом, где они сидят"
                 "I saw the house where they were sitting"

@@ -118,4 +118,7 @@ copulaTests = [
 --  ,
 --todo  translateTest "Кто кассирша и работает в магазине?"
 --                "Who is a cashier and works in a store?"
+--  ,
+--todo  translateTest "Кто тут кассирша и работает в магазине?"
+--                "Who here is a cashier and works in a store?"
   ]

@@ -512,6 +512,9 @@ var12 = [
   translateTest "Дойдя до сада, мы начали считать деревья"
                 "Reaching the garden, we started counting trees"
   ,
+  translateTest "Кто начал считать деревья?"
+                "Who started counting trees?"
+  ,
   -- 12_Reaching5
   translateTest "Дойдя до 5-ти, мы начали спорить"
                 "Reaching a five, we started arguing"

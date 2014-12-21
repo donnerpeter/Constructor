@@ -359,6 +359,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "TO_WATER" -> if verbForm == Gerund then "watering" else "water"
   "THANK" -> "thanked"
   "TYPE" -> "typed"
+  "WORK" -> "works"
   typ -> typ
 
 conjIntroduction fVerb =

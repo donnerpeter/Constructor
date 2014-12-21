@@ -229,6 +229,7 @@ wordMites word index =
   "любопытства" -> nounSg Gen Neu "CURIOSITY" v
   "магазин" -> xor [nounSg Nom Masc "SHOP" v, nounSg Acc Masc "SHOP" v]
   "магазина" -> nounSg Gen Masc "SHOP" v
+  "магазине" -> nounSg Prep Masc "SHOP" v
   "маленький" -> adj Acc A.m P.Size "LITTLE" v
   "меня" -> xor [pronoun Acc A.sg "ME" v, pronoun Gen A.sg "ME" v]
   "мне" -> pronoun Dat A.sg "ME" v
@@ -305,6 +306,7 @@ wordMites word index =
   "пошёл" -> finVerb "GO" "PAST" A.m v ++ [mite $ SemArgHead Direction v0]
   "пошла" -> finVerb "GO" "PAST" A.f v ++ [mite $ SemArgHead Direction v0]
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ [mite $ SemArgHead Direction v0]
+  "работает" -> finVerb "WORK" "PRESENT" A.sg3 v
   "работу" -> nounSg Acc Fem "WORK" v
   "работы" -> nounSg Gen Fem "WORK" v
   "радостью" -> nounSg Instr Fem "JOY" v

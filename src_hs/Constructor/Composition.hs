@@ -281,7 +281,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
 
       (Argument Nom v1, Argument Nom v2) -> let
         v = makeV v2 "x"
-        common = [semT (v "") "copula", mite $ TenseHead (v "")]
+        common = [semT (v "") "copula", mite $ TenseHead (v ""), mite $ NomHead empty v1 Satisfied CopulaSubject]
         whVariants = leftCompatible env m1 >>= \m3 -> case cxt m3 of
           Wh agr questioned -> mergeLeft $ withBase [m1,m2,m3] $
             common ++ [semV (v "") P.Arg1 v2, semV (v "") P.Arg2 v1, semV (v "cp") P.Content (v "")]

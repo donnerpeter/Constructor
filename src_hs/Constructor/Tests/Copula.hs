@@ -103,13 +103,19 @@ copulaTests = [
 --  ,
 --todo  translateTest "Каков хитрец!"
 --                "What a cunning fellow!"
+--  ,
+--todo  translateTest "Eй уж замуж невтерпёж."
+--                "She can't wait to become married."
   ,
   translateTest "Эта книга о Васе."
                 "This book is about Vasya."
 --  ,
 --todo  translateTest "Это арбуз. Он зелёный."
 --                "This is a water melon. It's green."
+  ,
+ translateTest "Она кассирша и работает в магазине."
+                "She's a cashier and works in a store."
 --  ,
---todo  translateTest "Она кассирша и работает в магазине."
---                "She is a cashier and works in a store."
+--todo  translateTest "Кто кассирша и работает в магазине?"
+--                "Who is a cashier and works in a store?"
   ]

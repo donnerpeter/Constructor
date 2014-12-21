@@ -35,7 +35,7 @@ sValue attr frame =
                Just shop -> sValue P.Given shop
                _ -> if Just "copula" == (usage P.Arg2 frame >>= getDeclaredType) then Just "false" else Just "true"
         else if hasType "SHOP" frame then
-          if any (\cashier -> typeEarlier cashier frame) $ findFrames "CASHIER" $ sense frame then Just "true"
+          if any (\cashier -> typeEarlier cashier frame && Just "copula" /= (usage P.Arg2 cashier >>= getType)) $ findFrames "CASHIER" $ sense frame then Just "true"
           else if isJust $ msum [usage P.Arg1 frame, usage P.Source frame] then Just "true"
           else Just "false"
         else if Just True == fmap isCP (usage P.Content frame) then Just "false"

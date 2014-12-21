@@ -71,10 +71,10 @@ typeIssues var declaredType = let
       if isNothing (fValue P.Arg2 (frame sense) >>= getType) then issue (s ++ " without arg2") else provNo
     s | (s == "GO" || s == "CAN" || s == "REMEMBER" || s == "KNOW" || s == "copula_talking_about") -> l $ \sense ->
       requireType (fValue P.Arg1 $ frame sense) $ \fSubj ->
-        IssueOutcome (if not (and $ map isAnimate $ flatten $ Just fSubj) then ["inanimate " ++ s ++ " subject"] else []) Final
+        if not (and $ map isAnimate $ flatten $ Just fSubj) then finalIssue ("inanimate " ++ s ++ " subject") else finalNo
     "copula_about" -> l $ \sense ->
       requireType (fValue P.Arg1 $ frame sense) $ \fSubj ->
-        IssueOutcome (if or $ map isAnimate $ flatten $ Just fSubj then ["animate " ++ declaredType ++ " subject"] else []) Final
+        if or $ map isAnimate $ flatten $ Just fSubj then finalIssue ("animate " ++ declaredType ++ " subject") else finalNo
     "wh" -> l $ \sense ->
       if isNothing (usage P.Questioned $ frame sense) then issue "non-questioned wh" else finalNo
     "GO" -> l $ \sense ->
@@ -83,7 +83,7 @@ typeIssues var declaredType = let
       if Just True /= fmap (hasAnyType ["SNOW", "RAIN"]) (fValue P.Arg1 $ frame sense) then issue "non-weather weather_be" else provNo
     "COME_SCALARLY" -> let
       anchorIssues = \sense -> requireType (fValue P.Order (frame sense) >>= fValue P.Anchor) $ \anchor ->
-        IssueOutcome (if isAnimate anchor then ["come_scalarly with animate anchor"] else []) Final
+        if isAnimate anchor then finalIssue "come_scalarly with animate anchor" else finalNo
       subjIssues = \sense -> case fValue P.Arg1 $ frame sense of
         Just subj | Nothing == sDeclaredValue P.Type subj -> issue "unknown subj"
         _ -> provNo
@@ -95,18 +95,17 @@ orderingIssues var declaredType = let
  in case declaredType of
   "COME_SCALARLY" -> let
     orderSubj = \sense ->
-      case (fValue P.Arg1 $ frame sense, fValue P.Order $ frame sense) of
-        (Just subj, Just order) | isJust (sDeclaredValue P.Type subj) && typeEarlier order subj && typeEarlier (frame sense) order ->
-          issue "come_scalarly order subj"
-        _ -> provNo
+      requireType (fValue P.Arg1 $ frame sense) $ \subj ->
+        requireType (fValue P.Order $ frame sense) $ \order ->
+          if typeEarlier order subj && typeEarlier (frame sense) order then finalIssue "come_scalarly order subj" else finalNo
     orderRelTime = \sense ->
-      case (fValue P.Order $ frame sense, fValue P.RelTime $ frame sense) of
-        (Just order, Just relTime) | typeEarlier order relTime && typeEarlier relTime (frame sense) -> issue "order relTime COME_SCALARLY"
-        _ -> provNo
+      requireType (fValue P.Order $ frame sense) $ \order ->
+        requireType (fValue P.RelTime $ frame sense) $ \relTime ->
+          if typeEarlier order relTime && typeEarlier relTime (frame sense) then finalIssue "order relTime COME_SCALARLY" else finalNo
     in [orderSubj, orderRelTime]
-  "GO" -> l $ \sense -> case fValue P.Source $ frame sense of
-    Just source | typeEarlier source $ frame sense -> issue "source before GO"
-    _ -> provNo
+  "GO" -> l $ \sense ->
+    requireType (fValue P.Source $ frame sense) $ \source ->
+      if typeEarlier source $ frame sense then finalIssue "source before GO" else finalNo
   _ -> l $ \sense -> finalNo
 
 type IssueProvider = Sense -> IssueOutcome
@@ -114,6 +113,7 @@ data IssueOutcome = IssueOutcome [Issue] Stability deriving (Show)
 data Stability = Final | Provisional deriving (Show,Eq)
 
 issue s = IssueOutcome [s] Provisional
+finalIssue s = IssueOutcome [s] Final
 finalNo = IssueOutcome [] Final
 provNo = IssueOutcome [] Provisional
 

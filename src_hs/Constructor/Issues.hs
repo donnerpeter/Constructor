@@ -36,14 +36,15 @@ factIssues fact = let
           P.Condition -> l $ \sense ->
             if not (hasType "CASE" $ valFrame sense) then issue "wrong condition" else provNo
           P.Relative -> l $ \sense ->
-            case fValue P.Questioned $ valFrame sense of
-              Just wh ->
-                if hasAnyType ["WE", "THEY"] $ frame sense then issue "relative clause for pronoun/number"
-                else if Just wh == (fValue P.Content (valFrame sense) >>= fValue P.VTime) then issue "time relative clause"
-                else provNo
-              Nothing -> provNo
+            requireType (Just $ frame sense) $ \frame ->
+              requireType (fValue P.Questioned $ valFrame sense) $ \wh ->
+                if hasAnyType ["WE", "THEY"] frame then finalIssue "relative clause for pronoun"
+                else if Just wh == (fValue P.Content (valFrame sense) >>= fValue P.VTime) then finalIssue "time relative clause"
+                else finalNo
           P.Topic -> l $ \sense ->
-            if hasType "ASK" (frame sense) && any isFactCP (flatten $ Just $ valFrame sense) then issue "asking fact" else provNo
+            requireType (Just $ frame sense) $ \frame ->
+              requireType (Just $ valFrame sense) $ \valFrame ->
+                if hasType "ASK" frame && any isFactCP (flatten $ Just valFrame) then finalIssue "asking fact" else finalNo
           _ | attr `elem` [P.Location, P.Location_on, P.Location_in] -> l $ \sense ->
             if hasAnyType ["CASE", "COUNTING"] (valFrame sense) then issue "wrong location" else provNo
           _ -> l $ \sense -> finalNo

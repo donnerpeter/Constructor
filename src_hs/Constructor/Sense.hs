@@ -42,26 +42,30 @@ data FactMap = FactMap {
   knownVariables :: Set.Set Variable,
   var2Values :: Map.Map EqClass (LS.LinkedSet SemValue),
   var2Usages :: Map.Map EqClass (LS.LinkedSet Fact),
-  children :: Maybe (FactMap, FactMap)
+  children :: [FactMap]
 }
 
-composeFactMaps fm1 fm2 baseFM varClasses update = FactMap knownVars valueCache usageCache (Just (fm1, fm2)) where
-  knownVars = Set.union (knownVariables fm1) (knownVariables fm2)
+type MapGetter a = FactMap -> Map.Map EqClass (LS.LinkedSet a)
+
+composeFactMaps factMaps baseFM varClasses update = FactMap knownVars valueCache usageCache factMaps where
+  knownVars = foldl Set.union Set.empty $ map knownVariables factMaps
   updateCache getter = let
     withoutRemoved = Set.foldl (\m c -> Map.delete c m) (getter baseFM) (removedClasses update)
-    withAdded = Set.foldl (\m c -> Map.insert c (combineFacts getter fm1 fm2 c) m) withoutRemoved (addedClasses update)
+    withAdded = Set.foldl (\m c -> Map.insert c (combineFacts getter factMaps c) m) withoutRemoved (addedClasses update)
     in withAdded
   valueCache = updateCache var2Values
   usageCache = updateCache var2Usages
 
-combineFacts getter fm1 fm2 vars = if LS.isEmpty facts1 then facts2 else LS.union facts1 facts2 where
-  facts1 = getFactsFromMap getter fm1 $ filter (flip Set.member (knownVariables fm1)) vars
-  facts2 = getFactsFromMap getter fm2 $ filter (flip Set.member (knownVariables fm2)) vars
+combineFacts :: (Ord a) => MapGetter a -> [FactMap] -> [Variable] -> LS.LinkedSet a
+combineFacts getter factMaps vars = if length facts == 1 then head facts else foldl LS.union LS.empty facts where
+  facts = filter (not . LS.isEmpty) $ map (\fm -> getFactsFromMap getter fm $ filter (flip Set.member (knownVariables fm)) vars) factMaps
 
+getFactsFromMap :: (Ord a) => MapGetter a -> FactMap -> [Variable] -> LS.LinkedSet a
 getFactsFromMap getter factMap vars = if null vars then LS.empty else Map.findWithDefault calcValue vars $ getter factMap where
-  calcValue = case children factMap of
-    Nothing -> foldl LS.union LS.empty [facts | (vs, facts) <- Map.toList $ getter factMap, not (null $ intersect vs vars)]
-    Just (left, right) -> combineFacts getter left right vars
+  calcValue =
+    if null $ children factMap
+    then foldl LS.union LS.empty [facts | (vs, facts) <- Map.toList $ getter factMap, not (null $ intersect vs vars)]
+    else combineFacts getter (children factMap) vars
 
 data Sense = Sense {
   allFrameVars:: [Variable],
@@ -91,7 +95,7 @@ makeSense bareFacts unifications = makeSenseInternal bareFacts allBaseVars varCl
       knownVariables = Map.keysSet (baseVars varClasses),
       var2Values = cacheMap [(variable fact, [value fact]) | fact <- bareFacts],
       var2Usages = cacheMap [(v, [fact]) | fact@(Fact {value=VarValue _ v}) <- bareFacts],
-      children = Nothing
+      children = []
      }
 
 cacheKey varClasses v = Map.findWithDefault [v] v $ eqClasses varClasses
@@ -116,7 +120,7 @@ composeSense s1 s2 = makeSenseInternal _bareFacts _allFrameVars mergedClasses _f
   classesToAdd = Map.elems $ eqClasses $ varClasses addedSense
   (mergedClasses, compositeUpdate) = foldl folder (varClasses baseSense, ClassUpdate Set.empty Set.empty) classesToAdd
   _allFrameVars = LS.removeDups $ map (toBase mergedClasses) $ allFrameVars s1 ++ allFrameVars s2
-  _factMap = composeFactMaps (factMap s1) (factMap s2) (factMap baseSense) mergedClasses compositeUpdate
+  _factMap = composeFactMaps [factMap s1, factMap s2] (factMap baseSense) mergedClasses compositeUpdate
 
 toFrames sense vars = map (flip Frame sense) vars
 allFrames sense = toFrames sense $ allFrameVars sense

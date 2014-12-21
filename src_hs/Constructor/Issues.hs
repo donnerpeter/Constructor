@@ -85,7 +85,7 @@ typeIssues var declaredType = let
       anchorIssues = \sense -> requireType (fValue P.Order (frame sense) >>= fValue P.Anchor) $ \anchor ->
         if isAnimate anchor then finalIssue "come_scalarly with animate anchor" else finalNo
       subjIssues = \sense -> case fValue P.Arg1 $ frame sense of
-        Just subj | Nothing == sDeclaredValue P.Type subj -> issue "unknown subj"
+        Just subj -> if Nothing == sDeclaredValue P.Type subj then issue "unknown subj" else finalNo
         _ -> provNo
       in [anchorIssues, subjIssues]
     _ -> l $ \sense -> finalNo

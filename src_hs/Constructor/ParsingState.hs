@@ -7,6 +7,7 @@ import Constructor.Mite
 import Constructor.Tree
 import Constructor.Util
 import Constructor.InteractionEnv
+import Constructor.Issues (holderIssues)
 import Data.Function (on)
 import qualified Constructor.LinkedSet as LS
 import qualified Data.Set as Set
@@ -61,7 +62,7 @@ chooseBestLastVariants finalHistory allVariants = {-trace (length result) -}resu
 
   mergedRoots rightTree = rightTree : roots (finalHistory !! (treeWidth rightTree - 1))
   mergedUnhappyCount rightTree = sum [unhappyCount tree | tree <- mergedRoots rightTree]
-  mergedIssueCount rightTree = sum [length $ _issues tree | tree <- mergedRoots rightTree]
+  mergedIssueCount rightTree = sum [length $ holderIssues $ _issues tree | tree <- mergedRoots rightTree]
 
 allMergeVariants :: ParsingState -> Tree -> State [ParsingState] [Tree]
 allMergeVariants state rightTree = do

@@ -17,7 +17,7 @@ data Tree = Tree {
   activeHeadMites :: [Mite],
   activeHeadMitesBase :: [Mite],
   _unhappy :: Unhappy,
-  _issues :: [Issue],
+  _issues :: IssueHolder,
   allVariants:: [Tree],
   sense :: Sense,
   unhappyCount :: Int
@@ -96,7 +96,7 @@ createLeaf mites candidateSets = head trees where
       activeHeadMites = active,
       activeHeadMitesBase = LS.removeDups (active >>= baseMites),
       _unhappy = unhappy, unhappyCount = _unhappyCount unhappy,
-      sense = _sense, _issues = issues _sense,
+      sense = _sense, _issues = leafHolder _sense,
       allVariants = trees
     }
 
@@ -121,22 +121,24 @@ createBranch mites _leftChild _rightChild headSide candidateSets = listToMaybe a
         createCandidate sideChild = let
           aLeft =  select headSide headChild sideChild
           aRight = select headSide sideChild headChild
-          _sense = sense aLeft `composeSense` nodeSense active `composeSense` sense aRight
+          _nodeSense = nodeSense active
+          _sense = sense aLeft `composeSense` _nodeSense `composeSense` sense aRight
           in
           BranchCandidate {
               bcLeft = aLeft, bcRight = aRight,
               bcUnhappy = composeUnhappy (_unhappy aLeft) (_unhappy aRight) headSide active isUncovered,
-              bcSense = _sense, bcIssues = issues _sense
+              bcSense = _sense,
+              bcIssues = composeHolders _sense [_issues aLeft, leafHolder _nodeSense, _issues aRight]
             }
       in case map createCandidate sideChildren of
         [] -> []
         candidates -> [candidatesToBranch mites headSide active _activeHeadMites allBranchVariants candidates]
 
-data BranchCandidate = BranchCandidate { bcLeft:: Tree, bcRight:: Tree, bcSense:: Sense, bcIssues:: [Issue], bcUnhappy:: Unhappy }
+data BranchCandidate = BranchCandidate { bcLeft:: Tree, bcRight:: Tree, bcSense:: Sense, bcIssues:: IssueHolder, bcUnhappy:: Unhappy }
 
 candidatesToBranch mites headSide active _activeHeadMites allBranchVariants candidates = let
   unhappyCount = minimum $ map (_unhappyCount . bcUnhappy) candidates
-  bc = head $ leastValued (length . bcIssues) $ filter (\c -> unhappyCount == _unhappyCount (bcUnhappy c)) candidates
+  bc = head $ leastValued (length . holderIssues . bcIssues) $ filter (\c -> unhappyCount == _unhappyCount (bcUnhappy c)) candidates
   aLeft = bcLeft bc
   aRight = bcRight bc
   activeSet = Set.fromList active
@@ -163,6 +165,6 @@ _unhappyCount u = length (_unhappyLeft u) + length (_unhappyHead u) + length (_u
 
 treeWidth tree = if isBranch tree then treeWidth (justLeft tree) + treeWidth (justRight tree) else 1
 
-bestTree avs = head $ leastValued (length . _issues) $ leastValued unhappyCount avs
+bestTree avs = head $ leastValued (length . holderIssues . _issues) $ leastValued unhappyCount avs
 
 bestVariant tree = bestTree $ allVariants tree

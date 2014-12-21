@@ -1,4 +1,4 @@
-module Constructor.Issues (Issue, issues) where
+module Constructor.Issues (IssueHolder, leafHolder, composeHolders, holderIssues) where
 
 import Constructor.Mite
 import Constructor.Sense
@@ -11,33 +11,44 @@ import qualified Constructor.SemanticProperties as P
 
 type Issue = String
 
-issues :: Sense -> [Issue]
-issues sense = {-traceIt "issues" $ -}bareFacts sense >>= factIssues sense
-
-factIssues sense fact = let
-    frame = toFrame sense (variable fact)
+factIssues :: Fact -> IssueProvider
+factIssues fact = let
+    frame sense = toFrame sense (variable fact)
+    issue s = IssueOutcome [s] Provisional
+    finalNo = IssueOutcome [] Final
+    provNo = IssueOutcome [] Provisional
     in case value fact of
       StrValue attr val -> case (attr, val) of
-        (P.Isolation, _) | (isNothing (sValue P.LeftIsolated frame) || isNothing (sValue P.RightIsolated frame)) ->
-          ["Incomplete isolation " ++ show frame]
-        (P.Type, declaredType) -> typeIssues frame declaredType ++ orderingIssues frame declaredType
-        _ -> []
+        (P.Isolation, _) -> \sense ->
+          if (isNothing (sValue P.LeftIsolated $ frame sense) || isNothing (sValue P.RightIsolated $ frame sense))
+          then issue $ "Incomplete isolation " ++ show (frame sense)
+          else finalNo
+        (P.Type, declaredType) -> \sense ->
+          IssueOutcome (typeIssues (frame sense) declaredType ++ orderingIssues (frame sense) declaredType) Provisional
+        _ -> \sense -> finalNo
       VarValue attr val -> let
-        valFrame = toFrame sense val
+        valFrame sense = toFrame sense val
         in case attr of
-          P.AccordingTo | any (not . hasAnyType ["WORDS", "OPINION"]) (flatten $ Just valFrame) -> ["invalid accordingTo"]
-          P.OptativeModality | any (not . hasAnyType ["LUCK"]) (flatten $ Just valFrame) -> ["invalid optativeModality"]
-          P.Quantifier | hasType "EYES" frame && not (hasType "2" valFrame) -> ["suspicious eye count"]
-
-          P.Condition | not (hasType "CASE" valFrame) -> ["wrong condition"]
-          P.Relative | Just wh <- fValue P.Questioned valFrame ->
-            if hasAnyType ["WE", "THEY"] frame then ["relative clause for pronoun/number"]
-            else if Just wh == (fValue P.Content valFrame >>= fValue P.VTime) then ["time relative clause"]
-            else []
-          P.Topic | hasType "ASK" frame && any isFactCP (flatten $ Just valFrame) -> ["asking fact"]
-
-          _ | attr `elem` [P.Location, P.Location_on, P.Location_in] && hasAnyType ["CASE", "COUNTING"] valFrame -> ["wrong location"]
-          _ -> []
+          P.AccordingTo -> \sense ->
+            if any (not . hasAnyType ["WORDS", "OPINION"]) (flatten $ Just $ valFrame sense) then issue "invalid accordingTo" else provNo
+          P.OptativeModality -> \sense ->
+            if any (not . hasAnyType ["LUCK"]) (flatten $ Just $ valFrame sense) then issue "invalid optativeModality" else provNo
+          P.Quantifier -> \sense ->
+            if hasType "EYES" (frame sense) && not (hasType "2" $ valFrame sense) then issue "suspicious eye count" else provNo
+          P.Condition -> \sense ->
+            if not (hasType "CASE" $ valFrame sense) then issue "wrong condition" else provNo
+          P.Relative -> \sense ->
+            case fValue P.Questioned $ valFrame sense of
+              Just wh ->
+                if hasAnyType ["WE", "THEY"] $ frame sense then issue "relative clause for pronoun/number"
+                else if Just wh == (fValue P.Content (valFrame sense) >>= fValue P.VTime) then issue "time relative clause"
+                else provNo
+              Nothing -> provNo
+          P.Topic -> \sense ->
+            if hasType "ASK" (frame sense) && any isFactCP (flatten $ Just $ valFrame sense) then issue "asking fact" else provNo
+          _ | attr `elem` [P.Location, P.Location_on, P.Location_in] -> \sense ->
+            if hasAnyType ["CASE", "COUNTING"] (valFrame sense) then issue "wrong location" else provNo
+          _ -> \sense -> finalNo
 
 typeIssues frame declaredType = case declaredType of
     "seq" | Nothing == sValue P.Conj frame -> ["comma-only seq"]
@@ -80,3 +91,19 @@ orderingIssues frame declaredType = case declaredType of
     typeEarlier source frame ->
       ["source before GO"]
   _ -> []
+
+type IssueProvider = Sense -> IssueOutcome
+data IssueOutcome = IssueOutcome [Issue] Stability deriving (Show)
+data Stability = Final | Provisional deriving (Show)
+
+data IssueHolder = IssueHolder { finalIssues :: [Issue], provisionalIssues :: [Issue], providers :: [IssueProvider] }
+
+leafHolder sense = makeHolder [] sense (map factIssues $ bareFacts sense)
+composeHolders sense holders = makeHolder (holders >>= finalIssues) sense (holders >>= providers)
+
+makeHolder prevFinals sense providers = IssueHolder newFinals (concat newProvisional) newProviders where
+  outcomes = [(f, f sense) | f <- providers]
+  newFinals = concat [issues | (_, IssueOutcome issues Final) <- outcomes] ++ prevFinals
+  (newProvisional, newProviders) = unzip [(issues, f) | (f, IssueOutcome issues Provisional) <- outcomes]
+
+holderIssues holder = {-traceIt "issues" $ -}provisionalIssues holder ++ finalIssues holder

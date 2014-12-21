@@ -14,17 +14,18 @@ type Issue = String
 factIssues :: Fact -> IssueProvider
 factIssues fact = let
     frame sense = toFrame sense (variable fact)
-    issue s = IssueOutcome [s] Provisional
-    finalNo = IssueOutcome [] Final
-    provNo = IssueOutcome [] Provisional
     in case value fact of
       StrValue attr val -> case (attr, val) of
         (P.Isolation, _) -> \sense ->
           if (isNothing (sValue P.LeftIsolated $ frame sense) || isNothing (sValue P.RightIsolated $ frame sense))
           then issue $ "Incomplete isolation " ++ show (frame sense)
           else finalNo
-        (P.Type, declaredType) -> \sense ->
-          IssueOutcome (typeIssues (frame sense) declaredType ++ orderingIssues (frame sense) declaredType) Provisional
+        (P.Type, declaredType) -> let
+          p1 = typeIssues (variable fact) declaredType
+          p2 = orderingIssues (variable fact) declaredType
+          in \sense -> let
+            (IssueOutcome i1 s1, IssueOutcome i2 s2) = (p1 sense, p2 sense)
+            in IssueOutcome (i1 ++ i2) (if s1 == Provisional || s2 == Provisional then Provisional else Final)
         _ -> \sense -> finalNo
       VarValue attr val -> let
         valFrame sense = toFrame sense val
@@ -50,51 +51,67 @@ factIssues fact = let
             if hasAnyType ["CASE", "COUNTING"] (valFrame sense) then issue "wrong location" else provNo
           _ -> \sense -> finalNo
 
-typeIssues frame declaredType = case declaredType of
-    "seq" | Nothing == sValue P.Conj frame -> ["comma-only seq"]
-    s | (s == "SIT" || s == "SAY" || s == "FORGET") && isNothing (fValue P.Arg1 frame >>= sDeclaredValue P.Type) ->
-      ["unknown " ++ s ++ "subj "]
-    "CASHIER" | any (hasType "OTHERS") (flatten $ fValue P.Place frame) -> ["cashier of other people"]
-    "OPINION" | isNothing (fValue P.Arg1 frame >>= getType) -> ["opinion without subj"]
-    "WORDS" | isNothing (fValue P.Author frame >>= getType) -> ["words without author"]
-    s | (s == "FORGET" || s == "THINK") && isNothing (fValue P.Arg2 frame >>= getType) -> [s ++ " without arg2"]
-    s | (s == "GO" || s == "CAN" || s == "REMEMBER" || s == "KNOW" || s == "copula_talking_about") &&
-             not (and $ map isAnimate $ flatten $ fValue P.Arg1 frame) -> ["inanimate " ++ s ++ " subject"]
-    "copula_about" | (or $ map isAnimate $ flatten $ fValue P.Arg1 frame) -> ["animate " ++ declaredType ++ " subject"]
-    "wh" | isNothing (usage P.Questioned frame) -> ["non-questioned wh"]
-    "GO" | Just True == fmap isInanimate (fValue P.RelTime frame >>= fValue P.Anchor) -> ["inanimate GO relTime anchor"]
-    "WEATHER_BE" | Just True /= fmap (hasAnyType ["SNOW", "RAIN"]) (fValue P.Arg1 frame) -> ["non-weather weather_be"]
-    "COME_SCALARLY" -> let
-      fSubj = fValue P.Arg1 frame
-      fOrder = fValue P.Order frame
+typeIssues var declaredType = let
+  frame sense = toFrame sense var
+  in case declaredType of
+    "seq" -> \sense ->
+      if Nothing == sValue P.Conj (frame sense) then issue "comma-only seq" else finalNo
+    s | (s == "SIT" || s == "SAY" || s == "FORGET") -> \sense ->
+      if isNothing (fValue P.Arg1 (frame sense) >>= sDeclaredValue P.Type) then issue ("unknown " ++ s ++ " subj") else finalNo
+    "CASHIER" -> \sense ->
+      if any (hasType "OTHERS") (flatten $ fValue P.Place $ frame sense) then issue "cashier of other people" else provNo
+    "OPINION" -> \sense ->
+      if isNothing (fValue P.Arg1 (frame sense) >>= getType) then issue "opinion without subj" else provNo
+    "WORDS" -> \sense ->
+      if isNothing (fValue P.Author (frame sense) >>= getType) then issue "words without author" else provNo
+    s | (s == "FORGET" || s == "THINK") -> \sense ->
+      if isNothing (fValue P.Arg2 (frame sense) >>= getType) then issue (s ++ " without arg2") else provNo
+    s | (s == "GO" || s == "CAN" || s == "REMEMBER" || s == "KNOW" || s == "copula_talking_about") -> \sense ->
+      if not (and $ map isAnimate $ flatten $ fValue P.Arg1 $ frame sense) then issue ("inanimate " ++ s ++ " subject") else provNo
+    "copula_about" -> \sense ->
+      if or $ map isAnimate $ flatten $ fValue P.Arg1 (frame sense) then issue ("animate " ++ declaredType ++ " subject") else provNo
+    "wh" -> \sense ->
+      if isNothing (usage P.Questioned $ frame sense) then issue "non-questioned wh" else finalNo
+    "GO" -> \sense ->
+      if Just True == fmap isInanimate (fValue P.RelTime (frame sense) >>= fValue P.Anchor) then issue "inanimate GO relTime anchor" else provNo
+    "WEATHER_BE" -> \sense ->
+      if Just True /= fmap (hasAnyType ["SNOW", "RAIN"]) (fValue P.Arg1 $ frame sense) then issue "non-weather weather_be" else provNo
+    "COME_SCALARLY" -> \sense -> let
+      fSubj = fValue P.Arg1 $ frame sense
+      fOrder = fValue P.Order $ frame sense
       anchorIssues = if Just True == fmap isAnimate (fOrder >>= fValue P.Anchor) then ["come_scalarly with animate anchor"] else []
       subjIssues = case fSubj of
         Just subj | Nothing == sDeclaredValue P.Type subj -> ["unknown subj"]
         _ -> []
-      in anchorIssues ++ subjIssues
-    _ -> []
+      in IssueOutcome (anchorIssues ++ subjIssues) Provisional
+    _ -> \sense -> finalNo
 
-orderingIssues frame declaredType = case declaredType of
-  "COME_SCALARLY" |
-    Just subj <- fValue P.Arg1 frame,
-    isJust (sDeclaredValue P.Type subj),
-    Just order <- fValue P.Order frame,
-    typeEarlier order subj && typeEarlier frame order ->
-      ["come_scalarly order subj"]
-  "COME_SCALARLY" |
-    Just order <- fValue P.Order frame,
-    Just relTime <- fValue P.RelTime frame,
-    typeEarlier order relTime && typeEarlier relTime frame ->
-      ["order relTime COME_SCALARLY"]
-  "GO" |
-    Just source <- fValue P.Source frame,
-    typeEarlier source frame ->
-      ["source before GO"]
-  _ -> []
+orderingIssues var declaredType = let
+ frame sense = toFrame sense var
+ in case declaredType of
+  "COME_SCALARLY" -> \sense -> let
+    orderSubj =
+      case (fValue P.Arg1 $ frame sense, fValue P.Order $ frame sense) of
+        (Just subj, Just order) | isJust (sDeclaredValue P.Type subj) && typeEarlier order subj && typeEarlier (frame sense) order ->
+          ["come_scalarly order subj"]
+        _ -> []
+    orderRelTime =
+      case (fValue P.Order $ frame sense, fValue P.RelTime $ frame sense) of
+        (Just order, Just relTime) | typeEarlier order relTime && typeEarlier relTime (frame sense) -> ["order relTime COME_SCALARLY"]
+        _ -> []
+    in IssueOutcome (orderSubj ++ orderRelTime) Provisional
+  "GO" -> \sense -> case fValue P.Source $ frame sense of
+    Just source | typeEarlier source $ frame sense -> issue "source before GO"
+    _ -> provNo
+  _ -> \sense -> finalNo
 
 type IssueProvider = Sense -> IssueOutcome
 data IssueOutcome = IssueOutcome [Issue] Stability deriving (Show)
-data Stability = Final | Provisional deriving (Show)
+data Stability = Final | Provisional deriving (Show,Eq)
+
+issue s = IssueOutcome [s] Provisional
+finalNo = IssueOutcome [] Final
+provNo = IssueOutcome [] Provisional
 
 data IssueHolder = IssueHolder { finalIssues :: [Issue], provisionalIssues :: [Issue], providers :: [IssueProvider] }
 

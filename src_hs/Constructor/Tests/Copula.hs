@@ -55,12 +55,12 @@ copulaTests = [
 --  ,
 --todo  translateTest "Куда он? Он домой."
 --                "Where is he going? He's going home."
---  ,
---todo  translateTest "Кто он? Он кассир."
---                "Who is he? He's a cashier."
---  ,
---todo  translateTest "Кто Вася? Вася кассир."
---                "Who is Vasya? Vasya is a cashier."
+  ,
+  translateTest "Кто он? Он кассир."
+                "Who is he? He's a cashier."
+  ,
+  translateTest "Кто Вася? Вася кассир."
+                "Who is Vasya? Vasya is a cashier."
 --  ,
 --todo  translateTest "Кто такой Вася? Вася - это кассир."
 --                "Who is Vasya? Vasya is the cashier."

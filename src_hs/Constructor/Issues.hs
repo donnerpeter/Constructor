@@ -64,11 +64,11 @@ typeIssues var declaredType = let
     "CASHIER" -> l $ \sense ->
       if any (hasType "OTHERS") (flatten $ fValue P.Place $ frame sense) then issue "cashier of other people" else provNo
     "OPINION" -> l $ \sense ->
-      if isNothing (fValue P.Arg1 (frame sense) >>= getType) then issue "opinion without subj" else provNo
+      if isNothing (fValue P.Arg1 (frame sense) >>= getType) then issue "opinion without subj" else finalNo
     "WORDS" -> l $ \sense ->
-      if isNothing (fValue P.Author (frame sense) >>= getType) then issue "words without author" else provNo
+      if isNothing (fValue P.Author (frame sense) >>= getType) then issue "words without author" else finalNo
     s | (s == "FORGET" || s == "THINK") -> l $ \sense ->
-      if isNothing (fValue P.Arg2 (frame sense) >>= getType) then issue (s ++ " without arg2") else provNo
+      if isNothing (fValue P.Arg2 (frame sense) >>= getType) then issue (s ++ " without arg2") else finalNo
     s | (s == "GO" || s == "CAN" || s == "REMEMBER" || s == "KNOW" || s == "copula_talking_about") -> l $ \sense ->
       requireType (fValue P.Arg1 $ frame sense) $ \fSubj ->
         if not (and $ map isAnimate $ flatten $ Just fSubj) then finalIssue ("inanimate " ++ s ++ " subject") else finalNo

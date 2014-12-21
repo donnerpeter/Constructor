@@ -49,9 +49,9 @@ copulaTests = [
   ,
   translateTest "Что это?"
                 "What is this?"
---  ,
---todo  translateTest "Что это было?"
---                "What was this?"
+  ,
+  translateTest "Что это было?"
+                "What was this?"
 --  ,
 --todo  translateTest "Куда он? Он домой."
 --                "Where is he going? He's going home."

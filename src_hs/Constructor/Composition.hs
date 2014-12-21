@@ -281,13 +281,13 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
 
       (Argument Nom v1, Argument Nom v2) -> let
         v = makeV v2 "x"
-        common = clause v ++ [semT (v "") "copula"]
+        common = [semT (v "") "copula", mite $ TenseHead (v "")]
         whVariants = leftCompatible env m1 >>= \m3 -> case cxt m3 of
           Wh agr questioned -> mergeLeft $ withBase [m1,m2,m3] $
-            [semT (v "") "copula", semV (v "") P.Arg1 v2, semV (v "") P.Arg2 v1, semV (v "cp") P.Content (v "")]
+            common ++ [semV (v "") P.Arg1 v2, semV (v "") P.Arg2 v1, semV (v "cp") P.Content (v "")]
             ++ whLinks (v "cp") questioned agr
           _ -> []
-        in right (common ++ [semV (v "") P.Arg1 v1, semV (v "") P.Arg2 v2]) ++ whVariants
+        in right (common ++ clause v ++ [semV (v "") P.Arg1 v1, semV (v "") P.Arg2 v2]) ++ whVariants
 
       (Verb head, Elaboration child) -> left [semV head P.Elaboration child, mite $ Unclosed RightSide [child]]
 

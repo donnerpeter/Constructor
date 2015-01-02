@@ -12,7 +12,7 @@ data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | Scalar
 data SemArgKind = Direction deriving (Show, Eq, Ord)
 
 data Satisfied = Unsatisfied | Satisfied deriving (Show, Eq, Ord)
-data SubjectKind = FiniteSubject | CopulaSubject deriving (Show, Eq, Ord)
+data SubjectKind = FiniteSubject | CopulaSubject | NPCopulaSubject deriving (Show, Eq, Ord)
 
 data SeqData = SeqData { seqVar :: Variable, seqConj :: String, seqReady :: Bool, seqHasLeft :: Bool, seqHasRight :: Bool, seqHybrid :: Bool } deriving (Eq, Ord)
 instance Show SeqData where
@@ -103,7 +103,7 @@ data Construction = Word Variable String
 isHappy cxt = case cxt of
   Adj {} -> False; Adverb {} -> False; NounAdjunct {} -> False
   ArgHead {} -> False; PrepHead {} -> False; SemPreposition {} -> False; Argument {} -> False;
-  NomHead _ _ Unsatisfied CopulaSubject -> False
+  NomHead _ _ Unsatisfied kind -> kind == FiniteSubject
   SemArgHead {} -> False; SemArgument {} -> False
   Quantifier {} -> False
   CompHead {} -> False; ConditionCompHead {} -> False; ConditionComp {} -> False; ReasonComp {} -> False

@@ -297,7 +297,8 @@ wordMites word index =
   "помнят" -> finVerb "REMEMBER" "PRESENT" A.pl3 v ++ directObject v
   "помочь" -> infinitive "HELP" v ++ optional (arg Dat P.Arg2 v)
   "порядок" -> nounSg Acc Masc "ORDER" v ++ genHead P.Arg1 v
-  "после" -> xor [[mite $ Argument ScalarAdverb v0, semT v0 "AFTER"], adverb P.RelTime "AFTER" v] ++ optional (semPreposition Gen P.Anchor v)
+  "после" -> xor [[mite $ Argument ScalarAdverb v0, semT v0 "AFTER"] ++ optional (semPreposition Gen P.Anchor v),
+                  adverb P.RelTime "AFTER" v ++ semPreposition Gen P.Anchor v]
   "потом" -> xor [[mite $ Argument ScalarAdverb v0, semT v0 "NEXT"], adverb P.RelTime "AFTER" v]
   "потому" -> [mite $ TwoWordCxt "потому что" True [ReasonComp v0 False] v0]
   "приуныли" -> finVerb "GET_SAD" "PAST" A.pl v

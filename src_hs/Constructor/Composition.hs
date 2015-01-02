@@ -194,7 +194,7 @@ interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
         (m3, AdjHead v3 Nom agr2) | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) ->
           mergeRight $ withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 Satisfied kind]
         _ -> []
-      (NomHead agr1 v2 Unsatisfied kind, Argument Nom v1) -> rightPairs >>= \case
+      (NomHead agr1 v2 Unsatisfied kind, Argument Nom v1) | kind /= NPCopulaSubject -> rightPairs >>= \case
         (m3, AdjHead v3 Nom agr2) | agree agr1 agr2 && v1 == v3 && not (contradict m2 m3) ->
           mergeLeft $ withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 Satisfied kind]
         _ -> []
@@ -204,6 +204,12 @@ interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
         [semV verb attr advP]
         ++ (if needComma && not whContext then [semS advP P.Isolation "comma", mite $ Unclosed LeftSide [advP]] else [])
         ++ existentials rightPairs leftPairs
+
+      --todo remove adverb+(copula|verb) duplication
+      (Adverb head, Argument Nom v2) -> let
+        v = makeV v2 "x"
+        common = [semT (v "") "copula", mite $ TenseHead (v ""), mite $ NomHead empty (v "arg1") Unsatisfied NPCopulaSubject, mite $ Unify head (v "")]
+        in right (common ++ clause v ++ [semV (v "") P.Arg1 (v "arg1"), semV (v "") P.Arg2 v2])
 
       _ -> []
 
@@ -281,7 +287,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
 
       (Argument Nom v1, Argument Nom v2) -> let
         v = makeV v2 "x"
-        common = [semT (v "") "copula", mite $ TenseHead (v ""), mite $ NomHead empty v1 Satisfied CopulaSubject]
+        common = [semT (v "") "copula", mite $ TenseHead (v ""), mite $ NomHead empty v1 Satisfied NPCopulaSubject]
         whVariants = leftCompatible env m1 >>= \m3 -> case cxt m3 of
           Wh agr questioned -> mergeLeft $ withBase [m1,m2,m3] $
             common ++ [semV (v "") P.Arg1 v2, semV (v "") P.Arg2 v1, semV (v "cp") P.Content (v "")]

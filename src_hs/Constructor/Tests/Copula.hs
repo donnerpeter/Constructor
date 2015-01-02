@@ -73,9 +73,12 @@ copulaTests = [
   ,
   translateTest "Сегодня Вася кассир."
                 "Vasya is a cashier today."
---  ,
---todo  translateTest "Вася сегодня кассир."
---                "Vasya is a cashier today."
+  ,
+  translateTest "Вася сегодня кассир."
+                "Vasya is a cashier today."
+  ,
+  translateTest "Кассир сегодня Вася."
+                "The cashier is Vasya today."
 --  ,
 --todo  translateTest "Вася сегодня, кстати, кассир."
 --                "By the way, Vasya is a cashier today."

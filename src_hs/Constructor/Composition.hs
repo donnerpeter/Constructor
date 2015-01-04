@@ -24,11 +24,11 @@ interactNodes env = {-traceIt ("    interact") $ -}whResults ++ noWh where
                  ++ seqVariants
                  ++ ellipsisLeftVariants env
   noWh = questionable False ++ nonQuestionable
+  whBase = questionable True
 
   whResults = leftCombined env >>= \whMite -> let
-    whIncompatible info = any (contradict whMite) (mergeResult info)
     fillGap cp whVar clauseMite agr =
-        let fillers = filter (\info -> mergedHeadSide info == RightSide) $ questionable True
+        let fillers = filter (\info -> mergedHeadSide info == RightSide) whBase
             inSitus = rightCompatible env clauseMite >>= \inSitu -> case cxt inSitu of
               WhInSitu var -> withBase [inSitu] $ [semS var P.InSitu "true"]
               _ -> []
@@ -38,6 +38,13 @@ interactNodes env = {-traceIt ("    interact") $ -}whResults ++ noWh where
       Wh agr whVar -> rightCombined env >>= \clauseMite -> case cxt clauseMite of
         Clause cp -> fillGap cp whVar clauseMite agr
         ModalityInfinitive _ cp -> fillGap cp whVar clauseMite agr
+        CopulaHead kind _ _ _ cp | kind /= NPCopula -> fillGap cp whVar clauseMite agr
+        Argument Nom subj -> leftCompatible env whMite >>= \copulaMite -> case cxt copulaMite of
+          CopulaHead kind agr copulaSubj v1 cp -> let
+            fillers = filter (\info -> mergedHeadSide info == LeftSide) whBase
+            infos = fillers >>= \ info -> mergeLeft (mergeResult info ++ withBase [whMite, clauseMite, copulaMite] (whLinks cp whVar agr))
+            in infos
+          _ -> []
         _ -> []
       _ -> []
 
@@ -199,17 +206,17 @@ interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
           mergeLeft $ withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 Satisfied kind]
         _ -> []
 
+      -- todo nom + nomHead/copulaHead duplication
+      (Argument Nom v1, CopulaHead kind agr subj v2 cp) ->
+        right $ [mite $ NomHead agr v1 Satisfied NPCopulaSubject, mite $ Unify v1 subj] ++ (if whContext then [] else [mite $ Clause cp, mite $ Verb v2])
+      (CopulaHead kind agr subj v1 cp, Argument Nom v2) | kind /= NPCopula || whContext ->
+        left $ [mite $ NomHead agr v2 Satisfied NPCopulaSubject, mite $ Unify v2 subj] ++ (if whContext then [] else [mite $ Clause cp, mite $ Verb v2])
+
       (Verb verb, VerbalModifier attr False advP) -> left $ [semV verb attr advP] ++ existentials leftPairs rightPairs
       (VerbalModifier attr needComma advP, Verb verb) -> right $
         [semV verb attr advP]
         ++ (if needComma && not whContext then [semS advP P.Isolation "comma", mite $ Unclosed LeftSide [advP]] else [])
         ++ existentials rightPairs leftPairs
-
-      --todo remove adverb+(copula|verb) duplication
-      (Adverb head, Argument Nom v2) -> let
-        v = makeV v2 "x"
-        common = [semT (v "") "copula", mite $ TenseHead (v ""), mite $ NomHead empty (v "arg1") Unsatisfied NPCopulaSubject, mite $ Unify head (v "")]
-        in right (common ++ clause v ++ [semV (v "") P.Arg1 (v "arg1"), semV (v "") P.Arg2 v2])
 
       _ -> []
 
@@ -229,8 +236,11 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (GenHead v1, Argument Gen v2) -> left $ [mite $ Unify v1 v2] ++ whPropagation m1 m2 (rightCompatible env m2)
 
       (Relativizer wh, NomHead agr v2 Unsatisfied kind) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
-        Clause cp -> mergeLeft $ withBase [m1,m2,m3] [mite $ Unify v2 wh, mite $ RelativeClause agr cp, mite $ NomHead agr v2 Satisfied kind, semV cp P.Questioned wh]
+        Clause cp -> mergeLeft $ withBase [m1,m2,m3] [mite $ Unify v2 wh, mite $ RelativeClause agr cp, semV cp P.Questioned wh]
         _ -> []
+      -- todo relativizer + nomHead/copulaHead duplication
+      (Relativizer wh, CopulaHead kind agr v2 copula cp) | kind /= NPCopula ->
+        left $ [mite $ Unify v2 wh, mite $ RelativeClause agr cp, semV cp P.Questioned wh]
       (Relativizer wh, ArgHead Acc v2) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
         Clause cp -> mergeLeft $ withBase [m1,m2,m3] [mite $ Unify v2 wh, mite $ RelativeClause empty cp, semV cp P.Questioned wh]
         _ -> []
@@ -238,7 +248,11 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (ConjEmphasis attr _, Verb head) -> right [semS head attr "true"]
 
       (Adverb v, Verb head) -> right [mite $ Unify v head]
+      --todo remove adverb+(copula|verb) duplication
+      (Adverb head, CopulaHead _ _ _ v2 _) -> right [mite $ Unify head v2, mite $ cxt m2]
+
       (Verb head, Adverb v) -> left [mite $ Unify v head]
+
       (NounPhrase head, NounAdjunct attr False var) -> left [semV head attr var]
 
       (Quantifier kind1 agr1 v1, Argument kind2 v2) | kind1 == kind2 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
@@ -248,12 +262,9 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
 
       (SemPreposition kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
       (PrepHead prep1 kind1 var1, Argument kind2 var2) | kind1 == kind2 ->
-        let argMites = base12 [mite $ Unify var1 var2]
-                       ++ xor (filter (not. null) [
-                         base12 [mite $ Argument (PP prep1 kind1) var1] ++ whPropagation m1 m2 (rightCompatible env m2),
-                         base12 adjunctMites ++ whPropagation m1 m2 (rightCompatible env m2),
-                         base12 copulaVariants ++ copulaWhLinks
-                         ])
+        let argMites = base12 ([mite $ Unify var1 var2]
+                        ++ xor (filter (not. null) [[mite $ Argument (PP prep1 kind1) var1], adjunctMites, copulaVariants]))
+                       ++ whPropagation m1 m2 (rightCompatible env m2)
             adjunctMites = case (prep1, kind1) of
               ("k", Dat) -> semArg Direction P.Goal_to var2
               ("na", Acc) -> semArg Direction P.Goal_on var2
@@ -270,30 +281,17 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
                                   [mite $ VerbalModifier P.Location_in False var2]]
               _ -> []
             v = makeV var1 "x"
-            copulaCommon = [mite $ TenseHead (v "")] ++ copulaClause v
-            copulaWhLinks = rightCompatible env m2 >>= \m3 -> case cxt m3 of
-              Wh agr questioned -> withBase [m3] $ whLinks (v "cp") questioned agr
-              _ -> []
+            copulaCommon copulaType = copulaHead PPCopula empty copulaType v
             copulaVariants = case (prep1, kind1) of
-              ("u", Gen) -> copulaCommon ++ [semT (v "") "copula", semV (v "") P.Owner var1]
-              ("na", Prep) -> copulaCommon ++ [semT (v "") "copula", semV (v "") P.Location_on var1]
-              ("o", Prep) -> copulaCommon ++ xor [[semT (v "") "copula_about", semV (v "") P.Arg2 var1], [semT (v "") "copula_talking_about", semV (v "") P.Arg2 var1]]
+              ("u", Gen) -> copulaCommon "copula" ++ [semV (v "") P.Owner var1]
+              ("na", Prep) -> copulaCommon "copula" ++ [semV (v "") P.Location_on var1]
+              ("o", Prep) -> xor [copulaCommon "copula_about", copulaCommon "copula_talking_about"] ++ [semV (v "") P.Arg2 var1]
               _ -> []
             extra = Seq.pullThyself (rightCompatible env m2) ++ liftGen
             liftGen = rightCompatible env m2 >>= \m3 -> case cxt m3 of
               GenHead {} -> optional $ withBase [m3] [mite $ cxt m3]
               _ -> []
         in mergeLeft (argMites ++ extra)
-
-      (Argument Nom v1, Argument Nom v2) -> let
-        v = makeV v2 "x"
-        common = [semT (v "") "copula", mite $ TenseHead (v ""), mite $ NomHead empty v1 Satisfied NPCopulaSubject]
-        whVariants = leftCompatible env m1 >>= \m3 -> case cxt m3 of
-          Wh agr questioned -> mergeLeft $ withBase [m1,m2,m3] $
-            common ++ [semV (v "") P.Arg1 v2, semV (v "") P.Arg2 v1, semV (v "cp") P.Content (v "")]
-            ++ whLinks (v "cp") questioned agr
-          _ -> []
-        in right (common ++ clause v ++ [semV (v "") P.Arg1 v1, semV (v "") P.Arg2 v2]) ++ whVariants
 
       (Verb head, Elaboration child) -> left [semV head P.Elaboration child, mite $ Unclosed RightSide [child]]
 

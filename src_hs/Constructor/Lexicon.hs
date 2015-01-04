@@ -14,7 +14,12 @@ nounSg caze gender typ v = pronoun caze (A.Agr (Just gender) (Just A.Sg) (Just 3
 nounPl caze typ v = pronoun caze (A.Agr Nothing (Just A.Pl) (Just 3)) typ v
 pronoun caze agr typ v = synNoun caze agr v ++ [semT (v "") typ] ++ rusGender agr (v "")
 
-synNoun caze agr v = [mite $ Argument caze (v ""), mite $ AdjHead (v "") caze agr, mite $ NounPhrase (v "")]
+synNoun caze agr v = [mite $ AdjHead (v "") caze agr, mite $ NounPhrase (v "")] ++ argOrCopula caze agr v
+
+argOrCopula caze agr v = if caze == Nom then xor [argRole, npCopulaHead] else argRole where
+  argRole = [mite $ Argument caze (v "")]
+  npCopulaHead = copulaHead NPCopula agr "copula" cv ++ [semV (cv "") P.Arg2 (v "")]
+  cv = modifyV v 'x'
 
 rusGender agr v = case A.gender agr of
   Just g -> [semS v P.RusGender (show g)]
@@ -37,9 +42,12 @@ finiteClause agr withSemSubject v =
                      (if withSemSubject then [semV (v "") P.Arg1 (v "arg1")] else []) ++
                      rusNumber agr (v "arg1") ++ rusGender agr (v "arg1") ++ rusPerson agr (v "arg1") ++
                      clause v
-copulaClause v =
-  [mite $ NomHead A.empty (v "arg1") Unsatisfied CopulaSubject, mite $ ReflexiveTarget (v "arg1"), semV (v "") P.Arg1 (v "arg1")]
-  ++ clause v
+
+copulaHead kind agr copulaType v =
+  [mite $ CopulaHead kind agr (v "arg1") v0 cp, mite $ TenseHead v0,
+   semV v0 P.Arg1 (v "arg1"), semT v0 copulaType, semV cp P.Content v0, semT cp "situation"] where
+  v0 = v ""
+  cp = v "cp"
 
 clause v = [mite $ Verb (v ""), semV (v "cp") P.Content (v ""), semT (v "cp") "situation", mite $ Clause (v "cp")]
 
@@ -55,7 +63,7 @@ semArg argType relation childVar@(Variable index s) = let headVar = Variable ind
   [mite $ SemArgument argType headVar childVar, semV headVar relation childVar]
 
 whWord agr v = [mite $ Wh agr (v ""), semT (v "") "wh", mite $ WhLeaf (v "")]
-caseWhWord kind agr v = whWord agr v ++ [mite $ QuestionVariants (v "") kind, mite $ Argument kind (v ""), mite $ AdjHead (v "") kind agr]
+caseWhWord kind agr v = whWord agr v ++ [mite $ QuestionVariants (v "") kind, mite $ AdjHead (v "") kind agr] ++ argOrCopula kind agr v
 negatedWh v = [semT (v "") "wh", semS (v "") P.Negated "true", mite $ Negated (v ""), mite $ NegativePronoun (v "")]
 animate v = [semS (v "") P.Animate "true"]
 

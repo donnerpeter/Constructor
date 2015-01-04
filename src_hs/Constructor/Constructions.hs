@@ -13,6 +13,7 @@ data SemArgKind = Direction deriving (Show, Eq, Ord)
 
 data Satisfied = Unsatisfied | Satisfied deriving (Show, Eq, Ord)
 data SubjectKind = FiniteSubject | CopulaSubject | NPCopulaSubject deriving (Show, Eq, Ord)
+data CopulaKind = NPCopula | PPCopula deriving (Show, Eq, Ord)
 
 data SeqData = SeqData { seqVar :: Variable, seqConj :: String, seqReady :: Bool, seqHasLeft :: Bool, seqHasRight :: Bool, seqHybrid :: Bool } deriving (Eq, Ord)
 instance Show SeqData where
@@ -79,6 +80,7 @@ data Construction = Word Variable String
                   | Tense Variable
                   | TenseHead Variable
                   | FutureTense Agr Variable
+                  | CopulaHead CopulaKind Agr {-subj-} Variable {-copula-} Variable {-cp-} Variable
 
                   -- wh-related
                   | Wh Agr Variable -- a phrase with wh inside
@@ -134,7 +136,7 @@ isHappy cxt = case cxt of
   ControlledInfinitive {} -> False; Control {} -> False
   ModalityInfinitive {} -> False
   ExistentialWh {} -> False; WhAsserter {} -> False
-  --Clause {} -> False;
+  CopulaHead {} -> False;
   TopLevelQuestion {} -> False
   QuotedWord _ False -> False; Quote _ False -> False
   DirectSpeechDash {} -> False; DirectSpeechHead _ Nothing -> False

@@ -402,7 +402,8 @@ clause fVerb = do
     state <- get
     let intro = conjIntroduction fVerb
     let emphasis = if (fValue P.OptativeModality fVerb >>= getType) == Just "LUCK" then "by some sheer luck,"
-                  else if sValue P.Emphasis fVerb == Just "true" then "there"
+                   else if (fValue P.OptativeModality fVerb >>= getType) == Just "BY_THE_WAY" then "by the way,"
+                   else if sValue P.Emphasis fVerb == Just "true" then "there"
                    else if (fValue P.RelTime fVerb >>= getType) == Just "AFTER" && isNothing (fValue P.RelTime fVerb >>= fValue P.Anchor) then "then"
                    else if (fValue P.RelTime fVerb >>= getType) == Just "BEFORE" && isNothing (fValue P.RelTime fVerb >>= fValue P.Anchor) then "before,"
                    else ""

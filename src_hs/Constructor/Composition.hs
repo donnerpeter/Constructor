@@ -104,6 +104,11 @@ punctuationAware env (m1, m2) =
         base12 [semV verb attr advP]
         ++ closeUnclosed LeftSide (if closed then Satisfied else Unsatisfied)
         ++ liftUnclosedCompatible LeftSide
+      --todo verbalModifier + copulaHead
+      (CommaSurrounded _ closed (VerbalModifier attr True advP), CopulaHead _ _ _ verb _) -> mergeRight $
+        base12 [semV verb attr advP, mite $ cxt m2]
+        ++ closeUnclosed LeftSide (if closed then Satisfied else Unsatisfied)
+        ++ liftUnclosedCompatible LeftSide
       (Verb verb, CommaSurrounded True _ (VerbalModifier attr True advP)) ->
         mergeLeft $ base12 [semV verb attr advP] ++ liftUnclosedCompatible RightSide ++ closeUnclosed LeftSide Satisfied
 

@@ -23,67 +23,83 @@ data Construction = Word Variable String
                   --semantic
                   | Sem Variable SemValue
                   | Unify Variable Variable
-                  -- auxiliary
+
+                  -- punctuation
+                  | SurroundingComma Variable
+                  | SurroundingDash Variable
+                  | Colon {-role-} String Variable
+                  | Quote Variable {-closing-} Bool
+                  | QuotedWord Construction {-closed-} Bool
+                  | CommaSurrounded {-opened-} Bool {-closed-} Bool Construction
+                  | DashSurrounded {-opened-} Bool {-closed-} Bool Construction
+                  | Sentence Variable
                   | Unclosed Side [Variable]
                   | Closed [Variable]
 
+                  -- auxiliary
                   | EmptyCxt Construction
                   | Diversifier Int
 
-                  --russian
+                  --Russian:
+                  --adjectives
                   | Adj Variable ArgKind Agr
                   | CompositeAdj Variable ArgKind Agr
                   | AdjHead Variable ArgKind Agr
-                  | NounPhrase Variable
-                  | Verb Variable
+                  | ShortAdj Variable
+
+                  -- arguments
                   | NomHead Agr Variable Satisfied SubjectKind
                   | GenHead Variable
                   | ArgHead ArgKind Variable
                   | SemArgHead SemArgKind Variable
                   | PrepHead String ArgKind Variable
-                  | SemPreposition ArgKind Variable
-                  | Quantifier ArgKind Agr Variable
                   | Argument ArgKind Variable
                   | SemArgument SemArgKind {-head-} Variable {-child-} Variable
+                  | Possessive ArgKind Agr Variable
+
+                  -- adjuncts
+                  | NounPhrase Variable
                   | Adverb Variable
                   | NounAdjunct P.VarProperty {-requires comma-} Bool Variable
-                  | Elaboration Variable
+                  | VerbalModifier P.VarProperty {-requires comma-} Bool Variable
+
+                  -- subordinate clauses
                   | CompHead Variable
                   | ConditionCompHead Variable
-                  | Wh Agr Variable
-                  | WhLeaf Variable
+                  | RelativeClause Agr Variable
+                  | Relativizer Variable
+                  | Complement Variable
+                  | Complementizer Variable
+                  | ConditionComp Variable {-if/when-} String {-has cp-} Bool
+                  | ReasonComp Variable {-has cp-} Bool
+
+                  -- verbs & clauses
+                  | Verb Variable -- finite or infinitive or participle
+                  | Clause Variable -- a finite clause, possibly a well-formed copula
+                  | Tense Variable
+                  | TenseHead Variable
+                  | FutureTense Agr Variable
+
+                  -- wh-related
+                  | Wh Agr Variable -- a phrase with wh inside
+                  | WhLeaf Variable -- wh-word
                   | WhInSitu Variable
                   | ExistentialWh {-wh-} Variable {-tensed-} Variable
                   | WhAsserter Variable
                   | UniversalPronoun Variable
                   | NegativePronoun Variable
                   | QuestionVariants Variable ArgKind
+                  | TopLevelQuestion Variable
+
+                  -- conjunction
                   | Conjunction SeqData
                   | SeqLeft Construction
                   | SeqRight Construction
-                  | Clause Variable
-                  | TopLevelQuestion Variable
-                  | Possessive ArgKind Agr Variable
-                  | Tense Variable
-                  | TenseHead Variable
-                  | FutureTense Agr Variable
-                  | ShortAdj Variable
-                  | ConditionComp Variable {-if/when-} String {-has cp-} Bool
-                  | CommaSurrounded {-opened-} Bool {-closed-} Bool Construction
-                  | DashSurrounded {-opened-} Bool {-closed-} Bool Construction
+
+                  -- other
                   | Control Variable
                   | ModalityInfinitive {-modality-} Variable {-cp-} Variable
                   | ControlledInfinitive Variable
-                  | RelativeClause Agr Variable
-                  | Relativizer Variable
-                  | Complement Variable
-                  | Complementizer Variable
-                  | SurroundingComma Variable
-                  | SurroundingDash Variable
-                  | Colon {-role-} String Variable
-                  | Quote Variable {-closing-} Bool
-                  | QuotedWord Construction {-closed-} Bool
-                  | VerbalModifier P.VarProperty {-requires comma-} Bool Variable
                   | DirectSpeechHead Variable {--child--} (Maybe Variable)
                   | DirectSpeech Variable
                   | DirectSpeechDash Variable
@@ -91,13 +107,13 @@ data Construction = Word Variable String
                   | RaisingVerb {-verb-} Variable {-subj-} Variable
                   | Raiseable Agr Variable
                   | TwoWordCxt String {-first-} Bool [Construction] Variable
-                  | ReasonComp Variable {-has cp-} Bool
                   | ReflexiveReference Variable
                   | ReflexiveTarget Variable
-                  | Sentence Variable
                   | ConjEmphasis P.StrProperty Variable
                   | Negated Variable
-                  -- | S1 | S2 | S3 | S4
+                  | SemPreposition ArgKind Variable
+                  | Quantifier ArgKind Agr Variable
+                  | Elaboration Variable
                   deriving (Show, Ord, Eq)
 
 isHappy cxt = case cxt of

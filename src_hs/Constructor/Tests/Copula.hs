@@ -123,7 +123,7 @@ copulaTests = [
                 "This book is about Vasya."
 --  ,
 --todo  translateTest "Это арбуз. Он зелёный."
---                "This is a water melon. It's green."
+--                "This is a watermelon. It's green."
   ,
  translateTest "Она кассирша и работает в магазине."
                 "She's a cashier and works in a store."

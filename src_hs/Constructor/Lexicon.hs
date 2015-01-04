@@ -112,6 +112,7 @@ wordMites word index =
   "большим" -> xor[adj Instr A.m P.Size "BIG" v, adj Instr A.n P.Size "BIG" v]
   "большой" -> xor[adj Instr A.f P.Size "BIG" v, adj Nom A.m P.Size "BIG" v, adj Acc A.m P.Size "BIG" v]
   "брат" -> nounSg Nom Masc "BROTHER" v ++ genHead P.Arg1 v
+  "бригадир" -> nounSg Nom Masc "BRIGADIER" v
   "будет" -> [semS v0 P.Time "FUTURE"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0], [mite $ FutureTense A.sg3 v0]]
   "был" -> [mite $ Tense v0, semS v0 P.Time "PAST"]
   "была" -> [mite $ Tense v0, semS v0 P.Time "PAST"]
@@ -119,6 +120,7 @@ wordMites word index =
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
   "васе" -> xor [nounSg Dat Masc "NAMED_PERSON" v, nounSg Prep Masc "NAMED_PERSON" v] ++ [semS v0 P.Name "Vasya"]
   "васи" -> nounSg Gen Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vasya"]
+  "василий" -> nounSg Nom Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vassily"]
   "вася" -> nounSg Nom Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vasya"]
   "вдруг" -> adverb P.Manner "SUDDENLY" v
   "вдумываясь" -> perfectBackground "THINK" v ++ arg (PP "v" Acc) P.Theme v
@@ -175,6 +177,7 @@ wordMites word index =
   "забыл" -> finVerb "FORGET" "PAST" A.m v ++ optional (xor [compHead P.Arg2 v, directObject v, whatComesNext v])
   "забыла" -> finVerb "FORGET" "PAST" A.f v ++ optional (xor [compHead P.Arg2 v, directObject v, whatComesNext v])
   "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ optional (xor [compHead P.Arg2 v, directObject v, whatComesNext v])
+  "завтра" -> adverb P.RelTime "TOMORROW" v
   "знает" -> finVerb "KNOW" "PRESENT" A.sg3 v ++ optional (directObject v)
   "знают" -> finVerb "KNOW" "PRESENT" A.pl3 v ++ optional (directObject v)
   "и" -> conjunction v0 "and" True
@@ -215,6 +218,7 @@ wordMites word index =
   "кассирша" -> nounSg Nom Fem "CASHIER" v ++ genHead P.Place v
   "кассирши" -> nounSg Gen Fem "CASHIER" v ++ genHead P.Place v
   "кассиршу" -> nounSg Acc Fem "CASHIER" v ++ genHead P.Place v
+  "кассиром" -> nounSg Instr Masc "CASHIER" v ++ genHead P.Place v
   "квартирам" -> nounPl Dat "APARTMENTS" v ++ genHead P.Owner v
   "книга" -> nounSg Nom Fem "BOOK" v ++ genHead P.Author v
   "книгу" -> nounSg Acc Fem "BOOK" v ++ genHead P.Author v
@@ -312,6 +316,7 @@ wordMites word index =
   "потому" -> [mite $ TwoWordCxt "потому что" True [ReasonComp v0 False] v0]
   "приуныли" -> finVerb "GET_SAD" "PAST" A.pl v
   "про" -> preposition "pro" Acc v
+  "продавец" -> nounSg Nom Masc "SALESMAN" v ++ genHead P.Place v
   "просто" -> adverb P.Manner "JUST" v
   "пошел" -> finVerb "GO" "PAST" A.m v ++ [mite $ SemArgHead Direction v0]
   "пошёл" -> finVerb "GO" "PAST" A.m v ++ [mite $ SemArgHead Direction v0]
@@ -392,6 +397,7 @@ wordMites word index =
   "удивительный" -> adj Nom A.m P.Property "AMAZING" v
   "углу" -> nounSg Prep Masc "CORNER" v ++ genHead P.Arg1 v
   "удивление" -> nounSg Nom Neu "AMAZE" v ++ genHead P.Arg1 v
+  "уж" -> sAdverb P.SAnchor "ALREADY" v
   "уже" -> sAdverb P.SAnchor "ALREADY" v
   "улиц" -> nounPl Gen "STREETS" v
   "улицы" -> nounSg Gen Fem "STREET" v

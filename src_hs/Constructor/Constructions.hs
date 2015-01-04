@@ -12,7 +12,6 @@ data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | Scalar
 data SemArgKind = Direction deriving (Show, Eq, Ord)
 
 data Satisfied = Unsatisfied | Satisfied deriving (Show, Eq, Ord)
-data SubjectKind = FiniteSubject | CopulaSubject | NPCopulaSubject deriving (Show, Eq, Ord)
 data CopulaKind = NPCopula | PPCopula deriving (Show, Eq, Ord)
 
 data SeqData = SeqData { seqVar :: Variable, seqConj :: String, seqReady :: Bool, seqHasLeft :: Bool, seqHasRight :: Bool, seqHybrid :: Bool } deriving (Eq, Ord)
@@ -49,7 +48,7 @@ data Construction = Word Variable String
                   | ShortAdj Variable
 
                   -- arguments
-                  | NomHead Agr Variable Satisfied SubjectKind
+                  | NomHead Agr Variable Satisfied
                   | GenHead Variable
                   | ArgHead ArgKind Variable
                   | SemArgHead SemArgKind Variable
@@ -121,7 +120,6 @@ data Construction = Word Variable String
 isHappy cxt = case cxt of
   Adj {} -> False; Adverb {} -> False; NounAdjunct {} -> False
   ArgHead {} -> False; PrepHead {} -> False; SemPreposition {} -> False; Argument {} -> False;
-  NomHead _ _ Unsatisfied kind -> kind == FiniteSubject
   SemArgHead {} -> False; SemArgument {} -> False
   Quantifier {} -> False
   CompHead {} -> False; ConditionCompHead {} -> False; ConditionComp {} -> False; ReasonComp {} -> False

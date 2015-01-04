@@ -197,20 +197,20 @@ interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
       (SemArgHead kind1 head, SemArgument kind2 arg _) | kind1 == kind2 -> left $  argVariants head arg leftPairs rightPairs ++ optional [mite $ cxt m1]
       (SemArgument kind2 arg _, SemArgHead kind1 head) | kind1 == kind2 -> right $ argVariants head arg rightPairs leftPairs ++ optional [mite $ cxt m2]
 
-      (Argument Nom v1, NomHead agr1 v2 Unsatisfied kind) -> leftPairs >>= \case
+      (Argument Nom v1, NomHead agr1 v2 Unsatisfied) -> leftPairs >>= \case
         (m3, AdjHead v3 Nom agr2) | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) ->
-          mergeRight $ withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 Satisfied kind]
+          mergeRight $ withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 Satisfied]
         _ -> []
-      (NomHead agr1 v2 Unsatisfied kind, Argument Nom v1) | kind /= NPCopulaSubject -> rightPairs >>= \case
+      (NomHead agr1 v2 Unsatisfied, Argument Nom v1) -> rightPairs >>= \case
         (m3, AdjHead v3 Nom agr2) | agree agr1 agr2 && v1 == v3 && not (contradict m2 m3) ->
-          mergeLeft $ withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 Satisfied kind]
+          mergeLeft $ withBase [m1, m2, m3] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v2 Satisfied]
         _ -> []
 
       -- todo nom + nomHead/copulaHead duplication
       (Argument Nom v1, CopulaHead kind agr subj v2 cp) ->
-        right $ [mite $ NomHead agr v1 Satisfied NPCopulaSubject, mite $ Unify v1 subj] ++ (if whContext then [] else [mite $ Clause cp, mite $ Verb v2])
+        right $ [mite $ NomHead agr v1 Satisfied, mite $ Unify v1 subj] ++ (if whContext then [] else [mite $ Clause cp, mite $ Verb v2])
       (CopulaHead kind agr subj v1 cp, Argument Nom v2) | kind /= NPCopula || whContext ->
-        left $ [mite $ NomHead agr v2 Satisfied NPCopulaSubject, mite $ Unify v2 subj] ++ (if whContext then [] else [mite $ Clause cp, mite $ Verb v2])
+        left $ [mite $ NomHead agr v2 Satisfied, mite $ Unify v2 subj] ++ (if whContext then [] else [mite $ Clause cp, mite $ Verb v2])
 
       (Verb verb, VerbalModifier attr False advP) -> left $ [semV verb attr advP] ++ existentials leftPairs rightPairs
       (VerbalModifier attr needComma advP, Verb verb) -> right $
@@ -235,7 +235,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
         _ -> []
       (GenHead v1, Argument Gen v2) -> left $ [mite $ Unify v1 v2] ++ whPropagation m1 m2 (rightCompatible env m2)
 
-      (Relativizer wh, NomHead agr v2 Unsatisfied kind) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
+      (Relativizer wh, NomHead agr v2 Unsatisfied) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
         Clause cp -> mergeLeft $ withBase [m1,m2,m3] [mite $ Unify v2 wh, mite $ RelativeClause agr cp, semV cp P.Questioned wh]
         _ -> []
       -- todo relativizer + nomHead/copulaHead duplication

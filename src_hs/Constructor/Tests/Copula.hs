@@ -133,4 +133,10 @@ copulaTests = [
 --  ,
 --todo  translateTest "Кто тут кассирша и работает в магазине?"
 --                "Who here is a cashier and works in a store?"
+--  ,
+--todo  translateTest "Человек человеку волк."
+--                "Man is to man a wolf."
+--  ,
+--todo  translateTest "Человек человеку друг, товарищ и брат."
+--                "Man is to man a friend, a comrade, and a brother."
   ]

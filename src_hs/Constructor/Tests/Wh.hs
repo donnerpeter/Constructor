@@ -215,4 +215,7 @@ whTests = [
   ,
   translateTest "Сестра кассира, которую я видел вчера, пошла в сад"
                 "The cashier's sister that I saw yesterday went to the garden"
+--  ,
+--todo  translateTest "Кто не работает, тот не ест."
+--                "Who does not work, doesn't eat."
   ]

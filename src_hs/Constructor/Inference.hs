@@ -91,6 +91,10 @@ nextSiblings frame = tail $ dropWhile (/= frame) $ seqSiblings frame
 resolve frame = case getType frame of
   Just "SELF" | Just target <- fValue P.Target frame -> target
   Just "wh" | Just relativized <- usage P.Questioned frame >>= usage P.Relative -> relativized
+  Just "HE" -> let
+    copulas = findFrames "copula" $ sense frame
+    arg2s = reverse $ filter (\f -> typeEarlier f frame && not (hasType "wh" f)) $ catMaybes $ map (fValue P.Arg2) copulas
+    in fromMaybe frame $ listToMaybe arg2s
   _ -> frame
 
 isNumber frame = any (\f -> sValue P.Number f == Just "true") $ flatten frame

@@ -94,6 +94,7 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
         _ -> []
       (_, P.Location) | hasType "wh" value -> [NPArg value]
       (_, P.Location_on) -> [PPArg "on" value]
+      (_, P.Color) -> [Adverb "green"]
       (_, P.Location_in) -> [PPArg "in" value]
       (_, P.Location_at) -> [PPArg "next to" value]
       ("copula_about", P.Arg2) -> [PPArg "about" value]

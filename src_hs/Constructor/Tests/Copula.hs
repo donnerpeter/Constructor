@@ -121,9 +121,9 @@ copulaTests = [
   ,
   translateTest "Эта книга о Васе."
                 "This book is about Vasya."
---  ,
---todo  translateTest "Это арбуз. Он зелёный."
---                "This is a watermelon. It's green."
+  ,
+  translateTest "Это арбуз. Он зелёный."
+                "This is a watermelon. It's green."
   ,
  translateTest "Она кассирша и работает в магазине."
                 "She's a cashier and works in a store."

@@ -67,8 +67,12 @@ caseWhWord kind agr v = whWord agr v ++ [mite $ QuestionVariants (v "") kind, mi
 negatedWh v = [semT (v "") "wh", semS (v "") P.Negated "true", mite $ Negated (v ""), mite $ NegativePronoun (v "")]
 animate v = [semS (v "") P.Animate "true"]
 
-adj caze agr attr value v = [mite $ Adj (v "") caze agr, semV (v "") attr (v "adj"), semT (v "adj") value]
-  ++ rusNumber agr (v "")
+adj caze agr attr value v = [semV (v "") attr (v "adj"), semT (v "adj") value]
+  ++ rusNumber agr (v "") ++ (if caze == Nom then xor [adjRole, adjCopulaHead] else adjRole) where
+  adjRole = [mite $ Adj (v "") caze agr]
+  adjCopulaHead = copulaHead NPCopula agr "copula" cv ++ [semV (cv "") attr (v "")]
+  cv = modifyV v 'x'
+
 adjWh caze agr attr v = [mite $ Adj (v "") caze agr, semV (v "") attr (v "adj"), semT (v "adj") "wh", mite $ Wh agr (v "adj")]
   ++ rusNumber agr (v "")
 
@@ -178,6 +182,7 @@ wordMites word index =
   "забыла" -> finVerb "FORGET" "PAST" A.f v ++ optional (xor [compHead P.Arg2 v, directObject v, whatComesNext v])
   "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ optional (xor [compHead P.Arg2 v, directObject v, whatComesNext v])
   "завтра" -> adverb P.RelTime "TOMORROW" v
+  "зелёный" -> adj Nom A.m P.Color "GREEN" v
   "знает" -> finVerb "KNOW" "PRESENT" A.sg3 v ++ optional (directObject v)
   "знают" -> finVerb "KNOW" "PRESENT" A.pl3 v ++ optional (directObject v)
   "и" -> conjunction v0 "and" True

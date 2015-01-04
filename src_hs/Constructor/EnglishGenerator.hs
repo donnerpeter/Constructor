@@ -96,11 +96,19 @@ np_internal nom mayHaveDeterminer frame = do
   state <- get
   if Set.member frame (visitedFrames state) then return $ fromMaybe "ONE" $ getType frame else do
   frameGenerated frame
-  unquantified <- if hasType "ME" frame then if nom then return "I" else return "me"
-    else if hasType "HE" frame then if nom then return "he" else return "him"
-    else if hasType "SHE" frame then if nom then return "she" else return "her"
-    else if hasType "THEY" frame then if nom then return "they" else return "them"
-    else if hasType "WE" frame then if nom then return "we" else return "us"
+  let asPronoun = case getType frame of
+        Just "ME" -> if nom then "I" else "me"
+        Just "WE" -> if nom then "we" else "us"
+        Just "THEY" -> if nom then "they" else "them"
+        Just s ->
+          if isHuman $ resolve frame then
+            if s == "HE" then if nom then "he" else "him"
+            else if s == "SHE" then if nom then "she" else "her"
+            else s
+          else "it"
+        _ -> "???"
+
+  unquantified <- if hasAnyType ["ME", "WE", "THEY", "HE", "SHE"] frame then return asPronoun
     else if hasType "EVERYTHING" frame then return "everything"
     else if hasType "EVERYBODY" frame then return "everybody"
     else if hasType "wh" frame then return $

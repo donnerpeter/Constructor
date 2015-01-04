@@ -43,6 +43,7 @@ data VarProperty = Arg1 | Arg2
                  | Property
                  | Kind
                  | Quality
+                 | Color
                  | EllipsisAnchor1 | EllipsisAnchor2
                  deriving (Ord, Eq, Show, Generic)
 

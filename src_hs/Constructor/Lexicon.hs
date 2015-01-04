@@ -220,6 +220,7 @@ wordMites word index =
   "котором" -> xor [caseWhWord Prep A.m v, caseWhWord Prep A.n v, adjWh Prep A.m P.Determiner v]
   "которую" -> xor [caseWhWord Acc A.f v, adjWh Acc A.f P.Determiner v]
   "который" -> xor [caseWhWord Nom A.m v, adjWh Nom A.m P.Determiner v]
+  "кстати" -> [mite $ VerbalModifier P.OptativeModality True v0, semT v0 "BY_THE_WAY"]
   "кто" -> caseWhWord Nom A.sg v ++ animate v
   "куда" -> whWord A.empty v ++ semArg Direction P.Goal v0
   "летний" -> adj Acc A.m P.VName "летний" v -- todo летний is not only a name

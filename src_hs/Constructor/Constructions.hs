@@ -15,10 +15,16 @@ data Satisfied = Unsatisfied | Satisfied deriving (Show, Eq, Ord)
 data CopulaKind = NPCopula | PPCopula deriving (Show, Eq, Ord)
 
 data SeqData = SeqData { seqVar :: Variable, seqConj :: String, seqReady :: Bool, seqHasLeft :: Bool, seqHasRight :: Bool, seqHybrid :: Bool } deriving (Eq, Ord)
+
 instance Show SeqData where
   show sd = show (seqVar sd) ++ " " ++ seqConj sd ++ (if seqReady sd then "" else "!ready") ++
             (if seqHasLeft sd then " left" else "") ++(if seqHasRight sd then " right" else "")++
             (if seqHybrid sd then " hybrid" else "")
+
+data CopulaData = CopulaData { copKind :: CopulaKind, copAgr :: Agr, copSubj :: Variable, copula :: Variable, copCP :: Variable } deriving (Eq, Ord)
+instance Show CopulaData where
+  show cd = show (copKind cd) ++ " " ++ show (copAgr cd) ++ " " ++ " " ++ show (copula cd)
+
 data Construction = Word Variable String
                   --semantic
                   | Sem Variable SemValue
@@ -79,7 +85,7 @@ data Construction = Word Variable String
                   | Tense Variable
                   | TenseHead Variable
                   | FutureTense Agr Variable
-                  | CopulaHead CopulaKind Agr {-subj-} Variable {-copula-} Variable {-cp-} Variable
+                  | CopulaHead CopulaData
 
                   -- wh-related
                   | Wh Agr Variable -- a phrase with wh inside

@@ -44,7 +44,7 @@ finiteClause agr withSemSubject v =
                      clause v
 
 copulaHead kind agr copulaType v =
-  [mite $ CopulaHead kind agr (v "arg1") v0 cp, mite $ TenseHead v0,
+  [mite $ CopulaHead (CopulaData kind agr (v "arg1") v0 cp), mite $ TenseHead v0,
    semV v0 P.Arg1 (v "arg1"), semT v0 copulaType, semV cp P.Content v0, semT cp "situation"] where
   v0 = v ""
   cp = v "cp"

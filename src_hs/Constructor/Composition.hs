@@ -105,8 +105,8 @@ punctuationAware env (m1, m2) =
         ++ closeUnclosed LeftSide (if closed then Satisfied else Unsatisfied)
         ++ liftUnclosedCompatible LeftSide
       --todo verbalModifier + copulaHead
-      (CommaSurrounded _ closed (VerbalModifier attr True advP), CopulaHead (CopulaData { copula = verb })) -> mergeRight $
-        base12 [semV verb attr advP, mite $ cxt m2]
+      (CommaSurrounded _ closed (VerbalModifier attr True advP), CopulaHead cd) -> mergeRight $
+        base12 [semV (copula cd) attr advP, mite $ CopulaHead (cd { copBound = True })]
         ++ closeUnclosed LeftSide (if closed then Satisfied else Unsatisfied)
         ++ liftUnclosedCompatible LeftSide
       (Verb verb, CommaSurrounded True _ (VerbalModifier attr True advP)) ->
@@ -254,7 +254,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
 
       (Adverb v, Verb head) -> right [mite $ Unify v head]
       --todo remove adverb+(copula|verb) duplication
-      (Adverb head, CopulaHead (CopulaData { copula = v2 })) -> right [mite $ Unify head v2, mite $ cxt m2]
+      (Adverb head, CopulaHead cd) -> right [mite $ Unify head (copula cd), mite $ CopulaHead (cd { copBound = True })]
 
       (Verb head, Adverb v) -> left [mite $ Unify v head]
 
@@ -268,7 +268,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (SemPreposition kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
       (PrepHead prep1 kind1 var1, Argument kind2 var2) | kind1 == kind2 ->
         let argMites = base12 ([mite $ Unify var1 var2]
-                        ++ xor (filter (not. null) [[mite $ Argument (PP prep1 kind1) var1], adjunctMites, copulaVariants]))
+                        ++ xorNonEmpty [[mite $ Argument (PP prep1 kind1) var1], adjunctMites, copulaVariants])
                        ++ whPropagation m1 m2 (rightCompatible env m2)
             adjunctMites = case (prep1, kind1) of
               ("k", Dat) -> semArg Direction P.Goal_to var2
@@ -305,7 +305,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (wh@(WhLeaf {}), Word _ "это") -> left [mite $ EmptyCxt wh]
 
       (Verb v, Word _ "бы") -> left [semS v P.Irrealis "true"]
-      (Word _ "очень", adverb@(Adverb {})) -> right [mite $ adverb]
+      (ModifierAdverb v1, AdverbModifiable v2) -> right [mite $ Unify v1 v2]
 
       (TenseHead v0, Tense v1) -> left [mite $ Unify v0 v1]
       (Tense v0, TenseHead v1) -> right [mite $ Unify v0 v1]

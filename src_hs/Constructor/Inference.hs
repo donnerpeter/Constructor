@@ -26,6 +26,7 @@ sValue attr frame =
         if Just True == fmap (hasAnyType ["SOME", "ONE"]) (fValue P.Determiner frame) then Just "false"
         else if hasAnyType ["CASE", "HAMMER", "TREES", "BENCH", "FINGER", "WATERMELON", "JAW"] frame then Just "false"
         else if Just True == fmap isNumberString (getType frame) then Just "false"
+        else if Just "copula" == (usage P.Arg2 frame >>= getDeclaredType) then Just "false"
         else if hasType "CHILD" frame then
           if Just "SOME" == (fValue P.Determiner frame >>= getType) then Just "false" else Just "true"
         else if hasType "CASHIER" frame then
@@ -33,7 +34,7 @@ sValue attr frame =
              Just prev -> Just "true"
              _ -> case find (\shop -> typeEarlier shop frame) $ findFrames "SHOP" $ sense frame of
                Just shop -> sValue P.Given shop
-               _ -> if Just "copula" == (usage P.Arg2 frame >>= getDeclaredType) then Just "false" else Just "true"
+               _ -> Just "true"
         else if hasType "SHOP" frame then
           if any (\cashier -> typeEarlier cashier frame && Just "copula" /= (usage P.Arg2 cashier >>= getType)) $ findFrames "CASHIER" $ sense frame then Just "true"
           else if isJust $ msum [usage P.Arg1 frame, usage P.Source frame] then Just "true"

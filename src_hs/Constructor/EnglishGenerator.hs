@@ -321,6 +321,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "copula" -> beForm (fValue P.Arg1 frame) (if sValue P.Time frame /= Just "PAST" then BaseVerb else verbForm)
   "copula_about" -> beForm (fValue P.Arg1 frame) (if sValue P.Time frame /= Just "PAST" then BaseVerb else verbForm)
   "ARGUE" -> if verbForm == Gerund then "arguing" else if Just "true" == sValue P.Irrealis frame then "were arguing" else "argue"
+  "ARRIVE" -> "arrived"
   "ASK" -> if (fValue P.Topic frame >>= getType) == Just "PREDICAMENT" then if verbForm == PastVerb then "consulted" else "consult" else if verbForm == BaseVerb then "ask" else "asked"
   "BEGIN" -> "started"
   "BREAK" -> if verbForm == BaseVerb then "break" else "broke"
@@ -605,7 +606,8 @@ vp fVerb verbForm clauseType = do
       if thereSubject then return "there"
       else if isVerbEllipsis fVerb && not (isEllipsisAnchor fSubject fVerb) then return "it"
       else if [fVerb] `isPrefixOf` (usages P.Arg1 f) || isModality || isRaising then np True fSubject
-      else if (isJust $ msum [fValue P.PerfectBackground fVerb, fValue P.Reason fVerb]) then return $ if sValue P.RusGender f == Just "Masc" then "he" else "she"
+      else if (isJust (msum [fValue P.PerfectBackground fVerb, fValue P.Reason fVerb]) || hasType "copula" fVerb)
+        then return $ if sValue P.RusGender f == Just "Masc" then "he" else "she"
       else return ""
     _ -> return ""
   preReason <- case fValue P.Reason fVerb of
@@ -652,7 +654,7 @@ vp fVerb verbForm clauseType = do
         "is" -> "'s"
         "will" -> "'ll"
         _ -> ""
-  let contractableSubject = Just True == fmap (hasAnyType ["ME", "HE", "SHE", "WE", "wh"]) fSubject || thereSubject || itSubject
+  let contractableSubject = subject `elem` ["I", "he", "she", "we", "it", "what", "that"] || thereSubject || itSubject
   let contracted = if null preAdverb && null negation && null according && not inverted && contractableSubject then
                      if null shortForm then subject `cat` mainVerb `cat` restVerb
                      else (subject ++ shortForm) `cat` restVerb

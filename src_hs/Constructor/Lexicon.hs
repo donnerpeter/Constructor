@@ -44,7 +44,7 @@ finiteClause agr withSemSubject v =
                      clause v
 
 copulaHead kind agr copulaType v =
-  [mite $ CopulaHead (CopulaData kind agr (v "arg1") v0 cp), mite $ TenseHead v0,
+  [mite $ CopulaHead (CopulaData kind agr (v "arg1") v0 cp False), mite $ TenseHead v0,
    semV v0 P.Arg1 (v "arg1"), semT v0 copulaType, semV cp P.Content v0, semT cp "situation"] where
   v0 = v ""
   cp = v "cp"
@@ -78,7 +78,8 @@ adjWh caze agr attr v = [mite $ Adj (v "") caze agr, semV (v "") attr (v "adj"),
 
 perfectBackground typ v = [mite $ Verb (v ""), semT (v "") typ, mite $ VerbalModifier P.PerfectBackground True (v "")]
 sAdverb attr value v = [mite $ Adverb (v "verb"), semS (v "verb") attr value]
-adverb attr value v = [mite $ Adverb (v "verb"), semV (v "verb") attr (v ""), semT (v "") value]
+modifierAdverb value v = [mite $ ModifierAdverb (v "head"), semS (v "head") P.ModifierAdverb value]
+adverb attr value v = [mite $ Adverb (v "verb"), semV (v "verb") attr (v ""), semT (v "") value, mite $ AdverbModifiable (v "")]
 genHead attr v = optional [mite $ GenHead (v "gen"), semV (v "") attr (v "gen")]
 directObject v = arg Acc P.Arg2 v
 conjunction v0 conj ready = [mite $ Conjunction $ SeqData v0 conj ready False False False, semT v0 "seq"] ++ (if conj == "," then [] else [semS v0 P.Conj conj])
@@ -297,6 +298,7 @@ wordMites word index =
   "отвлекло" -> finVerb "DISTRACT" "PAST" A.n v ++ directObject v ++ arg (PP "ot" Gen) P.Theme v
   "отправился" -> finVerb "GO_OFF" "PAST" A.m v ++ arg (PP "k" Dat) P.Goal_to v
   "офисам" -> nounPl Dat "OFFICES" v ++ genHead P.Owner v
+  "очень" -> modifierAdverb "VERY" v
   "палец" -> nounSg Acc Masc "FINGER" v
   "пальца" -> nounSg Gen Masc "FINGER" v
   "пальцами" -> nounPl Instr "FINGER" v
@@ -327,6 +329,7 @@ wordMites word index =
   "пошёл" -> finVerb "GO" "PAST" A.m v ++ [mite $ SemArgHead Direction v0]
   "пошла" -> finVerb "GO" "PAST" A.f v ++ [mite $ SemArgHead Direction v0]
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ [mite $ SemArgHead Direction v0]
+  "приехал" -> finVerb "ARRIVE" "PAST" A.m v
   "работает" -> finVerb "WORK" "PRESENT" A.sg3 v
   "работу" -> nounSg Acc Fem "WORK" v
   "работы" -> nounSg Gen Fem "WORK" v
@@ -394,6 +397,7 @@ wordMites word index =
   "так" -> [mite $ TwoWordCxt "так как" True [ReasonComp v0 False] v0]
   "там" -> adverb P.Location "THERE" v
   "танцевать" -> infinitive "DANCE" v
+  "только" -> modifierAdverb "ONLY" v
   "том" -> adj Prep A.sg P.Determiner "THAT" v
   "три" -> wordNumber Acc "3" v
   "тут" -> sAdverb P.Emphasis "true" v

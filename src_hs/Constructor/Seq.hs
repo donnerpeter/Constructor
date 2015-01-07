@@ -30,6 +30,7 @@ seqWrappable mite = hybridConjoinable (cxt mite) || case cxt mite of
   Adj {} -> True; Possessive {} -> True
   Complement {} -> True
   Clause {} -> True
+  CopulaHead (CopulaData { copBound = True }) -> True
   NomHead _ _ Unsatisfied -> True
   Ellipsis {} -> True
   UniversalPronoun {} -> True
@@ -58,7 +59,7 @@ seqLeft env = {-traceIt "seqLeft" $ -}result where
   result = rightCombined env >>= \m2 -> case cxt m2 of
     Conjunction sd@(SeqData { seqReady=True, seqHasRight=True, seqHasLeft=False, seqConj=conj}) ->
       if contradictsSeq conj then []
-      else xor $ filter (not. null) [normalSeqVariants m2 sd env, hybridSeqVariants m2 sd env]
+      else xorNonEmpty [normalSeqVariants m2 sd env, hybridSeqVariants m2 sd env]
     _ -> []
 
 normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env =
@@ -110,12 +111,9 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env =
             withBase [m1,m2,m3] $ fullConj mem1 mem2 ++ [mite $ Complement seqV, semS mem2 P.Distinguished "true"]
 
           (Clause mem1, SeqRight (Clause mem2)) -> let
-                 unifications = xor $ filter (not . null) $
-                   [unifyMissingArgument mite1 mite2 | mite1 <- leftCompatible env m1,
-                                                       mite2 <- rightCompatible env m2]
-                 unifyMissingArgument aux1 aux2 = case (cxt aux1, cxt aux2) of
-                   (NomHead agr1 v1 satisfied, SeqRight (NomHead agr2 v2 Unsatisfied)) | agree agr1 agr2 ->
-                     withBase [aux1,aux2] [mite $ Unify v1 v2, mite $ NomHead (commonAgr agr1 agr2) v1 satisfied]
+                 unifications = xorNonEmpty $ concatMap unifyMissingArguments $ rightCompatible env m2
+                 unifyMissingArguments aux2 = case cxt aux2 of
+                   SeqRight (NomHead agr2 v2 Unsatisfied) -> unifySubjects (leftCompatible env m1) agr2 v2
                    _ -> []
                  ellipsisVariants = rightCompatible env m2 >>= \m4 -> case cxt m4 of
                    SeqRight (Ellipsis ellipsisVar (Just e1) (Just e2)) ->
@@ -124,7 +122,17 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env =
                  result = withBase [m1, m2] $
                    fullConj mem1 mem2 ++ [mite $ Clause seqV] ++ unifications ++ xor ellipsisVariants
                  in result
+          (Clause mem1, SeqRight (CopulaHead cd)) -> let
+                 unifications = xorNonEmpty $ unifySubjects (leftCompatible env m1) (copAgr cd) (copSubj cd)
+                 result = withBase [m1, m2] $ fullConj mem1 (copCP cd) ++ [mite $ Clause seqV] ++ unifications
+                 in result
           _ -> []
+
+unifySubjects leftMites agr rightSubj = map unifyNomHead leftMites where
+  unifyNomHead aux1 = case cxt aux1 of
+    (NomHead agr1 v1 satisfied) | agree agr1 agr ->
+      withBase [aux1] [mite $ Unify v1 rightSubj, mite $ NomHead (commonAgr agr1 agr) v1 satisfied]
+    _ -> []
 
 hybridSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = let
   makeHybrid m1 m3 mem1 mem2 resultCxt =

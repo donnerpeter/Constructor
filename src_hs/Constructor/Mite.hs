@@ -1,6 +1,6 @@
 module Constructor.Mite
  (Mite(Mite, cxt, happy, baseMites), mite,
- xor, withBase, contradict,
+ xor, xorNonEmpty, withBase, contradict,
  optional,
  isCoverable,
  semS, semV, semT)
@@ -51,6 +51,8 @@ mite cxt = _initMite cxt Set.empty []
 semS var prop value = mite $ Sem var (StrValue prop value)
 semV var prop value = mite $ Sem var (VarValue prop value)
 semT var _type = semS var Type _type
+
+xorNonEmpty groups = xor $ filter (not . null) groups
 
 xor :: [[Mite]] -> [Mite]
 xor _miteGroups = let

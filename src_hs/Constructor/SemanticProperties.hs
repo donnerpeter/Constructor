@@ -57,6 +57,7 @@ data StrProperty = Type
                  | InSitu
                  | Ellipsis | Elided
                  | SAnchor
+                 | ModifierAdverb
                  | Name
                  | Irrealis
                  | DirectSpeech

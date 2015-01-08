@@ -44,8 +44,8 @@ finiteClause agr withSemSubject v =
                      clause v
 
 copulaHead kind agr copulaType v =
-  [mite $ CopulaHead (CopulaData kind agr (v "arg1") v0 cp False), mite $ TenseHead v0,
-   semV v0 P.Arg1 (v "arg1"), semT v0 copulaType, semV cp P.Content v0, semT cp "situation"] where
+  [mite $ CopulaHead (CopulaData kind agr (v "arg1") v0 cp False)] ++ optional [mite $ TenseHead v0] ++
+   [semV v0 P.Arg1 (v "arg1"), semT v0 copulaType, semV cp P.Content v0, semT cp "situation"] where
   v0 = v ""
   cp = v "cp"
 
@@ -54,7 +54,7 @@ clause v = [mite $ Verb (v ""), semV (v "cp") P.Content (v ""), semT (v "cp") "s
 infinitive typ v =
   [semT (v "") typ] ++
   xor [[mite $ ControlledInfinitive $ v ""],
-       [mite $ ModalityInfinitive (v "x") (v "cp"), semT (v "x") "modality", semV (v "x") P.Theme (v ""), semV (v "cp") P.Content (v "x"), mite $ Verb (v "x"), mite $ TenseHead (v "x")] ++ optional (arg Dat P.Arg1 v),
+       [mite $ ModalityInfinitive (v "x") (v "cp"), semT (v "x") "modality", semV (v "x") P.Theme (v ""), semV (v "cp") P.Content (v "x"), mite $ Verb (v "x")] ++ optional [mite $ TenseHead (v "x")] ++ optional (arg Dat P.Arg1 v),
        semArg Direction P.Goal_action (v "")]
 arg argType relation v = [mite $ ArgHead argType (v $ decapitalize $ show relation), semV (v "") relation (v $ decapitalize $ show relation)]
 compHead attr v = [mite $ CompHead (v "comp"), semV (v "") attr (v "comp")]
@@ -212,7 +212,7 @@ wordMites word index =
   "кажется" -> raisingVerb "SEEM" "PRESENT" A.sg3 v ++ optional (arg Dat P.Experiencer v)
   "как" -> [mite $ TwoWordCxt "так как" False [] v0]
   "каково" ->
-    finiteClause A.n3 True v ++ [mite $ TenseHead v0, semT (v "wh") "wh", semV v0 P.Arg2 (v "wh"), mite $ ShortAdj (v "wh")] ++
+    finiteClause A.n3 True v ++ optional [mite $ TenseHead v0] ++ [semT (v "wh") "wh", semV v0 P.Arg2 (v "wh"), mite $ ShortAdj (v "wh")] ++
     xor [[semT v0 "degree"],
          [semT v0 "copula", semV (v "cp") P.Questioned (v "wh")] ++ xor [[mite $ Complement (v "cp")], [mite $ TopLevelQuestion (v "cp")]]]
   "какого" -> adjWh Gen A.m P.Determiner v
@@ -278,7 +278,7 @@ wordMites word index =
   "ничего" -> negatedWh v ++ [mite $ Argument Gen v0]
   "но" ->  xor [conjunction v0 "but" False, [mite $ ConjEmphasis P.ButEmphasis v0]]
   "носом" -> nounSg Instr Masc "NOSE" v
-  "нужно" -> [semT v0 "NEED", mite $ NomHead A.n (v "arg2") Unsatisfied, semV v0 P.Arg2 (v "arg2"), mite $ TenseHead v0] ++ optional (arg Dat P.Arg1 v) ++ clause v
+  "нужно" -> [semT v0 "NEED", mite $ NomHead A.n (v "arg2") Unsatisfied, semV v0 P.Arg2 (v "arg2")] ++ optional [mite $ TenseHead v0] ++ optional (arg Dat P.Arg1 v) ++ clause v
   "о" -> preposition "o" Prep v
   "обе" -> numQuantifier Acc Gen A.f v ++ [semT (v "q") "BOTH"]
   "облегчением" -> nounSg Instr Neu "RELIEF" v

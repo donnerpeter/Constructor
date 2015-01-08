@@ -143,6 +143,7 @@ isHappy cxt = case cxt of
   ModalityInfinitive {} -> False
   ExistentialWh {} -> False; WhAsserter {} -> False
   CopulaHead {} -> False;
+  TenseHead {} -> False;
   TopLevelQuestion {} -> False
   QuotedWord _ False -> False; Quote _ False -> False
   DirectSpeechDash {} -> False; DirectSpeechHead _ Nothing -> False

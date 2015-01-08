@@ -151,4 +151,22 @@ copulaTests = [
 --  ,
 --todo  translateTest "Человек человеку друг, товарищ и брат."
 --                "Man is to man a friend, a comrade, and a brother."
+--  ,
+--todo  translateTest "Вы умны, а я умнее."
+--                "You're smart, but I'm smarter."
+--  ,
+--todo  translateTest "Кассир умён, но кассирша умнее."
+--                "The male cashier is smart, but the female cashier is smarter."
+--  ,
+--todo  translateTest "Кассир умён, а кассирша - нет."
+--                "The male cashier is smart, but the female cashier is not."
+--  ,
+--todo  translateTest "Кассирша умна, а кассир - не очень."
+--                "The female cashier is smart, but the male cashier is not so smart."
+--  ,
+--todo  translateTest "Кассир был умный, кассирша - не очень."
+--                "The male cashier was smart, but the female cashier wasn't so smart."
+--  ,
+--todo  translateTest "Кассирша была умной. Кассир тоже будет умным."
+--                "The female cashier was smart. The male cashier will also be smart."
   ]

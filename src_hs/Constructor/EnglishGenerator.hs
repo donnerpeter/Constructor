@@ -15,7 +15,7 @@ import Data.Function (on)
 import qualified Constructor.SemanticProperties as P
 
 data GenerationState = GenerationState { visitedFrames:: Set.Set Frame, past:: Bool}
-data VerbForm = BaseVerb | Sg3Verb | PastVerb | Gerund deriving (Eq)
+data VerbForm = BaseVerb | Sg3Verb | PastVerb | Gerund deriving (Eq, Show)
 
 generate:: Sense -> String
 generate sense =
@@ -552,6 +552,7 @@ vp fVerb verbForm clauseType = do
                 else "-"
               else if hasType "copula_talking_about" fVerb then "talking"
               else if isCopula && inverted then ""
+              else if isCopula && isFuture then "be"
               else if isModality then
                 if isQuestion then if isJust fSubject && isDoModality then "supposed" else ""
                 else if thereSubject then if verbForm == PastVerb then "was" else "is"

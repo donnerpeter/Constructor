@@ -106,7 +106,9 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
         Just anchor -> [PPAdjunct (if hasType "AFTER" value then "after" else "before") anchor]
         _ -> let mod = if Just "ONLY" == sValue P.ModifierAdverb value then "just " else "" in
              if hasType "YESTERDAY" value then [Adverb $ mod ++ "yesterday"]
-             else if hasType "TODAY" value then [Adverb $ mod ++ "today"] else []
+             else if hasType "TODAY" value then [Adverb $ mod ++ "today"]
+             else if hasType "TOMORROW" value then [Adverb $ mod ++ "tomorrow"]
+             else []
       _ -> []
     StrValue attr value -> case (attr, value) of
       (P.SAnchor, "AGAIN") -> [Adverb "again"]

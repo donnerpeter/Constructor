@@ -286,7 +286,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
                                   [mite $ VerbalModifier P.Location_in False var2]]
               _ -> []
             v = makeV var1 "x"
-            copulaCommon copulaType = copulaHead PPCopula empty copulaType v
+            copulaCommon copulaType = copulaHead PPCopula empty copulaType False v
             copulaVariants = case (prep1, kind1) of
               ("u", Gen) -> copulaCommon "copula" ++ [semV (v "") P.Owner var1]
               ("na", Prep) -> copulaCommon "copula" ++ [semV (v "") P.Location_on var1]

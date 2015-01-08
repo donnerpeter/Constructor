@@ -16,9 +16,13 @@ pronoun caze agr typ v = synNoun caze agr v ++ [semT (v "") typ] ++ rusGender ag
 
 synNoun caze agr v = [mite $ AdjHead (v "") caze agr, mite $ NounPhrase (v "")] ++ argOrCopula caze agr v
 
-argOrCopula caze agr v = if caze == Nom then xor [argRole, npCopulaHead] else argRole where
+argOrCopula caze agr v =
+  if caze == Nom then xor [argRole, npCopulaHead False]
+  else if caze == Instr then xor [argRole, npCopulaHead True]
+  else argRole
+  where
   argRole = [mite $ Argument caze (v "")]
-  npCopulaHead = copulaHead NPCopula agr "copula" cv ++ [semV (cv "") P.Arg2 (v "")]
+  npCopulaHead tenseRequired = copulaHead NPCopula agr "copula" tenseRequired cv ++ [semV (cv "") P.Arg2 (v "")]
   cv = modifyV v 'x'
 
 rusGender agr v = case A.gender agr of
@@ -43,11 +47,13 @@ finiteClause agr withSemSubject v =
                      rusNumber agr (v "arg1") ++ rusGender agr (v "arg1") ++ rusPerson agr (v "arg1") ++
                      clause v
 
-copulaHead kind agr copulaType v =
-  [mite $ CopulaHead (CopulaData kind agr (v "arg1") v0 cp False)] ++ optional [mite $ TenseHead v0] ++
+copulaHead kind agr copulaType tenseRequired v =
+  [mite $ CopulaHead (CopulaData kind agr (v "arg1") v0 cp False)] ++
+   (if tenseRequired then tenseHead else optional tenseHead) ++
    [semV v0 P.Arg1 (v "arg1"), semT v0 copulaType, semV cp P.Content v0, semT cp "situation"] where
   v0 = v ""
   cp = v "cp"
+  tenseHead = [mite $ TenseHead v0]
 
 clause v = [mite $ Verb (v ""), semV (v "cp") P.Content (v ""), semT (v "cp") "situation", mite $ Clause (v "cp")]
 
@@ -70,7 +76,7 @@ animate v = [semS (v "") P.Animate "true"]
 adj caze agr attr value v = [semV (v "") attr (v "adj"), semT (v "adj") value]
   ++ rusNumber agr (v "") ++ (if caze == Nom then xor [adjRole, adjCopulaHead] else adjRole) where
   adjRole = [mite $ Adj (v "") caze agr]
-  adjCopulaHead = copulaHead NPCopula agr "copula" cv ++ [semV (cv "") attr (v "")]
+  adjCopulaHead = copulaHead NPCopula agr "copula" False cv ++ [semV (cv "") attr (v "")]
   cv = modifyV v 'x'
 
 adjWh caze agr attr v = [mite $ Adj (v "") caze agr, semV (v "") attr (v "adj"), semT (v "adj") "wh", mite $ Wh agr (v "adj")]
@@ -324,6 +330,7 @@ wordMites word index =
   "приуныли" -> finVerb "GET_SAD" "PAST" A.pl v
   "про" -> preposition "pro" Acc v
   "продавец" -> nounSg Nom Masc "SALESMAN" v ++ genHead P.Place v
+  "продавцом" -> nounSg Instr Masc "SALESMAN" v ++ genHead P.Place v
   "просто" -> adverb P.Manner "JUST" v
   "пошел" -> finVerb "GO" "PAST" A.m v ++ [mite $ SemArgHead Direction v0]
   "пошёл" -> finVerb "GO" "PAST" A.m v ++ [mite $ SemArgHead Direction v0]

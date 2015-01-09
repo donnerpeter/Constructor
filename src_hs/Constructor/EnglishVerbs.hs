@@ -1,4 +1,4 @@
-module Constructor.EnglishVerbs (VerbForm(..), verb, haveForm, beForm, isGerund, auxVerbs, finiteVerb) where
+module Constructor.EnglishVerbs (VerbForm(..), verb, haveForm, beForm, isGerund, generateVerbs) where
 import Constructor.Sense
 import Constructor.Inference
 import Constructor.ArgumentPlanning
@@ -107,6 +107,10 @@ finiteVerb fVerb fSubject verbForm isCopula inverted isFuture isModality isQuest
     Just "RAIN" -> (if isFuture then "be " else "") ++ "raining"
     _ -> "WEATHER"
   else verb (if isGerund fVerb then Gerund else if null aux then verbForm else BaseVerb) fVerb
+
+generateVerbs fVerb fSubject verbForm isCopula inverted isFuture isModality isQuestion isDoModality thereSubject itSubject =
+  (aux, finiteVerb fVerb fSubject verbForm isCopula inverted isFuture isModality isQuestion isDoModality thereSubject itSubject aux) where
+  aux = auxVerbs fVerb fSubject verbForm isFuture isModality isDoModality isQuestion inverted isCopula itSubject
 
 isGerund fVerb =
   Just "true" == sValue P.Imperfective fVerb ||

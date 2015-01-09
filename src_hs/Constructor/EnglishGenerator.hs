@@ -474,13 +474,12 @@ vp fVerb verbForm clauseType = do
       isCopula = hasAnyType ["copula", "copula_about"] fVerb
       thereSubject = clauseType == FiniteClause && (Just "wh" == (fSubject >>= getType) && isModality || isNothing (fSubject >>= getType)) && not isQuestion
       itSubject = Just "WEATHER_BE" == getType fVerb
-      sVerb = finiteVerb fVerb fSubject verbForm isCopula inverted isFuture isModality isQuestion isDoModality thereSubject itSubject aux
+      (aux, sVerb) = generateVerbs fVerb fSubject verbForm isCopula inverted isFuture isModality isQuestion isDoModality thereSubject itSubject
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         Just "MOVE" -> (if Just "SLIGHTLY" == (fValue P.Manner fVerb >>= getType) then "slightly" else "") `cat` "back and forth"
         _ -> ""
       negation = if sValue P.Negated fVerb == Just "true" && isGerund fVerb then "not" else ""
-      aux = auxVerbs fVerb fSubject verbForm isFuture isModality isDoModality isQuestion inverted isCopula itSubject
       allArgs = if isModality then fromMaybe [] (fmap arguments theme) else arguments fVerb
       topicalizedArg = case (fSubject, allArgs) of
         (Just subj, hd@(PPAdjunct _ value):_) | typeEarlier value fVerb && typeEarlier value subj -> Just hd

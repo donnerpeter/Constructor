@@ -355,12 +355,7 @@ clause fVerb = do
                    else if (fValue P.RelTime fVerb >>= getType) == Just "AFTER" && isNothing (fValue P.RelTime fVerb >>= fValue P.Anchor) then "then"
                    else if (fValue P.RelTime fVerb >>= getType) == Just "BEFORE" && isNothing (fValue P.RelTime fVerb >>= fValue P.Anchor) then "before,"
                    else ""
-    let verbForm =
-          if past state then PastVerb
-          else if isFuture then BaseVerb
-          else if Just True == fmap (hasAnyType ["ME", "WE", "THEY"]) fSubject then BaseVerb
-          else Sg3Verb
-        isModality = hasType "modality" fVerb
+    let isModality = hasType "modality" fVerb
         isRaising = hasType "SEEM" fVerb
         isFuture = Just "FUTURE" == sValue P.Time fVerb
         fSubject = if isModality || isRaising then fValue P.Theme fVerb >>= fValue P.Arg1 else fValue P.Arg1 fVerb
@@ -370,10 +365,10 @@ clause fVerb = do
            else if hasType "copula" fVerb && isJust (fValue P.Owner fVerb) then do
              let owner = fValue P.Owner fVerb
              subj <- np True owner
-             let verb = haveForm owner fVerb verbForm
+             let verb = haveForm $ determineVerbForm owner $ past state
              obj <- np False (fValue P.Arg1 fVerb)
              return $ subj `cat` verb `cat` obj
-           else vp fVerb verbForm FiniteClause
+           else vp fVerb (determineVerbForm fSubject $ past state) FiniteClause
     elaboration <- case fValue P.Elaboration fVerb of
       Just smth -> return (if hasType "HAPPEN" fVerb then "," else ":") `catM` sentence smth
       _ -> return ""

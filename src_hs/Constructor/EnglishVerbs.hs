@@ -1,4 +1,4 @@
-module Constructor.EnglishVerbs (VerbForm(..), verb, haveForm, beForm, isGerund, generateVerbs) where
+module Constructor.EnglishVerbs (VerbForm(..), verb, haveForm, isGerund, generateVerbs, determineVerbForm) where
 import Constructor.Sense
 import Constructor.Inference
 import Constructor.ArgumentPlanning
@@ -69,15 +69,15 @@ beForm fSubject verbForm =
   else if Just "ME" == (fSubject >>= getType) then "am"
   else if Just "Pl" == (fSubject >>= sValue P.RusNumber) then "are" else "is"
 
-haveForm fSubject fVerb verbForm =
-  if verbForm == PastVerb then "had"
-  else if Just True == fmap (hasAnyType ["ME", "WE"]) fSubject then "have"
-  else "has"
+haveForm verbForm = case verbForm of
+  PastVerb -> "had"
+  Sg3Verb -> "has"
+  _ -> "have"
 
-doForm fSubject verbForm =
-  if verbForm == PastVerb then "did"
-  else if Just True == fmap (hasAnyType ["ME", "THEY"]) fSubject then "do"
-  else "does"
+doForm verbForm =case verbForm of
+  PastVerb -> "did"
+  Sg3Verb -> "does"
+  _ -> "do"
 
 generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModality thereSubject = let
   isFuture = Just "FUTURE" == sValue P.Time fVerb
@@ -105,11 +105,16 @@ generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModalit
       else if isNothing fSubject then ("", "")
       else ("should", "")
     else if thereSubject then (if verbForm == PastVerb then "was" else "is", "")
-    else if isFuture then ("will", "have") else ("", haveForm fSubject fVerb verbForm)
-  else if inverted then (doForm fSubject verbForm, verb BaseVerb fVerb)
+    else if isFuture then ("will", "have") else ("", haveForm verbForm)
+  else if inverted then (doForm verbForm, verb BaseVerb fVerb)
   else ("", verb verbForm fVerb)
 
 isGerund fVerb =
   Just "true" == sValue P.Imperfective fVerb ||
   hasAnyType ["SIT", "WEATHER_BE"] fVerb ||
   hasType "THINK" fVerb && isNothing (fValue P.Topic fVerb)
+
+determineVerbForm fSubject discoursePast =
+  if discoursePast then PastVerb
+  else if Just True == fmap (hasAnyType ["ME", "WE", "THEY"]) fSubject then BaseVerb
+  else Sg3Verb

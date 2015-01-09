@@ -1,6 +1,7 @@
-module Constructor.EnglishVerbs (VerbForm(..), verb, haveForm, beForm, isGerund, auxVerbs) where
+module Constructor.EnglishVerbs (VerbForm(..), verb, haveForm, beForm, isGerund, auxVerbs, finiteVerb) where
 import Constructor.Sense
 import Constructor.Inference
+import Constructor.ArgumentPlanning
 import qualified Constructor.SemanticProperties as P
 import Data.Maybe
 
@@ -88,6 +89,24 @@ auxVerbs fVerb fSubject verbForm isFuture isModality isDoModality isQuestion inv
     else "does"
   else if itSubject then "is"
   else ""
+
+finiteVerb fVerb fSubject verbForm isCopula inverted isFuture isModality isQuestion isDoModality thereSubject itSubject aux =
+  if isEllipsisAnchor fSubject fVerb
+  then
+    if fSubject == (usage P.Content fVerb >>= fValue P.EllipsisAnchor2) then if verbForm == PastVerb then "did" else "does"
+    else "-"
+  else if hasType "copula_talking_about" fVerb then "talking"
+  else if isCopula && inverted then ""
+  else if isCopula && isFuture then "be"
+  else if isModality then
+    if isQuestion then if isJust fSubject && isDoModality then "supposed" else ""
+    else if thereSubject then if verbForm == PastVerb then "was" else "is"
+    else haveForm fSubject fVerb (if isFuture then BaseVerb else verbForm)
+  else if itSubject then case fSubject >>= getType of
+    Just "SNOW" -> (if isFuture then "be " else "") ++ "snowing"
+    Just "RAIN" -> (if isFuture then "be " else "") ++ "raining"
+    _ -> "WEATHER"
+  else verb (if isGerund fVerb then Gerund else if null aux then verbForm else BaseVerb) fVerb
 
 isGerund fVerb =
   Just "true" == sValue P.Imperfective fVerb ||

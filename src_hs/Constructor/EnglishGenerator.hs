@@ -474,22 +474,7 @@ vp fVerb verbForm clauseType = do
       isCopula = hasAnyType ["copula", "copula_about"] fVerb
       thereSubject = clauseType == FiniteClause && (Just "wh" == (fSubject >>= getType) && isModality || isNothing (fSubject >>= getType)) && not isQuestion
       itSubject = Just "WEATHER_BE" == getType fVerb
-      sVerb = if isEllipsisAnchor fSubject fVerb
-              then
-                if fSubject == (cp >>= fValue P.EllipsisAnchor2) then if verbForm == PastVerb then "did" else "does"
-                else "-"
-              else if hasType "copula_talking_about" fVerb then "talking"
-              else if isCopula && inverted then ""
-              else if isCopula && isFuture then "be"
-              else if isModality then
-                if isQuestion then if isJust fSubject && isDoModality then "supposed" else ""
-                else if thereSubject then if verbForm == PastVerb then "was" else "is"
-                else haveForm fSubject fVerb (if isFuture then BaseVerb else verbForm)
-              else if itSubject then case fSubject >>= getType of
-                Just "SNOW" -> (if isFuture then "be" else "") `cat` "snowing"
-                Just "RAIN" -> (if isFuture then "be" else "") `cat` "raining"
-                _ -> "WEATHER"
-              else verb (if isGerund fVerb then Gerund else if null aux then verbForm else BaseVerb) fVerb
+      sVerb = finiteVerb fVerb fSubject verbForm isCopula inverted isFuture isModality isQuestion isDoModality thereSubject itSubject aux
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         Just "MOVE" -> (if Just "SLIGHTLY" == (fValue P.Manner fVerb >>= getType) then "slightly" else "") `cat` "back and forth"
@@ -518,8 +503,7 @@ vp fVerb verbForm clauseType = do
         in if isAnymore then "anymore" else ""
   subject <- if thereSubject then return "there" else if itSubject then return "it" else case (fSubject, clauseType) of
     (Just f, FiniteClause) ->
-      if thereSubject then return "there"
-      else if isVerbEllipsis fVerb && not (isEllipsisAnchor fSubject fVerb) then return "it"
+      if isVerbEllipsis fVerb && not (isEllipsisAnchor fSubject fVerb) then return "it"
       else if [fVerb] `isPrefixOf` (usages P.Arg1 f) || isModality || isRaising then np True fSubject
       else if (isJust (msum [fValue P.PerfectBackground fVerb, fValue P.Reason fVerb]) || hasType "copula" fVerb)
         then return $ if sValue P.RusGender f == Just "Masc" then "he" else "she"

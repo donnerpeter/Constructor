@@ -184,8 +184,8 @@ shouldContrastSubject frame = let
   allCPs = flatten (fmap unSeq cp)
   allVerbs = catMaybes $ map (fValue P.Content) allCPs
   contrastibleSubject fVerb = case fValue P.Arg1 fVerb of
-    Just fSubj | not (isNumber $ Just fSubj), Just g1 <- sValue P.RusGender fSubj, Just g2 <- sValue P.RusGender frame, g1 /= g2 ->
-      not (isVerbEllipsis fVerb) || isEllipsisAnchor (Just fSubj) fVerb
+    Just fSubject | not (isNumber $ Just fSubject), Just g1 <- sValue P.RusGender fSubject, Just g2 <- sValue P.RusGender frame, g1 /= g2 ->
+      not (isVerbEllipsis fVerb) || isEllipsisAnchor (Just fSubject) fVerb
     _ -> False
   in any contrastibleSubject allVerbs
 

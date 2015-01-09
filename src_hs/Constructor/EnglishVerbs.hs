@@ -108,9 +108,12 @@ finiteVerb fVerb fSubject verbForm isCopula inverted isFuture isModality isQuest
     _ -> "WEATHER"
   else verb (if isGerund fVerb then Gerund else if null aux then verbForm else BaseVerb) fVerb
 
-generateVerbs fVerb fSubject verbForm isCopula inverted isFuture isModality isQuestion isDoModality thereSubject itSubject =
-  (aux, finiteVerb fVerb fSubject verbForm isCopula inverted isFuture isModality isQuestion isDoModality thereSubject itSubject aux) where
+generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModality thereSubject itSubject = let
+  isCopula = hasAnyType ["copula", "copula_about"] fVerb
+  isFuture = Just "FUTURE" == sValue P.Time fVerb
   aux = auxVerbs fVerb fSubject verbForm isFuture isModality isDoModality isQuestion inverted isCopula itSubject
+  in (aux, finiteVerb fVerb fSubject verbForm isCopula inverted isFuture isModality isQuestion isDoModality thereSubject itSubject aux)
+
 
 isGerund fVerb =
   Just "true" == sValue P.Imperfective fVerb ||

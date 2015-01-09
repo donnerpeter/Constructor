@@ -463,7 +463,6 @@ vp fVerb verbForm clauseType = do
         _ -> if Just "true" == sValue P.Also fVerb && not (hasType "CAN" fVerb) then "also" else ""
       cp = usage P.Content fVerb
       theme = fValue P.Theme fVerb
-      isFuture = Just "FUTURE" == sValue P.Time fVerb
       isModality = hasType "modality" fVerb
       isRaising = hasType "SEEM" fVerb
       fSubject = if isModality || isRaising then theme >>= fValue P.Arg1 else fValue P.Arg1 fVerb
@@ -471,10 +470,9 @@ vp fVerb verbForm clauseType = do
       nonSubjectQuestion = isQuestion && (isNothing fSubject || not (fromJust fSubject `elem` flatten (cp >>= fValue P.Questioned)))
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue P.Question_mark)
       isDoModality = isModality && Just True == fmap (hasType "DO") theme
-      isCopula = hasAnyType ["copula", "copula_about"] fVerb
       thereSubject = clauseType == FiniteClause && (Just "wh" == (fSubject >>= getType) && isModality || isNothing (fSubject >>= getType)) && not isQuestion
       itSubject = Just "WEATHER_BE" == getType fVerb
-      (aux, sVerb) = generateVerbs fVerb fSubject verbForm isCopula inverted isFuture isModality isQuestion isDoModality thereSubject itSubject
+      (aux, sVerb) = generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModality thereSubject itSubject
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         Just "MOVE" -> (if Just "SLIGHTLY" == (fValue P.Manner fVerb >>= getType) then "slightly" else "") `cat` "back and forth"

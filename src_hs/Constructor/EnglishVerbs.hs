@@ -74,48 +74,42 @@ haveForm fSubject fVerb verbForm =
   else if Just True == fmap (hasAnyType ["ME", "WE"]) fSubject then "have"
   else "has"
 
-auxVerbs fVerb fSubject verbForm isFuture isModality isDoModality isQuestion inverted isCopula itSubject =
-  if isGerund fVerb && isNothing (usage P.Content fVerb >>= usage P.Member2) then beForm fSubject verbForm
-  else if isFuture then "will"
-  else if isModality && isQuestion then
-    if isNothing fSubject then ""
-    else if isDoModality then beForm fSubject verbForm
-    else "should"
-  else if hasType "copula_talking_about" fVerb then beForm fSubject PastVerb
-  else if inverted then
-    if isCopula then beForm fSubject verbForm
-    else if verbForm == PastVerb then "did"
-    else if Just True == fmap (hasAnyType ["ME", "THEY"]) fSubject then "do"
-    else "does"
-  else if itSubject then "is"
-  else ""
+doForm fSubject verbForm =
+  if verbForm == PastVerb then "did"
+  else if Just True == fmap (hasAnyType ["ME", "THEY"]) fSubject then "do"
+  else "does"
 
-finiteVerb fVerb fSubject verbForm isCopula inverted isFuture isModality isQuestion isDoModality thereSubject itSubject aux =
+generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModality thereSubject = let
+  isFuture = Just "FUTURE" == sValue P.Time fVerb
+  in
   if isEllipsisAnchor fSubject fVerb
   then
-    if fSubject == (usage P.Content fVerb >>= fValue P.EllipsisAnchor2) then if verbForm == PastVerb then "did" else "does"
-    else "-"
-  else if hasType "copula_talking_about" fVerb then "talking"
-  else if isCopula && inverted then ""
-  else if isCopula && isFuture then "be"
+    if fSubject == (usage P.Content fVerb >>= fValue P.EllipsisAnchor2) then ("", if verbForm == PastVerb then "did" else "does")
+    else ("", "-")
+  else if hasType "copula_talking_about" fVerb then (beForm fSubject PastVerb, "talking")
+  else if hasAnyType ["copula", "copula_about"] fVerb then
+    if isFuture then ("will", "be")
+    else (beForm fSubject (if sValue P.Time fVerb /= Just "PAST" then BaseVerb else verbForm), "")
+  else if isGerund fVerb then let
+    ing = if hasType "WEATHER_BE" fVerb
+          then case fSubject >>= getType of
+            Just "SNOW" -> "snowing"
+            Just "RAIN" -> "raining"
+            _ -> "WEATHER"
+          else verb Gerund fVerb
+    elidedBe = isJust (usage P.Content fVerb >>= usage P.Member2)
+    in if isFuture then ("will", "be " ++ ing) else (if elidedBe then "" else beForm fSubject verbForm, ing)
   else if isModality then
-    if isQuestion then if isJust fSubject && isDoModality then "supposed" else ""
-    else if thereSubject then if verbForm == PastVerb then "was" else "is"
-    else haveForm fSubject fVerb (if isFuture then BaseVerb else verbForm)
-  else if itSubject then case fSubject >>= getType of
-    Just "SNOW" -> (if isFuture then "be " else "") ++ "snowing"
-    Just "RAIN" -> (if isFuture then "be " else "") ++ "raining"
-    _ -> "WEATHER"
-  else verb (if isGerund fVerb then Gerund else if null aux then verbForm else BaseVerb) fVerb
-
-generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModality thereSubject itSubject = let
-  isCopula = hasAnyType ["copula", "copula_about"] fVerb
-  isFuture = Just "FUTURE" == sValue P.Time fVerb
-  aux = auxVerbs fVerb fSubject verbForm isFuture isModality isDoModality isQuestion inverted isCopula itSubject
-  in (aux, finiteVerb fVerb fSubject verbForm isCopula inverted isFuture isModality isQuestion isDoModality thereSubject itSubject aux)
-
+    if isQuestion then
+      if isJust fSubject && isDoModality then (beForm fSubject verbForm, "supposed")
+      else if isNothing fSubject then ("", "")
+      else ("should", "")
+    else if thereSubject then (if verbForm == PastVerb then "was" else "is", "")
+    else if isFuture then ("will", "have") else ("", haveForm fSubject fVerb verbForm)
+  else if inverted then (doForm fSubject verbForm, verb BaseVerb fVerb)
+  else ("", verb verbForm fVerb)
 
 isGerund fVerb =
   Just "true" == sValue P.Imperfective fVerb ||
-  hasType "SIT" fVerb ||
+  hasAnyType ["SIT", "WEATHER_BE"] fVerb ||
   hasType "THINK" fVerb && isNothing (fValue P.Topic fVerb)

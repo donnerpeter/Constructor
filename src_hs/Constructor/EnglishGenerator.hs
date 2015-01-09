@@ -466,7 +466,6 @@ vp fVerb verbForm clauseType = do
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue P.Question_mark)
       isDoModality = isModality && Just True == fmap (hasType "DO") theme
       thereSubject = clauseType == FiniteClause && (Just "wh" == (fSubject >>= getType) && isModality || isNothing (fSubject >>= getType)) && not isQuestion
-      itSubject = Just "WEATHER_BE" == getType fVerb
       (aux, sVerb) = generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModality thereSubject
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
@@ -493,7 +492,7 @@ vp fVerb verbForm clauseType = do
                     clauseType == FiniteClause && Just "wh" == (fSubject >>= getType) && Just "true" == (fSubject >>= sValue P.Not_anymore) ||
                     Just "true" == sValue P.Not_anymore fVerb
         in if isAnymore then "anymore" else ""
-  subject <- if thereSubject then return "there" else if itSubject then return "it" else case (fSubject, clauseType) of
+  subject <- if thereSubject then return "there" else if Just "WEATHER_BE" == getType fVerb then return "it" else case (fSubject, clauseType) of
     (Just f, FiniteClause) ->
       if isVerbEllipsis fVerb && not (isEllipsisAnchor fSubject fVerb) then return "it"
       else if [fVerb] `isPrefixOf` (usages P.Arg1 f) || isModality || isRaising then np True fSubject
@@ -545,7 +544,7 @@ vp fVerb verbForm clauseType = do
         "is" -> "'s"
         "will" -> "'ll"
         _ -> ""
-  let contractableSubject = subject `elem` ["I", "he", "she", "we", "it", "what", "that"] || thereSubject || itSubject
+  let contractableSubject = subject `elem` ["I", "he", "she", "we", "it", "what", "that", "it", "there"]
   let contracted = if null preAdverb && null negation && null according && not inverted && contractableSubject then
                      if null shortForm then subject `cat` mainVerb `cat` restVerb
                      else (subject ++ shortForm) `cat` restVerb

@@ -1,4 +1,4 @@
-module Constructor.EnglishVerbs (VerbForm(..), verb, haveForm, beForm) where
+module Constructor.EnglishVerbs (VerbForm(..), verb, haveForm, beForm, isGerund, auxVerbs) where
 import Constructor.Sense
 import Constructor.Inference
 import qualified Constructor.SemanticProperties as P
@@ -72,3 +72,24 @@ haveForm fSubject fVerb verbForm =
   if verbForm == PastVerb then "had"
   else if Just True == fmap (hasAnyType ["ME", "WE"]) fSubject then "have"
   else "has"
+
+auxVerbs fVerb fSubject verbForm isFuture isModality isDoModality isQuestion inverted isCopula itSubject =
+  if isGerund fVerb && isNothing (usage P.Content fVerb >>= usage P.Member2) then beForm fSubject verbForm
+  else if isFuture then "will"
+  else if isModality && isQuestion then
+    if isNothing fSubject then ""
+    else if isDoModality then beForm fSubject verbForm
+    else "should"
+  else if hasType "copula_talking_about" fVerb then beForm fSubject PastVerb
+  else if inverted then
+    if isCopula then beForm fSubject verbForm
+    else if verbForm == PastVerb then "did"
+    else if Just True == fmap (hasAnyType ["ME", "THEY"]) fSubject then "do"
+    else "does"
+  else if itSubject then "is"
+  else ""
+
+isGerund fVerb =
+  Just "true" == sValue P.Imperfective fVerb ||
+  hasType "SIT" fVerb ||
+  hasType "THINK" fVerb && isNothing (fValue P.Topic fVerb)

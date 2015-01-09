@@ -310,11 +310,6 @@ genComplement cp = case fValue P.Content cp of
       negation = if Just "true" == sValue P.Negated cp then "not" else ""
     in return (negation `cat` prefix) `catM` sentence cp
 
-isGerund fVerb =
-  Just "true" == sValue P.Imperfective fVerb ||
-  hasType "SIT" fVerb ||
-  hasType "THINK" fVerb && isNothing (fValue P.Topic fVerb)
-
 conjIntroduction fVerb =
    if sValue P.ButEmphasis fVerb == Just "true" then "but"
    else if sValue P.AndEmphasis fVerb == Just "true" then "and"
@@ -500,21 +495,7 @@ vp fVerb verbForm clauseType = do
         Just "MOVE" -> (if Just "SLIGHTLY" == (fValue P.Manner fVerb >>= getType) then "slightly" else "") `cat` "back and forth"
         _ -> ""
       negation = if sValue P.Negated fVerb == Just "true" && isGerund fVerb then "not" else ""
-      aux =
-        if isGerund fVerb && isNothing (usage P.Content fVerb >>= usage P.Member2) then beForm fSubject verbForm
-        else if isFuture then "will"
-        else if isModality && isQuestion then
-          if isNothing fSubject then ""
-          else if isDoModality then beForm fSubject verbForm
-          else "should"
-        else if hasType "copula_talking_about" fVerb then beForm fSubject PastVerb
-        else if inverted then
-          if isCopula then beForm fSubject verbForm
-          else if verbForm == PastVerb then "did"
-          else if Just True == fmap (hasAnyType ["ME", "THEY"]) fSubject then "do"
-          else "does"
-        else if itSubject then "is"
-        else ""
+      aux = auxVerbs fVerb fSubject verbForm isFuture isModality isDoModality isQuestion inverted isCopula itSubject
       allArgs = if isModality then fromMaybe [] (fmap arguments theme) else arguments fVerb
       topicalizedArg = case (fSubject, allArgs) of
         (Just subj, hd@(PPAdjunct _ value):_) | typeEarlier value fVerb && typeEarlier value subj -> Just hd

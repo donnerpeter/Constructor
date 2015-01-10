@@ -21,9 +21,10 @@ isEllipsisAnchor arg fVerb = isJust arg && (arg == (cp >>= fValue P.EllipsisAnch
 data Position = BeforeVP | BeforeVerb | AfterVerb deriving (Eq,Show,Ord)
 
 data Argument = Adverb Position String | NPArg Frame |
-                PPArg String Frame | PPAdjunct String Frame |
+                PPArg String Frame | PPAdjunct Position String Frame |
                 ToInfinitive Frame | GerundBackground Position Frame |
                 Silence Frame |
+                CommaSurrounded Argument |
                 PreAdverb String
                 deriving (Eq,Show,Ord)
 
@@ -32,10 +33,13 @@ argumentFrame (PPArg _ f) = Just f
 argumentFrame (ToInfinitive f) = Just f
 argumentFrame (GerundBackground _ f) = Just f
 argumentFrame (Silence f) = Just f
+argumentFrame (CommaSurrounded a) = argumentFrame a
 argumentFrame _ = Nothing
 
 argPosition (Adverb p _) = p
+argPosition (PPAdjunct p _ _) = p
 argPosition (GerundBackground p _) = p
+argPosition (CommaSurrounded a) = argPosition a
 argPosition _ = AfterVerb
 
 arguments fVerb@(getType -> Just typ) = allArgs where
@@ -77,7 +81,7 @@ arguments fVerb@(getType -> Just typ) = allArgs where
       ("LACK", P.Theme) -> [NPArg value]
       ("DISTRACT", P.Theme) -> [PPArg "from" value]
       ("THINK", P.Topic) -> [PPArg "on" value]
-      ("SEEM", P.Experiencer) -> if isJust (usage P.Content fVerb >>= usage P.Reason) then [] else [PPAdjunct "to" value]
+      ("SEEM", P.Experiencer) -> if isJust (usage P.Content fVerb >>= usage P.Reason) then [] else [PPAdjunct AfterVerb "to" value]
       ("SEEM", P.Theme) ->
         if hasType "LACK" value then [PPArg "void of" (fromJust $ fValue P.Theme value)]
         else if hasType "MEANINGLESS" value then [Adverb AfterVerb "meaningless"]
@@ -99,7 +103,7 @@ arguments fVerb@(getType -> Just typ) = allArgs where
       (_, P.Instrument) -> [PPArg "with" value]
       (_, P.Mood) -> case getType value of
         Just "JOY" | isNothing (fValue P.Size value)-> [Adverb AfterVerb "cheerfully"]
-        Just _ -> [PPAdjunct "with" value]
+        Just _ -> [PPAdjunct AfterVerb "with" value]
         _ -> []
       (_, P.Location) | hasType "wh" value -> [NPArg value]
       (_, P.Location_on) -> [PPArg "on" value]
@@ -112,7 +116,7 @@ arguments fVerb@(getType -> Just typ) = allArgs where
       (_, P.Duration) -> if hasType "LONG" value then [Adverb AfterVerb "for a long time"] else []
       (_, P.VTime) | hasType "wh" value -> [NPArg value]
       (_, P.RelTime) -> case fValue P.Anchor value of
-        Just anchor -> [PPAdjunct (if hasType "AFTER" value then "after" else "before") anchor]
+        Just anchor -> [PPAdjunct AfterVerb (if hasType "AFTER" value then "after" else "before") anchor]
         _ -> let mod = if Just "ONLY" == sValue P.ModifierAdverb value then "just " else ""
                  prefix = typeEarlier value fVerb && Just True == fmap (typeEarlier value) (fValue P.Arg1 fVerb)
                  wrap adverb = [Adverb (if prefix then BeforeVP else AfterVerb) $ mod ++ adverb]
@@ -129,6 +133,10 @@ arguments fVerb@(getType -> Just typ) = allArgs where
         Just s -> [Adverb BeforeVerb s]
         _ -> []
       (_, P.PerfectBackground) -> [GerundBackground (if typeEarlier value fVerb then BeforeVP else AfterVerb) value]
+      (_, P.Reason) | not (hasType "situation" value) ->
+        if Just "but" == (fmap unSeq1 (usage P.Content fVerb) >>= usage P.Member2 >>= sValue P.Conj)
+        then [PPAdjunct BeforeVP "out of" value]
+        else [CommaSurrounded (PPAdjunct BeforeVP "because of" value)]
       _ -> []
     StrValue attr value -> case (attr, value) of
       (P.SAnchor, "AGAIN") -> [Adverb AfterVerb "again"]

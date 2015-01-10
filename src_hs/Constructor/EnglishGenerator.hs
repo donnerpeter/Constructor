@@ -449,7 +449,7 @@ vp fVerb verbForm clauseType = do
       infixArgs = filter (\a -> argPosition a == BeforeVerb) allArgs
       postfixArgs = filter (\a -> argPosition a == AfterVerb) allArgs
       topicalizedArg = case (fSubject, postfixArgs) of
-        (Just subj, hd@(PPAdjunct _ value):_) | typeEarlier value fVerb && typeEarlier value subj -> Just hd
+        (Just subj, hd@(PPAdjunct _ _ value):_) | typeEarlier value fVerb && typeEarlier value subj -> Just hd
         _ -> Nothing
       questionedArg = if not nonSubjectQuestion then Nothing else Data.List.find isQuestionedArg postfixArgs
       existentialWhArg =
@@ -474,14 +474,6 @@ vp fVerb verbForm clauseType = do
       else if (isJust (msum [fValue P.PerfectBackground fVerb, fValue P.Reason fVerb]) || hasType "copula" fVerb)
         then return $ if sValue P.RusGender f == Just "Masc" then "he" else "she"
       else return ""
-    _ -> return ""
-  preReason <- case fValue P.Reason fVerb of
-    Just fComp | not (hasType "situation" fComp) -> do
-       sReason <- np False (Just fComp)
-       let useOutOf = Just "but" == (fmap unSeq1 cp >>= usage P.Member2 >>= sValue P.Conj)
-       return $
-         if useOutOf then "out of" `cat` sReason
-         else "because of" `cat` sReason `cat` ","
     _ -> return ""
   beforeVP <- foldM (\s arg -> return s `catM` generateArg arg) "" prefixArgs
   preAdverb <- foldM (\s arg -> return s `catM` generateArg arg) "" infixArgs
@@ -526,7 +518,7 @@ vp fVerb verbForm clauseType = do
                      if null shortForm then subject `cat` mainVerb `cat` restVerb
                      else (subject ++ shortForm) `cat` restVerb
                    else (if inverted then according `cat` aux `cat` negation `cat` subject else subject `cat` according `cat` aux `cat` negation) `cat` preAdverb `cat` sVerb
-  return $ beforeVP `cat` sTopicalized `cat` whWord `cat` preReason `cat` contracted `cat` nonWhWord `cat` controlled `cat` sArgs `cat` stranded `cat` anymore `cat` finalAdverb
+  return $ beforeVP `cat` sTopicalized `cat` whWord `cat` contracted `cat` nonWhWord `cat` controlled `cat` sArgs `cat` stranded `cat` anymore `cat` finalAdverb
 
 generateArg :: Argument -> State GenerationState String
 generateArg arg = let
@@ -539,9 +531,10 @@ generateArg arg = let
     NPArg f -> np False $ Just f
     PPArg prep f ->
       if isJust (getType f) then return (hybridWhPrefix f) `catM` return prep `catM` (np False $ Just f) else return ""
-    PPAdjunct prep f -> return prep `catM` (np False $ Just f)
+    PPAdjunct _ prep f -> return prep `catM` (np False $ Just f)
     ToInfinitive nextVerb -> return "to" `catM` vp nextVerb BaseVerb InfiniteClause
     GerundBackground _ nextVerb -> return "," `catM` generateBackground nextVerb `catM` return ","
+    CommaSurrounded a -> return "," `catM` generateArg a `catM` return ","
     Silence _ -> return ""
 
 generateBackground back = case getType back of
@@ -560,4 +553,5 @@ generateBackground back = case getType back of
 argOrder arg = case arg of
   PPAdjunct {} -> 2
   NPArg {} -> 0
+  CommaSurrounded a -> argOrder a
   _ -> 1

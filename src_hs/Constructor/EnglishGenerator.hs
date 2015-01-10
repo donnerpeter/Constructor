@@ -438,7 +438,8 @@ vp fVerb verbForm clauseType = do
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue P.Question_mark)
       isDoModality = isModality && Just True == fmap (hasType "DO") theme
       thereSubject = clauseType == FiniteClause && (Just "wh" == (fSubject >>= getType) && isModality || isNothing (fSubject >>= getType)) && not isQuestion
-      (aux, sVerb) = generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModality thereSubject
+      (_aux, sVerb) = generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModality thereSubject
+      aux = if clauseType == InfiniteClause then "" else _aux
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         Just "MOVE" -> (if Just "SLIGHTLY" == (fValue P.Manner fVerb >>= getType) then "slightly" else "") `cat` "back and forth"
@@ -533,22 +534,9 @@ generateArg arg = let
       if isJust (getType f) then return (hybridWhPrefix f) `catM` return prep `catM` (np False $ Just f) else return ""
     PPAdjunct _ prep f -> return prep `catM` (np False $ Just f)
     ToInfinitive nextVerb -> return "to" `catM` vp nextVerb BaseVerb InfiniteClause
-    GerundBackground _ nextVerb -> return "," `catM` generateBackground nextVerb `catM` return ","
+    GerundBackground _ back -> return ("," `cat` conjIntroduction back) `catM` vp back Gerund InfiniteClause `catM` return ","
     CommaSurrounded a -> return "," `catM` generateArg a `catM` return ","
     Silence _ -> return ""
-
-generateBackground back = case getType back of
-  Just "MOVE" -> do
-    let slightly = if Just "SLIGHTLY" == (fValue P.Manner back >>= getType) then "slightly" else ""
-    moved <- np False (fValue P.Arg2 back)
-    return $ "moving" `cat` moved `cat` slightly `cat` "back and forth"
-  Just "THINK" -> return "thinking carefully about" `catM` np False (fValue P.Theme back)
-  Just "COME_TO" ->
-    let domain = case fValue P.Domain back of
-                   Just dom | isJust (sValue P.Type dom) -> return "in" `catM` np False (Just dom)
-                   _ -> return ""
-    in return (conjIntroduction back `cat` "reaching") `catM` np False (fValue P.Goal_by back) `catM` domain
-  _ -> vp back Gerund InfiniteClause
 
 argOrder arg = case arg of
   PPAdjunct {} -> 2

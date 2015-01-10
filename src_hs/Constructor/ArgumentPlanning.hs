@@ -70,6 +70,8 @@ arguments fVerb@(getType -> Just typ) = allArgs where
           Just anchor -> [PPArg "before" anchor]
           _ -> [Adverb AfterVerb "before"]
         _ -> []
+      ("COME_TO", P.Goal_by) -> [NPArg value]
+      ("COME_TO", P.Domain) | isJust $ sValue P.Type value -> [PPArg "in" value]
       ("HAPPEN", P.Experiencer) -> [PPArg "to" value]
       ("TAKE_OUT", P.Source) -> [PPArg "out of" value]
       ("RUN_OUT", P.Source) -> [PPArg "out of" value]
@@ -80,6 +82,7 @@ arguments fVerb@(getType -> Just typ) = allArgs where
         else [PPArg (if hasType "PREDICAMENT" value then "on" else "about") value]
       ("LACK", P.Theme) -> [NPArg value]
       ("DISTRACT", P.Theme) -> [PPArg "from" value]
+      ("THINK", P.Theme) -> [PPArg "about" value]
       ("THINK", P.Topic) -> [PPArg "on" value]
       ("SEEM", P.Experiencer) -> if isJust (usage P.Content fVerb >>= usage P.Reason) then [] else [PPAdjunct AfterVerb "to" value]
       ("SEEM", P.Theme) ->

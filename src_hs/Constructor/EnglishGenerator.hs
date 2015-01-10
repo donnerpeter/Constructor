@@ -404,10 +404,7 @@ clause fVerb = do
              (return "about their opinion on") `catM` (np False $ fValue P.Topic $ fromJust compVerb)
         else let comma = if not (hasType "SAY" fVerb) && isFactCP (head $ flatten fComp) then "," else ""
              in return comma `catM` handleSeq genComplement fComp
-    externalComp <- case getExternalComp fVerb of
-      Just (ToInfinitive nextVerb) -> return "to" `catM` vp nextVerb BaseVerb InfiniteClause
-      Just (GerundBackground nextVerb) -> return "," `catM` vp nextVerb Gerund InfiniteClause
-      _ -> return ""
+    externalComp <- fromMaybe (return "") $ fmap generateArg $ getExternalComp fVerb
     controlledComp <-
       if hasType "TO_ORDER" fVerb then
         case fValue P.Theme fVerb of
@@ -559,6 +556,9 @@ generateArg arg = let
     PPArg prep f ->
       if isJust (getType f) then return (hybridWhPrefix f) `catM` return prep `catM` (np False $ Just f) else return ""
     PPAdjunct prep f -> return prep `catM` (np False $ Just f)
+    ToInfinitive nextVerb -> return "to" `catM` vp nextVerb BaseVerb InfiniteClause
+    GerundBackground nextVerb -> return "," `catM` vp nextVerb Gerund InfiniteClause
+    Silence _ -> return ""
 
 argOrder arg = case arg of
   PPAdjunct {} -> 2

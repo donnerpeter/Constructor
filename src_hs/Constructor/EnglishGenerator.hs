@@ -29,7 +29,7 @@ generate sense =
           nextSentence <- sentence frame
           let start = if (sValue P.DirectSpeech frame) == Just "true" then "- " else ""
               separator = if null output || "\n" `isSuffixOf` output then "" else if start == "- " then "\n" else " "
-          return $ output ++ separator ++ start ++ capitalize nextSentence
+          return $ output ++ separator ++ start ++ capitalize (stripFirstComma nextSentence)
       text = evalState sentenceState $ GenerationState Set.empty False
   in stripLastComma text
 
@@ -279,6 +279,7 @@ cat t1 t2 = case t2 of
  c:_ -> if c `elem` ",.:;?\n" then stripLastComma t1 ++ t2 else t1 ++ " " ++ t2
 
 stripLastComma t1 = if "," `isSuffixOf` t1 then take (length t1 - 1) t1 else t1
+stripFirstComma t1 = if ", " `isPrefixOf` t1 then drop 2 t1 else t1
 
 catM :: State GenerationState String -> State GenerationState String -> State GenerationState String
 catM t1 t2 = do s1 <- t1; s2 <- t2; return $ s1 `cat` s2
@@ -434,9 +435,9 @@ clause fVerb = do
     let coreWithBackground =
           if null background then core
           else if typeEarlier fVerb (fromJust $ fValue P.PerfectBackground fVerb) then core `cat` "," `cat` background `cat` ","
-          else (if null emphasis then "" else ",") `cat` background `cat` "," `cat` core
+          else "," `cat` background `cat` "," `cat` core
     according <- generateAccording fVerb
-    return $ intro `cat` emphasis `cat` according `cat` coreWithBackground `cat` controlledComp `cat` condComp `cat` reasonComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
+    return $ cat intro $ stripFirstComma $ emphasis `cat` according `cat` coreWithBackground `cat` controlledComp `cat` condComp `cat` reasonComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
 
 isQuestioned frame = flip any (flatten $ Just frame) $ \frame ->
   hasType "wh" frame ||

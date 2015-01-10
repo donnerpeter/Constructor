@@ -72,7 +72,7 @@ copulaTests = [
 --                "I'm not a cashier, the cashier is not me."
   ,
   translateTest "Сегодня Вася кассир."
-                "Vasya is a cashier today."
+                "Today Vasya is a cashier."
   ,
   translateTest "Вася сегодня кассир."
                 "Vasya is a cashier today."

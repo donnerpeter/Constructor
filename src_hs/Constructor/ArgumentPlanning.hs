@@ -49,9 +49,7 @@ arguments fVerb@(getType -> Just typ) = allArgs where
         isJust (getType $ Frame v1 sens) && isJust (getType $ Frame v2 sens) ->
           if typeEarlier fVal1 fVal2 then LT else GT
       _ -> EQ
-  isNPArg arg = case arg of
-    NPArg {} -> True
-    _ -> False
+  sortedFacts = Data.List.sortBy compareFacts (allFrameFacts fVerb)
   allArgs = Data.List.sortBy compareFacts (allFrameFacts fVerb) >>= \(Fact _ semValue) -> case semValue of
     VarValue attr v -> let value = Frame v sens in
      if isVerbEllipsis fVerb && not (isEllipsisAnchor (Just value) fVerb) then [] else
@@ -115,10 +113,13 @@ arguments fVerb@(getType -> Just typ) = allArgs where
       (_, P.VTime) | hasType "wh" value -> [NPArg value]
       (_, P.RelTime) -> case fValue P.Anchor value of
         Just anchor -> [PPAdjunct (if hasType "AFTER" value then "after" else "before") anchor]
-        _ -> let mod = if Just "ONLY" == sValue P.ModifierAdverb value then "just " else "" in
-             if hasType "YESTERDAY" value then [Adverb AfterVerb $ mod ++ "yesterday"]
-             else if hasType "TODAY" value then [Adverb AfterVerb $ mod ++ "today"]
-             else if hasType "TOMORROW" value then [Adverb AfterVerb $ mod ++ "tomorrow"]
+        _ -> let mod = if Just "ONLY" == sValue P.ModifierAdverb value then "just " else ""
+                 prefix = typeEarlier value fVerb && Just True == fmap (typeEarlier value) (fValue P.Arg1 fVerb)
+                 wrap adverb = [Adverb (if prefix then BeforeVP else AfterVerb) $ mod ++ adverb]
+             in
+             if hasType "YESTERDAY" value then wrap "yesterday"
+             else if hasType "TODAY" value then wrap "today"
+             else if hasType "TOMORROW" value then wrap "tomorrow"
              else []
       (_, P.Manner) -> case getType value of
         Just "SUDDENLY" -> [Adverb BeforeVerb "suddenly"]

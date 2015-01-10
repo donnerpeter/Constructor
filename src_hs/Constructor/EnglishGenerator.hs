@@ -357,7 +357,6 @@ clause fVerb = do
                    else ""
     let isModality = hasType "modality" fVerb
         isRaising = hasType "SEEM" fVerb
-        isFuture = Just "FUTURE" == sValue P.Time fVerb
         fSubject = if isModality || isRaising then fValue P.Theme fVerb >>= fValue P.Arg1 else fValue P.Arg1 fVerb
         cp = usage P.Content fVerb
     core <- if hasType "degree" fVerb && (fromMaybe False $ fmap (hasType "wh") $ fValue P.Arg2 fVerb)
@@ -465,7 +464,9 @@ vp fVerb verbForm clauseType = do
         Just "MOVE" -> (if Just "SLIGHTLY" == (fValue P.Manner fVerb >>= getType) then "slightly" else "") `cat` "back and forth"
         _ -> ""
       negation = if sValue P.Negated fVerb == Just "true" && isGerund fVerb then "not" else ""
-      (prefixArgs, postfixArgs) = if isModality then fromMaybe ([],[]) (fmap arguments theme) else arguments fVerb
+      allArgs = if isModality then fromMaybe [] (fmap arguments theme) else arguments fVerb
+      prefixArgs = filter (\a -> argPosition a == BeforeVerb) allArgs
+      postfixArgs = filter (\a -> argPosition a == AfterVerb) allArgs
       topicalizedArg = case (fSubject, postfixArgs) of
         (Just subj, hd@(PPAdjunct _ value):_) | typeEarlier value fVerb && typeEarlier value subj -> Just hd
         _ -> Nothing
@@ -501,7 +502,7 @@ vp fVerb verbForm clauseType = do
          if useOutOf then "out of" `cat` sReason
          else "because of" `cat` sReason `cat` ","
     _ -> return ""
-  preAdverb <- foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) prefixArgs
+  preAdverb <- foldM (\s arg -> return s `catM` generateArg arg) "" prefixArgs
   sArgs <- foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) normalArgs
   sTopicalized <- case topicalizedArg of
     Just arg -> generateArg arg `catM` return ","
@@ -552,13 +553,13 @@ generateArg arg = let
       if Just "and" == sValue P.Conj (unSeq frame) then ", and" else ","
     else ""
   in case arg of
-    Adverb s -> return s
-    PreAdverb s -> return s
+    Adverb _ s -> return s
     NPArg f -> np False $ Just f
     PPArg prep f ->
       if isJust (getType f) then return (hybridWhPrefix f) `catM` return prep `catM` (np False $ Just f) else return ""
     PPAdjunct prep f -> return prep `catM` (np False $ Just f)
 
 argOrder arg = case arg of
-  PPAdjunct {} -> 1
-  _ -> 0
+  PPAdjunct {} -> 2
+  NPArg {} -> 0
+  _ -> 1

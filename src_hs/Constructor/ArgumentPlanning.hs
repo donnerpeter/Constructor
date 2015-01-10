@@ -18,11 +18,11 @@ isVerbEllipsis verb = Just "true" == (usage P.Content verb >>= sValue P.Ellipsis
 isEllipsisAnchor arg fVerb = isJust arg && (arg == (cp >>= fValue P.EllipsisAnchor1) || arg == (cp >>= fValue P.EllipsisAnchor2)) where
   cp = usage P.Content fVerb
 
-data Position = BeforeVerb | AfterVerb deriving (Eq,Show,Ord)
+data Position = BeforeVP | BeforeVerb | AfterVerb deriving (Eq,Show,Ord)
 
 data Argument = Adverb Position String | NPArg Frame |
                 PPArg String Frame | PPAdjunct String Frame |
-                ToInfinitive Frame | GerundBackground Frame |
+                ToInfinitive Frame | GerundBackground Position Frame |
                 Silence Frame |
                 PreAdverb String
                 deriving (Eq,Show,Ord)
@@ -30,11 +30,12 @@ data Argument = Adverb Position String | NPArg Frame |
 argumentFrame (NPArg f) = Just f
 argumentFrame (PPArg _ f) = Just f
 argumentFrame (ToInfinitive f) = Just f
-argumentFrame (GerundBackground f) = Just f
+argumentFrame (GerundBackground _ f) = Just f
 argumentFrame (Silence f) = Just f
 argumentFrame _ = Nothing
 
 argPosition (Adverb p _) = p
+argPosition (GerundBackground p _) = p
 argPosition _ = AfterVerb
 
 arguments fVerb@(getType -> Just typ) = allArgs where
@@ -126,6 +127,7 @@ arguments fVerb@(getType -> Just typ) = allArgs where
         Just "SLIGHTLY" -> if typ == "MOVE" then [] else [Adverb BeforeVerb "slightly"]
         Just s -> [Adverb BeforeVerb s]
         _ -> []
+      (_, P.PerfectBackground) -> [GerundBackground (if typeEarlier value fVerb then BeforeVP else AfterVerb) value]
       _ -> []
     StrValue attr value -> case (attr, value) of
       (P.SAnchor, "AGAIN") -> [Adverb AfterVerb "again"]

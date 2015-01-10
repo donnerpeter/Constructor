@@ -338,7 +338,7 @@ getExternalComp fVerb = usage P.Content fVerb >>= usage P.Member1 >>= fValue P.M
   if fValue P.Arg1 fVerb /= fValue P.Arg1 nextVerb then Nothing
   else if hasType "GO" fVerb && hasType "ASK" nextVerb then Just $ ToInfinitive nextVerb
   else if hasType "LEAN_OUT" fVerb && hasType "BEGIN" nextVerb then case fValue P.Theme nextVerb of
-    Just theme | hasType "LOOK" theme -> Just $ GerundBackground theme
+    Just theme | hasType "LOOK" theme -> Just $ GerundBackground AfterVerb theme
     _ -> Nothing
   else if hasType "FALL_OUT" fVerb && hasType "FALL" nextVerb then Just $ Silence nextVerb
   else Nothing
@@ -380,20 +380,6 @@ clause fVerb = do
             Just comp | isJust (getType comp) -> Just comp
             _ -> Nothing
           _ -> Nothing
-    background <- case fValue P.PerfectBackground fVerb of
-      Just back -> case getType back of
-        Just "MOVE" -> do
-          let slightly = if Just "SLIGHTLY" == (fValue P.Manner back >>= getType) then "slightly" else ""
-          moved <- np False (fValue P.Arg2 back)
-          return $ "moving" `cat` moved `cat` slightly `cat` "back and forth"
-        Just "THINK" -> return "thinking carefully about" `catM` np False (fValue P.Theme back)
-        Just "COME_TO" ->
-          let domain = case fValue P.Domain back of
-                         Just dom | isJust (sValue P.Type dom) -> return "in" `catM` np False (Just dom)
-                         _ -> return ""
-          in return (conjIntroduction back `cat` "reaching") `catM` np False (fValue P.Goal_by back) `catM` domain
-        _ -> return ""
-      _ -> return ""
     comp <- case fComp of
       Nothing -> return "" 
       Just cp -> let compVerb = fValue P.Content cp in
@@ -429,12 +415,8 @@ clause fVerb = do
     questionVariants <- case cp >>= fValue P.Questioned >>= fValue P.Variants of
       Just variants -> return "-" `catM` np ((cp >>= fValue P.Questioned) == fSubject) (Just variants)
       _ -> return ""
-    let coreWithBackground =
-          if null background then core
-          else if typeEarlier fVerb (fromJust $ fValue P.PerfectBackground fVerb) then core `cat` "," `cat` background `cat` ","
-          else "," `cat` background `cat` "," `cat` core
     according <- generateAccording fVerb
-    return $ cat intro $ stripFirstComma $ emphasis `cat` according `cat` coreWithBackground `cat` controlledComp `cat` condComp `cat` reasonComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
+    return $ cat intro $ stripFirstComma $ emphasis `cat` according `cat` core `cat` controlledComp `cat` condComp `cat` reasonComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
 
 isQuestioned frame = flip any (flatten $ Just frame) $ \frame ->
   hasType "wh" frame ||
@@ -463,7 +445,8 @@ vp fVerb verbForm clauseType = do
         _ -> ""
       negation = if sValue P.Negated fVerb == Just "true" && isGerund fVerb then "not" else ""
       allArgs = if isModality then fromMaybe [] (fmap arguments theme) else arguments fVerb
-      prefixArgs = filter (\a -> argPosition a == BeforeVerb) allArgs
+      prefixArgs = filter (\a -> argPosition a == BeforeVP) allArgs
+      infixArgs = filter (\a -> argPosition a == BeforeVerb) allArgs
       postfixArgs = filter (\a -> argPosition a == AfterVerb) allArgs
       topicalizedArg = case (fSubject, postfixArgs) of
         (Just subj, hd@(PPAdjunct _ value):_) | typeEarlier value fVerb && typeEarlier value subj -> Just hd
@@ -500,7 +483,8 @@ vp fVerb verbForm clauseType = do
          if useOutOf then "out of" `cat` sReason
          else "because of" `cat` sReason `cat` ","
     _ -> return ""
-  preAdverb <- foldM (\s arg -> return s `catM` generateArg arg) "" prefixArgs
+  beforeVP <- foldM (\s arg -> return s `catM` generateArg arg) "" prefixArgs
+  preAdverb <- foldM (\s arg -> return s `catM` generateArg arg) "" infixArgs
   sArgs <- foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) normalArgs
   sTopicalized <- case topicalizedArg of
     Just arg -> generateArg arg `catM` return ","
@@ -542,7 +526,7 @@ vp fVerb verbForm clauseType = do
                      if null shortForm then subject `cat` mainVerb `cat` restVerb
                      else (subject ++ shortForm) `cat` restVerb
                    else (if inverted then according `cat` aux `cat` negation `cat` subject else subject `cat` according `cat` aux `cat` negation) `cat` preAdverb `cat` sVerb
-  return $ sTopicalized `cat` whWord `cat` preReason `cat` contracted `cat` nonWhWord `cat` controlled `cat` sArgs `cat` stranded `cat` anymore `cat` finalAdverb
+  return $ beforeVP `cat` sTopicalized `cat` whWord `cat` preReason `cat` contracted `cat` nonWhWord `cat` controlled `cat` sArgs `cat` stranded `cat` anymore `cat` finalAdverb
 
 generateArg :: Argument -> State GenerationState String
 generateArg arg = let
@@ -557,8 +541,21 @@ generateArg arg = let
       if isJust (getType f) then return (hybridWhPrefix f) `catM` return prep `catM` (np False $ Just f) else return ""
     PPAdjunct prep f -> return prep `catM` (np False $ Just f)
     ToInfinitive nextVerb -> return "to" `catM` vp nextVerb BaseVerb InfiniteClause
-    GerundBackground nextVerb -> return "," `catM` vp nextVerb Gerund InfiniteClause
+    GerundBackground _ nextVerb -> return "," `catM` generateBackground nextVerb `catM` return ","
     Silence _ -> return ""
+
+generateBackground back = case getType back of
+  Just "MOVE" -> do
+    let slightly = if Just "SLIGHTLY" == (fValue P.Manner back >>= getType) then "slightly" else ""
+    moved <- np False (fValue P.Arg2 back)
+    return $ "moving" `cat` moved `cat` slightly `cat` "back and forth"
+  Just "THINK" -> return "thinking carefully about" `catM` np False (fValue P.Theme back)
+  Just "COME_TO" ->
+    let domain = case fValue P.Domain back of
+                   Just dom | isJust (sValue P.Type dom) -> return "in" `catM` np False (Just dom)
+                   _ -> return ""
+    in return (conjIntroduction back `cat` "reaching") `catM` np False (fValue P.Goal_by back) `catM` domain
+  _ -> vp back Gerund InfiniteClause
 
 argOrder arg = case arg of
   PPAdjunct {} -> 2

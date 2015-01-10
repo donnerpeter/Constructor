@@ -8,6 +8,7 @@ import Data.List
 import Data.Maybe
 import Constructor.Variable
 import qualified Constructor.SemanticProperties as P
+import qualified Constructor.LinkedSet as LS
 
 isCPOrSeq frame = any isCP $ flatten $ Just frame
 
@@ -19,8 +20,9 @@ isEllipsisAnchor arg fVerb = isJust arg && (arg == (cp >>= fValue P.EllipsisAnch
 data Argument = Adverb String | NPArg Frame |
                 PPArg String Frame | PPAdjunct String Frame |
                 ToInfinitive Frame | GerundBackground Frame |
-                Silence Frame
-                deriving (Eq,Show)
+                Silence Frame |
+                PreAdverb String
+                deriving (Eq,Show,Ord)
 
 argumentFrame (NPArg f) = Just f
 argumentFrame (PPArg _ f) = Just f
@@ -29,7 +31,10 @@ argumentFrame (GerundBackground f) = Just f
 argumentFrame (Silence f) = Just f
 argumentFrame _ = Nothing
 
-arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ -> let
+isPrefixArgument (PreAdverb _) = True
+isPrefixArgument _ = False
+
+arguments fVerb@(getType -> Just typ) = (prefixArgs, postfixArgs) where
   sens = sense fVerb
   compareFacts f1@(Fact frame1 val1) f2@(Fact frame2 val2) =
     if f1 == f2 then EQ
@@ -40,8 +45,12 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
         isJust (getType $ Frame v1 sens) && isJust (getType $ Frame v2 sens) ->
           if typeEarlier fVal1 fVal2 then LT else GT
       _ -> EQ
-  in Data.List.sortBy compareFacts (allFrameFacts fVerb) >>= \(Fact _ semValue) ->
-  case semValue of
+  isNPArg arg = case arg of
+    NPArg {} -> True
+    _ -> False
+  prefixArgs = filter isPrefixArgument allArgs
+  postfixArgs = LS.removeDups $ filter isNPArg allArgs ++ filter (not . isPrefixArgument) allArgs
+  allArgs = Data.List.sortBy compareFacts (allFrameFacts fVerb) >>= \(Fact _ semValue) -> case semValue of
     VarValue attr v -> let value = Frame v sens in
      if isVerbEllipsis fVerb && not (isEllipsisAnchor (Just value) fVerb) then [] else
      case (typ, attr) of
@@ -109,13 +118,17 @@ arguments fVerb = reorderArgs $ fromMaybe [] $ flip fmap (getType fVerb) $ \typ 
              else if hasType "TODAY" value then [Adverb $ mod ++ "today"]
              else if hasType "TOMORROW" value then [Adverb $ mod ++ "tomorrow"]
              else []
+      (_, P.Manner) -> case getType value of
+        Just "SUDDENLY" -> [PreAdverb "suddenly"]
+        Just "JUST" -> [PreAdverb "just"]
+        Just "SADLY" -> if typ == "SMILE" then [] else [PreAdverb "sadly"]
+        Just "SLIGHTLY" -> if typ == "MOVE" then [] else [PreAdverb "slightly"]
+        Just s -> [PreAdverb s]
+        _ -> []
       _ -> []
     StrValue attr value -> case (attr, value) of
       (P.SAnchor, "AGAIN") -> [Adverb "again"]
       (P.SAnchor, "ALREADY") -> [Adverb "already"]
+      (P.Also, "true") | typ /= "CAN" -> [PreAdverb "also"]
       _ -> []
-  where
-  isNPArg arg = case arg of
-    NPArg {} -> True
-    _ -> False
-  reorderArgs args = filter isNPArg args ++ filter (not . isNPArg) args
+arguments _ = ([],[])

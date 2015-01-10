@@ -449,14 +449,7 @@ data ClauseType = FiniteClause | InfiniteClause deriving (Eq)
 
 vp :: Frame -> VerbForm -> ClauseType -> State GenerationState String
 vp fVerb verbForm clauseType = do
-  let preAdverb = case fValue P.Manner fVerb >>= getType of
-        Just "SUDDENLY" -> "suddenly"
-        Just "JUST" -> "just"
-        Just "SADLY" -> if getType fVerb == Just "SMILE" then "" else "sadly"
-        Just "SLIGHTLY" -> if getType fVerb == Just "MOVE" then "" else "slightly"
-        Just s -> s
-        _ -> if Just "true" == sValue P.Also fVerb && not (hasType "CAN" fVerb) then "also" else ""
-      cp = usage P.Content fVerb
+  let cp = usage P.Content fVerb
       theme = fValue P.Theme fVerb
       isModality = hasType "modality" fVerb
       isRaising = hasType "SEEM" fVerb
@@ -472,18 +465,18 @@ vp fVerb verbForm clauseType = do
         Just "MOVE" -> (if Just "SLIGHTLY" == (fValue P.Manner fVerb >>= getType) then "slightly" else "") `cat` "back and forth"
         _ -> ""
       negation = if sValue P.Negated fVerb == Just "true" && isGerund fVerb then "not" else ""
-      allArgs = if isModality then fromMaybe [] (fmap arguments theme) else arguments fVerb
-      topicalizedArg = case (fSubject, allArgs) of
+      (prefixArgs, postfixArgs) = if isModality then fromMaybe ([],[]) (fmap arguments theme) else arguments fVerb
+      topicalizedArg = case (fSubject, postfixArgs) of
         (Just subj, hd@(PPAdjunct _ value):_) | typeEarlier value fVerb && typeEarlier value subj -> Just hd
         _ -> Nothing
-      questionedArg = if not nonSubjectQuestion then Nothing else Data.List.find isQuestionedArg allArgs
+      questionedArg = if not nonSubjectQuestion then Nothing else Data.List.find isQuestionedArg postfixArgs
       existentialWhArg =
         if isQuestion then Nothing
         else if clauseType == FiniteClause && Just True == fmap isQuestioned fSubject && isModality then Just (NPArg $ fromJust fSubject)
-        else Data.List.find isQuestionedArg allArgs
+        else Data.List.find isQuestionedArg postfixArgs
       isQuestionedArg arg = Just True == fmap isQuestioned (argumentFrame arg)
       removeMaybe maybeVal list = fromMaybe list $ fmap (flip Data.List.delete list) maybeVal
-      normalArgs = removeMaybe questionedArg $ removeMaybe topicalizedArg $ removeMaybe existentialWhArg $ allArgs
+      normalArgs = removeMaybe questionedArg $ removeMaybe topicalizedArg $ removeMaybe existentialWhArg $ postfixArgs
       stranded = case mplus questionedArg existentialWhArg of
         Just (PPArg prep val) -> if isJust (usage P.Goal val) then "" else prep
         _ -> ""
@@ -508,6 +501,7 @@ vp fVerb verbForm clauseType = do
          if useOutOf then "out of" `cat` sReason
          else "because of" `cat` sReason `cat` ","
     _ -> return ""
+  preAdverb <- foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) prefixArgs
   sArgs <- foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) normalArgs
   sTopicalized <- case topicalizedArg of
     Just arg -> generateArg arg `catM` return ","
@@ -559,6 +553,7 @@ generateArg arg = let
     else ""
   in case arg of
     Adverb s -> return s
+    PreAdverb s -> return s
     NPArg f -> np False $ Just f
     PPArg prep f ->
       if isJust (getType f) then return (hybridWhPrefix f) `catM` return prep `catM` (np False $ Just f) else return ""

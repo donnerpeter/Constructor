@@ -180,9 +180,7 @@ adjectives nounFrame = catMaybes [property, kind, shopKind, size, quality, gende
     else Nothing
 
 shouldContrastSubject frame = let
-  cp = usage P.Arg1 frame >>= usage P.Content
-  allCPs = flatten (fmap unSeq cp)
-  allVerbs = catMaybes $ map (fValue P.Content) allCPs
+  allVerbs = fromMaybe [] $ fmap allCoordinatedVerbs $ usage P.Arg1 frame
   contrastibleSubject fVerb = case fValue P.Arg1 fVerb of
     Just fSubject | not (isNumber $ Just fSubject), Just g1 <- sValue P.RusGender fSubject, Just g2 <- sValue P.RusGender frame, g1 /= g2 ->
       not (isVerbEllipsis fVerb) || isEllipsisAnchor (Just fSubject) fVerb

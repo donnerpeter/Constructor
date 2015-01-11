@@ -105,10 +105,10 @@ copulaTests = [
 --                "Today Vasya is a cashier and tomorrow - a salesman."
   ,
   translateTest "Вася сегодня кассир, а завтра будет продавцом."
-                "Vasya is a cashier today, but he'll be a salesman tomorrow."
+                "Today Vasya is a cashier, but tomorrow he'll be a salesman."
   ,
   translateTest "Вася вчера был кассиром, а сегодня уже продавец."
-                "Vasya was a cashier yesterday, but he's a salesman today already."
+                "Yesterday Vasya was a cashier, but today he's a salesman already."
 --  ,
 --todo  translateTest "Вася вчера был кассиром, а сегодня - продавец."
 --                "Yesterday Vasya was a cashier and today he's a salesman."

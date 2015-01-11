@@ -2,6 +2,7 @@ module Constructor.ArgumentPlanning (
   Argument(..), argumentFrame, arguments,
   isCP, isCPOrSeq, isFactCP, isQuestionCP,
   isVerbEllipsis, isEllipsisAnchor,
+  allCoordinatedVerbs,
   Position(..), argPosition) where
 import Constructor.Sense
 import Constructor.Inference
@@ -121,7 +122,7 @@ arguments fVerb@(getType -> Just typ) = allArgs where
       (_, P.RelTime) -> case fValue P.Anchor value of
         Just anchor -> [PPAdjunct AfterVerb (if hasType "AFTER" value then "after" else "before") anchor]
         _ -> let mod = if Just "ONLY" == sValue P.ModifierAdverb value then "just " else ""
-                 prefix = typeEarlier value fVerb && Just True == fmap (typeEarlier value) (fValue P.Arg1 fVerb)
+                 prefix = typeEarlier value fVerb && Just True == fmap (typeEarlier value) (fValue P.Arg1 fVerb) || shouldContrastRelTime fVerb
                  wrap adverb = [Adverb (if prefix then BeforeVP else AfterVerb) $ mod ++ adverb]
              in
              if hasType "YESTERDAY" value then wrap "yesterday"
@@ -147,3 +148,10 @@ arguments fVerb@(getType -> Just typ) = allArgs where
       (P.Also, "true") | typ /= "CAN" -> [Adverb BeforeVerb "also"]
       _ -> []
 arguments _ = []
+
+allCoordinatedVerbs fVerb = let
+  cp = usage P.Content fVerb
+  allCPs = flatten (fmap unSeq cp)
+  in catMaybes $ map (fValue P.Content) allCPs
+
+shouldContrastRelTime fVerb = length (catMaybes $ map (fValue P.RelTime) $ allCoordinatedVerbs fVerb) > 1

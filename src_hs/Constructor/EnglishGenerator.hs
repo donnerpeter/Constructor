@@ -538,6 +538,7 @@ generateArg arg = let
 
 argOrder arg = case arg of
   PPAdjunct {} -> 2
+  Adverb _ "already" -> 0
   NPArg {} -> 0
   CommaSurrounded a -> argOrder a
   _ -> 1

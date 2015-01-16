@@ -23,7 +23,7 @@ factIssues fact = let
           then issue $ "Incomplete isolation " ++ show (frame sense)
           else finalNo
         (P.Type, declaredType) -> typeIssues (variable fact) declaredType ++ orderingIssues (variable fact) declaredType
-        _ -> l $ \sense -> finalNo
+        _ -> []
       VarValue attr val -> let
         valFrame sense = toFrame sense val
         in case attr of
@@ -47,7 +47,7 @@ factIssues fact = let
                 if hasType "ASK" frame && any isFactCP (flatten $ Just valFrame) then finalIssue "asking fact" else finalNo
           _ | attr `elem` [P.Location, P.Location_on, P.Location_in] -> l $ \sense ->
             if hasAnyType ["CASE", "COUNTING"] (valFrame sense) then issue "wrong location" else provNo
-          _ -> l $ \sense -> finalNo
+          _ -> []
 
 isTypeDefined frame = isJust frame && all (\f -> isJust (getDeclaredType f)) (flatten frame)
 
@@ -55,24 +55,30 @@ requireType mFrame f = case mFrame of
   Just frame | isTypeDefined mFrame -> f frame
   _ -> provNo
 
-typeIssues var declaredType = let
+typeIssues var declaredType = missingSubj ++ missingArg2 ++ inanimateSubj ++ other where
   frame sense = toFrame sense var
-  in case declaredType of
+  missingSubj =
+    if declaredType `elem` ["SIT", "SAY", "FORGET", "COME_SCALARLY"] then l $ \sense ->
+      if isNothing (fValue P.Arg1 (frame sense) >>= sDeclaredValue P.Type) then issue ("unknown " ++ declaredType ++ " subj") else finalNo
+    else []
+  missingArg2 =
+    if declaredType `elem` ["FORGET", "THINK"] then l $ \sense ->
+      if isNothing (fValue P.Arg2 (frame sense) >>= getType) then issue (declaredType ++ " without arg2") else finalNo
+    else []
+  inanimateSubj =
+    if declaredType `elem` ["GO", "CAN", "REMEMBER", "KNOW", "copula_talking_about"] then l $ \sense ->
+      requireType (fValue P.Arg1 $ frame sense) $ \fSubj ->
+        if not (and $ map isAnimate $ flatten $ Just fSubj) then finalIssue ("inanimate " ++ declaredType ++ " subject") else finalNo
+    else []
+  other = case declaredType of
     "seq" -> l $ \sense ->
       if Nothing == sDeclaredValue P.Conj (frame sense) then issue "comma-only seq" else finalNo
-    s | (s == "SIT" || s == "SAY" || s == "FORGET") -> l $ \sense ->
-      if isNothing (fValue P.Arg1 (frame sense) >>= sDeclaredValue P.Type) then issue ("unknown " ++ s ++ " subj") else finalNo
     "CASHIER" -> l $ \sense ->
       if any (hasType "OTHERS") (flatten $ fValue P.Place $ frame sense) then issue "cashier of other people" else provNo
     "OPINION" -> l $ \sense ->
       if isNothing (fValue P.Arg1 (frame sense) >>= getType) then issue "opinion without subj" else finalNo
     "WORDS" -> l $ \sense ->
       if isNothing (fValue P.Author (frame sense) >>= getType) then issue "words without author" else finalNo
-    s | (s == "FORGET" || s == "THINK") -> l $ \sense ->
-      if isNothing (fValue P.Arg2 (frame sense) >>= getType) then issue (s ++ " without arg2") else finalNo
-    s | (s == "GO" || s == "CAN" || s == "REMEMBER" || s == "KNOW" || s == "copula_talking_about") -> l $ \sense ->
-      requireType (fValue P.Arg1 $ frame sense) $ \fSubj ->
-        if not (and $ map isAnimate $ flatten $ Just fSubj) then finalIssue ("inanimate " ++ s ++ " subject") else finalNo
     "copula_about" -> l $ \sense ->
       requireType (fValue P.Arg1 $ frame sense) $ \fSubj ->
         if or $ map isAnimate $ flatten $ Just fSubj then finalIssue ("animate " ++ declaredType ++ " subject") else finalNo
@@ -82,14 +88,10 @@ typeIssues var declaredType = let
       if Just True == fmap isInanimate (fValue P.RelTime (frame sense) >>= fValue P.Anchor) then issue "inanimate GO relTime anchor" else provNo
     "WEATHER_BE" -> l $ \sense ->
       if Just True /= fmap (hasAnyType ["SNOW", "RAIN"]) (fValue P.Arg1 $ frame sense) then issue "non-weather weather_be" else provNo
-    "COME_SCALARLY" -> let
-      anchorIssues = \sense -> requireType (fValue P.Order (frame sense) >>= fValue P.Anchor) $ \anchor ->
+    "COME_SCALARLY" -> l $ \sense ->
+      requireType (fValue P.Order (frame sense) >>= fValue P.Anchor) $ \anchor ->
         if isAnimate anchor then finalIssue "come_scalarly with animate anchor" else finalNo
-      subjIssues = \sense -> case fValue P.Arg1 $ frame sense of
-        Just subj -> if Nothing == sDeclaredValue P.Type subj then issue "unknown subj" else finalNo
-        _ -> provNo
-      in [anchorIssues, subjIssues]
-    _ -> l $ \sense -> finalNo
+    _ -> []
 
 orderingIssues var declaredType = let
  frame sense = toFrame sense var
@@ -119,6 +121,7 @@ finalNo = IssueOutcome [] Final
 provNo = IssueOutcome [] Provisional
 
 data IssueHolder = IssueHolder { finalIssues :: [Issue], provisionalIssues :: [Issue], providers :: [IssueProvider] }
+instance Show IssueHolder where show ih = show $ holderIssues ih
 
 leafHolder sense = makeHolder [] sense (bareFacts sense >>= factIssues)
 composeHolders sense holders = makeHolder (holders >>= finalIssues) sense (holders >>= providers)

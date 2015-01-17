@@ -51,6 +51,9 @@ The source code is in Haskell.
     translateTest "У меня есть арбуз."
                   "I have a watermelon."
 
+    translateTest "Вчера Василий был кассир, сегодня он уж продавец, а завтра будет бригадир. Такой вот он у нас хитрец!"
+                  "Yesterday Vassily was a cashier, today he's already a salesman, and tomorrow he'll be a brigadier. What a cunning person we have here!"
+
 ### Speech, direct and indirect
 
     translateTest "Кассирша сказала, подвигав носом:\n- Семь идет после восьми."

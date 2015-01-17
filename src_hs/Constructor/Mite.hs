@@ -10,6 +10,7 @@ import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Constructor.LinkedSet as LS
 import Data.List
+import Data.Maybe
 import Control.Exception (assert)
 import Constructor.Constructions
 import Constructor.Variable
@@ -75,7 +76,15 @@ xor _miteGroups = let
     if any null miteGroups then error $ "Empty mite group: " ++ show miteGroups
     else assert (LS.removeDups newMites == newMites) $ {-traceShow ("xor", miteGroups) $ traceShow ("->", newMites) $ -}newMites
 
-contradict mite1 mite2 = any (\m -> Set.member (xorKey m) (flattenContradictors mite1)) $ flattenBaseMites mite2
+contradict mite1 mite2 = any (\m -> Set.member (xorKey m) (flattenContradictors mite1)) fbm2 || differentGenerations where
+  fbm1 = flattenBaseMites mite1
+  fbm2 = flattenBaseMites mite2
+  common = intersect fbm1 fbm2
+  differentGenerations = any (\ancestor -> fromJust (generation ancestor mite1) /= fromJust (generation ancestor mite2)) common
+  generation ancestor mite = if ancestor == mite then Just 0 else let
+    baseMaybes = map (generation ancestor) $ baseMites mite
+    allGenerations = map (1+) $ catMaybes baseMaybes
+    in if null allGenerations then Nothing else Just $ minimum allGenerations
 
 diversify miteGroups = result where
   cxt2Count = Map.fromListWith (+) [(cxt mite, 1) | mite <- concat miteGroups]

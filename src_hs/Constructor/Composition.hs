@@ -197,10 +197,14 @@ questionableArguments env whContext = map (propagateUnclosed env) $ let
 interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
     let (left, right, base12) = mergeInfoHelpers m1 m2
     in case (c1, c2) of
-      (ArgHead kind1 head, Argument kind2 arg) | kind1 == kind2 -> left $  argVariants head arg leftPairs rightPairs
-      (Argument kind2 arg, ArgHead kind1 head) | kind1 == kind2 -> right $ argVariants head arg rightPairs leftPairs
-      (SemArgHead kind1 head, SemArgument kind2 arg _) | kind1 == kind2 -> left $  argVariants head arg leftPairs rightPairs ++ optional [mite $ cxt m1]
-      (SemArgument kind2 arg _, SemArgHead kind1 head) | kind1 == kind2 -> right $ argVariants head arg rightPairs leftPairs ++ optional [mite $ cxt m2]
+      (ArgHead kind1 head, Argument kind2 arg) | kind1 == kind2 ->
+        mergeLeft $ base12 (argVariants head arg leftPairs rightPairs) ++ reflexive leftPairs rightPairs ++ existentials leftPairs rightPairs
+      (Argument kind2 arg, ArgHead kind1 head) | kind1 == kind2 ->
+        mergeRight $ base12 (argVariants head arg rightPairs leftPairs) ++ reflexive rightPairs leftPairs ++ existentials rightPairs leftPairs
+      (SemArgHead kind1 head, SemArgument kind2 arg _) | kind1 == kind2 ->
+        mergeLeft $ base12 (argVariants head arg leftPairs rightPairs ++ optional [mite $ cxt m1]) ++ reflexive leftPairs rightPairs ++ existentials leftPairs rightPairs
+      (SemArgument kind2 arg _, SemArgHead kind1 head) | kind1 == kind2 ->
+        mergeRight $ base12 (argVariants head arg rightPairs leftPairs ++ optional [mite $ cxt m2]) ++ reflexive rightPairs leftPairs ++ existentials rightPairs leftPairs
 
       (Argument Nom v1, NomHead agr1 v2 Unsatisfied) -> leftPairs >>= \case
         (m3, AdjHead v3 Nom agr2) | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) ->
@@ -217,10 +221,10 @@ interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
       (CopulaHead (CopulaData { copKind = kind, copAgr = agr, copSubj = subj, copula = v1, copCP = cp }), Argument Nom v2) | kind /= NPCopula || whContext ->
         left $ [mite $ NomHead agr v2 Satisfied, mite $ Unify v2 subj] ++ (if whContext then [] else [mite $ Clause cp, mite $ Verb v1])
 
-      (Verb verb, VerbalModifier attr False advP) -> left $ [semV verb attr advP] ++ existentials leftPairs rightPairs
-      (VerbalModifier attr needComma advP, Verb verb) -> right $
-        [semV verb attr advP]
-        ++ (if needComma && not whContext then [semS advP P.Isolation "comma", mite $ Unclosed LeftSide [advP]] else [])
+      (Verb verb, VerbalModifier attr False advP) -> mergeLeft $ base12 [semV verb attr advP] ++ existentials leftPairs rightPairs
+      (VerbalModifier attr needComma advP, Verb verb) -> mergeRight $
+        base12 ([semV verb attr advP]
+        ++ (if needComma && not whContext then [semS advP P.Isolation "comma", mite $ Unclosed LeftSide [advP]] else []))
         ++ existentials rightPairs leftPairs
 
       _ -> []
@@ -236,7 +240,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
         right [semV var P.Components var2]
 
       (Possessive adjCase agr1 child, AdjHead noun nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
-        GenHead h -> mergeRight $ withBase [m1,m2,m3] $ [mite $ Unify h child] ++ Seq.pullThyself (leftCompatible env m1) ++ whPropagation m1 m2 (leftCompatible env m1)
+        GenHead h -> mergeRight $ withBase [m1,m2,m3] [mite $ Unify h child] ++ Seq.pullThyself (leftCompatible env m1) ++ whPropagation m1 m2 (leftCompatible env m1)
         _ -> []
       (GenHead v1, Argument Gen v2) -> left $ [mite $ Unify v1 v2] ++ whPropagation m1 m2 (rightCompatible env m2)
 
@@ -348,8 +352,9 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
        
       _ -> []
 
-argVariants headVar childVar headPairs childPairs = [mite $ Unify headVar childVar] ++ reflexive ++ existentials headPairs childPairs where
-  reflexive = headPairs >>= \case
+argVariants headVar childVar headPairs childPairs = [mite $ Unify headVar childVar]
+
+reflexive headPairs childPairs = headPairs >>= \case
     (m1, ReflexiveTarget target) -> childPairs >>= \case
       (m2, ReflexiveReference ref) -> withBase [m1,m2] [semV ref P.Target target]
       _ -> []
@@ -362,5 +367,5 @@ existentials headPairs childPairs = headPairs >>= \case
   _ -> []
 
 whPropagation headMite childMite childMites = childMites >>= \m3 -> case cxt m3 of
-  Wh {} -> withBase [headMite, childMite, m3] [mite $ cxt m3]
+  Wh {} -> withBase [m3] [mite $ cxt m3]
   _ -> []

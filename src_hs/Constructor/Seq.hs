@@ -178,7 +178,7 @@ processEllipsis oldClause ellipsisVar@(Variable varIndex _) e1 e2 prevTree = let
       else if _v == vo2 then va2
       else if _v == oldCP then ellipsisVar
       else Variable varIndex ("_" ++ show _v)
-    mapMite m = withBase [m] $ case cxt m of
+    mapMite m = case cxt m of
       Unify _v1 _v2 -> [mite $ Unify (mapVariable _v1) (mapVariable _v2)]
       Sem _v1 (StrValue attr s) ->
         if attr == P.RusNumber || attr == P.RusGender || attr == P.RusPerson then []

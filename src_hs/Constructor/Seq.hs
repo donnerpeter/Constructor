@@ -31,7 +31,7 @@ seqWrappable mite = hybridConjoinable (cxt mite) || case cxt mite of
   Complement {} -> True
   Clause {} -> True
   CopulaHead (CopulaData { copBound = True }) -> True
-  NomHead _ _ Unsatisfied -> True
+  NomHead {} -> True
   Ellipsis {} -> True
   UniversalPronoun {} -> True
   NegativePronoun {} -> True
@@ -114,6 +114,7 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env =
                  unifications = xorNonEmpty $ concatMap unifyMissingArguments $ rightCompatible env m2
                  unifyMissingArguments aux2 = case cxt aux2 of
                    SeqRight (NomHead agr2 v2 Unsatisfied) -> unifySubjects (leftCompatible env m1) agr2 v2
+                   SeqRight (nomHead@(NomHead _ _  Satisfied)) -> [withBase [aux2] [mite nomHead]]
                    _ -> []
                  ellipsisVariants = rightCompatible env m2 >>= \m4 -> case cxt m4 of
                    SeqRight (Ellipsis ellipsisVar (Just e1) (Just e2)) ->

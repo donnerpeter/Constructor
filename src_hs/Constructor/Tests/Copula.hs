@@ -120,10 +120,10 @@ copulaTests = [
                 "Vasya arrived just yesterday, but he's already a salesman."
 --  ,
 --todo  translateTest "Вчера Василий был кассир, сегодня он уж продавец, а завтра будет бригадир. Такой вот он у нас хитрец!"
---                "Yesterday Vassily was a cashier, today he's already a salesman, and tomorrow he'll be a brigadier. What a cunning fellow he is!"
+--                "Yesterday Vassily was a cashier, today he's already a salesman, and tomorrow he'll be a brigadier. What a cunning person we have here!"
 --  ,
 --todo  translateTest "Каков хитрец!"
---                "What a cunning fellow!"
+--                "What a cunning person!"
 --  ,
 --todo  translateTest "Eй уж замуж невтерпёж."
 --                "She can't wait to become married."
@@ -134,6 +134,18 @@ copulaTests = [
   translateTest "Это арбуз. Он зелёный."
                 "This is a watermelon. It's green."
   ,
+--todo  translateTest "Это зелёный арбуз."
+--                "This is a green watermelon."
+--  ,
+--todo  translateTest "Это не зелёный арбуз."
+--                "This is not a green watermelon."
+--  ,
+--todo  translateTest "Это не зелёный свет, а красный."
+--                "This is not a green watermelon, but a red one."
+--  ,
+--todo  translateTest "Это не зелёный арбуз, а красный помидор."
+--                "This is not a green watermelon, but a red tomato."
+--  ,
  translateTest "Она кассирша и работает в магазине."
                 "She's a cashier and works in a store."
 --  ,

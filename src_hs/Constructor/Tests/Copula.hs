@@ -121,6 +121,9 @@ copulaTests = [
   ,
   translateTest "Он у нас хитрец!"
                 "He's a cunning person!"
+  ,
+  translateTest "Он у нас такой хитрец!"
+                "He's such a cunning person!"
 --  ,
 --todo  translateTest "Вчера Василий был кассир, сегодня он уж продавец, а завтра будет бригадир. Такой вот он у нас хитрец!"
 --                "Yesterday Vassily was a cashier, today he's already a salesman, and tomorrow he'll be a brigadier. What a cunning person we have here!"

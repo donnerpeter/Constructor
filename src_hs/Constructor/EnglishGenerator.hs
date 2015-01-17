@@ -148,7 +148,10 @@ np_internal nom mayHaveDeterminer frame = do
     Just typ -> let q = handleSeq (np_internal True False) fQuantifier in
       if typ == "1" || isNothing (fValue P.Arg1 frame >>= getType) || any (\f -> fDeterminer frame == fDeterminer f) (prevSiblings frame)
       then q else return (if null allOf || not (null postQuantifier) then "" else "all") `catM` q `catM` return "of"
-    _ -> return $ if null postQuantifier then allOf else ""
+    _ -> return $
+      if Just "SUCH" == (fValue P.Determiner frame >>= getType) then "such"
+      else if null postQuantifier then allOf
+      else ""
   relative <- case fValue P.Relative frame of
     Just relativeCp -> let rel = sentence relativeCp in
       if Just "copula" == (fValue P.Content relativeCp >>= getType) then return ", the one" `catM` rel

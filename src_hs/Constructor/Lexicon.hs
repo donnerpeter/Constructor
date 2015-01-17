@@ -140,6 +140,7 @@ wordMites word index =
   "вниз" -> semArg Direction P.Goal v0 ++ [semT v0 "DOWN"]
   "восемь" -> xor [wordNumber Nom "8" v, wordNumber Acc "8" v]
   "восьми" -> wordNumber Gen "8" v
+  "вот" -> sAdverb P.So_there "true" v
   "всякого" -> adj Gen A.m P.Determiner "ANY" v
   "выбежали" -> finVerb "RUN_OUT" "PAST" A.pl v ++ arg (PP "iz" Gen) P.Source v
   "вывалилась" -> finVerb "FALL_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) P.Source v
@@ -402,6 +403,7 @@ wordMites word index =
   "считать" -> infinitive "COUNT" v ++ directObject v
   "та" -> adj Nom A.f P.Determiner "THAT" v
   "так" -> [mite $ TwoWordCxt "так как" True [ReasonComp v0 False] v0]
+  "такой" -> adj Nom A.m P.Determiner "SUCH" v
   "там" -> adverb P.Location "THERE" v
   "танцевать" -> infinitive "DANCE" v
   "только" -> modifierAdverb "ONLY" v

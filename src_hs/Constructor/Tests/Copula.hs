@@ -105,10 +105,10 @@ copulaTests = [
 --                "Today Vasya is a cashier and tomorrow - a salesman."
   ,
   translateTest "Вася сегодня кассир, а завтра будет продавцом."
-                "Today Vasya is a cashier, but tomorrow he'll be a salesman."
+                "Today Vasya is a cashier, and tomorrow he'll be a salesman."
   ,
   translateTest "Вася вчера был кассиром, а сегодня уже продавец."
-                "Yesterday Vasya was a cashier, but today he's already a salesman."
+                "Yesterday Vasya was a cashier, and today he's already a salesman."
 --  ,
 --todo  translateTest "Вася вчера был кассиром, а сегодня - продавец."
 --                "Yesterday Vasya was a cashier and today he's a salesman."
@@ -127,9 +127,9 @@ copulaTests = [
   ,
   translateTest "Он такой хитрец!"
                 "He's such a cunning person!"
---  ,
---todo  translateTest "Вчера Василий был кассир, сегодня он уж продавец, а завтра будет бригадир. Такой вот он у нас хитрец!"
---                "Yesterday Vassily was a cashier, today he's already a salesman, and tomorrow he'll be a brigadier. What a cunning person we have here!"
+  ,
+  translateTest "Вчера Василий был кассир, сегодня он уж продавец, а завтра будет бригадир. Такой вот он у нас хитрец!"
+                "Yesterday Vassily was a cashier, today he's already a salesman, and tomorrow he'll be a brigadier. What a cunning person we have here!"
 --  ,
 --todo  translateTest "Каков хитрец!"
 --                "What a cunning person!"

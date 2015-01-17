@@ -67,6 +67,7 @@ handleSeq f (Just frame) =
                                   isNothing (firstContent >>= sValue P.Negated)
                             then "and"
                           else if Just True == fmap shouldContrastSubject (firstContent >>= fValue P.Arg1) then ", and"
+                          else if length (filter (\cp -> Just True == fmap (hasType "copula") (fValue P.Content cp)) $ flatten $ Just frame) > 1 then ", and"
                           else ", but"
                         else if conj == "and" then
                           if Just True == fmap isCP second && Just True == fmap (hasType "seq") (first >>= lastGeneratedMember) then ", and"
@@ -149,7 +150,8 @@ np_internal nom mayHaveDeterminer frame = do
       if typ == "1" || isNothing (fValue P.Arg1 frame >>= getType) || any (\f -> fDeterminer frame == fDeterminer f) (prevSiblings frame)
       then q else return (if null allOf || not (null postQuantifier) then "" else "all") `catM` q `catM` return "of"
     _ -> return $
-      if Just "SUCH" == (fValue P.Determiner frame >>= getType) then "such"
+      if Just "SUCH" == (fValue P.Determiner frame >>= getType) then
+        if Just True == fmap isExclamationCopula (usage P.Arg2 frame) then "what" else "such"
       else if null postQuantifier then allOf
       else ""
   relative <- case fValue P.Relative frame of
@@ -350,6 +352,7 @@ clause fVerb = do
     frameGenerated fVerb
     state <- get
     when (sValue P.Time fVerb == Just "PAST") (put $ state { past = True })
+    when (sValue P.Time fVerb == Just "FUTURE") (put $ state { past = False })
     state <- get
     let intro = conjIntroduction fVerb
     let emphasis = if (fValue P.OptativeModality fVerb >>= getType) == Just "LUCK" then "by some sheer luck,"
@@ -442,6 +445,7 @@ vp fVerb verbForm clauseType = do
       aux = if clauseType == InfiniteClause then "" else _aux
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
+        Just "copula" | isExclamationCopula fVerb && isAtLocationCopula fVerb -> "here"
         Just "MOVE" -> (if Just "SLIGHTLY" == (fValue P.Manner fVerb >>= getType) then "slightly" else "") `cat` "back and forth"
         _ -> ""
       negation = if sValue P.Negated fVerb == Just "true" && isGerund fVerb then "not" else ""
@@ -451,7 +455,7 @@ vp fVerb verbForm clauseType = do
       postfixArgs = filter (\a -> argPosition a == AfterVerb) allArgs
       topicalizedArg = case (fSubject, postfixArgs) of
         (Just subj, hd@(PPAdjunct _ _ value):_) | typeEarlier value fVerb && typeEarlier value subj -> Just hd
-        _ -> Nothing
+        _ -> if isExclamationCopula fVerb then listToMaybe [a | a@(NPArg v) <- postfixArgs, Just v == fValue P.Arg2 fVerb] else Nothing
       questionedArg = if not nonSubjectQuestion then Nothing else Data.List.find isQuestionedArg postfixArgs
       existentialWhArg =
         if isQuestion then Nothing
@@ -480,7 +484,7 @@ vp fVerb verbForm clauseType = do
   preAdverb <- foldM (\s arg -> return s `catM` generateArg arg) "" infixArgs
   sArgs <- foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) normalArgs
   sTopicalized <- case topicalizedArg of
-    Just arg -> generateArg arg `catM` return ","
+    Just arg -> generateArg arg `catM` return (if isExclamationCopula fVerb then "" else ",")
     _ -> return ""
   whWord <- case questionedArg >>= argumentFrame of
     Just qFrame -> np (hasType "wh" qFrame) (Just qFrame)

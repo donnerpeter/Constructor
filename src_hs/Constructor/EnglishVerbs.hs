@@ -1,7 +1,7 @@
 module Constructor.EnglishVerbs (
   VerbForm(..), verb,
   haveForm, isGerund, generateVerbs, determineVerbForm,
-  englishSubject, isAtLocationCopula) where
+  englishSubject, isAtLocationCopula, isExclamationCopula) where
 import Constructor.Sense
 import Constructor.Inference
 import Constructor.ArgumentPlanning
@@ -132,3 +132,8 @@ englishSubject fVerb =
 isAtLocationCopula fVerb = hasType "copula" fVerb &&
   isJust (fValue P.Location_at fVerb) &&
   Just "SUCH" == (fValue P.Arg2 fVerb >>= fValue P.Determiner >>= getType)
+
+isExclamationCopula fVerb = case (getType fVerb, fValue P.Arg1 fVerb, fValue P.Arg2 fVerb) of
+  (Just "copula", Just arg1, Just arg2) | Just det2 <- fValue P.Determiner arg2 ->
+    hasType "SUCH" det2 && typeEarlier det2 arg1 && typeEarlier arg1 arg2
+  _ -> False

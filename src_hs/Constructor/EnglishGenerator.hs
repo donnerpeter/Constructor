@@ -358,9 +358,7 @@ clause fVerb = do
                    else if (fValue P.RelTime fVerb >>= getType) == Just "AFTER" && isNothing (fValue P.RelTime fVerb >>= fValue P.Anchor) then "then"
                    else if (fValue P.RelTime fVerb >>= getType) == Just "BEFORE" && isNothing (fValue P.RelTime fVerb >>= fValue P.Anchor) then "before,"
                    else ""
-    let isModality = hasType "modality" fVerb
-        isRaising = hasType "SEEM" fVerb
-        fSubject = if isModality || isRaising then fValue P.Theme fVerb >>= fValue P.Arg1 else fValue P.Arg1 fVerb
+    let fSubject = englishSubject fVerb
         cp = usage P.Content fVerb
     core <- if hasType "degree" fVerb && (fromMaybe False $ fmap (hasType "wh") $ fValue P.Arg2 fVerb)
            then return "Great was" `catM` np True fSubject
@@ -434,7 +432,7 @@ vp fVerb verbForm clauseType = do
       theme = fValue P.Theme fVerb
       isModality = hasType "modality" fVerb
       isRaising = hasType "SEEM" fVerb
-      fSubject = if isModality || isRaising then theme >>= fValue P.Arg1 else fValue P.Arg1 fVerb
+      fSubject = englishSubject fVerb
       isQuestion = Just True == fmap isQuestionCP cp
       nonSubjectQuestion = isQuestion && (isNothing fSubject || not (fromJust fSubject `elem` flatten (cp >>= fValue P.Questioned)))
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue P.Question_mark)
@@ -473,7 +471,7 @@ vp fVerb verbForm clauseType = do
   subject <- if thereSubject then return "there" else if Just "WEATHER_BE" == getType fVerb then return "it" else case (fSubject, clauseType) of
     (Just f, FiniteClause) ->
       if isVerbEllipsis fVerb && not (isEllipsisAnchor fSubject fVerb) then return "it"
-      else if [fVerb] `isPrefixOf` (usages P.Arg1 f) || isModality || isRaising then np True fSubject
+      else if [fVerb] `isPrefixOf` (usages P.Arg1 f) || isModality || isRaising || isAtLocationCopula fVerb then np True fSubject
       else if (isJust (msum [fValue P.PerfectBackground fVerb, fValue P.Reason fVerb]) || hasType "copula" fVerb)
         then return $ if sValue P.RusGender f == Just "Masc" then "he" else "she"
       else return ""

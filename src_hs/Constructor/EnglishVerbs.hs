@@ -1,4 +1,7 @@
-module Constructor.EnglishVerbs (VerbForm(..), verb, haveForm, isGerund, generateVerbs, determineVerbForm) where
+module Constructor.EnglishVerbs (
+  VerbForm(..), verb,
+  haveForm, isGerund, generateVerbs, determineVerbForm,
+  englishSubject, isAtLocationCopula) where
 import Constructor.Sense
 import Constructor.Inference
 import Constructor.ArgumentPlanning
@@ -90,6 +93,7 @@ generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModalit
   else if hasType "copula_talking_about" fVerb then (beForm fSubject PastVerb, "talking")
   else if hasAnyType ["copula", "copula_about"] fVerb then
     if isFuture then ("will", "be")
+    else if isAtLocationCopula fVerb then ("", haveForm verbForm)
     else (beForm fSubject (if sValue P.Time fVerb /= Just "PAST" then BaseVerb else verbForm), "")
   else if isGerund fVerb then let
     ing = if hasType "WEATHER_BE" fVerb
@@ -119,3 +123,12 @@ determineVerbForm fSubject discoursePast =
   if discoursePast then PastVerb
   else if Just True == fmap (hasAnyType ["ME", "WE", "THEY"]) fSubject then BaseVerb
   else Sg3Verb
+
+englishSubject fVerb =
+  if hasAnyType ["modality", "SEEM"] fVerb then fValue P.Theme fVerb >>= fValue P.Arg1
+  else if isAtLocationCopula fVerb then fValue P.Location_at fVerb
+  else fValue P.Arg1 fVerb
+
+isAtLocationCopula fVerb = hasType "copula" fVerb &&
+  isJust (fValue P.Location_at fVerb) &&
+  Just "SUCH" == (fValue P.Arg2 fVerb >>= fValue P.Determiner >>= getType)

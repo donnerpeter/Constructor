@@ -22,3 +22,6 @@ select LeftSide x _ = x
 select RightSide _ x = x
 
 decapitalize (c:cs) = (toLower c):cs
+
+findDuplicate [] = Nothing
+findDuplicate (x:xs) = if x `elem` xs then Just x else findDuplicate xs

@@ -23,6 +23,10 @@ data Tree = Tree {
   unhappyCount :: Int
 }
 
+instance Eq Tree where t1 == t2 = eqKey t1 == eqKey t2
+instance Ord Tree where t1 `compare` t2 = eqKey t1 `compare` eqKey t2
+eqKey t = (headSide t, mites t, left t, right t)
+
 instance Show Tree where
   show tree =
     let inner tree prefix allowTop allowBottom = top ++ center ++ bottom where

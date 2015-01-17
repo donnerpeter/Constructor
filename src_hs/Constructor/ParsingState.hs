@@ -19,21 +19,29 @@ import Control.Monad.State
 
 data Sprout = Sprout { sLeftTree:: Tree, sHeadSide:: Side, sMites:: [Mite], sActiveSets:: [[Mite]] } deriving (Show)
 
-stealLeftSubtrees :: Tree -> [[Mite]] -> [Mite] -> [Sprout]
-stealLeftSubtrees leftTree rightSets rightCombined = let
+stealLeftSubtrees :: Tree -> [[Mite]] -> [Mite] -> State (Set.Set Tree, Set.Set Tree) [Sprout]
+stealLeftSubtrees edgeTree rightSets rightCombined = let
   stealableTrees tree = (:) tree $
     if isBranch tree && headSide tree == RightSide then stealableTrees (justRight tree) else []
-  stealFromHead tree = let
-    allInfos = [(lt, interactNodes $ interactionEnv lt rightSets rightCombined) | lt <- stealableTrees tree]
-    createSprouts side infoPairs processedInfos = case infoPairs of
-      [] -> []
-      (leftTree, infos):rest -> let
-        toProcess = filter (\info -> mergedHeadSide info == side && not (Set.member info processedInfos)) infos
-        mites = xor [merged | (MergeInfo merged mhs) <- toProcess, mhs == side]
-        maybeSprout = if null mites then [] else [Sprout leftTree side mites $ calcCandidateSets mites]
-        in maybeSprout ++ createSprouts side rest (Set.union processedInfos (Set.fromList toProcess))
-    in (reverse $ createSprouts LeftSide (reverse allInfos) Set.empty) ++ createSprouts RightSide allInfos Set.empty
-  in reverse (edgeTrees RightSide leftTree) >>= stealFromHead
+  allInfos = [(lt, interactNodes $ interactionEnv lt rightSets rightCombined) | lt <- stealableTrees edgeTree]
+  createSprouts side infoPairs processedInfos = case infoPairs of
+    [] -> return []
+    (leftTree, infos):rest -> do
+      pair <- get
+      let processedTrees = select side fst snd pair
+      if Set.member leftTree processedTrees then createSprouts side rest processedInfos
+      else do
+        let toProcess = filter (\info -> mergedHeadSide info == side && not (Set.member info processedInfos)) infos
+            mites = xor [merged | (MergeInfo merged mhs) <- toProcess, mhs == side]
+            maybeSprout = if null mites then [] else [Sprout leftTree side mites $ calcCandidateSets mites]
+            plusTree = Set.insert leftTree processedTrees
+        put $ select side (plusTree, snd pair) (fst pair, plusTree)
+        next <- createSprouts side rest (Set.union processedInfos (Set.fromList toProcess))
+        return $ maybeSprout ++ next
+  in do
+    leftVariants <- createSprouts LeftSide (reverse allInfos) Set.empty
+    rightVariants <- createSprouts RightSide allInfos Set.empty
+    return $ reverse leftVariants ++ rightVariants
 
 growSprouts :: [Sprout] -> Tree -> [Tree]
 growSprouts sprouts rightTree =
@@ -50,8 +58,10 @@ roots state = case lastVariants state of
 chooseBestLastVariants :: [ParsingState] -> [Tree] -> [Tree]
 chooseBestLastVariants finalHistory allVariants = {-trace (length result) -}result where
   competitors = map bestVariant $ leastValued (length . mergedRoots) $ filter isStableTree allVariants
+  dup = findDuplicate competitors
+  nodups = {-if isJust dup then error ("duplicate " ++ show dup) else -}competitors
   isStableTree tree = all (isStable . cxt) $ mites tree
-  sortedVariants = sortBy (compare `on` mergedUnhappyCount) $ sortBy (compare `on` mergedIssueCount) competitors
+  sortedVariants = sortBy (compare `on` mergedUnhappyCount) $ sortBy (compare `on` mergedIssueCount) nodups
   result = head sortedVariants : metricAscending (metric $ head sortedVariants) (tail sortedVariants)
 
   metricAscending _ [] = []
@@ -78,11 +88,12 @@ obtainSprouts leftState right = do
   oldHistory <- get
   let rightSets = map activeHeadMites $ Constructor.Tree.allVariants right
       rightCombined = LS.removeDups $ concat rightSets
-      uncachedSprouts = lastVariants leftState >>= \left -> stealLeftSubtrees left rightSets rightCombined
+      allEdgeTrees = LS.removeDups $ lastVariants leftState >>= \t -> reverse (edgeTrees RightSide t)
+      (uncachedSprouts, _) = runState (mapM (\left -> stealLeftSubtrees left rightSets rightCombined) allEdgeTrees) (Set.empty, Set.empty)
       rightWidth = treeWidth right
       cachePoint = oldHistory !! (rightWidth - 1)
       cache = sproutCache cachePoint
-      sprouts = Map.findWithDefault uncachedSprouts rightCombined cache
+      sprouts = Map.findWithDefault (concat uncachedSprouts) rightCombined cache
       newSprouts = Map.insert rightCombined sprouts cache
       newHistory = take (rightWidth - 1) oldHistory ++ [cachePoint { sproutCache = newSprouts }] ++ drop rightWidth oldHistory
   put newHistory

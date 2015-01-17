@@ -274,7 +274,7 @@ cat "" t2 = t2
 cat t1 "" = t1
 cat t1 t2 = case t2 of
  [] -> t1
- c:_ -> if c `elem` ",.:;?\n" then stripLastComma t1 ++ t2 else t1 ++ " " ++ t2
+ c:_ -> if c `elem` ",.:;?!\n" then stripLastComma t1 ++ t2 else t1 ++ " " ++ t2
 
 stripLastComma t1 = if "," `isSuffixOf` t1 then take (length t1 - 1) t1 else t1
 stripFirstComma t1 = if ", " `isPrefixOf` t1 then drop 2 t1 else t1
@@ -294,6 +294,7 @@ sentence frame = handleSeq singleSentence (Just frame) `catM` return (finish ++ 
     else fromMaybe (return " ???sentence") $ liftM clause content
   finish = if sValue P.Dot frame == Just "true" then "."
            else if sValue P.Question_mark frame == Just "true" then "?"
+           else if sValue P.Exclamation_mark frame == Just "true" then "!"
            else case lastSentence >>= fValue P.Content >>= fValue P.Message of
              Just message -> if isNothing (getType message) then ":" else ""
              _ -> ""

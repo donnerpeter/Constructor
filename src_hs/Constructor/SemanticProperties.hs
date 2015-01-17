@@ -64,7 +64,7 @@ data StrProperty = Type
                  | SituationKind
                  | Not_anymore
                  | Also
-                 | Question_mark | Dot | ParagraphEnd | SectionEnd
+                 | Question_mark | Dot | ParagraphEnd | SectionEnd | Exclamation_mark
                  | Time
                  | Distinguished
                  | Imperfective

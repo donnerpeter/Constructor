@@ -9,7 +9,7 @@ import Data.Char (toLower)
 import Data.List
 
 tokenize s = [map toLower token | token <- tokens s, length token > 0] where
-  punctuation c = c == ':' || c == ',' || c == '.' || c == '\"' || c == '?'
+  punctuation c = c `elem` ":,.\"?!"
   wordSymbol c = not (punctuation c) && c /= ' ' && c /= '\n'
   tokens s = case s of
     [] -> []

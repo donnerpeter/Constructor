@@ -119,8 +119,8 @@ copulaTests = [
   translateTest "Вася только вчера приехал, а уже продавец."
                 "Vasya arrived just yesterday, but he's already a salesman."
   ,
-  translateTest "Он у нас хитрец."
-                "He's a cunning person."
+  translateTest "Он у нас хитрец!"
+                "He's a cunning person!"
 --  ,
 --todo  translateTest "Вчера Василий был кассир, сегодня он уж продавец, а завтра будет бригадир. Такой вот он у нас хитрец!"
 --                "Yesterday Vassily was a cashier, today he's already a salesman, and tomorrow he'll be a brigadier. What a cunning person we have here!"

@@ -226,6 +226,11 @@ interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
         base12 ([semV verb attr advP]
         ++ (if needComma && not whContext then [semS advP P.Isolation "comma", mite $ Unclosed LeftSide [advP]] else []))
         ++ existentials rightPairs leftPairs
+      --todo remove verbalmod+(copula|verb) duplication
+      (VerbalModifier attr needComma advP, CopulaHead cd) -> mergeRight $
+        base12 ([semV (copula cd) attr advP, mite $ CopulaHead (cd { copBound = True })]
+        ++ (if needComma && not whContext then [semS advP P.Isolation "comma", mite $ Unclosed LeftSide [advP]] else []))
+        ++ existentials rightPairs leftPairs
 
       _ -> []
 

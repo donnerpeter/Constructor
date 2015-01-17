@@ -113,7 +113,7 @@ arguments fVerb@(getType -> Just typ) = allArgs where
       (_, P.Location_on) -> [PPArg "on" value]
       (_, P.Color) -> [Adverb AfterVerb "green"]
       (_, P.Location_in) -> [PPArg "in" value]
-      (_, P.Location_at) -> [PPArg "next to" value]
+      (s, P.Location_at) | s /= "copula" -> [PPArg "next to" value]
       ("copula_about", P.Arg2) -> [PPArg "about" value]
       ("copula_talking_about", P.Arg2) -> [PPArg "about" value]
       (_, P.Arg2) -> if isCPOrSeq value then [] else [NPArg value]

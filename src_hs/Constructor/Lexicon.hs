@@ -269,7 +269,7 @@ wordMites word index =
   "мы" -> pronoun Nom A.pl1 "WE" v
   "на" -> xor [preposition "na" Prep v, preposition "na" Acc v]
   "нам" -> pronoun Dat A.pl1 "WE" v
-  "нас" -> pronoun Acc A.pl1 "WE" v
+  "нас" -> xor [pronoun Acc A.pl1 "WE" v, pronoun Gen A.pl1 "WE" v]
   "начал" -> finVerb "BEGIN" "PAST" A.m v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")]
   "начали" -> finVerb "BEGIN" "PAST" A.pl v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")]
   "нашего" -> [semT v0 "WE", mite $ Possessive Gen A.m v0]
@@ -424,6 +424,7 @@ wordMites word index =
   "умный" -> adj Nom A.m P.Quality "CLEVER" v
   "упал" -> finVerb "FALL" "PAST" A.m v
   "упала" -> finVerb "FALL" "PAST" A.f v
+  "хитрец" -> nounSg Nom Masc "CUNNING_PERSON" v
   "челюсти" -> xor[nounSg Gen Fem "JAW" v, nounPl Nom "JAWS" v, nounPl Acc "JAWS" v]
   "челюсть" -> nounSg Acc Fem "JAW" v
   "челюстью" -> nounSg Instr Fem "JAW" v

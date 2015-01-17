@@ -20,6 +20,7 @@ noun (Just typ) frame = case typ of
   "CHILD" -> "child"
   "CORNER" -> "corner"
   "COUNTING" -> if isJust (usage P.Domain frame) then "count" else "counting"
+  "CUNNING_PERSON" -> "cunning person"
   "CURIOSITY" -> "curiosity"
   "EYES" -> "eyes"
   "FAMILY" -> "family"

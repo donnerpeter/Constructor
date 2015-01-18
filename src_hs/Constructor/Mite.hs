@@ -53,7 +53,7 @@ semS var prop value = mite $ Sem var (StrValue prop value)
 semV var prop value = mite $ Sem var (VarValue prop value)
 semT var _type = semS var Type _type
 
-xorNonEmpty groups = xor $ filter (not . null) groups
+xorNonEmpty groups = if length nonEmpty <= 1 then concat nonEmpty else xor nonEmpty where nonEmpty = filter (not . null) groups
 
 xor :: [[Mite]] -> [Mite]
 xor _miteGroups = let

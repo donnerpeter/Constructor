@@ -18,10 +18,14 @@ factIssues fact = let
     frame sense = toFrame sense (variable fact)
     in case value fact of
       StrValue attr val -> case (attr, val) of
-        (P.Isolation, _) -> l $ \sense ->
-          if (isNothing (sDeclaredValue P.LeftIsolated $ frame sense) || isNothing (sDeclaredValue P.RightIsolated $ frame sense))
-          then issue $ "Incomplete isolation " ++ show (frame sense)
-          else finalNo
+        (P.Isolation, _) -> l $ \sense -> let
+          f = frame sense
+          isolated = catMaybes [sDeclaredValue P.LeftIsolated f, sDeclaredValue P.RightIsolated f]
+          msg = "Incomplete isolation " ++ show f
+          in
+          if "false" `elem` isolated then finalIssue msg
+          else if null isolated then finalNo
+          else issue msg
         (P.Type, declaredType) -> typeIssues (variable fact) declaredType ++ orderingIssues (variable fact) declaredType
         _ -> []
       VarValue attr val -> let

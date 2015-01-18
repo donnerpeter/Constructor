@@ -127,6 +127,7 @@ data Construction = Word Variable String
 
 isHappy cxt = case cxt of
   Sem {} -> True; Unify {} -> True; EmptyCxt {} -> True; Diversifier {} -> True
+  Closed {} -> True
   Verb {} -> True; Clause {} -> True; AdverbModifiable {} -> True
   Sentence {} -> True
   NomHead {} -> True

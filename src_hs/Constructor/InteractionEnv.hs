@@ -13,8 +13,8 @@ data InteractionEnv = InteractionEnv {leftTree::Tree, leftCombined::[Mite], righ
 interactionEnv leftTree rightSets rightCombined = let
   leftSets = map activeHeadMites $ allVariants leftTree
   in InteractionEnv {
-      leftTree = leftTree, leftCombined = LS.removeDups $ concat leftSets, leftSets = leftSets,
-      rightSets = rightSets, rightCombined = rightCombined
+      leftTree = leftTree, leftCombined = LS.removeDups $ filter isInteractive $ concat leftSets, leftSets = leftSets,
+      rightSets = rightSets, rightCombined = filter isInteractive rightCombined
      }
 
 leftCompatible  env m = LS.removeDups $ concat $ filter (\set -> m `elem` set) $ leftSets  env

@@ -25,7 +25,8 @@ data Mite = Mite {
   baseMites :: [Mite],
   flattenBaseMites :: [Mite],
   flattenContradictors :: Set.Set XorKey,
-  xorKey :: XorKey
+  xorKey :: XorKey,
+  generations :: Map.Map Mite Int
 }
 
 _initMite cxt _contradictors baseMites = let
@@ -33,9 +34,13 @@ _initMite cxt _contradictors baseMites = let
       cxt = cxt, happy = isHappy cxt, contradictors = _contradictors, baseMites = baseMites,
       xorKey = (cxt, baseMites),
       flattenBaseMites = fbm,
-      flattenContradictors = foldl Set.union Set.empty (map contradictors fbm)
+      flattenContradictors = foldl Set.union Set.empty (map contradictors fbm),
+      generations = Map.fromList $ [(ancestor, generation ancestor) | ancestor <- fbm]
     }
   fbm = mite : (LS.removeDups (baseMites >>= flattenBaseMites))
+  generation ancestor = if ancestor == mite then 0 else let
+    baseMaybes = map (\base -> Map.lookup ancestor (generations base)) baseMites
+    in 1 + minimum (catMaybes baseMaybes)
   in
   if contradict mite mite then error $ "self-contradicting mite " ++ show mite ++ "\nbase=" ++ show baseMites ++ "\nflattenContradictors=" ++ show (flattenContradictors mite)
   else mite
@@ -46,9 +51,9 @@ instance Show Mite where
         -- ++ (if null b then "" else "(base " ++ show b ++ "/base)")
 instance Ord Mite where compare m1 m2 = compare (xorKey m1) (xorKey m2)
 instance Eq Mite where m1 == m2 = (xorKey m1) == (xorKey m2)
-  
+
 mite cxt = _initMite cxt Set.empty []
-  
+
 semS var prop value = mite $ Sem var (StrValue prop value)
 semV var prop value = mite $ Sem var (VarValue prop value)
 semT var _type = semS var Type _type
@@ -76,15 +81,10 @@ xor _miteGroups = let
     if any null miteGroups then error $ "Empty mite group: " ++ show miteGroups
     else assert (LS.removeDups newMites == newMites) $ {-traceShow ("xor", miteGroups) $ traceShow ("->", newMites) $ -}newMites
 
-contradict mite1 mite2 = any (\m -> Set.member (xorKey m) (flattenContradictors mite1)) fbm2 || differentGenerations where
-  fbm1 = flattenBaseMites mite1
-  fbm2 = flattenBaseMites mite2
-  common = intersect fbm1 fbm2
-  differentGenerations = any (\ancestor -> fromJust (generation ancestor mite1) /= fromJust (generation ancestor mite2)) common
-  generation ancestor mite = if ancestor == mite then Just 0 else let
-    baseMaybes = map (generation ancestor) $ baseMites mite
-    allGenerations = map (1+) $ catMaybes baseMaybes
-    in if null allGenerations then Nothing else Just $ minimum allGenerations
+contradict mite1 mite2 = any (\m -> Set.member (xorKey m) (flattenContradictors mite1)) (flattenBaseMites mite2) || differentGenerations where
+  differentGenerations = flip any (Map.assocs $ generations mite2) $ \(ancestor, gen2) -> case Map.lookup ancestor (generations mite1) of
+    Nothing -> False
+    Just gen1 -> gen1 /= gen2
 
 diversify miteGroups = result where
   cxt2Count = Map.fromListWith (+) [(cxt mite, 1) | mite <- concat miteGroups]

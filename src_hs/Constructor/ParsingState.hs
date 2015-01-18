@@ -59,7 +59,7 @@ chooseBestLastVariants :: [ParsingState] -> [Tree] -> [Tree]
 chooseBestLastVariants finalHistory allVariants = {-trace (length result) -}result where
   competitors = map bestVariant $ leastValued (length . mergedRoots) $ filter isStableTree allVariants
   dup = findDuplicate competitors
-  nodups = {-if isJust dup then error ("duplicate " ++ show dup) else -}competitors
+  nodups = if isJust dup then error ("duplicate " ++ show dup) else competitors
   isStableTree tree = all (isStable . cxt) $ mites tree
   sortedVariants = sortBy (compare `on` mergedUnhappyCount) $ sortBy (compare `on` mergedIssueCount) nodups
   result = head sortedVariants : metricAscending (metric $ head sortedVariants) (tail sortedVariants)

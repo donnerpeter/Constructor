@@ -126,38 +126,20 @@ data Construction = Word Variable String
                   deriving (Show, Ord, Eq)
 
 isHappy cxt = case cxt of
-  Adj {} -> False; Adverb {} -> False; NounAdjunct {} -> False
-  ArgHead {} -> False; PrepHead {} -> False; SemPreposition {} -> False; Argument {} -> False;
-  SemArgHead {} -> False; SemArgument {} -> False
-  Quantifier {} -> False
-  CompHead {} -> False; ConditionCompHead {} -> False; ConditionComp {} -> False; ReasonComp {} -> False
-  Elaboration {} -> False
+  Sem {} -> True; Unify {} -> True; EmptyCxt {} -> True; Diversifier {} -> True
+  Verb {} -> True; Clause {} -> True; AdverbModifiable {} -> True
+  Sentence {} -> True
+  NomHead {} -> True
+  ReflexiveReference {} -> True; ReflexiveTarget {} -> True
+  AdjHead {} -> True; NounPhrase {} -> True
+  QuestionVariants {} -> True
+  WhLeaf {} -> True
+  NegativePronoun {} -> True; UniversalPronoun {} -> True
+  Negated {} -> True
   Conjunction sd -> seqHasLeft sd && seqHasRight sd
-  SeqRight (Wh {}) -> False
-  GenHead {} -> False; Possessive {} -> False
-  Tense {} -> False
-  FutureTense {} -> False
-  CommaSurrounded {} -> False; SurroundingComma {} -> False
-  DashSurrounded {} -> False; SurroundingDash {} -> False
-  ControlledInfinitive {} -> False; Control {} -> False
-  ModalityInfinitive {} -> False
-  ExistentialWh {} -> False; WhAsserter {} -> False
-  CopulaHead {} -> False;
-  TenseHead {} -> False;
-  TopLevelQuestion {} -> False
-  QuotedWord _ False -> False; Quote _ False -> False
-  DirectSpeechDash {} -> False; DirectSpeechHead _ Nothing -> False
-  Colon {} -> False
-  VerbalModifier {} -> False
-  RaisingVerb {} -> False; Raiseable {} -> False
-  TwoWordCxt {} -> False
-  Ellipsis {} -> False
-  Unclosed {} -> False
-  Complement {} -> False
-  Wh {} -> False; WhInSitu {} -> False
-  RelativeClause {} -> False
-  Word {} -> False
-  _ -> True
+  SeqRight (Wh {}) -> False; SeqRight _ -> True
+  SeqLeft _ -> True
+  _ -> False
 
 getCommaSurroundableVar cxt = case cxt of
   ConditionComp v _ True -> Just v

@@ -366,8 +366,11 @@ clause fVerb = do
                    else ""
     let fSubject = englishSubject fVerb
         cp = usage P.Content fVerb
-    core <- if hasType "degree" fVerb && (fromMaybe False $ fmap (hasType "wh") $ fValue P.Arg2 fVerb)
-           then return "Great was" `catM` np True fSubject
+    core <- if hasType "degree" fVerb && Just True == fmap (hasType "wh") (fValue P.Arg2 fVerb)
+           then case fSubject >>= getType of
+             Just "AMAZE" -> return "Great was" `catM` np True fSubject
+             Just "CUNNING_PERSON" -> return "What" `catM` np True fSubject
+             _ -> return "??degree"
            else if hasType "copula" fVerb && isJust (fValue P.Owner fVerb) then do
              let owner = fValue P.Owner fVerb
              subj <- np True owner

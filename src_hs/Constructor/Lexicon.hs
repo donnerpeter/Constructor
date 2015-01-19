@@ -218,8 +218,12 @@ wordMites word index =
   "к" -> preposition "k" Dat v
   "кажется" -> raisingVerb "SEEM" "PRESENT" A.sg3 v ++ optional (arg Dat P.Experiencer v)
   "как" -> [mite $ TwoWordCxt "так как" False [] v0]
+  "каков" ->
+    finiteClause A.m True v ++ optional [mite $ TenseHead v0] ++ [semT (v "wh") "wh", semV v0 P.Arg2 (v "wh"), mite $ ShortAdj (v "wh")] ++
+    xor [[semT v0 "degree"],
+         [semT v0 "copula", semV (v "cp") P.Questioned (v "wh")] ++ xor [[mite $ Complement (v "cp")], [mite $ TopLevelQuestion (v "cp")]]]
   "каково" ->
-    finiteClause A.n3 True v ++ optional [mite $ TenseHead v0] ++ [semT (v "wh") "wh", semV v0 P.Arg2 (v "wh"), mite $ ShortAdj (v "wh")] ++
+    finiteClause A.n True v ++ optional [mite $ TenseHead v0] ++ [semT (v "wh") "wh", semV v0 P.Arg2 (v "wh"), mite $ ShortAdj (v "wh")] ++
     xor [[semT v0 "degree"],
          [semT v0 "copula", semV (v "cp") P.Questioned (v "wh")] ++ xor [[mite $ Complement (v "cp")], [mite $ TopLevelQuestion (v "cp")]]]
   "какого" -> adjWh Gen A.m P.Determiner v

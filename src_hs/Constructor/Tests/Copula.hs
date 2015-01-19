@@ -130,9 +130,9 @@ copulaTests = [
   ,
   translateTest "Вчера Василий был кассир, сегодня он уж продавец, а завтра будет бригадир. Такой вот он у нас хитрец!"
                 "Yesterday Vassily was a cashier, today he's already a salesman, and tomorrow he'll be a brigadier. What a cunning person we have here!"
---  ,
---todo  translateTest "Каков хитрец!"
---                "What a cunning person!"
+  ,
+  translateTest "Каков хитрец!"
+                "What a cunning person!"
 --  ,
 --todo  translateTest "Eй уж замуж невтерпёж."
 --                "She can't wait to become married."

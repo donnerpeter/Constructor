@@ -97,6 +97,16 @@ The source code is in Haskell.
     translateTest "Кто, что и кому дал?"
                   "Who gave what, and to whom?"
 
+### English generation challenges
+
+    translateTest "Каково же было их и мое удивление, когда они вдруг обнаружили, что тоже не могут вспомнить порядок счета. \
+                          \1, 2, 3, 4, 5 и 6 помнят, а дальше забыли."
+                  "Great was their and my amazement, when they suddenly discovered, that they couldn't recall the counting order. \
+                          \They remembered 1, 2, 3, 4, 5 and 6, but forgot what comes next."
+
+    translateTest "Это арбуз. Он зелёный."
+                  "This is a watermelon. It's green."
+
 ## Notes
 
 The goal of this project is to explore how computers can do natural language parsing in a more or less human-like way:

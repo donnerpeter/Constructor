@@ -161,13 +161,16 @@ np_internal nom mayHaveDeterminer frame = do
     _ -> return ""
   return $ preQuantifier `cat` unquantified `cat` postQuantifier `cat` relative
 
-adjectives nounFrame = catMaybes [property, kind, shopKind, size, quality, gender] where
+adjectives nounFrame = catMaybes [property, kind, shopKind, size, quality, gender, color] where
   property = fValue P.Property nounFrame >>= getType >>= \p -> if p == "AMAZING" then Just "amazing" else Nothing
   kind = fValue P.Kind nounFrame >>= getType >>= \p -> if p == "COMMERCIAL" then Just "commercial" else Nothing
   quality = fValue P.Quality nounFrame >>= getType >>= \case
     "HUMBLE" -> Just "humble"
     "CLEVER" -> Just "smart"
     "STUPID" -> Just "stupid"
+    _ -> Nothing
+  color = fValue P.Color nounFrame >>= getType >>= \case
+    "GREEN" -> Just "green"
     _ -> Nothing
   shopKind = sValue P.Name nounFrame >>= \p -> if p == "гастроном" then Just "grocery" else Nothing
   gender =

@@ -261,7 +261,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
         Clause cp -> mergeLeft $ withBase [m1,m2,m3] [mite $ Unify v2 wh, mite $ RelativeClause empty cp, semV cp P.Questioned wh]
         _ -> []
 
-      (ConjEmphasis attr _, Verb head) -> right [semS head attr "true"]
+      (ConjEmphasis attr _, ConjEmphasizeable head) -> right [semS head attr "true"]
 
       (Adverb v, Verb head) -> right [mite $ Unify v head]
       --todo remove adverb+(copula|verb) duplication

@@ -119,6 +119,7 @@ data Construction = Word Variable String
                   | ReflexiveReference Variable
                   | ReflexiveTarget Variable
                   | ConjEmphasis P.StrProperty Variable
+                  | ConjEmphasizeable Variable
                   | Negated Variable
                   | SemPreposition ArgKind Variable
                   | Quantifier ArgKind Agr Variable
@@ -128,7 +129,7 @@ data Construction = Word Variable String
 isHappy cxt = case cxt of
   Sem {} -> True; Unify {} -> True; EmptyCxt {} -> True; Diversifier {} -> True
   Closed {} -> True
-  Verb {} -> True; Clause {} -> True; AdverbModifiable {} -> True
+  Verb {} -> True; Clause {} -> True; AdverbModifiable {} -> True; ConjEmphasizeable {} -> True
   Sentence {} -> True
   NomHead {} -> True
   ReflexiveReference {} -> True; ReflexiveTarget {} -> True

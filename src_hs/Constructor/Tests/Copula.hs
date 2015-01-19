@@ -157,9 +157,9 @@ copulaTests = [
 --  ,
  translateTest "Она кассирша и работает в магазине."
                 "She's a cashier and works in a store."
---  ,
---todo  translateTest "Кто это был? Кем он был? А кем была она?"
---                "Who was that? What was he? And what was she?"
+  ,
+  translateTest "Кто это был? Кем он был? А кем была она?"
+                "Who was this? What was he? And what was she?"
 --  ,
 --todo  translateTest "Кто кассирша и работает в магазине?"
 --                "Who is a cashier and works in a store?"

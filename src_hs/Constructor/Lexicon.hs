@@ -22,7 +22,8 @@ argOrCopula caze agr v =
   else argRole
   where
   argRole = [mite $ Argument caze (v "")]
-  npCopulaHead instr = copulaHead NPCopula agr "copula" instr cv ++ [semV (cv "") P.Arg2 (v "")] ++ (if instr then [semS (cv "") P.ProfessionCopula "true"] else [])
+  npCopulaHead instr = copulaHead NPCopula agr "copula" instr cv ++ [semV (cv "") P.Arg2 (v "")] ++
+    (if instr then [semS (cv "") P.ProfessionCopula "true", mite $ ConjEmphasizeable (cv "")] else [])
   cv = modifyV v 'x'
 
 rusGender agr v = case A.gender agr of
@@ -55,12 +56,12 @@ copulaHead kind agr copulaType tenseRequired v =
   cp = v "cp"
   tenseHead = [mite $ TenseHead v0]
 
-clause v = [mite $ Verb (v ""), semV (v "cp") P.Content (v ""), semT (v "cp") "situation", mite $ Clause (v "cp")]
+clause v = [mite $ Verb (v ""), semV (v "cp") P.Content (v ""), semT (v "cp") "situation", mite $ Clause (v "cp"), mite $ ConjEmphasizeable (v "")]
 
 infinitive typ v =
   [semT (v "") typ] ++
   xor [[mite $ ControlledInfinitive $ v ""],
-       [mite $ ModalityInfinitive (v "x") (v "cp"), semT (v "x") "modality", semV (v "x") P.Theme (v ""), semV (v "cp") P.Content (v "x"), mite $ Verb (v "x")] ++ optional [mite $ TenseHead (v "x")] ++ optional (arg Dat P.Arg1 v),
+       [mite $ ModalityInfinitive (v "x") (v "cp"), semT (v "x") "modality", semV (v "x") P.Theme (v ""), semV (v "cp") P.Content (v "x"), mite $ Verb (v "x"), mite $ ConjEmphasizeable (v "x")] ++ optional [mite $ TenseHead (v "x")] ++ optional (arg Dat P.Arg1 v),
        semArg Direction P.Goal_action (v "")]
 arg argType relation v = [mite $ ArgHead argType (v $ decapitalize $ show relation), semV (v "") relation (v $ decapitalize $ show relation)]
 compHead attr v = [mite $ CompHead (v "comp"), semV (v "") attr (v "comp")]
@@ -82,7 +83,7 @@ adj caze agr attr value v = [semV (v "") attr (v "adj"), semT (v "adj") value]
 adjWh caze agr attr v = [mite $ Adj (v "") caze agr, semV (v "") attr (v "adj"), semT (v "adj") "wh", mite $ Wh agr (v "adj")]
   ++ rusNumber agr (v "")
 
-perfectBackground typ v = [mite $ Verb (v ""), semT (v "") typ, mite $ VerbalModifier P.PerfectBackground True (v "")]
+perfectBackground typ v = [mite $ Verb (v ""), semT (v "") typ, mite $ VerbalModifier P.PerfectBackground True (v ""), mite $ ConjEmphasizeable (v "")]
 sAdverb attr value v = [mite $ Adverb (v "verb"), semS (v "verb") attr value]
 modifierAdverb value v = [mite $ ModifierAdverb (v "head"), semS (v "head") P.ModifierAdverb value]
 adverb attr value v = [mite $ Adverb (v "verb"), semV (v "verb") attr (v ""), semT (v "") value, mite $ AdverbModifiable (v "")]

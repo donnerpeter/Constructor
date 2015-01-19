@@ -117,7 +117,9 @@ np_internal nom mayHaveDeterminer frame = do
       else if isJust (usage P.VTime frame) then "when"
       else if isJust (usage P.Location frame) then "where"
       else if isAnimate frame then
-        if Just "true" == sValue P.Negated frame then "nobody" else if nom then "who" else "whom"
+        if Just "true" == sValue P.Negated frame then "nobody"
+        else if Just "true" == (usage P.Arg2 frame >>= sValue P.ProfessionCopula) then "what"
+        else if nom then "who" else "whom"
       else if isJust $ usage P.Questioned frame >>= usage P.Relative then "that"
       else "what"
     else do

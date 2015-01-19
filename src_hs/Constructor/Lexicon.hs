@@ -22,7 +22,7 @@ argOrCopula caze agr v =
   else argRole
   where
   argRole = [mite $ Argument caze (v "")]
-  npCopulaHead tenseRequired = copulaHead NPCopula agr "copula" tenseRequired cv ++ [semV (cv "") P.Arg2 (v "")]
+  npCopulaHead instr = copulaHead NPCopula agr "copula" instr cv ++ [semV (cv "") P.Arg2 (v "")] ++ (if instr then [semS (cv "") P.ProfessionCopula "true"] else [])
   cv = modifyV v 'x'
 
 rusGender agr v = case A.gender agr of
@@ -237,6 +237,7 @@ wordMites word index =
   "кассиршу" -> nounSg Acc Fem "CASHIER" v ++ genHead P.Place v
   "кассиром" -> nounSg Instr Masc "CASHIER" v ++ genHead P.Place v
   "квартирам" -> nounPl Dat "APARTMENTS" v ++ genHead P.Owner v
+  "кем" -> caseWhWord Instr A.empty v ++ animate v
   "книга" -> nounSg Nom Fem "BOOK" v ++ genHead P.Author v
   "книгу" -> nounSg Acc Fem "BOOK" v ++ genHead P.Author v
   "кого" -> xor [caseWhWord Acc A.sg v ++ animate v, caseWhWord Gen A.sg v ++ animate v]

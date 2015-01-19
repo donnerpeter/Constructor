@@ -3,7 +3,8 @@ module Constructor.ArgumentPlanning (
   isCP, isCPOrSeq, isFactCP, isQuestionCP,
   isVerbEllipsis, isEllipsisAnchor,
   allCoordinatedVerbs,
-  Position(..), argPosition) where
+  Position(..), argPosition,
+  isAtLocationCopula, isExclamationCopula, isOwnerCopula) where
 import Constructor.Sense
 import Constructor.Inference
 import Data.List
@@ -116,6 +117,7 @@ arguments fVerb@(getType -> Just typ) = allArgs where
       (s, P.Location_at) | s /= "copula" -> [PPArg "next to" value]
       ("copula_about", P.Arg2) -> [PPArg "about" value]
       ("copula_talking_about", P.Arg2) -> [PPArg "about" value]
+      ("copula", P.Arg1) | isOwnerCopula fVerb -> [NPArg value]
       (_, P.Arg2) -> if isCPOrSeq value then [] else [NPArg value]
       (_, P.Duration) -> if hasType "LONG" value then [Adverb AfterVerb "for a long time"] else []
       (_, P.VTime) | hasType "wh" value -> [NPArg value]
@@ -155,3 +157,14 @@ allCoordinatedVerbs fVerb = let
   in catMaybes $ map (fValue P.Content) allCPs
 
 shouldContrastRelTime fVerb = length (catMaybes $ map (fValue P.RelTime) $ allCoordinatedVerbs fVerb) > 1
+
+isAtLocationCopula fVerb = hasType "copula" fVerb &&
+  isJust (fValue P.Location_at fVerb) &&
+  Just "SUCH" == (fValue P.Arg2 fVerb >>= fValue P.Determiner >>= getType)
+
+isOwnerCopula fVerb = hasType "copula" fVerb && isJust (fValue P.Owner fVerb)
+
+isExclamationCopula fVerb = case (getType fVerb, fValue P.Arg1 fVerb, fValue P.Arg2 fVerb) of
+  (Just "copula", Just arg1, Just arg2) | Just det2 <- fValue P.Determiner arg2 ->
+    hasType "SUCH" det2 && typeEarlier det2 arg1 && typeEarlier arg1 arg2
+  _ -> False

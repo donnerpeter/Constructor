@@ -1,7 +1,7 @@
 module Constructor.EnglishVerbs (
   VerbForm(..), verb,
   haveForm, isGerund, generateVerbs, determineVerbForm,
-  englishSubject, isAtLocationCopula, isExclamationCopula) where
+  englishSubject) where
 import Constructor.Sense
 import Constructor.Inference
 import Constructor.ArgumentPlanning
@@ -93,7 +93,7 @@ generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModalit
   else if hasType "copula_talking_about" fVerb then (beForm fSubject PastVerb, "talking")
   else if hasAnyType ["copula", "copula_about"] fVerb then
     if isFuture then ("will", "be")
-    else if isAtLocationCopula fVerb then ("", haveForm verbForm)
+    else if isAtLocationCopula fVerb || isOwnerCopula fVerb then ("", haveForm verbForm)
     else (beForm fSubject (if sValue P.Time fVerb /= Just "PAST" then BaseVerb else verbForm), "")
   else if isGerund fVerb then let
     ing = if hasType "WEATHER_BE" fVerb
@@ -127,13 +127,6 @@ determineVerbForm fSubject discoursePast =
 englishSubject fVerb =
   if hasAnyType ["modality", "SEEM"] fVerb then fValue P.Theme fVerb >>= fValue P.Arg1
   else if isAtLocationCopula fVerb then fValue P.Location_at fVerb
+  else if isOwnerCopula fVerb then fValue P.Owner fVerb
   else fValue P.Arg1 fVerb
 
-isAtLocationCopula fVerb = hasType "copula" fVerb &&
-  isJust (fValue P.Location_at fVerb) &&
-  Just "SUCH" == (fValue P.Arg2 fVerb >>= fValue P.Determiner >>= getType)
-
-isExclamationCopula fVerb = case (getType fVerb, fValue P.Arg1 fVerb, fValue P.Arg2 fVerb) of
-  (Just "copula", Just arg1, Just arg2) | Just det2 <- fValue P.Determiner arg2 ->
-    hasType "SUCH" det2 && typeEarlier det2 arg1 && typeEarlier arg1 arg2
-  _ -> False

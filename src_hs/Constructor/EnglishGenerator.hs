@@ -371,12 +371,6 @@ clause fVerb = do
              Just "AMAZE" -> return "Great was" `catM` np True fSubject
              Just "CUNNING_PERSON" -> return "What" `catM` np True fSubject
              _ -> return "??degree"
-           else if hasType "copula" fVerb && isJust (fValue P.Owner fVerb) then do
-             let owner = fValue P.Owner fVerb
-             subj <- np True owner
-             let verb = haveForm $ determineVerbForm owner $ past state
-             obj <- np False (fValue P.Arg1 fVerb)
-             return $ subj `cat` verb `cat` obj
            else vp fVerb (determineVerbForm fSubject $ past state) FiniteClause
     elaboration <- case fValue P.Elaboration fVerb of
       Just smth -> return (if hasType "HAPPEN" fVerb then "," else ":") `catM` sentence smth
@@ -481,7 +475,7 @@ vp fVerb verbForm clauseType = do
   subject <- if thereSubject then return "there" else if Just "WEATHER_BE" == getType fVerb then return "it" else case (fSubject, clauseType) of
     (Just f, FiniteClause) ->
       if isVerbEllipsis fVerb && not (isEllipsisAnchor fSubject fVerb) then return "it"
-      else if [fVerb] `isPrefixOf` (usages P.Arg1 f) || isModality || isRaising || isAtLocationCopula fVerb then np True fSubject
+      else if [fVerb] `isPrefixOf` (usages P.Arg1 f) || isModality || isRaising || isAtLocationCopula fVerb || isOwnerCopula fVerb then np True fSubject
       else if (isJust (msum [fValue P.PerfectBackground fVerb, fValue P.Reason fVerb]) || hasType "copula" fVerb)
         then return $ if sValue P.RusGender f == Just "Masc" then "he" else "she"
       else return ""

@@ -161,7 +161,8 @@ np_internal nom mayHaveDeterminer frame = do
       if Just "copula" == (fValue P.Content relativeCp >>= getType) then return ", the one" `catM` rel
       else rel
     _ -> return ""
-  return $ preQuantifier `cat` unquantified `cat` postQuantifier `cat` relative
+  let neg = if Just "true" == sValue P.Negated frame && not (hasType "wh" frame) then "not" else ""
+  return $ neg `cat` preQuantifier `cat` unquantified `cat` postQuantifier `cat` relative
 
 adjectives nounFrame = catMaybes [property, kind, shopKind, size, quality, gender, color] where
   property = fValue P.Property nounFrame >>= getType >>= \p -> if p == "AMAZING" then Just "amazing" else Nothing

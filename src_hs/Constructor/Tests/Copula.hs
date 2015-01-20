@@ -67,9 +67,9 @@ copulaTests = [
 --  ,
 --todo  translateTest "Кто здесь кассир? Кассир - Вася."
 --                "Who is the cashier here? Vasya is the cashier."
---  ,
---todo  translateTest "Я не кассир, кассир не я."
---                "I'm not a cashier, the cashier is not me."
+  ,
+  translateTest "Я не кассир, кассир не я."
+                "I'm not a cashier, the cashier is not me."
   ,
   translateTest "Сегодня Вася кассир."
                 "Today Vasya is a cashier."
@@ -146,9 +146,9 @@ copulaTests = [
   translateTest "Это зелёный арбуз."
                 "This is a green watermelon."
   ,
---todo  translateTest "Это не зелёный арбуз."
---                "This is not a green watermelon."
---  ,
+  translateTest "Это не зелёный арбуз."
+                "This is not a green watermelon."
+  ,
 --todo  translateTest "Это не зелёный свет, а красный."
 --                "This is not a green light, but a red one."
 --  ,

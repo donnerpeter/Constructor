@@ -49,7 +49,9 @@ noun (Just typ) frame = case typ of
   "OTHERS" -> "others"
   "PREDICAMENT" -> "predicament"
   "RELIEF" -> "relief"
-  "SALESMAN" -> "salesman"
+  "SALESMAN" -> case usage P.Arg2 (unSeq frame) of
+    Just copula | hasType "copula" copula, Just "Fem" == (fValue P.Arg1 copula >>= sValue P.RusGender) -> "saleswoman"
+    _ -> "salesman"
   "SHOP" -> "store"
   "SISTER" -> "sister"
   "SMASHED_ONE" -> "one who was smashed"

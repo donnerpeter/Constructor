@@ -263,6 +263,7 @@ wordMites word index =
   "магазина" -> nounSg Gen Masc "SHOP" v
   "магазине" -> nounSg Prep Masc "SHOP" v
   "маленький" -> adj Acc A.m P.Size "LITTLE" v
+  "маша" -> nounSg Nom Fem "NAMED_PERSON" v ++ [semS v0 P.Name "Masha"]
   "меня" -> xor [pronoun Acc A.sg "ME" v, pronoun Gen A.sg "ME" v]
   "мне" -> pronoun Dat A.sg "ME" v
   "мнение" -> nounSg Nom Neu "OPINION" v ++ genHead P.Arg1 v

@@ -7,6 +7,7 @@ import Constructor.Agreement
 import Constructor.Variable
 import Constructor.Tree
 import Constructor.Util
+import Constructor.Lexicon
 import Constructor.InteractionEnv
 import Control.Monad
 import Data.Maybe
@@ -96,7 +97,7 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env =
         in rightCompatible env m2 >>= \m3 -> case (cxt m1, cxt m3) of
 
           (Argument kind mem1, SeqRight (Argument kind2 mem2)) | kind == kind2 ->
-            withBase [m1,m2,m3] (fullConj mem1 mem2 ++ [mite $ Argument kind seqV] ++ combineThyself ++ (baseMites m3 >>= distinguished))
+            withBase [m1,m2,m3] (fullConj mem1 mem2 ++ argOrCopula kind empty (makeV seqV "") ++ combineThyself ++ (baseMites m3 >>= distinguished))
             ++ adjHeadCompanions mem1 kind ++ argUnifications
 
           (VerbalModifier attr comma mem1, SeqRight (VerbalModifier attr2 comma2 mem2)) | attr2 == attr && comma2 == comma ->

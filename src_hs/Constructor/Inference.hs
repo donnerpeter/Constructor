@@ -26,7 +26,7 @@ sValue attr frame =
         if Just True == fmap (hasAnyType ["SOME", "ONE"]) (fValue P.Determiner frame) then Just "false"
         else if hasAnyType ["CASE", "HAMMER", "TREES", "BENCH", "FINGER", "WATERMELON", "JAW"] frame then Just "false"
         else if Just True == fmap isNumberString (getType frame) then Just "false"
-        else if Just "copula" == (usage P.Arg2 frame >>= getDeclaredType) then Just "false"
+        else if Just "copula" == (usage P.Arg2 (unSeq frame) >>= getDeclaredType) then Just "false"
         else if Just "degree" == (usage P.Arg1 frame >>= getDeclaredType) then Just "false"
         else if hasType "CHILD" frame then
           if Just "SOME" == (fValue P.Determiner frame >>= getType) then Just "false" else Just "true"

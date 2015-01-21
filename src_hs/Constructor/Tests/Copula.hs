@@ -95,14 +95,11 @@ copulaTests = [
 --todo  translateTest "Вася - кассир, а не продавец."
 --                "Vasya is a cashier and not a salesman."
   ,
-  translateTest "Вася не кассир, а продавец."
-                "Vasya is not a cashier, but a salesman."
+  translateTest "Вася не кассир, а продавец. Маша не кассир, а продавец."
+                "Vasya is not a cashier, but a salesman. Masha is not a cashier, but a saleswoman."
   ,
   translateTest "Вася был не кассиром, а продавцом."
                 "Vasya was not a cashier, but a salesman."
-  ,
-  translateTest "Маша не кассир, а продавец."
-                "Masha is not a cashier, but a saleswoman."
 --  ,
 --todo  translateTest "Вася сегодня кассир, а завтра - продавец."
 --                "Today Vasya is a cashier and tomorrow - a salesman."

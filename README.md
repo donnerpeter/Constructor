@@ -107,6 +107,9 @@ The source code is in Haskell.
     translateTest "Это арбуз. Он зелёный."
                   "This is a watermelon. It's green."
 
+    translateTest "Вася не кассир, а продавец. Маша не кассир, а продавец."
+                  "Vasya is not a cashier, but a salesman. Masha is not a cashier, but a saleswoman."
+
 ## Notes
 
 The goal of this project is to explore how computers can do natural language parsing in a more or less human-like way:

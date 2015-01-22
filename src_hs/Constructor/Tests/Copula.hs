@@ -155,12 +155,12 @@ copulaTests = [
 --todo  translateTest "Это не зелёный, а красный свет."
 --                "This is not a green light, but a red one."
 --  ,
---todo  translateTest "Это не зелёный арбуз, а красный помидор."
---                "This is not a green watermelon, but a red tomato."
---  ,
---todo  translateTest "Это зелёный арбуз, а не красный помидор."
---                "This is a green watermelon, and not a red tomato."
---  ,
+  translateTest "Это не зелёный арбуз, а красный помидор."
+                "This is not a green watermelon, but a red tomato."
+  ,
+  translateTest "Это зелёный арбуз, а не красный помидор."
+                "This is a green watermelon and not a red tomato."
+  ,
 --todo  translateTest "Я люблю капусту, но не жареную."
 --                "I like cabbage, but not roasted."
 --  ,

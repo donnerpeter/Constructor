@@ -68,6 +68,7 @@ handleSeq f (Just frame) =
                             then "and"
                           else if Just True == fmap shouldContrastSubject (firstContent >>= fValue P.Arg1) then ", and"
                           else if length (filter (\cp -> Just True == fmap (hasType "copula") (fValue P.Content cp)) $ flatten $ Just frame) > 1 then ", and"
+                          else if Just "true" == (second >>= sValue P.Negated) then "and"
                           else ", but"
                         else if conj == "and" then
                           if Just True == fmap isCP second && Just True == fmap (hasType "seq") (first >>= lastGeneratedMember) then ", and"
@@ -174,6 +175,7 @@ adjectives nounFrame = catMaybes [property, kind, shopKind, size, quality, gende
     _ -> Nothing
   color = fValue P.Color nounFrame >>= getType >>= \case
     "GREEN" -> Just "green"
+    "RED" -> Just "red"
     _ -> Nothing
   shopKind = sValue P.Name nounFrame >>= \p -> if p == "гастроном" then Just "grocery" else Nothing
   gender =

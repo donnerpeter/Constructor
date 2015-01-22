@@ -251,6 +251,7 @@ wordMites word index =
   "котором" -> xor [caseWhWord Prep A.m v, caseWhWord Prep A.n v, adjWh Prep A.m P.Determiner v]
   "которую" -> xor [caseWhWord Acc A.f v, adjWh Acc A.f P.Determiner v]
   "который" -> xor [caseWhWord Nom A.m v, adjWh Nom A.m P.Determiner v]
+  "красный" -> adj Nom A.m P.Color "RED" v
   "кстати" -> [mite $ VerbalModifier P.OptativeModality True v0, semT v0 "BY_THE_WAY"]
   "кто" -> caseWhWord Nom A.sg v ++ animate v
   "куда" -> whWord A.empty v ++ semArg Direction P.Goal v0
@@ -327,6 +328,7 @@ wordMites word index =
   "подвигала" -> finVerb "MOVE" "PAST" A.f v ++ arg Instr P.Arg2 v
   "показались" -> raisingVerb "SEEM" "PAST" A.pl v ++ optional (arg Dat P.Experiencer v)
   "поливать" -> infinitive "TO_WATER" v ++ directObject v
+  "помидор" -> nounSg Nom Masc "TOMATO" v
   "помнит" -> finVerb "REMEMBER" "PRESENT" A.sg3 v ++ directObject v
   "помнят" -> finVerb "REMEMBER" "PRESENT" A.pl3 v ++ directObject v
   "помочь" -> infinitive "HELP" v ++ optional (arg Dat P.Arg2 v)

@@ -454,6 +454,7 @@ wordMites word index =
                  finVerb "COME_SCALARLY" "PAST" A.m v ++ arg ScalarAdverb P.Order v] ++ [semS v0 P.Imperfective "true"]
   "эта" -> adj Nom A.f P.Determiner "THIS" v
   "это" -> xor [pronoun Nom (A.Agr (Just A.Neu) (Just A.Sg) $ Just 3) "THIS" v, pronoun Acc (A.Agr (Just A.Neu) (Just A.Sg) $ Just 3) "THIS" v, [mite $ Word v0 word]]
+  "этот" -> adj Nom A.m P.Determiner "THIS" v
   "этому" -> adj Dat A.sg P.Determiner "THIS" v
   "я" -> pronoun Nom (A.Agr Nothing (Just A.Sg) $ Just 1) "ME" v
   ":" -> xor [[mite $ Colon "directSpeech" v0], [mite $ Colon "elaboration" v0]]

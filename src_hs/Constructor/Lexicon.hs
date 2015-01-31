@@ -75,10 +75,11 @@ negatedWh v = [semT (v "") "wh", semS (v "") P.Negated "true", mite $ Negated (v
 animate v = [semS (v "") P.Animate "true"]
 
 adj caze agr attr value v = [semV (cv "") attr (v ""), semT (v "") value, mite $ Negateable (v "")]
-  ++ rusNumber agr (cv "") ++ (if caze == Nom then xor [adjRole, adjCopulaHead] else adjRole) where
-  adjRole = [mite $ Adj (cv "") caze agr]
-  adjCopulaHead = copulaHead NPCopula agr "copula" False cv
+  ++ rusNumber agr (cv "") ++ orNomCopula [mite $ Adj (cv "") caze agr] caze agr cv where
   cv = modifyV v 'x'
+
+orNomCopula plainMites caze agr v = if caze == Nom then xor [plainMites, adjCopulaHead] else plainMites where
+  adjCopulaHead = copulaHead NPCopula agr "copula" False v
 
 adjWh caze agr attr v = [mite $ Adj (v "") caze agr, semV (v "") attr (v "adj"), semT (v "adj") "wh", mite $ Wh agr (v "adj")]
   ++ rusNumber agr (v "")

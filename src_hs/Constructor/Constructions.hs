@@ -121,6 +121,7 @@ data Construction = Word Variable String
                   | ConjEmphasis P.StrProperty Variable
                   | ConjEmphasizeable Variable
                   | Negated Variable
+                  | Negateable Variable
                   | SemPreposition ArgKind Variable
                   | Quantifier ArgKind Agr Variable
                   | Elaboration Variable
@@ -137,7 +138,7 @@ isHappy cxt = case cxt of
   QuestionVariants {} -> True
   WhLeaf {} -> True
   NegativePronoun {} -> True; UniversalPronoun {} -> True
-  Negated {} -> True
+  Negated {} -> True; Negateable {} -> True
   Conjunction sd -> seqHasLeft sd && seqHasRight sd
   SeqRight (Wh {}) -> False; SeqRight _ -> True
   SeqLeft _ -> True

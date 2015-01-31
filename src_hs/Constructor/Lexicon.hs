@@ -14,7 +14,7 @@ nounSg caze gender typ v = pronoun caze (A.Agr (Just gender) (Just A.Sg) (Just 3
 nounPl caze typ v = pronoun caze (A.Agr Nothing (Just A.Pl) (Just 3)) typ v
 pronoun caze agr typ v = synNoun caze agr v ++ [semT (v "") typ] ++ rusGender agr (v "")
 
-synNoun caze agr v = [mite $ AdjHead (v "") caze agr, mite $ NounPhrase (v "")] ++ argOrCopula caze agr v
+synNoun caze agr v = [mite $ AdjHead (v "") caze agr, mite $ NounPhrase (v ""), mite $ Negateable (v "")] ++ argOrCopula caze agr v
 
 argOrCopula caze agr v =
   if caze == Nom then xor [argRole, npCopulaHead False]

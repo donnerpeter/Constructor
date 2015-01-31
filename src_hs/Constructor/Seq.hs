@@ -71,7 +71,11 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env =
           adjResult mem2 agr2 = let
             adjAgrVariants = [mite $ result (Agr Nothing (Just Pl) Nothing)]
             allVariants = if agree agr1 agr2 then xor [adjAgrVariants, [mite $ result (commonAgr agr1 agr2)]] else adjAgrVariants
-            in fullConj mem1 mem2 ++ allVariants
+            requireNegation = seqConj sd == "but"
+            negatedVariants = leftCompatible env m1 >>= \mx -> case cxt mx of
+              Negated v -> withBase [mx] (fullConj mem1 mem2) ++ allVariants
+              _ -> []
+            in if requireNegation then negatedVariants else fullConj mem1 mem2 ++ allVariants
           in rightCompatible env m2 >>= \m3 -> case cxt m3 of
             SeqRight (Adj mem2 caze2 agr2) | caze1 == caze2 && adjAgree agr1 agr2 -> withBase [m1,m2,m3] $ adjResult mem2 agr2
             SeqRight (Possessive caze2 agr2 mem2) | caze1 == caze2 && adjAgree agr1 agr2 -> withBase [m1,m2,m3] $ adjResult mem2 agr2

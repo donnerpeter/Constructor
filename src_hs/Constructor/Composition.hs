@@ -236,11 +236,15 @@ interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
 
       _ -> []
 
+negationPropagation rightVar leftMites = leftMites >>= \m3 -> case cxt m3 of
+  PendingNegation _ -> withBase [m3] [semS rightVar P.Negated "true", mite $ Negated rightVar]
+  _ -> []
+
 interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
     let (left, right, base12) = mergeInfoHelpers m1 m2
     in case (cxt m1, cxt m2) of
       (Adj var2 adjCase agr1, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> 
-        mergeRight $ base12 [mite $ Unify var var2] ++ whPropagation m2 m1 (leftCompatible env m1)
+        mergeRight $ base12 [mite $ Unify var var2] ++ whPropagation m2 m1 (leftCompatible env m1) ++ negationPropagation var (leftCompatible env m1)
       (AdjHead var nounCase agr2, Adj var2 adjCase agr1) | adjCase == nounCase && agree agr1 agr2 ->
         mergeLeft $ base12 [mite $ Unify var var2] ++ whPropagation m1 m2 (rightCompatible env m2)
       (CompositeAdj var2 adjCase agr1, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 ->
@@ -342,7 +346,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
 
       (Word _ "не", Complement cp) -> right [semS cp P.Negated "true", mite $ Complement cp]
       (Word ne "не", Wh _ v) -> right [mite $ ExistentialWh v ne, semS v P.Negated "true"]
-      (Word _ "не", Negateable v) -> right [semS v P.Negated "true", mite $ Negated v]
+      (Word _ "не", Negateable v) -> right $ xor [[semS v P.Negated "true", mite $ Negated v], [mite $ PendingNegation v]]
       (Word _ "не", Verb v) -> let
         negateDirectObject = rightCombined env >>= \m3 -> case cxt m3 of
           ArgHead Acc v -> let

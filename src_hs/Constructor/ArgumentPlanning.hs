@@ -112,7 +112,9 @@ arguments fVerb@(getType -> Just typ) = allArgs where
         _ -> []
       (_, P.Location) | hasType "wh" value -> [NPArg value]
       (_, P.Location_on) -> [PPArg "on" value]
-      (_, P.Color) -> [Adverb AfterVerb "green"]
+      (_, P.Color) -> let
+        negation = if Just "true" == (fValue P.Color value >>= sValue P.Negated) then "not " else ""
+        in [Adverb AfterVerb $ negation ++ "green"]
       (_, P.Location_in) -> [PPArg "in" value]
       (s, P.Location_at) | s /= "copula" -> [PPArg "next to" value]
       ("copula_about", P.Arg2) -> [PPArg "about" value]

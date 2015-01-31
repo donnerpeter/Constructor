@@ -105,6 +105,11 @@ data Construction = Word Variable String
                   | SeqLeft Construction
                   | SeqRight Construction
 
+                  -- negation
+                  | Negated Variable
+                  | Negateable Variable
+                  | PendingNegation Variable
+
                   -- other
                   | Control Variable
                   | ModalityInfinitive {-modality-} Variable {-cp-} Variable
@@ -120,8 +125,6 @@ data Construction = Word Variable String
                   | ReflexiveTarget Variable
                   | ConjEmphasis P.StrProperty Variable
                   | ConjEmphasizeable Variable
-                  | Negated Variable
-                  | Negateable Variable
                   | SemPreposition ArgKind Variable
                   | Quantifier ArgKind Agr Variable
                   | Elaboration Variable

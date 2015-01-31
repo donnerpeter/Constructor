@@ -74,7 +74,7 @@ caseWhWord kind agr v = whWord agr v ++ [mite $ QuestionVariants (v "") kind, mi
 negatedWh v = [semT (v "") "wh", semS (v "") P.Negated "true", mite $ Negated (v ""), mite $ NegativePronoun (v "")]
 animate v = [semS (v "") P.Animate "true"]
 
-adj caze agr attr value v = [semV (v "") attr (v "adj"), semT (v "adj") value]
+adj caze agr attr value v = [semV (v "") attr (v "adj"), semT (v "adj") value, mite $ Negateable (v "adj")]
   ++ rusNumber agr (v "") ++ (if caze == Nom then xor [adjRole, adjCopulaHead] else adjRole) where
   adjRole = [mite $ Adj (v "") caze agr]
   adjCopulaHead = copulaHead NPCopula agr "copula" False cv ++ [semV (cv "") attr (v "")]
@@ -417,6 +417,7 @@ wordMites word index =
   "танцевать" -> infinitive "DANCE" v
   "только" -> modifierAdverb "ONLY" v
   "том" -> adj Prep A.sg P.Determiner "THAT" v
+  "тот" -> adj Nom A.m P.Determiner "THAT" v
   "три" -> wordNumber Acc "3" v
   "тут" -> sAdverb P.Emphasis "true" v
   "у" -> preposition "u" Gen v

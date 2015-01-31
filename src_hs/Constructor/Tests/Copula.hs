@@ -152,6 +152,9 @@ copulaTests = [
   translateTest "Этот арбуз зелёный."
                 "This watermelon is green."
   ,
+  translateTest "Тот арбуз не зелёный."
+                "That watermelon is not green."
+  ,
 --todo  translateTest "Этот помидор не зелёный, а красный."
 --                "This tomato is not green, but red."
 --  ,

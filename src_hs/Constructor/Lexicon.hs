@@ -74,10 +74,10 @@ caseWhWord kind agr v = whWord agr v ++ [mite $ QuestionVariants (v "") kind, mi
 negatedWh v = [semT (v "") "wh", semS (v "") P.Negated "true", mite $ Negated (v ""), mite $ NegativePronoun (v "")]
 animate v = [semS (v "") P.Animate "true"]
 
-adj caze agr attr value v = [semV (v "") attr (v "adj"), semT (v "adj") value, mite $ Negateable (v "adj")]
-  ++ rusNumber agr (v "") ++ (if caze == Nom then xor [adjRole, adjCopulaHead] else adjRole) where
-  adjRole = [mite $ Adj (v "") caze agr]
-  adjCopulaHead = copulaHead NPCopula agr "copula" False cv ++ [semV (cv "") attr (v "")]
+adj caze agr attr value v = [semV (cv "") attr (v ""), semT (v "") value, mite $ Negateable (v "")]
+  ++ rusNumber agr (cv "") ++ (if caze == Nom then xor [adjRole, adjCopulaHead] else adjRole) where
+  adjRole = [mite $ Adj (cv "") caze agr]
+  adjCopulaHead = copulaHead NPCopula agr "copula" False cv
   cv = modifyV v 'x'
 
 adjWh caze agr attr v = [mite $ Adj (v "") caze agr, semV (v "") attr (v "adj"), semT (v "adj") "wh", mite $ Wh agr (v "adj")]

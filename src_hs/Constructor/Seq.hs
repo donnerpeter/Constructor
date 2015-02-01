@@ -158,14 +158,14 @@ hybridSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = let
       _ -> []
     _ -> []
 
-data AnchorMapping = AnchorMapping {-original-} Mite Variable {-anchor-} Construction Variable deriving (Show)
+data AnchorMapping = AnchorMapping { templateMite:: Mite, templateVar:: Variable, anchorVar:: Variable } deriving (Show)
 
 checkOriginal ::  Construction -> Mite -> Maybe AnchorMapping
 checkOriginal anchor candidate = case (cxt candidate, anchor) of
-  (VerbalModifier a1 _ v1, VerbalModifier a2 _ v2) | a1 == a2 -> Just $ AnchorMapping candidate v1 anchor v2
-  (Argument kind1 v1, Argument kind2 v2) | kind1 == kind2 -> Just $ AnchorMapping candidate v1 anchor v2
-  (SemArgument kind1 v1 _, SemArgument kind2 v2 _) | kind1 == kind2 -> Just $ AnchorMapping candidate v1 anchor v2
-  (Adj v1 kind1 _, Adj v2 kind2 _) | kind1 == kind2 -> Just $ AnchorMapping candidate v1 anchor v2
+  (VerbalModifier a1 _ v1, VerbalModifier a2 _ v2) | a1 == a2 -> Just $ AnchorMapping candidate v1 v2
+  (Argument kind1 v1, Argument kind2 v2) | kind1 == kind2 -> Just $ AnchorMapping candidate v1 v2
+  (SemArgument kind1 v1 _, SemArgument kind2 v2 _) | kind1 == kind2 -> Just $ AnchorMapping candidate v1 v2
+  (Adj v1 kind1 _, Adj v2 kind2 _) | kind1 == kind2 -> Just $ AnchorMapping candidate v1 v2
   _ -> Nothing
 
 findOriginals mites anchor = catMaybes $ map (checkOriginal anchor) mites
@@ -176,12 +176,12 @@ processEllipsis oldClause ellipsisVar@(Variable varIndex _) e1 e2 prevTree = let
   allMites = allTreeMites prevTree
   mappings = catMaybes [mapConstructions mapping1 mapping2 | mapping1 <- findOriginals allMites e1, mapping2 <- findOriginals allMites e2]
   mapConstructions :: AnchorMapping -> AnchorMapping -> Maybe [Mite]
-  mapConstructions (AnchorMapping mo1 vo1 a1 va1) (AnchorMapping mo2 vo2 a2 va2) = let
-    o1 = cxt mo1
-    o2 = cxt mo2
+  mapConstructions m1 m2 = let
+    o1 = cxt (templateMite m1)
+    o2 = cxt (templateMite m2)
     mapVariable _v =
-      if _v == vo1 then va1
-      else if _v == vo2 then va2
+      if _v == templateVar m1 then anchorVar m1
+      else if _v == templateVar m2 then anchorVar m2
       else if _v == oldCP then ellipsisVar
       else Variable varIndex ("_" ++ show _v)
     mapMite m = case cxt m of

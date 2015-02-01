@@ -5,7 +5,7 @@ import Constructor.Variable
 import Constructor.Agreement
 import Constructor.Tree
 import Constructor.Util
-import Constructor.Lexicon
+import Constructor.LexiconUtils
 import Constructor.InteractionEnv
 import qualified Constructor.Seq as Seq
 import qualified Constructor.LinkedSet as LS

@@ -7,7 +7,7 @@ import Constructor.Agreement
 import Constructor.Variable
 import Constructor.Tree
 import Constructor.Util
-import Constructor.Lexicon
+import Constructor.LexiconUtils
 import Constructor.InteractionEnv
 import Control.Monad
 import Data.Maybe

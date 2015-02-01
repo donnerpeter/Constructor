@@ -200,7 +200,7 @@ shouldContrastSubject frame = let
     _ -> False
   in any contrastibleSubject allVerbs
 
-streetName frame = case sValue P.Name frame of
+streetName frame = case fValue P.VName frame >>= sValue P.Name of
  Just "знаменская" -> "Znamenskaya"
  Just "бассейная" -> "Basseinaya"
  Just "театральная" -> "Teatralnaya"
@@ -281,7 +281,9 @@ determiner frame det nbar = do
       else if isSingular frame then "a"
       else ""
 
-prefixName frame = earlier frame P.Name frame P.Type
+prefixName frame = case fValue P.VName frame of
+  Just fName -> earlier fName P.Name frame P.Type
+  _ -> False
 
 cat "" t2 = t2
 cat t1 "" = t1

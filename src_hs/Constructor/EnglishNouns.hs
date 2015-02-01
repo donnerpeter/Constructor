@@ -25,7 +25,7 @@ noun (Just typ) frame = case typ of
   "EYES" -> "eyes"
   "FAMILY" -> "family"
   "FINGER" -> if isSingular frame then "finger" else "fingers"
-  "GARDEN" -> if (fValue P.VName frame >>= getType) == Just "летний" then "Summer Garden" else "garden"
+  "GARDEN" -> if (fValue P.VName frame >>= sValue P.Name) == Just "летний" then "Summer Garden" else "garden"
   "HAMMER" -> "hammer"
   "HE" -> "he"
   "HOUSE" -> "house"

@@ -256,7 +256,7 @@ wordMites word index =
   "кстати" -> [mite $ VerbalModifier P.OptativeModality True v0, semT v0 "BY_THE_WAY"]
   "кто" -> caseWhWord Nom A.sg v ++ animate v
   "куда" -> whWord A.empty v ++ semArg Direction P.Goal v0
-  "летний" -> adj Acc A.m P.VName "летний" v -- todo летний is not only a name
+  "летний" -> adj Acc A.m P.VName "name" v ++ [semS v0 P.Name "летний"] -- todo летний is not only a name
   "лишенными" -> [mite $ Raiseable A.pl v0, semT v0 "LACK"] ++ arg Gen P.Theme v
   "любит" -> finVerb "LOVE" "PRESENT" A.sg3 v ++ optional (directObject v)
   "любить" -> infinitive "LOVE" v ++ optional (directObject v)
@@ -469,7 +469,7 @@ wordMites word index =
   _ ->
     if "ой" `isSuffixOf` word then 
       let nomName = take (length word - 2) word ++ "ая" in
-      [semS v0 P.Name nomName] ++
-      xor [[mite $ Adj (v "") Gen A.f],
-           nounSg Gen Fem "STREET" v]
+      [semS (v "name") P.Name nomName] ++
+      xor [adj Gen A.f P.VName "name" v ++ [mite $ Unify v0 (v "name")],
+           nounSg Gen Fem "STREET" v ++ [semV v0 P.VName (v "name")]]
     else [mite $ Word v0 word]

@@ -157,7 +157,7 @@ wordMites word index =
   "кстати" -> [mite $ VerbalModifier P.OptativeModality True v0, semT v0 "BY_THE_WAY"]
   "кто" -> caseWhWord Nom A.sg v ++ animate v
   "куда" -> whWord A.empty v ++ semArg Direction P.Goal v0
-  "летний" -> adj Acc A.m P.VName "name" v ++ [semS v0 P.Name "летний"] -- todo летний is not only a name
+  "летний" -> adj Acc A.m P.VName "name" v ++ [semS (v "adj") P.Name "летний"] -- todo летний is not only a name
   "лишенными" -> [mite $ Raiseable A.pl v0, semT v0 "LACK"] ++ arg Gen P.Theme v
   "любит" -> finVerb "LOVE" "PRESENT" A.sg3 v ++ optional (directObject v)
   "любить" -> infinitive "LOVE" v ++ optional (directObject v)
@@ -265,6 +265,7 @@ wordMites word index =
   "сад" -> nounSg Acc Masc "GARDEN" v
   "сада" -> nounSg Gen Masc "GARDEN" v
   "свалился" -> finVerb "FALL" "PAST" A.m v ++ arg (PP "s" Gen) P.Source v
+  "свет" -> nounSg Nom Masc "LIGHT" v
   "своим" -> [semT v0 "SELF", mite $ Possessive Dat A.pl v0, mite $ ReflexiveReference v0]
   "своими" -> [semT v0 "SELF", mite $ Possessive Instr A.pl v0, mite $ ReflexiveReference v0]
   "себе" -> pronoun Dat A.empty "SELF" v ++ [mite $ ReflexiveReference v0]
@@ -371,6 +372,6 @@ wordMites word index =
     if "ой" `isSuffixOf` word then 
       let nomName = take (length word - 2) word ++ "ая" in
       [semS (v "name") P.Name nomName] ++
-      xor [adj Gen A.f P.VName "name" v ++ [mite $ Unify v0 (v "name")],
+      xor [adj Gen A.f P.VName "name" v ++ [mite $ Unify (v "adj") (v "name")],
            nounSg Gen Fem "STREET" v ++ [semV v0 P.VName (v "name")]]
     else [mite $ Word v0 word]

@@ -41,6 +41,7 @@ data Construction = Word Variable String
                   | Sentence Variable
                   | Unclosed Side [Variable]
                   | Closed [Variable]
+                  | Handicap Variable
 
                   -- auxiliary
                   | EmptyCxt Construction
@@ -145,6 +146,7 @@ isHappy cxt = case cxt of
   Conjunction sd -> seqHasLeft sd && seqHasRight sd
   SeqRight (Wh {}) -> False; SeqRight _ -> True
   SeqLeft _ -> True
+  Handicap _ -> True
   _ -> False
 
 getCommaSurroundableVar cxt = case cxt of

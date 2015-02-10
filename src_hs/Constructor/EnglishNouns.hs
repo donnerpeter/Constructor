@@ -32,6 +32,7 @@ noun (Just typ) frame = case typ of
   "JAW" -> if isSingular frame then "jaw" else "jaws"
   "JAWS" -> "jaws"
   "JOY" -> "joy"
+  "LIGHT" -> "light"
   "MATTER" -> "matter"
   "ME" -> "me"
   "MEANING" -> "meaning"

@@ -243,7 +243,7 @@ negationPropagation rightVar leftMites = leftMites >>= \m3 -> case cxt m3 of
 interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
     let (left, right, base12) = mergeInfoHelpers m1 m2
     in case (cxt m1, cxt m2) of
-      (Adj var2 adjCase agr1, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> 
+      (Adj var2 adjCase agr1, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 ->
         mergeRight $ base12 [mite $ Unify var var2] ++ whPropagation m2 m1 (leftCompatible env m1) ++ negationPropagation var (leftCompatible env m1)
       (AdjHead var nounCase agr2, Adj var2 adjCase agr1) | adjCase == nounCase && agree agr1 agr2 ->
         mergeLeft $ base12 [mite $ Unify var var2] ++ whPropagation m1 m2 (rightCompatible env m2)
@@ -293,7 +293,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
                                   [mite $ NounAdjunct P.AccordingTo True var2],
                                   [mite $ VerbalModifier P.OptativeModality True var2]]
               ("ot", Gen) -> [mite $ VerbalModifier P.Reason False var2]
-              ("s", Instr) -> [mite $ VerbalModifier P.Mood False var2]
+              ("s", Instr) -> xor [[mite $ NounAdjunct P.Companion False var2], [mite $ VerbalModifier P.Mood False var2]]
               ("s", Gen) -> xor [[mite $ NounAdjunct P.Source False var2], [mite $ VerbalModifier P.Source False var2]]
               ("u", Gen) -> [mite $ VerbalModifier P.Location_at False var2]
               ("v", Acc) -> semArg Direction P.Goal_in var2

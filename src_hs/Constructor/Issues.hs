@@ -26,6 +26,7 @@ factIssues fact = let
           if "false" `elem` isolated then finalIssue msg
           else if null isolated then finalNo
           else issue msg
+        (P.Elided, _) -> l $ \_ -> finalIssue "elided"
         (P.Type, declaredType) -> typeIssues (variable fact) declaredType ++ orderingIssues (variable fact) declaredType
         _ -> []
       VarValue attr val -> let
@@ -39,6 +40,10 @@ factIssues fact = let
             if hasType "EYES" (frame sense) && not (hasType "2" $ valFrame sense) then issue "suspicious eye count" else provNo
           P.Condition -> l $ \sense ->
             if not (hasType "CASE" $ valFrame sense) then issue "wrong condition" else provNo
+          P.Mood -> l $ \sense ->
+            if not (hasAnyType ["RELIEF", "JOY"] $ valFrame sense) then issue "wrong mood" else provNo
+          P.Companion -> l $ \sense ->
+            if not (isHuman $ valFrame sense) then issue "wrong companion" else provNo
           P.Relative -> l $ \sense ->
             requireType (Just $ frame sense) $ \frame ->
               requireType (fValue P.Questioned $ valFrame sense) $ \wh ->

@@ -2,13 +2,15 @@ module Constructor.ParsingState where
 
 import Data.Maybe
 import Data.List
-import Constructor.Constructions (isStable)
+import Constructor.Constructions
 import Constructor.Mite
 import Constructor.Tree
 import Constructor.Util
+import Constructor.Variable
 import Constructor.InteractionEnv
 import Constructor.Issues (holderIssues)
 import Data.Function (on)
+import qualified Constructor.SemanticProperties as P
 import qualified Constructor.LinkedSet as LS
 import qualified Data.Set as Set
 import qualified Data.Map as Map
@@ -57,7 +59,7 @@ roots state = case lastVariants state of
 
 chooseBestLastVariants :: [ParsingState] -> [Tree] -> [Tree]
 chooseBestLastVariants finalHistory allVariants = {-trace (length result) -}result where
-  competitors = map bestVariant $ leastValued (length . mergedRoots) $ filter isStableTree allVariants
+  competitors = map bestVariant $ leastValued (length . mergedRoots) $ leastValued mergedHandicapCount $ filter isStableTree allVariants
   dup = findDuplicate competitors
   nodups = if isJust dup then error ("duplicate " ++ show dup) else competitors
   isStableTree tree = all (isStable . cxt) $ mites tree
@@ -73,6 +75,10 @@ chooseBestLastVariants finalHistory allVariants = {-trace (length result) -}resu
   mergedRoots rightTree = rightTree : roots (finalHistory !! (treeWidth rightTree - 1))
   mergedUnhappyCount rightTree = sum [unhappyCount tree | tree <- mergedRoots rightTree]
   mergedIssueCount rightTree = sum [length $ holderIssues $ _issues tree | tree <- mergedRoots rightTree]
+  mergedHandicapCount rightTree = sum [handicapCount tree | tree <- mergedRoots rightTree]
+  handicapCount tree = length $ LS.removeDups $ filter isHandicap $ concat $ map (Set.elems . allActiveMiteSet) $ Constructor.Tree.allVariants tree
+  isHandicap (cxt -> Handicap _) = True
+  isHandicap _ = False
 
 allMergeVariants :: ParsingState -> Tree -> State [ParsingState] [Tree]
 allMergeVariants state rightTree = do

@@ -17,6 +17,7 @@ data VarProperty = Arg1 | Arg2
                  | Goal | Goal_to | Goal_in | Goal_on | Goal_by | Goal_action
                  | Receiver | Addressee
                  | Experiencer
+                 | Companion
                  | PerfectBackground
                  | Determiner
                  | Order

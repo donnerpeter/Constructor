@@ -14,7 +14,8 @@ nounSg caze gender typ v = pronoun caze (A.Agr (Just gender) (Just A.Sg) (Just 3
 nounPl caze typ v = pronoun caze (A.Agr Nothing (Just A.Pl) (Just 3)) typ v
 pronoun caze agr typ v = synNoun caze agr v ++ [semT (v "") typ] ++ rusGender agr (v "")
 
-synNoun caze agr v = [mite $ AdjHead (v "") caze agr, mite $ NounPhrase (v ""), mite $ Negateable (v "")] ++ argOrCopula caze agr v
+synNoun caze agr v = synNounPhrase caze agr v ++ argOrCopula caze agr v
+synNounPhrase caze agr v = [mite $ AdjHead (v "") caze agr, mite $ NounPhrase (v ""), mite $ Negateable (v "")]
 
 argOrCopula caze agr v =
   if caze == Nom then xor [argRole, npCopulaHead False]
@@ -74,9 +75,13 @@ caseWhWord kind agr v = whWord agr v ++ [mite $ QuestionVariants (v "") kind, mi
 negatedWh v = [semT (v "") "wh", semS (v "") P.Negated "true", mite $ Negated (v ""), mite $ NegativePronoun (v "")]
 animate v = [semS (v "") P.Animate "true"]
 
-adj caze agr attr value v = [semV (cv "") attr (v ""), semT (v "") value, mite $ Negateable (v "")]
-  ++ rusNumber agr (cv "") ++ orNomCopula [mite $ Adj (cv "") caze agr] caze agr cv where
-  cv = modifyV v 'x'
+adj caze agr attr value v =
+  sem ++ (if caze == Nom then xor [adjVariant, adjCopulaHead, nounVariant] else xor [adjVariant, nounVariant])
+  where
+  adjVariant = rusNumber agr (v "") ++ [mite $ Negateable (v "adj"), mite $ Adj (v "") caze agr]
+  adjCopulaHead = copulaHead NPCopula agr "copula" False v ++ [mite $ Negateable (v "adj")]
+  nounVariant = synNounPhrase caze agr v ++ [mite $ Argument caze (v ""), semS (v "") P.Elided "true", mite $ Handicap (v "")]
+  sem = [semV (v "") attr (v "adj"), semT (v "adj") value]
 
 orNomCopula plainMites caze agr v = if caze == Nom then xor [plainMites, adjCopulaHead] else plainMites where
   adjCopulaHead = copulaHead NPCopula agr "copula" False v

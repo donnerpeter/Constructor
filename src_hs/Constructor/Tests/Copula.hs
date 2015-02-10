@@ -161,9 +161,9 @@ copulaTests = [
 --todo  translateTest "Этот помидор зелёный, а не красный."
 --                "This tomato is green and not red."
 --  ,
---todo  translateTest "Это не зелёный свет, а красный."
---                "This is not a green light, but a red one."
---  ,
+  translateTest "Это не зелёный свет, а красный."
+                "This is not a green light, but a red one."
+  ,
 --todo  translateTest "Это не зелёный, а красный свет."
 --                "This is not a green light, but a red one."
 --  ,

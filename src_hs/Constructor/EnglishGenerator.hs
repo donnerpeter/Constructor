@@ -86,7 +86,7 @@ np nom frame =
   if isSeq && (frame >>= fValue P.Member2 >>= getType) == Just "STREET" then
     handleSeq (return . streetName) frame `catM` return "streets"
   else if Just True == fmap (hasType "STREETS") frame then
-    handleSeq (return . streetName) (frame >>= fValue P.Components) `catM` return "streets"
+    handleSeq (return . streetNameString) (frame >>= fValue P.VName) `catM` return "streets"
   else handleSeq (np_internal nom mayHaveDeterminer) frame where
   isSeq = (frame >>= getType) == Just "seq"
   isSubj = isJust (frame >>= usage P.Arg1)
@@ -200,7 +200,9 @@ shouldContrastSubject frame = let
     _ -> False
   in any contrastibleSubject allVerbs
 
-streetName frame = case fValue P.VName frame >>= sValue P.Name of
+streetName frame = fromMaybe "" $ fmap streetNameString $ fValue P.VName frame
+
+streetNameString frame = case sValue P.Name frame of
  Just "знаменская" -> "Znamenskaya"
  Just "бассейная" -> "Basseinaya"
  Just "театральная" -> "Teatralnaya"
@@ -223,7 +225,7 @@ isHeavyNP state mNoun = Just True == fmap isHeavyNoun mNoun where
   isHeavyNoun noun =
     if usePronoun state noun then False
     else if hasType "seq" noun then any (not . isPronoun) (flatten $ Just noun)
-    else isJust (fValue P.Relative noun) || isJust (fValue P.Components noun) || isHeavyNP state (fDeterminer noun)
+    else isJust (fValue P.Relative noun) || isJust (fValue P.VName noun) || isHeavyNP state (fDeterminer noun)
 
 shouldGenerateDeterminer noun det state asSpecifier = let
   prev = filter (\f -> fDeterminer f == Just det) $ prevSiblings noun
@@ -447,7 +449,9 @@ vp fVerb verbForm clauseType = do
       nonSubjectQuestion = isQuestion && (isNothing fSubject || not (fromJust fSubject `elem` flatten (cp >>= fValue P.Questioned)))
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue P.Question_mark)
       isDoModality = isModality && Just True == fmap (hasType "DO") theme
-      thereSubject = clauseType == FiniteClause && (Just "wh" == (fSubject >>= getType) && isModality || isNothing (fSubject >>= getType)) && not isQuestion
+      thereSubject = clauseType == FiniteClause &&
+                     (Just "wh" == (fSubject >>= getType) && isModality || isNothing (fSubject >>= getType) && Just "true" /= (fSubject >>= sValue P.Elided)) &&
+                     not isQuestion
       (_aux, sVerb) = generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModality thereSubject
       aux = if clauseType == InfiniteClause then "" else _aux
       finalAdverb = case getType fVerb of

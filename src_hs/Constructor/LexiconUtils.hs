@@ -78,16 +78,16 @@ animate v = [semS (v "") P.Animate "true"]
 adj caze agr attr value v =
   sem ++ (if caze == Nom then xor [adjVariant, adjCopulaHead, nounVariant] else xor [adjVariant, nounVariant])
   where
-  adjVariant = rusNumber agr (v "") ++ [mite $ Negateable (v "adj"), mite $ Adj (v "") caze agr]
-  adjCopulaHead = copulaHead NPCopula agr "copula" False v ++ [mite $ Negateable (v "adj")]
-  nounVariant = synNounPhrase caze agr v ++ [mite $ Argument caze (v ""), semS (v "") P.Elided "true", mite $ Handicap (v "")]
-  sem = [semV (v "") attr (v "adj"), semT (v "adj") value]
+  adjVariant = [mite $ Negateable (v "adj"), mite $ Adj (v "adj") attr caze agr]
+  adjCopulaHead = copulaHead NPCopula agr "copula" False v ++ [mite $ Negateable (v "adj")] ++ semLink
+  nounVariant = rusNumber agr (v "") ++ synNounPhrase caze agr v ++ [mite $ Argument caze (v ""), semS (v "") P.Elided "true", mite $ Handicap (v "")] ++ semLink
+  sem = [semT (v "adj") value]
+  semLink = [semV (v "") attr (v "adj")]
 
 orNomCopula plainMites caze agr v = if caze == Nom then xor [plainMites, adjCopulaHead] else plainMites where
   adjCopulaHead = copulaHead NPCopula agr "copula" False v
 
-adjWh caze agr attr v = [mite $ Adj (v "") caze agr, semV (v "") attr (v "adj"), semT (v "adj") "wh", mite $ Wh agr (v "adj")]
-  ++ rusNumber agr (v "")
+adjWh caze agr attr v = [mite $ Adj (v "adj") attr caze agr, semT (v "adj") "wh", mite $ Wh agr (v "adj")]
 
 perfectBackground typ v = [mite $ Verb (v ""), semT (v "") typ, mite $ VerbalModifier P.PerfectBackground True (v ""), mite $ ConjEmphasizeable (v "")]
 sAdverb attr value v = [mite $ Adverb (v "verb"), semS (v "verb") attr value]

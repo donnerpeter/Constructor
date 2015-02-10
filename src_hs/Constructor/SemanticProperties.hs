@@ -7,7 +7,7 @@ import Constructor.Util
 data VarProperty = Arg1 | Arg2
                  | Member1 | Member2
                  | Questioned
-                 | Variants | Components
+                 | Variants
                  | Target
                  | Content
                  | Theme

@@ -77,7 +77,7 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env =
               _ -> []
             in if requireNegation then negatedVariants else fullConj mem1 mem2 ++ allVariants
           in rightCompatible env m2 >>= \m3 -> case cxt m3 of
-            SeqRight (Adj mem2 caze2 agr2) | caze1 == caze2 && adjAgree agr1 agr2 -> withBase [m1,m2,m3] $ adjResult mem2 agr2
+            SeqRight (Adj mem2 _ caze2 agr2) | caze1 == caze2 && adjAgree agr1 agr2 -> withBase [m1,m2,m3] $ adjResult mem2 agr2
             SeqRight (Possessive caze2 agr2 mem2) | caze1 == caze2 && adjAgree agr1 agr2 -> withBase [m1,m2,m3] $ adjResult mem2 agr2
             _ -> []
         argUnifications = let
@@ -109,8 +109,8 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env =
             ++ argUnifications
 
           (Possessive caze1 agr1 child, _) -> handleAdj child caze1 agr1 $ \newAgr -> Possessive caze1 newAgr seqV
-          (Adj child caze1 agr1, _) -> handleAdj child caze1 agr1 $ \newAgr -> CompositeAdj seqV caze1 newAgr
-          (CompositeAdj child caze1 agr1, _) -> handleAdj child caze1 agr1 $ \newAgr -> CompositeAdj seqV caze1 newAgr
+          (Adj child attr caze1 agr1, _) -> handleAdj child caze1 agr1 $ \newAgr -> CompositeAdj seqV attr caze1 newAgr
+          (CompositeAdj child attr caze1 agr1, _) -> handleAdj child caze1 agr1 $ \newAgr -> CompositeAdj seqV attr caze1 newAgr
 
           (Complement mem1, SeqRight (Complement mem2)) ->
             withBase [m1,m2,m3] $ fullConj mem1 mem2 ++ [mite $ Complement seqV, semS mem2 P.Distinguished "true"]
@@ -165,7 +165,6 @@ checkOriginal anchor candidate = case (cxt candidate, anchor) of
   (VerbalModifier a1 _ v1, VerbalModifier a2 _ v2) | a1 == a2 -> Just $ AnchorMapping candidate v1 v2
   (Argument kind1 v1, Argument kind2 v2) | kind1 == kind2 -> Just $ AnchorMapping candidate v1 v2
   (SemArgument kind1 v1 _, SemArgument kind2 v2 _) | kind1 == kind2 -> Just $ AnchorMapping candidate v1 v2
-  (Adj v1 kind1 _, Adj v2 kind2 _) | kind1 == kind2 -> Just $ AnchorMapping candidate v1 v2
   _ -> Nothing
 
 findOriginals mites anchor = catMaybes $ map (checkOriginal anchor) mites

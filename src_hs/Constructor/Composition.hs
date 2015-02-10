@@ -73,7 +73,6 @@ ellipsisLeftVariants env = if null result then [] else mergeRight $ LS.removeDup
 ellipsisAnchor (VerbalModifier _ _ v) = Just v
 ellipsisAnchor (Argument _ v) = Just v
 ellipsisAnchor (SemArgument _ _ v) = Just v
-ellipsisAnchor (Adj v _ _) = Just v
 ellipsisAnchor _ = Nothing
 
 punctuationAware env (m1, m2) =
@@ -243,12 +242,12 @@ negationPropagation rightVar leftMites = leftMites >>= \m3 -> case cxt m3 of
 interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
     let (left, right, base12) = mergeInfoHelpers m1 m2
     in case (cxt m1, cxt m2) of
-      (Adj var2 adjCase agr1, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 ->
-        mergeRight $ base12 [mite $ Unify var var2] ++ whPropagation m2 m1 (leftCompatible env m1) ++ negationPropagation var (leftCompatible env m1)
-      (AdjHead var nounCase agr2, Adj var2 adjCase agr1) | adjCase == nounCase && agree agr1 agr2 ->
-        mergeLeft $ base12 [mite $ Unify var var2] ++ whPropagation m1 m2 (rightCompatible env m2)
-      (CompositeAdj var2 adjCase agr1, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 ->
-        right [semV var P.Components var2]
+      (Adj var2 attr adjCase agr1, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 ->
+        mergeRight $ base12 [semV var attr var2] ++ whPropagation m2 m1 (leftCompatible env m1) ++ negationPropagation var (leftCompatible env m1)
+      (AdjHead var nounCase agr2, Adj var2 attr adjCase agr1) | adjCase == nounCase && agree agr1 agr2 ->
+        mergeLeft $ base12 [semV var attr var2] ++ whPropagation m1 m2 (rightCompatible env m2)
+      (CompositeAdj var2 attr adjCase agr1, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 ->
+        right [semV var attr var2]
 
       (Possessive adjCase agr1 child, AdjHead noun nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
         GenHead h -> mergeRight $ withBase [m1,m2,m3] [mite $ Unify h child] ++ Seq.pullThyself (leftCompatible env m1) ++ whPropagation m1 m2 (leftCompatible env m1)

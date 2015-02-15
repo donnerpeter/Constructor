@@ -59,24 +59,24 @@ roots state = case lastVariants state of
 
 chooseBestLastVariants :: [ParsingState] -> [Tree] -> [Tree]
 chooseBestLastVariants finalHistory allVariants = {-trace (length result) -}result where
-  competitors = map bestVariant $ leastValued (length . mergedRoots) $ leastValued mergedHandicapCount $ filter isStableTree allVariants
+  competitors = map bestVariant $ filter isStableTree $ allVariants
   dup = findDuplicate competitors
   nodups = if isJust dup then error ("duplicate " ++ show dup) else competitors
   isStableTree tree = all (isStable . cxt) $ mites tree
-  sortedVariants = sortBy (compare `on` mergedUnhappyCount) $ sortBy (compare `on` mergedIssueCount) nodups
+  sortedVariants = sortBy (compare `on` (length . mergedRoots)) $ sortBy (compare `on` mergedUnhappyCount) $ sortBy (compare `on` mergedIssueCount) nodups
   result = head sortedVariants : metricAscending (metric $ head sortedVariants) (tail sortedVariants)
 
   metricAscending _ [] = []
   metricAscending prev (x:xs) = let m = metric x in
     if m > prev then x : metricAscending m xs else metricAscending prev xs
 
-  metric tree = let edgeSizes = map treeWidth (edgeTrees RightSide tree) in (length edgeSizes, edgeSizes)
+  metric tree = let edgeSizes = map treeWidth (edgeTrees RightSide tree) in (- mergedHandicapCount tree, - length (mergedRoots tree), length edgeSizes, edgeSizes)
 
   mergedRoots rightTree = rightTree : roots (finalHistory !! (treeWidth rightTree - 1))
   mergedUnhappyCount rightTree = sum [unhappyCount tree | tree <- mergedRoots rightTree]
   mergedIssueCount rightTree = sum [length $ holderIssues $ _issues tree | tree <- mergedRoots rightTree]
-  mergedHandicapCount rightTree = sum [handicapCount tree | tree <- mergedRoots rightTree]
-  handicapCount tree = length $ LS.removeDups $ filter isHandicap $ concat $ map (Set.elems . allActiveMiteSet) $ Constructor.Tree.allVariants tree
+  mergedHandicapCount rightTree = sum [minimum (map handicapCount $ Constructor.Tree.allVariants tree) | tree <- mergedRoots rightTree]
+  handicapCount tree = length $ filter isHandicap $ Set.elems $ allActiveMiteSet tree
   isHandicap (cxt -> Handicap _) = True
   isHandicap _ = False
 

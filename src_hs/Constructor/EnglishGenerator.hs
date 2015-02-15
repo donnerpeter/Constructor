@@ -124,10 +124,10 @@ np_internal nom mayHaveDeterminer frame = do
       else if isJust $ usage P.Questioned frame >>= usage P.Relative then "that"
       else "what"
     else do
+      adjs <- adjectives frame
       let n = if Just "true" == sValue P.Elided frame then
                 if Just "Pl" == sValue P.RusNumber frame then "ones" else "one"
               else noun (getType frame) frame
-          adjs = foldl cat "" $ adjectives frame
           nbar1 = adjs `cat` n
           fDet = fDeterminer frame
       nbar <- case getType frame of
@@ -165,32 +165,46 @@ np_internal nom mayHaveDeterminer frame = do
   let neg = if Just "true" == sValue P.Negated frame && not (hasType "wh" frame) then "not" else ""
   return $ neg `cat` preQuantifier `cat` unquantified `cat` postQuantifier `cat` relative
 
-adjectives nounFrame = catMaybes [property, kind, shopKind, size, quality, gender, color] where
-  property = fValue P.Property nounFrame >>= getType >>= \p -> if p == "AMAZING" then Just "amazing" else Nothing
-  kind = fValue P.Kind nounFrame >>= getType >>= \p -> if p == "COMMERCIAL" then Just "commercial" else Nothing
-  quality = fValue P.Quality nounFrame >>= getType >>= \case
-    "HUMBLE" -> Just "humble"
-    "CLEVER" -> Just "smart"
-    "STUPID" -> Just "stupid"
-    _ -> Nothing
-  color = fValue P.Color nounFrame >>= getType >>= \case
-    "GREEN" -> Just "green"
-    "RED" -> Just "red"
-    _ -> Nothing
-  shopKind = sValue P.Name nounFrame >>= \p -> if p == "гастроном" then Just "grocery" else Nothing
-  gender =
-    if shouldContrastSubject nounFrame && isHuman nounFrame
-    then case sValue P.RusGender nounFrame of
-      Just "Masc" -> Just "male"
-      Just "Fem" -> Just "female"
-      _ -> Nothing
-    else Nothing
-  size = fValue P.Size nounFrame >>= getType >>= \p ->
-    if p == "LITTLE" then Just "small"
-    else if p == "EXCESSIVE" then Just "excessive"
-    else if p == "BIG" then
-      if hasType "GARDEN" nounFrame then Just "big" else Just "great"
-    else Nothing
+isArticleAfterAdjectives nounFrame = length adjFrames > 1 && sValue P.Negated (head adjFrames) == Just "true" where
+  adjFrames = flatten (fValue P.Color nounFrame)
+
+adjectives nounFrame = do
+  let adjSeq attr fun = let
+        value = fValue attr nounFrame
+        eachAdj adjFrame = let
+          negation = if Just "true" == sValue P.Negated adjFrame then "not" else ""
+          article = if isArticleAfterAdjectives nounFrame then indefiniteArticle nounFrame adjective else ""
+          adjective = fun adjFrame
+          in return $ negation `cat` article `cat` adjective
+        in case value of
+          Just x -> handleSeq eachAdj value
+          Nothing -> return ""
+  property <- adjSeq P.Property $ \p -> if hasType "AMAZING" p then "amazing" else ""
+  kind <- adjSeq P.Kind $ \p -> if hasType "COMMERCIAL" p then "commercial" else ""
+  quality <- adjSeq P.Quality $ \p -> case getType p of
+    Just "HUMBLE" -> "humble"
+    Just "CLEVER" -> "smart"
+    Just "STUPID" -> "stupid"
+    _ -> ""
+  color <- adjSeq P.Color $ \p -> case getType p of
+    Just "GREEN" -> "green"
+    Just "RED" -> "red"
+    _ -> ""
+  let shopKind = if sValue P.Name nounFrame == Just "гастроном" then "grocery" else ""
+  let gender =
+        if shouldContrastSubject nounFrame && isHuman nounFrame
+        then case sValue P.RusGender nounFrame of
+          Just "Masc" -> "male"
+          Just "Fem" -> "female"
+          _ -> ""
+        else ""
+  size <- adjSeq P.Size $ \p ->
+    if hasType "LITTLE" p then "small"
+    else if hasType "EXCESSIVE" p then "excessive"
+    else if hasType "BIG" p then
+      if hasType "GARDEN" nounFrame then "big" else "great"
+    else ""
+  return $ property `cat` kind `cat` shopKind `cat` size `cat` quality `cat` gender `cat` color
 
 shouldContrastSubject frame = let
   allVerbs = fromMaybe [] $ fmap allCoordinatedVerbs $ usage P.Arg1 frame
@@ -279,9 +293,13 @@ determiner frame det nbar = do
       else if hasAnyType ["NAMED_PERSON"] frame then ""
       else if hasType "OPINION" frame && Just True == fmap isVerbEllipsis (usage P.AccordingTo frame) then ""
       else if sValue P.Given frame == Just "true" then "the"
-      else if any (\c -> [c] `isPrefixOf` nbar) "aeiou8" then "an"
-      else if isSingular frame then "a"
-      else ""
+      else if isArticleAfterAdjectives frame then ""
+      else indefiniteArticle frame nbar
+
+indefiniteArticle nounFrame nextText =
+  if not $ isSingular nounFrame then ""
+  else if any (\c -> [c] `isPrefixOf` nextText) "aeiou8" then "an"
+  else "a"
 
 prefixName frame = case fValue P.VName frame of
   Just fName -> earlier fName P.Name frame P.Type

@@ -165,8 +165,11 @@ np_internal nom mayHaveDeterminer frame = do
   let neg = if Just "true" == sValue P.Negated frame && not (hasType "wh" frame) then "not" else ""
   return $ neg `cat` preQuantifier `cat` unquantified `cat` postQuantifier `cat` relative
 
-isArticleAfterAdjectives nounFrame = length adjFrames > 1 && sValue P.Negated (head adjFrames) == Just "true" where
-  adjFrames = flatten (fValue P.Color nounFrame)
+isArticleAfterAdjectives mainFrame =
+  not (hasType "copula" mainFrame) &&
+  length adjFrames > 1 && sValue P.Negated (head adjFrames) == Just "true"
+  where
+  adjFrames = flatten (fValue P.Color mainFrame)
 
 adjectives nounFrame = do
   let adjSeq attr fun = let
@@ -570,6 +573,7 @@ generateArg arg = let
     GerundBackground _ back -> return ("," `cat` conjIntroduction back) `catM` vp back Gerund InfiniteClause `catM` return ","
     CommaSurrounded a -> return "," `catM` generateArg a `catM` return ","
     Silence _ -> return ""
+    Adjectives fVerb -> adjectives fVerb
 
 argOrder arg = case arg of
   PPAdjunct {} -> 2

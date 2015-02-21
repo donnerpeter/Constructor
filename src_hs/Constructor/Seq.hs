@@ -66,19 +66,20 @@ seqLeft env = {-traceIt "seqLeft" $ -}result where
 normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env =
       leftCombined env >>= \m1 -> let
         fullConj mem1 mem2 = [semV seqV P.Member1 mem1, semV seqV P.Member2 mem2, mite $ Conjunction $ sd {seqHasLeft=True}]
-        handleAdj :: Variable -> ArgKind -> Agr -> (Agr -> Construction) -> [Mite]
-        handleAdj mem1 caze1 agr1 result = let
+        handleAdj :: Variable -> ArgKind -> Agr -> P.VarProperty -> (Agr -> Construction) -> [Mite]
+        handleAdj mem1 caze1 agr1 attr result = let
           adjResult mem2 agr2 = let
-            adjAgrVariants = [mite $ result (Agr Nothing (Just Pl) Nothing)]
+            adjAgrVariants = withCopula (Agr Nothing (Just Pl) Nothing)
+            withCopula agr = if caze1 == Nom then [copulaHead NPCopula agr "copula" False (makeV seqV "_cop") ++ [semV (makeV seqV "_cop" "") attr seqV], [mite $ result agr]] else [[mite $ result agr]]
             allVariants =
-              if seqConj sd == "but" then [mite $ result (commonAgr agr1 agr2)]
-              else if agree agr1 agr2 then xor [adjAgrVariants, [mite $ result (commonAgr agr1 agr2)]]
+              if seqConj sd == "but" then withCopula (commonAgr agr1 agr2)
+              else if agree agr1 agr2 then adjAgrVariants ++ withCopula (commonAgr agr1 agr2)
               else adjAgrVariants
             requireNegation = seqConj sd == "but"
             negatedVariants = leftCompatible env m1 >>= \mx -> case cxt mx of
-              Negated v -> withBase [mx] (fullConj mem1 mem2) ++ allVariants
+              Negated v -> withBase [mx] (fullConj mem1 mem2) ++ xorNonEmpty allVariants
               _ -> []
-            in if requireNegation then negatedVariants else fullConj mem1 mem2 ++ allVariants
+            in if requireNegation then negatedVariants else fullConj mem1 mem2 ++ xorNonEmpty allVariants
           in rightCompatible env m2 >>= \m3 -> case cxt m3 of
             SeqRight (Adj mem2 _ caze2 agr2) | caze1 == caze2 && adjAgree agr1 agr2 -> withBase [m1,m2,m3] $ adjResult mem2 agr2
             SeqRight (Possessive caze2 agr2 mem2) | caze1 == caze2 && adjAgree agr1 agr2 -> withBase [m1,m2,m3] $ adjResult mem2 agr2
@@ -111,9 +112,9 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env =
             withBase [m1,m2, m3] (fullConj mem1 mem2 ++ [mite $ VerbalModifier attr comma seqV] ++ (baseMites m3 >>= distinguished))
             ++ argUnifications
 
-          (Possessive caze1 agr1 child, _) -> handleAdj child caze1 agr1 $ \newAgr -> Possessive caze1 newAgr seqV
-          (Adj child attr caze1 agr1, _) -> handleAdj child caze1 agr1 $ \newAgr -> CompositeAdj seqV attr caze1 newAgr
-          (CompositeAdj child attr caze1 agr1, _) -> handleAdj child caze1 agr1 $ \newAgr -> CompositeAdj seqV attr caze1 newAgr
+          (Possessive caze1 agr1 child, _) -> handleAdj child caze1 agr1 P.Arg1 $ \newAgr -> Possessive caze1 newAgr seqV
+          (Adj child attr caze1 agr1, _) -> handleAdj child caze1 agr1 attr $ \newAgr -> CompositeAdj seqV attr caze1 newAgr
+          (CompositeAdj child attr caze1 agr1, _) -> handleAdj child caze1 agr1 attr $ \newAgr -> CompositeAdj seqV attr caze1 newAgr
 
           (Complement mem1, SeqRight (Complement mem2)) ->
             withBase [m1,m2,m3] $ fullConj mem1 mem2 ++ [mite $ Complement seqV, semS mem2 P.Distinguished "true"]

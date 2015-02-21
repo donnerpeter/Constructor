@@ -92,7 +92,7 @@ adjWh caze agr attr v = [mite $ Adj (v "adj") attr caze agr, semT (v "adj") "wh"
 perfectBackground typ v = [mite $ Verb (v ""), semT (v "") typ, mite $ VerbalModifier P.PerfectBackground True (v ""), mite $ ConjEmphasizeable (v "")]
 sAdverb attr value v = [mite $ Adverb (v "verb"), semS (v "verb") attr value]
 modifierAdverb value v = [mite $ ModifierAdverb (v "head"), semS (v "head") P.ModifierAdverb value]
-adverb attr value v = [mite $ Adverb (v "verb"), semV (v "verb") attr (v ""), semT (v "") value, mite $ AdverbModifiable (v "")]
+adverb attr value v = [mite $ VerbalModifier attr False (v ""), semT (v "") value, mite $ AdverbModifiable (v "")]
 genHead attr v = optional [mite $ GenHead (v "gen"), semV (v "") attr (v "gen")]
 directObject v = arg Acc P.Arg2 v
 conjunction v0 conj ready = [mite $ Conjunction $ SeqData v0 conj ready False False False, semT v0 "seq"] ++ (if conj == "," then [] else [semS v0 P.Conj conj])

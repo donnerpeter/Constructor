@@ -20,7 +20,8 @@ data Tree = Tree {
   _issues :: IssueHolder,
   allVariants:: [Tree],
   sense :: Sense,
-  unhappyCount :: Int
+  unhappyCount :: Int,
+  handicapCount :: Int
 }
 
 instance Eq Tree where t1 == t2 = eqKey t1 == eqKey t2
@@ -99,7 +100,7 @@ createLeaf mites candidateSets = head trees where
       active = activeSet, allActiveMiteSet = activeSet,
       activeHeadMites = active,
       activeHeadMitesBase = LS.removeDups (active >>= baseMites),
-      _unhappy = unhappy, unhappyCount = _unhappyCount unhappy,
+      _unhappy = unhappy, unhappyCount = _unhappyCount unhappy, handicapCount = length $ filter isHandicap active,
       sense = _sense, _issues = leafHolder _sense,
       allVariants = trees
     }
@@ -152,6 +153,7 @@ candidatesToBranch mites headSide active _activeHeadMites allBranchVariants cand
     activeHeadMites = _activeHeadMites,
     activeHeadMitesBase = LS.removeDups (_activeHeadMites >>= baseMites),
     _unhappy = bcUnhappy bc, unhappyCount = unhappyCount,
+    handicapCount = handicapCount aLeft + handicapCount aRight + Set.size (Set.filter isHandicap activeSet),
     sense = bcSense bc, _issues = bcIssues bc,
     allVariants = allBranchVariants
   }

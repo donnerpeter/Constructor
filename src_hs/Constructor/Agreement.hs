@@ -24,13 +24,19 @@ commonAgr a1 a2 = assert (agree a1 a2) $ Agr (unifyAttrs gender a1 a2) (unifyAtt
 m = Agr (Just Masc) (Just Sg) Nothing
 f = Agr (Just Fem) (Just Sg) Nothing
 n = Agr (Just Neu) (Just Sg) Nothing
+
 sg = Agr Nothing (Just Sg) Nothing
-pl = Agr Nothing (Just Pl) Nothing
+sg1 = Agr Nothing (Just Sg) (Just 1)
+sg2 = Agr Nothing (Just Sg) (Just 2)
+sg3 = Agr Nothing (Just Sg) (Just 3)
+
 m3 = Agr (Just Masc) (Just Sg) (Just 3)
 f3 = Agr (Just Fem) (Just Sg) (Just 3)
 n3 = Agr (Just Neu) (Just Sg) (Just 3)
+
+pl = Agr Nothing (Just Pl) Nothing
 pl1 = Agr Nothing (Just Pl) (Just 1)
 pl2 = Agr Nothing (Just Pl) (Just 2)
 pl3 = Agr Nothing (Just Pl) (Just 3)
-sg3 = Agr Nothing (Just Sg) (Just 3)
+
 empty = Agr Nothing Nothing Nothing

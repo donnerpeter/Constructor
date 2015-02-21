@@ -109,6 +109,8 @@ isAnimate frame = isHuman frame || Just "true" == sValue P.Animate frame
 isInanimate frame = Just "wh" == getDeclaredType frame && Just "true" /= sValue P.Animate frame
                  || Just True == fmap isNumberString (getType frame)
 
+isFood frame = hasType "CABBAGE" frame
+
 unSeq frame = case msum [usage P.Member1 frame, usage P.Member2 frame] of
   Just s -> unSeq s
   _ -> frame

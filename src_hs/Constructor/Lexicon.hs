@@ -89,6 +89,7 @@ wordMites word index =
   "ему" -> pronoun Dat A.sg "HE" v
   "если" -> [mite $ ConditionComp v0 "if" False]
   "есть" -> [semS v0 P.Time "PRESENT"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0]]
+  "жареную" -> adj Acc A.sg P.Kind "ROASTED" v
   "забыл" -> finVerb "FORGET" "PAST" A.m v ++ optional (xor [compHead P.Arg2 v, directObject v, whatComesNext v])
   "забыла" -> finVerb "FORGET" "PAST" A.f v ++ optional (xor [compHead P.Arg2 v, directObject v, whatComesNext v])
   "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ optional (xor [compHead P.Arg2 v, directObject v, whatComesNext v])
@@ -133,6 +134,7 @@ wordMites word index =
   "какой" -> xor [adjWh Nom A.m P.Determiner v, adjWh Acc A.m P.Determiner v]
   "какой-то" -> adj Nom A.sg P.Determiner "SOME" v
   "каком" -> adjWh Prep A.m P.Determiner v
+  "капусту" -> nounSg Acc Fem "CABBAGE" v
   "кассир" -> nounSg Nom Masc "CASHIER" v ++ genHead P.Place v
   "кассира" -> nounSg Gen Masc "CASHIER" v ++ genHead P.Place v
   "кассирша" -> nounSg Nom Fem "CASHIER" v ++ genHead P.Place v
@@ -161,6 +163,7 @@ wordMites word index =
   "лишенными" -> [mite $ Raiseable A.pl v0, semT v0 "LACK"] ++ arg Gen P.Theme v
   "любит" -> finVerb "LOVE" "PRESENT" A.sg3 v ++ optional (directObject v)
   "любить" -> infinitive "LOVE" v ++ optional (directObject v)
+  "люблю" -> finVerb "LOVE" "PRESENT" A.sg1 v ++ optional (directObject v)
   "любопытства" -> nounSg Gen Neu "CURIOSITY" v
   "магазин" -> xor [nounSg Nom Masc "SHOP" v, nounSg Acc Masc "SHOP" v]
   "магазина" -> nounSg Gen Masc "SHOP" v
@@ -193,7 +196,7 @@ wordMites word index =
   "никто" -> negatedWh v ++ [mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.sg3] ++ animate v
   "никуда" -> negatedWh v ++ semArg Direction P.Goal v0
   "ничего" -> negatedWh v ++ [mite $ Argument Gen v0]
-  "но" ->  xor [conjunction v0 "but" False, [mite $ ConjEmphasis P.ButEmphasis v0]]
+  "но" ->  xor [conjunction v0 "but" False ++ [semS v0 P.ConjStrong "true"], [mite $ ConjEmphasis P.ButEmphasis v0]]
   "носом" -> nounSg Instr Masc "NOSE" v
   "нужно" -> [semT v0 "NEED", mite $ NomHead A.n (v "arg2") Unsatisfied, semV v0 P.Arg2 (v "arg2")] ++ optional [mite $ TenseHead v0] ++ optional (arg Dat P.Arg1 v) ++ clause v
   "о" -> preposition "o" Prep v

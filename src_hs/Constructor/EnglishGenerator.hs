@@ -68,7 +68,7 @@ handleSeq f (Just frame) =
                             then "and"
                           else if Just True == fmap shouldContrastSubject (firstContent >>= fValue P.Arg1) then ", and"
                           else if length (filter (\cp -> Just True == fmap (hasType "copula") (fValue P.Content cp)) $ flatten $ Just frame) > 1 then ", and"
-                          else if Just "true" == (second >>= sValue P.Negated) then "and"
+                          else if Just "true" == (second >>= sValue P.Negated) && Just "true" /= sValue P.ConjStrong frame then "and"
                           else ", but"
                         else if conj == "and" then
                           if Just True == fmap isCP second && Just True == fmap (hasType "seq") (first >>= lastGeneratedMember) then ", and"
@@ -125,8 +125,9 @@ np_internal nom mayHaveDeterminer frame = do
       else "what"
     else do
       adjs <- adjectives frame
-      let n = if Just "true" == sValue P.Elided frame then
-                if Just "Pl" == sValue P.RusNumber frame then "ones" else "one"
+      let n = if isElided frame then
+                if skipElidedOne frame then ""
+                else if Just "Pl" == sValue P.RusNumber frame then "ones" else "one"
               else noun (getType frame) frame
           nbar1 = adjs `cat` n
           fDet = fDeterminer frame
@@ -171,6 +172,12 @@ isArticleAfterAdjectives mainFrame =
   where
   adjFrames = flatten (fValue P.Color mainFrame)
 
+isElided frame = Just "true" == sValue P.Elided frame
+
+skipElidedOne nounFrame = Just "true" == (sValue P.ConjStrong $ unSeq2 nounFrame) && case prevSiblings nounFrame of
+  first:_ | not (isElided first) -> True
+  _ -> False
+
 adjectives nounFrame = do
   let adjSeq attr fun = let
         value = fValue attr nounFrame
@@ -183,7 +190,7 @@ adjectives nounFrame = do
           Just x -> handleSeq eachAdj value
           Nothing -> return ""
   property <- adjSeq P.Property $ \p -> if hasType "AMAZING" p then "amazing" else ""
-  kind <- adjSeq P.Kind $ \p -> if hasType "COMMERCIAL" p then "commercial" else ""
+  kind <- adjSeq P.Kind $ \p -> if hasType "COMMERCIAL" p then "commercial" else if hasType "ROASTED" p then "roasted" else ""
   quality <- adjSeq P.Quality $ \p -> case getType p of
     Just "HUMBLE" -> "humble"
     Just "CLEVER" -> "smart"
@@ -292,9 +299,10 @@ determiner frame det nbar = do
       else if sDet == Just "wh" then "which"
       else if isJust (fValue P.Quantifier frame) then ""
       else if hasType "STREET" frame && prefixName frame then streetName frame
-      else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING", "MONEY", "COUNTING", "APARTMENTS", "OFFICES", "HOUSES"] frame then ""
+      else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING", "MONEY", "COUNTING", "APARTMENTS", "OFFICES", "HOUSES", "CABBAGE"] frame then ""
       else if hasAnyType ["NAMED_PERSON"] frame then ""
       else if hasType "OPINION" frame && Just True == fmap isVerbEllipsis (usage P.AccordingTo frame) then ""
+      else if isElided frame && skipElidedOne frame then ""
       else if sValue P.Given frame == Just "true" then "the"
       else if isArticleAfterAdjectives frame then ""
       else indefiniteArticle frame nbar
@@ -471,7 +479,7 @@ vp fVerb verbForm clauseType = do
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue P.Question_mark)
       isDoModality = isModality && Just True == fmap (hasType "DO") theme
       thereSubject = clauseType == FiniteClause &&
-                     (Just "wh" == (fSubject >>= getType) && isModality || isNothing (fSubject >>= getType) && Just "true" /= (fSubject >>= sValue P.Elided)) &&
+                     (Just "wh" == (fSubject >>= getType) && isModality || isNothing (fSubject >>= getType) && Just True /= (fmap isElided fSubject)) &&
                      not isQuestion
       (_aux, sVerb) = generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModality thereSubject
       aux = if clauseType == InfiniteClause then "" else _aux

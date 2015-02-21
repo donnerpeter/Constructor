@@ -54,7 +54,7 @@ data StrProperty = Type
                  | RusNumber | RusPerson | RusGender
                  | Given
                  | Number
-                 | Conj | Hybrid
+                 | Conj | Hybrid | ConjStrong
                  | InSitu
                  | Ellipsis | Elided
                  | SAnchor

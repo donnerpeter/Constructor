@@ -173,9 +173,12 @@ copulaTests = [
   translateTest "Это зелёный арбуз, а не красный помидор."
                 "This is a green watermelon and not a red tomato."
   ,
---todo  translateTest "Я люблю капусту, но не жареную."
---                "I like cabbage, but not roasted."
---  ,
+  translateTest "Я люблю капусту, но не жареную."
+                "I like cabbage, but not roasted."
+  ,
+  translateTest "Я люблю капусту, но жареную."
+                "I like cabbage, but roasted."
+  ,
  translateTest "Она кассирша и работает в магазине."
                 "She's a cashier and works in a store."
   ,

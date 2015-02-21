@@ -15,6 +15,7 @@ noun (Just typ) frame = case typ of
   "BOOK" -> "book"
   "BRIGADIER" -> "brigadier"
   "BROTHER" -> "brother"
+  "CABBAGE" -> "cabbage"
   "CASE" -> "thing"
   "CASHIER" -> "cashier"
   "CHILD" -> "child"

@@ -1,4 +1,5 @@
 module Constructor.Inference (
+  findFrames,
   fValue, sValue,
   getType, getDeclaredType, hasType, hasAnyType, resolve,
   typeEarlier,

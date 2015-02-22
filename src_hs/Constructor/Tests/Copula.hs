@@ -179,7 +179,7 @@ copulaTests = [
   translateTest "Я люблю капусту, но жареную."
                 "I like cabbage, but roasted."
   ,
- translateTest "Она кассирша и работает в магазине."
+  translateTest "Она кассирша и работает в магазине."
                 "She's a cashier and works in a store."
   ,
   translateTest "Кто это был? Кем он был? А кем была она?"
@@ -211,7 +211,7 @@ copulaTests = [
 --  ,
 --todo  translateTest "Кассир был умный, кассирша - не очень."
 --                "The male cashier was smart, but the female cashier wasn't so smart."
---  ,
---todo  translateTest "Кассирша была умной. Кассир тоже будет умным."
---                "The female cashier was smart. The male cashier will also be smart."
+  ,
+  translateTest "Кассирша была умной. Кассир тоже будет умным."
+                "The female cashier was smart. The male cashier will also be smart."
   ]

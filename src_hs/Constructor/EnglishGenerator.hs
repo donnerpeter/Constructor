@@ -216,13 +216,19 @@ adjectives nounFrame = do
     else ""
   return $ property `cat` kind `cat` shopKind `cat` size `cat` quality `cat` gender `cat` color
 
-shouldContrastSubject frame = let
-  allVerbs = fromMaybe [] $ fmap allCoordinatedVerbs $ usage P.Arg1 frame
-  contrastibleSubject fVerb = case fValue P.Arg1 fVerb of
-    Just fSubject | not (isNumber $ Just fSubject), Just g1 <- sValue P.RusGender fSubject, Just g2 <- sValue P.RusGender frame, g1 /= g2 ->
-      not (isVerbEllipsis fVerb) || isEllipsisAnchor (Just fSubject) fVerb
-    _ -> False
-  in any contrastibleSubject allVerbs
+shouldContrastSubject frame = case (getType frame, sValue P.RusGender frame) of
+  (Just typ, Just gender) | typ /= "NAMED_PERSON" -> let
+    allVerbs = fromMaybe [] $ fmap allCoordinatedVerbs $ usage P.Arg1 frame
+    contrastibleSubject fVerb = case fValue P.Arg1 fVerb of
+      Just fSubject | not (isNumber $ Just fSubject),
+                      Just g1 <- sValue P.RusGender fSubject,
+                      Just t <- getType fSubject,
+                      g1 /= gender,
+                      t == typ ->
+        not (isVerbEllipsis fVerb) || isEllipsisAnchor (Just fSubject) fVerb
+      _ -> False
+    in any contrastibleSubject allVerbs
+  _ -> False
 
 streetName frame = fromMaybe "" $ fmap streetNameString $ fValue P.VName frame
 

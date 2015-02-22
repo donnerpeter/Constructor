@@ -113,7 +113,8 @@ arguments fVerb@(getType -> Just typ) = allArgs where
         _ -> []
       (_, P.Location) | hasType "wh" value -> [NPArg value]
       (_, P.Location_on) -> [PPArg "on" value]
-      (_, P.Color) -> [Adjectives fVerb]
+      ("copula", P.Color) -> [Adjectives fVerb]
+      ("copula", P.Quality) -> [Adjectives fVerb]
       (_, P.Location_in) -> [PPArg "in" value]
       (s, P.Location_at) | s /= "copula" -> [PPArg "next to" value]
       ("copula_about", P.Arg2) -> [PPArg "about" value]
@@ -152,10 +153,17 @@ arguments fVerb@(getType -> Just typ) = allArgs where
       _ -> []
 arguments _ = []
 
-allCoordinatedVerbs fVerb = let
-  cp = usage P.Content fVerb
-  allCPs = flatten (fmap unSeq cp)
-  in catMaybes $ map (fValue P.Content) allCPs
+allCoordinatedVerbs fVerb = case usage P.Content fVerb of
+  Nothing -> [fVerb]
+  Just cp -> let
+    allSenseCPs = findFrames "situation" (sense fVerb)
+    i = fromJust $ elemIndex cp allSenseCPs
+    windowSize = 5
+    start = max (i - windowSize) 0
+    window = take (2 * windowSize) $ drop start allSenseCPs
+    sequences = LS.removeDups $ map unSeq window
+    componentCPs = sequences >>= flatten . Just
+    in catMaybes $ map (fValue P.Content) componentCPs
 
 shouldContrastRelTime fVerb = length (catMaybes $ map (fValue P.RelTime) $ allCoordinatedVerbs fVerb) > 1
 

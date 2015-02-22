@@ -76,7 +76,7 @@ negatedWh v = [semT (v "") "wh", semS (v "") P.Negated "true", mite $ Negated (v
 animate v = [semS (v "") P.Animate "true"]
 
 adj caze agr attr value v =
-  sem ++ (if caze == Nom then xor [adjVariant, adjCopulaHead, nounVariant] else xor [adjVariant, nounVariant])
+  sem ++ (if caze == Nom || caze == Instr then xor [adjVariant, adjCopulaHead, nounVariant] else xor [adjVariant, nounVariant])
   where
   v0 = v ""
   adjVariant = [mite $ Negateable v0, mite $ Adj v0 attr caze agr]

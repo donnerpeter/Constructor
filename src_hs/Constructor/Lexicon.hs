@@ -321,6 +321,7 @@ wordMites word index =
   "такой" -> adj Nom A.m P.Determiner "SUCH" v
   "там" -> adverb P.Location "THERE" v
   "танцевать" -> infinitive "DANCE" v
+  "тоже" -> sAdverb P.Also "true" v
   "только" -> modifierAdverb "ONLY" v
   "том" -> adj Prep A.sg P.Determiner "THAT" v
   "тот" -> adj Nom A.m P.Determiner "THAT" v

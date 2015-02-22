@@ -120,7 +120,6 @@ data Construction = Word Variable String
                   | DirectSpeechDash Variable
                   | Ellipsis Variable {-left-} (Maybe Construction) {-right-} (Maybe Construction)
                   | RaisingVerb {-verb-} Variable {-subj-} Variable
-                  | Raiseable Agr Variable
                   | TwoWordCxt String {-first-} Bool [Construction] Variable
                   | ReflexiveReference Variable
                   | ReflexiveTarget Variable

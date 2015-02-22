@@ -22,7 +22,7 @@ wordMites word index =
   "6-ти" -> nounSg Gen Masc "6" v
   "а" -> xor [conjunction v0 "but" False, [mite $ ConjEmphasis P.AndEmphasis v0]]
   "арбуз" -> nounSg Nom Masc "WATERMELON" v
-  "бессмысленными" -> [mite $ Raiseable A.pl v0, semT v0 "MEANINGLESS"]
+  "бессмысленными" -> adj Instr A.pl P.Quality "MEANINGLESS" v
   "большим" -> xor[adj Instr A.m P.Size "BIG" v, adj Instr A.n P.Size "BIG" v]
   "большой" -> xor[adj Instr A.f P.Size "BIG" v, adj Nom A.m P.Size "BIG" v, adj Acc A.m P.Size "BIG" v]
   "брат" -> nounSg Nom Masc "BROTHER" v ++ genHead P.Arg1 v
@@ -160,7 +160,7 @@ wordMites word index =
   "кто" -> caseWhWord Nom A.sg v ++ animate v
   "куда" -> whWord A.empty v ++ semArg Direction P.Goal v0
   "летний" -> adj Acc A.m P.VName "name" v ++ [semS (v "adj") P.Name "летний"] -- todo летний is not only a name
-  "лишенными" -> [mite $ Raiseable A.pl v0, semT v0 "LACK"] ++ arg Gen P.Theme v
+  "лишенными" -> adj Instr A.pl P.Quality "LACK" v ++ arg Gen P.Theme (makeV v0 "adj")
   "любит" -> finVerb "LOVE" "PRESENT" A.sg3 v ++ optional (directObject v)
   "любить" -> infinitive "LOVE" v ++ optional (directObject v)
   "люблю" -> finVerb "LOVE" "PRESENT" A.sg1 v ++ optional (directObject v)
@@ -337,9 +337,10 @@ wordMites word index =
   "улицы" -> nounSg Gen Fem "STREET" v
   "улыбнулась" -> finVerb "SMILE" "PAST" A.f v
   "умная" -> adj Nom A.f P.Quality "CLEVER" v
-  "умной" -> [mite $ Raiseable A.f v0, semT v0 "CLEVER"]
+  "умной" -> adj Instr A.f P.Quality "CLEVER" v
   "умные" -> adj Nom A.pl P.Quality "CLEVER" v
   "умный" -> adj Nom A.m P.Quality "CLEVER" v
+  "умным" -> adj Instr A.m P.Quality "CLEVER" v
   "упал" -> finVerb "FALL" "PAST" A.m v
   "упала" -> finVerb "FALL" "PAST" A.f v
   "хитрец" -> nounSg Nom Masc "CUNNING_PERSON" v

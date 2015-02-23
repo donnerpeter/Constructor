@@ -323,8 +323,8 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (Verb v, Word _ "бы") -> left [semS v P.Irrealis "true"]
       (ModifierAdverb v1, AdverbModifiable v2) -> right [mite $ Unify v1 v2]
 
-      (TenseHead v0, Tense v1) -> left [mite $ Unify v0 v1]
-      (Tense v0, TenseHead v1) -> right [mite $ Unify v0 v1]
+      (TenseHead _ v0, Tense v1) -> left [mite $ Unify v0 v1]
+      (Tense v0, TenseHead _ v1) -> right [mite $ Unify v0 v1]
 
       (WhAsserter verb, Wh _ wh) -> right [mite $ ExistentialWh wh verb]
 

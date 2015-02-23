@@ -125,11 +125,11 @@ wordMites word index =
   "кажется" -> raisingVerb "SEEM" "PRESENT" A.sg3 v ++ optional (arg Dat P.Experiencer v)
   "как" -> [mite $ TwoWordCxt "так как" False [] v0]
   "каков" ->
-    finiteClause A.m True v ++ optional [mite $ TenseHead v0] ++ [semT (v "wh") "wh", semV v0 P.Arg2 (v "wh"), mite $ ShortAdj (v "wh")] ++
+    finiteClause A.m True v ++ [mite $ TenseHead Optional v0, semT (v "wh") "wh", semV v0 P.Arg2 (v "wh"), mite $ ShortAdj (v "wh")] ++
     xor [[semT v0 "degree"],
          [semT v0 "copula", semV (v "cp") P.Questioned (v "wh")] ++ xor [[mite $ Complement (v "cp")], [mite $ TopLevelQuestion (v "cp")]]]
   "каково" ->
-    finiteClause A.n True v ++ optional [mite $ TenseHead v0] ++ [semT (v "wh") "wh", semV v0 P.Arg2 (v "wh"), mite $ ShortAdj (v "wh")] ++
+    finiteClause A.n True v ++ [mite $ TenseHead Optional v0, semT (v "wh") "wh", semV v0 P.Arg2 (v "wh"), mite $ ShortAdj (v "wh")] ++
     xor [[semT v0 "degree"],
          [semT v0 "copula", semV (v "cp") P.Questioned (v "wh")] ++ xor [[mite $ Complement (v "cp")], [mite $ TopLevelQuestion (v "cp")]]]
   "какого" -> adjWh Gen A.m P.Determiner v
@@ -201,7 +201,7 @@ wordMites word index =
   "ничего" -> negatedWh v ++ [mite $ Argument Gen v0]
   "но" ->  xor [conjunction v0 "but" False ++ [semS v0 P.ConjStrong "true"], [mite $ ConjEmphasis P.ButEmphasis v0]]
   "носом" -> nounSg Instr Masc "NOSE" v
-  "нужно" -> [semT v0 "NEED", mite $ NomHead A.n (v "arg2") Unsatisfied, semV v0 P.Arg2 (v "arg2")] ++ optional [mite $ TenseHead v0] ++ optional (arg Dat P.Arg1 v) ++ clause v
+  "нужно" -> [semT v0 "NEED", mite $ NomHead A.n (v "arg2") Unsatisfied, semV v0 P.Arg2 (v "arg2"), mite $ TenseHead Optional v0] ++ optional (arg Dat P.Arg1 v) ++ clause v
   "о" -> preposition "o" Prep v
   "обе" -> numQuantifier Acc Gen A.f v ++ [semT (v "q") "BOTH"]
   "облегчением" -> nounSg Instr Neu "RELIEF" v

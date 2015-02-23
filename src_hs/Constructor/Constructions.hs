@@ -88,7 +88,7 @@ data Construction = Word Variable String
                   | Verb Variable -- finite or infinitive or participle
                   | Clause Variable -- a finite clause, possibly a well-formed copula
                   | Tense Variable
-                  | TenseHead Variable
+                  | TenseHead Optionality Variable
                   | FutureTense Agr Variable
                   | CopulaHead CopulaData
 
@@ -141,6 +141,7 @@ isHappy cxt = case cxt of
   ReflexiveReference {} -> True; ReflexiveTarget {} -> True
   AdjHead {} -> True; NounPhrase {} -> True
   SemArgHead Optional _ _ -> True
+  TenseHead Optional _ -> True
   ComparativeAdj {} -> True
   QuestionVariants {} -> True
   WhLeaf {} -> True

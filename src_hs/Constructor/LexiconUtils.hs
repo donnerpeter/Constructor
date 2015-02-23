@@ -50,19 +50,17 @@ finiteClause agr withSemSubject v =
                      clause v
 
 copulaHead kind agr copulaType tenseRequired v =
-  [mite $ CopulaHead (CopulaData kind agr (v "arg1") v0 cp False)] ++
-   (if tenseRequired then tenseHead else optional tenseHead) ++
+  [mite $ CopulaHead (CopulaData kind agr (v "arg1") v0 cp False), mite $ TenseHead (if tenseRequired then Obligatory else Optional) v0] ++
    [semV v0 P.Arg1 (v "arg1"), semT v0 copulaType, semV cp P.Content v0, semT cp "situation"] where
   v0 = v ""
   cp = v "cp"
-  tenseHead = [mite $ TenseHead v0]
 
 clause v = [mite $ Verb (v ""), semV (v "cp") P.Content (v ""), semT (v "cp") "situation", mite $ Clause (v "cp"), mite $ ConjEmphasizeable (v "")]
 
 infinitive typ v =
   [semT (v "") typ] ++
   xor [[mite $ ControlledInfinitive $ v ""],
-       [mite $ ModalityInfinitive (v "x") (v "cp"), semT (v "x") "modality", semV (v "x") P.Theme (v ""), semV (v "cp") P.Content (v "x"), mite $ Verb (v "x"), mite $ ConjEmphasizeable (v "x")] ++ optional [mite $ TenseHead (v "x")] ++ optional (arg Dat P.Arg1 v),
+       [mite $ ModalityInfinitive (v "x") (v "cp"), semT (v "x") "modality", semV (v "x") P.Theme (v ""), semV (v "cp") P.Content (v "x"), mite $ Verb (v "x"), mite $ ConjEmphasizeable (v "x"), mite $ TenseHead Optional (v "x")] ++ optional (arg Dat P.Arg1 v),
        semArg Direction P.Goal_action (v "")]
 arg argType relation v = [mite $ ArgHead argType (v $ decapitalize $ show relation), semV (v "") relation (v $ decapitalize $ show relation)]
 compHead attr v = [mite $ CompHead (v "comp"), semV (v "") attr (v "comp")]

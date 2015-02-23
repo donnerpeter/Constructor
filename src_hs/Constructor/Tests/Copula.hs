@@ -200,6 +200,36 @@ copulaTests = [
 --todo  translateTest "Вы умны, а я умнее."
 --                "You're smart, but I'm smarter."
 --  ,
+--todo  translateTest "Вы умны, а я ещё умнее."
+--                "You're smart, but I'm even smarter."
+--  ,
+--todo  translateTest "Вы умны и быстры, а я умнее и быстрее."
+--                "You're smart and fast, but I'm smarter and faster."
+--  ,
+--todo  translateTest "Вы не умны, а только быстры."
+--                "You're not smart, but only fast."
+--  ,
+--todo  translateTest "Вы не умны, а всего лишь быстры."
+--                "You're not smart, but only fast."
+--  ,
+--todo  translateTest "Вы не умны, а умнее."
+--                "You're not smart, but smarter."
+--  ,
+--todo  translateTest "Вы не умнее, а быстрее."
+--                "You're not smarter, but faster."
+--  ,
+--todo  translateTest "Вы неумны."
+--                "You're not smart."
+--  ,
+--todo  translateTest "Вы умнее кассирши."
+--                "You're smarter than the cashier."
+--  ,
+--todo  translateTest "Вы умнее, чем кассирша."
+--                "You're smarter than the cashier."
+--  ,
+--todo  translateTest "Я видел кассира умнее, чем вы."
+--                "I saw a cashier smarter than you."
+--  ,
 --todo  translateTest "Кассир умён, но кассирша умнее."
 --                "The male cashier is smart, but the female cashier is smarter."
 --  ,

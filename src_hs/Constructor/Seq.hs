@@ -67,8 +67,8 @@ seqLeft env = {-traceIt "seqLeft" $ -}result where
 normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env =
       leftCombined env >>= \m1 -> let
         fullConj mem1 mem2 = [semV seqV P.Member1 mem1, semV seqV P.Member2 mem2, mite $ Conjunction $ sd {seqHasLeft=True}]
-        handleAdj :: Variable -> ArgKind -> Agr -> P.VarProperty -> (Agr -> Construction) -> [Mite]
-        handleAdj mem1 caze1 agr1 attr result = let
+        handleAdj :: Variable -> ArgKind -> Agr -> P.VarProperty -> Mite -> (Agr -> Construction) -> [Mite]
+        handleAdj mem1 caze1 agr1 attr m4 result = let
           adjResult mem2 agr2 m4 = let
             adjAgrVariants = withCopula (Agr Nothing (Just Pl) Nothing)
             withCopula agr = if caze1 == Nom then [copulaHead NPCopula agr "copula" False (makeV seqV "_cop") ++ [semV (makeV seqV "_cop" "") attr seqV], [mite $ result agr]] else [[mite $ result agr]]
@@ -83,7 +83,7 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env =
               _ -> []
             in if requireNegation then negatedVariants (leftCompatible env m1) ++ negatedVariants (rightCompatible env m4)
                else fullConj mem1 mem2 ++ xorNonEmpty allVariants
-          in rightCompatible env m2 >>= \m4 -> case cxt m4 of
+          in case cxt m4 of
             SeqRight (Adj mem2 _ caze2 agr2) | caze1 == caze2 && adjAgree agr1 agr2 -> withBase [m1,m2,m4] $ adjResult mem2 agr2 m4
             SeqRight (Possessive caze2 agr2 mem2) | caze1 == caze2 && adjAgree agr1 agr2 -> withBase [m1,m2,m4] $ adjResult mem2 agr2 m4
             _ -> []
@@ -115,8 +115,8 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env =
             withBase [m1,m2, m3] (fullConj mem1 mem2 ++ [mite $ VerbalModifier attr comma seqV] ++ (baseMites m3 >>= distinguished))
             ++ argUnifications
 
-          (Possessive caze1 agr1 child, _) -> handleAdj child caze1 agr1 P.Arg1 $ \newAgr -> Possessive caze1 newAgr seqV
-          (Adj child attr caze1 agr1, _) -> handleAdj child caze1 agr1 attr $ \newAgr -> Adj seqV attr caze1 newAgr
+          (Possessive caze1 agr1 child, _) -> handleAdj child caze1 agr1 P.Arg1 m3 $ \newAgr -> Possessive caze1 newAgr seqV
+          (Adj child attr caze1 agr1, _) -> handleAdj child caze1 agr1 attr m3 $ \newAgr -> Adj seqV attr caze1 newAgr
 
           (Complement mem1, SeqRight (Complement mem2)) ->
             withBase [m1,m2,m3] $ fullConj mem1 mem2 ++ [mite $ Complement seqV, semS mem2 P.Distinguished "true"]

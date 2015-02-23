@@ -382,7 +382,7 @@ wordMites word index =
   _ ->
     if "ой" `isSuffixOf` word then 
       let nomName = take (length word - 2) word ++ "ая" in
-      [semS (v "name") P.Name nomName] ++
-      xor [adj Gen A.f P.VName "name" v ++ [mite $ Unify v0 (v "name")],
-           nounSg Gen Fem "STREET" v ++ [semV v0 P.VName (v "name")]]
+      [semS v0 P.Name nomName] ++
+      xor [adj Gen A.f P.VName "name" v,
+           nounSg Gen Fem "STREET" (makeV v0 "noun") ++ [semV (v "noun") P.VName v0]]
     else [mite $ Word v0 word]

@@ -195,6 +195,7 @@ wordMites word index =
   "некому" -> negatedWh v ++ [mite $ Argument Dat v0, mite $ ExistentialWh v0 (v "z")] ++ animate v
   "некуда" -> negatedWh v ++ semArg Direction P.Goal v0 ++ [mite $ ExistentialWh v0 (v "z")]
   "нечего" -> negatedWh v ++ [mite $ Argument Acc v0, mite $ ExistentialWh v0 (v "z")]
+  "неумны" -> shortAdj A.pl P.Quality "CLEVER" v ++ [semS (v "") P.Negated "true"]
   "никто" -> negatedWh v ++ [mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.sg3] ++ animate v
   "никуда" -> negatedWh v ++ semArg Direction P.Goal v0
   "ничего" -> negatedWh v ++ [mite $ Argument Gen v0]
@@ -343,8 +344,8 @@ wordMites word index =
   "умная" -> adj Nom A.f P.Quality "CLEVER" v
   "умнее" -> comparativeAdj A.f P.Quality "CLEVER" v
   "умной" -> adj Instr A.f P.Quality "CLEVER" v
-  "умные" -> adj Nom A.pl P.Quality "CLEVER" v
   "умны" -> shortAdj A.pl P.Quality "CLEVER" v
+  "умные" -> adj Nom A.pl P.Quality "CLEVER" v
   "умный" -> adj Nom A.m P.Quality "CLEVER" v
   "умным" -> adj Instr A.m P.Quality "CLEVER" v
   "упал" -> finVerb "FALL" "PAST" A.m v

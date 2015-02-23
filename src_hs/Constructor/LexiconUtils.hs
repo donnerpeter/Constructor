@@ -97,7 +97,7 @@ comparativeAdj agr attr value v =
 orNomCopula plainMites caze agr v = if caze == Nom then xor [plainMites, adjCopulaHead] else plainMites where
   adjCopulaHead = copulaHead NPCopula agr "copula" False v
 
-adjWh caze agr attr v = [mite $ Adj (v "adj") attr caze agr, semT (v "adj") "wh", mite $ Wh agr (v "adj")]
+adjWh caze agr attr v = [mite $ Adj (v "") attr caze agr, semT (v "") "wh", mite $ Wh agr (v "")]
 
 perfectBackground typ v = [mite $ Verb (v ""), semT (v "") typ, mite $ VerbalModifier P.PerfectBackground True (v ""), mite $ ConjEmphasizeable (v "")]
 sAdverb attr value v = [mite $ Adverb (v "verb"), semS (v "verb") attr value]

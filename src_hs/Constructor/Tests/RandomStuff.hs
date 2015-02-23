@@ -76,4 +76,13 @@ randomStuffTests = [
 --  ,
 --todo  translateTest "Я ещё не видел кассира умнее, чем вы."
 --                "I haven't yet seen a cashier smarter than you."
+--  ,
+--todo  translateTest "Кассира я понимал лучше, чем кассиршу."
+--                "I understood the male cashier better than the female one."
+--  ,
+--todo  translateTest "Сегодня я понимал кассира лучше, чем вчера."
+--                "Today I understood the cashier better than yesterday."
+--  ,
+--todo  translateTest "Я больше люблю гулять, чем ходить на работу."
+--                "I like strolling more then going to work."
   ]

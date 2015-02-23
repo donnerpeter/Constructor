@@ -256,4 +256,16 @@ copulaTests = [
   ,
   translateTest "Кассирша была умной. Кассир тоже будет умным."
                 "The female cashier was smart. The male cashier will also be smart."
+--  ,
+--todo  translateTest "Чем кассирша лучше, чем кассир?"
+--                "Why is the female cashier better than the male one?"
+--  ,
+--todo  translateTest "Кассирша лучше, чем кассир."
+--                "The female cashier is better than the male one."
+--  ,
+--todo  translateTest "Моя семья больше вашей."
+--                "My family is larger than yours."
+--  ,
+--todo  translateTest "Cемья кассира больше семьи кассирши."
+--                "The family of the male cashier is larger than the family of the female cashier."
   ]

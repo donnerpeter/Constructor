@@ -220,6 +220,12 @@ copulaTests = [
 --  ,
 --todo  translateTest "Вы не умнее, а быстрее."
 --                "You're not smarter, but faster."
+--  ,
+--todo  translateTest "Вы не просто умная, а умнее кассирши."
+--                "You're not just smart, but smarter than the cashier."
+--  ,
+--todo  translateTest "Вы не просто умны, а умнее кассирши."
+--                "You're not just smart, but smarter than the cashier."
   ,
   translateTest "Вы не умнее его."
                 "You're not smarter than him."

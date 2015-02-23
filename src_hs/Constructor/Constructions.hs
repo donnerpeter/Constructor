@@ -50,7 +50,6 @@ data Construction = Word Variable String
                   --Russian:
                   --adjectives
                   | Adj Variable P.VarProperty ArgKind Agr
-                  | CompositeAdj Variable P.VarProperty ArgKind Agr
                   | AdjHead Variable ArgKind Agr
                   | ShortAdj Variable
                   | ComparativeAdj Variable

@@ -116,8 +116,7 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env =
             ++ argUnifications
 
           (Possessive caze1 agr1 child, _) -> handleAdj child caze1 agr1 P.Arg1 $ \newAgr -> Possessive caze1 newAgr seqV
-          (Adj child attr caze1 agr1, _) -> handleAdj child caze1 agr1 attr $ \newAgr -> CompositeAdj seqV attr caze1 newAgr
-          (CompositeAdj child attr caze1 agr1, _) -> handleAdj child caze1 agr1 attr $ \newAgr -> CompositeAdj seqV attr caze1 newAgr
+          (Adj child attr caze1 agr1, _) -> handleAdj child caze1 agr1 attr $ \newAgr -> Adj seqV attr caze1 newAgr
 
           (Complement mem1, SeqRight (Complement mem2)) ->
             withBase [m1,m2,m3] $ fullConj mem1 mem2 ++ [mite $ Complement seqV, semS mem2 P.Distinguished "true"]

@@ -123,5 +123,5 @@ wordNumber caze typ v = xor [nounSg caze Masc typ v, numQuantifier caze (quantif
 quantifierChildCase caze typ = if typ /= "1" && (caze == Nom || caze == Acc) then Gen else caze
 quantifierChildAgr typ = if typ `elem` ["1","2","3","4"] then A.sg else A.pl
 
-go_args v = optional [mite $ SemArgHead Direction (v "")]
+go_args v = [mite $ SemArgHead Optional Direction (v "")]
 

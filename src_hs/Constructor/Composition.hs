@@ -205,9 +205,9 @@ interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
         mergeLeft $ base12 (argVariants head arg leftPairs rightPairs) ++ reflexive leftPairs rightPairs ++ existentials leftPairs rightPairs
       (Argument kind2 arg, ArgHead kind1 head) | kind1 == kind2 ->
         mergeRight $ base12 (argVariants head arg rightPairs leftPairs) ++ reflexive rightPairs leftPairs ++ existentials rightPairs leftPairs
-      (SemArgHead kind1 head, SemArgument kind2 arg _) | kind1 == kind2 ->
+      (SemArgHead _ kind1 head, SemArgument kind2 arg _) | kind1 == kind2 ->
         mergeLeft $ base12 (argVariants head arg leftPairs rightPairs ++ optional [mite $ cxt m1]) ++ reflexive leftPairs rightPairs ++ existentials leftPairs rightPairs
-      (SemArgument kind2 arg _, SemArgHead kind1 head) | kind1 == kind2 ->
+      (SemArgument kind2 arg _, SemArgHead _ kind1 head) | kind1 == kind2 ->
         mergeRight $ base12 (argVariants head arg rightPairs leftPairs ++ optional [mite $ cxt m2]) ++ reflexive rightPairs leftPairs ++ existentials rightPairs leftPairs
 
       (Argument Nom v1, NomHead agr1 v2 Unsatisfied) -> leftPairs >>= \case

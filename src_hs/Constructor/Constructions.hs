@@ -10,6 +10,7 @@ cases = [Nom,Acc,Gen,Dat,Instr,Prep]
 
 data ArgKind = Nom | Acc | Gen | Dat | Instr | Prep | PP String ArgKind | ScalarAdverb deriving (Show, Eq, Ord)
 data SemArgKind = Direction deriving (Show, Eq, Ord)
+data Optionality = Optional | Obligatory deriving (Show, Eq, Ord)
 
 data Satisfied = Unsatisfied | Satisfied deriving (Show, Eq, Ord)
 data CopulaKind = NPCopula | PPCopula deriving (Show, Eq, Ord)
@@ -59,7 +60,7 @@ data Construction = Word Variable String
                   | NomHead Agr Variable Satisfied
                   | GenHead Variable
                   | ArgHead ArgKind Variable
-                  | SemArgHead SemArgKind Variable
+                  | SemArgHead Optionality SemArgKind Variable
                   | PrepHead String ArgKind Variable
                   | Argument ArgKind Variable
                   | SemArgument SemArgKind {-head-} Variable {-child-} Variable
@@ -139,6 +140,7 @@ isHappy cxt = case cxt of
   NomHead {} -> True
   ReflexiveReference {} -> True; ReflexiveTarget {} -> True
   AdjHead {} -> True; NounPhrase {} -> True
+  SemArgHead Optional _ _ -> True
   ComparativeAdj {} -> True
   QuestionVariants {} -> True
   WhLeaf {} -> True

@@ -250,10 +250,10 @@ wordMites word index =
   "продавец" -> nounSg Nom Masc "SALESMAN" v ++ genHead P.Place v
   "продавцом" -> nounSg Instr Masc "SALESMAN" v ++ genHead P.Place v
   "просто" -> adverb P.Manner "JUST" v
-  "пошел" -> finVerb "GO" "PAST" A.m v ++ [mite $ SemArgHead Direction v0]
-  "пошёл" -> finVerb "GO" "PAST" A.m v ++ [mite $ SemArgHead Direction v0]
-  "пошла" -> finVerb "GO" "PAST" A.f v ++ [mite $ SemArgHead Direction v0]
-  "пошли" -> finVerb "GO" "PAST" A.pl v ++ [mite $ SemArgHead Direction v0]
+  "пошел" -> finVerb "GO" "PAST" A.m v ++ [mite $ SemArgHead Obligatory Direction v0]
+  "пошёл" -> finVerb "GO" "PAST" A.m v ++ [mite $ SemArgHead Obligatory Direction v0]
+  "пошла" -> finVerb "GO" "PAST" A.f v ++ [mite $ SemArgHead Obligatory Direction v0]
+  "пошли" -> finVerb "GO" "PAST" A.pl v ++ [mite $ SemArgHead Obligatory Direction v0]
   "приехал" -> finVerb "ARRIVE" "PAST" A.m v
   "работает" -> finVerb "WORK" "PRESENT" A.sg3 v
   "работу" -> nounSg Acc Fem "WORK" v
@@ -297,7 +297,7 @@ wordMites word index =
   "случай" -> nounSg Nom Masc "CASE" v
   "случае" -> nounSg Prep Masc "CASE" v ++ [mite $ ConditionCompHead v0]
   "случился" -> finVerb "HAPPEN" "PAST" A.m v ++ arg (PP "s" Instr) P.Experiencer v
-  "смотреть" -> infinitive "LOOK" v ++ optional [mite $ SemArgHead Direction (v "")]
+  "смотреть" -> infinitive "LOOK" v ++ [mite $ SemArgHead Optional Direction (v "")]
   "смысла" -> nounSg Gen Masc "MEANING" v
   "снег" -> nounSg Nom Masc "SNOW" v
   "со" -> xor [preposition "s" Instr v, preposition "s" Gen v]

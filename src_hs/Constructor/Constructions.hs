@@ -53,6 +53,8 @@ data Construction = Word Variable String
                   | CompositeAdj Variable P.VarProperty ArgKind Agr
                   | AdjHead Variable ArgKind Agr
                   | ShortAdj Variable
+                  | ComparativeAdj Variable
+                  | ComparativeEmphasis Variable
 
                   -- arguments
                   | NomHead Agr Variable Satisfied
@@ -138,6 +140,7 @@ isHappy cxt = case cxt of
   NomHead {} -> True
   ReflexiveReference {} -> True; ReflexiveTarget {} -> True
   AdjHead {} -> True; NounPhrase {} -> True
+  ComparativeAdj {} -> True
   QuestionVariants {} -> True
   WhLeaf {} -> True
   NegativePronoun {} -> True; UniversalPronoun {} -> True

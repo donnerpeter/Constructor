@@ -90,6 +90,7 @@ wordMites word index =
   "ему" -> pronoun Dat A.sg "HE" v
   "если" -> [mite $ ConditionComp v0 "if" False]
   "есть" -> [semS v0 P.Time "PRESENT"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0]]
+  "ещё" -> [mite $ ComparativeEmphasis v0]
   "жареную" -> adj Acc A.sg P.Kind "ROASTED" v
   "забыл" -> finVerb "FORGET" "PAST" A.m v ++ optional (xor [compHead P.Arg2 v, directObject v, whatComesNext v])
   "забыла" -> finVerb "FORGET" "PAST" A.f v ++ optional (xor [compHead P.Arg2 v, directObject v, whatComesNext v])

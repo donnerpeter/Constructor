@@ -186,7 +186,9 @@ skipElidedOne nounFrame = Just "true" == (sValue P.ConjStrong $ unSeq2 nounFrame
 adjectives nounFrame = do
   let adjSeq attr fun = let
         value = fValue attr nounFrame
-        adjOrMore frame = if hasType "MORE" frame then return "smarter" else eachAdj frame
+        adjOrMore frame = let
+          emph = if Just "true" == sValue P.Emphasis frame then "even" else ""
+          in if hasType "MORE" frame then return $ emph `cat` "smarter" else eachAdj frame
         eachAdj adjFrame = let
           negation = if Just "true" == sValue P.Negated adjFrame then "not" else ""
           article = if isArticleAfterAdjectives nounFrame then indefiniteArticle nounFrame adjective else ""

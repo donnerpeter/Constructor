@@ -32,7 +32,7 @@ interactNodes env = {-traceIt ("    interact") $ -}whResults ++ noWh where
             inSitus = rightCompatible env clauseMite >>= \inSitu -> case cxt inSitu of
               WhInSitu var -> withBase [inSitu] $ [semS var P.InSitu "true"]
               _ -> []
-            infos = fillers >>= \ info -> mergeLeft (mergeResult info ++ withBase [whMite, clauseMite] (whLinks cp whVar agr) ++ inSitus)
+            infos = fillers >>= \ info -> mergeLeft (mergeResult info ++ whLinks [whMite, clauseMite] cp whVar agr ++ inSitus)
         in infos
     in case cxt whMite of
       Wh agr whVar -> rightCombined env >>= \clauseMite -> case cxt clauseMite of
@@ -42,13 +42,13 @@ interactNodes env = {-traceIt ("    interact") $ -}whResults ++ noWh where
         Argument Nom subj -> leftCompatible env whMite >>= \copulaMite -> case cxt copulaMite of
           CopulaHead (CopulaData { copAgr = agr, copCP = cp }) -> let
             fillers = filter (\info -> mergedHeadSide info == LeftSide) whBase
-            infos = fillers >>= \ info -> mergeLeft (mergeResult info ++ withBase [whMite, clauseMite, copulaMite] (whLinks cp whVar agr))
+            infos = fillers >>= \ info -> mergeLeft (mergeResult info ++ whLinks [whMite, clauseMite, copulaMite] cp whVar agr)
             in infos
           _ -> []
         _ -> []
       _ -> []
 
-whLinks cp whVar agr = [semV cp P.Questioned whVar, semT cp "situation"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause agr cp], [mite $ TopLevelQuestion cp]]
+whLinks base cp whVar agr = withBase base [semV cp P.Questioned whVar, semT cp "situation"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause agr cp], [mite $ TopLevelQuestion cp]]
 
 mergeInfoHelpers m1 m2 = ( \mites -> mergeLeft (base12 mites), \mites -> mergeRight (base12 mites), base12) where
   base12 = withBase [m1,m2]
@@ -357,7 +357,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
           _ -> []
         in mergeRight $ base12 [semS v P.Negated "true", mite $ Negated v] ++ negateDirectObject
 
-      (Complementizer cp1, Clause cp2) -> left [mite $ Unify cp1 cp2, mite $ Complement cp1]
+      (Complementizer cp1, Clause cp2) -> mergeLeft $ base12 [mite $ Unify cp1 cp2] ++ [mite $ Complement cp2]
       (Control slave, ControlledInfinitive inf) -> left [mite $ Unify slave inf]
       (FutureTense agr tense, ControlledInfinitive inf) -> right $ [mite $ Unify tense inf] ++ finiteClause agr True (makeV tense "")
       (RaisingVerb verb subj, Adj child _ Instr agr) -> left [semV child P.Arg1 subj, semV verb P.Theme child]

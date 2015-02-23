@@ -68,10 +68,10 @@ handleSeq f (Just frame) =
                           else if (Just True == fmap isGerund secondContent || Just True == fmap isGerund firstContent) &&
                                   isNothing (firstContent >>= sValue P.Negated)
                             then "and"
-                          else if Just True == fmap shouldContrastSubject (firstContent >>= fValue P.Arg1) then ", and"
                           else if length copulas > 1 then
-                             if any (hasType "MORE") $ catMaybes $ map (fValue P.Quality) copulas then ", but"
-                             else ", and"
+                            if any (hasType "MORE") $ catMaybes $ map (fValue P.Quality) copulas then ", but"
+                            else ", and"
+                          else if Just True == fmap shouldContrastSubject (firstContent >>= fValue P.Arg1) then ", and"
                           else if Just "true" == (second >>= sValue P.Negated) && Just "true" /= sValue P.ConjStrong frame then "and"
                           else ", but"
                         else if conj == "and" then

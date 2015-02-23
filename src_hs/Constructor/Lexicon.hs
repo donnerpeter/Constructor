@@ -338,6 +338,7 @@ wordMites word index =
   "улиц" -> nounPl Gen "STREETS" v
   "улицы" -> nounSg Gen Fem "STREET" v
   "улыбнулась" -> finVerb "SMILE" "PAST" A.f v
+  "умён" -> shortAdj A.m P.Quality "CLEVER" v
   "умная" -> adj Nom A.f P.Quality "CLEVER" v
   "умнее" -> comparativeAdj A.f P.Quality "CLEVER" v
   "умной" -> adj Instr A.f P.Quality "CLEVER" v

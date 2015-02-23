@@ -83,9 +83,9 @@ wordMites word index =
   "других" -> nounPl Gen "OTHERS" v
   "думает" -> finVerb "THINK" "PRESENT" A.sg3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) P.Topic v)
   "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) P.Topic v)
-  "его" -> xor [pronoun Acc A.m "HE" v, [semT v0 "HE", mite $ Possessive Nom A.empty v0], [semT v0 "HE", mite $ Possessive Dat A.empty v0]]
-  "ее" -> xor [pronoun Acc A.f "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.empty v0], [semT v0 "SHE", mite $ Possessive Dat A.empty v0]]
-  "её" -> xor [pronoun Acc A.f "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.empty v0], [semT v0 "SHE", mite $ Possessive Dat A.empty v0]]
+  "его" -> xor [pronoun Acc A.m "HE" v, pronoun Gen A.m "HE" v, [semT v0 "HE", mite $ Possessive Nom A.empty v0], [semT v0 "HE", mite $ Possessive Dat A.empty v0]]
+  "ее" -> xor [pronoun Acc A.f "SHE" v, pronoun Gen A.m "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.empty v0], [semT v0 "SHE", mite $ Possessive Dat A.empty v0]]
+  "её" -> xor [pronoun Acc A.f "SHE" v, pronoun Gen A.m "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.empty v0], [semT v0 "SHE", mite $ Possessive Dat A.empty v0]]
   "ей" -> pronoun Dat A.f "SHE" v
   "ему" -> pronoun Dat A.sg "HE" v
   "если" -> [mite $ ConditionComp v0 "if" False]

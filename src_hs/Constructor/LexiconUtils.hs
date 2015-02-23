@@ -89,8 +89,9 @@ shortAdj agr attr value v =
   where v0 = v ""
 
 comparativeAdj agr attr value v =
-  [semT v0 value, semV (v "cop") attr (v "more"), semT (v "more") "MORE", semV (v "more") P.Theme v0]
-  ++ copulaHead NPCopula agr "copula" False (makeV v0 "cop") ++ [mite $ Negateable (v ""), mite $ ComparativeAdj (v "more")]
+  [semT v0 value, semV (v "cop") attr (v "more"), semT (v "more") "MORE", semV (v "more") P.Theme v0, mite $ Negateable (v "more"), mite $ ComparativeAdj (v "more")]
+  ++ copulaHead NPCopula agr "copula" False (makeV v0 "cop")
+  ++ optional (arg Gen P.Anchor (makeV v0 "more"))
   where v0 = v ""
 
 orNomCopula plainMites caze agr v = if caze == Nom then xor [plainMites, adjCopulaHead] else plainMites where

@@ -186,14 +186,17 @@ skipElidedOne nounFrame = Just "true" == (sValue P.ConjStrong $ unSeq2 nounFrame
 adjectives nounFrame = do
   let adjSeq attr fun = let
         value = fValue attr nounFrame
-        adjOrMore frame = let
-          emph = if Just "true" == sValue P.Emphasis frame then "even" else ""
-          in if hasType "MORE" frame then return $ emph `cat` "smarter" else eachAdj frame
+        negation frame = if Just "true" == sValue P.Negated frame then "not" else ""
+        adjOrMore frame = do
+          let emph = if Just "true" == sValue P.Emphasis frame then "even" else ""
+          anchor <- case fValue P.Anchor frame of
+            Just a -> return "than" `catM` np False (Just a)
+            _ -> return ""
+          if hasType "MORE" frame then return $ negation frame `cat` emph `cat` "smarter" `cat` anchor else eachAdj frame
         eachAdj adjFrame = let
-          negation = if Just "true" == sValue P.Negated adjFrame then "not" else ""
           article = if isArticleAfterAdjectives nounFrame then indefiniteArticle nounFrame adjective else ""
           adjective = fun adjFrame
-          in return $ negation `cat` article `cat` adjective
+          in return $ negation adjFrame `cat` article `cat` adjective
         in case value of
           Just x -> handleSeq adjOrMore value
           Nothing -> return ""

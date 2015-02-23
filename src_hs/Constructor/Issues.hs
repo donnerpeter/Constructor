@@ -31,19 +31,22 @@ factIssues fact = let
         _ -> []
       VarValue attr val -> let
         valFrame sense = toFrame sense val
+        requireValType f = l$ \sense -> requireType (Just $ valFrame sense) f
         in case attr of
-          P.AccordingTo -> l $ \sense ->
-            if any (not . hasAnyType ["WORDS", "OPINION"]) (flatten $ Just $ valFrame sense) then issue "invalid accordingTo" else provNo
-          P.OptativeModality -> l $ \sense ->
-            if any (not . hasAnyType ["LUCK"]) (flatten $ Just $ valFrame sense) then issue "invalid optativeModality" else provNo
+          P.AccordingTo -> requireValType $ \valFrame ->
+            if any (not . hasAnyType ["WORDS", "OPINION"]) (flatten $ Just valFrame) then finalIssue "invalid accordingTo" else finalNo
+          P.OptativeModality -> requireValType $ \valFrame ->
+            if any (not . hasAnyType ["LUCK"]) (flatten $ Just valFrame) then finalIssue "invalid optativeModality" else finalNo
           P.Quantifier -> l $ \sense ->
-            if hasType "EYES" (frame sense) && not (hasType "2" $ valFrame sense) then issue "suspicious eye count" else provNo
-          P.Condition -> l $ \sense ->
-            if not (hasType "CASE" $ valFrame sense) then issue "wrong condition" else provNo
-          P.Mood -> l $ \sense ->
-            if not (hasAnyType ["RELIEF", "JOY"] $ valFrame sense) then issue "wrong mood" else provNo
-          P.Companion -> l $ \sense ->
-            if not (isHuman $ valFrame sense) then issue "wrong companion" else provNo
+            requireType (Just $ frame sense) $ \f ->
+              requireType (Just $ valFrame sense) $ \valFrame ->
+                if hasType "EYES" (frame sense) && not (hasType "2" valFrame) then finalIssue "suspicious eye count" else finalNo
+          P.Condition -> requireValType $ \valFrame ->
+            if not (hasType "CASE" valFrame) then finalIssue "wrong condition" else finalNo
+          P.Mood -> requireValType $ \valFrame ->
+            if not (hasAnyType ["RELIEF", "JOY"] valFrame) then finalIssue "wrong mood" else finalNo
+          P.Companion -> requireValType $ \valFrame ->
+            if not (isHuman valFrame) then finalIssue "wrong companion" else finalNo
           P.Relative -> l $ \sense ->
             requireType (Just $ frame sense) $ \frame ->
               requireType (fValue P.Questioned $ valFrame sense) $ \wh ->
@@ -54,8 +57,8 @@ factIssues fact = let
             requireType (Just $ frame sense) $ \frame ->
               requireType (Just $ valFrame sense) $ \valFrame ->
                 if hasType "ASK" frame && any isFactCP (flatten $ Just valFrame) then finalIssue "asking fact" else finalNo
-          _ | attr `elem` [P.Location, P.Location_on, P.Location_in] -> l $ \sense ->
-            if hasAnyType ["CASE", "COUNTING"] (valFrame sense) then issue "wrong location" else provNo
+          _ | attr `elem` [P.Location, P.Location_on, P.Location_in] -> requireValType $ \valFrame ->
+            if hasAnyType ["CASE", "COUNTING"] valFrame then finalIssue "wrong location" else finalNo
           _ -> []
 
 isTypeDefined frame = isJust frame && all (\f -> isJust (getDeclaredType f)) (flatten frame)
@@ -83,7 +86,8 @@ typeIssues var declaredType = missingSubj ++ missingArg2 ++ inanimateSubj ++ oth
     "seq" -> l $ \sense ->
       if Nothing == sDeclaredValue P.Conj (frame sense) then issue "comma-only seq" else finalNo
     "CASHIER" -> l $ \sense ->
-      if any (hasType "OTHERS") (flatten $ fValue P.Place $ frame sense) then issue "cashier of other people" else provNo
+      requireType (fValue P.Place $ frame sense) $ \fPlace ->
+        if any (hasType "OTHERS") (flatten $ Just fPlace) then finalIssue "cashier of other people" else finalNo
     "OPINION" -> l $ \sense ->
       if isNothing (fValue P.Arg1 (frame sense) >>= getType) then issue "opinion without subj" else finalNo
     "WORDS" -> l $ \sense ->
@@ -94,9 +98,11 @@ typeIssues var declaredType = missingSubj ++ missingArg2 ++ inanimateSubj ++ oth
     "wh" -> l $ \sense ->
       if isNothing (usage P.Questioned $ frame sense) then issue "non-questioned wh" else finalNo
     "GO" -> l $ \sense ->
-      if Just True == fmap isInanimate (fValue P.RelTime (frame sense) >>= fValue P.Anchor) then issue "inanimate GO relTime anchor" else provNo
+      requireType (fValue P.RelTime (frame sense) >>= fValue P.Anchor) $ \fAnchor ->
+        if isInanimate fAnchor then finalIssue "inanimate GO relTime anchor" else finalNo
     "WEATHER_BE" -> l $ \sense ->
-      if Just True /= fmap (hasAnyType ["SNOW", "RAIN"]) (fValue P.Arg1 $ frame sense) then issue "non-weather weather_be" else provNo
+      requireType (fValue P.Arg1 (frame sense)) $ \fSubj ->
+        if not $ hasAnyType ["SNOW", "RAIN"] fSubj then finalIssue "non-weather weather_be" else finalNo
     "COME_SCALARLY" -> l $ \sense ->
       requireType (fValue P.Order (frame sense) >>= fValue P.Anchor) $ \anchor ->
         if isAnimate anchor then finalIssue "come_scalarly with animate anchor" else finalNo

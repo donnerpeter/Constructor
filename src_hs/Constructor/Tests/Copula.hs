@@ -196,9 +196,9 @@ copulaTests = [
 --  ,
 --todo  translateTest "Человек человеку друг, товарищ и брат."
 --                "Man is to man a friend, a comrade, and a brother."
---  ,
---todo  translateTest "Вы умны, а я умнее."
---                "You're smart, but I'm smarter."
+  ,
+  translateTest "Вы умны, а я умнее."
+                "You're smart, but I'm smarter."
 --  ,
 --todo  translateTest "Вы умны, а я ещё умнее."
 --                "You're smart, but I'm even smarter."

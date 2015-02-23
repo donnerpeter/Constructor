@@ -73,6 +73,7 @@ beForm fSubject verbForm =
   if verbForm == PastVerb then
     if Just "Pl" == (fSubject >>= sValue P.RusNumber) then "were" else "was"
   else if Just "ME" == (fSubject >>= getType) then "am"
+  else if Just "YOU" == (fSubject >>= getType) then "are"
   else if Just "Pl" == (fSubject >>= sValue P.RusNumber) then "are" else "is"
 
 haveForm verbForm = case verbForm of

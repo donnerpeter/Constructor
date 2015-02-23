@@ -61,13 +61,17 @@ handleSeq f (Just frame) =
         let conj = fromMaybe "" $ sValue P.Conj frame
             firstContent = first >>= fValue P.Content
             secondContent = second >>= fValue P.Content
+            contents = catMaybes $ map (fValue P.Content) $ flatten $ Just frame
+            copulas = filter (hasType "copula") contents
             separator = if conj == "but" then
                           if Just "true" == (firstContent >>= sValue P.Irrealis) then ", when"
                           else if (Just True == fmap isGerund secondContent || Just True == fmap isGerund firstContent) &&
                                   isNothing (firstContent >>= sValue P.Negated)
                             then "and"
                           else if Just True == fmap shouldContrastSubject (firstContent >>= fValue P.Arg1) then ", and"
-                          else if length (filter (\cp -> Just True == fmap (hasType "copula") (fValue P.Content cp)) $ flatten $ Just frame) > 1 then ", and"
+                          else if length copulas > 1 then
+                             if any (hasType "MORE") $ catMaybes $ map (fValue P.Quality) copulas then ", but"
+                             else ", and"
                           else if Just "true" == (second >>= sValue P.Negated) && Just "true" /= sValue P.ConjStrong frame then "and"
                           else ", but"
                         else if conj == "and" then
@@ -101,6 +105,7 @@ np_internal nom mayHaveDeterminer frame = do
   let asPronoun = case getType frame of
         Just "ME" -> if nom then "I" else "me"
         Just "WE" -> if nom then "we" else "us"
+        Just "YOU" -> "you"
         Just "THEY" -> if nom then "they" else "them"
         Just s ->
           if isHuman $ resolve frame then
@@ -110,7 +115,7 @@ np_internal nom mayHaveDeterminer frame = do
           else "it"
         _ -> "???"
 
-  unquantified <- if hasAnyType ["ME", "WE", "THEY", "HE", "SHE"] frame then return asPronoun
+  unquantified <- if hasAnyType ["ME", "WE", "THEY", "HE", "SHE", "YOU"] frame then return asPronoun
     else if hasType "EVERYTHING" frame then return "everything"
     else if hasType "EVERYBODY" frame then return "everybody"
     else if hasType "wh" frame then return $
@@ -181,13 +186,14 @@ skipElidedOne nounFrame = Just "true" == (sValue P.ConjStrong $ unSeq2 nounFrame
 adjectives nounFrame = do
   let adjSeq attr fun = let
         value = fValue attr nounFrame
+        adjOrMore frame = if hasType "MORE" frame then return "smarter" else eachAdj frame
         eachAdj adjFrame = let
           negation = if Just "true" == sValue P.Negated adjFrame then "not" else ""
           article = if isArticleAfterAdjectives nounFrame then indefiniteArticle nounFrame adjective else ""
           adjective = fun adjFrame
           in return $ negation `cat` article `cat` adjective
         in case value of
-          Just x -> handleSeq eachAdj value
+          Just x -> handleSeq adjOrMore value
           Nothing -> return ""
   property <- adjSeq P.Property $ \p -> if hasType "AMAZING" p then "amazing" else ""
   kind <- adjSeq P.Kind $ \p -> if hasType "COMMERCIAL" p then "commercial" else if hasType "ROASTED" p then "roasted" else ""
@@ -279,6 +285,7 @@ determiner frame det nbar = do
           Just "THEY" -> pronoun "their"
           Just "WE" -> pronoun "our"
           Just "SHE" -> pronoun "her"
+          Just "YOU" -> pronoun "your"
           Just "wh" -> pronoun "whose"
           Just s ->
             if usePronoun state det then pronoun $ case sValue P.RusGender det of
@@ -562,9 +569,10 @@ vp fVerb verbForm clauseType = do
   let shortForm = case mainVerb of
         "am" -> "'m"
         "is" -> "'s"
+        "are" -> "'re"
         "will" -> "'ll"
         _ -> ""
-  let contractableSubject = subject `elem` ["I", "he", "she", "we", "it", "what", "that", "it", "there"]
+  let contractableSubject = subject `elem` ["I", "he", "she", "we", "it", "what", "that", "it", "there", "you"]
   let contracted = if null preAdverb && null negation && null according && not inverted && contractableSubject then
                      if null shortForm then subject `cat` mainVerb `cat` restVerb
                      else (subject ++ shortForm) `cat` restVerb

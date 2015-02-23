@@ -45,6 +45,7 @@ wordMites word index =
   "восьми" -> wordNumber Gen "8" v
   "вот" -> sAdverb P.So_there "true" v
   "всякого" -> adj Gen A.m P.Determiner "ANY" v
+  "вы" -> pronoun Nom A.pl2 "YOU" v
   "выбежали" -> finVerb "RUN_OUT" "PAST" A.pl v ++ arg (PP "iz" Gen) P.Source v
   "вывалилась" -> finVerb "FALL_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) P.Source v
   "вывалился" -> finVerb "FALL_OUT" "PAST" A.m v ++ arg (PP "iz" Gen) P.Source v
@@ -338,8 +339,10 @@ wordMites word index =
   "улицы" -> nounSg Gen Fem "STREET" v
   "улыбнулась" -> finVerb "SMILE" "PAST" A.f v
   "умная" -> adj Nom A.f P.Quality "CLEVER" v
+  "умнее" -> comparativeAdj A.f P.Quality "CLEVER" v
   "умной" -> adj Instr A.f P.Quality "CLEVER" v
   "умные" -> adj Nom A.pl P.Quality "CLEVER" v
+  "умны" -> shortAdj A.pl P.Quality "CLEVER" v
   "умный" -> adj Nom A.m P.Quality "CLEVER" v
   "умным" -> adj Instr A.m P.Quality "CLEVER" v
   "упал" -> finVerb "FALL" "PAST" A.m v

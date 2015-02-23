@@ -76,14 +76,22 @@ negatedWh v = [semT (v "") "wh", semS (v "") P.Negated "true", mite $ Negated (v
 animate v = [semS (v "") P.Animate "true"]
 
 adj caze agr attr value v =
-  sem ++ (if caze == Nom || caze == Instr then xor [adjVariant, adjCopulaHead, nounVariant] else xor [adjVariant, nounVariant])
+  [semT v0 value] ++ (if caze == Nom || caze == Instr then xor [adjVariant, adjCopulaHead, nounVariant] else xor [adjVariant, nounVariant])
   where
   v0 = v ""
   adjVariant = [mite $ Negateable v0, mite $ Adj v0 attr caze agr]
-  adjCopulaHead = copulaHead NPCopula agr "copula" False (makeV v0 "cop") ++ [mite $ Negateable (v "")] ++ semLink (v "cop")
+  adjCopulaHead = copulaHead NPCopula agr "copula" False (makeV v0 "cop") ++ [mite $ Negateable v0] ++ semLink (v "cop")
   nounVariant = rusNumber agr (v "noun") ++ synNounPhrase caze agr (makeV v0 "noun") ++ [mite $ Argument caze (v "noun"), semS (v "noun") P.Elided "true", mite $ Handicap (v "noun")] ++ semLink (v "noun")
-  sem = [semT v0 value]
   semLink nounV = [semV nounV attr v0]
+
+shortAdj agr attr value v =
+  [semT v0 value, semV (v "cop") attr v0] ++ copulaHead NPCopula agr "copula" False (makeV v0 "cop") ++ [mite $ Negateable (v "")]
+  where v0 = v ""
+
+comparativeAdj agr attr value v =
+  [semT v0 value, semV (v "cop") attr (v "more"), semT (v "more") "MORE", semV (v "more") P.Theme v0]
+  ++ copulaHead NPCopula agr "copula" False (makeV v0 "cop") ++ [mite $ Negateable (v "")]
+  where v0 = v ""
 
 orNomCopula plainMites caze agr v = if caze == Nom then xor [plainMites, adjCopulaHead] else plainMites where
   adjCopulaHead = copulaHead NPCopula agr "copula" False v

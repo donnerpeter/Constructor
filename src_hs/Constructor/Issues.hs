@@ -1,4 +1,4 @@
-module Constructor.Issues (IssueHolder, leafHolder, composeHolders, holderIssues) where
+module Constructor.Issues (IssueHolder, leafHolder, composeHolders, holderIssues, fatalIssues) where
 
 import Constructor.Mite
 import Constructor.Sense
@@ -9,7 +9,7 @@ import Control.Monad
 import Data.Maybe
 import qualified Constructor.SemanticProperties as P
 
-type Issue = String
+type Issue = (String, Fatality)
 
 l x = [x]
 
@@ -34,31 +34,31 @@ factIssues fact = let
         requireValType f = l$ \sense -> requireType (Just $ valFrame sense) f
         in case attr of
           P.AccordingTo -> requireValType $ \valFrame ->
-            if any (not . hasAnyType ["WORDS", "OPINION"]) (flatten $ Just valFrame) then finalIssue "invalid accordingTo" else finalNo
+            if any (not . hasAnyType ["WORDS", "OPINION"]) (flatten $ Just valFrame) then fatalIssue "invalid accordingTo" else finalNo
           P.OptativeModality -> requireValType $ \valFrame ->
-            if any (not . hasAnyType ["LUCK"]) (flatten $ Just valFrame) then finalIssue "invalid optativeModality" else finalNo
+            if any (not . hasAnyType ["LUCK", "BY_THE_WAY"]) (flatten $ Just valFrame) then fatalIssue "invalid optativeModality" else finalNo
           P.Quantifier -> l $ \sense ->
             requireType (Just $ frame sense) $ \f ->
               requireType (Just $ valFrame sense) $ \valFrame ->
                 if hasType "EYES" (frame sense) && not (hasType "2" valFrame) then finalIssue "suspicious eye count" else finalNo
           P.Condition -> requireValType $ \valFrame ->
-            if not (hasType "CASE" valFrame) then finalIssue "wrong condition" else finalNo
+            if not (hasType "CASE" valFrame) then fatalIssue "wrong condition" else finalNo
           P.Mood -> requireValType $ \valFrame ->
-            if not (hasAnyType ["RELIEF", "JOY"] valFrame) then finalIssue "wrong mood" else finalNo
+            if not (hasAnyType ["RELIEF", "JOY"] valFrame) then fatalIssue "wrong mood" else finalNo
           P.Companion -> requireValType $ \valFrame ->
-            if not (isHuman valFrame) then finalIssue "wrong companion" else finalNo
+            if not (isHuman valFrame) then fatalIssue "wrong companion" else finalNo
           P.Relative -> l $ \sense ->
             requireType (Just $ frame sense) $ \frame ->
               requireType (fValue P.Questioned $ valFrame sense) $ \wh ->
                 if hasAnyType ["WE", "THEY"] frame then finalIssue "relative clause for pronoun"
-                else if Just wh == (fValue P.Content (valFrame sense) >>= fValue P.VTime) then finalIssue "time relative clause"
+                else if Just wh == (fValue P.Content (valFrame sense) >>= fValue P.VTime) then fatalIssue "time relative clause"
                 else finalNo
           P.Topic -> l $ \sense ->
             requireType (Just $ frame sense) $ \frame ->
               requireType (Just $ valFrame sense) $ \valFrame ->
-                if hasType "ASK" frame && any isFactCP (flatten $ Just valFrame) then finalIssue "asking fact" else finalNo
+                if hasType "ASK" frame && any isFactCP (flatten $ Just valFrame) then fatalIssue "asking fact" else finalNo
           _ | attr `elem` [P.Location, P.Location_on, P.Location_in] -> requireValType $ \valFrame ->
-            if hasAnyType ["CASE", "COUNTING"] valFrame then finalIssue "wrong location" else finalNo
+            if hasAnyType ["CASE", "COUNTING"] valFrame then fatalIssue "wrong location" else finalNo
           _ -> []
 
 isTypeDefined frame = isJust frame && all (\f -> isJust (getDeclaredType f)) (flatten frame)
@@ -87,14 +87,14 @@ typeIssues var declaredType = missingSubj ++ missingArg2 ++ inanimateSubj ++ oth
       if Nothing == sDeclaredValue P.Conj (frame sense) then issue "comma-only seq" else finalNo
     "CASHIER" -> l $ \sense ->
       requireType (fValue P.Place $ frame sense) $ \fPlace ->
-        if any (hasType "OTHERS") (flatten $ Just fPlace) then finalIssue "cashier of other people" else finalNo
+        if any (hasType "OTHERS") (flatten $ Just fPlace) then fatalIssue "cashier of other people" else finalNo
     "OPINION" -> l $ \sense ->
       if isNothing (fValue P.Arg1 (frame sense) >>= getType) then issue "opinion without subj" else finalNo
     "WORDS" -> l $ \sense ->
       if isNothing (fValue P.Author (frame sense) >>= getType) then issue "words without author" else finalNo
     "copula_about" -> l $ \sense ->
       requireType (fValue P.Arg1 $ frame sense) $ \fSubj ->
-        if or $ map isAnimate $ flatten $ Just fSubj then finalIssue ("animate " ++ declaredType ++ " subject") else finalNo
+        if or $ map isAnimate $ flatten $ Just fSubj then fatalIssue ("animate " ++ declaredType ++ " subject") else finalNo
     "wh" -> l $ \sense ->
       if isNothing (usage P.Questioned $ frame sense) then issue "non-questioned wh" else finalNo
     "GO" -> l $ \sense ->
@@ -102,7 +102,7 @@ typeIssues var declaredType = missingSubj ++ missingArg2 ++ inanimateSubj ++ oth
         if isInanimate fAnchor then finalIssue "inanimate GO relTime anchor" else finalNo
     "WEATHER_BE" -> l $ \sense ->
       requireType (fValue P.Arg1 (frame sense)) $ \fSubj ->
-        if not $ hasAnyType ["SNOW", "RAIN"] fSubj then finalIssue "non-weather weather_be" else finalNo
+        if not $ hasAnyType ["SNOW", "RAIN"] fSubj then fatalIssue "non-weather weather_be" else finalNo
     "COME_SCALARLY" -> l $ \sense ->
       requireType (fValue P.Order (frame sense) >>= fValue P.Anchor) $ \anchor ->
         if isAnimate anchor then finalIssue "come_scalarly with animate anchor" else finalNo
@@ -129,9 +129,11 @@ orderingIssues var declaredType = let
 type IssueProvider = Sense -> IssueOutcome
 data IssueOutcome = IssueOutcome [Issue] Stability deriving (Show)
 data Stability = Final | Provisional deriving (Show,Eq)
+data Fatality = Fatal | Bearable deriving (Show,Eq)
 
-issue s = IssueOutcome [s] Provisional
-finalIssue s = IssueOutcome [s] Final
+issue s = IssueOutcome [(s, Bearable)] Provisional
+finalIssue s = IssueOutcome [(s, Bearable)] Final
+fatalIssue s = IssueOutcome [(s, Fatal)] Final
 finalNo = IssueOutcome [] Final
 provNo = IssueOutcome [] Provisional
 
@@ -147,3 +149,5 @@ makeHolder prevFinals sense providers = IssueHolder newFinals (concat newProvisi
   (newProvisional, newProviders) = unzip [(issues, f) | (f, IssueOutcome issues Provisional) <- outcomes]
 
 holderIssues holder = {-traceIt "issues" $ -}provisionalIssues holder ++ finalIssues holder
+
+fatalIssues holder = [s | (s, Fatal) <- finalIssues holder]

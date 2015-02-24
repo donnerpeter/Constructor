@@ -1,4 +1,4 @@
-module Constructor.Issues (IssueHolder, leafHolder, composeHolders, holderIssues, fatalIssues) where
+module Constructor.Issues (IssueHolder, leafHolder, composeHolders, holderIssues, fatalIssues, holderSense) where
 
 import Constructor.Mite
 import Constructor.Sense
@@ -137,13 +137,13 @@ fatalIssue s = IssueOutcome [(s, Fatal)] Final
 finalNo = IssueOutcome [] Final
 provNo = IssueOutcome [] Provisional
 
-data IssueHolder = IssueHolder { finalIssues :: [Issue], provisionalIssues :: [Issue], providers :: [IssueProvider] }
+data IssueHolder = IssueHolder { finalIssues :: [Issue], provisionalIssues :: [Issue], providers :: [IssueProvider], holderSense :: Sense }
 instance Show IssueHolder where show ih = show $ holderIssues ih
 
 leafHolder sense = makeHolder [] sense (bareFacts sense >>= factIssues)
-composeHolders sense holders = makeHolder (holders >>= finalIssues) sense (holders >>= providers)
+composeHolders holders = makeHolder (holders >>= finalIssues) (composeSense $ map holderSense holders) (holders >>= providers)
 
-makeHolder prevFinals sense providers = IssueHolder newFinals (concat newProvisional) newProviders where
+makeHolder prevFinals sense providers = IssueHolder newFinals (concat newProvisional) newProviders sense where
   outcomes = [(f, f sense) | f <- providers]
   newFinals = concat [issues | (_, IssueOutcome issues Final) <- outcomes] ++ prevFinals
   (newProvisional, newProviders) = unzip [(issues, f) | (f, IssueOutcome issues Provisional) <- outcomes]

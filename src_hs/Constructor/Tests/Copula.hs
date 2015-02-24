@@ -274,4 +274,7 @@ copulaTests = [
 --  ,
 --todo  translateTest "Cемья кассира больше семьи кассирши."
 --                "The family of the male cashier is larger than the family of the female cashier."
+--  ,
+--todo  translateTest "Я и ты такие разные, ты и я такие разные."
+--                "Me and you are so different, you and I are so different."
   ]

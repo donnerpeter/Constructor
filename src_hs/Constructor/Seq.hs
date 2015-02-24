@@ -99,7 +99,7 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env =
           leftRefs  = [m | m@(cxt -> ReflexiveReference _) <- leftCombined env] >>= liftMite
           rightRefs = [m | m@(cxt -> SeqRight(ReflexiveReference _)) <- rightCombined env] >>= liftMite
           in leftRefs ++ rightRefs
-        adjHeadCompanions child kind = if kind `elem` cases then withBase [m2] [mite $ AdjHead seqV kind (Agr Nothing (Just Pl) Nothing)] else []
+        adjHeadCompanions child kind = if kind `elem` cases then withBase [m2] [mite $ AdjHead seqV kind pl3] else []
         distinguished mite = case cxt mite of
           Argument (PP {}) child -> [semS child P.Distinguished "true"]
           VerbalModifier _ _ child | any isPrepHead (baseMites mite) -> [semS child P.Distinguished "true"]

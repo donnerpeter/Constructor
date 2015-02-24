@@ -114,12 +114,14 @@ whatComesNext v = [mite $ ArgHead ScalarAdverb (v "scalar"),
   semT (v "comes") "COME_SCALARLY", semV (v "comes") P.Order (v "scalar"),
   semV (v "comes") P.Arg1 (v "wh"), semT (v "wh") "wh"]
 numQuantifier ownCase childCase childAgr v = synNoun ownCase childAgr v ++ [semV (v "") P.Quantifier (v "q"), mite $ Quantifier childCase childAgr (v "")]
+
 number word v = xor (concat [nounAlternatives caze ++ [quantifierAlternative caze] | caze <- [Nom, Gen, Acc]]) where
-  nounAlternatives caze = [nounSg caze gender word v  ++ [semS (v "") P.Number "true"] | gender <- [Masc, Neu]]
+  nounAlternatives caze = [pronoun caze A.sg3 word v ++ [semS (v "") P.Number "true"]]
   quantifierAlternative caze = numQuantifier caze (quantifierChildCase caze word) (quantifierChildAgr word) v ++ [semT (v "q") word, semS (v "q") P.Number "true"]
+
 wordNumber caze typ v = xor [nounSg caze Masc typ v, numQuantifier caze (quantifierChildCase caze typ) (quantifierChildAgr typ) v ++ [semT (v "q") typ]]
 quantifierChildCase caze typ = if typ /= "1" && (caze == Nom || caze == Acc) then Gen else caze
-quantifierChildAgr typ = if typ `elem` ["1","2","3","4"] then A.sg else A.pl
+quantifierChildAgr typ = if typ `elem` ["1","2","3","4"] then A.sg3 else A.pl3
 
 go_args v = [mite $ SemArgHead Optional Direction (v "")]
 

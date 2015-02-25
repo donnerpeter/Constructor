@@ -59,7 +59,7 @@ data Construction = Word Variable String
                   -- arguments
                   | NomHead Agr Variable Satisfied
                   | GenHead Variable
-                  | ArgHead ArgKind Variable
+                  | ArgHead ArgKind P.VarProperty Variable
                   | SemArgHead Optionality SemArgKind Variable
                   | PrepHead String ArgKind Variable
                   | Argument ArgKind Variable

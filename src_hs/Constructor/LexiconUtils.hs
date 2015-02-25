@@ -62,7 +62,7 @@ infinitive typ v =
   xor [[mite $ ControlledInfinitive $ v ""],
        [mite $ ModalityInfinitive (v "x") (v "cp"), semT (v "x") "modality", semV (v "x") P.Theme (v ""), semV (v "cp") P.Content (v "x"), mite $ Verb (v "x"), mite $ ConjEmphasizeable (v "x"), mite $ TenseHead Optional (v "x")] ++ optional (arg Dat P.Arg1 v),
        semArg Direction P.Goal_action (v "")]
-arg argType relation v = [mite $ ArgHead argType (v $ decapitalize $ show relation), semV (v "") relation (v $ decapitalize $ show relation)]
+arg argType relation v = [mite $ ArgHead argType relation (v "")]
 compHead attr v = [mite $ CompHead (v "comp"), semV (v "") attr (v "comp")]
 
 semArg argType relation childVar@(Variable index s) = let headVar = Variable index (s ++ "_head") in
@@ -108,11 +108,7 @@ conjunction v0 conj ready = [mite $ Conjunction $ SeqData v0 conj ready False Fa
 modifyV v c = \s -> v $ c:s
 makeV (Variable index oldS) suffix = \s -> Variable index (oldS ++ suffix ++ s)
 
-whatComesNext v = [mite $ ArgHead ScalarAdverb (v "scalar"),
-  semV (v "") P.Arg2 (v "arg2"),
-  semT (v "arg2") "situation", semV (v "arg2") P.Questioned (v "wh"), semV (v "arg2") P.Content (v "comes"),
-  semT (v "comes") "COME_SCALARLY", semV (v "comes") P.Order (v "scalar"),
-  semV (v "comes") P.Arg1 (v "wh"), semT (v "wh") "wh"]
+whatComesNext v = [mite $ ArgHead ScalarAdverb P.Order (v "")]
 numQuantifier ownCase childCase childAgr v = synNoun ownCase childAgr v ++ [semV (v "") P.Quantifier (v "q"), mite $ Quantifier childCase childAgr (v "")]
 
 number word v = xor (concat [nounAlternatives caze ++ [quantifierAlternative caze] | caze <- [Nom, Gen, Acc]]) where

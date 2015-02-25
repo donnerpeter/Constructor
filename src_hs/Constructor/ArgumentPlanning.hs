@@ -75,6 +75,7 @@ arguments fVerb@(getType -> Just typ) = allArgs where
         _ -> []
       ("COME_TO", P.Goal_by) -> [NPArg value]
       ("COME_TO", P.Domain) | isJust $ sValue P.Type value -> [PPArg "in" value]
+      ("FORGET", P.Order) -> [Adverb AfterVerb "what comes next"]
       ("HAPPEN", P.Experiencer) -> [PPArg "to" value]
       ("TAKE_OUT", P.Source) -> [PPArg "out of" value]
       ("RUN_OUT", P.Source) -> [PPArg "out of" value]

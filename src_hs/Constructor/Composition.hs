@@ -201,14 +201,14 @@ interactHybrid doInteract headSide headMites childMites = combinations where
 interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
     let (left, right, base12) = mergeInfoHelpers m1 m2
     in case (c1, c2) of
-      (ArgHead kind1 head, Argument kind2 arg) | kind1 == kind2 ->
-        mergeLeft $ base12 (argVariants head arg leftPairs rightPairs) ++ reflexive leftPairs rightPairs ++ existentials leftPairs rightPairs
-      (Argument kind2 arg, ArgHead kind1 head) | kind1 == kind2 ->
-        mergeRight $ base12 (argVariants head arg rightPairs leftPairs) ++ reflexive rightPairs leftPairs ++ existentials rightPairs leftPairs
+      (ArgHead kind1 relation head, Argument kind2 arg) | kind1 == kind2 ->
+        mergeLeft $ base12 [semV head relation arg] ++ reflexive leftPairs rightPairs ++ existentials leftPairs rightPairs
+      (Argument kind2 arg, ArgHead kind1 relation head) | kind1 == kind2 ->
+        mergeRight $ base12 [semV head relation arg] ++ reflexive rightPairs leftPairs ++ existentials rightPairs leftPairs
       (SemArgHead _ kind1 head, SemArgument kind2 arg _) | kind1 == kind2 ->
-        mergeLeft $ base12 (argVariants head arg leftPairs rightPairs ++ [mite $ SemArgHead Optional kind1 head]) ++ reflexive leftPairs rightPairs ++ existentials leftPairs rightPairs
+        mergeLeft $ base12 [mite $ SemArgHead Optional kind1 head, mite $ Unify head arg] ++ reflexive leftPairs rightPairs ++ existentials leftPairs rightPairs
       (SemArgument kind2 arg _, SemArgHead _ kind1 head) | kind1 == kind2 ->
-        mergeRight $ base12 (argVariants head arg rightPairs leftPairs ++ [mite $ SemArgHead Optional kind1 head]) ++ reflexive rightPairs leftPairs ++ existentials rightPairs leftPairs
+        mergeRight $ base12 [mite $ SemArgHead Optional kind1 head, mite $ Unify head arg] ++ reflexive rightPairs leftPairs ++ existentials rightPairs leftPairs
 
       (Argument Nom v1, NomHead agr1 v2 Unsatisfied) -> leftPairs >>= \case
         (m3, AdjHead v3 Nom agr2) | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) ->
@@ -261,8 +261,8 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       -- todo relativizer + nomHead/copulaHead duplication
       (Relativizer wh, CopulaHead (CopulaData { copKind = kind, copAgr = agr, copSubj = v2, copCP = cp })) | kind /= NPCopula ->
         left $ [mite $ Unify v2 wh, mite $ RelativeClause agr cp, semV cp P.Questioned wh]
-      (Relativizer wh, ArgHead Acc v2) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
-        Clause cp -> mergeLeft $ withBase [m1,m2,m3] [mite $ Unify v2 wh, mite $ RelativeClause empty cp, semV cp P.Questioned wh]
+      (Relativizer wh, ArgHead Acc attr v2) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
+        Clause cp -> mergeLeft $ withBase [m1,m2,m3] [semV v2 attr wh, mite $ RelativeClause empty cp, semV cp P.Questioned wh]
         _ -> []
 
       (ConjEmphasis attr _, ConjEmphasizeable head) -> right [semS head attr "true"]
@@ -350,8 +350,8 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (Word _ "не", Negateable v) -> right $ xor [[semS v P.Negated "true", mite $ Negated v], [mite $ PendingNegation v]]
       (Word _ "не", Verb v) -> let
         negateDirectObject = rightCombined env >>= \m3 -> case cxt m3 of
-          ArgHead Acc v -> let
-            result = withBase [m1,m2,m3] [mite $ ArgHead Gen v] ++ colleagues
+          ArgHead Acc attr v -> let
+            result = withBase [m1,m2,m3] [mite $ ArgHead Gen attr v] ++ colleagues
             colleagues = concat [withBase [m1,m2,m] [mite (cxt m)] | m <- rightCompatible env m2, contradict m m3]
             in result
           _ -> []
@@ -363,8 +363,6 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (RaisingVerb verb subj, Adj child _ Instr agr) -> left [semV child P.Arg1 subj, semV verb P.Theme child]
        
       _ -> []
-
-argVariants headVar childVar headPairs childPairs = [mite $ Unify headVar childVar]
 
 reflexive headPairs childPairs = headPairs >>= \case
     (m1, ReflexiveTarget target) -> childPairs >>= \case

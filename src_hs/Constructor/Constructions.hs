@@ -75,7 +75,7 @@ data Construction = Word Variable String
                   | VerbalModifier P.VarProperty {-requires comma-} Bool Variable
 
                   -- subordinate clauses
-                  | CompHead Variable
+                  | CompHead P.VarProperty Variable
                   | ConditionCompHead Variable
                   | RelativeClause Agr Variable
                   | Relativizer Variable

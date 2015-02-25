@@ -63,7 +63,7 @@ infinitive typ v =
        [mite $ ModalityInfinitive (v "x") (v "cp"), semT (v "x") "modality", semV (v "x") P.Theme (v ""), semV (v "cp") P.Content (v "x"), mite $ Verb (v "x"), mite $ ConjEmphasizeable (v "x"), mite $ TenseHead Optional (v "x")] ++ optional (arg Dat P.Arg1 v),
        semArg Direction P.Goal_action (v "")]
 arg argType relation v = [mite $ ArgHead argType relation (v "")]
-compHead attr v = [mite $ CompHead (v "comp"), semV (v "") attr (v "comp")]
+compHead attr v = [mite $ CompHead attr (v "")]
 
 semArg argType relation childVar@(Variable index s) = let headVar = Variable index (s ++ "_head") in
   [mite $ SemArgument argType headVar childVar, semV headVar relation childVar]

@@ -22,9 +22,9 @@ instance Show SeqData where
             (if seqHasLeft sd then " left" else "") ++(if seqHasRight sd then " right" else "")++
             (if seqHybrid sd then " hybrid" else "")
 
-data CopulaData = CopulaData { copKind :: CopulaKind, copAgr :: Agr, copSubj :: Variable, copula :: Variable, copCP :: Variable, copBound :: Bool } deriving (Eq, Ord)
+data CopulaData = CopulaData { copKind :: CopulaKind, copAgr :: Agr, copSubj :: Variable, copula :: Variable, copCP :: Variable, copBound :: Bool, copType :: String } deriving (Eq, Ord)
 instance Show CopulaData where
-  show cd = show (copKind cd) ++ " " ++ show (copAgr cd) ++ " " ++ " " ++ show (copula cd) ++ (if copBound cd then " bound" else "")
+  show cd = show (copKind cd) ++ " " ++ show (copAgr cd) ++ " " ++ (copType cd) ++ " " ++ show (copula cd) ++ (if copBound cd then " bound" else "")
 
 data Construction = Word Variable String
                   --semantic

@@ -148,6 +148,6 @@ makeHolder prevFinals sense providers = IssueHolder newFinals (concat newProvisi
   newFinals = concat [issues | (_, IssueOutcome issues Final) <- outcomes] ++ prevFinals
   (newProvisional, newProviders) = unzip [(issues, f) | (f, IssueOutcome issues Provisional) <- outcomes]
 
-holderIssues holder = {-traceIt "issues" $ -}provisionalIssues holder ++ finalIssues holder
+holderIssues holder = provisionalIssues holder ++ finalIssues holder
 
 fatalIssues holder = [s | (s, Fatal) <- finalIssues holder]

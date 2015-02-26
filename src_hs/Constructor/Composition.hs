@@ -40,10 +40,8 @@ interactNodes env = {-traceIt ("    interact") $ -}whResults ++ noWh where
         ModalityInfinitive _ cp -> fillGap cp whVar clauseMite agr
         CopulaHead (CopulaData { copKind = kind, copCP = cp }) | kind /= NPCopula -> fillGap cp whVar clauseMite agr
         Argument Nom subj -> leftCompatible env whMite >>= \copulaMite -> case cxt copulaMite of
-          CopulaHead (CopulaData { copAgr = agr, copCP = cp }) -> let
-            fillers = filter (\info -> mergedHeadSide info == LeftSide) whBase
-            infos = fillers >>= \ info -> mergeLeft (mergeResult info ++ whLinks [whMite, clauseMite, copulaMite] cp whVar agr)
-            in infos
+          CopulaHead (CopulaData { copAgr = agr, copCP = cp, copSubj = copSubj }) ->
+            mergeLeft ([mite $ NomHead agr subj Satisfied, mite $ Unify copSubj subj] ++ whLinks [whMite, clauseMite, copulaMite] cp whVar agr)
           _ -> []
         _ -> []
       _ -> []

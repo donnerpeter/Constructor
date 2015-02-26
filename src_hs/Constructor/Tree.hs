@@ -1,4 +1,4 @@
-module Constructor.Tree (Tree(..),
+module Constructor.Tree (Tree(..), Unhappy(..),
                          allTreeMites, isBranch, justRight,
                          createBranch, createLeaf,
                          subTrees, edgeTrees,

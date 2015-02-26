@@ -11,7 +11,7 @@ mergeRight mites = [MergeInfo mites RightSide]
 
 data InteractionEnv = InteractionEnv {leftTree::Tree, leftCombined::[Mite], rightCombined::[Mite], leftSets::[[Mite]], rightSets::[[Mite]]}
 interactionEnv leftTree rightSets rightCombined = let
-  leftSets = map activeHeadMites $ allVariants leftTree
+  leftSets = map activeHeadMites $ filter (null . _unhappyRight . _unhappy) $ allVariants leftTree
   in InteractionEnv {
       leftTree = leftTree, leftCombined = LS.removeDups $ filter isInteractive $ concat leftSets, leftSets = leftSets,
       rightSets = rightSets, rightCombined = filter isInteractive rightCombined

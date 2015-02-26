@@ -131,7 +131,7 @@ createBranch mites _leftChild _rightChild headSide candidateSets = listToMaybe a
               bcUnhappy = composeUnhappy (_unhappy aLeft) (_unhappy aRight) headSide active isUncovered,
               bcIssues = composeHolders [_issues aLeft, leafHolder _nodeSense, _issues aRight]
             }
-      in case {-filter (null . fatalIssues . bcIssues) $ -}map createCandidate sideChildren of
+      in case filter (null . fatalIssues . bcIssues) $ map createCandidate sideChildren of
         [] -> []
         candidates -> [candidatesToBranch mites headSide active _activeHeadMites allBranchVariants candidates]
 

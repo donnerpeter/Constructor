@@ -25,7 +25,7 @@ argOrCopula caze agr v =
   argRole = [mite $ Argument caze (v "")]
   npCopulaHead instr = copulaHead NPCopula agr "copula" instr cv ++ [semV (cv "") P.Arg2 (v "")] ++
     (if instr then [semS (cv "") P.ProfessionCopula "true", mite $ ConjEmphasizeable (cv "")] else [])
-  cv = modifyV v 'x'
+  cv = modifyV v "x"
 
 rusGender agr v = case A.gender agr of
   Just g -> [semS v P.RusGender (show g)]
@@ -105,7 +105,7 @@ genHead attr v = optional [mite $ GenHead (v "gen"), semV (v "") attr (v "gen")]
 directObject v = arg Acc P.Arg2 v
 conjunction v0 conj ready = [mite $ Conjunction $ SeqData v0 conj ready False False False, semT v0 "seq"] ++ (if conj == "," then [] else [semS v0 P.Conj conj])
 
-modifyV v c = \s -> v $ c:s
+modifyV v c = \s -> v $ c ++ s
 makeV (Variable index oldS) suffix = \s -> Variable index (oldS ++ suffix ++ s)
 
 numQuantifier ownCase childCase childAgr v = synNoun ownCase childAgr v ++ [semV (v "") P.Quantifier (v "q"), mite $ Quantifier childCase childAgr (v "")]

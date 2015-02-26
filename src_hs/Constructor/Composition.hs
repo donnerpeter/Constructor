@@ -275,9 +275,9 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
 
       (NounPhrase head, NounAdjunct attr False var) -> left [semV head attr var]
 
-      (Quantifier kind1 agr1 v1, Argument kind2 v2) | kind1 == kind2 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
+      (Quantifier quantifierCase kind1 agr1 v1, Argument kind2 v2) | kind1 == kind2 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
         AdjHead v3 kind3 agr2 | kind3 == kind1 && agree agr1 agr2 && v2 == v3 ->
-          mergeLeft $ withBase [m1, m2, m3] [mite $ Unify v1 v2] ++ Seq.pullThyself (rightCompatible env m2)
+          mergeLeft $ withBase [m1, m2, m3] ([semV v2 P.Quantifier v1] ++ synNoun quantifierCase agr1 (makeV v2 "")) ++ Seq.pullThyself (rightCompatible env m2)
         _ -> []
 
       (SemPreposition kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]

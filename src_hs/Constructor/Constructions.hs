@@ -128,7 +128,7 @@ data Construction = Word Variable String
                   | ConjEmphasis P.StrProperty Variable
                   | ConjEmphasizeable Variable
                   | SemPreposition ArgKind Variable
-                  | Quantifier ArgKind Agr Variable
+                  | Quantifier ArgKind ArgKind Agr Variable
                   | Elaboration Variable
                   deriving (Show, Ord, Eq)
 

@@ -108,7 +108,7 @@ conjunction v0 conj ready = [mite $ Conjunction $ SeqData v0 conj ready False Fa
 modifyV v c = \s -> v $ c ++ s
 makeV (Variable index oldS) suffix = \s -> Variable index (oldS ++ suffix ++ s)
 
-numQuantifier ownCase childCase childAgr v = synNoun ownCase childAgr v ++ [semV (v "") P.Quantifier (v "q"), mite $ Quantifier childCase childAgr (v "")]
+numQuantifier ownCase childCase childAgr v = [mite $ Quantifier ownCase childCase childAgr (v "q")]
 
 number word v = xor (concat [nounAlternatives caze ++ [quantifierAlternative caze] | caze <- [Nom, Gen, Acc]]) where
   nounAlternatives caze = [pronoun caze A.sg3 word v ++ [semS (v "") P.Number "true"]]

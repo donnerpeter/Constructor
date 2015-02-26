@@ -92,9 +92,9 @@ wordMites word index =
   "есть" -> [semS v0 P.Time "PRESENT"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0]]
   "ещё" -> [mite $ ComparativeEmphasis v0]
   "жареную" -> adj Acc A.sg P.Kind "ROASTED" v
-  "забыл" -> finVerb "FORGET" "PAST" A.m v ++ optional (xor [compHead P.Arg2 v, directObject v, whatComesNext v])
-  "забыла" -> finVerb "FORGET" "PAST" A.f v ++ optional (xor [compHead P.Arg2 v, directObject v, whatComesNext v])
-  "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ optional (xor [compHead P.Arg2 v, directObject v, whatComesNext v])
+  "забыл" -> finVerb "FORGET" "PAST" A.m v ++ optional (xor [compHead P.Arg2 v, directObject v, arg ScalarAdverb P.Order v])
+  "забыла" -> finVerb "FORGET" "PAST" A.f v ++ optional (xor [compHead P.Arg2 v, directObject v, arg ScalarAdverb P.Order v])
+  "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ optional (xor [compHead P.Arg2 v, directObject v, arg ScalarAdverb P.Order v])
   "завтра" -> adverb P.RelTime "TOMORROW" v
   "зелёный" -> adj Nom A.m P.Color "GREEN" v
   "знает" -> finVerb "KNOW" "PRESENT" A.sg3 v ++ optional (directObject v)

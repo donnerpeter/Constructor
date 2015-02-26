@@ -1,5 +1,5 @@
 module Constructor.Tree (Tree(..),
-                         allTreeMites, isBranch, treeWidth, justRight,
+                         allTreeMites, isBranch, justRight,
                          createBranch, createLeaf,
                          subTrees, edgeTrees,
                          bestVariant, issues, sense) where
@@ -27,7 +27,8 @@ data Tree = Tree {
   _issues :: Interned IssueHolder,
   allVariants:: [Tree],
   unhappyCount :: Int,
-  handicapCount :: Int
+  handicapCount :: Int,
+  treeWidth :: Int
 }
 
 instance Eq Tree where t1 == t2 = eqKey t1 == eqKey t2
@@ -121,7 +122,8 @@ createLeaf mites candidateSets = head trees where
       activeHeadMitesBase = LS.removeDups (active >>= baseMites),
       _unhappy = unhappy, unhappyCount = _unhappyCount unhappy, handicapCount = length $ filter isHandicap active,
       _issues = issues,
-      allVariants = trees
+      allVariants = trees,
+      treeWidth = 1
     }
 
 createBranch mites _leftChild _rightChild headSide candidateSets = listToMaybe allBranchVariants where
@@ -178,6 +180,7 @@ candidatesToBranch mites headSide active _activeHeadMites allBranchVariants cand
     _unhappy = bcUnhappy bc, unhappyCount = unhappyCount,
     handicapCount = handicapCount aLeft + handicapCount aRight + Set.size (Set.filter isHandicap activeSet),
     _issues = bcIssues bc,
+    treeWidth = treeWidth aLeft + treeWidth aRight,
     allVariants = allBranchVariants
   }
 
@@ -194,9 +197,6 @@ sense tree = holderSense $ internedValue $ _issues tree
 issues tree = holderIssues $ internedValue $ _issues tree
 
 _unhappyCount u = length (_unhappyLeft u) + length (_unhappyHead u) + length (_unhappyRight u)
-
-
-treeWidth tree = if isBranch tree then treeWidth (justLeft tree) + treeWidth (justRight tree) else 1
 
 bestTree avs = head $ leastValued (length . issues) $ leastValued unhappyCount avs
 

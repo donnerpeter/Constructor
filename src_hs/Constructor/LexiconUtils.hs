@@ -108,13 +108,13 @@ conjunction v0 conj ready = [mite $ Conjunction $ SeqData v0 conj ready False Fa
 modifyV v c = \s -> v $ c ++ s
 makeV (Variable index oldS) suffix = \s -> Variable index (oldS ++ suffix ++ s)
 
-numQuantifier ownCase childCase childAgr v = [mite $ Quantifier ownCase childCase childAgr (v "q")]
+numQuantifier ownCase childCase childAgr v = [mite $ Quantifier ownCase childCase childAgr (v "")]
 
 number word v = xor (concat [nounAlternatives caze ++ [quantifierAlternative caze] | caze <- [Nom, Gen, Acc]]) where
   nounAlternatives caze = [pronoun caze A.sg3 word v ++ [semS (v "") P.Number "true"]]
-  quantifierAlternative caze = numQuantifier caze (quantifierChildCase caze word) (quantifierChildAgr word) v ++ [semT (v "q") word, semS (v "q") P.Number "true"]
+  quantifierAlternative caze = numQuantifier caze (quantifierChildCase caze word) (quantifierChildAgr word) v ++ [semT (v "") word, semS (v "") P.Number "true"]
 
-wordNumber caze typ v = xor [nounSg caze Masc typ v, numQuantifier caze (quantifierChildCase caze typ) (quantifierChildAgr typ) v ++ [semT (v "q") typ]]
+wordNumber caze typ v = xor [nounSg caze Masc typ v, numQuantifier caze (quantifierChildCase caze typ) (quantifierChildAgr typ) v ++ [semT (v "") typ]]
 quantifierChildCase caze typ = if typ /= "1" && (caze == Nom || caze == Acc) then Gen else caze
 quantifierChildAgr typ = if typ `elem` ["1","2","3","4"] then A.sg3 else A.pl3
 

@@ -203,7 +203,7 @@ wordMites word index =
   "носом" -> nounSg Instr Masc "NOSE" v
   "нужно" -> [semT v0 "NEED", mite $ NomHead A.n (v "arg2") Unsatisfied, semV v0 P.Arg2 (v "arg2"), mite $ TenseHead Optional v0] ++ optional (arg Dat P.Arg1 v) ++ clause v
   "о" -> preposition "o" Prep v
-  "обе" -> numQuantifier Acc Gen A.f v ++ [semT (v "q") "BOTH"]
+  "обе" -> numQuantifier Acc Gen A.f v ++ [semT v0 "BOTH"]
   "облегчением" -> nounSg Instr Neu "RELIEF" v
   "обнаружил" -> finVerb "DISCOVER" "PAST" A.m v ++ compHead P.Theme v
   "обнаружила" -> finVerb "DISCOVER" "PAST" A.f v ++ compHead P.Theme v

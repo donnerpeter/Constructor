@@ -14,6 +14,7 @@ import Data.Maybe
 import Control.Exception (assert)
 import Constructor.Constructions
 import Constructor.Variable
+import Constructor.Util
 import Constructor.SemanticProperties
 
 type XorKey = (Construction, [Mite])
@@ -62,7 +63,9 @@ xorNonEmpty groups = if length nonEmpty <= 1 then concat nonEmpty else xor nonEm
 
 xor :: [[Mite]] -> [Mite]
 xor _miteGroups = let
-      miteGroups = diversify $ LS.removeDups _miteGroups
+      sets = Set.fromList $ map Set.fromList _miteGroups
+      nodups = if Set.size sets /= length _miteGroups then error "duplicate groups in xor" else _miteGroups
+      miteGroups = diversify nodups
       cxtGroups = map (map xorKey) miteGroups
       allCxts = LS.removeDups $ concat cxtGroups
       allCxtSet = Set.fromList allCxts
@@ -78,7 +81,8 @@ xor _miteGroups = let
       newMites = map createMite allCxts
 
   in
-    if any null miteGroups then error $ "Empty mite group: " ++ show miteGroups
+    if any null _miteGroups then error $ "Empty mite group: " ++ show miteGroups
+    else if length _miteGroups <= 1 then concat _miteGroups
     else assert (LS.removeDups newMites == newMites) $ {-traceShow ("xor", miteGroups) $ traceShow ("->", newMites) $ -}newMites
 
 contradict mite1 mite2 = any (\m -> Set.member (xorKey m) (flattenContradictors mite1)) (flattenBaseMites mite2) || differentGenerations where

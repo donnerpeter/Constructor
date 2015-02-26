@@ -90,7 +90,7 @@ obtainSprouts :: ParsingState -> Tree -> State [ParsingState] [Sprout]
 obtainSprouts leftState right = do
   oldHistory <- get
   let rightSets = map activeHeadMites $ filter (null . _unhappyLeft . _unhappy) $ Constructor.Tree.allVariants right
-      rightCombined = LS.removeDups $ concat rightSets
+      rightCombined = LS.removeDups $ filter isInteractive $ concat rightSets
       allEdgeTrees = LS.removeDups $ lastVariants leftState >>= \t -> reverse (edgeTrees RightSide t)
       (uncachedSprouts, _) = runState (mapM (\left -> stealLeftSubtrees left rightSets rightCombined) allEdgeTrees) (Set.empty, Set.empty)
       rightWidth = treeWidth right

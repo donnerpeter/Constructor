@@ -105,7 +105,11 @@ withBase base mites = let
   addBaseToContra key@(c, b) = if Set.member key keys then (c, LS.removeDups $ b ++ base) else key
   handleMite m = let
     newBase = LS.removeDups $ (baseMites m ++ base)
-    issues = concat [if contradict m1 m2 then [(m1, m2)] else [] | m1 <- newBase, m2 <- newBase]
+
+    pairs [] = []
+    pairs (x:xs) = [(x, y)| y <- xs] ++ pairs xs
+
+    issues = concat [if contradict m1 m2 then [(m1, m2)] else [] | (m1, m2) <- pairs newBase]
     prettyIssues = intercalate "\n" $ map (\(m1, m2) -> show m1 ++ "\n  contradicts\n  " ++ show m2) issues
     in
     if null issues

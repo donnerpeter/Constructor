@@ -50,7 +50,7 @@ finiteClause agr withSemSubject v =
                      clause v
 
 copulaHead kind agr copulaType tenseRequired v =
-  [mite $ CopulaHead cd, mite $ TenseHead (if tenseRequired then Obligatory else Optional) (v "")] ++ copulaSem cd where
+  [mite $ CopulaHead cd, mite $ TenseHead (if tenseRequired then Obligatory else Optional) (v "")] where
   cd = CopulaData kind agr (v "arg1") (v "") (v "cp") False copulaType
 
 copulaSem cd = [semV (copula cd) P.Arg1 (copSubj cd),

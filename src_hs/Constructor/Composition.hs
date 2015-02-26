@@ -40,13 +40,15 @@ interactNodes env = {-traceIt ("    interact") $ -}whResults ++ noWh where
         ModalityInfinitive _ cp -> fillGap cp whVar clauseMite agr
         CopulaHead (CopulaData { copKind = kind, copCP = cp }) | kind /= NPCopula -> fillGap cp whVar clauseMite agr
         Argument Nom subj -> leftCompatible env whMite >>= \copulaMite -> case cxt copulaMite of
-          CopulaHead (CopulaData { copAgr = agr, copCP = cp, copSubj = copSubj }) ->
-            mergeLeft ([mite $ NomHead agr subj Satisfied, mite $ Unify copSubj subj] ++ whLinks [whMite, clauseMite, copulaMite] cp whVar agr)
+          CopulaHead cd ->
+            mergeLeft (completeCopula cd subj ++ whLinks [whMite, clauseMite, copulaMite] (copCP cd) whVar (copAgr cd))
           _ -> []
         _ -> []
       _ -> []
 
 whLinks base cp whVar agr = withBase base [semV cp P.Questioned whVar, semT cp "situation"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause agr cp], [mite $ TopLevelQuestion cp]]
+
+completeCopula cd subj = [mite $ NomHead (copAgr cd) subj Satisfied, mite $ Unify (copSubj cd) subj] ++ copulaSem cd
 
 mergeInfoHelpers m1 m2 = ( \mites -> mergeLeft (base12 mites), \mites -> mergeRight (base12 mites), base12) where
   base12 = withBase [m1,m2]
@@ -218,10 +220,10 @@ interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
         _ -> []
 
       -- todo nom + nomHead/copulaHead duplication
-      (Argument Nom v1, CopulaHead (CopulaData { copSubj = subj, copAgr = agr, copula = v2, copCP = cp })) ->
-        right $ [mite $ NomHead agr v1 Satisfied, mite $ Unify v1 subj] ++ (if whContext then [] else [mite $ Clause cp, mite $ Verb v2])
-      (CopulaHead (CopulaData { copKind = kind, copAgr = agr, copSubj = subj, copula = v1, copCP = cp }), Argument Nom v2) | kind /= NPCopula || whContext ->
-        left $ [mite $ NomHead agr v2 Satisfied, mite $ Unify v2 subj] ++ (if whContext then [] else [mite $ Clause cp, mite $ Verb v1])
+      (Argument Nom v1, CopulaHead cd) ->
+        right $ completeCopula cd v1 ++ (if whContext then [] else [mite $ Clause (copCP cd), mite $ Verb (copula cd)])
+      (CopulaHead cd, Argument Nom v2) | copKind cd /= NPCopula || whContext ->
+        left $ completeCopula cd v2 ++ (if whContext then [] else [mite $ Clause (copCP cd), mite $ Verb (copula cd)])
 
       (Verb verb, VerbalModifier attr False advP) -> mergeLeft $ base12 [semV verb attr advP] ++ existentials leftPairs rightPairs
       (VerbalModifier attr needComma advP, Verb verb) -> mergeRight $
@@ -257,8 +259,8 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
         Clause cp -> mergeLeft $ withBase [m1,m2,m3] [mite $ Unify v2 wh, mite $ RelativeClause agr cp, semV cp P.Questioned wh]
         _ -> []
       -- todo relativizer + nomHead/copulaHead duplication
-      (Relativizer wh, CopulaHead (CopulaData { copKind = kind, copAgr = agr, copSubj = v2, copCP = cp })) | kind /= NPCopula ->
-        left $ [mite $ Unify v2 wh, mite $ RelativeClause agr cp, semV cp P.Questioned wh]
+      (Relativizer wh, CopulaHead (cd@(CopulaData { copKind = kind, copAgr = agr, copSubj = v2, copCP = cp }))) | kind /= NPCopula ->
+        left $ [mite $ Unify v2 wh, mite $ RelativeClause agr cp, semV cp P.Questioned wh] ++ copulaSem cd
       (Relativizer wh, ArgHead Acc attr v2) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
         Clause cp -> mergeLeft $ withBase [m1,m2,m3] [semV v2 attr wh, mite $ RelativeClause empty cp, semV cp P.Questioned wh]
         _ -> []

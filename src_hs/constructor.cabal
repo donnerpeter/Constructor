@@ -28,7 +28,7 @@ executable constructor
                        containers
 
 executable profiled
-  ghc-options: -O2 -fprof-auto -rtsopts
+  ghc-options: -O2 -fprof-auto-exported -fno-prof-count-entries -rtsopts
   extensions: DoAndIfThenElse,PatternGuards,LambdaCase,ViewPatterns,DeriveGeneric
   main-is: Profile.hs
   build-depends:       base ==4.6.*,

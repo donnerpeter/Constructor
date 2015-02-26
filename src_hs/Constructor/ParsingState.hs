@@ -74,7 +74,7 @@ chooseBestLastVariants finalHistory allVariants = {-trace (length result) -}resu
 
   mergedRoots rightTree = rightTree : roots (finalHistory !! (treeWidth rightTree - 1))
   mergedUnhappyCount rightTree = sum [unhappyCount tree | tree <- mergedRoots rightTree]
-  mergedIssueCount rightTree = sum [length $ holderIssues $ _issues tree | tree <- mergedRoots rightTree]
+  mergedIssueCount rightTree = sum [length $ issues tree | tree <- mergedRoots rightTree]
   mergedHandicapCount rightTree = sum [minimum (map handicapCount $ Constructor.Tree.allVariants tree) | tree <- mergedRoots rightTree]
 
 allMergeVariants :: ParsingState -> Tree -> State [ParsingState] [Tree]

@@ -1,4 +1,4 @@
-module Constructor.Tree (Tree(..), Unhappy(..),
+module Constructor.Tree (Tree(..), Unhappy(..), Interactive(..),
                          allTreeMites, isBranch, justRight,
                          createBranch, createLeaf,
                          subTrees, edgeTrees,
@@ -27,7 +27,8 @@ data Tree = Tree {
   _issues :: Interned IssueHolder,
   allVariants:: [Tree],
   handicapCount :: Int,
-  treeWidth :: Int
+  treeWidth :: Int,
+  interactiveMites :: Interactive
 }
 
 instance Eq Tree where t1 == t2 = eqKey t1 == eqKey t2
@@ -122,7 +123,8 @@ createLeaf mites candidateSets = head trees where
       _unhappy = unhappy, handicapCount = length $ filter isHandicap active,
       _issues = issues,
       allVariants = trees,
-      treeWidth = 1
+      treeWidth = 1,
+      interactiveMites = interactiveSets trees
     }
 
 createBranch mites _leftChild _rightChild headSide candidateSets = listToMaybe allBranchVariants where
@@ -163,7 +165,8 @@ createBranch mites _leftChild _rightChild headSide candidateSets = listToMaybe a
               handicapCount = handicapCount aLeft + handicapCount aRight + length (filter isHandicap active),
               _issues = compositeHolder,
               treeWidth = treeWidth aLeft + treeWidth aRight,
-              allVariants = allBranchVariants
+              allVariants = allBranchVariants,
+              interactiveMites = interactiveSets allBranchVariants
             }
       ListT $ do
         candidates <- mapM createCandidate sideChildren
@@ -177,6 +180,13 @@ composeUnhappy left right headSide active isUncovered = Unhappy {
   _unhappyRight = filter isUncovered $ _unhappyRight right   ++ select headSide (_unhappyHead right) [],
   _unhappyHead =  filter isUncovered $ _unhappyHead (select headSide left right) ++ filter (not. happy) active
  }
+
+data Interactive = Interactive { _leftSets :: [[Mite]], _rightSets :: [[Mite]], _leftCombined :: [Mite], _rightCombined :: [Mite] }
+interactiveSets :: [Tree] -> Interactive
+interactiveSets allVariants = Interactive ls rs (filterInteractive ls) (filterInteractive rs) where
+  ls = map activeHeadMites $ filter (null . _unhappyRight . _unhappy) allVariants
+  rs = map activeHeadMites $ filter (null . _unhappyLeft  . _unhappy) allVariants
+  filterInteractive sets = LS.removeDups $ filter isInteractive $ concat sets
 
 sense tree = holderSense $ internedValue $ _issues tree
 

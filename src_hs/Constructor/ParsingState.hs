@@ -21,11 +21,11 @@ import Control.Monad.State
 
 data Sprout = Sprout { sLeftTree:: Tree, sHeadSide:: Side, sMites:: [Mite], sActiveSets:: [[Mite]] } deriving (Show)
 
-stealLeftSubtrees :: Tree -> [[Mite]] -> [Mite] -> State (Set.Set Tree, Set.Set Tree) [Sprout]
-stealLeftSubtrees edgeTree rightSets rightCombined = let
+stealLeftSubtrees :: Tree -> Tree -> State (Set.Set Tree, Set.Set Tree) [Sprout]
+stealLeftSubtrees edgeTree rightTree = let
   stealableTrees tree = (:) tree $
     if isBranch tree && headSide tree == RightSide then stealableTrees (justRight tree) else []
-  allInfos = [(lt, interactNodes $ interactionEnv lt rightSets rightCombined) | lt <- stealableTrees edgeTree]
+  allInfos = [(lt, interactNodes $ interactionEnv lt rightTree) | lt <- stealableTrees edgeTree]
   createSprouts side infoPairs processedInfos = case infoPairs of
     [] -> return []
     (leftTree, infos):rest -> do
@@ -89,10 +89,9 @@ allMergeVariants state rightTree = do
 obtainSprouts :: ParsingState -> Tree -> State [ParsingState] [Sprout]
 obtainSprouts leftState right = do
   oldHistory <- get
-  let rightSets = map activeHeadMites $ filter (null . _unhappyLeft . _unhappy) $ Constructor.Tree.allVariants right
-      rightCombined = LS.removeDups $ filter isInteractive $ concat rightSets
+  let rightCombined = _rightCombined $ interactiveMites right
       allEdgeTrees = LS.removeDups $ lastVariants leftState >>= \t -> reverse (edgeTrees RightSide t)
-      (uncachedSprouts, _) = runState (mapM (\left -> stealLeftSubtrees left rightSets rightCombined) allEdgeTrees) (Set.empty, Set.empty)
+      (uncachedSprouts, _) = runState (mapM (\left -> stealLeftSubtrees left right) allEdgeTrees) (Set.empty, Set.empty)
       rightWidth = treeWidth right
       cachePoint = oldHistory !! (rightWidth - 1)
       cache = sproutCache cachePoint

@@ -2,7 +2,7 @@ module Constructor.Mite
  (Mite(Mite, cxt, happy, baseMites), mite,
  xor, xorNonEmpty, withBase, contradict,
  optional,
- isCoverable, isHandicap,
+ isCoverable, isHandicap, isInteractive,
  semS, semV, semT)
  where
 
@@ -126,3 +126,10 @@ isCoverable mite = if not (happy mite) then True else case cxt mite of
 
 isHandicap (cxt -> Handicap _) = True
 isHandicap _ = False
+
+isInteractive mite = case cxt mite of
+  Sem {} -> False
+  Unify {} -> False
+  EmptyCxt {} -> False
+  Diversifier {} -> False
+  _ -> True

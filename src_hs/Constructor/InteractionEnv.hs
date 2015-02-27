@@ -9,21 +9,17 @@ data MergeInfo = MergeInfo {mergeResult::[Mite], mergedHeadSide::Side} deriving 
 mergeLeft mites = [MergeInfo mites LeftSide]
 mergeRight mites = [MergeInfo mites RightSide]
 
-data InteractionEnv = InteractionEnv {leftTree::Tree, leftCombined::[Mite], rightCombined::[Mite], leftSets::[[Mite]], rightSets::[[Mite]]}
-interactionEnv leftTree rightSets rightCombined = let
-  leftSets = map activeHeadMites $ filter (null . _unhappyRight . _unhappy) $ allVariants leftTree
+data InteractionEnv = InteractionEnv {leftTree::Tree, leftCombined::[Mite], rightCombined::[Mite], rightSets::[[Mite]], pairs::[(Mite, Mite)]}
+interactionEnv leftTree rightTree = let
+  lc = _leftCombined  $ interactiveMites leftTree
+  rc = _rightCombined $ interactiveMites rightTree
   in InteractionEnv {
-      leftTree = leftTree, leftCombined = LS.removeDups $ filter isInteractive $ concat leftSets, leftSets = leftSets,
-      rightSets = rightSets, rightCombined = filter isInteractive rightCombined
+      leftTree = leftTree,
+      leftCombined  = lc,
+      rightCombined = rc, rightSets = _rightSets $ interactiveMites rightTree,
+      pairs = [(m1, m2) | m1 <- lc, m2 <- rc]
      }
 
-leftCompatible  env m = LS.removeDups $ concat $ filter (\set -> m `elem` set) $ leftSets  env
+leftCompatible  env m = LS.removeDups $ concat $ filter (\set -> m `elem` set) $ _leftSets  $ interactiveMites $ leftTree env
 rightCompatible env m = LS.removeDups $ concat $ filter (\set -> m `elem` set) $ rightSets env
-pairs env = [(m1, m2) | m1 <- leftCombined env, isInteractive m1, m2 <- rightCombined env, isInteractive m2]
 
-isInteractive mite = case cxt mite of
-  Sem {} -> False
-  Unify {} -> False
-  EmptyCxt {} -> False
-  Diversifier {} -> False
-  _ -> True

@@ -221,9 +221,9 @@ interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
 
       -- todo nom + nomHead/copulaHead duplication
       (Argument Nom v1, CopulaHead cd) ->
-        right $ completeCopula cd v1 ++ (if whContext then [] else [mite $ Clause (copCP cd), mite $ Verb (copula cd)])
-      (CopulaHead cd, Argument Nom v2) | copKind cd /= NPCopula || whContext ->
-        left $ completeCopula cd v2 ++ (if whContext then [] else [mite $ Clause (copCP cd), mite $ Verb (copula cd)])
+        right $ completeCopula cd v1 ++ [mite $ Handicap (copula cd)] ++ (if whContext then [] else [mite $ Clause (copCP cd), mite $ Verb (copula cd)])
+      (CopulaHead cd, Argument Nom v2) | copKind cd /= AdjCopula && (copKind cd /= NPCopula || whContext) ->
+        left $ completeCopula cd v2 ++ [mite $ Handicap (copula cd)] ++ (if whContext then [] else [mite $ Clause (copCP cd), mite $ Verb (copula cd)])
 
       (Verb verb, VerbalModifier attr False advP) -> mergeLeft $ base12 [semV verb attr advP] ++ existentials leftPairs rightPairs
       (VerbalModifier attr needComma advP, Verb verb) -> mergeRight $

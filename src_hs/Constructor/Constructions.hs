@@ -13,7 +13,7 @@ data SemArgKind = Direction deriving (Show, Eq, Ord)
 data Optionality = Optional | Obligatory deriving (Show, Eq, Ord)
 
 data Satisfied = Unsatisfied | Satisfied deriving (Show, Eq, Ord)
-data CopulaKind = NPCopula | PPCopula deriving (Show, Eq, Ord)
+data CopulaKind = NPCopula | PPCopula | AdjCopula deriving (Show, Eq, Ord)
 
 data SeqData = SeqData { seqVar :: Variable, seqConj :: String, seqReady :: Bool, seqHasLeft :: Bool, seqHasRight :: Bool, seqHybrid :: Bool } deriving (Eq, Ord)
 

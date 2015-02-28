@@ -82,6 +82,6 @@ sonnetTests = [
   translateTest "А потом мы разошлись по домам."
                 "And then we all went home."
                 ,
-  textTranslateTest 600 sonnetText sonnetTranslation
+  textTranslateTest 400 sonnetText sonnetTranslation
   ]
   --todo full story variations

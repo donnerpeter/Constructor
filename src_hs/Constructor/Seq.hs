@@ -2,6 +2,7 @@ module Constructor.Seq (seqLeft, seqRight, pullThyself) where
 import qualified Constructor.LinkedSet as LS
 import qualified Data.Set as Set
 import Constructor.Constructions
+import Constructor.CopulaData
 import Constructor.Mite
 import Constructor.Agreement
 import Constructor.Variable

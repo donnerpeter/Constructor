@@ -3,6 +3,7 @@ module Constructor.Constructions where
 import Constructor.Agreement
 import Constructor.Variable
 import Constructor.Util
+import Constructor.CopulaData
 import Data.Maybe
 import qualified Constructor.SemanticProperties as P
 
@@ -13,7 +14,6 @@ data SemArgKind = Direction deriving (Show, Eq, Ord)
 data Optionality = Optional | Obligatory deriving (Show, Eq, Ord)
 
 data Satisfied = Unsatisfied | Satisfied deriving (Show, Eq, Ord)
-data CopulaKind = NPCopula | PPCopula | AdjCopula deriving (Show, Eq, Ord)
 
 data SeqData = SeqData { seqVar :: Variable, seqConj :: String, seqReady :: Bool, seqHasLeft :: Bool, seqHasRight :: Bool, seqHybrid :: Bool } deriving (Eq, Ord)
 
@@ -21,10 +21,6 @@ instance Show SeqData where
   show sd = show (seqVar sd) ++ " " ++ seqConj sd ++ (if seqReady sd then "" else "!ready") ++
             (if seqHasLeft sd then " left" else "") ++(if seqHasRight sd then " right" else "")++
             (if seqHybrid sd then " hybrid" else "")
-
-data CopulaData = CopulaData { copKind :: CopulaKind, copAgr :: Agr, copSubj :: Variable, copula :: Variable, copCP :: Variable, copBound :: Bool, copType :: String } deriving (Eq, Ord)
-instance Show CopulaData where
-  show cd = show (copKind cd) ++ " " ++ show (copAgr cd) ++ " " ++ (copType cd) ++ " " ++ show (copula cd) ++ (if copBound cd then " bound" else "")
 
 data Construction = Word Variable String
                   --semantic

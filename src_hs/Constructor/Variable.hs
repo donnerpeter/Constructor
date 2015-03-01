@@ -14,3 +14,6 @@ instance Show SemValue where
   show (StrValue p s) = (decapitalize $ show p) ++ "=" ++ s
   show (VarValue p v) = (decapitalize $ show p) ++ "=" ++ show v
 instance Hashable SemValue
+
+modifyV v c = \s -> v $ c ++ s
+makeV (Variable index oldS) suffix = \s -> Variable index (oldS ++ suffix ++ s)

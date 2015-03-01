@@ -39,7 +39,7 @@ interactNodes env = {-traceIt ("    interact") $ -}whResults ++ noWh where
       Wh agr whVar -> rightCombined env >>= \clauseMite -> case cxt clauseMite of
         Clause cp -> fillGap cp whVar clauseMite agr
         ModalityInfinitive _ cp -> fillGap cp whVar clauseMite agr
-        CopulaHead (CopulaData { copKind = kind, copCP = cp }) | kind /= NPCopula -> fillGap cp whVar clauseMite agr
+        CopulaHead cd | copKind cd /= NPCopula -> fillGap (copCP cd) whVar clauseMite (copAgr cd)
         Argument Nom subj -> leftCompatible env whMite >>= \copulaMite -> case cxt copulaMite of
           CopulaHead cd ->
             mergeLeft (completeCopula cd subj ++ whLinks [whMite, clauseMite, copulaMite] (copCP cd) whVar (copAgr cd))
@@ -260,8 +260,8 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
         Clause cp -> mergeLeft $ withBase [m1,m2,m3] [mite $ Unify v2 wh, mite $ RelativeClause agr cp, semV cp P.Questioned wh]
         _ -> []
       -- todo relativizer + nomHead/copulaHead duplication
-      (Relativizer wh, CopulaHead (cd@(CopulaData { copKind = kind, copAgr = agr, copSubj = v2, copCP = cp }))) | kind /= NPCopula ->
-        left $ [mite $ Unify v2 wh, mite $ RelativeClause agr cp, semV cp P.Questioned wh] ++ copulaSem cd
+      (Relativizer wh, CopulaHead cd) | copKind cd /= NPCopula ->
+        left $ [mite $ Unify (copSubj cd) wh, mite $ RelativeClause (copAgr cd) (copCP cd), semV (copCP cd) P.Questioned wh] ++ copulaSem cd
       (Relativizer wh, ArgHead Acc attr v2) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
         Clause cp -> mergeLeft $ withBase [m1,m2,m3] [semV v2 attr wh, mite $ RelativeClause empty cp, semV cp P.Questioned wh]
         _ -> []
@@ -301,12 +301,12 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
               ("v", Prep) -> xor [[mite $ VerbalModifier P.Condition False var2],
                                   [mite $ VerbalModifier P.Location_in False var2]]
               _ -> []
-            v = makeV var1 "x"
-            copulaCommon copulaType = copulaHead PPCopula empty copulaType Optional v
+            cop = makeV var1 "" "cop"
+            copulaCommon copulaType = copulaHead PPCopula empty copulaType Optional var1
             copulaVariants = case (prep1, kind1) of
-              ("u", Gen) -> copulaCommon "copula" ++ [semV (v "") P.Owner var1]
-              ("na", Prep) -> copulaCommon "copula" ++ [semV (v "") P.Location_on var1]
-              ("o", Prep) -> xor [copulaCommon "copula_about", copulaCommon "copula_talking_about"] ++ [semV (v "") P.Arg2 var1]
+              ("u", Gen) -> copulaCommon "copula" ++ [semV cop P.Owner var1]
+              ("na", Prep) -> copulaCommon "copula" ++ [semV cop P.Location_on var1]
+              ("o", Prep) -> xor [copulaCommon "copula_about", copulaCommon "copula_talking_about"] ++ [semV cop P.Arg2 var1]
               _ -> []
             extra = Seq.pullThyself (rightCompatible env m2) ++ liftGen
             liftGen = rightCompatible env m2 >>= \m3 -> case cxt m3 of

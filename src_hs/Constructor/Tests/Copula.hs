@@ -205,9 +205,9 @@ copulaTests = [
   ,
   translateTest "Вы умны, а я ещё умнее."
                 "You're smart, but I'm even smarter."
---  ,
---todo  translateTest "Вы умны и быстры, а я умнее и быстрее."
---                "You're smart and fast, but I'm smarter and faster."
+  ,
+  translateTest "Вы умны и быстры, а я умнее и быстрее."
+                "You're smart and fast, but I'm smarter and faster."
 --  ,
 --todo  translateTest "Вы не умны, а только быстры."
 --                "You're not smart, but only fast."
@@ -217,9 +217,9 @@ copulaTests = [
   ,
   translateTest "Вы не умны, а умнее."
                 "You're not smart, but smarter."
---  ,
---todo  translateTest "Вы не умнее, а быстрее."
---                "You're not smarter, but faster."
+  ,
+  translateTest "Вы не умнее, а быстрее."
+                "You're not smarter, but faster."
 --  ,
 --todo  translateTest "Вы не просто умная, а умнее кассирши."
 --                "You're not just smart, but smarter than the cashier."

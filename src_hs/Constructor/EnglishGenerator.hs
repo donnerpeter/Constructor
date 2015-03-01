@@ -69,7 +69,7 @@ handleSeq f (Just frame) =
                                   isNothing (firstContent >>= sValue P.Negated)
                             then "and"
                           else if length copulas > 1 then
-                            if any (hasType "MORE") $ catMaybes $ map (fValue P.Quality) copulas then ", but"
+                            if any (hasType "MORE") $ concatMap flatten $ map (fValue P.Quality) copulas then ", but"
                             else ", and"
                           else if Just True == fmap shouldContrastSubject (firstContent >>= fValue P.Arg1) then ", and"
                           else if Just "true" == (second >>= sValue P.Negated) && Just "true" /= sValue P.ConjStrong frame then "and"
@@ -192,7 +192,11 @@ adjectives nounFrame = do
           anchor <- case fValue P.Anchor frame of
             Just a -> return "than" `catM` np False (Just a)
             _ -> return ""
-          if hasType "MORE" frame then return $ negation frame `cat` emph `cat` "smarter" `cat` anchor else eachAdj frame
+          let comparative = case getType =<< fValue P.Theme frame of
+                Just "CLEVER" -> "smarter"
+                Just "FAST" -> "faster"
+                _ -> "more"
+          if hasType "MORE" frame then return $ negation frame `cat` emph `cat` comparative `cat` anchor else eachAdj frame
         eachAdj adjFrame = let
           article = if isArticleAfterAdjectives nounFrame then indefiniteArticle nounFrame adjective else ""
           adjective = fun adjFrame
@@ -205,6 +209,7 @@ adjectives nounFrame = do
   quality <- adjSeq P.Quality $ \p -> case getType p of
     Just "HUMBLE" -> "humble"
     Just "CLEVER" -> "smart"
+    Just "FAST" -> "fast"
     Just "STUPID" -> "stupid"
     _ -> ""
   color <- adjSeq P.Color $ \p -> case getType p of

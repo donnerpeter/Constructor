@@ -31,6 +31,8 @@ wordMites word index =
   "был" -> [mite $ Tense v0, semS v0 P.Time "PAST"]
   "была" -> [mite $ Tense v0, semS v0 P.Time "PAST"]
   "было" -> [semS v0 P.Time "PAST"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0]]
+  "быстрее" -> comparativeAdj A.f P.Quality "FAST" v
+  "быстры" -> shortAdj A.pl P.Quality "FAST" v
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
   "васе" -> xor [nounSg Dat Masc "NAMED_PERSON" v, nounSg Prep Masc "NAMED_PERSON" v] ++ [semS v0 P.Name "Vasya"]
   "васи" -> nounSg Gen Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vasya"]

@@ -71,7 +71,7 @@ handleSeq f (Just frame) =
                           else if length copulas > 1 then
                             if any (hasType "MORE") $ concatMap flatten $ map (fValue P.Quality) copulas then ", but"
                             else ", and"
-                          else if Just True == fmap shouldContrastSubject (firstContent >>= fValue P.Arg1) then ", and"
+                          else if Just True == fmap shouldContrastByGender (firstContent >>= fValue P.Arg1) then ", and"
                           else if Just "true" == (second >>= sValue P.Negated) && Just "true" /= sValue P.ConjStrong frame then "and"
                           else ", but"
                         else if conj == "and" then
@@ -218,7 +218,7 @@ adjectives nounFrame = do
     _ -> ""
   let shopKind = if sValue P.Name nounFrame == Just "гастроном" then "grocery" else ""
   let gender =
-        if shouldContrastSubject nounFrame && isHuman nounFrame
+        if shouldContrastByGender nounFrame && isHuman nounFrame
         then case sValue P.RusGender nounFrame of
           Just "Masc" -> "male"
           Just "Fem" -> "female"
@@ -232,18 +232,18 @@ adjectives nounFrame = do
     else ""
   return $ property `cat` kind `cat` shopKind `cat` size `cat` quality `cat` gender `cat` color
 
-shouldContrastSubject frame = case (getType frame, sValue P.RusGender frame) of
+shouldContrastByGender frame = case (getType frame, sValue P.RusGender frame) of
   (Just typ, Just gender) | typ /= "NAMED_PERSON" -> let
-    allVerbs = fromMaybe [] $ fmap allCoordinatedVerbs $ usage P.Arg1 frame
-    contrastibleSubject fVerb = case fValue P.Arg1 fVerb of
-      Just fSubject | not (isNumber $ Just fSubject),
-                      Just g1 <- sValue P.RusGender fSubject,
-                      Just t <- getType fSubject,
-                      g1 /= gender,
-                      t == typ ->
-        not (isVerbEllipsis fVerb) || isEllipsisAnchor (Just fSubject) fVerb
+    differentGender candidate = case sValue P.RusGender candidate of
+      Just g1 -> g1 /= gender
       _ -> False
-    in any contrastibleSubject allVerbs
+    contrastible candidate =
+      if not (isNumber $ Just candidate) && hasType typ candidate && differentGender candidate then
+        case usage P.Arg1 candidate of
+          Just fVerb -> not (isVerbEllipsis fVerb) || isEllipsisAnchor (Just candidate) fVerb
+          _ -> True
+      else False
+    in any contrastible $ allFrames $ sense frame
   _ -> False
 
 streetName frame = fromMaybe "" $ fmap streetNameString $ fValue P.VName frame
@@ -277,7 +277,8 @@ shouldGenerateDeterminer noun det state asSpecifier = let
   prev = filter (\f -> fDeterminer f == Just det) $ prevSiblings noun
   next = filter (\f -> fDeterminer f == Just det) $ nextSiblings noun
   in
-  if not (null prev) && Set.member det (visitedFrames state) then False
+  if isNothing (getType det) then False
+  else if not (null prev) && Set.member det (visitedFrames state) then False
   else if hasType "OPINION" noun && not (isPronoun det) then not asSpecifier
   else if isHeavyNP state $ Just det then not asSpecifier
   else if any (hasType "WORDS") $ prev ++ next then not asSpecifier

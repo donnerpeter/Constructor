@@ -106,7 +106,7 @@ punctuationAware env (m1, m2) =
         ++ liftUnclosedCompatible LeftSide
       --todo verbalModifier + copulaHead
       (CommaSurrounded _ closed (VerbalModifier attr True advP), CopulaHead cd) -> mergeRight $
-        base12 [semV (copula cd) attr advP, mite $ CopulaHead (cd { copBound = True })]
+        base12 ([semV (copula cd) attr advP, mite $ CopulaHead (cd { copBound = True })] ++ copulaSem cd)
         ++ closeUnclosed LeftSide (if closed then Satisfied else Unsatisfied)
         ++ liftUnclosedCompatible LeftSide
       (Verb verb, CommaSurrounded True _ (VerbalModifier attr True advP)) ->
@@ -233,7 +233,7 @@ interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
         ++ existentials rightPairs leftPairs
       --todo remove verbalmod+(copula|verb) duplication
       (VerbalModifier attr needComma advP, CopulaHead cd) -> mergeRight $
-        base12 ([semV (copula cd) attr advP, mite $ CopulaHead (cd { copBound = True })]
+        base12 ([semV (copula cd) attr advP, mite $ CopulaHead (cd { copBound = True })] ++ copulaSem cd
         ++ (if needComma && not whContext then [semS advP P.Isolation "comma", mite $ Unclosed LeftSide [advP]] else []))
         ++ existentials rightPairs leftPairs
 
@@ -270,7 +270,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
 
       (Adverb v, Verb head) -> right [mite $ Unify v head]
       --todo remove adverb+(copula|verb) duplication
-      (Adverb head, CopulaHead cd) -> right [mite $ Unify head (copula cd), mite $ CopulaHead (cd { copBound = True })]
+      (Adverb head, CopulaHead cd) -> right $ [mite $ Unify head (copula cd), mite $ CopulaHead (cd { copBound = True })] ++ copulaSem cd
 
       (Verb head, Adverb v) -> left [mite $ Unify v head]
 
@@ -301,12 +301,11 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
               ("v", Prep) -> xor [[mite $ VerbalModifier P.Condition False var2],
                                   [mite $ VerbalModifier P.Location_in False var2]]
               _ -> []
-            cop = makeV var1 "" "cop"
-            copulaCommon copulaType = copulaHead PPCopula empty copulaType Optional var1
+            copulaCommon copulaType rel = copulaHead PPCopula empty copulaType rel Optional var1
             copulaVariants = case (prep1, kind1) of
-              ("u", Gen) -> copulaCommon "copula" ++ [semV cop P.Owner var1]
-              ("na", Prep) -> copulaCommon "copula" ++ [semV cop P.Location_on var1]
-              ("o", Prep) -> xor [copulaCommon "copula_about", copulaCommon "copula_talking_about"] ++ [semV cop P.Arg2 var1]
+              ("u", Gen) -> copulaCommon "copula" P.Owner
+              ("na", Prep) -> copulaCommon "copula" P.Location_on
+              ("o", Prep) -> xor [copulaCommon "copula_about" P.Arg2, copulaCommon "copula_talking_about" P.Arg2]
               _ -> []
             extra = Seq.pullThyself (rightCompatible env m2) ++ liftGen
             liftGen = rightCompatible env m2 >>= \m3 -> case cxt m3 of

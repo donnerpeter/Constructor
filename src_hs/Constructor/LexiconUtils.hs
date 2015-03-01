@@ -20,7 +20,7 @@ synNounPhrase caze agr v = [mite $ AdjHead (v "") caze agr, mite $ NounPhrase (v
 
 argOrCopula caze agr v = if caze == Nom || caze == Instr then xor [argRole, npCopulaHead] else argRole where
   argRole = [mite $ Argument caze (v "")]
-  npCopulaHead = copulaHead NPCopula agr "copula" (if caze == Instr then Obligatory else Optional) (v "") ++ [semV (v "cop") P.Arg2 (v "")] ++
+  npCopulaHead = copulaHead NPCopula agr "copula" P.Arg2 (if caze == Instr then Obligatory else Optional) (v "") ++
     (if caze == Instr then [semS (v "cop") P.ProfessionCopula "true", mite $ ConjEmphasizeable (v "cop")] else [])
 
 rusGender agr v = case A.gender agr of
@@ -45,13 +45,15 @@ finiteClause agr withSemSubject v =
                      rusNumber agr (v "arg1") ++ rusGender agr (v "arg1") ++ rusPerson agr (v "arg1") ++
                      clause v
 
-copulaHead kind agr copulaType tenseRequired var =
-  [mite $ CopulaHead (CopulaData kind agr var False copulaType), mite $ TenseHead tenseRequired (makeV var "cop" "")]
+copulaHead kind agr copulaType rel tenseRequired var =
+  [mite $ CopulaHead (CopulaData kind agr var False copulaType rel), mite $ TenseHead tenseRequired (makeV var "cop" "")]
 
-copulaSem cd = [semV (copula cd) P.Arg1 (copSubj cd),
+copulaSem cd = if (copBound cd) then [] else
+                          [semV (copula cd) P.Arg1 (copSubj cd),
                            semT (copula cd) (copType cd),
                            semV (copCP cd) P.Content (copula cd),
-                           semT (copCP cd) "situation"]
+                           semT (copCP cd) "situation",
+                           semV (copula cd) (copAttr cd) (copVar cd)]
 
 clause v = [mite $ Verb (v ""), semV (v "cp") P.Content (v ""), semT (v "cp") "situation", mite $ Clause (v "cp"), mite $ ConjEmphasizeable (v "")]
 
@@ -76,17 +78,17 @@ adj caze agr attr value v =
   where
   v0 = v ""
   adjVariant = [mite $ Negateable v0, mite $ Adj v0 attr caze agr]
-  adjCopulaHead = copulaHead AdjCopula agr "copula" Optional v0 ++ [mite $ Negateable v0] ++ semLink (v "cop")
+  adjCopulaHead = copulaHead AdjCopula agr "copula" attr Optional v0 ++ [mite $ Negateable v0]
   nounVariant = rusNumber agr (v "noun") ++ synNounPhrase caze agr (makeV v0 "noun") ++ [mite $ Argument caze (v "noun"), semS (v "noun") P.Elided "true", mite $ Handicap (v "noun")] ++ semLink (v "noun")
   semLink nounV = [semV nounV attr v0]
 
 shortAdj agr attr value v =
-  [semT v0 value, semV (v "cop") attr v0] ++ copulaHead AdjCopula agr "copula" Optional v0 ++ [mite $ Negateable v0]
+  [semT v0 value] ++ copulaHead AdjCopula agr "copula" attr Optional v0 ++ [mite $ Negateable v0]
   where v0 = v ""
 
 comparativeAdj agr attr value v =
-  [semT v0 value, semV (v "cop") attr (v "more"), semT (v "more") "MORE", semV (v "more") P.Theme v0, mite $ Negateable (v "more"), mite $ ComparativeAdj (v "more")]
-  ++ copulaHead AdjCopula agr "copula" Optional v0
+  [semT v0 value, semT (v "more") "MORE", semV (v "more") P.Theme v0, mite $ Negateable (v "more"), mite $ ComparativeAdj (v "more")]
+  ++ copulaHead AdjCopula agr "copula" attr Optional (v "more")
   ++ optional (arg Gen P.Anchor (makeV v0 "more"))
   where v0 = v ""
 

@@ -72,7 +72,7 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
         handleAdj mem1 caze1 agr1 attr m4 result = let
           adjResult mem2 agr2 m4 = let
             adjAgrVariants = withCopula (Agr Nothing (Just Pl) Nothing)
-            withCopula agr = if caze1 == Nom then [copulaHead NPCopula agr "copula" Optional seqV ++ [semV (makeV seqV "cop" "") attr seqV], [mite $ result agr]] else [[mite $ result agr]]
+            withCopula agr = if caze1 == Nom then [copulaHead NPCopula agr "copula" attr Optional seqV, [mite $ result agr]] else [[mite $ result agr]]
             allVariants = xorNonEmpty $
               if seqConj sd == "but" then withCopula (commonAgr agr1 agr2)
               else if agree agr1 agr2 then adjAgrVariants ++ withCopula (commonAgr agr1 agr2)

@@ -7,6 +7,7 @@ module Constructor.ArgumentPlanning (
   isAtLocationCopula, isExclamationCopula, isOwnerCopula) where
 import Constructor.Sense
 import Constructor.Inference
+import Constructor.Util
 import Data.List
 import Data.Maybe
 import Constructor.Variable
@@ -57,7 +58,7 @@ arguments fVerb@(getType -> Just typ) = allArgs where
           if typeEarlier fVal1 fVal2 then LT else GT
       _ -> EQ
   sortedFacts = Data.List.sortBy compareFacts (allFrameFacts fVerb)
-  allArgs = Data.List.sortBy compareFacts (allFrameFacts fVerb) >>= \(Fact _ semValue) -> case semValue of
+  allArgs = sortedFacts >>= \(Fact _ semValue) -> case semValue of
     VarValue attr v -> let value = Frame v sens in
      if isVerbEllipsis fVerb && not (isEllipsisAnchor (Just value) fVerb) then [] else
      case (typ, attr) of

@@ -79,7 +79,7 @@ adj caze agr attr value v =
   v0 = v ""
   adjVariant = [mite $ Negateable v0, mite $ Adj v0 attr caze agr]
   adjCopulaHead = copulaHead AdjCopula agr "copula" attr Optional v0 ++ [mite $ Negateable v0]
-  nounVariant = rusNumber agr (v "noun") ++ synNounPhrase caze agr (makeV v0 "noun") ++ [mite $ Argument caze (v "noun"), semS (v "noun") P.Elided "true", mite $ Handicap (v "noun")] ++ semLink (v "noun")
+  nounVariant = rusNumber agr (v "noun") ++ synNoun caze agr (makeV v0 "noun") ++ [mite $ Argument caze (v "noun"), semS (v "noun") P.Elided "true", mite $ Handicap (v "noun")] ++ semLink (v "noun")
   semLink nounV = [semV nounV attr v0]
 
 shortAdj agr attr value v =

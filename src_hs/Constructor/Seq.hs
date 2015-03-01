@@ -32,7 +32,8 @@ seqWrappable mite = hybridConjoinable (cxt mite) || case cxt mite of
   Adj {} -> True; Possessive {} -> True
   Complement {} -> True
   Clause {} -> True
-  CopulaHead (CopulaData { copBound = True }) -> True
+  CopulaHead {} -> True
+  TenseHead {} -> True
   NomHead {} -> True
   Ellipsis {} -> True
   UniversalPronoun {} -> True
@@ -71,11 +72,11 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
         handleAdj :: Variable -> ArgKind -> Agr -> P.VarProperty -> Mite -> (Agr -> Construction) -> [[Mite]]
         handleAdj mem1 caze1 agr1 attr m4 result = let
           adjResult mem2 agr2 m4 = let
-            adjAgrVariants = withCopula (Agr Nothing (Just Pl) Nothing)
-            withCopula agr = if caze1 == Nom then [copulaHead NPCopula agr "copula" attr Optional seqV, [mite $ result agr]] else [[mite $ result agr]]
+            adjAgrVariants = withAgr (Agr Nothing (Just Pl) Nothing)
+            withAgr agr = [[mite $ result agr]]
             allVariants = xorNonEmpty $
-              if seqConj sd == "but" then withCopula (commonAgr agr1 agr2)
-              else if agree agr1 agr2 then adjAgrVariants ++ withCopula (commonAgr agr1 agr2)
+              if seqConj sd == "but" then withAgr (commonAgr agr1 agr2)
+              else if agree agr1 agr2 then adjAgrVariants ++ withAgr (commonAgr agr1 agr2)
               else adjAgrVariants
             requireNegation = seqConj sd == "but"
             negatedVariants sideMites = sideMites >>= \mx -> case cxt mx of
@@ -109,7 +110,7 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
         in rightCompatible env m2 >>= \m3 -> case (cxt m1, cxt m3) of
 
           (Argument kind mem1, SeqRight (Argument kind2 mem2)) | kind == kind2 ->
-            [fullConj mem1 mem2 ++ withBase [m1,m2,m3] (argOrCopula kind empty (makeV seqV "")) ++ combineThyself ++ (baseMites m3 >>= distinguished)
+            [fullConj mem1 mem2 ++ withBase [m1,m2,m3] [mite $ Argument kind seqV] ++ combineThyself ++ (baseMites m3 >>= distinguished)
              ++ adjHeadCompanions mem1 kind ++ argUnifications]
 
           (VerbalModifier attr comma mem1, SeqRight (VerbalModifier attr2 comma2 mem2)) | attr2 == attr && comma2 == comma ->
@@ -134,10 +135,21 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
                    _ -> []
                  result = fullConj mem1 mem2 ++ withBase [m1, m2] [mite $ Clause seqV] ++ unifications ++ xor ellipsisVariants
                  in [result]
-          (Clause mem1, SeqRight (CopulaHead cd)) -> let
+          (Clause mem1, SeqRight (CopulaHead cd)) | copBound cd -> let
                  unifications = xorNonEmpty $ unifySubjects (leftCompatible env m1) (copAgr cd) (copSubj cd)
                  result = fullConj mem1 (copCP cd) ++ withBase [m1, m2] [mite $ Clause seqV] ++ copulaSem cd ++ unifications
                  in [result]
+          (CopulaHead (CopulaData { copKind=kind, copAgr=agr1, copAttr=attr, copVar=mem1, copBound=False, copType=typ }), SeqRight (CopulaHead cd2)) |
+               agr2 <- copAgr cd2,
+               not (copBound cd2) &&
+               kind == copKind cd2 &&
+               adjAgree agr1 agr2 &&
+               typ == copType cd2 &&
+               attr == copAttr cd2 -> leftCompatible env m1 >>= \m5 -> case cxt m5 of
+                 TenseHead {} -> rightCompatible env m3 >>= \m6 -> case cxt m6 of
+                   SeqRight (TenseHead {}) -> [fullConj mem1 (copVar cd2) ++ withBase [m1,m2,m3,m5,m6] (copulaHead kind (commonAgr agr1 agr2) typ attr Optional seqV)]
+                   _ -> []
+                 _ -> []
           _ -> []
 
 unifySubjects leftMites agr rightSubj = map unifyNomHead leftMites where

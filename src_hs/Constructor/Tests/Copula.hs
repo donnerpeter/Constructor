@@ -214,9 +214,9 @@ copulaTests = [
 --  ,
 --todo  translateTest "Вы не умны, а всего лишь быстры."
 --                "You're not smart, but only fast."
---  ,
---todo  translateTest "Вы не умны, а умнее."
---                "You're not smart, but smarter."
+  ,
+  translateTest "Вы не умны, а умнее."
+                "You're not smart, but smarter."
 --  ,
 --todo  translateTest "Вы не умнее, а быстрее."
 --                "You're not smarter, but faster."

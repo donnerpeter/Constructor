@@ -251,7 +251,7 @@ wordMites word index =
   "про" -> preposition "pro" Acc v
   "продавец" -> nounSg Nom Masc "SALESMAN" v ++ genHead P.Place v
   "продавцом" -> nounSg Instr Masc "SALESMAN" v ++ genHead P.Place v
-  "просто" -> adverb P.Manner "JUST" v
+  "просто" -> xor [modifierAdverb "JUST" v, adverb P.Manner "JUST" v]
   "пошел" -> finVerb "GO" "PAST" A.m v ++ [mite $ SemArgHead Obligatory Direction v0]
   "пошёл" -> finVerb "GO" "PAST" A.m v ++ [mite $ SemArgHead Obligatory Direction v0]
   "пошла" -> finVerb "GO" "PAST" A.f v ++ [mite $ SemArgHead Obligatory Direction v0]

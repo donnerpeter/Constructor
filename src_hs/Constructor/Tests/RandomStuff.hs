@@ -85,4 +85,10 @@ randomStuffTests = [
 --  ,
 --todo  translateTest "Я больше люблю гулять, чем ходить на работу."
 --                "I like strolling more then going to work."
+--  ,
+--todo  translateTest "Кассир быстрее, чем был вчера."
+--                "The cashier is faster than he was yesterday."
+--  ,
+--todo  translateTest "Кассир быстрее, чем я был вчера."
+--                "The cashier is faster than I was yesterday."
   ]

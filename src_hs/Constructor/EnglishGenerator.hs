@@ -187,6 +187,7 @@ adjectives nounFrame = do
   let adjSeq attr fun = let
         value = fValue attr nounFrame
         negation frame = if Just "true" == sValue P.Negated frame then "not" else ""
+        modifiers frame = if Just "JUST" == sValue P.ModifierAdverb frame then "just" else ""
         adjOrMore frame = do
           let emph = if Just "true" == sValue P.Emphasis frame then "even" else ""
           anchor <- case fValue P.Anchor frame of
@@ -196,11 +197,11 @@ adjectives nounFrame = do
                 Just "CLEVER" -> "smarter"
                 Just "FAST" -> "faster"
                 _ -> "more"
-          if hasType "MORE" frame then return $ negation frame `cat` emph `cat` comparative `cat` anchor else eachAdj frame
+          if hasType "MORE" frame then return $ negation frame `cat` emph `cat` modifiers frame `cat` comparative `cat` anchor else eachAdj frame
         eachAdj adjFrame = let
           article = if isArticleAfterAdjectives nounFrame then indefiniteArticle nounFrame adjective else ""
           adjective = fun adjFrame
-          in return $ negation adjFrame `cat` article `cat` adjective
+          in return $ negation adjFrame `cat` article `cat` modifiers adjFrame `cat` adjective
         in case value of
           Just x -> handleSeq adjOrMore value
           Nothing -> return ""

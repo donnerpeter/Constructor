@@ -74,7 +74,7 @@ negatedWh v = [semT (v "") "wh", semS (v "") P.Negated "true", mite $ Negated (v
 animate v = [semS (v "") P.Animate "true"]
 
 adj caze agr attr value v =
-  [semT v0 value] ++ (if caze == Nom || caze == Instr then xor [adjVariant, adjCopulaHead, nounVariant] else xor [adjVariant, nounVariant])
+  [semT v0 value, mite $ AdverbModifiable v0] ++ (if caze == Nom || caze == Instr then xor [adjVariant, adjCopulaHead, nounVariant] else xor [adjVariant, nounVariant])
   where
   v0 = v ""
   adjVariant = [mite $ Negateable v0, mite $ Adj v0 attr caze agr]
@@ -83,11 +83,11 @@ adj caze agr attr value v =
   semLink nounV = [semV nounV attr v0]
 
 shortAdj agr attr value v =
-  [semT v0 value] ++ copulaHead AdjCopula agr "copula" attr Optional v0 ++ [mite $ Negateable v0]
+  [semT v0 value, mite $ AdverbModifiable v0] ++ copulaHead AdjCopula agr "copula" attr Optional v0 ++ [mite $ Negateable v0]
   where v0 = v ""
 
 comparativeAdj agr attr value v =
-  [semT v0 value, semT (v "more") "MORE", semV (v "more") P.Theme v0, mite $ Negateable (v "more"), mite $ ComparativeAdj (v "more")]
+  [semT v0 value, semT (v "more") "MORE", semV (v "more") P.Theme v0, mite $ Negateable (v "more"), mite $ ComparativeAdj (v "more"), mite $ AdverbModifiable (v "more")]
   ++ copulaHead AdjCopula agr "copula" attr Optional (v "more")
   ++ optional (arg Gen P.Anchor (makeV v0 "more"))
   where v0 = v ""

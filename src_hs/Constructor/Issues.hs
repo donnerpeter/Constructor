@@ -70,7 +70,7 @@ requireType mFrame f = case mFrame of
 typeIssues var declaredType = missingSubj ++ missingArg2 ++ inanimateSubj ++ other where
   frame sense = toFrame sense var
   missingSubj =
-    if declaredType `elem` ["SIT", "SAY", "FORGET", "COME_SCALARLY"] then l $ \sense ->
+    if declaredType `elem` ["SIT", "SAY", "FORGET", "COME_SCALARLY", "copula"] then l $ \sense ->
       if isNothing (fValue P.Arg1 (frame sense) >>= sDeclaredValue P.Type) then issue ("unknown " ++ declaredType ++ " subj") else finalNo
     else []
   missingArg2 =
@@ -148,6 +148,6 @@ makeHolder prevFinals sense providers = IssueHolder newFinals (concat newProvisi
   newFinals = concat [issues | (_, IssueOutcome issues Final) <- outcomes] ++ prevFinals
   (newProvisional, newProviders) = unzip [(issues, f) | (f, IssueOutcome issues Provisional) <- outcomes]
 
-holderIssues holder = provisionalIssues holder ++ finalIssues holder
+holderIssues holder = {-traceIt "issues" $ -}provisionalIssues holder ++ finalIssues holder
 
 fatalIssues holder = [s | (s, Fatal) <- finalIssues holder]

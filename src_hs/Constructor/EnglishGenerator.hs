@@ -187,7 +187,9 @@ adjectives nounFrame = do
   let adjSeq attr fun = let
         value = fValue attr nounFrame
         negation frame = if Just "true" == sValue P.Negated frame then "not" else ""
-        modifiers frame = if Just "JUST" == sValue P.ModifierAdverb frame then "just" else ""
+        modifiers frame = if Just "JUST" == sValue P.ModifierAdverb frame then "just"
+                          else if Just "ONLY" == sValue P.ModifierAdverb frame then "only"
+                          else ""
         adjOrMore frame = do
           let emph = if Just "true" == sValue P.Emphasis frame then "even" else ""
           anchor <- case fValue P.Anchor frame of

@@ -56,6 +56,7 @@ wordMites word index =
   "вынул" -> finVerb "TAKE_OUT" "PAST" A.m v ++ arg (PP "iz" Gen) P.Source v ++ directObject v
   "вынула" -> finVerb "TAKE_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) P.Source v ++ directObject v
   "все" -> xor [adj Nom A.pl P.Specifier_all "ALL" v, pronoun Nom A.pl "EVERYBODY" v ++ [mite $ UniversalPronoun v0]]
+  "всего" -> [mite $ TwoWordCxt "всего лишь" True (map cxt $ modifierAdverb "ONLY" v) v0]
   "всё" -> xor [pronoun Nom A.n3 "EVERYTHING" v, pronoun Acc A.n3 "EVERYTHING" v] ++ [mite $ UniversalPronoun v0]
   "всеми" -> adj Instr A.pl P.Specifier_all "ALL" v ++ [mite $ UniversalPronoun v0]
   "вспомнить" -> infinitive "RECALL" v ++ directObject v
@@ -165,6 +166,7 @@ wordMites word index =
   "куда" -> whWord A.empty v ++ semArg Direction P.Goal v0
   "летний" -> adj Acc A.m P.VName "name" v ++ [semS v0 P.Name "летний"] -- todo летний is not only a name
   "лишенными" -> adj Instr A.pl P.Quality "LACK" v ++ arg Gen P.Theme v
+  "лишь" -> xor [modifierAdverb "ONLY" v, [mite $ TwoWordCxt "всего лишь" False [] v0]]
   "любит" -> finVerb "LOVE" "PRESENT" A.sg3 v ++ optional (directObject v)
   "любить" -> infinitive "LOVE" v ++ optional (directObject v)
   "люблю" -> finVerb "LOVE" "PRESENT" A.sg1 v ++ optional (directObject v)

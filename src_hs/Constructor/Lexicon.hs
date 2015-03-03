@@ -187,6 +187,7 @@ wordMites word index =
   "молоточек" -> nounSg Acc Masc "HAMMER" v
   "мое" -> [semT v0 "ME", mite $ Possessive Nom A.n v0]
   "моему" -> [semT v0 "ME", mite $ Possessive Dat A.n v0]
+  "морковку" -> nounSg Acc Fem "CARROT" v
   "мы" -> pronoun Nom A.pl1 "WE" v
   "на" -> xor [preposition "na" Prep v, preposition "na" Acc v]
   "нам" -> pronoun Dat A.pl1 "WE" v

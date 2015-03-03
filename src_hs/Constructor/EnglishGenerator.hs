@@ -327,7 +327,7 @@ determiner frame det nbar = do
       else if sDet == Just "wh" then "which"
       else if isJust (fValue P.Quantifier frame) then ""
       else if hasType "STREET" frame && prefixName frame then streetName frame
-      else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING", "MONEY", "COUNTING", "APARTMENTS", "OFFICES", "HOUSES", "CABBAGE"] frame then ""
+      else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING", "MONEY", "COUNTING", "APARTMENTS", "OFFICES", "HOUSES", "CABBAGE", "CARROT"] frame then ""
       else if hasAnyType ["NAMED_PERSON"] frame then ""
       else if hasType "OPINION" frame && Just True == fmap isVerbEllipsis (usage P.AccordingTo frame) then ""
       else if isElided frame && skipElidedOne frame then ""

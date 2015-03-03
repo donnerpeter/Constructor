@@ -384,7 +384,7 @@ wordMites word index =
   ":" -> xor [[mite $ Colon "directSpeech" v0], [mite $ Colon "elaboration" v0]]
   "-" -> xor [[mite $ SurroundingDash v0],
               [mite $ DirectSpeechDash v0],
-              [mite $ Ellipsis v0 Nothing Nothing, semS v0 P.Ellipsis "true"]
+              [mite $ Ellipsis v0 Nothing, semS v0 P.Ellipsis "true"]
              ]
   "," -> xor [[mite $ SurroundingComma v0], conjunction v0 "," True]
   "\"" -> xor [[mite $ Quote v0 True], [mite $ Quote v0 False]]

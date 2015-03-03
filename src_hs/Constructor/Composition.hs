@@ -64,7 +64,7 @@ liftUnclosed side childMites = childMites >>= \m -> case cxt m of
 
 ellipsisLeftVariants env = if null result then [] else mergeRight $ LS.removeDups result where
   result = rightCombined env >>= \m2 -> case cxt m2 of
-    Ellipsis v Nothing rightCxt@(Just e2) -> leftCombined env >>= \m1 -> case ellipsisAnchor (cxt m1) of
+    Ellipsis v rightCxt@(Just e2) -> leftCombined env >>= \m1 -> case ellipsisAnchor (cxt m1) of
       Just anchor -> let
         elided = Seq.suggestEllipsis env v (cxt m1) e2
         in if null elided then []
@@ -159,8 +159,8 @@ punctuationAware env (m1, m2) =
         mergeLeft $ base12 [mite $ Elaboration cp]
         ++ closeUnclosed RightSide Satisfied ++ liftUnclosedCompatible RightSide
 
-      (Ellipsis v Nothing Nothing, rightCxt) | Just anchor <- ellipsisAnchor rightCxt ->
-        left $ [mite $ Ellipsis v Nothing (Just rightCxt), semV v P.EllipsisAnchor2 anchor]
+      (Ellipsis v Nothing, rightCxt) | Just anchor <- ellipsisAnchor rightCxt ->
+        left $ [mite $ Ellipsis v (Just rightCxt), semV v P.EllipsisAnchor2 anchor]
 
       _ -> []
 

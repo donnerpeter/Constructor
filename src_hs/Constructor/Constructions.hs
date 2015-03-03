@@ -117,7 +117,7 @@ data Construction = Word Variable String
                   | DirectSpeechHead Variable {--child--} (Maybe Variable)
                   | DirectSpeech Variable
                   | DirectSpeechDash Variable
-                  | Ellipsis Variable {-left-} (Maybe Construction) {-right-} (Maybe Construction)
+                  | Ellipsis Variable {-right-} (Maybe Construction)
                   | RaisingVerb {-verb-} Variable {-subj-} Variable
                   | TwoWordCxt String {-first-} Bool [Construction] Variable
                   | ReflexiveReference Variable
@@ -161,5 +161,5 @@ getCommaSurroundableVar cxt = case cxt of
   _ -> Nothing
 
 isStable (Conjunction sd) = seqHasLeft sd == seqHasRight sd || seqConj sd == ","
-isStable (Ellipsis _ leftAnchor rightAnchor) = isJust leftAnchor == isJust rightAnchor
+isStable (Ellipsis _ rightAnchor) = isNothing rightAnchor
 isStable _ = True

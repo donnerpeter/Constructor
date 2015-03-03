@@ -179,7 +179,7 @@ isArticleAfterAdjectives mainFrame =
 
 isElided frame = Just "true" == sValue P.Elided frame
 
-skipElidedOne nounFrame = Just "true" == (sValue P.ConjStrong $ unSeq2 nounFrame) && case prevSiblings nounFrame of
+skipElidedOne nounFrame = Just "true" == (sValue P.ConjStrong $ unSeq2 $ unSeq1 nounFrame) && case prevSiblings $ unSeq1 nounFrame of
   first:_ | not (isElided first) -> True
   _ -> False
 
@@ -209,7 +209,11 @@ adjectives nounFrame = do
           Just x -> handleSeq adjOrMore value
           Nothing -> return ""
   property <- adjSeq P.Property $ \p -> if hasType "AMAZING" p then "amazing" else ""
-  kind <- adjSeq P.Kind $ \p -> if hasType "COMMERCIAL" p then "commercial" else if hasType "ROASTED" p then "roasted" else ""
+  kind <- adjSeq P.Kind $ \p -> case getType p of
+    Just "COMMERCIAL" -> "commercial"
+    Just "ROASTED" -> "roasted"
+    Just "BOILED" -> "boiled"
+    _ -> ""
   quality <- adjSeq P.Quality $ \p -> case getType p of
     Just "HUMBLE" -> "humble"
     Just "CLEVER" -> "smart"

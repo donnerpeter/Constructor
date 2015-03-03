@@ -91,4 +91,38 @@ randomStuffTests = [
 --  ,
 --todo  translateTest "Кассир быстрее, чем я был вчера."
 --                "The cashier is faster than I was yesterday."
+  ,
+  translateTest "Я люблю капусту, но не жареную."
+                "I like cabbage, but not roasted."
+  ,
+  translateTest "Я люблю капусту, но жареную."
+                "I like cabbage, but roasted."
+  ,
+  translateTest "Я люблю капусту, но только жареную капусту."
+                "I like cabbage, but only roasted cabbage."
+  ,
+  translateTest "Я люблю капусту, но только жареную."
+                "I like cabbage, but only roasted."
+  ,
+--todo  translateTest "Я люблю капусту, но только с песто."
+--                "I like cabbage, but only with pesto."
+--  ,
+--todo  translateTest "Я люблю капусту, и не только жареную."
+--                "I like cabbage, and not only roasted."
+--  ,
+  translateTest "Я люблю капусту, но не морковку."
+                "I like cabbage, but not carrots."
+  ,
+  translateTest "Я люблю капусту, но не жареную, а варёную."
+                "I like cabbage, but not roasted, but boiled."
+  ,
+--todo  translateTest "Я люблю капусту, только не жареную, а варёную."
+--                "I like cabbage, but not roasted, but cooked."
+--  ,
+--todo  translateTest "Я люблю капусту, не только жареную, но и варёную."
+--                "I like cabbage, not only roasted one, but also boiled."
+--  ,
+  translateTest "Я люблю капусту, но жареную, а не варёную."
+                "I like cabbage, but roasted and not boiled."
+--  ,
   ]

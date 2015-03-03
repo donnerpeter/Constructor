@@ -35,6 +35,7 @@ wordMites word index =
   "быстрее" -> comparativeAdj P.Quality "FAST" v
   "быстры" -> shortAdj A.pl P.Quality "FAST" v
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
+  "варёную" -> adj Acc A.sg P.Kind "BOILED" v
   "васе" -> xor [nounSg Dat Masc "NAMED_PERSON" v, nounSg Prep Masc "NAMED_PERSON" v] ++ [semS v0 P.Name "Vasya"]
   "васи" -> nounSg Gen Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vasya"]
   "василий" -> nounSg Nom Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vassily"]

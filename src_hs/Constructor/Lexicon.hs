@@ -23,7 +23,7 @@ wordMites word index =
   "а" -> xor [conjunction v0 "a" False, [mite $ ConjEmphasis P.AndEmphasis v0]]
   "арбуз" -> nounSg Nom Masc "WATERMELON" v
   "бессмысленными" -> adj Instr A.pl P.Quality "MEANINGLESS" v
-  "больше" -> xor [comparativeAdj A.f P.Size "BIG" v, [mite $ NegationModifier v0, semS v0 P.Not_anymore "true"]]
+  "больше" -> xor [comparativeAdj P.Size "BIG" v, [mite $ NegationModifier v0, semS v0 P.Not_anymore "true"]]
   "большим" -> xor[adj Instr A.m P.Size "BIG" v, adj Instr A.n P.Size "BIG" v]
   "большой" -> xor[adj Instr A.f P.Size "BIG" v, adj Nom A.m P.Size "BIG" v, adj Acc A.m P.Size "BIG" v]
   "брат" -> nounSg Nom Masc "BROTHER" v ++ genHead P.Arg1 v
@@ -32,7 +32,7 @@ wordMites word index =
   "был" -> [mite $ Tense v0, semS v0 P.Time "PAST"]
   "была" -> [mite $ Tense v0, semS v0 P.Time "PAST"]
   "было" -> [semS v0 P.Time "PAST"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0]]
-  "быстрее" -> comparativeAdj A.f P.Quality "FAST" v
+  "быстрее" -> comparativeAdj P.Quality "FAST" v
   "быстры" -> shortAdj A.pl P.Quality "FAST" v
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
   "васе" -> xor [nounSg Dat Masc "NAMED_PERSON" v, nounSg Prep Masc "NAMED_PERSON" v] ++ [semS v0 P.Name "Vasya"]
@@ -349,7 +349,7 @@ wordMites word index =
   "улыбнулась" -> finVerb "SMILE" "PAST" A.f v
   "умён" -> shortAdj A.m P.Quality "CLEVER" v
   "умная" -> adj Nom A.f P.Quality "CLEVER" v
-  "умнее" -> comparativeAdj A.f P.Quality "CLEVER" v
+  "умнее" -> comparativeAdj P.Quality "CLEVER" v
   "умной" -> adj Instr A.f P.Quality "CLEVER" v
   "умны" -> shortAdj A.pl P.Quality "CLEVER" v
   "умные" -> adj Nom A.pl P.Quality "CLEVER" v

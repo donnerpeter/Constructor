@@ -86,9 +86,9 @@ shortAdj agr attr value v =
   [semT v0 value, mite $ AdverbModifiable v0] ++ copulaHead AdjCopula agr "copula" attr Optional v0 ++ [mite $ Negateable v0]
   where v0 = v ""
 
-comparativeAdj agr attr value v =
+comparativeAdj attr value v =
   [semT v0 value, semT (v "more") "MORE", semV (v "more") P.Theme v0, mite $ Negateable (v "more"), mite $ ComparativeAdj (v "more"), mite $ AdverbModifiable (v "more")]
-  ++ copulaHead AdjCopula agr "copula" attr Optional (v "more")
+  ++ copulaHead AdjCopula A.empty "copula" attr Optional (v "more")
   ++ optional (arg Gen P.Anchor (makeV v0 "more"))
   where v0 = v ""
 

@@ -8,6 +8,7 @@ import Constructor.Tree
 import Constructor.Util
 import Constructor.LexiconUtils
 import Constructor.InteractionEnv
+import Constructor.Ellipsis
 import qualified Constructor.Seq as Seq
 import qualified Constructor.LinkedSet as LS
 import qualified Constructor.SemanticProperties as P
@@ -66,7 +67,7 @@ ellipsisLeftVariants env = if null result then [] else mergeRight $ LS.removeDup
   result = rightCombined env >>= \m2 -> case cxt m2 of
     Ellipsis v rightCxt@(Just e2) -> leftCombined env >>= \m1 -> case ellipsisAnchor (cxt m1) of
       Just anchor -> let
-        elided = Seq.suggestEllipsis env v (cxt m1) e2
+        elided = suggestEllipsis env v (cxt m1) e2
         in if null elided then []
            else elided ++ withBase [m1,m2] [semV v P.EllipsisAnchor1 anchor, mite $ Clause v] ++ liftUnclosed LeftSide (leftCompatible env m1)
       _ -> []

@@ -9,11 +9,12 @@ data MergeInfo = MergeInfo {mergeResult::[Mite], mergedHeadSide::Side} deriving 
 mergeLeft mites = [MergeInfo mites LeftSide]
 mergeRight mites = [MergeInfo mites RightSide]
 
-data InteractionEnv = InteractionEnv {leftTree::Tree, leftCombined::[Mite], rightCombined::[Mite], rightSets::[[Mite]], pairs::[(Mite, Mite)]}
-interactionEnv leftTree rightTree = let
+data InteractionEnv = InteractionEnv { context:: [Tree], leftTree::Tree, leftCombined::[Mite], rightCombined::[Mite], rightSets::[[Mite]], pairs::[(Mite, Mite)]}
+interactionEnv context leftTree rightTree = let
   lc = _leftCombined  $ interactiveMites leftTree
   rc = _rightCombined $ interactiveMites rightTree
   in InteractionEnv {
+      context = context,
       leftTree = leftTree,
       leftCombined  = lc,
       rightCombined = rc, rightSets = _rightSets $ interactiveMites rightTree,

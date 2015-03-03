@@ -21,11 +21,11 @@ import Control.Monad.State
 
 data Sprout = Sprout { sLeftTree:: Tree, sHeadSide:: Side, sMites:: [Mite], sActiveSets:: [[Mite]] } deriving (Show)
 
-stealLeftSubtrees :: Tree -> Tree -> State (Set.Set Tree, Set.Set Tree) [Sprout]
-stealLeftSubtrees edgeTree rightTree = let
+stealLeftSubtrees :: [Tree] -> Tree -> Tree -> State (Set.Set Tree, Set.Set Tree) [Sprout]
+stealLeftSubtrees contextTrees edgeTree rightTree = let
   stealableTrees tree = (:) tree $
     if isBranch tree && headSide tree == RightSide then stealableTrees (justRight tree) else []
-  allInfos = [(lt, interactNodes $ interactionEnv lt rightTree) | lt <- stealableTrees edgeTree]
+  allInfos = [(lt, interactNodes $ interactionEnv contextTrees lt rightTree) | lt <- stealableTrees edgeTree]
   createSprouts side infoPairs processedInfos = case infoPairs of
     [] -> return []
     (leftTree, infos):rest -> do
@@ -92,7 +92,10 @@ obtainSprouts leftState right = do
   oldHistory <- get
   let rightCombined = _rightCombined $ interactiveMites right
       allEdgeTrees = LS.removeDups $ lastVariants leftState >>= \t -> reverse (edgeTrees RightSide t)
-      (uncachedSprouts, _) = runState (mapM (\left -> stealLeftSubtrees left right) allEdgeTrees) (Set.empty, Set.empty)
+      (uncachedSprouts, _) = runState (mapM (\left -> stealLeftSubtrees (contextTrees left) left right) allEdgeTrees) (Set.empty, Set.empty)
+      contextTrees left = let
+        contextState = oldHistory !! (rightWidth - 1 + treeWidth left)
+        in roots contextState
       rightWidth = treeWidth right
       cachePoint = oldHistory !! (rightWidth - 1)
       cache = sproutCache cachePoint

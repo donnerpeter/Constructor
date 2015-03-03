@@ -1,5 +1,5 @@
 module Constructor.Tree (Tree(..), Unhappy(..), Interactive(..),
-                         allTreeMites, isBranch, justRight,
+                         allTreeMites, isBranch, justLeft, justRight,
                          createBranch, createLeaf,
                          subTrees, edgeTrees,
                          bestVariant, issues, sense, unhappyCount) where

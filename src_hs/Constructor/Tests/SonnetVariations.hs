@@ -543,6 +543,9 @@ var12 = [
   translateTest "По-моему, раньше идет 7, а по мнению кассирши - 8"
                 "In my opinion, a 7 comes first, but in opinion of the cashier an 8 does"
   ,
+  translateTest "По-моему, раньше идет 7. По мнению кассирши - 8."
+                "In my opinion, a 7 comes first. In opinion of the cashier an 8 does."
+  ,
   -- 12_ImhoVsCashierFront7
   translateTest "По-моему, 7 идет раньше, а по мнению кассирши - 8"
                 "In my opinion, a 7 comes first, but in opinion of the cashier an 8 does"

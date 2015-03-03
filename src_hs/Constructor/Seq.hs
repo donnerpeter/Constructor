@@ -1,4 +1,4 @@
-module Constructor.Seq (seqLeft, seqRight, pullThyself) where
+module Constructor.Seq (seqLeft, seqRight, pullThyself, suggestEllipsis) where
 import qualified Constructor.LinkedSet as LS
 import qualified Data.Set as Set
 import Constructor.Constructions
@@ -133,11 +133,7 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
                    SeqRight (NomHead agr2 v2 Unsatisfied) -> unifySubjects (leftCompatible env m1) agr2 v2
                    SeqRight (nomHead@(NomHead _ _  Satisfied)) -> [withBase [aux2] [mite nomHead]]
                    _ -> []
-                 ellipsisVariants = rightCompatible env m2 >>= \m4 -> case cxt m4 of
-                   SeqRight (Ellipsis ellipsisVar (Just e1) (Just e2)) ->
-                     map (withBase [m4]) $ processEllipsis m1 ellipsisVar e1 e2 (leftTree env)
-                   _ -> []
-                 result = fullConj mem1 mem2 ++ withBase [m1, m2] [mite $ Clause seqV] ++ unifications ++ xor ellipsisVariants
+                 result = fullConj mem1 mem2 ++ withBase [m1, m2] [mite $ Clause seqV] ++ unifications
                  in [result]
           (Clause mem1, SeqRight (CopulaHead cd)) | copBound cd -> let
                  unifications = xorNonEmpty $ unifySubjects (leftCompatible env m1) (copAgr cd) (copSubj cd)
@@ -234,3 +230,15 @@ processEllipsis oldClause ellipsisVar@(Variable varIndex _) e1 e2 prevTree = let
 pullThyself childMites = [m | m@(cxt -> ReflexiveReference _) <- childMites] >>= liftMite
 
 liftMite m = withBase [m] [mite $ cxt m]
+
+enumerateActiveMites tree includeSelf = let
+  own = if includeSelf then map (\m -> (m, tree)) (activeHeadMites tree) else []
+  prefix = if isBranch tree then enumerateActiveMites (justRight tree) (headSide tree == LeftSide) else []
+  suffix = if isBranch tree then enumerateActiveMites (justLeft tree)  (headSide tree == RightSide)  else []
+  in prefix ++ own ++ suffix
+
+findClause tree = [(m, t) | (m@(cxt -> Clause _), t) <- enumerateActiveMites tree True]
+
+suggestEllipsis env ellipsisVar e1 e2 = case findClause =<< context env of
+  [] -> []
+  (oldClause, tree):_ -> xor $ processEllipsis oldClause ellipsisVar e1 e2 tree

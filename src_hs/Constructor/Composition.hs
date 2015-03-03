@@ -139,9 +139,9 @@ punctuationAware env (m1, m2) =
         mergeLeft $ base12 [semV v P.Variants child] ++ liftUnclosedCompatible RightSide
 
       (Clause cp, Word _ ".") ->
-        mergeLeft $ base12 [semS cp P.Dot "true", mite $ Sentence cp] ++ closeUnclosed LeftSide Satisfied
+        mergeRight $ base12 [semS cp P.Dot "true", mite $ Sentence cp] ++ liftUnclosedCompatible LeftSide ++ closeUnclosed LeftSide Satisfied
       (Clause cp, Word _ "!") ->
-        mergeLeft $ base12 [semS cp P.Exclamation_mark "true", mite $ Sentence cp] ++ closeUnclosed LeftSide Satisfied
+        mergeRight $ base12 [semS cp P.Exclamation_mark "true", mite $ Sentence cp] ++ liftUnclosedCompatible LeftSide ++ closeUnclosed LeftSide Satisfied
       (Sentence cp, Word _ "\n") ->
         mergeRight $ base12 [semS cp P.ParagraphEnd "true"] ++ closeUnclosed LeftSide Satisfied
       (Argument Nom noun, Word cp "\n\n") ->

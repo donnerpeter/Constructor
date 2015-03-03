@@ -63,7 +63,7 @@ chooseBestLastVariants finalHistory allVariants = {-trace (length result) -}resu
   dup = findDuplicate competitors
   nodups = if isJust dup then error ("duplicate " ++ show dup) else competitors
   isStableTree tree = all (isStable . cxt) $ mites tree
-  weight tree = (length (mergedRoots tree), mergedUnhappyCount tree, mergedIssueCount tree)
+  weight tree = (length (mergedRoots tree), mergedUnhappyCount tree, mergedIssueCount tree, mergedHandicapCount tree)
   sortedVariants = sortBy (compare `on` weight) nodups
   result = head sortedVariants : metricAscending (metric $ head sortedVariants) (tail sortedVariants)
 

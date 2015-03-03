@@ -20,7 +20,7 @@ wordMites word index =
   s | isNumberString s -> number s v
   "5-ти" -> nounSg Gen Masc "5" v
   "6-ти" -> nounSg Gen Masc "6" v
-  "а" -> xor [conjunction v0 "but" False, [mite $ ConjEmphasis P.AndEmphasis v0]]
+  "а" -> xor [conjunction v0 "a" False, [mite $ ConjEmphasis P.AndEmphasis v0]]
   "арбуз" -> nounSg Nom Masc "WATERMELON" v
   "бессмысленными" -> adj Instr A.pl P.Quality "MEANINGLESS" v
   "больше" -> xor [comparativeAdj A.f P.Size "BIG" v, [mite $ NegationModifier v0, semS v0 P.Not_anymore "true"]]
@@ -103,7 +103,7 @@ wordMites word index =
   "зелёный" -> adj Nom A.m P.Color "GREEN" v
   "знает" -> finVerb "KNOW" "PRESENT" A.sg3 v ++ optional (directObject v)
   "знают" -> finVerb "KNOW" "PRESENT" A.pl3 v ++ optional (directObject v)
-  "и" -> conjunction v0 "and" True
+  "и" -> conjunction v0 "i" True
   "идет" -> xor [finVerb "GO" "PRESENT" A.sg3 v ++ go_args v,
                  finVerb "WEATHER_BE" "PRESENT" A.sg3 v,
                  finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ arg ScalarAdverb P.Order v]
@@ -118,7 +118,7 @@ wordMites word index =
                  infinitive "COME_SCALARLY" v ++ arg ScalarAdverb P.Order v]
   "из" -> preposition "iz" Gen v
   "изо" -> preposition "iz" Gen v
-  "или" -> conjunction v0 "or" True
+  "или" -> conjunction v0 "ili" True
   "им" -> pronoun Dat A.f "THEY" v
   "их" -> xor [pronoun Acc A.pl "THEY" v,
                [semT v0 "THEY", mite $ Possessive Nom A.empty v0],
@@ -204,7 +204,7 @@ wordMites word index =
   "никто" -> negatedWh v ++ [mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.sg3] ++ animate v
   "никуда" -> negatedWh v ++ semArg Direction P.Goal v0
   "ничего" -> negatedWh v ++ [mite $ Argument Gen v0]
-  "но" ->  xor [conjunction v0 "but" False ++ [semS v0 P.ConjStrong "true"], [mite $ ConjEmphasis P.ButEmphasis v0]]
+  "но" ->  xor [conjunction v0 "no" False ++ [semS v0 P.ConjStrong "true"], [mite $ ConjEmphasis P.ButEmphasis v0]]
   "носом" -> nounSg Instr Masc "NOSE" v
   "нужно" -> [semT v0 "NEED", mite $ NomHead A.n (v "arg2") Unsatisfied, semV v0 P.Arg2 (v "arg2"), mite $ TenseHead Optional v0] ++ optional (arg Dat P.Arg1 v) ++ clause v
   "о" -> preposition "o" Prep v

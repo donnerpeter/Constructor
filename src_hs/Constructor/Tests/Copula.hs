@@ -182,6 +182,27 @@ copulaTests = [
   translateTest "Я люблю капусту, но жареную."
                 "I like cabbage, but roasted."
   ,
+--todo  translateTest "Я люблю капусту, но только жареную капусту."
+--                "I like cabbage, but only roasted cabbage."
+--  ,
+--todo  translateTest "Я люблю капусту, но только жареную."
+--                "I like cabbage, but only roasted."
+--  ,
+--todo  translateTest "Я люблю капусту, но только с песто."
+--                "I like cabbage, but only with pesto."
+--  ,
+--todo  translateTest "Я люблю капусту, и не только жареную."
+--                "I like cabbage, and not only roasted."
+--  ,
+--todo  translateTest "Я люблю капусту, но не морковку."
+--                "I like cabbage, but not carrots."
+--  ,
+--todo  translateTest "Я люблю капусту, но не жареную, а варёную."
+--                "I like cabbage, but not roasted, but cooked."
+--  ,
+--todo  translateTest "Я люблю капусту, но жареную, а не варёную."
+--                "I like cabbage, but roasted and not cooked."
+--  ,
   translateTest "Она кассирша и работает в магазине."
                 "She's a cashier and works in a store."
   ,

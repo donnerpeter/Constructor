@@ -54,7 +54,7 @@ hybridWrapped c = case c of
   SeqRight {} -> True
   _ -> False
 
-isSeqContinuation conj1 conj2 = conj1 == "," || conj1 == "and" && conj2 == "but"
+isSeqContinuation conj1 conj2 = conj1 == "," || conj1 == "i" && (conj2 == "a" || conj2 == "no")
 
 seqLeft env = {-traceIt "seqLeft" $ -}result where
   contradictsSeq conj = flip any (leftCombined env) $ \mite -> case cxt mite of
@@ -66,6 +66,15 @@ seqLeft env = {-traceIt "seqLeft" $ -}result where
       else xorNonEmpty [normalSeqVariants m2 sd env, hybridSeqVariants m2 sd env]
     _ -> []
 
+withNegation sd env m1 m2 m4 f = let
+  requireNegation = seqConj sd == "a"
+  negatedVariants sideMites = sideMites >>= \mx -> case cxt mx of
+    Negated v -> f [m1,m2,m4,mx]
+    SeqRight (Negated v) -> f [m1,m2,m4,mx]
+    _ -> []
+  in if requireNegation then negatedVariants (leftCompatible env m1) ++ negatedVariants (rightCompatible env m4)
+     else f [m1,m2,m4]
+
 normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
       leftCombined env >>= \m1 -> let
         fullConj mem1 mem2 = [semV seqV P.Member1 mem1, semV seqV P.Member2 mem2, mite $ Conjunction $ sd {seqHasLeft=True}]
@@ -75,16 +84,10 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
             adjAgrVariants = withAgr (Agr Nothing (Just Pl) Nothing)
             withAgr agr = [[mite $ result agr]]
             allVariants = xorNonEmpty $
-              if seqConj sd == "but" then withAgr (commonAgr agr1 agr2)
+              if seqConj sd == "a" then withAgr (commonAgr agr1 agr2)
               else if agree agr1 agr2 then adjAgrVariants ++ withAgr (commonAgr agr1 agr2)
               else adjAgrVariants
-            requireNegation = seqConj sd == "but"
-            negatedVariants sideMites = sideMites >>= \mx -> case cxt mx of
-              Negated v -> fullConj mem1 mem2 ++ withBase [m1,m2,m4,mx] allVariants
-              SeqRight (Negated v) -> fullConj mem1 mem2 ++ withBase [m1,m2,m4,mx] allVariants
-              _ -> []
-            in if requireNegation then negatedVariants (leftCompatible env m1) ++ negatedVariants (rightCompatible env m4)
-               else fullConj mem1 mem2 ++ withBase [m1,m2,m4] allVariants
+            in withNegation sd env m1 m2 m4 $ \base -> fullConj mem1 mem2 ++ withBase base allVariants
           in case cxt m4 of
             SeqRight (Adj mem2 _ caze2 agr2) | caze1 == caze2 && adjAgree agr1 agr2 -> [adjResult mem2 agr2 m4]
             SeqRight (Possessive caze2 agr2 mem2) | caze1 == caze2 && adjAgree agr1 agr2 -> [adjResult mem2 agr2 m4]
@@ -110,7 +113,8 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
         in rightCompatible env m2 >>= \m3 -> case (cxt m1, cxt m3) of
 
           (Argument kind mem1, SeqRight (Argument kind2 mem2)) | kind == kind2 ->
-            [fullConj mem1 mem2 ++ withBase [m1,m2,m3] [mite $ Argument kind seqV] ++ combineThyself ++ (baseMites m3 >>= distinguished)
+           withNegation sd env m1 m2 m3 $ \base ->
+            [fullConj mem1 mem2 ++ withBase base [mite $ Argument kind seqV] ++ combineThyself ++ (baseMites m3 >>= distinguished)
              ++ adjHeadCompanions mem1 kind ++ argUnifications]
 
           (VerbalModifier attr comma mem1, SeqRight (VerbalModifier attr2 comma2 mem2)) | attr2 == attr && comma2 == comma ->

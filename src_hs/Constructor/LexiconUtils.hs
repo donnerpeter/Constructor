@@ -100,7 +100,10 @@ modifierAdverb value v = [mite $ ModifierAdverb (v "head"), semS (v "head") P.Mo
 adverb attr value v = [mite $ VerbalModifier attr False (v ""), semT (v "") value, mite $ AdverbModifiable (v "")]
 genHead attr v = optional [mite $ GenHead (v "gen"), semV (v "") attr (v "gen")]
 directObject v = arg Acc P.Arg2 v
-conjunction v0 conj ready = [mite $ Conjunction $ SeqData v0 conj ready False False False, semT v0 "seq"] ++ (if conj == "," then [] else [semS v0 P.Conj conj])
+
+conjunction v0 conj ready = [mite $ Conjunction $ SeqData v0 conj ready False False False, semT v0 "seq"] ++ (if conj == "," then [] else [semS v0 P.Conj $ semConj conj]) where
+  semConj s = if s == "i" then "and" else if s == "ili" then "or" else if s == "a" || s == "no" then "but" else s
+
 
 numQuantifier ownCase childCase childAgr v = [mite $ Quantifier ownCase childCase childAgr (v "")]
 

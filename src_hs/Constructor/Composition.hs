@@ -335,7 +335,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (TwoWordCxt s1 True wrapped _, TwoWordCxt s2 False _ _) | s1 == s2 -> left $ map mite wrapped
       
       (Conjunction    (SeqData {seqVar=v1, seqConj=",", seqHasLeft=False, seqHasRight=False}),
-       Conjunction sd@(SeqData {seqVar=v2, seqConj="but", seqReady=False, seqHasRight=True})) ->
+       Conjunction sd@(SeqData {seqVar=v2, seqReady=False, seqHasRight=True})) | seqConj sd == "a" || seqConj sd == "no" ->
           right [mite $ Conjunction $ sd {seqReady=True}, mite $ Unify v1 v2]
 
       (Quote _ False, word@(Word {})) -> left [mite $ QuotedWord word False]

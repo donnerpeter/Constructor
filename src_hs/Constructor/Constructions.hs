@@ -108,6 +108,7 @@ data Construction = Word Variable String
                   | Negated Variable
                   | Negateable Variable
                   | PendingNegation Variable
+                  | NegationModifier Variable
 
                   -- other
                   | Control Variable

@@ -116,7 +116,7 @@ arguments fVerb@(getType -> Just typ) = allArgs where
       (_, P.Location) | hasType "wh" value -> [NPArg value]
       (_, P.Location_on) -> [PPArg "on" value]
       ("copula", P.Color) -> [Adjectives fVerb]
-      ("copula", P.Quality) -> [Adjectives fVerb]
+      ("copula", prop) | prop == P.Quality || prop == P.Size -> [Adjectives fVerb]
       (_, P.Location_in) -> [PPArg "in" value]
       (s, P.Location_at) | s /= "copula" -> [PPArg "next to" value]
       ("copula_about", P.Arg2) -> [PPArg "about" value]

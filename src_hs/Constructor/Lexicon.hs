@@ -23,6 +23,7 @@ wordMites word index =
   "а" -> xor [conjunction v0 "but" False, [mite $ ConjEmphasis P.AndEmphasis v0]]
   "арбуз" -> nounSg Nom Masc "WATERMELON" v
   "бессмысленными" -> adj Instr A.pl P.Quality "MEANINGLESS" v
+  "больше" -> xor [comparativeAdj A.f P.Size "BIG" v, [mite $ NegationModifier v0, semS v0 P.Not_anymore "true"]]
   "большим" -> xor[adj Instr A.m P.Size "BIG" v, adj Instr A.n P.Size "BIG" v]
   "большой" -> xor[adj Instr A.f P.Size "BIG" v, adj Nom A.m P.Size "BIG" v, adj Acc A.m P.Size "BIG" v]
   "брат" -> nounSg Nom Masc "BROTHER" v ++ genHead P.Arg1 v
@@ -282,7 +283,9 @@ wordMites word index =
   "сегодня" -> adverb P.RelTime "TODAY" v
   "семи" -> wordNumber Gen "7" v
   "семь" -> xor [wordNumber Nom "7" v, wordNumber Acc "7" v]
+  "семьи" -> nounSg Gen Fem "FAMILY" v ++ genHead P.Arg1 v
   "семью" -> xor [nounSg Acc Fem "FAMILY" v ++ genHead P.Arg1 v, wordNumber Instr "7" v]
+  "семья" -> nounSg Nom Fem "FAMILY" v ++ genHead P.Arg1 v
   "сестра" -> nounSg Nom Fem "SISTER" v ++ genHead P.Arg1 v
   "сидит" -> finVerb "SIT" "PRESENT" A.sg3 v
   "сидят" -> finVerb "SIT" "PRESENT" A.pl3 v

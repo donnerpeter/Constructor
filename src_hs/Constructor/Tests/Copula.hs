@@ -188,6 +188,15 @@ copulaTests = [
   translateTest "Кто это был? Кем он был? А кем была она?"
                 "Who was this? What was he? And what was she?"
 --  ,
+--todo  translateTest "Кто или что это? Кто или что это было?"
+--                "Who or what is this? Who or what was this?"
+--  ,
+--todo  translateTest "Где это?"
+--                "Where is this?"
+--  ,
+--todo  translateTest "Где и когда это было?"
+--                "Where and when was this?"
+--  ,
 --todo  translateTest "Кто кассирша и работает в магазине?"
 --                "Who is a cashier and works in a store?"
 --  ,
@@ -277,9 +286,9 @@ copulaTests = [
 --  ,
 --todo  translateTest "Моя семья больше вашей."
 --                "My family is larger than yours."
---  ,
---todo  translateTest "Cемья кассира больше семьи кассирши."
---                "The family of the male cashier is larger than the family of the female cashier."
+  ,
+  translateTest "Семья кассира больше семьи кассирши."
+                "The male cashier's family is larger than the female cashier's family."
 --  ,
 --todo  translateTest "Я и ты такие разные, ты и я такие разные."
 --                "Me and you are so different, you and I are so different."

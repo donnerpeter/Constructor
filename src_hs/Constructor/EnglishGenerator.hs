@@ -198,6 +198,7 @@ adjectives nounFrame = do
           let comparative = case getType =<< fValue P.Theme frame of
                 Just "CLEVER" -> "smarter"
                 Just "FAST" -> "faster"
+                Just "BIG" -> "larger"
                 _ -> "more"
           if hasType "MORE" frame then return $ negation frame `cat` emph `cat` modifiers frame `cat` comparative `cat` anchor else eachAdj frame
         eachAdj adjFrame = let

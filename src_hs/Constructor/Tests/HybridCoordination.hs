@@ -44,4 +44,9 @@ hybridCoordinationTests = [
   translateTest "Кто дал что и кому?"
                 "Who gave what, and to whom?"
 --  ,
+--todo  translateTest "Где и когда это случилось?"
+--                "Where and when did happen?"
+--  ,
+--todo  translateTest "Он не дурак, а умнее тебя."
+--                "He's not a fool, but smarter than you."
   ]

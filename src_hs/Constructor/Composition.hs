@@ -342,8 +342,8 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (QuotedWord word False, Quote _ True) -> left [mite $ QuotedWord word True]
       (NounPhrase noun, QuotedWord (Word _ word) _) -> left [semS noun P.Name word]
 
-      (Word _ "больше", Negated v) -> right [semS v P.Not_anymore "true"]
-      (Negated v, Word _ "больше") -> left [semS v P.Not_anymore "true"]
+      (NegationModifier v1, Negated v) -> right [mite $ Unify v v1]
+      (Negated v, NegationModifier v1) -> left [mite $ Unify v v1]
 
       (Word _ "не", Complement cp) -> right [semS cp P.Negated "true", mite $ Complement cp]
       (Word ne "не", Wh _ v) -> right [mite $ ExistentialWh v ne, semS v P.Negated "true"]

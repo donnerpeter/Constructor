@@ -40,6 +40,7 @@ wordMites word index =
   "васи" -> nounSg Gen Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vasya"]
   "василий" -> nounSg Nom Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vassily"]
   "вася" -> nounSg Nom Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vasya"]
+  "вашей" -> possessive Gen A.f "YOU" v
   "вдруг" -> adverb P.Manner "SUDDENLY" v
   "вдумываясь" -> perfectBackground "THINK" v ++ arg (PP "v" Acc) P.Theme v
   "велел" -> finVerb "TO_ORDER" "PAST" A.m v ++ optional (arg Dat P.Arg2 v) ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")]
@@ -88,9 +89,9 @@ wordMites word index =
   "других" -> nounPl Gen "OTHERS" v
   "думает" -> finVerb "THINK" "PRESENT" A.sg3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) P.Topic v)
   "думают" -> finVerb "THINK" "PRESENT" A.pl3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) P.Topic v)
-  "его" -> xor [pronoun Acc A.m "HE" v, pronoun Gen A.m "HE" v, [semT v0 "HE", mite $ Possessive Nom A.empty v0], [semT v0 "HE", mite $ Possessive Dat A.empty v0]]
-  "ее" -> xor [pronoun Acc A.f "SHE" v, pronoun Gen A.m "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.empty v0], [semT v0 "SHE", mite $ Possessive Dat A.empty v0]]
-  "её" -> xor [pronoun Acc A.f "SHE" v, pronoun Gen A.m "SHE" v, [semT v0 "SHE", mite $ Possessive Nom A.empty v0], [semT v0 "SHE", mite $ Possessive Dat A.empty v0]]
+  "его" -> xor $ [pronoun Acc A.m "HE" v, pronoun Gen A.m "HE" v] ++ map (\c -> possessive c A.empty "HE" v) cases
+  "ее" -> xor $ [pronoun Acc A.f "SHE" v, pronoun Gen A.m "SHE" v] ++ map (\c -> possessive c A.empty "SHE" v) cases
+  "её" -> xor $ [pronoun Acc A.f "SHE" v, pronoun Gen A.m "SHE" v] ++ map (\c -> possessive c A.empty "SHE" v) cases
   "ей" -> pronoun Dat A.f "SHE" v
   "ему" -> pronoun Dat A.sg "HE" v
   "если" -> [mite $ ConditionComp v0 "if" False]
@@ -121,11 +122,7 @@ wordMites word index =
   "изо" -> preposition "iz" Gen v
   "или" -> conjunction v0 "ili" True
   "им" -> pronoun Dat A.f "THEY" v
-  "их" -> xor [pronoun Acc A.pl "THEY" v,
-               [semT v0 "THEY", mite $ Possessive Nom A.empty v0],
-               [semT v0 "THEY", mite $ Possessive Gen A.empty v0],
-               [semT v0 "THEY", mite $ Possessive Dat A.empty v0],
-               [semT v0 "THEY", mite $ Possessive Acc A.empty v0]]
+  "их" -> xor $ [pronoun Acc A.pl "THEY" v] ++ map (\c -> possessive c A.empty "THEY" v) cases
   "к" -> preposition "k" Dat v
   "кажется" -> raisingVerb "SEEM" "PRESENT" A.sg3 v ++ optional (arg Dat P.Experiencer v)
   "как" -> [mite $ TwoWordCxt "так как" False [] v0]
@@ -187,17 +184,18 @@ wordMites word index =
   "может" -> finVerb "CAN" "PRESENT" A.sg3 v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")]
   "могут" -> finVerb "CAN" "PRESENT" A.pl3 v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")]
   "молоточек" -> nounSg Acc Masc "HAMMER" v
-  "мое" -> [semT v0 "ME", mite $ Possessive Nom A.n v0]
-  "моему" -> [semT v0 "ME", mite $ Possessive Dat A.n v0]
+  "мое" -> possessive Nom A.n "ME" v
+  "моему" -> possessive Dat A.n "ME" v
   "морковку" -> nounSg Acc Fem "CARROT" v
+  "моя" -> possessive Nom A.f "ME" v
   "мы" -> pronoun Nom A.pl1 "WE" v
   "на" -> xor [preposition "na" Prep v, preposition "na" Acc v]
   "нам" -> pronoun Dat A.pl1 "WE" v
   "нас" -> xor [pronoun Acc A.pl1 "WE" v, pronoun Gen A.pl1 "WE" v]
   "начал" -> finVerb "BEGIN" "PAST" A.m v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")]
   "начали" -> finVerb "BEGIN" "PAST" A.pl v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")]
-  "нашего" -> [semT v0 "WE", mite $ Possessive Gen A.m v0]
-  "нашем" -> [semT v0 "WE", mite $ Possessive Prep A.n v0]
+  "нашего" -> possessive Gen A.m "WE" v
+  "нашем" -> possessive Prep A.n "WE" v
   "недоумении" -> nounSg Prep Neu "PREDICAMENT" v ++ genHead P.Arg1 v
   "некого" -> negatedWh v ++ [mite $ Argument Acc v0, mite $ ExistentialWh v0 (v "z")] ++ animate v
   "некому" -> negatedWh v ++ [mite $ Argument Dat v0, mite $ ExistentialWh v0 (v "z")] ++ animate v
@@ -280,8 +278,8 @@ wordMites word index =
   "сада" -> nounSg Gen Masc "GARDEN" v
   "свалился" -> finVerb "FALL" "PAST" A.m v ++ arg (PP "s" Gen) P.Source v
   "свет" -> nounSg Nom Masc "LIGHT" v
-  "своим" -> [semT v0 "SELF", mite $ Possessive Dat A.pl v0, mite $ ReflexiveReference v0]
-  "своими" -> [semT v0 "SELF", mite $ Possessive Instr A.pl v0, mite $ ReflexiveReference v0]
+  "своим" -> possessive Dat A.pl "SELF" v ++ [mite $ ReflexiveReference v0]
+  "своими" -> possessive Instr A.pl "SELF" v ++ [mite $ ReflexiveReference v0]
   "себе" -> pronoun Dat A.empty "SELF" v ++ [mite $ ReflexiveReference v0]
   "сегодня" -> adverb P.RelTime "TODAY" v
   "семи" -> wordNumber Gen "7" v

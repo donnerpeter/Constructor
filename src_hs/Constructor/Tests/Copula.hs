@@ -277,13 +277,19 @@ copulaTests = [
   ,
   translateTest "Кассирша лучше, чем кассир."
                 "The female cashier is better than the male cashier."
---  ,
---todo  translateTest "Моя семья больше вашей."
---                "My family is larger than yours."
+  ,
+  translateTest "Моя семья больше вашей."
+                "My family is larger than yours."
   ,
   translateTest "Семья кассира больше семьи кассирши."
                 "The male cashier's family is larger than the female cashier's family."
 --  ,
 --todo  translateTest "Я и ты такие разные, ты и я такие разные."
 --                "Me and you are so different, you and I are so different."
+--  ,
+--todo  translateTest "Эта квартира ваша. А та квартира не ваша."
+--                "This apartment is yours. And that apartment is not yours."
+--  ,
+--todo  translateTest "Арбуз мой!"
+--                "This watermelon is mine!"
   ]

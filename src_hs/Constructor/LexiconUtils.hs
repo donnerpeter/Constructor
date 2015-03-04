@@ -73,11 +73,15 @@ caseWhWord kind agr v = whWord agr v ++ [mite $ QuestionVariants (v "") kind, mi
 negatedWh v = [semT (v "") "wh", semS (v "") P.Negated "true", mite $ Negated (v ""), mite $ NegativePronoun (v "")]
 animate v = [semS (v "") P.Animate "true"]
 
-adj caze agr attr value v =
+adj caze agr attr value v = adjLike caze agr attr value (Adj (v "") attr caze agr) v
+
+possessive caze agr value v = adjLike caze agr P.Arg1 value (Possessive caze agr (v "")) v
+
+adjLike caze agr attr value adjLikeCxt v =
   [semT v0 value, mite $ AdverbModifiable v0] ++ (if caze == Nom || caze == Instr then xor [adjVariant, adjCopulaHead, nounVariant] else xor [adjVariant, nounVariant])
   where
   v0 = v ""
-  adjVariant = [mite $ Negateable v0, mite $ Adj v0 attr caze agr]
+  adjVariant = [mite $ Negateable v0, mite adjLikeCxt]
   adjCopulaHead = copulaHead AdjCopula agr "copula" attr Optional v0 ++ [mite $ Negateable v0]
   nounVariant = rusNumber agr (v "noun") ++ synNoun caze agr (makeV v0 "noun") ++ [mite $ Argument caze (v "noun"), semS (v "noun") P.Elided "true", mite $ Handicap (v "noun")] ++ semLink (v "noun")
   semLink nounV = [semV nounV attr v0]

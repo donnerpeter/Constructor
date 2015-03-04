@@ -131,7 +131,7 @@ np_internal nom mayHaveDeterminer frame = do
     else do
       adjs <- adjectives frame
       let n = if isElided frame then
-                if skipElidedOne frame then ""
+                if skipElidedOne frame || Just True == fmap isPronoun fDet then ""
                 else if Just "Pl" == sValue P.RusNumber frame then "ones" else "one"
               else noun (getType frame) frame
           nbar1 = adjs `cat` n
@@ -270,10 +270,11 @@ fDeterminer frame =
   else if hasAnyType ["WORDS", "BOOK"] frame then fValue P.Author frame
   else if hasAnyType ["ROOMS", "APARTMENTS", "OFFICES"] frame then fValue P.Owner frame
   else if hasAnyType ["CASHIER"] frame then fValue P.Place frame
+  else if isElided frame then fValue P.Arg1 frame
   else Nothing
 
 usePronoun state frame = Set.member frame (visitedFrames state)
-isPronoun = hasAnyType ["ME", "THEY", "HE", "SHE", "wh"]
+isPronoun = hasAnyType ["ME", "YOU", "THEY", "HE", "SHE", "wh"]
 
 isHeavyNP :: GenerationState -> Maybe Frame -> Bool
 isHeavyNP state mNoun = Just True == fmap isHeavyNoun mNoun where
@@ -305,7 +306,7 @@ determiner frame det nbar = do
           Just "THEY" -> pronoun "their"
           Just "WE" -> pronoun "our"
           Just "SHE" -> pronoun "her"
-          Just "YOU" -> pronoun "your"
+          Just "YOU" -> pronoun $ if isElided frame then "yours" else "your"
           Just "wh" -> pronoun "whose"
           Just s ->
             if usePronoun state det then pronoun $ case sValue P.RusGender det of

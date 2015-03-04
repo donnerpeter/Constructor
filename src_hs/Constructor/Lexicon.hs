@@ -169,6 +169,7 @@ wordMites word index =
   "летний" -> adj Acc A.m P.VName "name" v ++ [semS v0 P.Name "летний"] -- todo летний is not only a name
   "лишенными" -> adj Instr A.pl P.Quality "LACK" v ++ arg Gen P.Theme v
   "лишь" -> xor [modifierAdverb "ONLY" v, [mite $ TwoWordCxt "всего лишь" False [] v0]]
+  "лучше" -> comparativeAdj P.Quality "GOOD" v
   "любит" -> finVerb "LOVE" "PRESENT" A.sg3 v ++ optional (directObject v)
   "любить" -> infinitive "LOVE" v ++ optional (directObject v)
   "люблю" -> finVerb "LOVE" "PRESENT" A.sg1 v ++ optional (directObject v)

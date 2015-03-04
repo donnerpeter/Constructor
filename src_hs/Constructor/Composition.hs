@@ -114,6 +114,8 @@ punctuationAware env (m1, m2) =
       (Verb verb, CommaSurrounded True _ (VerbalModifier attr True advP)) ->
         mergeLeft $ base12 [semV verb attr advP] ++ liftUnclosedCompatible RightSide ++ closeUnclosed LeftSide Satisfied
 
+      (ComparativeHead head, CommaSurrounded True _ (ComparativePhrase v)) ->
+        mergeLeft $ base12 [semV head P.Anchor v] ++ liftUnclosedCompatible RightSide
       (ConditionCompHead head, CommaSurrounded True _ (ConditionComp cp cond _)) ->
         mergeLeft $ base12 [semV head (if cond=="if" then P.IfCondition else P.WhenCondition) cp] ++ liftUnclosedCompatible RightSide
       (Verb head, CommaSurrounded True _ (ConditionComp cp cond _)) ->
@@ -363,6 +365,8 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (Control slave, ControlledInfinitive inf) -> left [mite $ Unify slave inf]
       (FutureTense agr tense, ControlledInfinitive inf) -> right $ [mite $ Unify tense inf] ++ finiteClause agr True (makeV tense "")
       (RaisingVerb verb subj, Adj child _ Instr agr) -> left [semV child P.Arg1 subj, semV verb P.Theme child]
+
+      (Comparativizer _, Argument Nom v2) -> left [mite $ ComparativePhrase v2]
        
       _ -> []
 

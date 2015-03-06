@@ -84,7 +84,7 @@ randomStuffTests = [
 --                "Today I understood the cashier better than yesterday."
 --  ,
 --todo  translateTest "Я больше люблю гулять, чем ходить на работу."
---                "I like strolling more then going to work."
+--                "I like strolling more than going to work."
 --  ,
 --todo  translateTest "Кассир быстрее, чем был вчера."
 --                "The cashier is faster than he was yesterday."
@@ -117,12 +117,18 @@ randomStuffTests = [
                 "I like cabbage, but not roasted, but boiled."
   ,
 --todo  translateTest "Я люблю капусту, только не жареную, а варёную."
---                "I like cabbage, but not roasted, but cooked."
+--                "I like cabbage, just not roasted, but boiled."
 --  ,
 --todo  translateTest "Я люблю капусту, не только жареную, но и варёную."
---                "I like cabbage, not only roasted one, but also boiled."
+--                "I like cabbage, not only roasted, but also boiled."
+--  ,
+--todo  translateTest "Я люблю и варёную капусту."
+--                "I like boiled cabbage as well."
 --  ,
   translateTest "Я люблю капусту, но жареную, а не варёную."
                 "I like cabbage, but roasted and not boiled."
+--  ,
+--todo  translateTest "Я видел зелёный свет. А красного - не видел. И жёлтого тоже."
+--                "I saw the green light. The red one, I didn't see. And the yellow one as well."
 --  ,
   ]

@@ -3,6 +3,7 @@ import Constructor.Sense
 import Constructor.Inference
 import Constructor.ArgumentPlanning
 import Constructor.EnglishNouns
+import Constructor.EnglishPronouns
 import Constructor.EnglishVerbs
 import Control.Monad.State
 import Control.Monad
@@ -103,32 +104,12 @@ np_internal nom mayHaveDeterminer frame = do
   state <- get
   if Set.member frame (visitedFrames state) then return $ fromMaybe "ONE" $ getType frame else do
   frameGenerated frame
-  let asPronoun = case getType frame of
-        Just "ME" -> if nom then "I" else "me"
-        Just "WE" -> if nom then "we" else "us"
-        Just "YOU" -> "you"
-        Just "THEY" -> if nom then "they" else "them"
-        Just s ->
-          if isHuman $ resolve frame then
-            if s == "HE" then if nom then "he" else "him"
-            else if s == "SHE" then if nom then "she" else "her"
-            else s
-          else "it"
-        _ -> "???"
 
-  unquantified <- if hasAnyType ["ME", "WE", "THEY", "HE", "SHE", "YOU"] frame then return asPronoun --todo isPronoun
+  unquantified <-
+    if hasType "wh" frame then return $ whWord nom frame
+    else if isPronoun frame then return $ npPronoun nom frame
     else if hasType "EVERYTHING" frame then return "everything"
     else if hasType "EVERYBODY" frame then return "everybody"
-    else if hasType "wh" frame then return $
-      if isJust (usage P.Goal frame) then "where"
-      else if isJust (usage P.VTime frame) then "when"
-      else if isJust (usage P.Location frame) then "where"
-      else if isAnimate frame then
-        if Just "true" == sValue P.Negated frame then "nobody"
-        else if Just "true" == (usage P.Arg2 frame >>= sValue P.ProfessionCopula) then "what"
-        else if nom then "who" else "whom"
-      else if isJust $ usage P.Questioned frame >>= usage P.Relative then "that"
-      else "what"
     else do
       adjs <- adjectives frame
       let n = if isElided frame then
@@ -278,7 +259,6 @@ fDeterminer frame =
   else Nothing
 
 usePronoun state frame = Set.member frame (visitedFrames state)
-isPronoun = hasAnyType ["ME", "YOU", "THEY", "HE", "SHE", "wh"]
 
 isHeavyNP :: GenerationState -> Maybe Frame -> Bool
 isHeavyNP state mNoun = Just True == fmap isHeavyNoun mNoun where

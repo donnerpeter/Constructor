@@ -4,6 +4,7 @@ module Constructor.Sense
   fDeclaredValue, sDeclaredValue,
   earlier,
   usages, usage, allUsages,
+  isFrameReachable,
   makeSense, composeSense)
   where
 
@@ -154,3 +155,12 @@ usageFacts frame = Map.findWithDefault [] (var frame) $ usageCache (sense frame)
 allUsages attrs frame = toFrames (sense frame) $ [v | Fact {variable=v, value=VarValue s _} <- usageFacts frame, s `elem` attrs]
 usages attr frame = toFrames (sense frame)  $ [v | Fact {variable=v, value=VarValue s _} <- usageFacts frame, s == attr]
 usage attr frame = singleListElement $ usages attr frame
+
+reachableFrames :: Frame -> Set.Set Frame
+reachableFrames origin = visitFrame Set.empty origin where
+  visitFrame visited frame = let
+    neighbours = Set.fromList [toFrame (sense frame) v | (Fact {value=(VarValue _ v)}) <- allFrameFacts frame ]
+    goFurther = Set.foldl visitFrame (Set.insert frame visited) neighbours
+    in if Set.member frame visited then visited else goFurther
+
+isFrameReachable src dest = Set.member dest (reachableFrames src)

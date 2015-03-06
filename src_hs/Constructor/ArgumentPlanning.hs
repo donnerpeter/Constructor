@@ -27,7 +27,6 @@ data Argument = Adverb Position String | NPArg Frame |
                 PPArg String Frame | PPAdjunct Position String Frame |
                 ToInfinitive Frame | GerundBackground Position Frame |
                 Silence Frame |
-                Adjectives Frame |
                 CommaSurrounded Argument |
                 PreAdverb String
                 deriving (Eq,Show,Ord)
@@ -115,12 +114,10 @@ arguments fVerb@(getType -> Just typ) = allArgs where
         _ -> []
       (_, P.Location) | hasType "wh" value -> [NPArg value]
       (_, P.Location_on) -> [PPArg "on" value]
-      ("copula", P.Color) -> [Adjectives fVerb]
-      ("copula", prop) | prop == P.Quality || prop == P.Size -> [Adjectives fVerb]
       (_, P.Location_in) -> [PPArg "in" value]
       (s, P.Location_at) | s /= "copula" -> [PPArg "next to" value]
-      ("copula_about", P.Arg2) -> [PPArg "about" value]
-      ("copula_talking_about", P.Arg2) -> [PPArg "about" value]
+      ("copula_about", P.Arg2) -> [PPArg "about" $ fromJust $ fValue P.Arg2 value]
+      ("copula_talking_about", P.Arg2) -> [PPArg "about" $ fromJust $ fValue P.Arg2 value]
       ("copula", P.Arg1) | isOwnerCopula fVerb -> [NPArg value]
       (_, P.Arg2) -> if isCPOrSeq value then [] else [NPArg value]
       (_, P.Duration) -> if hasType "LONG" value then [Adverb AfterVerb "for a long time"] else []
@@ -173,7 +170,7 @@ isAtLocationCopula fVerb = hasType "copula" fVerb &&
   isJust (fValue P.Location_at fVerb) &&
   Just "SUCH" == (fValue P.Arg2 fVerb >>= fValue P.Determiner >>= getType)
 
-isOwnerCopula fVerb = hasType "copula" fVerb && isJust (fValue P.Owner fVerb)
+isOwnerCopula fVerb = hasType "copula" fVerb && isJust (fValue P.Owner =<< fValue P.Arg2 fVerb)
 
 isExclamationCopula fVerb = case (getType fVerb, fValue P.Arg1 fVerb, fValue P.Arg2 fVerb) of
   (Just "copula", Just arg1, Just arg2) | Just det2 <- fValue P.Determiner arg2 ->

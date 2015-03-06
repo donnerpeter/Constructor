@@ -130,6 +130,6 @@ determineVerbForm fSubject discoursePast =
 englishSubject fVerb =
   if hasAnyType ["modality", "SEEM"] fVerb then fValue P.Theme fVerb >>= fValue P.Arg1
   else if isAtLocationCopula fVerb then fValue P.Location_at fVerb
-  else if isOwnerCopula fVerb then fValue P.Owner fVerb
+  else if isOwnerCopula fVerb then fValue P.Owner =<< fValue P.Arg2 fVerb
   else fValue P.Arg1 fVerb
 

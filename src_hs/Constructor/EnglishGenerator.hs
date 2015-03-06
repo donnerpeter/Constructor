@@ -63,13 +63,14 @@ handleSeq f (Just frame) =
             secondContent = second >>= fValue P.Content
             contents = catMaybes $ map (fValue P.Content) $ flatten $ Just frame
             copulas = filter (hasType "copula") contents
+            copulaValues = catMaybes $ map (fValue P.Arg2) copulas
             separator = if conj == "but" then
                           if Just "true" == (firstContent >>= sValue P.Irrealis) then ", when"
                           else if (Just True == fmap isGerund secondContent || Just True == fmap isGerund firstContent) &&
                                   isNothing (firstContent >>= sValue P.Negated)
                             then "and"
-                          else if length copulas > 1 then
-                            if any (hasType "MORE") $ concatMap flatten $ map (fValue P.Quality) copulas then ", but"
+                          else if length copulaValues > 1 then
+                            if any (hasType "MORE") $ concatMap flatten $ map (fValue P.Quality) copulaValues then ", but"
                             else ", and"
                           else if Just True == fmap shouldContrastByGender (firstContent >>= fValue P.Arg1) then ", and"
                           else if Just "true" == (second >>= sValue P.Negated) && Just "true" /= sValue P.ConjStrong frame then "and"
@@ -115,7 +116,7 @@ np_internal nom mayHaveDeterminer frame = do
           else "it"
         _ -> "???"
 
-  unquantified <- if hasAnyType ["ME", "WE", "THEY", "HE", "SHE", "YOU"] frame then return asPronoun
+  unquantified <- if hasAnyType ["ME", "WE", "THEY", "HE", "SHE", "YOU"] frame then return asPronoun --todo isPronoun
     else if hasType "EVERYTHING" frame then return "everything"
     else if hasType "EVERYBODY" frame then return "everybody"
     else if hasType "wh" frame then return $
@@ -133,6 +134,7 @@ np_internal nom mayHaveDeterminer frame = do
       let n = if isElided frame then
                 if skipElidedOne frame || Just True == fmap isPronoun fDet then ""
                 else if Just "Pl" == sValue P.RusNumber frame then "ones" else "one"
+              else if isPlaceholder frame then ""
               else noun (getType frame) frame
           nbar1 = adjs `cat` n
           fDet = fDeterminer frame
@@ -172,10 +174,12 @@ np_internal nom mayHaveDeterminer frame = do
   return $ neg `cat` preQuantifier `cat` unquantified `cat` postQuantifier `cat` relative
 
 isArticleAfterAdjectives mainFrame =
-  not (hasType "copula" mainFrame) &&
+  not (isPlaceholder mainFrame) &&
   length adjFrames > 1 && sValue P.Negated (head adjFrames) == Just "true"
   where
   adjFrames = flatten (fValue P.Color mainFrame)
+
+isPlaceholder frame = hasType "placeholder" frame
 
 isElided frame = Just "true" == sValue P.Elided frame
 
@@ -336,7 +340,7 @@ determiner frame det nbar = do
       else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING", "MONEY", "COUNTING", "APARTMENTS", "OFFICES", "HOUSES", "CABBAGE", "CARROT"] frame then ""
       else if hasAnyType ["NAMED_PERSON"] frame then ""
       else if hasType "OPINION" frame && Just True == fmap isVerbEllipsis (usage P.AccordingTo frame) then ""
-      else if isElided frame && skipElidedOne frame then ""
+      else if isElided frame && skipElidedOne frame || isPlaceholder frame then ""
       else if sValue P.Given frame == Just "true" then "the"
       else if isArticleAfterAdjectives frame then ""
       else indefiniteArticle frame nbar
@@ -616,7 +620,6 @@ generateArg arg = let
     GerundBackground _ back -> return ("," `cat` conjIntroduction back) `catM` vp back Gerund InfiniteClause `catM` return ","
     CommaSurrounded a -> return "," `catM` generateArg a `catM` return ","
     Silence _ -> return ""
-    Adjectives fVerb -> adjectives fVerb
 
 argOrder arg = case arg of
   PPAdjunct {} -> 2

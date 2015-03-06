@@ -48,12 +48,12 @@ finiteClause agr withSemSubject v =
 copulaHead kind agr copulaType rel tenseRequired var =
   [mite $ CopulaHead (CopulaData kind agr var False copulaType rel), mite $ TenseHead tenseRequired (makeV var "cop" "")]
 
-copulaSem cd = if (copBound cd) then [] else
-                          [semV (copula cd) P.Arg1 (copSubj cd),
-                           semT (copula cd) (copType cd),
-                           semV (copCP cd) P.Content (copula cd),
-                           semT (copCP cd) "situation",
-                           semV (copula cd) (copAttr cd) (copVar cd)]
+copulaSem cd = if (copBound cd) then [] else common ++ specific where
+  common = [semV (copula cd) P.Arg1 (copSubj cd), semT (copula cd) (copType cd), semV (copCP cd) P.Content (copula cd), semT (copCP cd) "situation"]
+  ph = makeV (copVar cd) "cop_ph" ""
+  specific = 
+    if copKind cd == NPCopula then [semV (copula cd) (copAttr cd) (copVar cd)]
+    else [semV (copula cd) P.Arg2 ph, semV ph (copAttr cd) (copVar cd), semT ph "placeholder", semV ph P.Target (copSubj cd)]
 
 clause v = [mite $ Verb (v ""), semV (v "cp") P.Content (v ""), semT (v "cp") "situation", mite $ Clause (v "cp"), mite $ ConjEmphasizeable (v "")]
 

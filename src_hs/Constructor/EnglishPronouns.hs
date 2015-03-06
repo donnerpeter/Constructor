@@ -31,3 +31,13 @@ whWord nom frame =
     else if nom then "who" else "whom"
   else if isJust $ usage P.Questioned frame >>= usage P.Relative then "that"
   else "what"
+
+genitivePronoun typ elided = case typ of
+  "ME" -> "my"
+  "HE" -> "his"
+  "THEY" -> "their"
+  "WE" -> "our"
+  "SHE" -> "her"
+  "YOU" -> if elided then "yours" else "your"
+  "wh" -> "whose"
+  _ -> typ

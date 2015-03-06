@@ -283,17 +283,12 @@ shouldGenerateDeterminer noun det state asSpecifier = let
 determiner frame det nbar = do
   state <- get
   let genitiveSpecifier det =
-        let pronoun s = do frameGenerated det; return s in
-        case getType $ resolve det of
-          Just "ME" -> pronoun "my"
-          Just "HE" -> pronoun "his"
-          Just "THEY" -> pronoun "their"
-          Just "WE" -> pronoun "our"
-          Just "SHE" -> pronoun "her"
-          Just "YOU" -> pronoun $ if isElided frame then "yours" else "your"
-          Just "wh" -> pronoun "whose"
+        let pronoun s = do frameGenerated det; return s
+            resolved = resolve det
+        in case getType resolved of
           Just s ->
-            if usePronoun state det then pronoun $ case sValue P.RusGender det of
+            if isPronoun resolved then pronoun $ genitivePronoun s (isElided frame)
+            else if usePronoun state det then pronoun $ case sValue P.RusGender det of
                Just "Masc" -> "his"
                Just "Fem" -> "her"
                Just "Neu" -> "its"

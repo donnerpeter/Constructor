@@ -64,7 +64,7 @@ xorNonEmpty groups = if length nonEmpty <= 1 then concat nonEmpty else xor nonEm
 xor :: [[Mite]] -> [Mite]
 xor _miteGroups = let
       sets = Set.fromList $ map Set.fromList _miteGroups
-      nodups = if Set.size sets /= length _miteGroups then error "duplicate groups in xor" else _miteGroups
+      nodups = if Set.size sets /= length _miteGroups then error $ "duplicate groups in xor " ++ show _miteGroups else _miteGroups
       miteGroups = diversify nodups
       cxtGroups = map (map xorKey) miteGroups
       allCxts = LS.removeDups $ concat cxtGroups

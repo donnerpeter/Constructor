@@ -76,11 +76,11 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
         handleAdj :: Variable -> ArgKind -> Agr -> P.VarProperty -> Mite -> (Agr -> Construction) -> [[Mite]]
         handleAdj mem1 caze1 agr1 attr m4 result = let
           adjResult mem2 agr2 m4 = let
-            adjAgrVariants = withAgr (Agr Nothing (Just Pl) Nothing)
-            withAgr agr = [[mite $ result agr]]
+            adjAgrVariants = [[mite $ result (Agr Nothing (Just Pl) Nothing)]]
+            unifiedAgrVariants = [[mite $ result (commonAgr agr1 agr2)]]
             allVariants = xorNonEmpty $
-              if seqConj sd == "a" then withAgr (commonAgr agr1 agr2)
-              else if agree agr1 agr2 then adjAgrVariants ++ withAgr (commonAgr agr1 agr2)
+              if seqConj sd == "a" then unifiedAgrVariants
+              else if agree agr1 agr2 && unifiedAgrVariants /= adjAgrVariants then adjAgrVariants ++ unifiedAgrVariants
               else adjAgrVariants
             in withNegation sd env m1 m2 m4 $ \base -> fullConj mem1 mem2 ++ withBase base allVariants
           in case cxt m4 of

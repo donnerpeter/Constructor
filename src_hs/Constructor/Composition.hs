@@ -223,10 +223,10 @@ interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
         _ -> []
 
       -- todo nom + nomHead/copulaHead duplication
-      (Argument Nom v1, CopulaHead cd) ->
-        right $ completeCopula cd v1 ++ [mite $ Handicap (copula cd)] ++ (if whContext then [] else [mite $ Clause (copCP cd), mite $ Verb (copula cd)])
-      (CopulaHead cd, Argument Nom v2) | copKind cd /= AdjCopula && (copKind cd /= NPCopula || whContext) ->
-        left $ completeCopula cd v2 ++ [mite $ Handicap (copula cd)] ++ (if whContext then [] else [mite $ Clause (copCP cd), mite $ Verb (copula cd)])
+      (Argument Nom v1, _c) | Just (cd, rest) <- asCopula _c ->
+        right $ completeCopula cd v1 ++ rest ++ [mite $ Handicap (copula cd)] ++ (if whContext then [] else [mite $ Clause (copCP cd), mite $ Verb (copula cd)])
+      (_c, Argument Nom v2) | Just (cd, rest) <- asCopula _c, copKind cd /= AdjCopula && (copKind cd /= NPCopula || whContext) ->
+        left $ completeCopula cd v2 ++ rest ++ [mite $ Handicap (copula cd)] ++ (if whContext then [] else [mite $ Clause (copCP cd), mite $ Verb (copula cd)])
 
       (Verb verb, VerbalModifier attr False advP) -> mergeLeft $ base12 [semV verb attr advP] ++ existentials leftPairs rightPairs
       (VerbalModifier attr needComma advP, _) | (cxt -> Verb verb):rest <- asVerb m2 -> mergeRight $
@@ -257,8 +257,8 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
         Clause cp -> mergeLeft $ withBase [m1,m2,m3] [mite $ Unify v2 wh, mite $ RelativeClause agr cp, semV cp P.Questioned wh]
         _ -> []
       -- todo relativizer + nomHead/copulaHead duplication
-      (Relativizer wh, CopulaHead cd) | copKind cd /= NPCopula ->
-        left $ [mite $ Unify (copSubj cd) wh, mite $ RelativeClause (copAgr cd) (copCP cd), semV (copCP cd) P.Questioned wh] ++ copulaSem cd
+      (Relativizer wh, _c) | Just (cd, rest) <- asCopula _c, copKind cd /= NPCopula ->
+        left $ [mite $ Unify (copSubj cd) wh, mite $ RelativeClause (copAgr cd) (copCP cd), semV (copCP cd) P.Questioned wh] ++ rest ++ copulaSem cd
       (Relativizer wh, ArgHead Acc attr v2) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
         Clause cp -> mergeLeft $ withBase [m1,m2,m3] [semV v2 attr wh, mite $ RelativeClause empty cp, semV cp P.Questioned wh]
         _ -> []

@@ -7,6 +7,7 @@ import Constructor.Variable
 import Constructor.Util
 import Constructor.LexiconUtils
 import Constructor.InteractionEnv
+import Constructor.Coerce
 import qualified Constructor.SemanticProperties as P
 
 seqRight env = {-traceIt "seqRight" $ -}result where
@@ -130,9 +131,9 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
                    _ -> []
                  result = fullConj mem1 mem2 ++ withBase [m1, m2] [mite $ Clause seqV] ++ unifications
                  in [result]
-          (Clause mem1, SeqRight (CopulaHead cd)) | copBound cd -> let
+          (Clause mem1, SeqRight c) | Just (cd, rest) <- asCopula c,  copBound cd -> let
                  unifications = xorNonEmpty $ unifySubjects (leftCompatible env m1) (copAgr cd) (copSubj cd)
-                 result = fullConj mem1 (copCP cd) ++ withBase [m1, m2, m3] [mite $ Clause seqV, mite $ Handicap seqV] ++ copulaSem cd ++ unifications
+                 result = fullConj mem1 (copCP cd) ++ withBase [m1, m2, m3] [mite $ Clause seqV, mite $ Handicap seqV] ++ copulaSem cd ++ unifications ++ rest
                  in [result]
           (CopulaHead (CopulaData { copKind=kind, copAgr=agr1, copAttr=attr, copVar=mem1, copBound=False, copType=typ }), SeqRight (CopulaHead cd2)) |
                agr2 <- copAgr cd2,

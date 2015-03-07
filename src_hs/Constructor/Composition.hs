@@ -40,10 +40,12 @@ interactNodes env = {-traceIt ("    interact") $ -}whResults ++ noWh where
       Wh agr whVar -> rightCombined env >>= \clauseMite -> case cxt clauseMite of
         Clause cp -> fillGap cp whVar clauseMite agr
         ModalityInfinitive _ cp -> fillGap cp whVar clauseMite agr
-        CopulaHead cd | copKind cd /= NPCopula -> fillGap (copCP cd) whVar clauseMite (copAgr cd)
-        Argument Nom subj -> leftCompatible env whMite >>= \copulaMite -> case cxt copulaMite of
-          CopulaHead cd ->
-            mergeLeft (completeCopula cd subj ++ whLinks [whMite, clauseMite, copulaMite] (copCP cd) whVar (copAgr cd))
+        c | Just (cd, rest) <- asCopula c, copKind cd /= NPCopula -> let
+          infos = fillGap (copCP cd) whVar clauseMite (copAgr cd)
+          in [MergeInfo (mites ++ rest) side | MergeInfo mites side <- infos]
+        Argument Nom subj -> leftCompatible env whMite >>= \copulaMite -> case asCopula $ cxt copulaMite of
+          Just (cd, rest) ->
+            mergeLeft (completeCopula cd subj ++ rest ++ whLinks [whMite, clauseMite, copulaMite] (copCP cd) whVar (copAgr cd))
           _ -> []
         _ -> []
       _ -> []
@@ -82,6 +84,21 @@ asVerb m = case cxt m of
   Verb {} -> [m]
   CopulaHead cd -> [mite $ Verb (copula cd), mite $ CopulaHead (cd { copBound = True })] ++ copulaSem cd
   _ -> []
+
+asTenseHead m = case cxt m of
+  TenseHead {} -> [m]
+  Argument Instr v -> let
+    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead NPCopula empty "copula" P.Arg2 Obligatory v
+    in [tenseHead, ch, semS (copula cd) P.ProfessionCopula "true", mite $ ConjEmphasizeable (copula cd)]
+  Adj v attr Instr agr -> reverse $ copulaHead AdjCopula agr "copula" attr Obligatory v
+  _ -> []
+
+asCopula = \case
+  CopulaHead cd -> Just (cd, [])
+  Argument Instr v -> let
+    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead NPCopula empty "copula" P.Arg2 Obligatory v
+    in Just (cd, [tenseHead, semS (copula cd) P.ProfessionCopula "true", mite $ ConjEmphasizeable (copula cd)])
+  _ -> Nothing
 
 punctuationAware env (m1, m2) =
     let (left, right, base12) = mergeInfoHelpers m1 m2
@@ -319,8 +336,8 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (Verb v, Word _ "бы") -> left [semS v P.Irrealis "true"]
       (ModifierAdverb v1, AdverbModifiable v2) -> right [mite $ Unify v1 v2]
 
-      (TenseHead _ v0, Tense v1) -> left [mite $ Unify v0 v1]
-      (Tense v0, TenseHead _ v1) -> right [mite $ Unify v0 v1]
+      (_, Tense v1) | (cxt -> TenseHead _ v0):rest <- asTenseHead m1 -> left $  [mite $ Unify v0 v1] ++ rest
+      (Tense v0, _) | (cxt -> TenseHead _ v1):rest <- asTenseHead m2 -> right $ [mite $ Unify v0 v1] ++ rest
 
       (WhAsserter verb, Wh _ wh) -> right [mite $ ExistentialWh wh verb]
 

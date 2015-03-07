@@ -18,7 +18,7 @@ pronoun caze agr typ v = synNoun caze agr v ++ [semT (v "") typ] ++ rusGender ag
 synNoun caze agr v = synNounPhrase caze agr v ++ argOrCopula caze agr v
 synNounPhrase caze agr v = [mite $ AdjHead (v "") caze agr, mite $ NounPhrase (v ""), mite $ Negateable (v "")]
 
-argOrCopula caze agr v = if caze == Nom || caze == Instr then xor [argRole, npCopulaHead] else argRole where
+argOrCopula caze agr v = if caze == Nom then xor [argRole, npCopulaHead] else argRole where
   argRole = [mite $ Argument caze (v "")]
   npCopulaHead = copulaHead NPCopula agr "copula" P.Arg2 (if caze == Instr then Obligatory else Optional) (v "") ++
     (if caze == Instr then [semS (v "cop") P.ProfessionCopula "true", mite $ ConjEmphasizeable (v "cop")] else [])
@@ -78,7 +78,7 @@ adj caze agr attr value v = adjLike caze agr attr value (Adj (v "") attr caze ag
 possessive caze agr value v = adjLike caze agr P.Arg1 value (Possessive caze agr (v "")) v
 
 adjLike caze agr attr value adjLikeCxt v =
-  [semT v0 value, mite $ AdverbModifiable v0] ++ (if caze == Nom || caze == Instr then xor [adjVariant, adjCopulaHead, nounVariant] else xor [adjVariant, nounVariant])
+  [semT v0 value, mite $ AdverbModifiable v0] ++ (if caze == Nom then xor [adjVariant, adjCopulaHead, nounVariant] else xor [adjVariant, nounVariant])
   where
   v0 = v ""
   adjVariant = [mite $ Negateable v0, mite adjLikeCxt]

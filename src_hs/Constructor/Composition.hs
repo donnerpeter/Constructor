@@ -8,6 +8,7 @@ import Constructor.Tree
 import Constructor.Util
 import Constructor.LexiconUtils
 import Constructor.InteractionEnv
+import Constructor.Coerce
 import Constructor.Ellipsis
 import qualified Constructor.Seq as Seq
 import qualified Constructor.LinkedSet as LS
@@ -79,26 +80,6 @@ ellipsisAnchor (VerbalModifier _ _ v) = Just v
 ellipsisAnchor (Argument _ v) = Just v
 ellipsisAnchor (SemArgument _ _ v) = Just v
 ellipsisAnchor _ = Nothing
-
-asVerb m = case cxt m of
-  Verb {} -> [m]
-  CopulaHead cd -> [mite $ Verb (copula cd), mite $ CopulaHead (cd { copBound = True })] ++ copulaSem cd
-  _ -> []
-
-asTenseHead m = case cxt m of
-  TenseHead {} -> [m]
-  Argument Instr v -> let
-    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead NPCopula empty "copula" P.Arg2 Obligatory v
-    in [tenseHead, ch, semS (copula cd) P.ProfessionCopula "true", mite $ ConjEmphasizeable (copula cd)]
-  Adj v attr Instr agr -> reverse $ copulaHead AdjCopula agr "copula" attr Obligatory v
-  _ -> []
-
-asCopula = \case
-  CopulaHead cd -> Just (cd, [])
-  Argument Instr v -> let
-    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead NPCopula empty "copula" P.Arg2 Obligatory v
-    in Just (cd, [tenseHead, semS (copula cd) P.ProfessionCopula "true", mite $ ConjEmphasizeable (copula cd)])
-  _ -> Nothing
 
 punctuationAware env (m1, m2) =
     let (left, right, base12) = mergeInfoHelpers m1 m2

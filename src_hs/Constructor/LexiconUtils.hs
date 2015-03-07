@@ -20,8 +20,7 @@ synNounPhrase caze agr v = [mite $ AdjHead (v "") caze agr, mite $ NounPhrase (v
 
 argOrCopula caze agr v = if caze == Nom then xor [argRole, npCopulaHead] else argRole where
   argRole = [mite $ Argument caze (v "")]
-  npCopulaHead = copulaHead NPCopula agr "copula" P.Arg2 (if caze == Instr then Obligatory else Optional) (v "") ++
-    (if caze == Instr then [semS (v "cop") P.ProfessionCopula "true", mite $ ConjEmphasizeable (v "cop")] else [])
+  npCopulaHead = copulaHead NPCopula agr "copula" P.Arg2 Optional (v "")
 
 rusGender agr v = case A.gender agr of
   Just g -> [semS v P.RusGender (show g)]

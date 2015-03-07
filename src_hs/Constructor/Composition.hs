@@ -78,6 +78,11 @@ ellipsisAnchor (Argument _ v) = Just v
 ellipsisAnchor (SemArgument _ _ v) = Just v
 ellipsisAnchor _ = Nothing
 
+asVerb m = case cxt m of
+  Verb {} -> [m]
+  CopulaHead cd -> [mite $ Verb (copula cd), mite $ CopulaHead (cd { copBound = True })] ++ copulaSem cd
+  _ -> []
+
 punctuationAware env (m1, m2) =
     let (left, right, base12) = mergeInfoHelpers m1 m2
         compatibleChildren side = select side (leftCompatible env m1) (rightCompatible env m2)
@@ -102,13 +107,8 @@ punctuationAware env (m1, m2) =
         AdjHead _ _ agr1 | agree agr1 agr2 -> mergeLeft $
           withBase [m1,m2,m3] [semV noun P.Relative cp] ++ liftUnclosedCompatible RightSide
         _ -> []
-      (CommaSurrounded _ closed (VerbalModifier attr True advP), Verb verb) -> mergeRight $
-        base12 [semV verb attr advP]
-        ++ closeUnclosed LeftSide (if closed then Satisfied else Unsatisfied)
-        ++ liftUnclosedCompatible LeftSide
-      --todo verbalModifier + copulaHead
-      (CommaSurrounded _ closed (VerbalModifier attr True advP), CopulaHead cd) -> mergeRight $
-        base12 ([semV (copula cd) attr advP, mite $ CopulaHead (cd { copBound = True })] ++ copulaSem cd)
+      (CommaSurrounded _ closed (VerbalModifier attr True advP), _) | (cxt -> Verb verb):rest <- asVerb m2 -> mergeRight $
+        base12 ([semV verb attr advP] ++ rest)
         ++ closeUnclosed LeftSide (if closed then Satisfied else Unsatisfied)
         ++ liftUnclosedCompatible LeftSide
       (Verb verb, CommaSurrounded True _ (VerbalModifier attr True advP)) ->
@@ -231,13 +231,8 @@ interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
         left $ completeCopula cd v2 ++ [mite $ Handicap (copula cd)] ++ (if whContext then [] else [mite $ Clause (copCP cd), mite $ Verb (copula cd)])
 
       (Verb verb, VerbalModifier attr False advP) -> mergeLeft $ base12 [semV verb attr advP] ++ existentials leftPairs rightPairs
-      (VerbalModifier attr needComma advP, Verb verb) -> mergeRight $
-        base12 ([semV verb attr advP]
-        ++ (if needComma && not whContext then [semS advP P.Isolation "comma", mite $ Unclosed LeftSide [advP]] else []))
-        ++ existentials rightPairs leftPairs
-      --todo remove verbalmod+(copula|verb) duplication
-      (VerbalModifier attr needComma advP, CopulaHead cd) -> mergeRight $
-        base12 ([semV (copula cd) attr advP, mite $ CopulaHead (cd { copBound = True })] ++ copulaSem cd
+      (VerbalModifier attr needComma advP, _) | (cxt -> Verb verb):rest <- asVerb m2 -> mergeRight $
+        base12 ([semV verb attr advP] ++ rest
         ++ (if needComma && not whContext then [semS advP P.Isolation "comma", mite $ Unclosed LeftSide [advP]] else []))
         ++ existentials rightPairs leftPairs
 
@@ -272,10 +267,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
 
       (ConjEmphasis attr _, ConjEmphasizeable head) -> right [semS head attr "true"]
 
-      (Adverb v, Verb head) -> right [mite $ Unify v head]
-      --todo remove adverb+(copula|verb) duplication
-      (Adverb head, CopulaHead cd) -> right $ [mite $ Unify head (copula cd), mite $ CopulaHead (cd { copBound = True })] ++ copulaSem cd
-
+      (Adverb v, _) | (cxt -> Verb head):rest <- asVerb m2 -> right $ [mite $ Unify v head] ++ rest
       (Verb head, Adverb v) -> left [mite $ Unify v head]
 
       (NounPhrase head, NounAdjunct attr False var) -> left [semV head attr var]

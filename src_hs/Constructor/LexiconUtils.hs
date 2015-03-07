@@ -15,12 +15,8 @@ nounSg caze gender typ v = pronoun caze (A.Agr (Just gender) (Just A.Sg) (Just 3
 nounPl caze typ v = pronoun caze (A.Agr Nothing (Just A.Pl) (Just 3)) typ v
 pronoun caze agr typ v = synNoun caze agr v ++ [semT (v "") typ] ++ rusGender agr (v "")
 
-synNoun caze agr v = synNounPhrase caze agr v ++ argOrCopula caze agr v
+synNoun caze agr v = synNounPhrase caze agr v ++ [mite $ Argument caze (v "")]
 synNounPhrase caze agr v = [mite $ AdjHead (v "") caze agr, mite $ NounPhrase (v ""), mite $ Negateable (v "")]
-
-argOrCopula caze agr v = if caze == Nom then xor [argRole, npCopulaHead] else argRole where
-  argRole = [mite $ Argument caze (v "")]
-  npCopulaHead = copulaHead NPCopula agr "copula" P.Arg2 Optional (v "")
 
 rusGender agr v = case A.gender agr of
   Just g -> [semS v P.RusGender (show g)]
@@ -68,7 +64,7 @@ semArg argType relation childVar@(Variable index s) = let headVar = Variable ind
   [mite $ SemArgument argType headVar childVar, semV headVar relation childVar]
 
 whWord agr v = [mite $ Wh agr (v ""), semT (v "") "wh", mite $ WhLeaf (v "")]
-caseWhWord kind agr v = whWord agr v ++ [mite $ QuestionVariants (v "") kind, mite $ AdjHead (v "") kind agr] ++ argOrCopula kind agr v
+caseWhWord kind agr v = whWord agr v ++ [mite $ QuestionVariants (v "") kind, mite $ AdjHead (v "") kind agr, mite $ Argument kind (v "")]
 negatedWh v = [semT (v "") "wh", semS (v "") P.Negated "true", mite $ Negated (v ""), mite $ NegativePronoun (v "")]
 animate v = [semS (v "") P.Animate "true"]
 

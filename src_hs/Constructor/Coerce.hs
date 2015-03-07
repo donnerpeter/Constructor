@@ -10,12 +10,16 @@ import qualified Constructor.SemanticProperties as P
 asVerb :: Mite -> [Mite]
 asVerb m = case cxt m of
   Verb {} -> [m]
-  CopulaHead cd -> [mite $ Verb (copula cd), mite $ CopulaHead (cd { copBound = True })] ++ copulaSem cd
-  _ -> []
+  _c -> case asCopula _c of
+    Just (cd, rest) -> [mite $ Verb (copula cd), mite $ CopulaHead (cd { copBound = True })] ++ copulaSem cd ++ rest
+    _ -> []
 
 asTenseHead :: Mite -> [Mite]
 asTenseHead m = case cxt m of
   TenseHead {} -> [m]
+  Argument Nom v -> let
+    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead NPCopula empty "copula" P.Arg2 Optional v
+    in [tenseHead, ch]
   Argument Instr v -> let
     [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead NPCopula empty "copula" P.Arg2 Obligatory v
     in [tenseHead, ch] ++ instrCopula cd
@@ -27,6 +31,9 @@ instrCopula cd = [semS (copula cd) P.ProfessionCopula "true", mite $ ConjEmphasi
 asCopula :: Construction -> Maybe (CopulaData, [Mite])
 asCopula = \case
   CopulaHead cd -> Just (cd, [])
+  Argument Nom v -> let
+    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead NPCopula empty "copula" P.Arg2 Optional v
+    in Just (cd, [tenseHead])
   Argument Instr v -> let
     [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead NPCopula empty "copula" P.Arg2 Obligatory v
     in Just (cd, [tenseHead] ++ instrCopula cd)

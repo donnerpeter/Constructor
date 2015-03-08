@@ -20,10 +20,10 @@ asTenseHead :: Mite -> [Mite]
 asTenseHead m = case cxt m of
   TenseHead {} -> [m]
   Argument Nom v -> let
-    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead NPCopula empty "copula" P.Arg2 Optional v
+    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead NomNPCopula empty "copula" P.Arg2 Optional v
     in [tenseHead, ch]
   Argument Instr v -> let
-    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead NPCopula empty "copula" P.Arg2 Obligatory v
+    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead InstrNPCopula empty "copula" P.Arg2 Obligatory v
     in [tenseHead, ch] ++ instrCopula cd
   Adj v attr Instr agr -> reverse $ copulaHead AdjCopula agr "copula" attr Obligatory v
   Adj v attr Nom agr -> reverse $ copulaHead AdjCopula agr "copula" attr Optional v
@@ -38,10 +38,10 @@ asCopula = \case
     [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead AdjCopula agr "copula" attr Optional v
     in Just (cd, [tenseHead])
   Argument Nom v -> let
-    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead NPCopula empty "copula" P.Arg2 Optional v
+    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead NomNPCopula empty "copula" P.Arg2 Optional v
     in Just (cd, [tenseHead])
   Argument Instr v -> let
-    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead NPCopula empty "copula" P.Arg2 Obligatory v
+    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead InstrNPCopula empty "copula" P.Arg2 Obligatory v
     in Just (cd, [tenseHead] ++ instrCopula cd)
   _ -> Nothing
 

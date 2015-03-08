@@ -3,7 +3,7 @@ import Constructor.Agreement
 import Constructor.Variable
 import Constructor.SemanticProperties
 
-data CopulaKind = NPCopula | PPCopula | AdjCopula deriving (Show, Eq, Ord)
+data CopulaKind = NomNPCopula | InstrNPCopula | PPCopula | AdjCopula deriving (Show, Eq, Ord)
 
 data CopulaData = CopulaData { copKind :: CopulaKind, copAgr :: Agr, copVar :: Variable, copBound :: Bool, copType :: String, copAttr :: VarProperty } deriving (Eq, Ord)
 instance Show CopulaData where

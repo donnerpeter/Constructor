@@ -74,20 +74,15 @@ withNegation sd env m1 m2 m4 f = let
 normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
       leftCombined env >>= \m1 -> let
         fullConj mem1 mem2 = [semV seqV P.Member1 mem1, semV seqV P.Member2 mem2, mite $ Conjunction $ sd {seqHasLeft=True}]
-        handleAdj :: Variable -> ArgKind -> Agr -> P.VarProperty -> Mite -> (Agr -> Construction) -> [[Mite]]
-        handleAdj mem1 caze1 agr1 attr m4 result = let
-          adjResult mem2 agr2 m4 = let
-            adjAgrVariants = [[mite $ result (Agr Nothing (Just Pl) Nothing)]]
-            unifiedAgrVariants = [[mite $ result (commonAgr agr1 agr2)]]
-            allVariants = xorNonEmpty $
-              if seqConj sd == "a" then unifiedAgrVariants
-              else if agree agr1 agr2 && unifiedAgrVariants /= adjAgrVariants then adjAgrVariants ++ unifiedAgrVariants
-              else adjAgrVariants
-            in withNegation sd env m1 m2 m4 $ \base -> fullConj mem1 mem2 ++ withBase base allVariants
-          in case cxt m4 of
-            SeqRight (Adj mem2 _ caze2 agr2) | caze1 == caze2 && adjAgree agr1 agr2 -> [adjResult mem2 agr2 m4]
-            SeqRight (Possessive caze2 agr2 mem2) | caze1 == caze2 && adjAgree agr1 agr2 -> [adjResult mem2 agr2 m4]
-            _ -> []
+        handleAdj :: Variable -> Variable -> ArgKind -> Agr -> Agr -> P.VarProperty -> Mite -> (Agr -> Construction) -> [[Mite]]
+        handleAdj mem1 mem2 caze1 agr1 agr2 attr m4 result = let
+          adjAgrVariants = [[mite $ result (Agr Nothing (Just Pl) Nothing)]]
+          unifiedAgrVariants = [[mite $ result (commonAgr agr1 agr2)]]
+          allVariants = xorNonEmpty $
+            if seqConj sd == "a" then unifiedAgrVariants
+            else if agree agr1 agr2 && unifiedAgrVariants /= adjAgrVariants then adjAgrVariants ++ unifiedAgrVariants
+            else adjAgrVariants
+          in [withNegation sd env m1 m2 m4 $ \base -> fullConj mem1 mem2 ++ withBase base allVariants]
         argUnifications = let
            unifications = concat [unifyMissingArgument mite1 mite2 | mite1 <- leftCompatible env m1,
                                                                      mite2 <- rightCompatible env m2]
@@ -117,8 +112,10 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
             [fullConj mem1 mem2 ++ withBase [m1,m2, m3] [mite $ VerbalModifier attr comma seqV] ++ (baseMites m3 >>= distinguished)
              ++ argUnifications]
 
-          (Possessive caze1 agr1 child, _) -> handleAdj child caze1 agr1 P.Arg1 m3 $ \newAgr -> Possessive caze1 newAgr seqV
-          (Adj child attr caze1 agr1, _) -> handleAdj child caze1 agr1 attr m3 $ \newAgr -> Adj seqV attr caze1 newAgr
+          (Possessive caze1 agr1 mem1, SeqRight (Possessive caze2 agr2 mem2)) | caze1 == caze2 && adjAgree agr1 agr2 ->
+            handleAdj mem1 mem2 caze1 agr1 agr2 P.Arg1 m3 $ \newAgr -> Possessive caze1 newAgr seqV
+          (Adj mem1 attr caze1 agr1, SeqRight (Adj mem2 _ caze2 agr2)) | caze1 == caze2 && adjAgree agr1 agr2 ->
+            handleAdj mem1 mem2 caze1 agr1 agr2 attr m3 $ \newAgr -> Adj seqV attr caze1 newAgr
 
           (Complement mem1, SeqRight (Complement mem2)) ->
             [fullConj mem1 mem2 ++ withBase [m1,m2,m3] [mite $ Complement seqV, semS mem2 P.Distinguished "true"]]
@@ -135,17 +132,16 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
                  unifications = xorNonEmpty $ unifySubjects (leftCompatible env m1) (copAgr cd) (copSubj cd)
                  result = fullConj mem1 (copCP cd) ++ withBase [m1, m2, m3] [mite $ Clause seqV, mite $ Handicap seqV] ++ copulaSem cd ++ unifications ++ rest
                  in [result]
-          (CopulaHead (CopulaData { copKind=kind, copAgr=agr1, copAttr=attr, copVar=mem1, copBound=False, copType=typ }), SeqRight (CopulaHead cd2)) |
+          (_c1, SeqRight _c2) |
+               Just (CopulaData { copKind=kind, copAgr=agr1, copAttr=attr, copVar=mem1, copBound=False, copType=typ }, rest1) <- asCopula _c1,
+               Just (cd2, rest2) <- asCopula _c2,
                agr2 <- copAgr cd2,
                not (copBound cd2) &&
                kind == copKind cd2 &&
                adjAgree agr1 agr2 &&
                typ == copType cd2 &&
-               attr == copAttr cd2 -> leftCompatible env m1 >>= \m5 -> case cxt m5 of
-                 TenseHead {} -> rightCompatible env m3 >>= \m6 -> case cxt m6 of
-                   SeqRight (TenseHead {}) -> [fullConj mem1 (copVar cd2) ++ withBase [m1,m2,m3,m5,m6] (copulaHead kind (commonAgr agr1 agr2) typ attr Optional seqV)]
-                   _ -> []
-                 _ -> []
+               attr == copAttr cd2 ->
+                 [fullConj mem1 (copVar cd2) ++ withBase [m1,m2,m3] (copulaHead kind (commonAgr agr1 agr2) typ attr Optional seqV) ++ rest1 ++ rest2]
           _ -> []
 
 unifySubjects leftMites agr rightSubj = map unifyNomHead leftMites where

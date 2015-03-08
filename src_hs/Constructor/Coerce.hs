@@ -4,6 +4,7 @@ import Constructor.Agreement
 import Constructor.Constructions
 import Constructor.Mite
 import Constructor.LexiconUtils
+import Constructor.Util
 import Constructor.CopulaData
 import qualified Constructor.SemanticProperties as P
 
@@ -24,6 +25,7 @@ asTenseHead m = case cxt m of
     [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead NPCopula empty "copula" P.Arg2 Obligatory v
     in [tenseHead, ch] ++ instrCopula cd
   Adj v attr Instr agr -> reverse $ copulaHead AdjCopula agr "copula" attr Obligatory v
+  Adj v attr Nom agr -> reverse $ copulaHead AdjCopula agr "copula" attr Optional v
   _ -> []
 
 instrCopula cd = [semS (copula cd) P.ProfessionCopula "true", mite $ ConjEmphasizeable (copula cd)]
@@ -31,6 +33,9 @@ instrCopula cd = [semS (copula cd) P.ProfessionCopula "true", mite $ ConjEmphasi
 asCopula :: Construction -> Maybe (CopulaData, [Mite])
 asCopula = \case
   CopulaHead cd -> Just (cd, [])
+  Adj v attr Nom agr -> let
+    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead AdjCopula agr "copula" attr Optional v
+    in Just (cd, [tenseHead])
   Argument Nom v -> let
     [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead NPCopula empty "copula" P.Arg2 Optional v
     in Just (cd, [tenseHead])

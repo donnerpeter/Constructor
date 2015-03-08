@@ -45,7 +45,7 @@ interactNodes env = {-traceIt ("    interact") $ -}whResults ++ noWh where
           infos = fillGap (copCP cd) whVar clauseMite (copAgr cd)
           in [MergeInfo (mites ++ rest) side | MergeInfo mites side <- infos]
         Argument Nom subj -> leftCompatible env whMite >>= \copulaMite -> case asCopula $ cxt copulaMite of
-          Just (cd, rest) ->
+          Just (cd, rest) | copKind cd /= AdjCopula ->
             mergeLeft (completeCopula cd subj ++ rest ++ whLinks [whMite, clauseMite, copulaMite] (copCP cd) whVar (copAgr cd))
           _ -> []
         _ -> []

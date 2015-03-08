@@ -1,10 +1,11 @@
-module Constructor.Coerce (asVerb, asTenseHead, asCopula) where
+module Constructor.Coerce (asVerb, asTenseHead, asCopula, asNoun) where
 
 import Constructor.Agreement
 import Constructor.Constructions
 import Constructor.Mite
 import Constructor.LexiconUtils
 import Constructor.Util
+import Constructor.Variable
 import Constructor.CopulaData
 import qualified Constructor.SemanticProperties as P
 
@@ -42,4 +43,17 @@ asCopula = \case
   Argument Instr v -> let
     [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead NPCopula empty "copula" P.Arg2 Obligatory v
     in Just (cd, [tenseHead] ++ instrCopula cd)
+  _ -> Nothing
+
+asNoun :: Construction -> Maybe (Construction, [Mite])
+asNoun c = case c of
+  Argument {} -> Just (c, [])
+  Adj v0 attr caze agr -> let
+    v = makeV v0 "noun"
+    noun = v ""
+    in Just (Argument caze noun, [semS noun P.Elided "true", mite $ Handicap noun, semV noun attr v0] ++ rusNumber agr noun)
+  Possessive caze agr v0 -> let
+    v = makeV v0 "noun"
+    noun = v ""
+    in Just (Argument caze noun, [semS noun P.Elided "true", mite $ Handicap noun, semV noun P.Arg1 v0] ++ rusNumber agr noun)
   _ -> Nothing

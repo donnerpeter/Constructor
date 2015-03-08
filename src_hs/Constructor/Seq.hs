@@ -103,9 +103,9 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
         isPrepHead mite = case cxt mite of PrepHead {} -> True; _ -> False
         in rightCompatible env m2 >>= \m3 -> case (cxt m1, cxt m3) of
 
-          (Argument kind mem1, SeqRight (Argument kind2 mem2)) | kind == kind2 ->
+          (Argument kind mem1, SeqRight c) | Just (Argument kind2 mem2, rest) <- asNoun c, kind == kind2 ->
            withNegation sd env m1 m2 m3 $ \base ->
-            [fullConj mem1 mem2 ++ withBase base [mite $ Argument kind seqV] ++ combineThyself ++ (baseMites m3 >>= distinguished)
+            [fullConj mem1 mem2 ++ withBase base [mite $ Argument kind seqV] ++ combineThyself ++ (baseMites m3 >>= distinguished) ++ rest
              ++ adjHeadCompanions mem1 kind ++ argUnifications]
 
           (VerbalModifier attr comma mem1, SeqRight (VerbalModifier attr2 comma2 mem2)) | attr2 == attr && comma2 == comma ->

@@ -69,17 +69,19 @@ liftUnclosed side childMites = childMites >>= \m -> case cxt m of
 ellipsisLeftVariants env = if null result then [] else mergeRight $ LS.removeDups result where
   result = rightCombined env >>= \m2 -> case cxt m2 of
     Ellipsis v rightCxt@(Just e2) -> leftCombined env >>= \m1 -> case ellipsisAnchor (cxt m1) of
-      Just anchor -> let
-        elided = suggestEllipsis env v (cxt m1) e2
+      Just (anchorCxt, anchorVar, rest) -> let
+        elided = suggestEllipsis env v anchorCxt e2
         in if null elided then []
-           else elided ++ withBase [m1,m2] [semV v P.EllipsisAnchor1 anchor, mite $ Clause v] ++ liftUnclosed LeftSide (leftCompatible env m1)
+           else elided ++ withBase [m1,m2] [semV v P.EllipsisAnchor1 anchorVar, mite $ Clause v] ++ liftUnclosed LeftSide (leftCompatible env m1) ++ rest
       _ -> []
     _ -> []
 
-ellipsisAnchor (VerbalModifier _ _ v) = Just v
-ellipsisAnchor (Argument _ v) = Just v
-ellipsisAnchor (SemArgument _ _ v) = Just v
-ellipsisAnchor _ = Nothing
+ellipsisAnchor :: Construction -> Maybe (Construction, Variable, [Mite])
+ellipsisAnchor c = case c of
+  VerbalModifier _ _ v -> Just (c, v, [])
+  SemArgument _ _ v -> Just (c, v, [])
+  _ | Just (arg@(Argument _ v), rest) <- asNoun c -> Just (arg, v, rest)
+  _ -> Nothing
 
 punctuationAware env (m1, m2) =
     let (left, right, base12) = mergeInfoHelpers m1 m2
@@ -160,8 +162,8 @@ punctuationAware env (m1, m2) =
         mergeLeft $ base12 [mite $ Elaboration cp]
         ++ closeUnclosed RightSide Satisfied ++ liftUnclosedCompatible RightSide
 
-      (Ellipsis v Nothing, rightCxt) | Just anchor <- ellipsisAnchor rightCxt ->
-        left $ [mite $ Ellipsis v (Just rightCxt), semV v P.EllipsisAnchor2 anchor]
+      (Ellipsis v Nothing, rightCxt) | Just (_, anchorVar, rest) <- ellipsisAnchor rightCxt ->
+        left $ [mite $ Ellipsis v (Just rightCxt), semV v P.EllipsisAnchor2 anchorVar] ++ rest
 
       _ -> []
 
@@ -204,10 +206,10 @@ interactHybrid doInteract headSide headMites childMites = combinations where
 interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
     let (left, right, base12) = mergeInfoHelpers m1 m2
     in case (c1, c2) of
-      (ArgHead kind1 relation head, Argument kind2 arg) | kind1 == kind2 ->
-        mergeLeft $ base12 [semV head relation arg] ++ reflexive leftPairs rightPairs ++ existentials leftPairs rightPairs
-      (Argument kind2 arg, ArgHead kind1 relation head) | kind1 == kind2 ->
-        mergeRight $ base12 [semV head relation arg] ++ reflexive rightPairs leftPairs ++ existentials rightPairs leftPairs
+      (ArgHead kind1 relation head, _c) | Just (Argument kind2 arg, rest) <- asNoun _c, kind1 == kind2 ->
+        mergeLeft $ base12 [semV head relation arg] ++ reflexive leftPairs rightPairs ++ existentials leftPairs rightPairs ++ rest
+      (_c, ArgHead kind1 relation head) | Just (Argument kind2 arg, rest) <- asNoun _c, kind1 == kind2 ->
+        mergeRight $ base12 [semV head relation arg] ++ reflexive rightPairs leftPairs ++ existentials rightPairs leftPairs ++ rest
       (SemArgHead _ kind1 head, SemArgument kind2 arg _) | kind1 == kind2 ->
         mergeLeft $ base12 [mite $ SemArgHead Optional kind1 head, mite $ Unify head arg] ++ reflexive leftPairs rightPairs ++ existentials leftPairs rightPairs
       (SemArgument kind2 arg _, SemArgHead _ kind1 head) | kind1 == kind2 ->

@@ -1,4 +1,4 @@
-module Constructor.Coerce (asVerb, asTenseHead, asCopula, asNoun) where
+module Constructor.Coerce (asVerb, asTenseHead, asCopula, asNoun, asNegateable) where
 
 import Constructor.Agreement
 import Constructor.Constructions
@@ -57,3 +57,8 @@ asNoun c = case c of
     noun = v ""
     in Just (Argument caze noun, [semS noun P.Elided "true", mite $ Handicap noun, semV noun P.Arg1 v0] ++ rusNumber agr noun)
   _ -> Nothing
+
+asNegateable :: Construction -> Maybe Variable
+asNegateable (Negateable v) = Just v
+asNegateable (NounPhrase v) = Just v
+asNegateable _ = Nothing

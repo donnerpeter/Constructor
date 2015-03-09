@@ -87,8 +87,8 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
            unifications = concat [unifyMissingArgument mite1 mite2 | mite1 <- leftCompatible env m1,
                                                                      mite2 <- rightCompatible env m2]
            unifyMissingArgument aux1 aux2 = case (cxt aux1, cxt aux2) of
-             (GenHead v1, SeqRight (GenHead v2)) ->
-                 optional $ withBase [aux1,aux2] [mite $ Unify v1 v2, mite $ GenHead v2]
+             (GenHead a1, SeqRight (GenHead a2)) ->
+                 withBase [aux1,aux2] [mite $ GenHead (a1 ++ a2)]
              _ -> []
            in unifications
         combineThyself = let

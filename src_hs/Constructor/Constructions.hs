@@ -54,7 +54,7 @@ data Construction = Word Variable String
 
                   -- arguments
                   | NomHead Agr Variable Satisfied
-                  | GenHead Variable
+                  | GenHead [(P.VarProperty, Variable)]
                   | ArgHead ArgKind P.VarProperty Variable
                   | SemArgHead Optionality SemArgKind Variable
                   | PrepHead String ArgKind Variable
@@ -137,7 +137,7 @@ isHappy cxt = case cxt of
   Closed {} -> True
   Verb {} -> True; Clause {} -> True; AdverbModifiable {} -> True; ConjEmphasizeable {} -> True
   Sentence {} -> True
-  NomHead {} -> True
+  NomHead {} -> True; GenHead {} -> True
   ReflexiveReference {} -> True; ReflexiveTarget {} -> True
   AdjHead {} -> True; NounPhrase {} -> True
   SemArgHead Optional _ _ -> True

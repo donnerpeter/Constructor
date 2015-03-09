@@ -121,6 +121,7 @@ optional mites = xor [mites, [mite $ EmptyCxt $ cxt $ head mites]]
 
 isCoverable mite = if not (happy mite) then True else case cxt mite of
   NomHead {} -> True
+  GenHead {} -> True
   Clause {} -> True
   _ -> False
 

@@ -251,9 +251,9 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
         mergeLeft $ base12 [semV var attr var2] ++ whPropagation m1 m2 (rightCompatible env m2)
 
       (Possessive adjCase agr1 child, AdjHead noun nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
-        GenHead h -> mergeRight $ withBase [m1,m2,m3] [mite $ Unify h child] ++ Seq.pullThyself (leftCompatible env m1) ++ whPropagation m1 m2 (leftCompatible env m1)
+        GenHead attrs -> mergeRight $ withBase [m1,m2,m3] [semV h attr child | (attr, h) <- attrs] ++ Seq.pullThyself (leftCompatible env m1) ++ whPropagation m1 m2 (leftCompatible env m1)
         _ -> []
-      (GenHead v1, Argument Gen v2) -> left $ [mite $ Unify v1 v2] ++ whPropagation m1 m2 (rightCompatible env m2)
+      (GenHead attrs, Argument Gen v2) -> left $ [semV v1 attr v2 | (attr, v1) <- attrs] ++ whPropagation m1 m2 (rightCompatible env m2)
 
       (Relativizer wh, NomHead agr v2 Unsatisfied) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
         Clause cp -> mergeLeft $ withBase [m1,m2,m3] [mite $ Unify v2 wh, mite $ RelativeClause agr cp, semV cp P.Questioned wh]
@@ -305,7 +305,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
               _ -> []
             extra = Seq.pullThyself (rightCompatible env m2) ++ liftGen
             liftGen = rightCompatible env m2 >>= \m3 -> case cxt m3 of
-              GenHead {} -> optional $ withBase [m3] [mite $ cxt m3]
+              GenHead {} -> withBase [m3] [mite $ cxt m3]
               _ -> []
         in mergeLeft (argMites ++ extra)
 

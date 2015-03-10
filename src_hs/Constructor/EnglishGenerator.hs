@@ -151,7 +151,9 @@ np_internal nom mayHaveDeterminer frame = do
       if Just "copula" == (fValue P.Content relativeCp >>= getType) then return ", the one" `catM` rel
       else rel
     _ ->
-      if isElided frame && Just "SMASHED" == (getType =<< fValue P.Quality frame) then return "who was smashed"
+      if isElided frame && Just "SMASHED" == (getType =<< fValue P.Quality frame) then let
+        verb = if past state then "was" else "is"
+        in return $ "who" `cat` verb `cat` "smashed"
       else return ""
   let neg = if Just "true" == sValue P.Negated frame && not (hasType "wh" frame) then "not" else ""
   return $ neg `cat` preQuantifier `cat` unquantified `cat` postQuantifier `cat` relative

@@ -306,6 +306,7 @@ wordMites word index =
   "случае" -> nounSg Prep Masc "CASE" v ++ [mite $ ConditionCompHead v0]
   "случился" -> finVerb "HAPPEN" "PAST" A.m v ++ arg (PP "s" Instr) P.Experiencer v
   "смотреть" -> infinitive "LOOK" v ++ [mite $ SemArgHead Optional Direction (v "")]
+  "смотрит" -> finVerb "LOOK" "PRESENT" A.sg3 v ++ [mite $ SemArgHead Optional Direction (v "")]
   "смысла" -> nounSg Gen Masc "MEANING" v
   "снег" -> nounSg Nom Masc "SNOW" v
   "со" -> xor [preposition "s" Instr v, preposition "s" Gen v]

@@ -39,7 +39,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "HELP" -> "help"
   "KNOW" -> if verbForm == Sg3Verb then "knows" else "know"
   "LEAN_OUT" -> "looked out"
-  "LOOK" -> "staring"
+  "LOOK" -> if verbForm == Sg3Verb then "stares" else "staring"
   "LOVE" ->
     if any (hasType "CABBAGE") (flatten $ fValue P.Arg2 frame) then "like"
     else if verbForm == BaseVerb then "love" else if negated then "doesn't love" else "loves"

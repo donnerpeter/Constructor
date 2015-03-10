@@ -126,7 +126,7 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
                    SeqRight (NomHead agr2 v2 Unsatisfied) -> unifySubjects (leftCompatible env m1) agr2 v2
                    SeqRight (nomHead@(NomHead _ _  Satisfied)) -> [withBase [aux2] [mite nomHead]]
                    _ -> []
-                 result = fullConj mem1 mem2 ++ withBase [m1, m2] [mite $ Clause seqV] ++ unifications
+                 result = fullConj mem1 mem2 ++ withBase [m1, m2, m3] [mite $ Clause seqV] ++ unifications
                  in [result]
           (Clause mem1, SeqRight c) | Just (cd, rest) <- asCopula c,  copBound cd -> let
                  unifications = xorNonEmpty $ unifySubjects (leftCompatible env m1) (copAgr cd) (copSubj cd)

@@ -265,7 +265,7 @@ wordMites word index =
   "работу" -> nounSg Acc Fem "WORK" v
   "работы" -> nounSg Gen Fem "WORK" v
   "радостью" -> nounSg Instr Fem "JOY" v
-  "разбившуюся" -> nounSg Acc Fem "SMASHED_ONE" v
+  "разбившуюся" -> adj Acc A.f P.Quality "SMASHED" v
   "разбилась" -> finVerb "SMASH" "PAST" A.f v
   "разбился" -> finVerb "SMASH" "PAST" A.m v
   "разошлись" -> finVerb "DISPERSE" "PAST" A.pl v ++ arg (PP "po" Dat) P.Goal v
@@ -323,6 +323,7 @@ wordMites word index =
   "стали" -> finVerb "BEGIN" "PAST" A.pl v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")]
   "старик" -> nounSg Nom Masc "OLD_MAN" v
   "старуха" -> nounSg Nom Fem "OLD_LADY" v
+  "старуху" -> nounSg Acc Fem "OLD_LADY" v
   "счастию" -> nounSg Dat Neu "LUCK" v
   "счета" -> nounSg Gen Masc "COUNTING" v
   "счете" -> nounSg Prep Masc "COUNTING" v

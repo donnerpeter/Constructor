@@ -150,7 +150,9 @@ np_internal nom mayHaveDeterminer frame = do
     Just relativeCp -> let rel = sentence relativeCp in
       if Just "copula" == (fValue P.Content relativeCp >>= getType) then return ", the one" `catM` rel
       else rel
-    _ -> return ""
+    _ ->
+      if isElided frame && Just "SMASHED" == (getType =<< fValue P.Quality frame) then return "who was smashed"
+      else return ""
   let neg = if Just "true" == sValue P.Negated frame && not (hasType "wh" frame) then "not" else ""
   return $ neg `cat` preQuantifier `cat` unquantified `cat` postQuantifier `cat` relative
 
@@ -205,6 +207,7 @@ adjectives nounFrame = do
     Just "CLEVER" -> "smart"
     Just "FAST" -> "fast"
     Just "STUPID" -> "stupid"
+    Just "SMASHED" | not (isElided nounFrame) -> "smashed"
     _ -> ""
   color <- adjSeq P.Color $ \p -> case getType p of
     Just "GREEN" -> "green"
@@ -589,7 +592,8 @@ generateArg arg = let
     Adverb _ s -> return s
     NPArg f -> np False $ Just f
     PPArg prep f ->
-      if isJust (getType f) then return (hybridWhPrefix f) `catM` return prep `catM` (np False $ Just f) else return ""
+      if isJust (getType f) || isElided f then return (hybridWhPrefix f) `catM` return prep `catM` (np False $ Just f)
+      else return ""
     PPAdjunct _ prep f -> return prep `catM` (np False $ Just f)
     ToInfinitive nextVerb -> return "to" `catM` vp nextVerb BaseVerb InfiniteClause
     GerundBackground _ back -> return ("," `cat` conjIntroduction back) `catM` vp back Gerund InfiniteClause `catM` return ","

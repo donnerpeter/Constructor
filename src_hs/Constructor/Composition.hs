@@ -278,7 +278,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
         _ -> []
 
       (SemPreposition kind1 var1, Argument kind2 var2) | kind1 == kind2 -> left [mite $ Unify var1 var2]
-      (PrepHead prep1 kind1 var1, Argument kind2 var2) | kind1 == kind2 ->
+      (PrepHead prep1 kind1 var1, c2) | Just (Argument kind2 var2, rest) <- asNoun c2, kind1 == kind2 ->
         let argMites = base12 ([mite $ Unify var1 var2]
                         ++ xorNonEmpty [[mite $ Argument (PP prep1 kind1) var1], adjunctMites, copulaVariants])
                        ++ whPropagation m1 m2 (rightCompatible env m2)
@@ -303,7 +303,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
               ("na", Prep) -> copulaCommon "copula" P.Location_on
               ("o", Prep) -> xor [copulaCommon "copula_about" P.Arg2, copulaCommon "copula_talking_about" P.Arg2]
               _ -> []
-            extra = Seq.pullThyself (rightCompatible env m2) ++ liftGen
+            extra = Seq.pullThyself (rightCompatible env m2) ++ liftGen ++ rest
             liftGen = rightCompatible env m2 >>= \m3 -> case cxt m3 of
               GenHead {} -> withBase [m3] [mite $ cxt m3]
               _ -> []

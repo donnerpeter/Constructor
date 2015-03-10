@@ -38,7 +38,9 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "HAPPEN" -> "happened"
   "HELP" -> "help"
   "KNOW" -> if verbForm == Sg3Verb then "knows" else "know"
-  "LEAN_OUT" -> "looked out"
+  "LEAN_OUT" ->
+    if Just True == fmap (hasType "LOOK") (fValue P.Theme =<< fValue P.Content =<< listToMaybe . nextSiblings =<< usage P.Content frame) then "looked out"
+    else "leaned out"
   "LOOK" -> if verbForm == Sg3Verb then "stares" else "staring"
   "LOVE" ->
     if any (hasType "CABBAGE") (flatten $ fValue P.Arg2 frame) then "like"

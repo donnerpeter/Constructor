@@ -13,9 +13,9 @@ oldLadyVariationTests = [
                 ,
   translateTest "Другая старуха смотрит вниз на разбившуюся."
                 "Another old lady stares down at the one who is smashed."
---                ,
---todo  translateTest "Из окна высунулась другая старуха."
---                "Another old lady leaned out of the window."
+                ,
+  translateTest "Из окна высунулась другая старуха."
+                "Another old lady leaned out of the window."
 --                ,
 --todo  translateTest "Потом из окна вывалилась третья старуха."
 --                "Then the third old lady fell out of the window."

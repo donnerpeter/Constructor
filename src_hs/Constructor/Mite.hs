@@ -3,7 +3,10 @@ module Constructor.Mite
  xor, xorNonEmpty, withBase, contradict,
  optional,
  isCoverable, isHandicap, isInteractive,
- semS, semV, semT)
+ semS, semV, semT,
+ --constructions
+ Construction(..), SeqData(..), ArgKind(..), Satisfied(..), Optionality(..), SemArgKind(..),
+ cases, isStable, getCommaSurroundableVar)
  where
 
 import qualified Data.Set as Set

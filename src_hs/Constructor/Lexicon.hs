@@ -1,5 +1,4 @@
 module Constructor.Lexicon where
-import Constructor.Constructions
 import Constructor.Mite
 import Constructor.Variable
 import Constructor.Util

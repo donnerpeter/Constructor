@@ -1,7 +1,6 @@
 module Constructor.Coerce (asVerb, asTenseHead, asCopula, asNoun, asNegateable) where
 
 import Constructor.Agreement
-import Constructor.Constructions
 import Constructor.Mite
 import Constructor.LexiconUtils
 import Constructor.Util

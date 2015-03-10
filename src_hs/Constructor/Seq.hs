@@ -1,5 +1,4 @@
 module Constructor.Seq (seqLeft, seqRight, pullThyself) where
-import Constructor.Constructions
 import Constructor.CopulaData
 import Constructor.Mite
 import Constructor.Agreement

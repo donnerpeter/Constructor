@@ -16,7 +16,6 @@ import Constructor.Util
 import Constructor.Issues
 import Constructor.Interner
 import Constructor.Sense (makeSense, composeSense, Sense, Fact(..))
-import Constructor.Constructions (Construction(Sem, Unify))
 
 data Tree = Tree {
   mites::[Mite], left::Maybe Tree, right::Maybe Tree, headSide::Side,

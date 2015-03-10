@@ -1,6 +1,5 @@
 module Constructor.Issues (IssueHolder, leafHolder, composeHolders, holderIssues, fatalIssues, holderSense) where
 
-import Constructor.Mite
 import Constructor.Sense
 import Constructor.Inference
 import Constructor.Util

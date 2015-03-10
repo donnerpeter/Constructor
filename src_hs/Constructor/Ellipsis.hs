@@ -4,7 +4,6 @@ import Constructor.Util
 import Constructor.Mite
 import Constructor.Variable
 import Constructor.InteractionEnv
-import Constructor.Constructions
 import Data.Maybe
 import Data.List (find)
 import qualified Constructor.SemanticProperties as P

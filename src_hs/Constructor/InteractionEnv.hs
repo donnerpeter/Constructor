@@ -1,5 +1,4 @@
 module Constructor.InteractionEnv where
-import Constructor.Constructions
 import Constructor.Mite
 import Constructor.Tree
 import Constructor.Util

@@ -1,5 +1,4 @@
 module Constructor.Composition (interactNodes) where
-import Constructor.Constructions
 import Constructor.CopulaData
 import Constructor.Mite
 import Constructor.Variable

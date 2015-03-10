@@ -367,6 +367,7 @@ wordMites word index =
   "челюстью" -> nounSg Instr Fem "JAW" v
   "чем" -> xor [caseWhWord Instr A.n v, caseWhWord Prep A.n v, [mite $ Comparativizer v0]]
   "чём" -> caseWhWord Prep A.n v
+  "четвертая" -> adj Nom A.f P.Order "4" v
   "чрезмерного" -> adj Gen A.n P.Size "EXCESSIVE" v
   "что" -> xor [caseWhWord Nom A.n3 v, caseWhWord Acc A.n3 v, [mite $ Complementizer v0], [mite $ TwoWordCxt "потому что" False [] v0], [mite $ Relativizer v0, semT v0 "wh"]]
   "чьему" -> whWord A.empty v ++ animate v ++ xor [[mite $ Possessive Dat A.m v0], [mite $ Possessive Dat A.n v0]]
@@ -386,7 +387,7 @@ wordMites word index =
   ":" -> xor [[mite $ Colon "directSpeech" v0], [mite $ Colon "elaboration" v0]]
   "-" -> xor [[mite $ SurroundingDash v0],
               [mite $ DirectSpeechDash v0],
-              [mite $ Ellipsis v0 Nothing, semS v0 P.Ellipsis "true"]
+              [mite $ Ellipsis v0 Nothing, semS v0 P.Elided "true"]
              ]
   "," -> xor [[mite $ SurroundingComma v0], conjunction v0 "," True]
   "\"" -> xor [[mite $ Quote v0 True], [mite $ Quote v0 False]]

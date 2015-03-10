@@ -26,7 +26,7 @@ factIssues fact = let
           if "false" `elem` isolated then finalIssue msg
           else if null isolated then finalNo
           else issue msg
-        (P.Elided, _) -> l $ \_ -> finalIssue "elided"
+        (P.ElidedNoun, _) -> l $ \_ -> finalIssue "elided"
         (P.Type, declaredType) -> typeIssues (variable fact) declaredType ++ orderingIssues (variable fact) declaredType
         _ -> []
       VarValue attr val -> let

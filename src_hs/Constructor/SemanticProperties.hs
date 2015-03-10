@@ -56,7 +56,7 @@ data StrProperty = Type
                  | Number
                  | Conj | Hybrid | ConjStrong
                  | InSitu
-                 | Ellipsis | Elided
+                 | Elided | ElidedNoun
                  | SAnchor
                  | ModifierAdverb
                  | Name

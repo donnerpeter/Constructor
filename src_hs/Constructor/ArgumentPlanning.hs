@@ -1,7 +1,7 @@
 module Constructor.ArgumentPlanning (
   Argument(..), argumentFrame, arguments,
   isCP, isCPOrSeq, isFactCP, isQuestionCP,
-  isVerbEllipsis, isEllipsisAnchor,
+  isVerbEllipsis, isEllipsisAnchor, reachesEllipsisAnchor,
   allCoordinatedVerbs,
   Position(..), argPosition,
   isAtLocationCopula, isExclamationCopula, isOwnerCopula) where
@@ -9,6 +9,7 @@ import Constructor.Sense
 import Constructor.Inference
 import Constructor.Util
 import Data.List
+import qualified Data.Set as Set
 import Data.Maybe
 import Constructor.Variable
 import qualified Constructor.SemanticProperties as P
@@ -16,10 +17,14 @@ import qualified Constructor.LinkedSet as LS
 
 isCPOrSeq frame = any isCP $ flatten $ Just frame
 
-isVerbEllipsis verb = Just "true" == (usage P.Content verb >>= sValue P.Ellipsis)
+isVerbEllipsis verb = Just "true" == (usage P.Content verb >>= sValue P.Elided)
 
 isEllipsisAnchor arg fVerb = isJust arg && (arg == (cp >>= fValue P.EllipsisAnchor1) || arg == (cp >>= fValue P.EllipsisAnchor2)) where
   cp = usage P.Content fVerb
+
+reachesEllipsisAnchor mArg fVerb = case mArg of
+  Nothing -> False
+  Just arg -> any (\f -> isEllipsisAnchor (Just f) fVerb) $ Set.elems $ reachableFrames arg
 
 data Position = BeforeVP | BeforeVerb | AfterVerb deriving (Eq,Show,Ord)
 

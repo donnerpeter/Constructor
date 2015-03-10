@@ -7,6 +7,7 @@ import Constructor.Inference
 import Constructor.ArgumentPlanning
 import qualified Constructor.SemanticProperties as P
 import Data.Maybe
+import Control.Applicative
 
 data VerbForm = BaseVerb | Sg3Verb | PastVerb | Gerund deriving (Eq, Show)
 
@@ -90,10 +91,11 @@ doForm verbForm =case verbForm of
 
 generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModality thereSubject = let
   isFuture = Just "FUTURE" == sValue P.Time fVerb
+  anchor2 = usage P.Content fVerb >>= fValue P.EllipsisAnchor2
   in
-  if isEllipsisAnchor fSubject fVerb
+  if reachesEllipsisAnchor fSubject fVerb
   then
-    if fSubject == (usage P.Content fVerb >>= fValue P.EllipsisAnchor2) then ("", if verbForm == PastVerb then "did" else "does")
+    if fromMaybe False $ isFrameReachable <$> fSubject <*> anchor2 then ("", if verbForm == PastVerb then "did" else "does")
     else ("", "-")
   else if hasType "copula_talking_about" fVerb then (beForm fSubject PastVerb, "talking")
   else if hasAnyType ["copula", "copula_about"] fVerb then

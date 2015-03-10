@@ -19,15 +19,18 @@ asVerb env m = case cxt m of
       Just (cd, rest) -> let
         verb = copula cd
         copulaCoercion = [mite $ Verb verb, mite $ CopulaHead (cd { copBound = True })] ++ copulaSem cd ++ rest
+        raiseToEllipsis anchor var = let
+          ellipsisVar = makeV var "ell" ""
+          mites = suggestOneCxtEllipsis env ellipsisVar anchor
+          unifyVerbs m = case cxt m of
+            Verb v -> mite $ Unify v verb
+            _ -> m
+          in if null mites then []
+             else [mite $ Verb verb, mite $ Clause ellipsisVar, mite $ Handicap ellipsisVar,
+                   semV ellipsisVar P.EllipsisAnchor2 var, semS ellipsisVar P.Elided "true"] ++ map unifyVerbs mites
         ellipsis = case _c of
-          Argument _ v -> let
-            ellipsisVar = makeV v "ell" ""
-            mites = suggestOneCxtEllipsis env ellipsisVar _c
-            unifyVerbs m = case cxt m of
-              Verb v -> mite $ Unify v verb
-              _ -> m
-            in if null mites then []
-               else [mite $ Verb verb, mite $ Clause ellipsisVar, mite $ Handicap ellipsisVar, semV ellipsisVar P.EllipsisAnchor2 v, semS ellipsisVar P.Ellipsis "true"] ++ map unifyVerbs mites
+          Argument _ v -> raiseToEllipsis _c v
+          Adj v _ _ _ -> raiseToEllipsis _c v
           _ -> []
         in xorNonEmpty $ [copulaCoercion, ellipsis]
       _ -> []
@@ -67,11 +70,11 @@ asNoun c = case c of
   Adj v0 attr caze agr -> let
     v = makeV v0 "noun"
     noun = v ""
-    in Just (Argument caze noun, [semS noun P.Elided "true", mite $ Handicap noun, semV noun attr v0] ++ rusNumber agr noun)
+    in Just (Argument caze noun, [semS noun P.ElidedNoun "true", mite $ Handicap noun, semV noun attr v0] ++ rusNumber agr noun)
   Possessive caze agr v0 -> let
     v = makeV v0 "noun"
     noun = v ""
-    in Just (Argument caze noun, [semS noun P.Elided "true", mite $ Handicap noun, semV noun P.Arg1 v0] ++ rusNumber agr noun)
+    in Just (Argument caze noun, [semS noun P.ElidedNoun "true", mite $ Handicap noun, semV noun P.Arg1 v0] ++ rusNumber agr noun)
   _ -> Nothing
 
 asNegateable :: Construction -> Maybe Variable

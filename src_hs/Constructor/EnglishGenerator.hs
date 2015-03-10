@@ -112,10 +112,10 @@ np_internal nom mayHaveDeterminer frame = do
     else if hasType "EVERYBODY" frame then return "everybody"
     else do
       adjs <- adjectives frame
-      let n = if isNothing (getType frame) && isElided frame then
+      let n = if isElidedNoun frame then
                 if skipElidedOne frame || Just True == fmap isPronoun fDet then ""
                 else if Just "Pl" == sValue P.RusNumber frame then "ones" else "one"
-              else if isPlaceholder frame then ""
+              else if isElided frame || isPlaceholder frame then ""
               else noun (getType frame) frame
           nbar1 = adjs `cat` n
           fDet = fDeterminer frame
@@ -151,7 +151,7 @@ np_internal nom mayHaveDeterminer frame = do
       if Just "copula" == (fValue P.Content relativeCp >>= getType) then return ", the one" `catM` rel
       else rel
     _ ->
-      if isElided frame && Just "SMASHED" == (getType =<< fValue P.Quality frame) then let
+      if isElidedNoun frame && Just "SMASHED" == (getType =<< fValue P.Quality frame) then let
         verb = if past state then "was" else "is"
         in return $ "who" `cat` verb `cat` "smashed"
       else return ""
@@ -167,9 +167,10 @@ isArticleAfterAdjectives mainFrame =
 isPlaceholder frame = hasType "placeholder" frame
 
 isElided frame = Just "true" == sValue P.Elided frame
+isElidedNoun frame = Just "true" == sValue P.ElidedNoun frame
 
 skipElidedOne nounFrame = Just "true" == (sValue P.ConjStrong $ unSeq2 $ unSeq1 nounFrame) && case prevSiblings $ unSeq1 nounFrame of
-  first:_ | not (isElided first) -> True
+  first:_ | not (isElidedNoun first) -> True
   _ -> False
 
 adjectives nounFrame = do
@@ -209,7 +210,7 @@ adjectives nounFrame = do
     Just "CLEVER" -> "smart"
     Just "FAST" -> "fast"
     Just "STUPID" -> "stupid"
-    Just "SMASHED" | not (isElided nounFrame) -> "smashed"
+    Just "SMASHED" | not (isElidedNoun nounFrame) -> "smashed"
     _ -> ""
   color <- adjSeq P.Color $ \p -> case getType p of
     Just "GREEN" -> "green"
@@ -217,6 +218,7 @@ adjectives nounFrame = do
     _ -> ""
   order <- adjSeq P.Order $ \p -> case getType p of
     Just "3" -> "third"
+    Just "4" -> "fourth"
     _ -> ""
   let shopKind = if sValue P.Name nounFrame == Just "гастроном" then "grocery" else ""
   let gender =
@@ -263,7 +265,7 @@ fDeterminer frame =
   else if hasAnyType ["WORDS", "BOOK"] frame then fValue P.Author frame
   else if hasAnyType ["ROOMS", "APARTMENTS", "OFFICES"] frame then fValue P.Owner frame
   else if hasAnyType ["CASHIER"] frame then fValue P.Place frame
-  else if isElided frame then fValue P.Arg1 frame
+  else if isElidedNoun frame then fValue P.Arg1 frame
   else Nothing
 
 usePronoun state frame = Set.member frame (visitedFrames state)
@@ -295,7 +297,7 @@ determiner frame det nbar = do
             resolved = resolve det
         in case getType resolved of
           Just s ->
-            if isPronoun resolved then pronoun $ genitivePronoun s (isElided frame)
+            if isPronoun resolved then pronoun $ genitivePronoun s (isElidedNoun frame)
             else if usePronoun state det then pronoun $ case sValue P.RusGender det of
                Just "Masc" -> "his"
                Just "Fem" -> "her"
@@ -323,7 +325,7 @@ determiner frame det nbar = do
       else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING", "MONEY", "COUNTING", "APARTMENTS", "OFFICES", "HOUSES", "CABBAGE", "CARROT"] frame then ""
       else if hasAnyType ["NAMED_PERSON"] frame then ""
       else if hasType "OPINION" frame && Just True == fmap isVerbEllipsis (usage P.AccordingTo frame) then ""
-      else if isElided frame && skipElidedOne frame || isPlaceholder frame then ""
+      else if isElidedNoun frame && skipElidedOne frame || isPlaceholder frame then ""
       else if sValue P.Given frame == Just "true" then "the"
       else if isArticleAfterAdjectives frame then ""
       else indefiniteArticle frame nbar
@@ -500,7 +502,7 @@ vp fVerb verbForm clauseType = do
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue P.Question_mark)
       isDoModality = isModality && Just True == fmap (hasType "DO") theme
       thereSubject = clauseType == FiniteClause &&
-                     (Just "wh" == (fSubject >>= getType) && isModality || isNothing (fSubject >>= getType) && Just True /= (fmap isElided fSubject)) &&
+                     (Just "wh" == (fSubject >>= getType) && isModality || isNothing (fSubject >>= getType) && Just True /= (fmap isElidedNoun fSubject)) &&
                      not isQuestion
       (_aux, sVerb) = generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModality thereSubject
       aux = if clauseType == InfiniteClause then "" else _aux
@@ -535,7 +537,7 @@ vp fVerb verbForm clauseType = do
         in if isAnymore then "anymore" else ""
   subject <- if thereSubject then return "there" else if Just "WEATHER_BE" == getType fVerb then return "it" else case (fSubject, clauseType) of
     (Just f, FiniteClause) ->
-      if isVerbEllipsis fVerb && not (isEllipsisAnchor fSubject fVerb) then return "it"
+      if isVerbEllipsis fVerb && not (reachesEllipsisAnchor fSubject fVerb) then return "it"
       else if [fVerb] `isPrefixOf` (usages P.Arg1 f) || isModality || isRaising || isAtLocationCopula fVerb || isOwnerCopula fVerb then np True fSubject
       else if (isJust (msum [fValue P.PerfectBackground fVerb, fValue P.Reason fVerb]) || hasType "copula" fVerb)
         then return $ if sValue P.RusGender f == Just "Masc" then "he" else "she"
@@ -597,7 +599,7 @@ generateArg arg = let
     Adverb _ s -> return s
     NPArg f -> np False $ Just f
     PPArg prep f ->
-      if isJust (getType f) || isElided f then return (hybridWhPrefix f) `catM` return prep `catM` (np False $ Just f)
+      if isJust (getType f) || isElidedNoun f then return (hybridWhPrefix f) `catM` return prep `catM` (np False $ Just f)
       else return ""
     PPAdjunct _ prep f -> return prep `catM` (np False $ Just f)
     ToInfinitive nextVerb -> return "to" `catM` vp nextVerb BaseVerb InfiniteClause

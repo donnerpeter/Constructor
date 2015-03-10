@@ -4,7 +4,7 @@ module Constructor.Sense
   fDeclaredValue, sDeclaredValue,
   earlier,
   usages, usage, allUsages,
-  isFrameReachable,
+  isFrameReachable, reachableFrames,
   makeSense, composeSense)
   where
 

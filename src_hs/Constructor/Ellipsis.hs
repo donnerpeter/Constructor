@@ -40,6 +40,7 @@ checkOriginal anchor candidate = case (cxt candidate, anchor) of
   (VerbalModifier a1 _ v1, VerbalModifier a2 _ v2) | a1 == a2 -> Just $ AnchorMapping candidate v1 v2
   (Argument kind1 v1, Argument kind2 v2) | kind1 == kind2 -> Just $ AnchorMapping candidate v1 v2
   (SemArgument kind1 v1 _, SemArgument kind2 v2 _) | kind1 == kind2 -> Just $ AnchorMapping candidate v1 v2
+  (Adj v1 attr1 kind1 _, Adj v2 attr2 kind2 _) | kind1 == kind2 && attr1 == attr2 -> Just $ AnchorMapping candidate v1 v2
   _ -> Nothing
 
 findOriginals mites anchor = catMaybes $ map (checkOriginal anchor) mites

@@ -1,4 +1,4 @@
-module Constructor.Ellipsis (suggestEllipsis) where
+module Constructor.Ellipsis (suggestEllipsis, suggestOneCxtEllipsis) where
 import Constructor.Tree
 import Constructor.Util
 import Constructor.Mite
@@ -21,9 +21,16 @@ suggestEllipsis env ellipsisVar e1 e2 = case findClause =<< context env of
   [] -> []
   (oldClause, tree):_ -> let
     allMites = allTreeMites tree
-    mappings = catMaybes [processEllipsis oldClause ellipsisVar [mapping1, mapping2] tree |
+    mappings = catMaybes [processEllipsis oldClause ellipsisVar [mapping1, mapping2] tree False |
        mapping1 <- findOriginals allMites e1,
        mapping2 <- findOriginals allMites e2]
+    in xor mappings
+
+suggestOneCxtEllipsis env ellipsisVar anchor = case findClause =<< context env of
+  [] -> []
+  (oldClause, tree):_ -> let
+    allMites = allTreeMites tree
+    mappings = catMaybes [processEllipsis oldClause ellipsisVar [mapping] tree True | mapping <- findOriginals allMites anchor]
     in xor mappings
 
 data AnchorMapping = AnchorMapping { templateMite:: Mite, templateVar:: Variable, anchorVar:: Variable } deriving (Show)
@@ -37,14 +44,15 @@ checkOriginal anchor candidate = case (cxt candidate, anchor) of
 
 findOriginals mites anchor = catMaybes $ map (checkOriginal anchor) mites
 
-processEllipsis :: Mite -> Variable -> [AnchorMapping] -> Tree -> Maybe [Mite]
-processEllipsis oldClause ellipsisVar@(Variable varIndex _) mappings prevTree = let
+processEllipsis :: Mite -> Variable -> [AnchorMapping] -> Tree -> Bool -> Maybe [Mite]
+processEllipsis oldClause ellipsisVar@(Variable varIndex _) mappings prevTree mapVerb = let
   Clause oldCP = cxt oldClause
   templateCxts = map (cxt . templateMite) mappings
   mapVariable _v = case find (\m -> _v == templateVar m) mappings of
     Just m -> anchorVar m
     _ -> if _v == oldCP then ellipsisVar else Variable varIndex ("_" ++ show _v)
   mapMite m = case cxt m of
+    Verb _v1 -> if mapVerb then [mite $ Verb (mapVariable _v1)] else []
     Unify _v1 _v2 -> [mite $ Unify (mapVariable _v1) (mapVariable _v2)]
     Sem _v1 (StrValue attr s) ->
       if attr == P.RusNumber || attr == P.RusGender || attr == P.RusPerson then []

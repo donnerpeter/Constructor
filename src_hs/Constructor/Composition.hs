@@ -107,7 +107,7 @@ punctuationAware env (m1, m2) =
         AdjHead _ _ agr1 | agree agr1 agr2 -> mergeLeft $
           withBase [m1,m2,m3] [semV noun P.Relative cp] ++ liftUnclosedCompatible RightSide
         _ -> []
-      (CommaSurrounded _ closed (VerbalModifier attr True advP), _) | (cxt -> Verb verb):rest <- asVerb m2 -> mergeRight $
+      (CommaSurrounded _ closed (VerbalModifier attr True advP), _) | (cxt -> Verb verb):rest <- asVerb env m2 -> mergeRight $
         base12 ([semV verb attr advP] ++ rest)
         ++ closeUnclosed LeftSide (if closed then Satisfied else Unsatisfied)
         ++ liftUnclosedCompatible LeftSide
@@ -175,7 +175,7 @@ questionableArguments env whContext = map (propagateUnclosed env) $ let
   doInteract lp rp = do
     p1 <- lp
     p2 <- rp
-    info@(MergeInfo mites side) <- interactQuestionable lp rp whContext p1 p2
+    info@(MergeInfo mites side) <- interactQuestionable env lp rp whContext p1 p2
     let childMite = select side (fst p2) (fst p1)
     let liftedWh = (select side rightCompatible leftCompatible) env childMite >>= \m3 -> case cxt m3 of
           Wh _ var -> withBase [m3] [mite $ WhInSitu var]
@@ -203,7 +203,7 @@ interactHybrid doInteract headSide headMites childMites = combinations where
     else unwrapHybrid unwrappedLeft [fromRight ++ combo | combo <- combinations, fromRight <- interactConstituent unwrappedRight]
   combinations = unwrapHybrid childPairs [[]]
 
-interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
+interactQuestionable env leftPairs rightPairs whContext (m1, c1) (m2, c2) =
     let (left, right, base12) = mergeInfoHelpers m1 m2
     in case (c1, c2) of
       (ArgHead kind1 relation head, _c) | Just (Argument kind2 arg, rest) <- asNoun _c, kind1 == kind2 ->
@@ -231,7 +231,7 @@ interactQuestionable leftPairs rightPairs whContext (m1, c1) (m2, c2) =
         left $ completeCopula cd v2 ++ rest ++ [mite $ Handicap (copula cd)] ++ (if whContext then [] else [mite $ Clause (copCP cd), mite $ Verb (copula cd)])
 
       (Verb verb, VerbalModifier attr False advP) -> mergeLeft $ base12 [semV verb attr advP] ++ existentials leftPairs rightPairs
-      (VerbalModifier attr needComma advP, _) | (cxt -> Verb verb):rest <- asVerb m2 -> mergeRight $
+      (VerbalModifier attr needComma advP, _) | (cxt -> Verb verb):rest <- asVerb env m2 -> mergeRight $
         base12 ([semV verb attr advP] ++ rest
         ++ (if needComma && not whContext then [semS advP P.Isolation "comma", mite $ Unclosed LeftSide [advP]] else []))
         ++ existentials rightPairs leftPairs
@@ -267,7 +267,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
 
       (ConjEmphasis attr _, ConjEmphasizeable head) -> right [semS head attr "true"]
 
-      (Adverb v, _) | (cxt -> Verb head):rest <- asVerb m2 -> right $ [mite $ Unify v head] ++ rest
+      (Adverb v, _) | (cxt -> Verb head):rest <- asVerb env m2 -> right $ [mite $ Unify v head] ++ rest
       (Verb head, Adverb v) -> left [mite $ Unify v head]
 
       (NounPhrase head, NounAdjunct attr False var) -> left [semV head attr var]

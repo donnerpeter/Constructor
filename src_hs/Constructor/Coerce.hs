@@ -7,14 +7,30 @@ import Constructor.LexiconUtils
 import Constructor.Util
 import Constructor.Variable
 import Constructor.CopulaData
+import Constructor.Ellipsis
+import Constructor.InteractionEnv
+import Data.List (partition)
 import qualified Constructor.SemanticProperties as P
 
-asVerb :: Mite -> [Mite]
-asVerb m = case cxt m of
+asVerb :: InteractionEnv -> Mite -> [Mite]
+asVerb env m = case cxt m of
   Verb {} -> [m]
   _c -> case asCopula _c of
-    Just (cd, rest) -> [mite $ Verb (copula cd), mite $ CopulaHead (cd { copBound = True })] ++ copulaSem cd ++ rest
-    _ -> []
+      Just (cd, rest) -> let
+        verb = copula cd
+        copulaCoercion = [mite $ Verb verb, mite $ CopulaHead (cd { copBound = True })] ++ copulaSem cd ++ rest
+        ellipsis = case _c of
+          Argument _ v -> let
+            ellipsisVar = makeV v "ell" ""
+            mites = suggestOneCxtEllipsis env ellipsisVar _c
+            unifyVerbs m = case cxt m of
+              Verb v -> mite $ Unify v verb
+              _ -> m
+            in if null mites then []
+               else [mite $ Verb verb, mite $ Clause ellipsisVar, mite $ Handicap ellipsisVar, semV ellipsisVar P.EllipsisAnchor2 v, semS ellipsisVar P.Ellipsis "true"] ++ map unifyVerbs mites
+          _ -> []
+        in xorNonEmpty $ [copulaCoercion, ellipsis]
+      _ -> []
 
 asTenseHead :: Mite -> [Mite]
 asTenseHead m = case cxt m of

@@ -19,4 +19,7 @@ oldLadyVariationTests = [
                 ,
   translateTest "Потом из окна вывалилась третья старуха."
                 "Then the third old lady fell out of the window."
+                ,
+  translateTest "Из окна вывалился старик. Потом старуха."
+                "The old man fell out of the window. Then the old lady did."
   ]

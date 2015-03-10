@@ -112,7 +112,7 @@ np_internal nom mayHaveDeterminer frame = do
     else if hasType "EVERYBODY" frame then return "everybody"
     else do
       adjs <- adjectives frame
-      let n = if isElided frame then
+      let n = if isNothing (getType frame) && isElided frame then
                 if skipElidedOne frame || Just True == fmap isPronoun fDet then ""
                 else if Just "Pl" == sValue P.RusNumber frame then "ones" else "one"
               else if isPlaceholder frame then ""

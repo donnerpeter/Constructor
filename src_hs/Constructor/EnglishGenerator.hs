@@ -215,6 +215,9 @@ adjectives nounFrame = do
     Just "GREEN" -> "green"
     Just "RED" -> "red"
     _ -> ""
+  order <- adjSeq P.Order $ \p -> case getType p of
+    Just "3" -> "third"
+    _ -> ""
   let shopKind = if sValue P.Name nounFrame == Just "гастроном" then "grocery" else ""
   let gender =
         if shouldContrastByGender nounFrame && isHuman nounFrame
@@ -229,7 +232,7 @@ adjectives nounFrame = do
     else if hasType "BIG" p then
       if hasType "GARDEN" nounFrame then "big" else "great"
     else ""
-  return $ property `cat` kind `cat` shopKind `cat` size `cat` quality `cat` gender `cat` color
+  return $ order `cat` property `cat` kind `cat` shopKind `cat` size `cat` quality `cat` gender `cat` color
 
 shouldContrastByGender frame = case (getType frame, sValue P.RusGender frame) of
   (Just typ, Just gender) | typ /= "NAMED_PERSON" -> let

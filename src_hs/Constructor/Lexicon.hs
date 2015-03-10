@@ -338,6 +338,7 @@ wordMites word index =
   "только" -> modifierAdverb "ONLY" v
   "том" -> adj Prep A.sg P.Determiner "THAT" v
   "тот" -> adj Nom A.m P.Determiner "THAT" v
+  "третья" -> adj Nom A.f P.Order "3" v
   "три" -> wordNumber Acc "3" v
   "тут" -> sAdverb P.Emphasis "true" v
   "у" -> preposition "u" Gen v

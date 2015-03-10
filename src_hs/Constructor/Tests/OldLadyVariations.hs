@@ -16,7 +16,7 @@ oldLadyVariationTests = [
                 ,
   translateTest "Из окна высунулась другая старуха."
                 "Another old lady leaned out of the window."
---                ,
---todo  translateTest "Потом из окна вывалилась третья старуха."
---                "Then the third old lady fell out of the window."
+                ,
+  translateTest "Потом из окна вывалилась третья старуха."
+                "Then the third old lady fell out of the window."
   ]

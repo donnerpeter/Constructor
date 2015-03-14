@@ -5,6 +5,7 @@ module Constructor.EnglishVerbs (
 import Constructor.Sense
 import Constructor.Inference
 import Constructor.ArgumentPlanning
+import Constructor.Util
 import qualified Constructor.SemanticProperties as P
 import Data.Maybe
 import Control.Applicative
@@ -93,9 +94,10 @@ generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModalit
   isFuture = Just "FUTURE" == sValue P.Time fVerb
   anchor2 = usage P.Content fVerb >>= fValue P.EllipsisAnchor2
   in
-  if reachesEllipsisAnchor fSubject fVerb
-  then
-    if fromMaybe False $ isFrameReachable <$> fSubject <*> anchor2 then ("", if verbForm == PastVerb then "did" else "does")
+  if reachesEllipsisAnchor fSubject fVerb then
+    if fromMaybe False $ isFrameReachable <$> fSubject <*> anchor2 then
+      if Just "true" == (sValue P.Elided =<< fValue P.Content =<< listToMaybe . reverse . prevSiblings =<< usage P.Content fVerb) then ("", "")
+      else ("", if verbForm == PastVerb then "did" else "does")
     else ("", "-")
   else if hasType "copula_talking_about" fVerb then (beForm fSubject PastVerb, "talking")
   else if hasAnyType ["copula", "copula_about"] fVerb then

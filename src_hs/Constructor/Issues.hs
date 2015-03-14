@@ -66,7 +66,7 @@ requireType mFrame f = case mFrame of
   Just frame | isTypeDefined mFrame -> f frame
   _ -> provNo
 
-typeIssues var declaredType = missingSubj ++ missingArg2 ++ inanimateSubj ++ other where
+typeIssues var declaredType = missingSubj ++ missingArg2 ++ inanimateSubj ++ adjCopula ++ other where
   frame sense = toFrame sense var
   missingSubj =
     if declaredType `elem` ["SIT", "SAY", "FORGET", "COME_SCALARLY", "copula"] then l $ \sense ->
@@ -80,6 +80,13 @@ typeIssues var declaredType = missingSubj ++ missingArg2 ++ inanimateSubj ++ oth
     if declaredType `elem` ["GO", "CAN", "REMEMBER", "KNOW", "copula_talking_about"] then l $ \sense ->
       requireType (fValue P.Arg1 $ frame sense) $ \fSubj ->
         if not (and $ map isAnimate $ flatten $ Just fSubj) then finalIssue ("inanimate " ++ declaredType ++ " subject") else finalNo
+    else []
+  adjCopula =
+    if declaredType == "copula" then l $ \sense ->
+      requireType (fValue P.Arg1 $ frame sense) $ \fSubj ->
+        requireType (fValue P.Arg2 $ frame sense) $ \fObj ->
+          if hasType "placeholder" fObj && usage P.Arg1 fSubj /= Just (frame sense) then finalIssue "adj copula in a conjunction"
+          else provNo
     else []
   other = case declaredType of
     "seq" -> l $ \sense ->

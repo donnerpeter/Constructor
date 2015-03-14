@@ -219,6 +219,7 @@ adjectives nounFrame = do
   order <- adjSeq P.Order $ \p -> case getType p of
     Just "3" -> "third"
     Just "4" -> "fourth"
+    Just "5" -> "fifth"
     _ -> ""
   let shopKind = if sValue P.Name nounFrame == Just "гастроном" then "grocery" else ""
   let gender =

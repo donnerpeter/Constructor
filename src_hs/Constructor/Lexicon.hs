@@ -259,6 +259,7 @@ wordMites word index =
   "пошёл" -> finVerb "GO" "PAST" A.m v ++ [mite $ SemArgHead Obligatory Direction v0]
   "пошла" -> finVerb "GO" "PAST" A.f v ++ [mite $ SemArgHead Obligatory Direction v0]
   "пошли" -> finVerb "GO" "PAST" A.pl v ++ [mite $ SemArgHead Obligatory Direction v0]
+  "пятая" -> adj Nom A.f P.Order "5" v
   "приехал" -> finVerb "ARRIVE" "PAST" A.m v
   "работает" -> finVerb "WORK" "PRESENT" A.sg3 v
   "работу" -> nounSg Acc Fem "WORK" v

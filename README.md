@@ -86,7 +86,7 @@ The source code is in Haskell.
     translateTest "1, 2, 3, 4, 5 и 6 помнят, а дальше забыли."
                   "They remember 1, 2, 3, 4, 5 and 6, but forgot what comes next."
 
-### Clause coordination with verbal ellipsis
+### Verbal ellipsis
 
     translateTest "Но дойдя в счете до 6-ти, мы остановились и начали спорить: по мнению одних дальше следовало 7, по мнению других - 8"
                   "But reaching a six in count, we stopped and started arguing: in the opinion of some, a 7 went next; but in opinion of others an 8 did"
@@ -94,6 +94,10 @@ The source code is in Haskell.
     -- non-elided parts of different grammatical categories
     translateTest "Глупый кассир идет на работу, а умный - гулять"
                   "The stupid cashier goes to the work, but the smart one - for a walk"
+
+    -- non-marked ellipsis
+    translateTest "Потом из окна вывалилась третья старуха, потом четвертая, потом пятая."
+                  "Then the third old lady fell out of the window, then the fourth did, then the fifth."
 
 ### Hybrid coordination (aka coordination of unlikes)
 

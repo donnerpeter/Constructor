@@ -6,6 +6,7 @@ import Constructor.Variable
 import Constructor.InteractionEnv
 import Data.Maybe
 import Data.List (find)
+import qualified Data.Set as Set
 import qualified Constructor.SemanticProperties as P
 
 enumerateActiveMites tree includeSelf = let
@@ -19,7 +20,7 @@ findClause tree = [(m, t) | (m@(cxt -> Clause _), t) <- enumerateActiveMites tre
 suggestEllipsis env ellipsisVar e1 e2 = case findClause =<< context env of
   [] -> []
   (oldClause, tree):_ -> let
-    allMites = allTreeMites tree
+    allMites = Set.elems $ allActiveMiteSet tree
     mappings = catMaybes [processEllipsis oldClause ellipsisVar [mapping1, mapping2] tree False |
        mapping1 <- findOriginals allMites e1,
        mapping2 <- findOriginals allMites e2]
@@ -28,7 +29,7 @@ suggestEllipsis env ellipsisVar e1 e2 = case findClause =<< context env of
 suggestOneCxtEllipsis env ellipsisVar anchor = case findClause =<< context env of
   [] -> []
   (oldClause, tree):_ -> let
-    allMites = allTreeMites tree
+    allMites = Set.elems $ allActiveMiteSet tree
     mappings = catMaybes [processEllipsis oldClause ellipsisVar [mapping] tree True | mapping <- findOriginals allMites anchor]
     in xor mappings
 

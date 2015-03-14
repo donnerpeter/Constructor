@@ -56,7 +56,9 @@ processEllipsis oldClause ellipsisVar@(Variable varIndex _) mappings prevTree ma
     Unify _v1 _v2 -> [mite $ Unify (mapVariable _v1) (mapVariable _v2)]
     Sem _v1 (StrValue attr s) ->
       if attr == P.RusNumber || attr == P.RusGender || attr == P.RusPerson then []
-      else [semS (mapVariable _v1) attr s] ++ (if attr == P.Type then [semS (mapVariable _v1) P.Elided "true"] else [])
+      else if attr == P.Type then [semS (mapVariable _v1) P.Elided "true", semV (mapVariable _v1) P.EllipsisOriginal _v1]
+      else if _v1 == oldCP then []
+      else [semS (mapVariable _v1) attr s]
     Sem _v1 (VarValue attr _v2)  -> [mite $ Sem (mapVariable _v1) (VarValue attr $ mapVariable _v2)]
     _ -> []
   walkTree :: Tree -> ([Mite], [Construction])

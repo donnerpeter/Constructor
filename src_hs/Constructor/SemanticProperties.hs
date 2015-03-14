@@ -45,7 +45,7 @@ data VarProperty = Arg1 | Arg2
                  | Kind
                  | Quality
                  | Color
-                 | EllipsisAnchor1 | EllipsisAnchor2
+                 | EllipsisAnchor1 | EllipsisAnchor2 | EllipsisOriginal
                  deriving (Ord, Eq, Show, Generic)
 
 data StrProperty = Type

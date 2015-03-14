@@ -19,8 +19,11 @@ findFrames typ sense = [f | f <- allFrames sense, hasType typ f]
 typeEarlier f1 f2 = earlier f1 P.Type f2 P.Type
 
 sValue attr frame =
-  let declared = sDeclaredValue attr frame in
+  let declared = sDeclaredValue attr frame
+      original = sValue attr =<< fDeclaredValue P.EllipsisOriginal frame
+  in
   if isJust declared then declared
+  else if isJust original then original
   else
     case attr of
       P.Given ->
@@ -60,8 +63,11 @@ sValue attr frame =
 
 
 fValue attr frame =
-  let declared = fDeclaredValue attr frame in
+  let declared = fDeclaredValue attr frame
+      original = fValue attr =<< fDeclaredValue P.EllipsisOriginal frame
+  in
   if isJust declared then declared
+  else if isJust original then original
   else
     case attr of
       P.Arg1 ->
@@ -124,7 +130,7 @@ unSeq2 frame = case usage P.Member2 frame of
   Just s -> unSeq2 s
   _ -> frame
 
-isCP frame = Just "situation" == getDeclaredType frame
+isCP frame = hasType "situation" frame
 
 isFactCP frame = isCP frame && not (isQuestionCP frame)
 isQuestionCP frame = isCP frame && isJust (fValue P.Questioned frame)

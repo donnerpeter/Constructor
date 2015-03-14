@@ -3,6 +3,8 @@ import Constructor.Tree
 import Constructor.Util
 import Constructor.Mite
 import Constructor.Variable
+import Constructor.Sense (Sense, Frame, toFrame, framesTo, var, value, allFrameFacts)
+import Constructor.Inference
 import Constructor.InteractionEnv
 import Data.Maybe
 import Data.List (find)
@@ -21,16 +23,19 @@ suggestEllipsis env ellipsisVar e1 e2 = case findClause =<< context env of
   [] -> []
   (oldClause, tree):_ -> let
     allMites = Set.elems $ allActiveMiteSet tree
-    mappings = catMaybes [processEllipsis oldClause ellipsisVar [mapping1, mapping2] tree False |
+    sideTrees = subTrees LeftSide tree ++ subTrees RightSide tree
+    findSideTree mite = find (\t -> Set.member mite $ allActiveMiteSet t) sideTrees
+    mappings = catMaybes [semanticEllipsis oldClause ellipsisVar [mapping1, mapping2] tree False |
        mapping1 <- findOriginals allMites e1,
-       mapping2 <- findOriginals allMites e2]
+       mapping2 <- findOriginals allMites e2,
+       findSideTree (templateMite mapping1) /= findSideTree (templateMite mapping2)]
     in xor mappings
 
 suggestOneCxtEllipsis env ellipsisVar anchor = case findClause =<< context env of
   [] -> []
   (oldClause, tree):_ -> let
     allMites = Set.elems $ allActiveMiteSet tree
-    mappings = catMaybes [processEllipsis oldClause ellipsisVar [mapping] tree True | mapping <- findOriginals allMites anchor]
+    mappings = catMaybes [semanticEllipsis oldClause ellipsisVar [mapping] tree True | mapping <- findOriginals allMites anchor]
     in xor mappings
 
 data AnchorMapping = AnchorMapping { templateMite:: Mite, templateVar:: Variable, anchorVar:: Variable } deriving (Show)
@@ -45,37 +50,39 @@ checkOriginal anchor candidate = case (cxt candidate, anchor) of
 
 findOriginals mites anchor = catMaybes $ map (checkOriginal anchor) mites
 
-processEllipsis :: Mite -> Variable -> [AnchorMapping] -> Tree -> Bool -> Maybe [Mite]
-processEllipsis oldClause ellipsisVar@(Variable varIndex _) mappings prevTree mapVerb = let
+mapVar :: [AnchorMapping] -> Variable -> Variable -> (Variable -> Variable)
+mapVar mappings originalCP ellipsisVar@(Variable varIndex _) _v = case find (\m -> _v == templateVar m) mappings of
+  Just m -> anchorVar m
+  _ -> if _v == originalCP then ellipsisVar else Variable varIndex ("_" ++ show _v)
+
+semanticEllipsis :: Mite -> Variable -> [AnchorMapping] -> Tree -> Bool -> Maybe [Mite]
+semanticEllipsis oldClause ellipsisVar mappings prevTree mapVerb = let
   Clause oldCP = cxt oldClause
-  templateCxts = map (cxt . templateMite) mappings
-  mapVariable _v = case find (\m -> _v == templateVar m) mappings of
-    Just m -> anchorVar m
-    _ -> if _v == oldCP then ellipsisVar else Variable varIndex ("_" ++ show _v)
-  mapMite m = case cxt m of
-    Verb _v1 -> if mapVerb then [mite $ Verb (mapVariable _v1)] else []
-    Unify _v1 _v2 -> [mite $ Unify (mapVariable _v1) (mapVariable _v2)]
-    Sem _v1 (StrValue attr s) ->
-      if attr == P.RusNumber || attr == P.RusGender || attr == P.RusPerson then []
-      else if attr == P.Type then [semS (mapVariable _v1) P.Elided "true", semV (mapVariable _v1) P.EllipsisOriginal _v1]
-      else if _v1 == oldCP then []
-      else [semS (mapVariable _v1) attr s]
-    Sem _v1 (VarValue attr _v2)  -> [mite $ Sem (mapVariable _v1) (VarValue attr $ mapVariable _v2)]
-    _ -> []
-  walkTree :: Tree -> ([Mite], [Construction])
-  walkTree tree = let
-    activeHeadMites = Constructor.Tree.activeHeadMites tree
-    headCxts = map cxt activeHeadMites
-    ownMapped = filter (not . contradict oldClause) activeHeadMites >>= mapMite
-    folder (allMapped, allCovered) tree = let (mapped, covered) = walkTree tree in (allMapped++mapped, allCovered++covered)
-    (leftMapped, leftCovered) = foldl folder ([], []) $ subTrees LeftSide tree
-    (rightMapped, rightCovered) = foldl folder ([], []) $ subTrees RightSide tree
-    in case find (`elem` headCxts) templateCxts of
-      Just original -> ([], [original])
-      _ ->
-        if containsClause activeHeadMites then ([], [])
-        else (leftMapped++ownMapped++rightMapped, leftCovered++rightCovered)
-  (mapped, covered) = walkTree prevTree
-  containsClause mites = not $ null [m | m@(cxt -> Clause cp) <- mites, oldCP /=cp]
-  in
-  if covered == templateCxts then Just mapped else Nothing
+  mapVariable = mapVar (map (\m -> m { templateVar = var $ toFrame sens $ templateVar m }) mappings) oldCP ellipsisVar
+  verbs = if mapVerb then [mite $ Verb (mapVariable v) | (cxt -> Verb v) <- activeHeadMites prevTree] else []
+  sens = sense prevTree
+  in do
+    toCopy <- framesToCopy prevTree oldCP mappings
+    let copyMites = copySkeleton sens toCopy mapVariable $ ellipsisVar:(map anchorVar mappings)
+    return $ copyMites ++ verbs
+
+copySkeleton :: Sense -> Set.Set Frame -> (Variable -> Variable) -> [Variable] -> [Mite]
+copySkeleton sense originalFrames mapper anchorVars = Set.elems originalFrames >>= copyFrame where
+  copyFrame frame = let
+    v0 = mapper $ var frame
+    copyFact = \case
+      StrValue {} -> []
+      VarValue attr val ->
+        if Set.member (toFrame sense val) originalFrames || (mapper val) `elem` anchorVars
+        then [semV v0 attr (mapper val)]
+        else []
+    in [semS v0 P.Elided "true", semV v0 P.EllipsisOriginal (var frame)] ++ (allFrameFacts frame >>= copyFact . value)
+
+framesToCopy :: Tree -> Variable -> [AnchorMapping] -> Maybe (Set.Set Frame)
+framesToCopy tree originalCP mappings = result where
+  srcFrame = toFrame (sense tree) originalCP
+  dsts = map (toFrame (sense tree) . templateVar) mappings
+  paths = map (\dst -> framesTo srcFrame dst 3) dsts
+  candidates = Set.unions paths
+  foreignCPs = [frame | frame <- Set.elems candidates, isCP frame && frame /= srcFrame]
+  result = if all (not . Set.null) paths && null foreignCPs then Just candidates else Nothing

@@ -4,7 +4,7 @@ module Constructor.Sense
   fDeclaredValue, sDeclaredValue,
   earlier,
   usages, usage, allUsages,
-  isFrameReachable, reachableFrames,
+  isFrameReachable, reachableFrames, framesTo,
   makeSense, composeSense)
   where
 
@@ -164,3 +164,14 @@ reachableFrames origin = visitFrame Set.empty origin where
     in if Set.member frame visited then visited else goFurther
 
 isFrameReachable src dest = Set.member dest (reachableFrames src)
+
+framesTo :: Frame -> Frame -> Int -> Set.Set Frame
+framesTo src dst maxPathLength = inner Set.empty src where
+  sens = sense src
+  inner path current = let
+    allNeighbors = [toFrame sens v | (Fact {value=(VarValue _ v)}) <- allFrameFacts current]
+    newNeighbors = filter (not . flip Set.member path) allNeighbors
+    pathWithCurrent = Set.insert current path
+    in if current == dst then path
+       else if Set.size path >= maxPathLength then Set.empty
+       else Set.unions $ map (inner pathWithCurrent) newNeighbors

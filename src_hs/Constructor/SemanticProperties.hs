@@ -38,6 +38,7 @@ data VarProperty = Arg1 | Arg2
                  | Mood
                  | Manner
                  | Domain
+                 | State
                  | VName
                  | Owner
                  | Message

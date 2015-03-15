@@ -30,6 +30,7 @@ wordMites word index =
   "будет" -> [semS v0 P.Time "FUTURE"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0], [mite $ FutureTense A.sg3 v0]]
   "был" -> [mite $ Tense v0, semS v0 P.Time "PAST"]
   "была" -> [mite $ Tense v0, semS v0 P.Time "PAST"]
+  "были" -> [mite $ Tense v0, semS v0 P.Time "PAST"]
   "было" -> [semS v0 P.Time "PAST"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0]]
   "быстрее" -> comparativeAdj P.Quality "FAST" v
   "быстры" -> shortAdj A.pl P.Quality "FAST" v
@@ -101,6 +102,7 @@ wordMites word index =
   "забыла" -> finVerb "FORGET" "PAST" A.f v ++ optional (xor [compHead P.Arg2 v, directObject v, arg ScalarAdverb P.Order v])
   "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ optional (xor [compHead P.Arg2 v, directObject v, arg ScalarAdverb P.Order v])
   "завтра" -> adverb P.RelTime "TOMORROW" v
+  "закрыты" -> shortAdj A.pl P.State "CLOSED" v
   "зелёный" -> adj Nom A.m P.Color "GREEN" v
   "знает" -> finVerb "KNOW" "PRESENT" A.sg3 v ++ optional (directObject v)
   "знают" -> finVerb "KNOW" "PRESENT" A.pl3 v ++ optional (directObject v)
@@ -216,7 +218,7 @@ wordMites word index =
   "один" -> xor [wordNumber Acc "1" v, adj Nom A.m P.Determiner "ONE" v]
   "одна" -> adj Nom A.f P.Determiner "ONE" v
   "одних" -> nounPl Gen "SOME" v
-  "окна" -> nounSg Gen Neu "WINDOW" v
+  "окна" -> xor [nounSg Gen Neu "WINDOW" v, nounPl Nom "WINDOWS" v] ++ genHead P.Owner v
   "он" -> pronoun Nom A.m3 "HE" v
   "она" -> pronoun Nom A.f3 "SHE" v
   "они" -> pronoun Nom A.pl3 "THEY" v

@@ -235,7 +235,10 @@ adjectives nounFrame = do
     else if hasType "BIG" p then
       if hasType "GARDEN" nounFrame then "big" else "great"
     else ""
-  return $ order `cat` property `cat` kind `cat` shopKind `cat` size `cat` quality `cat` gender `cat` color
+  state <- adjSeq P.State $ \p ->
+    if hasType "CLOSED" p then "closed"
+    else ""
+  return $ order `cat` property `cat` state `cat` kind `cat` shopKind `cat` size `cat` quality `cat` gender `cat` color
 
 shouldContrastByGender frame = case (getType frame, sValue P.RusGender frame) of
   (Just typ, Just gender) | typ /= "NAMED_PERSON" -> let
@@ -264,7 +267,7 @@ fDeterminer frame =
   if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "JAWS", "ARGUE", "FINGER", "SPEECH", "FAMILY", "EYES", "BROTHER", "SISTER", "CORNER", "CURIOSITY"] frame then fValue P.Arg1 frame
   else if hasAnyType ["OPINION"] frame then fValue P.Arg1 frame
   else if hasAnyType ["WORDS", "BOOK"] frame then fValue P.Author frame
-  else if hasAnyType ["ROOMS", "APARTMENTS", "OFFICES"] frame then fValue P.Owner frame
+  else if hasAnyType ["ROOMS", "APARTMENTS", "OFFICES", "WINDOWS"] frame then fValue P.Owner frame
   else if hasAnyType ["CASHIER"] frame then fValue P.Place frame
   else if isElidedNoun frame then fValue P.Arg1 frame
   else Nothing

@@ -67,6 +67,7 @@ noun (Just typ) frame = case typ of
   "TREES" -> "trees"
   "WATERMELON" -> "watermelon"
   "WINDOW" -> "window"
+  "WINDOWS" -> "windows"
   "WORDS" -> "words"
   "ROOMS" -> "rooms"
   "WORK" -> "work"
@@ -89,6 +90,9 @@ renderAsWord frame = not $ isNumber $ Just frame
 
 isSingular frame = case getType frame of
   Just "NEIGHBORS" -> False
+  Just "WINDOWS" -> False
+  Just "THEY" -> False
+  Just "WE" -> False
   Just "TREES" -> False
   _ -> case fValue P.Quantifier frame >>= getType of
     Just s -> s == "1"

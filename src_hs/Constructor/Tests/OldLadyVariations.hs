@@ -4,9 +4,9 @@ import Constructor.Tests.Testing
 oldLadyVariationTests = [
   translateTest "Один старик от чрезмерного любопытства вывалился из окна, упал и разбился."
                 "Because of his excessive curiosity, an old man fell out of the window and smashed into the ground."
---                ,
---todo  translateTest "Окна соседей были закрыты."
---                "The neighbors' windows were closed."
+                ,
+  translateTest "Окна соседей были закрыты."
+                "The neighbors' windows were closed."
                 ,
   translateTest "Другая старуха стала смотреть вниз на разбившуюся старуху."
                 "Another old lady started staring down at the smashed old lady."

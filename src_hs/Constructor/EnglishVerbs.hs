@@ -5,6 +5,7 @@ module Constructor.EnglishVerbs (
 import Constructor.Sense
 import Constructor.Inference
 import Constructor.ArgumentPlanning
+import Constructor.EnglishNouns
 import Constructor.Util
 import qualified Constructor.SemanticProperties as P
 import Data.Maybe
@@ -75,7 +76,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
 
 beForm fSubject verbForm =
   if verbForm == PastVerb then
-    if Just "Pl" == (fSubject >>= sValue P.RusNumber) then "were" else "was"
+    if Just True /= (fmap isSingular fSubject) then "were" else "was"
   else if Just "ME" == (fSubject >>= getType) then "am"
   else if Just "YOU" == (fSubject >>= getType) then "are"
   else if Just "Pl" == (fSubject >>= sValue P.RusNumber) then "are" else "is"

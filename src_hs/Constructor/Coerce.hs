@@ -29,7 +29,11 @@ asVerb env m = case cxt m of
                    semV ellipsisVar P.EllipsisAnchor2 var, semS ellipsisVar P.Elided "true"] ++ map unifyVerbs mites
         ellipsis = case _c of
           Argument _ v -> raiseToEllipsis _c v
-          Adj v _ _ _ -> raiseToEllipsis _c v
+          Adj v _ _ _ -> let
+            plain = raiseToEllipsis _c v
+            Just (arg, rest) = asNoun _c
+            withNounCoercion = raiseToEllipsis arg v
+            in if null plain then withNounCoercion ++ rest else plain
           _ -> []
         in xorNonEmpty $ [copulaCoercion, ellipsis]
       _ -> []

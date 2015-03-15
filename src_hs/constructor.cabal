@@ -25,7 +25,8 @@ executable constructor
                        deepseq,
                        hashable,
                        unordered-containers,
-                       containers
+                       containers,
+                       ansi-terminal
 
 executable profiled
   ghc-options: -O2 -fprof-auto-exported -fno-prof-count-entries -rtsopts

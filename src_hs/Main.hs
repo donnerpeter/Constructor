@@ -10,6 +10,7 @@ import Control.DeepSeq
 import Control.Monad (when)
 import System.CPUTime
 import System.IO.Unsafe
+import System.Console.ANSI
 
 import Constructor.Tests.Testing
 import Constructor.Tests.Sonnet
@@ -45,9 +46,13 @@ demo = inner 0 where
   inner index = do
     _ <- getLine
     let sentence = lines !! index
-    putStrLn $ "Translating: " ++ sentence
-    putStrLn "..."
+    setSGR [SetColor Foreground Vivid Green]
+    putStrLn sentence
+    setSGR []
+    putStrLn "translating..."
+    setSGR [SetColor Foreground Vivid Blue]
     putStrLn $ translate sentence
+    setSGR []
     putStrLn "------------------------"
     let nextIndex = index + 1
     if nextIndex < length lines then inner nextIndex

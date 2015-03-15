@@ -39,3 +39,16 @@ allTests = runTestTT $ TestList $ map createTest $
   oldLadyTests ++ oldLadyVariationTests
 
 main = allTests
+
+demo = inner 0 where
+  lines = sonnetSentences
+  inner index = do
+    _ <- getLine
+    let sentence = lines !! index
+    putStrLn $ "Translating: " ++ sentence
+    putStrLn "..."
+    putStrLn $ translate sentence
+    putStrLn "------------------------"
+    let nextIndex = index + 1
+    if nextIndex < length lines then inner nextIndex
+    else return ()

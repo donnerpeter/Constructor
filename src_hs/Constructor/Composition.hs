@@ -69,9 +69,10 @@ ellipsisLeftVariants env = if null result then [] else mergeRight $ LS.removeDup
   result = rightCombined env >>= \m2 -> case cxt m2 of
     Ellipsis v rightCxt@(Just e2) -> leftCombined env >>= \m1 -> case ellipsisAnchor (cxt m1) of
       Just (anchorCxt, anchorVar, rest) -> let
-        elided = suggestEllipsis env v anchorCxt e2
+        elided = suggestDoubleAnchorEllipsis env v anchorCxt e2
         in if null elided then []
-           else elided ++ withBase [m1,m2] [semV v P.EllipsisAnchor1 anchorVar, mite $ Clause v] ++ liftUnclosed LeftSide (leftCompatible env m1) ++ rest
+           else withBase [m1,m2] [semV v P.EllipsisAnchor1 anchorVar, mite $ Clause v] ++ liftUnclosed LeftSide (leftCompatible env m1) ++ rest
+                ++ xor (map (\(ClauseEllipsis v mites) -> [mite $ ConjEmphasizeable v] ++ mites) elided)
       _ -> []
     _ -> []
 

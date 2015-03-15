@@ -91,9 +91,9 @@ The source code is in Haskell.
     translateTest "Но дойдя в счете до 6-ти, мы остановились и начали спорить: по мнению одних дальше следовало 7, по мнению других - 8"
                   "But reaching a six in count, we stopped and started arguing: in the opinion of some, a 7 went next; but in opinion of others an 8 did"
 
-    -- non-elided parts of different grammatical categories
-    translateTest "Глупый кассир идет на работу, а умный - гулять"
-                  "The stupid cashier goes to the work, but the smart one - for a walk"
+    -- non-elided parts of different grammatical categories + ellipsis in another sentence
+    translateTest "Глупый кассир идет на работу. А умные - гулять."
+                  "The stupid cashier goes to the work. And the smart ones - for a walk."
 
     -- non-marked ellipsis
     translateTest "Потом из окна вывалилась третья старуха, потом четвертая, потом пятая."

@@ -1,4 +1,4 @@
-module Constructor.Ellipsis (suggestEllipsis, suggestOneCxtEllipsis) where
+module Constructor.Ellipsis (ClauseEllipsis(..), suggestDoubleAnchorEllipsis, suggestSingleAnchorEllipsis) where
 import Constructor.Tree
 import Constructor.Util
 import Constructor.Mite
@@ -19,24 +19,26 @@ enumerateActiveMites tree includeSelf = let
 
 findClause tree = [(m, t) | (m@(cxt -> Clause _), t) <- enumerateActiveMites tree True]
 
-suggestEllipsis env ellipsisVar e1 e2 = case findClause =<< context env of
+data ClauseEllipsis = ClauseEllipsis { elidedVerb :: Variable, semantics :: [Mite] }
+
+suggestDoubleAnchorEllipsis env ellipsisVar e1 e2 = case findClause =<< context env of
   [] -> []
   (oldClause, tree):_ -> let
     allMites = Set.elems $ allActiveMiteSet tree
     sideTrees = subTrees LeftSide tree ++ subTrees RightSide tree
     findSideTree mite = find (\t -> Set.member mite $ allActiveMiteSet t) sideTrees
-    mappings = catMaybes [semanticEllipsis oldClause ellipsisVar [mapping1, mapping2] tree False |
+    mappings = catMaybes [semanticEllipsis oldClause ellipsisVar [mapping1, mapping2] tree |
        mapping1 <- findOriginals allMites e1,
        mapping2 <- findOriginals allMites e2,
        findSideTree (templateMite mapping1) /= findSideTree (templateMite mapping2)]
-    in xor mappings
+    in mappings
 
-suggestOneCxtEllipsis env ellipsisVar anchor = case findClause =<< context env of
+suggestSingleAnchorEllipsis env ellipsisVar anchor = case findClause =<< context env of
   [] -> []
   (oldClause, tree):_ -> let
     allMites = Set.elems $ allActiveMiteSet tree
-    mappings = catMaybes [semanticEllipsis oldClause ellipsisVar [mapping] tree True | mapping <- findOriginals allMites anchor]
-    in xor mappings
+    mappings = catMaybes [semanticEllipsis oldClause ellipsisVar [mapping] tree | mapping <- findOriginals allMites anchor]
+    in mappings
 
 data AnchorMapping = AnchorMapping { templateMite:: Mite, templateVar:: Variable, anchorVar:: Variable } deriving (Show)
 
@@ -55,16 +57,17 @@ mapVar mappings originalCP ellipsisVar@(Variable varIndex _) _v = case find (\m 
   Just m -> anchorVar m
   _ -> if _v == originalCP then ellipsisVar else Variable varIndex ("_" ++ show _v)
 
-semanticEllipsis :: Mite -> Variable -> [AnchorMapping] -> Tree -> Bool -> Maybe [Mite]
-semanticEllipsis oldClause ellipsisVar mappings prevTree mapVerb = let
+semanticEllipsis :: Mite -> Variable -> [AnchorMapping] -> Tree -> Maybe ClauseEllipsis
+semanticEllipsis oldClause ellipsisVar mappings prevTree = let
   Clause oldCP = cxt oldClause
   mapVariable = mapVar (map (\m -> m { templateVar = var $ toFrame sens $ templateVar m }) mappings) oldCP ellipsisVar
-  verbs = if mapVerb then [mite $ Verb (mapVariable v) | (cxt -> Verb v) <- activeHeadMites prevTree] else []
+  verbs = [mapVariable v | (cxt -> Verb v) <- activeHeadMites prevTree]
+  singleVerb = if length verbs == 1 then head verbs else error $ "Non-single verb: " ++ show verbs ++ " in " ++ show (activeHeadMites prevTree)
   sens = sense prevTree
   in do
     toCopy <- framesToCopy prevTree oldCP mappings
     let copyMites = copySkeleton sens toCopy mapVariable $ ellipsisVar:(map anchorVar mappings)
-    return $ copyMites ++ verbs
+    return $ ClauseEllipsis singleVerb copyMites
 
 copySkeleton :: Sense -> Set.Set Frame -> (Variable -> Variable) -> [Variable] -> [Mite]
 copySkeleton sense originalFrames mapper anchorVars = Set.elems originalFrames >>= copyFrame where

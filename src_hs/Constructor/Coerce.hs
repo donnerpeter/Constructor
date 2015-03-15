@@ -20,13 +20,11 @@ asVerb env m = case cxt m of
         copulaCoercion = [mite $ Verb verb, mite $ CopulaHead (cd { copBound = True })] ++ copulaSem cd ++ rest
         raiseToEllipsis anchor var = let
           ellipsisVar = makeV var "ell" ""
-          mites = suggestOneCxtEllipsis env ellipsisVar anchor
-          unifyVerbs m = case cxt m of
-            Verb v -> mite $ Unify v verb
-            _ -> m
-          in if null mites then []
+          ellipses = suggestSingleAnchorEllipsis env ellipsisVar anchor
+          in if null ellipses then []
              else [mite $ Verb verb, mite $ Clause ellipsisVar, mite $ Handicap ellipsisVar,
-                   semV ellipsisVar P.EllipsisAnchor2 var, semS ellipsisVar P.Elided "true"] ++ map unifyVerbs mites
+                   semV ellipsisVar P.EllipsisAnchor2 var, semS ellipsisVar P.Elided "true"]
+                  ++ xor (map (\(ClauseEllipsis v mites) -> [mite $ Unify v verb, mite $ Verb v] ++ mites) ellipses)
         ellipsis = case _c of
           Argument _ v -> raiseToEllipsis _c v
           Adj v _ _ _ -> let

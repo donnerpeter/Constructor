@@ -1,4 +1,4 @@
-module Constructor.Coerce (asVerb, asTenseHead, asCopula, asNoun, asNegateable) where
+module Constructor.Coerce (asVerb, asTenseHead, asCopula, asNoun, asNegateable, asClause) where
 
 import Constructor.Agreement
 import Constructor.Mite
@@ -82,3 +82,9 @@ asNegateable :: Construction -> Maybe Variable
 asNegateable (Negateable v) = Just v
 asNegateable (NounPhrase v) = Just v
 asNegateable _ = Nothing
+
+asClause :: Construction -> Maybe (Variable, [Mite])
+asClause = \case
+  Clause cp -> Just (cp, [])
+  TopLevelQuestion cp -> Just (cp, [semS cp P.ExclamativeQuestion "true"])
+  _ -> Nothing

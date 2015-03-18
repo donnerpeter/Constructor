@@ -3,7 +3,7 @@ module Constructor.Sense
   allFrames, allFrameFacts, toFrame,
   fDeclaredValue, sDeclaredValue,
   earlier,
-  usages, usage, allUsages,
+  usages, usage, allUsages, usageFacts,
   isFrameReachable, reachableFrames, framesTo,
   makeSense, composeSense)
   where

@@ -60,6 +60,8 @@ sValue attr frame =
         Just "THEY" -> Just "Pl"
         Just "ME" -> Just "Sg"
         _ -> Nothing
+      P.ExclamativeQuestion | isQuestionCP frame && isNothing (sDeclaredValue P.Question_mark frame) && null (usageFacts frame) ->
+        Just "true"
       _ -> Nothing
 
 

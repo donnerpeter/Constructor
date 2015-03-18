@@ -142,10 +142,10 @@ punctuationAware env (m1, m2) =
       (QuestionVariants v kind, CommaSurrounded True closed (Argument kind2 child)) | kind == kind2 ->
         mergeLeft $ base12 [semV v P.Variants child] ++ liftUnclosedCompatible RightSide
 
-      (Clause cp, Word _ ".") ->
-        mergeRight $ base12 [semS cp P.Dot "true", mite $ Sentence cp] ++ liftUnclosedCompatible LeftSide ++ closeUnclosed LeftSide Satisfied
-      (Clause cp, Word _ "!") ->
-        mergeRight $ base12 [semS cp P.Exclamation_mark "true", mite $ Sentence cp] ++ liftUnclosedCompatible LeftSide ++ closeUnclosed LeftSide Satisfied
+      (c, Word _ ".") | Just (cp, rest) <- asClause c ->
+        mergeRight $ base12 [semS cp P.Dot "true", mite $ Sentence cp] ++ liftUnclosedCompatible LeftSide ++ closeUnclosed LeftSide Satisfied ++ rest
+      (c, Word _ "!") | Just (cp, rest) <- asClause c ->
+        mergeRight $ base12 [semS cp P.Exclamation_mark "true", mite $ Sentence cp] ++ liftUnclosedCompatible LeftSide ++ closeUnclosed LeftSide Satisfied ++ rest
       (Sentence cp, Word _ "\n") ->
         mergeRight $ base12 [semS cp P.ParagraphEnd "true"] ++ closeUnclosed LeftSide Satisfied
       (Argument Nom noun, Word cp "\n\n") ->

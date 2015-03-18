@@ -5,12 +5,13 @@ module Constructor.Inference (
   typeEarlier,
   flatten, isNumber, unSeq, unSeq1, unSeq2, seqSiblings, prevSiblings, nextSiblings,
   isHuman, isAnimate, isInanimate,
-  isCP, isFactCP, isQuestionCP) where
+  isCP, isFactCP, isQuestionCP, isQualityCopula) where
 
 import Constructor.Sense
 import qualified Constructor.SemanticProperties as P
 import Data.Maybe
 import Control.Monad
+import Control.Applicative
 import Data.List (find)
 import Constructor.Util
 
@@ -29,9 +30,9 @@ sValue attr frame =
       P.Given ->
         if Just True == fmap (hasAnyType ["SOME", "ONE"]) (fValue P.Determiner frame) then Just "false"
         else if hasAnyType ["CASE", "HAMMER", "TREES", "BENCH", "FINGER", "WATERMELON", "JAW"] frame then Just "false"
-        else if Just True == fmap isNumberString (getType frame) then Just "false"
+        else if isTrue $ isNumberString <$> getType frame then Just "false"
         else if Just "copula" == (usage P.Arg2 (unSeq frame) >>= getDeclaredType) then Just "false"
-        else if Just "degree" == (usage P.Arg1 frame >>= getDeclaredType) then Just "false"
+        else if isTrue $ isQualityCopula <$> usage P.Arg1 frame then Just "false"
         else if hasType "CHILD" frame then
           if Just "SOME" == (fValue P.Determiner frame >>= getType) then Just "false" else Just "true"
         else if hasType "CASHIER" frame then
@@ -44,7 +45,7 @@ sValue attr frame =
           if any (\cashier -> typeEarlier cashier frame && Just "copula" /= (usage P.Arg2 cashier >>= getType)) $ findFrames "CASHIER" $ sense frame then Just "true"
           else if isJust $ msum [usage P.Arg1 frame, usage P.Source frame] then Just "true"
           else Just "false"
-        else if Just True == fmap isCP (usage P.Content frame) then Just "false"
+        else if isTrue $ isCP <$> usage P.Content frame then Just "false"
         else Just "true"
       P.Type -> case usage P.Arg1 frame >>= commandingSubject >>= getType of
         Just commandingType -> Just commandingType
@@ -134,3 +135,6 @@ isCP frame = hasType "situation" frame
 
 isFactCP frame = isCP frame && not (isQuestionCP frame)
 isQuestionCP frame = isCP frame && isJust (fValue P.Questioned frame)
+
+isQualityCopula frame = hasType "copula" frame && isTrue (hasType "placeholder" <$> arg2) && isTrue (hasType "wh" <$> (fValue P.Quality =<< arg2)) where
+  arg2 = fValue P.Arg2 frame

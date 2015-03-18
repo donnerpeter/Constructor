@@ -69,6 +69,7 @@ data StrProperty = Type
                  | So_there
                  | ProfessionCopula
                  | Question_mark | Dot | ParagraphEnd | SectionEnd | Exclamation_mark
+                 | ExclamativeQuestion
                  | Time
                  | Distinguished
                  | Imperfective

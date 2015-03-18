@@ -74,8 +74,7 @@ possessive caze agr value v = adjLike caze agr P.Arg1 value (Possessive caze agr
 adjLike caze agr attr value adjLikeCxt v = [semT v0 value, mite $ AdverbModifiable v0, mite $ Negateable v0, mite adjLikeCxt]
   where v0 = v ""
 
-shortAdj agr attr value v =
-  [semT v0 value, mite $ AdverbModifiable v0] ++ copulaHead AdjCopula agr "copula" attr Optional v0 ++ [mite $ Negateable v0]
+shortAdj agr attr value v = [semT v0 value, mite $ AdverbModifiable v0, mite $ ShortAdj agr attr v0, mite $ Negateable v0]
   where v0 = v ""
 
 comparativeAdj attr value v =

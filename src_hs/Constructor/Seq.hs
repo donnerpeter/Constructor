@@ -35,6 +35,7 @@ seqWrappable mite = hybridConjoinable (cxt mite) || case cxt mite of
   NegativePronoun {} -> True
   Wh {} -> True
   Negated {} -> True
+  ShortAdj {} -> True
   _ -> False
 
 hybridConjoinable c = case c of

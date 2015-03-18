@@ -48,7 +48,7 @@ data Construction = Word Variable String
                   --adjectives
                   | Adj Variable P.VarProperty ArgKind Agr
                   | AdjHead Variable ArgKind Agr
-                  | ShortAdj Variable
+                  | ShortAdj Agr P.VarProperty Variable
                   | ComparativeAdj Variable
                   | ComparativeEmphasis Variable
 

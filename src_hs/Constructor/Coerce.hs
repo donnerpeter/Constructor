@@ -47,6 +47,7 @@ asTenseHead m = case cxt m of
     in [tenseHead, ch] ++ instrCopula cd
   Adj v attr Instr agr -> reverse $ copulaHead AdjCopula agr "copula" attr Obligatory v
   Adj v attr Nom agr -> reverse $ copulaHead AdjCopula agr "copula" attr Optional v
+  ShortAdj agr attr v -> reverse $ copulaHead AdjCopula agr "copula" attr Optional v
   _ -> []
 
 instrCopula cd = [semS (copula cd) P.ProfessionCopula "true", mite $ ConjEmphasizeable (copula cd)]
@@ -55,6 +56,9 @@ asCopula :: Construction -> Maybe (CopulaData, [Mite])
 asCopula = \case
   CopulaHead cd -> Just (cd, [])
   Adj v attr Nom agr -> let
+    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead AdjCopula agr "copula" attr Optional v
+    in Just (cd, [tenseHead])
+  ShortAdj agr attr v -> let
     [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead AdjCopula agr "copula" attr Optional v
     in Just (cd, [tenseHead])
   Argument Nom v -> let

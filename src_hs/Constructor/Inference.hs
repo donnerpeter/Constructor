@@ -102,7 +102,7 @@ resolve frame = case getType frame of
   Just "wh" | Just relativized <- usage P.Questioned frame >>= usage P.Relative -> relativized
   Just "HE" -> let
     copulas = findFrames "copula" $ sense frame
-    arg2s = reverse $ filter (\f -> not (isFrameReachable f frame) && typeEarlier f frame && not (hasType "wh" f)) $ catMaybes $ map (fValue P.Arg2) copulas
+    arg2s = reverse $ filter (\f -> not (isFrameReachable f frame) && typeEarlier f frame && not (hasAnyType ["wh", "placeholder"] f)) $ catMaybes $ map (fValue P.Arg2) copulas
     in fromMaybe frame $ listToMaybe arg2s
   _ -> frame
 

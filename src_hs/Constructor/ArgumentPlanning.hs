@@ -124,6 +124,7 @@ arguments fVerb@(getType -> Just typ) = allArgs where
       ("copula_about", P.Arg2) -> [PPArg "about" $ fromJust $ fValue P.Arg2 value]
       ("copula_talking_about", P.Arg2) -> [PPArg "about" $ fromJust $ fValue P.Arg2 value]
       ("copula", P.Arg1) | isOwnerCopula fVerb -> [NPArg value]
+      ("copula", P.Arg2) | Just q <- fValue P.Quality value, hasType "placeholder" value && hasType "wh" q -> [NPArg q]
       (_, P.Arg2) -> if isCPOrSeq value then [] else [NPArg value]
       (_, P.Duration) -> if hasType "LONG" value then [Adverb AfterVerb "for a long time"] else []
       (_, P.VTime) | hasType "wh" value -> [NPArg value]

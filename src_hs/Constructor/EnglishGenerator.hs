@@ -431,7 +431,7 @@ clause fVerb = do
                    else ""
     let fSubject = englishSubject fVerb
         cp = usage P.Content fVerb
-    core <- if hasType "degree" fVerb && Just True == fmap (hasType "wh") (fValue P.Arg2 fVerb)
+    core <- if hasType "degree" fVerb && Just True == fmap (hasType "wh") (fValue P.Arg2 fVerb >>= fValue P.Quality)
            then case fSubject >>= getType of
              Just "AMAZE" -> return "Great was" `catM` np True fSubject
              Just "CUNNING_PERSON" -> return "What" `catM` np True fSubject

@@ -128,12 +128,14 @@ wordMites word index =
   "кажется" -> raisingVerb "SEEM" "PRESENT" A.sg3 v ++ optional (arg Dat P.Experiencer v)
   "как" -> [mite $ TwoWordCxt "так как" False [] v0]
   "каков" ->
-    finiteClause A.m True v ++ [mite $ TenseHead Optional v0, semT (v "wh") "wh", semV v0 P.Arg2 (v "wh"), mite $ ShortAdj (v "wh")] ++
-    xor [[semT v0 "degree"],
+    [mite $ NomHead A.m (v "arg1") Unsatisfied, semV (v "") P.Arg1 (v "arg1"), mite $ TenseHead Optional v0, semT (v "wh") "wh", semV v0 P.Arg2 (v "wh"), mite $ ShortAdj (v "wh")] ++
+    [semV (v "cp") P.Content (v ""), semT (v "cp") "situation", mite $ Verb v0] ++
+    xor [[semT v0 "degree", mite $ Clause (v "cp")],
          [semT v0 "copula", semV (v "cp") P.Questioned (v "wh")] ++ xor [[mite $ Complement (v "cp")], [mite $ TopLevelQuestion (v "cp")]]]
   "каково" ->
-    finiteClause A.n True v ++ [mite $ TenseHead Optional v0, semT (v "wh") "wh", semV v0 P.Arg2 (v "wh"), mite $ ShortAdj (v "wh")] ++
-    xor [[semT v0 "degree"],
+    [mite $ NomHead A.n (v "arg1") Unsatisfied, semV (v "") P.Arg1 (v "arg1"), mite $ TenseHead Optional v0, semT (v "wh") "wh", semV v0 P.Arg2 (v "wh"), mite $ ShortAdj (v "wh")] ++
+    [semV (v "cp") P.Content (v ""), semT (v "cp") "situation", mite $ Verb v0] ++
+    xor [[semT v0 "degree", mite $ Clause (v "cp")],
          [semT v0 "copula", semV (v "cp") P.Questioned (v "wh")] ++ xor [[mite $ Complement (v "cp")], [mite $ TopLevelQuestion (v "cp")]]]
   "какого" -> adjWh Gen A.m P.Determiner v
   "какой" -> xor [adjWh Nom A.m P.Determiner v, adjWh Acc A.m P.Determiner v]

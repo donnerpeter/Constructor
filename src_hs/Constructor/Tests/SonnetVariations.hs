@@ -108,6 +108,9 @@ var3 = [
   translateTest "Каково же было мое удивление"
                 "Great was my amazement"
   ,
+--todo  translateTest "Велико же было мое удивление"
+--                "Great was my amazement"
+--  ,
   -- 3_She
   translateTest "Она вдруг обнаружила, что не может вспомнить порядок счета"
                 "She suddenly discovered, that she couldn't recall the counting order"

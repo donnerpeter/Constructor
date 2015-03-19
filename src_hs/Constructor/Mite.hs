@@ -94,8 +94,8 @@ contradict mite1 mite2 = any (\m -> Set.member (xorKey m) (flattenContradictors 
     Just gen1 -> gen1 /= gen2
 
 diversify miteGroups = result where
-  cxt2Count = Map.fromListWith (+) [(cxt mite, 1) | mite <- concat miteGroups]
-  isUnique mite = 1 == Map.findWithDefault 0 (cxt mite) cxt2Count
+  mite2Count = Map.fromListWith (+) [(mite, 1) | mite <- concat miteGroups]
+  isUnique mite = 1 == Map.findWithDefault 0 mite mite2Count
   toProcess = filter isToProcess miteGroups
   isToProcess group = all (not . isUnique) group
   diversifyGroup g = case elemIndex g toProcess of
@@ -126,6 +126,7 @@ isCoverable mite = if not (happy mite) then True else case cxt mite of
   NomHead {} -> True
   GenHead {} -> True
   Clause {} -> True
+  QuestionVariants {} -> True
   _ -> False
 
 isHandicap (cxt -> Handicap _) = True

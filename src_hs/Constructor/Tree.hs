@@ -37,7 +37,9 @@ eqKey t = (headSide t, mites t, left t, right t)
 instance Show Tree where
   show tree =
     let inner tree prefix allowTop allowBottom = top ++ center ++ bottom where
-          center = prefix ++ (Data.List.intercalate ", " $ map showMite $ uncoveredHeadMites tree) ++ "\n"
+          uncoveredHeadMites = filter (flip Set.member allShown) (headTrees tree >>= mites)
+          allShown = Set.fromList $ concat $ map activeHeadMites $ allVariants tree
+          center = prefix ++ (Data.List.intercalate ", " $ map showMite uncoveredHeadMites) ++ "\n"
           top = if not allowTop then "" else case listToMaybe $ subTrees RightSide tree of
             Just r -> inner r (".."++prefix) True False
             Nothing -> ""
@@ -76,16 +78,6 @@ headTrees tree =
   else [tree]
 
 headMites tree = concat $ map mites $ headTrees tree
-
-uncoveredHeadMites tree =
-  let inner tree suppressed result =
-        let ownMites = [mite | mite <- mites tree, not $ Set.member mite suppressed]
-        in
-        if isNothing $ left tree then concat $ reverse (ownMites:result)
-        else inner (if headSide tree == LeftSide then justLeft tree else justRight tree)
-                    (Set.union suppressed $ Set.filter isCoverable $ activeBase $ active tree)
-                    (ownMites:result)
-  in inner tree Set.empty []
 
 activeBase activeSet = Set.fromList [mite | activeMite <- Set.elems activeSet, mite <- baseMites activeMite]
 

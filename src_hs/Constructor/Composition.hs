@@ -2,7 +2,8 @@ module Constructor.Composition (interactNodes) where
 import Constructor.CopulaData
 import Constructor.Mite
 import Constructor.Variable
-import Constructor.Agreement
+import qualified Constructor.Agreement as A
+import Constructor.Agreement (agree, commonAgr)
 import Constructor.Tree
 import Constructor.Util
 import Constructor.LexiconUtils
@@ -264,10 +265,10 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
         Clause cp -> mergeLeft $ withBase [m1,m2,m3] [mite $ Unify v2 wh, mite $ RelativeClause agr cp, semV cp P.Questioned wh]
         _ -> []
       -- todo relativizer + nomHead/copulaHead duplication
-      (Relativizer wh, _c) | Just (cd, rest) <- asCopula _c, copKind cd /= NomNPCopula && not (agree (copAgr cd) n) ->
+      (Relativizer wh, _c) | Just (cd, rest) <- asCopula _c, copKind cd /= NomNPCopula && not (agree (copAgr cd) A.n) ->
         left $ [mite $ Unify (copSubj cd) wh, mite $ RelativeClause (copAgr cd) (copCP cd), semV (copCP cd) P.Questioned wh] ++ rest ++ copulaSem cd
       (Relativizer wh, ArgHead Acc attr v2) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
-        Clause cp -> mergeLeft $ withBase [m1,m2,m3] [semV v2 attr wh, mite $ RelativeClause empty cp, semV cp P.Questioned wh]
+        Clause cp -> mergeLeft $ withBase [m1,m2,m3] [semV v2 attr wh, mite $ RelativeClause A.empty cp, semV cp P.Questioned wh]
         _ -> []
 
       (ConjEmphasis attr _, ConjEmphasizeable head) -> right [semS head attr "true"]
@@ -302,7 +303,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
               ("v", Prep) -> xor [[mite $ VerbalModifier P.Condition False var2],
                                   [mite $ VerbalModifier P.Location_in False var2]]
               _ -> []
-            copulaCommon copulaType rel = copulaHead PPCopula empty copulaType rel Optional var1
+            copulaCommon copulaType rel = copulaHead PPCopula A.empty copulaType rel Optional var1
             copulaVariants = case (prep1, kind1) of
               ("u", Gen) -> copulaCommon "copula" P.Owner
               ("na", Prep) -> copulaCommon "copula" P.Location_on

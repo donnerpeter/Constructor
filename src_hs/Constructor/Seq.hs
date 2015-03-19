@@ -1,7 +1,8 @@
 module Constructor.Seq (seqLeft, seqRight, pullThyself) where
 import Constructor.CopulaData
 import Constructor.Mite
-import Constructor.Agreement
+import qualified Constructor.Agreement as A
+import Constructor.Agreement (agree, commonAgr, adjAgree, Agr)
 import Constructor.Variable
 import Constructor.Util
 import Constructor.LexiconUtils
@@ -76,7 +77,7 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
         fullConj mem1 mem2 = [semV seqV P.Member1 mem1, semV seqV P.Member2 mem2, mite $ Conjunction $ sd {seqHasLeft=True}]
         handleAdj :: Variable -> Variable -> ArgKind -> Agr -> Agr -> P.VarProperty -> Mite -> (Agr -> Construction) -> [[Mite]]
         handleAdj mem1 mem2 caze1 agr1 agr2 attr m4 result = let
-          adjAgrVariants = [[mite $ result (Agr Nothing (Just Pl) Nothing)]]
+          adjAgrVariants = [[mite $ result A.pl]]
           unifiedAgrVariants = [[mite $ result (commonAgr agr1 agr2)]]
           allVariants = xorNonEmpty $
             if seqConj sd == "a" then unifiedAgrVariants
@@ -95,7 +96,7 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
           leftRefs  = [m | m@(cxt -> ReflexiveReference _) <- leftCombined env] >>= liftMite
           rightRefs = [m | m@(cxt -> SeqRight(ReflexiveReference _)) <- rightCombined env] >>= liftMite
           in leftRefs ++ rightRefs
-        adjHeadCompanions child kind = if kind `elem` cases then withBase [m2] [mite $ AdjHead seqV kind pl3] else []
+        adjHeadCompanions child kind = if kind `elem` cases then withBase [m2] [mite $ AdjHead seqV kind A.pl3] else []
         distinguished mite = case cxt mite of
           Argument (PP {}) child -> [semS child P.Distinguished "true"]
           VerbalModifier _ _ child | any isPrepHead (baseMites mite) -> [semS child P.Distinguished "true"]
@@ -164,7 +165,7 @@ hybridSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = let
       SeqRight (NegativePronoun mem2) -> makeHybrid m1 m3 mem1 mem2 (NegativePronoun seqV)
       _ -> []
     Wh agr1 mem1 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
-      SeqRight (Wh agr2 mem2) | agree agr1 agr2 -> makeHybrid m1 m3 mem1 mem2 (Wh empty seqV)
+      SeqRight (Wh agr2 mem2) | agree agr1 agr2 -> makeHybrid m1 m3 mem1 mem2 (Wh A.empty seqV)
       _ -> []
     _ -> []
 

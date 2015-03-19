@@ -95,8 +95,7 @@ punctuationAware env (m1, m2) =
           in if null lifted then withBase [baseMite] [mite $ Unclosed side [v]] else lifted
         closeUnclosed side satisfied = (select side leftCombined rightCombined) env >>= \m -> case cxt m of
           Unclosed s vars | s == invert side -> withBase [m] $
-            optional $ [mite $ Closed vars]
-            ++ map (\v -> semS v (select side P.LeftIsolated P.RightIsolated) (if satisfied == Satisfied then "true" else "false")) vars
+            map (\v -> semS v (select side P.LeftIsolated P.RightIsolated) (if satisfied == Satisfied then "true" else "false")) vars
           _ -> []
     in case (cxt m1, cxt m2) of
       (NounPhrase head, CommaSurrounded True _ (NounAdjunct attr True var)) -> mergeLeft $

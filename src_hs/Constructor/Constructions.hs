@@ -37,7 +37,6 @@ data Construction = Word Variable String
                   | DashSurrounded {-opened-} Bool {-closed-} Bool Construction
                   | Sentence Variable
                   | Unclosed Side [Variable]
-                  | Closed [Variable]
                   | Handicap Variable
 
                   -- auxiliary
@@ -135,7 +134,6 @@ data Construction = Word Variable String
 
 isHappy cxt = case cxt of
   Sem {} -> True; Unify {} -> True; EmptyCxt {} -> True; Diversifier {} -> True
-  Closed {} -> True
   Verb {} -> True; Clause {} -> True; AdverbModifiable {} -> True
   ConjEmphasizeable {} -> True; ParticleEmphasizeable {} -> True
   Sentence {} -> True

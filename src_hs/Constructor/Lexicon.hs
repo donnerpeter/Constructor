@@ -127,14 +127,8 @@ wordMites word index =
   "к" -> preposition "k" Dat v
   "кажется" -> raisingVerb "SEEM" "PRESENT" A.sg3 v ++ optional (arg Dat P.Experiencer v)
   "как" -> [mite $ TwoWordCxt "так как" False [] v0]
-  "каков" ->
-    [mite $ NomHead A.m (v "arg1") Unsatisfied, semV (v "") P.Arg1 (v "arg1"), mite $ TenseHead Optional v0, semT (v "wh") "wh", semV v0 P.Arg2 (v "ph"), semT (v "ph") "placeholder", semV (v "ph") P.Quality (v "wh"), mite $ ParticleEmphasizeable (v "wh")] ++
-    [semV (v "cp") P.Content (v ""), semT (v "cp") "situation", mite $ Verb v0, semT v0 "copula", semV (v "cp") P.Questioned (v "wh")] ++
-    xor [[mite $ Complement (v "cp")], [mite $ TopLevelQuestion (v "cp")]]
-  "каково" ->
-    [mite $ NomHead A.n (v "arg1") Unsatisfied, semV (v "") P.Arg1 (v "arg1"), mite $ TenseHead Optional v0, semT (v "wh") "wh", semV v0 P.Arg2 (v "ph"), semT (v "ph") "placeholder", semV (v "ph") P.Quality (v "wh"), mite $ ParticleEmphasizeable (v "wh")] ++
-    [semV (v "cp") P.Content (v ""), semT (v "cp") "situation", mite $ Verb v0, semT v0 "copula", semV (v "cp") P.Questioned (v "wh")] ++
-    xor [[mite $ Complement (v "cp")], [mite $ TopLevelQuestion (v "cp")]]
+  "каков" -> [mite $ ShortAdj A.m P.Quality v0, mite $ ParticleEmphasizeable v0] ++ whWord A.m v
+  "каково" -> [mite $ ShortAdj A.n P.Quality v0, mite $ ParticleEmphasizeable v0] ++ whWord A.n v
   "какого" -> adjWh Gen A.m P.Determiner v
   "какой" -> xor [adjWh Nom A.m P.Determiner v, adjWh Acc A.m P.Determiner v]
   "какой-то" -> adj Nom A.sg P.Determiner "SOME" v

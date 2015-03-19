@@ -50,7 +50,7 @@ wordMites word index =
   "восьми" -> wordNumber Gen "8" v
   "вот" -> sAdverb P.So_there "true" v
   "всякого" -> adj Gen A.m P.Determiner "ANY" v
-  "вы" -> pronoun Nom A.pl2 "YOU" v
+  "вы" -> pronoun Nom A.empty "YOU" v
   "выбежали" -> finVerb "RUN_OUT" "PAST" A.pl v ++ arg (PP "iz" Gen) P.Source v
   "вывалилась" -> finVerb "FALL_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) P.Source v
   "вывалился" -> finVerb "FALL_OUT" "PAST" A.m v ++ arg (PP "iz" Gen) P.Source v

@@ -52,7 +52,7 @@ interactNodes env = {-traceIt ("    interact") $ -}whResults ++ noWh where
 
 whLinks base cp whVar agr = withBase base [semV cp P.Questioned whVar, semT cp "situation"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause agr cp], [mite $ TopLevelQuestion cp]]
 
-completeCopula cd subj = [mite $ NomHead (copAgr cd) subj Satisfied, mite $ Unify (copSubj cd) subj] ++ copulaSem cd
+completeCopula cd subj = [mite $ NomHead (copAgr cd) subj Satisfied, mite $ Unify (copSubj cd) subj, mite $ Handicap (copula cd)] ++ copulaSem cd
 
 mergeInfoHelpers m1 m2 = ( \mites -> mergeLeft (base12 mites), \mites -> mergeRight (base12 mites), base12) where
   base12 = withBase [m1,m2]
@@ -226,9 +226,9 @@ interactQuestionable env leftPairs rightPairs whContext (m1, c1) (m2, c2) =
 
       -- todo nom + nomHead/copulaHead duplication
       (Argument Nom v1, _c) | Just (cd, rest) <- asCopula _c ->
-        right $ completeCopula cd v1 ++ rest ++ [mite $ Handicap (copula cd)] ++ (if whContext then [] else [mite $ Clause (copCP cd), mite $ Verb (copula cd)])
+        right $ completeCopula cd v1 ++ rest ++ (if whContext then [] else [mite $ Clause (copCP cd), mite $ Verb (copula cd)])
       (_c, Argument Nom v2) | Just (cd, rest) <- asCopula _c, copKind cd /= AdjCopula && (copKind cd /= NomNPCopula || whContext) ->
-        left $ completeCopula cd v2 ++ rest ++ [mite $ Handicap (copula cd)] ++ (if whContext then [] else [mite $ Clause (copCP cd), mite $ Verb (copula cd)])
+        left $ completeCopula cd v2 ++ rest ++ (if whContext then [] else [mite $ Clause (copCP cd), mite $ Verb (copula cd)])
 
       (Verb verb, VerbalModifier attr False advP) -> mergeLeft $ base12 [semV verb attr advP] ++ existentials leftPairs rightPairs
       (VerbalModifier attr needComma advP, _) | (cxt -> Verb verb):rest <- asVerb env m2 -> mergeRight $

@@ -127,6 +127,7 @@ isCoverable mite = if not (happy mite) then True else case cxt mite of
   GenHead {} -> True
   Clause {} -> True
   QuestionVariants {} -> True
+  Unclosed {} -> True
   _ -> False
 
 isHandicap (cxt -> Handicap _) = True

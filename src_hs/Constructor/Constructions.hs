@@ -153,6 +153,7 @@ isHappy cxt = case cxt of
   SeqRight (Wh {}) -> False; SeqRight _ -> True
   SeqLeft _ -> True
   Handicap _ -> True
+  Unclosed {} -> True
   _ -> False
 
 getCommaSurroundableVar cxt = case cxt of

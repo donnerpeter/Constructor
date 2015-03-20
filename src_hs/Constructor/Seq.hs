@@ -37,6 +37,7 @@ seqWrappable mite = hybridConjoinable (cxt mite) || case cxt mite of
   Wh {} -> True
   Negated {} -> True
   ShortAdj {} -> True
+  ComparativeAdj {} -> True
   _ -> False
 
 hybridConjoinable c = case c of

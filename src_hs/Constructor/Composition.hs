@@ -318,7 +318,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (Verb head, Elaboration child) -> left [semV head P.Elaboration child, mite $ Unclosed RightSide [child]]
 
       (emphasized@(ParticleEmphasizeable _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
-      (ComparativeEmphasis _, emphasized@(ComparativeAdj v)) -> right [semS v P.Emphasis "true"]
+      (ComparativeEmphasis _, emphasized@(ComparativeAdj _ v)) -> right [semS v P.Emphasis "true", mite emphasized]
       (wh@(WhLeaf {}), Word _ "бишь") -> left [mite $ EmptyCxt wh]
       (wh@(WhLeaf {}), Word _ "это") -> left [mite $ EmptyCxt wh]
 

@@ -48,7 +48,7 @@ data Construction = Word Variable String
                   | Adj Variable P.VarProperty ArgKind Agr
                   | AdjHead Variable ArgKind Agr
                   | ShortAdj Agr P.VarProperty Variable
-                  | ComparativeAdj Variable
+                  | ComparativeAdj P.VarProperty Variable
                   | ComparativeEmphasis Variable
 
                   -- arguments
@@ -142,7 +142,6 @@ isHappy cxt = case cxt of
   AdjHead {} -> True; NounPhrase {} -> True
   SemArgHead Optional _ _ -> True
   TenseHead Optional _ -> True
-  ComparativeAdj {} -> True
   QuestionVariants {} -> True
   WhLeaf {} -> True
   NegativePronoun {} -> True; UniversalPronoun {} -> True

@@ -61,6 +61,9 @@ asCopula = \case
   ShortAdj agr attr v -> let
     [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead AdjCopula agr "copula" attr Optional v
     in Just (cd, [tenseHead])
+  ComparativeAdj attr v -> let
+    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead AdjCopula empty "copula" attr Optional v
+    in Just (cd, [tenseHead])
   Argument Nom v -> let
     [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead NomNPCopula empty "copula" P.Arg2 Optional v
     in Just (cd, [tenseHead])

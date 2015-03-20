@@ -48,6 +48,7 @@ asTenseHead m = case cxt m of
   Adj v attr Instr agr -> reverse $ copulaHead AdjCopula agr "copula" attr Obligatory v
   Adj v attr Nom agr -> reverse $ copulaHead AdjCopula agr "copula" attr Optional v
   ShortAdj agr attr v -> reverse $ copulaHead AdjCopula agr "copula" attr Optional v
+  ComparativeAdj attr v -> reverse $ copulaHead AdjCopula empty "copula" attr Optional v
   _ -> []
 
 instrCopula cd = [semS (copula cd) P.ProfessionCopula "true", mite $ ConjEmphasizeable (copula cd)]

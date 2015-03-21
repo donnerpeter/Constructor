@@ -39,6 +39,7 @@ wordMites word index =
   "васе" -> xor [nounSg Dat Masc "NAMED_PERSON" v, nounSg Prep Masc "NAMED_PERSON" v] ++ [semS v0 P.Name "Vasya"]
   "васи" -> nounSg Gen Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vasya"]
   "василий" -> nounSg Nom Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vassily"]
+  "васю" -> nounSg Acc Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vasya"]
   "вася" -> nounSg Nom Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vasya"]
   "вашей" -> possessive Gen A.f "YOU" v
   "вдруг" -> adverb P.Manner "SUDDENLY" v

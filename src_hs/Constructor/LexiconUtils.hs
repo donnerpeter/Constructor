@@ -71,14 +71,14 @@ adj caze agr attr value v = adjLike caze agr attr value (Adj (v "") attr caze ag
 
 possessive caze agr value v = adjLike caze agr P.Arg1 value (Possessive caze agr (v "")) v
 
-adjLike caze agr attr value adjLikeCxt v = [semT v0 value, mite $ AdverbModifiable v0, mite $ Negateable v0, mite adjLikeCxt]
+adjLike caze agr attr value adjLikeCxt v = [semT v0 value, mite $ AdverbModifiable v0, mite adjLikeCxt]
   where v0 = v ""
 
-shortAdj agr attr value v = [semT v0 value, mite $ AdverbModifiable v0, mite $ ShortAdj agr attr v0, mite $ Negateable v0]
+shortAdj agr attr value v = [semT v0 value, mite $ AdverbModifiable v0, mite $ ShortAdj agr attr v0]
   where v0 = v ""
 
 comparativeAdj attr value v =
-  [semT v0 value, semT more "MORE", semV more P.Theme v0, mite $ Negateable more, mite $ ComparativeAdj attr more, mite $ AdverbModifiable more]
+  [semT v0 value, semT more "MORE", semV more P.Theme v0, mite $ ComparativeAdj attr more, mite $ AdverbModifiable more]
   ++ optional (xor [arg Gen P.Anchor (makeV v0 "more"), [mite $ ComparativeHead more]])
   where v0 = v ""; more = v "more"
 

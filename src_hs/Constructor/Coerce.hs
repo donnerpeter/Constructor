@@ -87,9 +87,12 @@ asNoun c = case c of
   _ -> Nothing
 
 asNegateable :: Construction -> Maybe (Variable, [Mite])
-asNegateable (Negateable v) = Just (v, [])
 asNegateable (NounPhrase v) = Just (v, [])
 asNegateable c@(Tense v) = Just (v, [mite c])
+asNegateable c@(Adj v _ _ _) = Just (v, [mite c])
+asNegateable c@(Possessive _ _ v) = Just (v, [mite c])
+asNegateable c@(ShortAdj _ _ v) = Just (v, [mite c])
+asNegateable c@(ComparativeAdj _ v) = Just (v, [mite c])
 asNegateable _ = Nothing
 
 asClause :: Construction -> Maybe (Variable, [Mite])

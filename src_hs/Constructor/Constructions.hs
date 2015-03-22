@@ -108,7 +108,6 @@ data Construction = Word Variable String
 
                   -- negation
                   | Negated Variable
-                  | Negateable Variable
                   | PendingNegation Variable
                   | NegationModifier Variable
 
@@ -145,7 +144,7 @@ isHappy cxt = case cxt of
   QuestionVariants {} -> True
   WhLeaf {} -> True
   NegativePronoun {} -> True; UniversalPronoun {} -> True
-  Negated {} -> True; Negateable {} -> True
+  Negated {} -> True
   Conjunction sd -> seqHasLeft sd && seqHasRight sd
   SeqRight (Wh {}) -> False; SeqRight _ -> True
   SeqLeft _ -> True

@@ -86,9 +86,10 @@ asNoun c = case c of
     in Just (Argument caze noun, [semS noun P.ElidedNoun "true", mite $ Handicap noun, semV noun P.Arg1 v0] ++ rusNumber agr noun)
   _ -> Nothing
 
-asNegateable :: Construction -> Maybe Variable
-asNegateable (Negateable v) = Just v
-asNegateable (NounPhrase v) = Just v
+asNegateable :: Construction -> Maybe (Variable, [Mite])
+asNegateable (Negateable v) = Just (v, [])
+asNegateable (NounPhrase v) = Just (v, [])
+asNegateable c@(Tense v) = Just (v, [mite c])
 asNegateable _ = Nothing
 
 asClause :: Construction -> Maybe (Variable, [Mite])

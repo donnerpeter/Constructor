@@ -349,7 +349,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
 
       (Word _ "не", Complement cp) -> right [semS cp P.Negated "true", mite $ Complement cp]
       (Word ne "не", Wh _ v) -> right [mite $ ExistentialWh v ne, semS v P.Negated "true"]
-      (Word _ "не", c) | Just v <- asNegateable c -> right $ xor [[semS v P.Negated "true", mite $ Negated v], [mite $ PendingNegation v]]
+      (Word _ "не", c) | Just (v, rest) <- asNegateable c -> right $ xor [[semS v P.Negated "true", mite $ Negated v], [mite $ PendingNegation v]] ++ rest
       (Word _ "не", Verb v) -> let
         negateDirectObject = rightCombined env >>= \m3 -> case cxt m3 of
           ArgHead Acc attr v -> let

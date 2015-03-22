@@ -14,7 +14,6 @@ import Control.Applicative
 data VerbForm = BaseVerb | Sg3Verb | PastVerb | Gerund deriving (Eq, Show)
 
 verb verbForm frame = if isNothing (getType frame) then "???vp" else
-  let negated = Just "true" == sValue P.Negated frame && not (Just "true" == (fValue P.Arg1 frame >>= sValue P.Negated)) in
   case fromJust $ getType frame of
   "copula" -> beForm (fValue P.Arg1 frame) (if sValue P.Time frame /= Just "PAST" then BaseVerb else verbForm)
   "copula_about" -> beForm (fValue P.Arg1 frame) (if sValue P.Time frame /= Just "PAST" then BaseVerb else verbForm)
@@ -23,7 +22,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "ASK" -> if (fValue P.Topic frame >>= getType) == Just "PREDICAMENT" then if verbForm == PastVerb then "consulted" else "consult" else if verbForm == BaseVerb then "ask" else "asked"
   "BEGIN" -> "started"
   "BREAK" -> if verbForm == BaseVerb then "break" else "broke"
-  "CAN" -> if negated then "couldn't" else "could"
+  "CAN" -> "could"
   "COME_SCALARLY" -> if sValue P.Time frame == Just "PAST" then "went" else if verbForm == BaseVerb then "come" else "comes"
   "COME_TO" -> "reaching"
   "COUNT" -> if verbForm == Gerund then "counting" else "count"
@@ -47,7 +46,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "LOOK" -> if verbForm == Sg3Verb then "stares" else "staring"
   "LOVE" ->
     if any (hasType "CABBAGE") (flatten $ fValue P.Arg2 frame) then "like"
-    else if verbForm == BaseVerb then "love" else if negated then "doesn't love" else "loves"
+    else if verbForm == BaseVerb then "love" else "loves"
   "MOVE" -> if verbForm == Gerund then "moving" else "moved"
   "NEED" -> "need"
   "RECALL" -> "recall"
@@ -93,7 +92,13 @@ doForm verbForm =case verbForm of
 
 generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModality thereSubject = let
   isFuture = Just "FUTURE" == sValue P.Time fVerb
+  isPast = Just "PAST" == sValue P.Time fVerb
   anchor2 = usage P.Content fVerb >>= fValue P.EllipsisAnchor2
+  negated = Just "true" == sValue P.Negated fVerb
+            && not (Just "true" == (fValue P.Arg1 fVerb >>= sValue P.Negated))
+            && not (Just "true" == (fValue P.Arg2 fVerb >>= sValue P.Negated))
+            && not (Just "true" == (fValue P.Goal fVerb >>= sValue P.Negated))
+  negation = if negated then " not" else ""
   in
   if reachesEllipsisAnchor fSubject fVerb then
     if fromMaybe False $ isFrameReachable <$> fSubject <*> anchor2 then
@@ -102,9 +107,9 @@ generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModalit
     else ("", "-")
   else if hasType "copula_talking_about" fVerb then (beForm fSubject PastVerb, "talking")
   else if hasAnyType ["copula", "copula_about"] fVerb then
-    if isFuture then ("will", "be")
+    if isFuture then ("will" ++ negation, "be")
     else if isAtLocationCopula fVerb || isOwnerCopula fVerb then ("", haveForm verbForm)
-    else (beForm fSubject (if sValue P.Time fVerb /= Just "PAST" then BaseVerb else verbForm), "")
+    else (beForm fSubject (if not isPast then BaseVerb else verbForm) ++ (if negated then "n't" else ""), "")
   else if isGerund fVerb then let
     ing = if hasType "WEATHER_BE" fVerb
           then case fSubject >>= getType of
@@ -121,7 +126,9 @@ generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModalit
       else ("should", "")
     else if thereSubject then (if verbForm == PastVerb then "was" else "is", "")
     else if isFuture then ("will", "have") else ("", haveForm verbForm)
-  else if inverted then (doForm verbForm, verb BaseVerb fVerb)
+  else if hasType "CAN" fVerb then
+    if negated then ("", "couldn't") else ("", "could")
+  else if inverted || negated then (doForm verbForm ++ (if negated then "n't" else ""), verb BaseVerb fVerb)
   else ("", verb verbForm fVerb)
 
 isGerund fVerb =

@@ -662,6 +662,15 @@ var13 = [
   translateTest "Ребенок сломал себе обе челюсти и 8 пальцев"
                 "The child broke both of his jaws and 8 fingers"
   ,
+--todo  translateTest "Ребенок сломал себе обе челюсти и более чем 8 пальцев"
+--                "The child broke both of his jaws and more than 8 fingers"
+--  ,
+--todo  translateTest "Ребенок сломал себе обе челюсти и более 8 пальцев"
+--                "The child broke both of his jaws and more than 8 fingers"
+--  ,
+--todo  translateTest "Ребенок сломал себе обе челюсти и более восьми пальцев"
+--                "The child broke both of his jaws and more than eight fingers"
+--  ,
   -- 13_BothJawsAndTwoFingers
   translateTest "Ребенок сломал себе обе челюсти и два пальца"
                 "The child broke both of his jaws and two fingers"

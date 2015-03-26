@@ -362,7 +362,7 @@ wordMites word index =
   "челюсти" -> xor[nounSg Gen Fem "JAW" v, nounPl Nom "JAWS" v, nounPl Acc "JAWS" v]
   "челюсть" -> nounSg Acc Fem "JAW" v
   "челюстью" -> nounSg Instr Fem "JAW" v
-  "чем" -> xor [caseWhWord Instr A.n v, caseWhWord Prep A.n v, [mite $ Comparativizer v0]]
+  "чем" -> xor [caseWhWord Instr A.n v, caseWhWord Prep A.n v, [mite $ ComparisonAnchor Unsatisfied v0]]
   "чём" -> caseWhWord Prep A.n v
   "четвертая" -> adj Nom A.f P.Order "4" v
   "чрезмерного" -> adj Gen A.n P.Size "EXCESSIVE" v

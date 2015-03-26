@@ -76,8 +76,7 @@ data Construction = Word Variable String
                   | Relativizer Variable
                   | Complement Variable
                   | Complementizer Variable
-                  | Comparativizer Variable
-                  | ComparativePhrase Variable
+                  | ComparisonAnchor Satisfied Variable
                   | ComparativeHead Variable
                   | ConditionComp Variable {-if/when-} String {-has cp-} Bool
                   | ReasonComp Variable {-has cp-} Bool
@@ -160,7 +159,7 @@ getCommaSurroundableVar cxt = case cxt of
   VerbalModifier _ True v -> Just v
   NounAdjunct _ True v -> Just v
   Argument _ v -> Just v
-  ComparativePhrase v -> Just v
+  ComparisonAnchor _ v -> Just v
   _ -> Nothing
 
 isStable (Conjunction sd) = seqHasLeft sd == seqHasRight sd || seqConj sd == ","

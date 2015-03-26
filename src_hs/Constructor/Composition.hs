@@ -365,7 +365,8 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (RaisingVerb verb subj, Adj child _ Instr agr) -> left [semV child P.Arg1 subj, semV verb P.Theme child]
 
       (ComparisonAnchor Unsatisfied _, Argument Nom v2) -> left [mite $ ComparisonAnchor Satisfied v2]
-       
+      (Comparativizer more, ShortAdj agr attr v) -> left [mite $ ComparativeAdj attr more, semT more "MORE", semV more P.Theme v, mite $ ComparativeHead more]
+
       _ -> []
 
 reflexive headPairs childPairs = headPairs >>= \case

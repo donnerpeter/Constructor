@@ -77,6 +77,7 @@ data Construction = Word Variable String
                   | Complement Variable
                   | Complementizer Variable
                   | ComparisonAnchor Satisfied Variable
+                  | Comparativizer Variable
                   | ComparativeHead Variable
                   | ConditionComp Variable {-if/when-} String {-has cp-} Bool
                   | ReasonComp Variable {-has cp-} Bool
@@ -149,6 +150,7 @@ isHappy cxt = case cxt of
   SeqLeft _ -> True
   Handicap _ -> True
   Unclosed {} -> True
+  ComparativeHead {} -> True
   _ -> False
 
 getCommaSurroundableVar cxt = case cxt of

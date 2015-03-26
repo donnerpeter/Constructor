@@ -244,9 +244,9 @@ copulaTests = [
   ,
   translateTest "Вы умнее кассирши."
                 "You're smarter than the cashier."
---  ,
---todo  translateTest "Вы более умны, чем кассир."
---                "You're smarter than the cashier."
+  ,
+  translateTest "Вы более умны, чем кассир."
+                "You're smarter than the cashier."
   ,
   translateTest "Вы умнее кассира, но не умнее кассирши."
                 "You're smarter than the male cashier, but not smarter than the female cashier."

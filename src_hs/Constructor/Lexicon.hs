@@ -22,6 +22,7 @@ wordMites word index =
   "а" -> xor [conjunction v0 "a" False, [mite $ ConjEmphasis P.AndEmphasis v0]]
   "арбуз" -> nounSg Nom Masc "WATERMELON" v
   "бессмысленными" -> adj Instr A.pl P.Quality "MEANINGLESS" v
+  "более" -> [mite $ Comparativizer v0]
   "больше" -> xor [comparativeAdj P.Size "BIG" v, [mite $ NegationModifier v0, semS v0 P.Not_anymore "true"]]
   "большим" -> xor[adj Instr A.m P.Size "BIG" v, adj Instr A.n P.Size "BIG" v]
   "большой" -> xor[adj Instr A.f P.Size "BIG" v, adj Nom A.m P.Size "BIG" v, adj Acc A.m P.Size "BIG" v]

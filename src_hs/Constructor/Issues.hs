@@ -23,7 +23,7 @@ factIssues fact = let
           msg = "Incomplete isolation " ++ show f
           in
           if "false" `elem` isolated then finalIssue msg
-          else if null isolated then finalNo
+          else if isolated == ["true", "true"] then finalNo
           else issue msg
         (P.ElidedNoun, _) -> l $ \_ -> finalIssue "elided"
         (P.Type, declaredType) -> typeIssues (variable fact) declaredType ++ orderingIssues (variable fact) declaredType

@@ -64,7 +64,11 @@ chooseBestLastVariants finalHistory allVariants = {-trace (length result) -}resu
   isStableTree tree = all (isStable . cxt) $ mites tree
   weight tree = (length (mergedRoots tree), mergedUnhappyCount tree, mergedIssueCount tree, mergedHandicapCount tree)
   sortedVariants = sortBy (compare `on` weight) nodups
-  result = head sortedVariants : metricAscending (metric $ head sortedVariants) (tail sortedVariants)
+  result =
+--           trace ("---------sorted", sortedVariants) $
+--           trace ("---------weights", map weight sortedVariants) $
+--           trace ("---------issues", map issues sortedVariants) $
+           head sortedVariants : metricAscending (metric $ head sortedVariants) (tail sortedVariants)
 
   metricAscending _ [] = []
   metricAscending prev (x:xs) = let m = metric x in

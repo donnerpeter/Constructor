@@ -35,6 +35,7 @@ noun (Just typ) frame = case typ of
   "JAWS" -> "jaws"
   "JOY" -> "joy"
   "LIGHT" -> "light"
+  "MARKET" -> "Maltsev market"
   "MATTER" -> "matter"
   "ME" -> "me"
   "MEANING" -> "meaning"

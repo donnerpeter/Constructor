@@ -187,7 +187,7 @@ wordMites word index =
   "моя" -> possessive Nom A.f "ME" v
   "мы" -> pronoun Nom A.pl1 "WE" v
   "на" -> xor [preposition "na" Prep v, preposition "na" Acc v]
-  "надоело" -> [semT v0 "PESTER", mite $ Verb v0] ++ optional (arg Dat P.Arg2 v) ++ clause v ++ [mite $ Control (v "arg1"), semV v0 P.Arg1 (v "arg1")]
+  "надоело" -> [semT v0 "PESTER", mite $ Verb v0, mite $ NomHead A.n (v "arg2") Satisfied] ++ optional (arg Dat P.Arg2 v) ++ clause v ++ [mite $ Control (v "arg1"), semV v0 P.Arg1 (v "arg1")]
   "нам" -> pronoun Dat A.pl1 "WE" v
   "нас" -> xor [pronoun Acc A.pl1 "WE" v, pronoun Gen A.pl1 "WE" v]
   "начал" -> finVerb "BEGIN" "PAST" A.m v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")]
@@ -273,6 +273,7 @@ wordMites word index =
   "ребенок" -> nounSg Nom Masc "CHILD" v
   "речь" -> nounSg Nom Fem "SPEECH" v ++ genHead P.Arg1 v
   "рта" -> nounSg Gen Masc "MOUTH" v
+  "рынок" -> nounSg Acc Masc "MARKET" v
   "с" -> xor [preposition "s" Instr v, preposition "s" Gen v]
   "сад" -> nounSg Acc Masc "GARDEN" v
   "сада" -> nounSg Gen Masc "GARDEN" v
@@ -398,4 +399,5 @@ wordMites word index =
       [semS v0 P.Name nomName] ++
       xor [adj Gen A.f P.VName "name" v,
            nounSg Gen Fem "STREET" (makeV v0 "noun") ++ [semV (v "noun") P.VName v0]]
+    else if "ий" `isSuffixOf` word then adj Acc A.m P.VName "name" v ++ [semS v0 P.Name word]
     else [mite $ Word v0 word]

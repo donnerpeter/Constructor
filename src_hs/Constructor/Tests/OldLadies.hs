@@ -12,6 +12,6 @@ oldLadyTests = [
                 "Then the third old lady fell out of the window, then the fourth did, then the fifth."
                 ,
   --todo full old ladies
-  translateTest "Когда вывалилась шестая старуха, мне надоело смотреть на них."
-                "When the sixth old lady fell out, I got bored watching them."
+  translateTest "Когда вывалилась шестая старуха, мне надоело смотреть на них, и я пошел на Мальцевский рынок."
+                "When the sixth old lady fell out, I got bored watching them and went to Maltsev market."
   ]

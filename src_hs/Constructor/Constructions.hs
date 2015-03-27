@@ -15,12 +15,13 @@ data Optionality = Optional | Obligatory deriving (Show, Eq, Ord)
 
 data Satisfied = Unsatisfied | Satisfied deriving (Show, Eq, Ord)
 
-data SeqData = SeqData { seqVar :: Variable, seqConj :: String, seqReady :: Bool, seqHasLeft :: Bool, seqHasRight :: Bool, seqHybrid :: Bool } deriving (Eq, Ord)
+data SeqData = SeqData { seqVar :: Variable, seqConj :: String, seqReady :: Bool, seqHasLeft :: Bool, seqHasRight :: Bool, seqHybrid :: Bool, seqHasComma:: Bool } deriving (Eq, Ord)
 
 instance Show SeqData where
   show sd = show (seqVar sd) ++ " " ++ seqConj sd ++ (if seqReady sd then "" else "!ready") ++
             (if seqHasLeft sd then " left" else "") ++(if seqHasRight sd then " right" else "")++
-            (if seqHybrid sd then " hybrid" else "")
+            (if seqHybrid sd then " hybrid" else "")++
+            (if seqHasComma sd then " hasComma" else "")
 
 data Construction = Word Variable String
                   --semantic

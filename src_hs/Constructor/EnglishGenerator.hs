@@ -328,7 +328,7 @@ determiner frame det nbar = do
       else if sDet == Just "wh" then "which"
       else if isJust (fValue P.Quantifier frame) then ""
       else if hasType "STREET" frame && prefixName frame then streetName frame
-      else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING", "MONEY", "COUNTING", "APARTMENTS", "OFFICES", "HOUSES", "CABBAGE", "CARROT"] frame then ""
+      else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING", "MONEY", "COUNTING", "APARTMENTS", "OFFICES", "HOUSES", "CABBAGE", "CARROT", "MARKET"] frame then ""
       else if hasAnyType ["NAMED_PERSON"] frame then ""
       else if hasType "OPINION" frame && Just True == fmap isVerbEllipsis (usage P.AccordingTo frame) then ""
       else if isElidedNoun frame && skipElidedOne frame || isPlaceholder frame then ""
@@ -506,6 +506,11 @@ generateSentenceAdjunct (SentenceAdjunct separator preposition frame) = do
 
 data ClauseType = FiniteClause | InfiniteClause deriving (Eq)
 
+shouldElideSubject fVerb fSubject = any hasSameSubject prevVerbSiblings where
+  hasSameSubject prevVerb = isTrue $ isSame <$> fSubject <*> englishSubject prevVerb
+  isSame f1 f2 = f1 == f2 || getType f1 == getType f2 && hasType "ME" f1
+  prevVerbSiblings = mapMaybe (fValue P.Content) $ fromMaybe [] (prevSiblings <$> usage P.Content fVerb)
+
 vp :: Frame -> VerbForm -> ClauseType -> State GenerationState String
 vp fVerb verbForm clauseType = do
   let cp = usage P.Content fVerb
@@ -554,7 +559,9 @@ vp fVerb verbForm clauseType = do
   subject <- if thereSubject then return "there" else if Just "WEATHER_BE" == getType fVerb then return "it" else case (fSubject, clauseType) of
     (Just f, FiniteClause) ->
       if isVerbEllipsis fVerb && not (reachesEllipsisAnchor fSubject fVerb) then return "it"
-      else if [fVerb] `isPrefixOf` (usages P.Arg1 f) || fSubject /= fValue P.Arg1 fVerb then np True fSubject
+      else if [fVerb] `isPrefixOf` (usages P.Arg1 f) || fSubject /= fValue P.Arg1 fVerb then
+        if shouldElideSubject fVerb fSubject then return ""
+        else np True fSubject
       else if (isJust (msum [fValue P.PerfectBackground fVerb, fValue P.Reason fVerb]) || hasType "copula" fVerb)
         then return $ if sValue P.RusGender f == Just "Masc" then "he" else "she"
       else return ""

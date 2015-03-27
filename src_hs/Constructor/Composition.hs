@@ -98,7 +98,7 @@ punctuationAware env (m1, m2) =
           in if null lifted then withBase [baseMite] [mite $ Unclosed side [v]] else lifted
         closeUnclosed side satisfied = (select side leftCombined rightCombined) env >>= \m -> case cxt m of
           Unclosed s vars | s == invert side -> withBase [m] $
-            map (\v -> semS v (select side P.LeftIsolated P.RightIsolated) (if satisfied == Satisfied then "true" else "false")) vars
+            map (\v -> semS v (select side P.RightIsolated P.LeftIsolated) (if satisfied == Satisfied then "true" else "false")) vars
           _ -> []
     in case (cxt m1, cxt m2) of
       (NounPhrase head, CommaSurrounded True _ (NounAdjunct attr True var)) -> mergeLeft $
@@ -339,8 +339,8 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (TwoWordCxt s1 True wrapped _, TwoWordCxt s2 False _ _) | s1 == s2 -> left $ map mite wrapped
       
       (Conjunction    (SeqData {seqVar=v1, seqConj=",", seqHasLeft=False, seqHasRight=False}),
-       Conjunction sd@(SeqData {seqVar=v2, seqReady=False, seqHasRight=True})) | seqConj sd == "a" || seqConj sd == "no" ->
-          right [mite $ Conjunction $ sd {seqReady=True}, mite $ Unify v1 v2]
+       Conjunction sd@(SeqData {seqVar=v2, seqHasComma=False, seqHasLeft=False, seqHasRight=True})) | seqConj sd /= "," ->
+          right [mite $ Conjunction $ sd {seqHasComma=True, seqReady=True}, mite $ Unify v1 v2]
 
       (Quote _ False, word@(Word {})) -> left [mite $ QuotedWord word False]
       (QuotedWord word False, Quote _ True) -> left [mite $ QuotedWord word True]

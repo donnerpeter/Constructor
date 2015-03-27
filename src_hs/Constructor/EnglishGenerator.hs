@@ -559,12 +559,11 @@ vp fVerb verbForm clauseType = do
   subject <- if thereSubject then return "there" else if Just "WEATHER_BE" == getType fVerb then return "it" else case (fSubject, clauseType) of
     (Just f, FiniteClause) ->
       if isVerbEllipsis fVerb && not (reachesEllipsisAnchor fSubject fVerb) then return "it"
-      else if [fVerb] `isPrefixOf` (usages P.Arg1 f) || fSubject /= fValue P.Arg1 fVerb then
-        if shouldElideSubject fVerb fSubject then return ""
-        else np True fSubject
-      else if (isJust (msum [fValue P.PerfectBackground fVerb, fValue P.Reason fVerb]) || hasType "copula" fVerb)
+      else if shouldElideSubject fVerb fSubject then
+        if (isJust (msum [fValue P.PerfectBackground fVerb, fValue P.Reason fVerb]) || hasType "copula" fVerb)
         then return $ if sValue P.RusGender f == Just "Masc" then "he" else "she"
-      else return ""
+        else return ""
+      else np True fSubject
     _ -> return ""
   beforeVP <- mapCat generateArg prefixArgs
   preAdverb <- mapCat generateArg infixArgs

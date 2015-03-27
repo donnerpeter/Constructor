@@ -121,9 +121,11 @@ isInanimate frame = Just "wh" == getDeclaredType frame && Just "true" /= sValue 
 
 isFood frame = hasType "CABBAGE" frame
 
-unSeq frame = case msum [usage P.Member1 frame, usage P.Member2 frame] of
-  Just s -> unSeq s
-  _ -> frame
+unSeq frame = inner True frame where
+  inner allow2 frame = case (usage P.Member1 frame, usage P.Member2 frame) of
+    (Just s, _) -> inner allow2 s
+    (_, Just s) | allow2 -> inner False s
+    _ -> frame
 
 unSeq1 frame = case usage P.Member1 frame of
   Just s -> unSeq1 s

@@ -299,6 +299,12 @@ copulaTests = [
 --todo  translateTest "Я и ты такие разные, ты и я такие разные."
 --                "Me and you are so different, you and I are so different."
 --  ,
+--todo  translateTest "Я согласен с тобой."
+--                "I agree with you."
+--  ,
+--todo  translateTest "Я более чем согласен с тобой."
+--                "I more than agree with you."
+--  ,
 --todo  translateTest "Эта квартира ваша. А та квартира не ваша."
 --                "This apartment is yours. And that apartment is not yours."
 --  ,

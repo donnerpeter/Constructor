@@ -43,12 +43,13 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "LEAN_OUT" ->
     if Just True == fmap (hasType "LOOK") (fValue P.Theme =<< fValue P.Content =<< listToMaybe . nextSiblings =<< usage P.Content frame) then "looked out"
     else "leaned out"
-  "LOOK" -> if verbForm == Sg3Verb then "stares" else "staring"
+  "LOOK" -> if lookAsWatching frame then "watching" else if verbForm == Sg3Verb then "stares" else "staring"
   "LOVE" ->
     if any (hasType "CABBAGE") (flatten $ fValue P.Arg2 frame) then "like"
     else if verbForm == BaseVerb then "love" else "loves"
   "MOVE" -> if verbForm == Gerund then "moving" else "moved"
   "NEED" -> "need"
+  "PESTER" -> "got bored"
   "RECALL" -> "recall"
   "REMEMBER" -> if verbForm == PastVerb then "remembered" else if verbForm == Sg3Verb then "remembers" else "remember"
   "RUN_OUT" -> "ran"
@@ -145,5 +146,5 @@ englishSubject fVerb =
   if hasAnyType ["modality", "SEEM"] fVerb then fValue P.Theme fVerb >>= fValue P.Arg1
   else if isAtLocationCopula fVerb then fValue P.Location_at fVerb
   else if isOwnerCopula fVerb then fValue P.Owner =<< fValue P.Arg2 fVerb
+  else if hasType "PESTER" fVerb then fValue P.Arg2 fVerb
   else fValue P.Arg1 fVerb
-

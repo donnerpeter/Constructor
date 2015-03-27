@@ -122,6 +122,8 @@ punctuationAware env (m1, m2) =
         mergeLeft $ base12 [semV head (if cond=="if" then P.IfCondition else P.WhenCondition) cp] ++ liftUnclosedCompatible RightSide
       (Verb head, CommaSurrounded True _ (ConditionComp cp cond _)) ->
         mergeLeft $ base12 [semV head (if cond=="if" then P.IfCondition else P.WhenCondition) cp] ++ liftUnclosedCompatible RightSide
+      (CommaSurrounded _ True (ConditionComp cp cond _), Verb head) ->
+        mergeRight $ base12 [semV head (if cond=="if" then P.IfCondition else P.WhenCondition) cp] ++ liftUnclosedCompatible LeftSide
       (Verb head, CommaSurrounded True _ (ReasonComp cp _)) ->
         mergeLeft $ base12 [semV head P.Reason cp] ++ liftUnclosedCompatible RightSide
 

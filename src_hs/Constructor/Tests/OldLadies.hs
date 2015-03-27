@@ -10,4 +10,8 @@ oldLadyTests = [
                 ,
   translateTest "Потом из окна вывалилась третья старуха, потом четвертая, потом пятая."
                 "Then the third old lady fell out of the window, then the fourth did, then the fifth."
+                ,
+  --todo full old ladies
+  translateTest "Когда вывалилась шестая старуха, мне надоело смотреть на них."
+                "When the sixth old lady fell out, I got bored watching them."
   ]

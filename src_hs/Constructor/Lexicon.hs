@@ -54,9 +54,9 @@ wordMites word index =
   "всякого" -> adj Gen A.m P.Determiner "ANY" v
   "вы" -> pronoun Nom A.empty "YOU" v
   "выбежали" -> finVerb "RUN_OUT" "PAST" A.pl v ++ arg (PP "iz" Gen) P.Source v
-  "вывалилась" -> finVerb "FALL_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) P.Source v
-  "вывалился" -> finVerb "FALL_OUT" "PAST" A.m v ++ arg (PP "iz" Gen) P.Source v
-  "высунулась" -> finVerb "LEAN_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) P.Source v
+  "вывалилась" -> finVerb "FALL_OUT" "PAST" A.f v ++ optional (arg (PP "iz" Gen) P.Source v)
+  "вывалился" -> finVerb "FALL_OUT" "PAST" A.m v ++ optional (arg (PP "iz" Gen) P.Source v)
+  "высунулась" -> finVerb "LEAN_OUT" "PAST" A.f v ++ optional (arg (PP "iz" Gen) P.Source v)
   "вчера" -> adverb P.RelTime "YESTERDAY" v
   "вынул" -> finVerb "TAKE_OUT" "PAST" A.m v ++ arg (PP "iz" Gen) P.Source v ++ directObject v
   "вынула" -> finVerb "TAKE_OUT" "PAST" A.f v ++ arg (PP "iz" Gen) P.Source v ++ directObject v
@@ -187,6 +187,7 @@ wordMites word index =
   "моя" -> possessive Nom A.f "ME" v
   "мы" -> pronoun Nom A.pl1 "WE" v
   "на" -> xor [preposition "na" Prep v, preposition "na" Acc v]
+  "надоело" -> [semT v0 "PESTER", mite $ Verb v0] ++ optional (arg Dat P.Arg2 v) ++ clause v ++ [mite $ Control (v "arg1"), semV v0 P.Arg1 (v "arg1")]
   "нам" -> pronoun Dat A.pl1 "WE" v
   "нас" -> xor [pronoun Acc A.pl1 "WE" v, pronoun Gen A.pl1 "WE" v]
   "начал" -> finVerb "BEGIN" "PAST" A.m v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")]
@@ -201,6 +202,7 @@ wordMites word index =
   "неумны" -> shortAdj A.pl P.Quality "CLEVER" v ++ [semS (v "") P.Negated "true"]
   "никто" -> negatedWh v ++ [mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.sg3] ++ animate v
   "никуда" -> negatedWh v ++ semArg Direction P.Goal v0
+  "них" -> pronoun Acc A.pl "THEY" v
   "ничего" -> negatedWh v ++ [mite $ Argument Gen v0]
   "но" ->  xor [conjunction v0 "no" False ++ [semS v0 P.ConjStrong "true"], [mite $ ConjEmphasis P.ButEmphasis v0]]
   "носом" -> nounSg Instr Masc "NOSE" v
@@ -370,6 +372,7 @@ wordMites word index =
   "что" -> xor [caseWhWord Nom A.n3 v, caseWhWord Acc A.n3 v, [mite $ Complementizer v0], [mite $ TwoWordCxt "потому что" False [] v0], [mite $ Relativizer v0, semT v0 "wh"]]
   "чьему" -> whWord A.empty v ++ animate v ++ xor [[mite $ Possessive Dat A.m v0], [mite $ Possessive Dat A.n v0]]
   "чьим" -> whWord A.empty v ++ animate v ++ [mite $ Possessive Dat A.pl v0]
+  "шестая" -> adj Nom A.f P.Order "6" v
   "шести" -> wordNumber Gen "6" v
   "шел" -> xor [finVerb "GO" "PAST" A.m v ++ go_args v,
                  finVerb "WEATHER_BE" "PAST" A.m v,

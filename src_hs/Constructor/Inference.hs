@@ -71,8 +71,7 @@ fValue attr frame =
   in
   if isJust declared then declared
   else if isJust original then original
-  else
-    case attr of
+  else case attr of
       P.Arg1 ->
         if hasAnyType ["MOUTH", "NOSE", "JAW", "JAWS", "FINGER", "NEIGHBORS", "CURIOSITY"] frame then let
           verbs = catMaybes [usage P.Source $ unVariants $ unSeq frame,
@@ -84,6 +83,7 @@ fValue attr frame =
           unVariants frame = unSeq $ fromMaybe frame (usage P.Variants frame)
           in fmap resolve $ msum $ map (fValue P.Receiver) (verbs ++ foregrounds) ++ map (fValue P.Arg1) (verbs ++ foregrounds)
         else Nothing
+      P.AccordingTo | Just caze <- usage P.Content frame >>= usage P.WhenCondition, hasType "CASE" caze -> fValue P.AccordingTo caze
       _ -> Nothing
 
 commandingSubject frame = msum [usage P.Content frame >>= usage P.Theme, usage P.Content frame >>= usage P.Arg2] >>= fValue P.Arg1

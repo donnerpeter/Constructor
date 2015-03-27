@@ -4,7 +4,7 @@ module Constructor.ArgumentPlanning (
   isVerbEllipsis, isEllipsisAnchor, reachesEllipsisAnchor,
   allCoordinatedVerbs,
   Position(..), argPosition,
-  isAtLocationCopula, isExclamationCopula, isOwnerCopula) where
+  isAtLocationCopula, isExclamationCopula, isOwnerCopula, lookAsWatching) where
 import Constructor.Sense
 import Constructor.Inference
 import Constructor.Util
@@ -12,6 +12,7 @@ import Data.List
 import qualified Data.Set as Set
 import Data.Maybe
 import Constructor.Variable
+import Control.Applicative
 import qualified Constructor.SemanticProperties as P
 import qualified Constructor.LinkedSet as LS
 
@@ -31,6 +32,7 @@ data Position = BeforeVP | BeforeVerb | AfterVerb deriving (Eq,Show,Ord)
 data Argument = Adverb Position String | NPArg Frame |
                 PPArg String Frame | PPAdjunct Position String Frame |
                 ToInfinitive Frame | GerundBackground Position Frame |
+                GerundArg Frame |
                 Silence Frame |
                 CommaSurrounded Argument |
                 PreAdverb String
@@ -104,7 +106,7 @@ arguments fVerb@(getType -> Just typ) = allArgs where
       ("TYPE", P.Instrument) -> [PPArg "using" value]
       ("TO_PRESENT", P.Receiver) -> [PPArg "to" value]
       ("LOOK", P.Goal) -> if hasType "DOWN" value then [Adverb AfterVerb "down"] else [PPArg "at" value]
-      ("LOOK", P.Goal_on) -> [PPArg "at" value]
+      ("LOOK", P.Goal_on) -> if lookAsWatching fVerb then [NPArg value] else [PPArg "at" value]
       (_, P.Goal) -> if typ == "GO" && hasType "HOME" value then [Adverb AfterVerb "home"] else [PPArg "to" value]
       (_, P.Goal_to) -> [PPArg "to" value]
       (_, P.Goal_in) -> [PPArg "to" value]
@@ -125,6 +127,8 @@ arguments fVerb@(getType -> Just typ) = allArgs where
       ("copula_talking_about", P.Arg2) -> [PPArg "about" $ fromJust $ fValue P.Arg2 value]
       ("copula", P.Arg1) | isOwnerCopula fVerb -> [NPArg value]
       ("copula", P.Arg2) | Just q <- fValue P.Quality value, hasType "placeholder" value && hasType "wh" q -> [NPArg q]
+      ("PESTER", P.Arg2) -> []
+      ("PESTER", P.Arg1) -> [GerundArg value]
       (_, P.Arg2) -> if isCPOrSeq value then [] else [NPArg value]
       (_, P.Duration) -> if hasType "LONG" value then [Adverb AfterVerb "for a long time"] else []
       (_, P.VTime) | hasType "wh" value -> [NPArg value]
@@ -182,3 +186,5 @@ isExclamationCopula fVerb = case (getType fVerb, fValue P.Arg1 fVerb, fValue P.A
   (Just "copula", Just arg1, Just arg2) | Just det2 <- fValue P.Determiner arg2 ->
     hasType "SUCH" det2 && typeEarlier det2 arg1 && typeEarlier arg1 arg2
   _ -> False
+
+lookAsWatching fVerb = isTrue $ hasType "PESTER" <$> usage P.Arg1 fVerb

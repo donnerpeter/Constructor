@@ -37,7 +37,7 @@ generate sense =
 
 capitalize (c:rest) = (toUpper c):rest
 
-getTopFrame frame = if isCP frame && isNothing (usage P.Relative frame) then upmostSeq frame else Nothing where
+getTopFrame frame = if isCP frame && null (allUsages [P.Relative, P.WhenCondition] frame) then upmostSeq frame else Nothing where
   upmostSeq frame =
     case usage P.Member1 frame of
       Just p -> upmostSeq p
@@ -86,7 +86,7 @@ handleSeq f (Just frame) =
                           else if isJust (secondContent >>= sValue P.AndEmphasis) then ""
                           else ","
                         else conj
-        return $ m1 `cat` separator `cat` m2
+        return $ m1 `cat` separator `cat` (stripFirstComma m2)
   else f frame
 
 np nom frame =
@@ -221,6 +221,7 @@ adjectives nounFrame = do
     Just "3" -> "third"
     Just "4" -> "fourth"
     Just "5" -> "fifth"
+    Just "6" -> "sixth"
     _ -> ""
   let shopKind = if sValue P.Name nounFrame == Just "гастроном" then "grocery" else ""
   let gender =
@@ -356,6 +357,8 @@ stripFirstComma t1 = if ", " `isPrefixOf` t1 then drop 2 t1 else t1
 catM :: State GenerationState String -> State GenerationState String -> State GenerationState String
 catM t1 t2 = do s1 <- t1; s2 <- t2; return $ s1 `cat` s2
 
+mapCat f list = foldM (\s arg -> return s `catM` f arg) "" list
+
 frameGenerated frame = do state <- get; put $ state { visitedFrames = Set.insert frame $ visitedFrames state }
 
 sentence :: Frame -> State GenerationState String
@@ -379,10 +382,11 @@ sentence frame = handleSeq singleSentence (Just frame) `catM` return (finish ++ 
 
 genComplement cp = case fValue P.Content cp of
   Nothing -> return ""
-  Just fVerb -> let
-      prefix = if isFactCP cp && distinguish cp then "that" else ""
-      negation = if Just "true" == sValue P.Negated cp then "not" else ""
-    in return (negation `cat` prefix) `catM` sentence cp
+  Just fVerb -> do
+    let prefix = if isFactCP cp && distinguish cp then "that" else ""
+        negation = if Just "true" == sValue P.Negated cp then "not" else ""
+    s <- sentence cp
+    return $ negation `cat` prefix `cat` stripFirstComma s
 
 conjIntroduction fVerb =
    if sValue P.ButEmphasis fVerb == Just "true" then "but"
@@ -404,7 +408,7 @@ generateAccording parent = case fValue P.AccordingTo parent of
           s -> return $ show s
     state <- get
     if Set.member source (visitedFrames state) then return ""
-    else handleSeq oneOpinion (Just source) `catM` return comma
+    else return comma `catM` handleSeq oneOpinion (Just source) `catM` return comma
   _ -> return ""
 
 getExternalComp fVerb = usage P.Content fVerb >>= usage P.Member1 >>= fValue P.Member2 >>= fValue P.Content >>= \nextVerb ->
@@ -432,6 +436,8 @@ clause fVerb = do
                    else ""
     let fSubject = englishSubject fVerb
         cp = usage P.Content fVerb
+    let (_prefixAdjuncts, _postfixAdjuncts) = partition (\(SentenceAdjunct _ _ f) -> typeEarlier f fVerb) $ sentenceAdjuncts fVerb
+    prefixAdjuncts <- mapCat generateSentenceAdjunct _prefixAdjuncts
     core <- if isQualityCopula fVerb && Just "true" == (sValue P.ExclamativeQuestion =<< cp)
            then case fSubject >>= getType of
              Just "AMAZE" -> return "Great was" `catM` np True fSubject
@@ -439,7 +445,7 @@ clause fVerb = do
              _ -> return "??degree"
            else vp fVerb (determineVerbForm fSubject $ past state) FiniteClause
     elaboration <- case fValue P.Elaboration fVerb of
-      Just smth -> return (if hasType "HAPPEN" fVerb then "," else ":") `catM` sentence smth
+      Just smth -> do s <- sentence smth; return $ (if hasType "HAPPEN" fVerb then "," else ":") `cat` stripFirstComma s
       _ -> return ""
     let fComp = case getType fVerb of
           Just "FORGET" -> fValue P.Arg2 fVerb
@@ -466,32 +472,37 @@ clause fVerb = do
           Just slave -> return "to" `catM` vp slave BaseVerb InfiniteClause
           _ -> return ""
       else return ""
-    condComp <- case fValue P.WhenCondition fVerb of
-      Just fComp -> return ", when" `catM` sentence fComp
-      _ -> case fValue P.IfCondition fVerb of
-        Just fComp -> return ", if" `catM` sentence fComp
-        _ -> case fValue P.Condition fVerb of
-          Just caze | hasType "CASE" caze -> case msum [fValue P.WhenCondition caze, fValue P.IfCondition caze] of
-            Just fComp -> do
-              comp <- sentence fComp
-              according <- generateAccording caze
-              return $ ", only if" `cat` (if null according then "" else ", " ++ according) `cat` comp
-            _ -> return ""
-          _ -> return ""
-    reasonComp <- case fValue P.Reason fVerb of
-      Just fComp | hasType "situation" fComp -> return "because" `catM` sentence fComp
-      _ -> return ""
+    postfixAdjuncts <- mapCat generateSentenceAdjunct _postfixAdjuncts
     questionVariants <- case cp >>= fValue P.Questioned >>= fValue P.Variants of
       Just variants -> return "-" `catM` np ((cp >>= fValue P.Questioned) == fSubject) (Just variants)
       _ -> return ""
     according <- generateAccording fVerb
-    return $ cat intro $ stripFirstComma $ emphasis `cat` according `cat` core `cat` controlledComp `cat` condComp `cat` reasonComp `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
+    let noIntro = emphasis `cat` according `cat` core `cat` controlledComp `cat` postfixAdjuncts `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
+    return $ prefixAdjuncts `cat` intro `cat` (if null intro then noIntro else stripFirstComma noIntro)
 
 isQuestioned frame = flip any (flatten $ Just frame) $ \frame ->
   hasType "wh" frame ||
   Just True == fmap isQuestioned (fValue P.Arg1 frame) ||
   Just True == fmap isQuestioned (fValue P.Author frame) ||
   Just True == fmap isQuestioned (fValue P.Determiner frame)
+
+data SentenceAdjunct = SentenceAdjunct String String Frame
+
+sentenceAdjuncts fVerb = condComp ++ reasonComp where
+  condComp = case () of
+    _ | Just fComp <- fValue P.WhenCondition fVerb -> [SentenceAdjunct "," "when" fComp]
+    _ | Just fComp <- fValue P.IfCondition fVerb   -> [SentenceAdjunct "," "if" fComp]
+    _ | Just caze <- fValue P.Condition fVerb,
+        hasType "CASE" caze,
+        Just fComp <- msum [fValue P.WhenCondition caze, fValue P.IfCondition caze] -> [SentenceAdjunct "," "only if" fComp]
+    _ -> []
+  reasonComp = case fValue P.Reason fVerb of
+    Just fComp | hasType "situation" fComp -> [SentenceAdjunct "" "because" fComp]
+    _ -> []
+
+generateSentenceAdjunct (SentenceAdjunct separator preposition frame) = do
+  s <- sentence frame
+  return $ separator `cat` preposition `cat` s `cat` separator
 
 data ClauseType = FiniteClause | InfiniteClause deriving (Eq)
 
@@ -543,14 +554,14 @@ vp fVerb verbForm clauseType = do
   subject <- if thereSubject then return "there" else if Just "WEATHER_BE" == getType fVerb then return "it" else case (fSubject, clauseType) of
     (Just f, FiniteClause) ->
       if isVerbEllipsis fVerb && not (reachesEllipsisAnchor fSubject fVerb) then return "it"
-      else if [fVerb] `isPrefixOf` (usages P.Arg1 f) || isModality || isRaising || isAtLocationCopula fVerb || isOwnerCopula fVerb then np True fSubject
+      else if [fVerb] `isPrefixOf` (usages P.Arg1 f) || fSubject /= fValue P.Arg1 fVerb then np True fSubject
       else if (isJust (msum [fValue P.PerfectBackground fVerb, fValue P.Reason fVerb]) || hasType "copula" fVerb)
         then return $ if sValue P.RusGender f == Just "Masc" then "he" else "she"
       else return ""
     _ -> return ""
-  beforeVP <- foldM (\s arg -> return s `catM` generateArg arg) "" prefixArgs
-  preAdverb <- foldM (\s arg -> return s `catM` generateArg arg) "" infixArgs
-  sArgs <- foldM (\s arg -> return s `catM` generateArg arg) "" $ Data.List.sortBy (compare `on` argOrder) normalArgs
+  beforeVP <- mapCat generateArg prefixArgs
+  preAdverb <- mapCat generateArg infixArgs
+  sArgs <- mapCat generateArg $ Data.List.sortBy (compare `on` argOrder) normalArgs
   sTopicalized <- case topicalizedArg of
     Just arg -> generateArg arg `catM` return (if isExclamationCopula fVerb then "" else ",")
     _ -> return ""
@@ -609,6 +620,7 @@ generateArg arg = let
     PPAdjunct _ prep f -> return prep `catM` (np False $ Just f)
     ToInfinitive nextVerb -> return "to" `catM` vp nextVerb BaseVerb InfiniteClause
     GerundBackground _ back -> return ("," `cat` conjIntroduction back) `catM` vp back Gerund InfiniteClause `catM` return ","
+    GerundArg f -> vp f Gerund InfiniteClause
     CommaSurrounded a -> return "," `catM` generateArg a `catM` return ","
     Silence _ -> return ""
 

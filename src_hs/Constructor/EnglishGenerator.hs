@@ -114,7 +114,7 @@ np_internal nom mayHaveDeterminer frame = do
     else do
       adjs <- adjectives frame
       let n = if isElidedNoun frame then
-                if skipElidedOne frame || Just True == fmap isPronoun fDet then ""
+                if skipElidedOne frame || Just True == fmap isPronoun fDet || Just "BLIND" == (getType =<< fValue P.Quality frame) then ""
                 else if Just "Pl" == sValue P.RusNumber frame then "ones" else "one"
               else if isElided frame || isPlaceholder frame then ""
               else noun (getType frame) frame
@@ -212,6 +212,8 @@ adjectives nounFrame = do
     Just "FAST" -> "fast"
     Just "STUPID" -> "stupid"
     Just "SMASHED" | not (isElidedNoun nounFrame) -> "smashed"
+    Just "WOVEN" -> "woven"
+    Just "BLIND" -> "blind"
     _ -> ""
   color <- adjSeq P.Color $ \p -> case getType p of
     Just "GREEN" -> "green"
@@ -405,6 +407,7 @@ generateAccording parent = case fValue P.AccordingTo parent of
         oneOpinion source = case getType source of
           Just "OPINION" -> return (if distinguish source then "in" else "") `catM` np False (Just source)
           Just "WORDS" -> return "according to" `catM` elideableArgument (fValue P.Author source) source
+          Just "SAY" -> return "they say"
           s -> return $ show s
     state <- get
     if Set.member source (visitedFrames state) then return ""
@@ -476,8 +479,7 @@ clause fVerb = do
     questionVariants <- case cp >>= fValue P.Questioned >>= fValue P.Variants of
       Just variants -> return "-" `catM` np ((cp >>= fValue P.Questioned) == fSubject) (Just variants)
       _ -> return ""
-    according <- generateAccording fVerb
-    let noIntro = emphasis `cat` according `cat` core `cat` controlledComp `cat` postfixAdjuncts `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
+    let noIntro = emphasis `cat` core `cat` controlledComp `cat` postfixAdjuncts `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
     return $ prefixAdjuncts `cat` intro `cat` (if null intro then noIntro else stripFirstComma noIntro)
 
 isQuestioned frame = flip any (flatten $ Just frame) $ \frame ->
@@ -523,7 +525,8 @@ vp fVerb verbForm clauseType = do
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue P.Question_mark)
       isDoModality = isModality && Just True == fmap (hasType "DO") theme
       thereSubject = clauseType == FiniteClause &&
-                     (Just "wh" == (fSubject >>= getType) && isModality || isNothing (fSubject >>= getType) && Just True /= (fmap isElidedNoun fSubject)) &&
+                     isModality &&
+                     (Just "wh" == (fSubject >>= getType) || isNothing (fSubject >>= getType) && Just True /= (fmap isElidedNoun fSubject)) &&
                      not isQuestion
       (_aux, sVerb) = generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModality thereSubject
       aux = if clauseType == InfiniteClause then "" else _aux
@@ -534,7 +537,8 @@ vp fVerb verbForm clauseType = do
         _ -> ""
       negation = if sValue P.Negated fVerb == Just "true" && isGerund fVerb then "not" else ""
       allArgs = if isModality then fromMaybe [] (fmap arguments theme) else arguments fVerb
-      prefixArgs = filter (\a -> argPosition a == BeforeVP) allArgs
+      cpPrefixArgs = filter (\a -> argPosition a == BeforeCP) allArgs
+      vpPrefixArgs = filter (\a -> argPosition a == BeforeVP) allArgs
       infixArgs = filter (\a -> argPosition a == BeforeVerb) allArgs
       postfixArgs = filter (\a -> argPosition a == AfterVerb) allArgs
       topicalizedArg = case (fSubject, postfixArgs) of
@@ -559,13 +563,15 @@ vp fVerb verbForm clauseType = do
   subject <- if thereSubject then return "there" else if Just "WEATHER_BE" == getType fVerb then return "it" else case (fSubject, clauseType) of
     (Just f, FiniteClause) ->
       if isVerbEllipsis fVerb && not (reachesEllipsisAnchor fSubject fVerb) then return "it"
+      else if isNothing (fSubject >>= getType) && not (isTrue $ isElidedNoun <$> fSubject) then return "someone"
       else if shouldElideSubject fVerb fSubject then
         if (isJust (msum [fValue P.PerfectBackground fVerb, fValue P.Reason fVerb]) || hasType "copula" fVerb)
         then return $ if sValue P.RusGender f == Just "Masc" then "he" else "she"
         else return ""
       else np True fSubject
     _ -> return ""
-  beforeVP <- mapCat generateArg prefixArgs
+  beforeCP <- mapCat generateArg cpPrefixArgs
+  beforeVP <- mapCat generateArg vpPrefixArgs
   preAdverb <- mapCat generateArg infixArgs
   sArgs <- mapCat generateArg $ Data.List.sortBy (compare `on` argOrder) normalArgs
   sTopicalized <- case topicalizedArg of
@@ -583,9 +589,6 @@ vp fVerb verbForm clauseType = do
         else "nothing"
       else if Just "true" == sValue P.Animate frame then "somebody" else "something"
     _ -> return ""
-  according <- if null whWord && Just True /= fmap (hasType "wh") fSubject then return "" else do
-    acc <- generateAccording fVerb
-    return $ if null acc then "" else "," `cat` acc
   controlled <- case getType fVerb of
     Just "CAN" -> case theme of
       Just slave -> vp slave BaseVerb InfiniteClause
@@ -604,12 +607,13 @@ vp fVerb verbForm clauseType = do
         "are" -> "'re"
         "will" -> "'ll"
         _ -> ""
+  let (afterWh, afterSubject) = if isQuestion && isTrue (isQuestioned <$> fSubject) then ("", beforeVP) else (beforeVP, "")
   let contractableSubject = subject `elem` ["I", "he", "she", "we", "it", "what", "that", "it", "there", "you"]
-  let contracted = if null preAdverb && null negation && null according && not inverted && contractableSubject then
+  let contracted = if null preAdverb && null negation && not inverted && contractableSubject && null afterSubject then
                      if null shortForm then subject `cat` mainVerb `cat` restVerb
                      else (subject ++ shortForm) `cat` restVerb
-                   else (if inverted then according `cat` aux `cat` negation `cat` subject else subject `cat` according `cat` aux `cat` negation) `cat` preAdverb `cat` sVerb
-  return $ beforeVP `cat` sTopicalized `cat` whWord `cat` contracted `cat` nonWhWord `cat` controlled `cat` sArgs `cat` stranded `cat` anymore `cat` finalAdverb
+                   else (if inverted then aux `cat` negation `cat` subject else subject `cat` aux `cat` negation) `cat` afterSubject `cat` preAdverb `cat` sVerb
+  return $ beforeCP `cat` sTopicalized `cat` whWord `cat` afterWh `cat` contracted `cat` nonWhWord `cat` controlled `cat` sArgs `cat` stranded `cat` anymore `cat` finalAdverb
 
 generateArg :: Argument -> State GenerationState String
 generateArg arg = let
@@ -627,6 +631,7 @@ generateArg arg = let
     ToInfinitive nextVerb -> return "to" `catM` vp nextVerb BaseVerb InfiniteClause
     GerundBackground _ back -> return ("," `cat` conjIntroduction back) `catM` vp back Gerund InfiniteClause `catM` return ","
     GerundArg f -> vp f Gerund InfiniteClause
+    AccordingTo f parent _ -> generateAccording parent
     CommaSurrounded a -> return "," `catM` generateArg a `catM` return ","
     Silence _ -> return ""
 

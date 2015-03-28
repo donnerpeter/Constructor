@@ -17,7 +17,8 @@ import Constructor.Util
 
 findFrames typ sense = [f | f <- allFrames sense, hasType typ f]
 
-typeEarlier f1 f2 = earlier f1 P.Type f2 P.Type
+typeEarlier f1 f2 = earlier f1 (typeAttr f1) f2 (typeAttr f2) where
+  typeAttr f = if isJust (getDeclaredType f) then P.Type else P.Elided
 
 sValue attr frame =
   let declared = sDeclaredValue attr frame
@@ -29,12 +30,10 @@ sValue attr frame =
     case attr of
       P.Given ->
         if Just True == fmap (hasAnyType ["SOME", "ONE"]) (fValue P.Determiner frame) then Just "false"
-        else if hasAnyType ["CASE", "HAMMER", "TREES", "BENCH", "FINGER", "WATERMELON", "JAW"] frame then Just "false"
+        else if hasAnyType ["CASE", "HAMMER", "TREES", "BENCH", "FINGER", "WATERMELON", "JAW", "SHAWL"] frame then Just "false"
         else if isTrue $ isNumberString <$> getType frame then Just "false"
         else if Just "copula" == (usage P.Arg2 (unSeq frame) >>= getDeclaredType) then Just "false"
         else if isTrue $ isQualityCopula <$> usage P.Arg1 frame then Just "false"
-        else if hasType "CHILD" frame then
-          if Just "SOME" == (fValue P.Determiner frame >>= getType) then Just "false" else Just "true"
         else if hasType "CASHIER" frame then
           case find (\cashier -> typeEarlier cashier frame) $ findFrames "CASHIER" $ sense frame of
              Just prev -> Just "true"

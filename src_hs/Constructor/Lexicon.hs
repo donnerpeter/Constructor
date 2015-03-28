@@ -65,11 +65,14 @@ wordMites word index =
   "всё" -> xor [pronoun Nom A.n3 "EVERYTHING" v, pronoun Acc A.n3 "EVERYTHING" v] ++ [mite $ UniversalPronoun v0]
   "всеми" -> adj Instr A.pl P.Specifier_all "ALL" v ++ [mite $ UniversalPronoun v0]
   "вспомнить" -> infinitive "RECALL" v ++ directObject v
+  "вязаную" -> adj Acc A.f P.Quality "WOVEN" v
   "где" -> whWord A.empty v ++ [mite $ VerbalModifier P.Location False v0]
   "глазами" -> nounPl Instr "EYES" v ++ genHead P.Arg1 v
   "глупый" -> adj Nom A.m P.Quality "STUPID" v
+  "говорят" -> [mite $ VerbalModifier P.AccordingTo True v0, semT v0 "SAY"]
   "грустно" -> adverb P.Manner "SADLY" v
   "гулять" -> infinitive "WALK" v
+  "дал" -> finVerb "GIVE" "PAST" A.m v ++ directObject v ++ optional (arg Dat P.Receiver v)
   "дальше" -> [mite $ Argument ScalarAdverb v0, semT v0 "NEXT"]
   "два" -> wordNumber Acc "2" v
   "делал" -> finVerb "DO" "PAST" A.m v ++ directObject v
@@ -216,6 +219,7 @@ wordMites word index =
   "один" -> xor [wordNumber Acc "1" v, adj Nom A.m P.Determiner "ONE" v]
   "одна" -> adj Nom A.f P.Determiner "ONE" v
   "одних" -> nounPl Gen "SOME" v
+  "одному" -> adj Dat A.m P.Determiner "ONE" v
   "окна" -> xor [nounSg Gen Neu "WINDOW" v, nounPl Nom "WINDOWS" v] ++ genHead P.Owner v
   "он" -> pronoun Nom A.m3 "HE" v
   "она" -> pronoun Nom A.f3 "SHE" v
@@ -236,7 +240,7 @@ wordMites word index =
   "по-моему" -> xor [[mite $ VerbalModifier P.AccordingTo True v0], [mite $ NounAdjunct P.AccordingTo True v0]] ++ [semT v0 "OPINION", semV v0 P.Arg1 (v "me"), semT (v "me") "ME"]
   "поблагодарили" -> finVerb "THANK" "PAST" A.pl v ++ directObject v
   "поводу" -> nounSg Dat Masc "MATTER" v
-  "дал" -> finVerb "TO_PRESENT" "PAST" A.m v ++ directObject v ++ optional (arg Dat P.Receiver v)
+  "подарили" -> finVerb "TO_PRESENT" "PAST" A.pl v ++ directObject v ++ optional (arg Dat P.Receiver v)
   "подвигав" -> perfectBackground "MOVE" v ++ arg Instr P.Arg2 v
   "подвигала" -> finVerb "MOVE" "PAST" A.f v ++ arg Instr P.Arg2 v
   "показались" -> raisingVerb "SEEM" "PAST" A.pl v ++ optional (arg Dat P.Experiencer v)
@@ -299,6 +303,7 @@ wordMites word index =
   "скромному" -> adj Dat A.n P.Quality "HUMBLE" v
   "слегка" -> adverb P.Manner "SLIGHTLY" v
   "следовало" -> finVerb "COME_SCALARLY" "PAST" A.n3 v ++ xor [arg ScalarAdverb P.Order v, arg (PP "posle" Gen) P.Order v]
+  "слепому" -> adj Dat A.m P.Quality "BLIND" v
   "слова" -> xor [nounPl Nom "WORDS" v, nounPl Acc "WORDS" v] ++ genHead P.Author v
   "словам" -> nounPl Dat "WORDS" v ++ genHead P.Author v
   "сломал" -> finVerb "BREAK" "PAST" A.m v ++ directObject v ++ arg Dat P.Receiver v
@@ -373,6 +378,7 @@ wordMites word index =
   "что" -> xor [caseWhWord Nom A.n3 v, caseWhWord Acc A.n3 v, [mite $ Complementizer v0], [mite $ TwoWordCxt "потому что" False [] v0], [mite $ Relativizer v0, semT v0 "wh"]]
   "чьему" -> whWord A.empty v ++ animate v ++ xor [[mite $ Possessive Dat A.m v0], [mite $ Possessive Dat A.n v0]]
   "чьим" -> whWord A.empty v ++ animate v ++ [mite $ Possessive Dat A.pl v0]
+  "шаль" -> xor [nounSg Nom Fem "SHAWL" v, nounSg Acc Fem "SHAWL" v]
   "шестая" -> adj Nom A.f P.Order "6" v
   "шести" -> wordNumber Gen "6" v
   "шел" -> xor [finVerb "GO" "PAST" A.m v ++ go_args v,

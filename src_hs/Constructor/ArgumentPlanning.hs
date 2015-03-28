@@ -27,7 +27,7 @@ reachesEllipsisAnchor mArg fVerb = case mArg of
   Nothing -> False
   Just arg -> any (\f -> isEllipsisAnchor (Just f) fVerb) $ Set.elems $ reachableFrames arg
 
-data Position = BeforeVP | BeforeVerb | AfterVerb deriving (Eq,Show,Ord)
+data Position = BeforeCP | BeforeVP | BeforeVerb | AfterVerb deriving (Eq,Show,Ord)
 
 data Argument = Adverb Position String | NPArg Frame |
                 PPArg String Frame | PPAdjunct Position String Frame |
@@ -35,6 +35,7 @@ data Argument = Adverb Position String | NPArg Frame |
                 GerundArg Frame |
                 Silence Frame |
                 CommaSurrounded Argument |
+                AccordingTo Frame Frame Position |
                 PreAdverb String
                 deriving (Eq,Show,Ord)
 
@@ -43,16 +44,18 @@ argumentFrame (PPArg _ f) = Just f
 argumentFrame (ToInfinitive f) = Just f
 argumentFrame (GerundBackground _ f) = Just f
 argumentFrame (Silence f) = Just f
+argumentFrame (AccordingTo f _ _) = Just f
 argumentFrame (CommaSurrounded a) = argumentFrame a
 argumentFrame _ = Nothing
 
 argPosition (Adverb p _) = p
 argPosition (PPAdjunct p _ _) = p
 argPosition (GerundBackground p _) = p
+argPosition (AccordingTo _ _ p) = p
 argPosition (CommaSurrounded a) = argPosition a
 argPosition _ = AfterVerb
 
-arguments fVerb@(getType -> Just typ) = allArgs where
+arguments fVerb@(getType -> Just typ) = allArgs ++ externalArguments fVerb where
   sens = sense fVerb
   compareFacts f1@(Fact frame1 val1) f2@(Fact frame2 val2) =
     if f1 == f2 then EQ
@@ -104,6 +107,7 @@ arguments fVerb@(getType -> Just typ) = allArgs where
       ("DISPERSE", P.Goal) -> if hasType "HOUSES" value then [Adverb AfterVerb "home"] else [PPArg "to" value]
       ("GO", P.Goal_action) -> if hasType "WALK" value then [Adverb AfterVerb "for a walk"] else [PPArg "to" value]
       ("TYPE", P.Instrument) -> [PPArg "using" value]
+      ("GIVE", P.Receiver) -> [PPArg "to" value]
       ("TO_PRESENT", P.Receiver) -> [PPArg "to" value]
       ("LOOK", P.Goal) -> if hasType "DOWN" value then [Adverb AfterVerb "down"] else [PPArg "at" value]
       ("LOOK", P.Goal_on) -> if lookAsWatching fVerb then [NPArg value] else [PPArg "at" value]
@@ -161,6 +165,10 @@ arguments fVerb@(getType -> Just typ) = allArgs where
       (P.Also, "true") | typ /= "CAN" -> [Adverb BeforeVerb "also"]
       _ -> []
 arguments _ = []
+
+externalArguments fVerb = case fValue P.AccordingTo fVerb of
+  Just acc -> [AccordingTo acc fVerb (if typeEarlier acc fVerb then BeforeVP else AfterVerb)]
+  _ -> []
 
 allCoordinatedVerbs fVerb = case usage P.Content fVerb of
   Nothing -> [fVerb]

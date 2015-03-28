@@ -33,7 +33,7 @@ factIssues fact = let
         requireValType f = l$ \sense -> requireType (Just $ valFrame sense) f
         in case attr of
           P.AccordingTo -> requireValType $ \valFrame ->
-            if any (not . hasAnyType ["WORDS", "OPINION"]) (flatten $ Just valFrame) then fatalIssue "invalid accordingTo" else finalNo
+            if any (not . hasAnyType ["WORDS", "OPINION", "SAY"]) (flatten $ Just valFrame) then fatalIssue "invalid accordingTo" else finalNo
           P.OptativeModality -> requireValType $ \valFrame ->
             if any (not . hasAnyType ["LUCK", "BY_THE_WAY"]) (flatten $ Just valFrame) then fatalIssue "invalid optativeModality" else finalNo
           P.Quantifier -> l $ \sense ->
@@ -156,4 +156,4 @@ makeHolder prevFinals sense providers = IssueHolder newFinals (concat newProvisi
 
 holderIssues holder = {-traceIt "issues" $ -}provisionalIssues holder ++ finalIssues holder
 
-fatalIssues holder = [s | (s, Fatal) <- finalIssues holder]
+fatalIssues holder = {-traceIt "fatal" $ -}[s | (s, Fatal) <- finalIssues holder]

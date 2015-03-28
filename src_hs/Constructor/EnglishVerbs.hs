@@ -35,6 +35,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "FALL_OUT" -> "fell out"
   "FORGET" -> "forgot"
   "GET_SAD" -> "got sad"
+  "GIVE" -> if verbForm == BaseVerb then "give" else "gave"
   "GO" -> if verbForm == PastVerb then "went" else if verbForm == BaseVerb then "go" else if verbForm == Gerund then "going" else "goes"
   "GO_OFF" -> "went"
   "HAPPEN" -> "happened"

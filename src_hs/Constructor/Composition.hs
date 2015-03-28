@@ -253,10 +253,10 @@ negationPropagation rightVar leftMites = leftMites >>= \m3 -> case cxt m3 of
 interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
     let (left, right, base12) = mergeInfoHelpers m1 m2
     in case (cxt m1, cxt m2) of
-      (Adj var2 attr adjCase agr1, AdjHead var nounCase agr2) | adjCase == nounCase && agree agr1 agr2 ->
-        mergeRight $ base12 [semV var attr var2] ++ whPropagation m2 m1 (leftCompatible env m1) ++ negationPropagation var (leftCompatible env m1)
-      (AdjHead var nounCase agr2, Adj var2 attr adjCase agr1) | adjCase == nounCase && agree agr1 agr2 ->
-        mergeLeft $ base12 [semV var attr var2] ++ whPropagation m1 m2 (rightCompatible env m2)
+      (Adj var2 attr adjCase agr1, c) | Just (AdjHead var nounCase agr2, rest) <- asAdjHead c, adjCase == nounCase && agree agr1 agr2 ->
+        mergeRight $ base12 [semV var attr var2] ++ whPropagation m2 m1 (leftCompatible env m1) ++ negationPropagation var (leftCompatible env m1) ++ rest
+      (c, Adj var2 attr adjCase agr1) | Just (AdjHead var nounCase agr2, rest) <- asAdjHead c, adjCase == nounCase && agree agr1 agr2 ->
+        mergeLeft $ base12 [semV var attr var2] ++ whPropagation m1 m2 (rightCompatible env m2) ++ rest
 
       (Possessive adjCase agr1 child, AdjHead noun nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
         GenHead attrs -> mergeRight $ withBase [m1,m2,m3] [semV h attr child | (attr, h) <- attrs] ++ Seq.pullThyself (leftCompatible env m1) ++ whPropagation m1 m2 (leftCompatible env m1)

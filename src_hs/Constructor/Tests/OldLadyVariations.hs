@@ -31,4 +31,10 @@ oldLadyVariationTests = [
 --                ,
 --todo  translateTest "Он мне надоел. И кассирша мне тоже надоела."
 --                "I've had enough of him. And I've had enough of the cashier, too."
+--                ,
+--todo  translateTest "Говорят, что здесь одному подарили шаль."
+--                "They say that someone here gave a shawl to a blind."
+--                ,
+--todo  translateTest "Они говорят, что подарили слепому шаль."
+--                "They say that they gave a shawl to a blind."
   ]

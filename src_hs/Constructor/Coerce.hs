@@ -1,4 +1,4 @@
-module Constructor.Coerce (asVerb, asTenseHead, asCopula, asNoun, asNegateable, asClause) where
+module Constructor.Coerce (asVerb, asTenseHead, asCopula, asNoun, asNegateable, asClause, asAdjHead) where
 
 import Constructor.Agreement
 import Constructor.Mite
@@ -100,3 +100,11 @@ asClause = \case
   Clause cp -> Just (cp, [])
   TopLevelQuestion cp -> Just (cp, [semS cp P.ExclamativeQuestion "true"])
   _ -> Nothing
+
+asAdjHead :: Construction -> Maybe (Construction, [Mite])
+asAdjHead c@(AdjHead {}) = Just (c, [])
+asAdjHead (Adj v0 attr caze agr) = let
+  v = makeV v0 "noun"
+  noun = v ""
+  in Just (AdjHead noun caze agr, [mite $ Argument caze noun, semS noun P.ElidedNoun "true", mite $ Handicap noun, semV noun attr v0] ++ rusNumber agr noun)
+asAdjHead _ = Nothing

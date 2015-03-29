@@ -20,7 +20,6 @@ import Constructor.Tests.RandomStuff
 import Constructor.Tests.HybridCoordination
 import Constructor.Tests.Copula
 import Constructor.Tests.OldLadies
-import Constructor.Tests.OldLadyVariations
 
 createTest (TranslateTest src target time) = TestLabel src $ TestCase $ assertEqual message target timed where
   trees = roots $ parse src

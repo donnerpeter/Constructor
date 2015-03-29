@@ -160,7 +160,7 @@ punctuationAware env (m1, m2) =
         mergeLeft $ base12 [mite $ DirectSpeechHead head $ Just v, semV head P.Message v] ++ closeUnclosed LeftSide Satisfied
 
       (DirectSpeechDash v, Sentence cp) ->
-        mergeLeft $ base12 [mite $ DirectSpeech cp, mite $ Sentence cp, semS cp P.DirectSpeech "true"] ++ closeUnclosed RightSide Satisfied
+        mergeLeft $ base12 [mite $ Sentence cp, semS cp P.DirectSpeech "true"] ++ closeUnclosed RightSide Satisfied
 
       (Colon "elaboration" _, Clause cp) ->
         mergeLeft $ base12 [mite $ Elaboration cp]

@@ -117,7 +117,6 @@ data Construction = Word Variable String
                   | ModalityInfinitive {-modality-} Variable {-cp-} Variable
                   | ControlledInfinitive Variable
                   | DirectSpeechHead Variable {--child--} (Maybe Variable)
-                  | DirectSpeech Variable
                   | DirectSpeechDash Variable
                   | Ellipsis Variable {-right-} (Maybe Construction)
                   | RaisingVerb {-verb-} Variable {-subj-} Variable

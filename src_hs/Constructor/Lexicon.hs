@@ -281,7 +281,7 @@ wordMites word index =
   "с" -> xor [preposition "s" Instr v, preposition "s" Gen v]
   "сад" -> nounSg Acc Masc "GARDEN" v
   "сада" -> nounSg Gen Masc "GARDEN" v
-  "свалился" -> finVerb "FALL" "PAST" A.m v ++ arg (PP "s" Gen) P.Source v
+  "свалился" -> finVerb "FALL" "PAST" A.m v ++ optional (arg (PP "s" Gen) P.Source v)
   "свет" -> nounSg Nom Masc "LIGHT" v
   "своим" -> possessive Dat A.pl "SELF" v ++ [mite $ ReflexiveReference v0]
   "своими" -> possessive Instr A.pl "SELF" v ++ [mite $ ReflexiveReference v0]

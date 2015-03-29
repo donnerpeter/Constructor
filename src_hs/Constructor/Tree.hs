@@ -161,7 +161,7 @@ createBranch mites _leftChild _rightChild headSide candidateSets = listToMaybe a
             }
       ListT $ do
         candidates <- mapM createCandidate sideChildren
-        let filtered = filter (null . fatalIssues . internedValue . _issues) candidates
+        let filtered = filter (null . fatalIssues . internedValue . _issues) $ filter (null . _unhappyLeft . _unhappy) candidates
         return $ if null filtered then [] else [bestTree filtered]
 
 data Unhappy = Unhappy { _unhappyLeft :: [Mite], _unhappyRight :: [Mite], _unhappyHead :: [Mite] }

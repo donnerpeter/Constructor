@@ -47,6 +47,7 @@ noun (Just typ) frame = case typ of
   "NOSE" -> "nose"
   "OFFICES" -> "offices"
   "OLD_LADY" -> "old lady"
+  "OLD_LADIES" -> "old ladies"
   "OLD_MAN" -> "old man"
   "OPINION" -> "opinion"
   "ORDER" -> "order"
@@ -93,6 +94,7 @@ renderAsWord frame = not $ isNumber $ Just frame
 isSingular frame = case getType frame of
   Just "NEIGHBORS" -> False
   Just "WINDOWS" -> False
+  Just "OLD_LADIES" -> False
   Just "THEY" -> False
   Just "WE" -> False
   Just "TREES" -> False

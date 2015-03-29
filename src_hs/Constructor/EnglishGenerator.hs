@@ -17,7 +17,7 @@ import Constructor.Util
 import Data.Function (on)
 import qualified Constructor.SemanticProperties as P
 
-data GenerationState = GenerationState { visitedFrames:: Set.Set Frame, past:: Bool}
+data GenerationState = GenerationState { visitedFrames:: Set.Set Frame, visitedSentenceFrames:: Set.Set Frame, past:: Bool }
 
 generate:: Sense -> String
 generate sense =
@@ -28,11 +28,12 @@ generate sense =
         state <- get
         if Set.member frame (visitedFrames state) then return output
         else do
+          put $ state { visitedSentenceFrames = Set.empty }
           nextSentence <- sentence frame
           let start = if (sValue P.DirectSpeech frame) == Just "true" then "- " else ""
               separator = if null output || "\n" `isSuffixOf` output then "" else if start == "- " then "\n" else " "
           return $ output ++ separator ++ start ++ capitalize (stripFirstComma nextSentence)
-      text = evalState sentenceState $ GenerationState Set.empty False
+      text = evalState sentenceState $ GenerationState Set.empty Set.empty False
   in stripLastComma text
 
 capitalize (c:rest) = (toUpper c):rest
@@ -103,7 +104,7 @@ np nom frame =
 np_internal :: Bool -> Bool -> Frame -> State GenerationState String
 np_internal nom mayHaveDeterminer frame = do
   state <- get
-  if Set.member frame (visitedFrames state) then return $ fromMaybe "ONE" $ getType frame else do
+  if Set.member frame (visitedSentenceFrames state) then return $ fromMaybe "ONE" $ getType frame else do
   frameGenerated frame
 
   unquantified <-
@@ -214,6 +215,7 @@ adjectives nounFrame = do
     Just "SMASHED" | not (isElidedNoun nounFrame) -> "smashed"
     Just "WOVEN" -> "woven"
     Just "BLIND" -> "blind"
+    Just "FALL_OUT" -> "falling"
     _ -> ""
   color <- adjSeq P.Color $ \p -> case getType p of
     Just "GREEN" -> "green"
@@ -361,7 +363,12 @@ catM t1 t2 = do s1 <- t1; s2 <- t2; return $ s1 `cat` s2
 
 mapCat f list = foldM (\s arg -> return s `catM` f arg) "" list
 
-frameGenerated frame = do state <- get; put $ state { visitedFrames = Set.insert frame $ visitedFrames state }
+frameGenerated frame = do
+  state <- get
+  put $ state {
+    visitedFrames = Set.insert frame $ visitedFrames state,
+    visitedSentenceFrames = Set.insert frame $ visitedSentenceFrames state
+  }
 
 sentence :: Frame -> State GenerationState String
 sentence frame = handleSeq singleSentence (Just frame) `catM` return (finish ++ newline) where

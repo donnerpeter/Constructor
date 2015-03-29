@@ -54,6 +54,7 @@ wordMites word index =
   "всякого" -> adj Gen A.m P.Determiner "ANY" v
   "вы" -> pronoun Nom A.empty "YOU" v
   "выбежали" -> finVerb "RUN_OUT" "PAST" A.pl v ++ arg (PP "iz" Gen) P.Source v
+  "вываливающиеся" -> adj Nom A.pl P.Quality "FALL_OUT" v ++ optional (arg (PP "iz" Gen) P.Source v)
   "вывалилась" -> finVerb "FALL_OUT" "PAST" A.f v ++ optional (arg (PP "iz" Gen) P.Source v)
   "вывалился" -> finVerb "FALL_OUT" "PAST" A.m v ++ optional (arg (PP "iz" Gen) P.Source v)
   "высунулась" -> finVerb "LEAN_OUT" "PAST" A.f v ++ optional (arg (PP "iz" Gen) P.Source v)
@@ -330,6 +331,7 @@ wordMites word index =
   "стали" -> finVerb "BEGIN" "PAST" A.pl v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")]
   "старик" -> nounSg Nom Masc "OLD_MAN" v
   "старуха" -> nounSg Nom Fem "OLD_LADY" v
+  "старухи" -> nounPl Nom "OLD_LADIES" v
   "старуху" -> nounSg Acc Fem "OLD_LADY" v
   "счастию" -> nounSg Dat Neu "LUCK" v
   "счета" -> nounSg Gen Masc "COUNTING" v

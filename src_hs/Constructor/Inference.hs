@@ -83,6 +83,9 @@ fValue attr frame =
           in fmap resolve $ msum $ map (fValue P.Receiver) (verbs ++ foregrounds) ++ map (fValue P.Arg1) (verbs ++ foregrounds)
         else Nothing
       P.AccordingTo | Just caze <- usage P.Content frame >>= usage P.WhenCondition, hasType "CASE" caze -> fValue P.AccordingTo caze
+      P.Source | Just typ <- getType frame -> let
+        antecedents = reverse $ filter (flip typeEarlier frame) $ findFrames typ (sense frame)
+        in msum $ map (fDeclaredValue P.Source) antecedents
       _ -> Nothing
 
 commandingSubject frame = msum [usage P.Content frame >>= usage P.Theme, usage P.Content frame >>= usage P.Arg2] >>= fValue P.Arg1

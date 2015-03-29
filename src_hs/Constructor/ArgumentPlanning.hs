@@ -166,9 +166,13 @@ arguments fVerb@(getType -> Just typ) = allArgs ++ externalArguments fVerb where
       _ -> []
 arguments _ = []
 
-externalArguments fVerb = case fValue P.AccordingTo fVerb of
-  Just acc -> [AccordingTo acc fVerb (if typeEarlier acc fVerb then BeforeVP else AfterVerb)]
-  _ -> []
+externalArguments fVerb = according ++ outOf where
+  according = case fValue P.AccordingTo fVerb of
+    Just acc -> [AccordingTo acc fVerb (if typeEarlier acc fVerb then BeforeVP else AfterVerb)]
+    _ -> []
+  outOf = case (getDeclaredType fVerb, fDeclaredValue P.Source fVerb, fValue P.Source fVerb) of
+    (Just "FALL_OUT", Nothing, Just value) -> [PPArg "of" value]
+    _ -> []
 
 allCoordinatedVerbs fVerb = case usage P.Content fVerb of
   Nothing -> [fVerb]

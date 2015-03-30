@@ -130,6 +130,8 @@ generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModalit
     else if isFuture then ("will", "have") else ("", haveForm verbForm)
   else if hasType "CAN" fVerb then
     if negated then ("", "couldn't") else ("", "could")
+  else if hasType "PESTER" fVerb && not (pesterAsBoredGerund fVerb) then
+    ("have", "had enough")
   else if inverted || negated then (doForm verbForm ++ (if negated then "n't" else ""), verb BaseVerb fVerb)
   else ("", verb verbForm fVerb)
 

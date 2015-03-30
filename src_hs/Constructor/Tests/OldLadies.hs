@@ -61,9 +61,12 @@ oldLadyVariationTests = [
                 ,
   translateTest "Из окна вывалился старик. Потом старуха."
                 "The old man fell out of the window. Then the old lady did."
+                ,
+  translateTest "Он мне надоел."
+                "I've had enough of him."
 --                ,
 --todo  translateTest "Он мне надоел. И кассирша мне тоже надоела."
---                "I've had enough of him. And I've had enough of the cashier, too."
+--                "I've had enough of him. And I've also had enough of the cashier."
 --                ,
 --todo  translateTest "Говорят, что здесь одному подарили шаль."
 --                "They say that someone here gave a shawl to one."

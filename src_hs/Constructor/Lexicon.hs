@@ -191,7 +191,15 @@ wordMites word index =
   "моя" -> possessive Nom A.f "ME" v
   "мы" -> pronoun Nom A.pl1 "WE" v
   "на" -> xor [preposition "na" Prep v, preposition "na" Acc v]
-  "надоело" -> [semT v0 "PESTER", mite $ Verb v0, mite $ NomHead A.n (v "arg2") Satisfied] ++ optional (arg Dat P.Arg2 v) ++ clause v ++ [mite $ Control (v "arg1"), semV v0 P.Arg1 (v "arg1")]
+  "надоел" -> [semT v0 "PESTER", mite $ Verb v0] ++ clause v ++ optional (arg Dat P.Arg2 v)
+     ++ xor [[mite $ Control (v "arg1"), semV v0 P.Arg1 (v "arg1"), mite $ NomHead A.m (v "arg1") Satisfied],
+             [mite $ NomHead A.m (v "arg1") Unsatisfied, semV v0 P.Arg1 (v "arg1")]]
+  "надоела" -> [semT v0 "PESTER", mite $ Verb v0] ++ clause v ++ optional (arg Dat P.Arg2 v)
+     ++ xor [[mite $ Control (v "arg1"), semV v0 P.Arg1 (v "arg1"), mite $ NomHead A.f (v "arg1") Satisfied],
+             [mite $ NomHead A.f (v "arg1") Unsatisfied, semV v0 P.Arg1 (v "arg1")]]
+  "надоело" -> [semT v0 "PESTER", mite $ Verb v0] ++ clause v ++ optional (arg Dat P.Arg2 v)
+     ++ xor [[mite $ Control (v "arg1"), semV v0 P.Arg1 (v "arg1"), mite $ NomHead A.n (v "arg1") Satisfied],
+             [mite $ NomHead A.m (v "arg1") Unsatisfied, semV v0 P.Arg1 (v "arg1")]]
   "нам" -> pronoun Dat A.pl1 "WE" v
   "нас" -> xor [pronoun Acc A.pl1 "WE" v, pronoun Gen A.pl1 "WE" v]
   "начал" -> finVerb "BEGIN" "PAST" A.m v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")]

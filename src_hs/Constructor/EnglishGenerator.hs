@@ -613,6 +613,7 @@ vp fVerb verbForm clauseType = do
         "is" -> "'s"
         "are" -> "'re"
         "will" -> "'ll"
+        "have" | not (null aux) -> "'ve"
         _ -> ""
   let (afterWh, afterSubject) = if isQuestion && isTrue (isQuestioned <$> fSubject) then ("", beforeVP) else (beforeVP, "")
   let contractableSubject = subject `elem` ["I", "he", "she", "we", "it", "what", "that", "it", "there", "you"]

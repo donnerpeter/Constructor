@@ -4,7 +4,8 @@ module Constructor.ArgumentPlanning (
   isVerbEllipsis, isEllipsisAnchor, reachesEllipsisAnchor,
   allCoordinatedVerbs,
   Position(..), argPosition,
-  isAtLocationCopula, isExclamationCopula, isOwnerCopula, lookAsWatching) where
+  isAtLocationCopula, isExclamationCopula, isOwnerCopula,
+  lookAsWatching, pesterAsBoredGerund) where
 import Constructor.Sense
 import Constructor.Inference
 import Constructor.Util
@@ -132,7 +133,7 @@ arguments fVerb@(getType -> Just typ) = allArgs ++ externalArguments fVerb where
       ("copula", P.Arg1) | isOwnerCopula fVerb -> [NPArg value]
       ("copula", P.Arg2) | Just q <- fValue P.Quality value, hasType "placeholder" value && hasType "wh" q -> [NPArg q]
       ("PESTER", P.Arg2) -> []
-      ("PESTER", P.Arg1) -> [GerundArg value]
+      ("PESTER", P.Arg1) -> if pesterAsBoredGerund fVerb then [GerundArg value] else [PPArg "of" value]
       (_, P.Arg2) -> if isCPOrSeq value then [] else [NPArg value]
       (_, P.Duration) -> if hasType "LONG" value then [Adverb AfterVerb "for a long time"] else []
       (_, P.VTime) | hasType "wh" value -> [NPArg value]
@@ -200,3 +201,5 @@ isExclamationCopula fVerb = case (getType fVerb, fValue P.Arg1 fVerb, fValue P.A
   _ -> False
 
 lookAsWatching fVerb = isTrue $ hasType "PESTER" <$> usage P.Arg1 fVerb
+
+pesterAsBoredGerund fVerb = hasType "PESTER" fVerb && Just "LOOK" == (getType =<< fValue P.Arg1 fVerb)

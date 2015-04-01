@@ -49,4 +49,7 @@ hybridCoordinationTests = [
 --  ,
 --todo  translateTest "Он не дурак, а умнее тебя."
 --                "He's not a fool, but smarter than you."
+--  ,
+--todo  translateTest "И Василий, и бежит - офигеть!"
+--                "Vassily, and running - wow!"
   ]

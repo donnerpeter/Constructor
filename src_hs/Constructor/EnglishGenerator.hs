@@ -400,6 +400,7 @@ genComplement cp = case fValue P.Content cp of
 conjIntroduction fVerb =
    if sValue P.ButEmphasis fVerb == Just "true" then "but"
    else if sValue P.AndEmphasis fVerb == Just "true" then "and"
+   else if any (\arg -> Just "true" == (sValue P.AndEmphasis =<< argumentFrame arg)) $ arguments fVerb then "and"
    else ""
 
 distinguish frame = isNothing (usage P.Member2 frame) || Just "true" == sValue P.Distinguished frame ||
@@ -617,9 +618,8 @@ vp fVerb verbForm clauseType = do
         _ -> ""
   let (afterWh, afterSubject) = if isQuestion && isTrue (isQuestioned <$> fSubject) then ("", beforeVP) else (beforeVP, "")
   let contractableSubject = subject `elem` ["I", "he", "she", "we", "it", "what", "that", "it", "there", "you"]
-  let contracted = if null preAdverb && null negation && not inverted && contractableSubject && null afterSubject then
-                     if null shortForm then subject `cat` mainVerb `cat` restVerb
-                     else (subject ++ shortForm) `cat` restVerb
+  let contracted = if not (null shortForm) && null negation && not inverted && contractableSubject && null afterSubject then
+                     (subject ++ shortForm) `cat` preAdverb `cat` restVerb
                    else (if inverted then aux `cat` negation `cat` subject else subject `cat` aux `cat` negation) `cat` afterSubject `cat` preAdverb `cat` sVerb
   return $ beforeCP `cat` sTopicalized `cat` whWord `cat` afterWh `cat` contracted `cat` nonWhWord `cat` controlled `cat` sArgs `cat` stranded `cat` anymore `cat` finalAdverb
 

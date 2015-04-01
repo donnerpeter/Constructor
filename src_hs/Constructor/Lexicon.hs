@@ -112,7 +112,7 @@ wordMites word index =
   "зелёный" -> adj Nom A.m P.Color "GREEN" v
   "знает" -> finVerb "KNOW" "PRESENT" A.sg3 v ++ optional (directObject v)
   "знают" -> finVerb "KNOW" "PRESENT" A.pl3 v ++ optional (directObject v)
-  "и" -> conjunction v0 "i" True
+  "и" -> xor [conjunction v0 "i" True, [mite $ AndEmphasis v0]]
   "идет" -> xor [finVerb "GO" "PRESENT" A.sg3 v ++ go_args v,
                  finVerb "WEATHER_BE" "PRESENT" A.sg3 v,
                  finVerb "COME_SCALARLY" "PRESENT" A.sg3 v ++ arg ScalarAdverb P.Order v]

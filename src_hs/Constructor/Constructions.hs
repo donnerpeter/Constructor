@@ -124,6 +124,7 @@ data Construction = Word Variable String
                   | ReflexiveReference Variable
                   | ReflexiveTarget Variable
                   | ConjEmphasis P.StrProperty Variable
+                  | AndEmphasis Variable
                   | ConjEmphasizeable Variable
                   | ParticleEmphasizeable Variable
                   | SemPreposition ArgKind Variable

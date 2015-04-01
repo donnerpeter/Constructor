@@ -274,6 +274,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
         _ -> []
 
       (ConjEmphasis attr _, ConjEmphasizeable head) -> right [semS head attr "true"]
+      (AndEmphasis _, Argument _ head) -> right [semS head P.AndEmphasis "true", mite $ cxt m2]
 
       (Adverb v, _) | (cxt -> Verb head):rest <- asVerb env m2 -> right $ [mite $ Unify v head] ++ rest
       (Verb head, Adverb v) -> left [mite $ Unify v head]

@@ -210,6 +210,7 @@ wordMites word index =
   "некого" -> negatedWh v ++ [mite $ Argument Acc v0, mite $ ExistentialWh v0 (v "z")] ++ animate v
   "некому" -> negatedWh v ++ [mite $ Argument Dat v0, mite $ ExistentialWh v0 (v "z")] ++ animate v
   "некуда" -> negatedWh v ++ semArg Direction P.Goal v0 ++ [mite $ ExistentialWh v0 (v "z")]
+  "необъятного" -> adj Gen A.m P.Size "UNEMBRACEABLE" v
   "нечего" -> negatedWh v ++ [mite $ Argument Acc v0, mite $ ExistentialWh v0 (v "z")]
   "неумны" -> shortAdj A.pl P.Quality "CLEVER" v ++ [semS (v "") P.Negated "true"]
   "никто" -> negatedWh v ++ [mite $ Argument Nom v0, mite $ AdjHead v0 Nom A.sg3] ++ animate v
@@ -225,6 +226,7 @@ wordMites word index =
   "обнаружил" -> finVerb "DISCOVER" "PAST" A.m v ++ compHead P.Theme v
   "обнаружила" -> finVerb "DISCOVER" "PAST" A.f v ++ compHead P.Theme v
   "обнаружили" -> finVerb "DISCOVER" "PAST" A.pl v ++ compHead P.Theme v
+  "обнимет" -> finVerb "EMBRACE" "FUTURE" A.sg3 v ++ directObject v
   "один" -> xor [wordNumber Acc "1" v, adj Nom A.m P.Determiner "ONE" v]
   "одна" -> adj Nom A.f P.Determiner "ONE" v
   "одних" -> nounPl Gen "SOME" v

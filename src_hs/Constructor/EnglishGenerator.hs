@@ -115,7 +115,7 @@ np_internal nom mayHaveDeterminer frame = do
     else do
       adjs <- adjectives frame
       let n = if isElidedNoun frame then
-                if skipElidedOne frame || Just True == fmap isPronoun fDet || Just "BLIND" == (getType =<< fValue P.Quality frame) then ""
+                if skipElidedOne frame || Just True == fmap isPronoun fDet || Just "BLIND" == (getType =<< fValue P.Quality frame)|| Just "UNEMBRACEABLE" == (getType =<< fValue P.Size frame) then ""
                 else if Just "Pl" == sValue P.RusNumber frame then "ones" else "one"
               else if isElided frame || isPlaceholder frame then ""
               else noun (getType frame) frame
@@ -238,6 +238,7 @@ adjectives nounFrame = do
   size <- adjSeq P.Size $ \p ->
     if hasType "LITTLE" p then "small"
     else if hasType "EXCESSIVE" p then "excessive"
+    else if hasType "UNEMBRACEABLE" p then "unembraceable"
     else if hasType "BIG" p then
       if hasType "GARDEN" nounFrame then "big" else "great"
     else ""

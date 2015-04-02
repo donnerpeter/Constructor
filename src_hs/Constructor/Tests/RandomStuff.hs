@@ -127,12 +127,12 @@ randomStuffTests = [
 --  ,
   translateTest "Я люблю капусту, но жареную, а не варёную."
                 "I like cabbage, but roasted and not boiled."
---  ,
+  ,
 --todo  translateTest "Я видел зелёный свет. А красного - не видел. И жёлтого тоже."
 --                "I saw the green light. The red one, I didn't see. And the yellow one as well."
 --  ,
---todo  translateTest "Никто не обнимет необъятного."
---                "Nobody will embrace the unembraceable."
+  translateTest "Никто не обнимет необъятного."
+                "Nobody will embrace the unembraceable."
 --  ,
 --todo  translateTest "Если у тебя есть фонтан, заткни его; дай отдохнуть и фонтану."
 --                "If you have a fountain, shut it up. Let even a fountain have a rest."

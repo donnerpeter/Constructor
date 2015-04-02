@@ -31,6 +31,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "DISPERSE" -> "went"
   "DISTRACT" -> "distracted"
   "DO" -> if verbForm == BaseVerb then "do" else "did"
+  "EMBRACE" -> "embrace"
   "FALL" -> "fell"
   "FALL_OUT" -> "fell out"
   "FORGET" -> "forgot"
@@ -132,6 +133,7 @@ generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModalit
     if negated then ("", "couldn't") else ("", "could")
   else if hasType "PESTER" fVerb && not (pesterAsBoredGerund fVerb) then
     ("have", "had enough")
+  else if isFuture then ("will", verb BaseVerb fVerb)
   else if inverted || negated then (doForm verbForm ++ (if negated then "n't" else ""), verb BaseVerb fVerb)
   else ("", verb verbForm fVerb)
 

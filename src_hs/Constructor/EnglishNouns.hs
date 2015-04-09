@@ -24,6 +24,7 @@ noun (Just typ) frame = case typ of
   "COUNTING" -> if isJust (usage P.Domain frame) then "count" else "counting"
   "CUNNING_PERSON" -> "cunning person"
   "CURIOSITY" -> "curiosity"
+  "DAUGHTER" -> "daughter"
   "EYES" -> "eyes"
   "FAMILY" -> "family"
   "FINGER" -> if isSingular frame then "finger" else "fingers"
@@ -40,6 +41,7 @@ noun (Just typ) frame = case typ of
   "ME" -> "me"
   "MEANING" -> "meaning"
   "MONEY" -> "money"
+  "MOTHER" -> "mother"
   "MOUTH" -> "mouth"
   "NAMED_PERSON" -> fromMaybe "??name" $ sValue P.Name frame
   "NEIGHBOR" -> "neighbor"

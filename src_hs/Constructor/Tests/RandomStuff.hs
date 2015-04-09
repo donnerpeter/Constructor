@@ -133,11 +133,14 @@ randomStuffTests = [
 --  ,
   translateTest "Никто не обнимет необъятного."
                 "Nobody will embrace the unembraceable."
---  ,
+  ,
 --todo  translateTest "Если у тебя есть фонтан, заткни его; дай отдохнуть и фонтану."
 --                "If you have a fountain, shut it up. Let even a fountain have a rest."
 --  ,
 --todo  translateTest "Специалист подобен флюсу: полнота его одностороння."
 --                "A specialist is like a gumboil: his plenitude is unilateral."
+--  ,
+  translateTest "Мать любит дочь."
+                "The mother loves the daughter."
 --  ,
   ]

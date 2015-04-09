@@ -91,6 +91,7 @@ wordMites word index =
   "домам" -> nounPl Dat "HOUSES" v ++ genHead P.Owner v
   "доме" -> nounSg Prep A.Masc "HOUSE" v ++ genHead P.Owner v
   "домой" -> semArg Direction P.Goal v0 ++ [semT v0 "HOME"]
+  "дочь" -> xor [nounSg Nom Fem "DAUGHTER" v, nounSg Acc Fem "DAUGHTER" v]
   "другая" -> adj Nom A.f P.Determiner "ANOTHER" v
   "других" -> nounPl Gen "OTHERS" v
   "думает" -> finVerb "THINK" "PRESENT" A.sg3 v ++ optional (directObject v) ++ optional (arg (PP "po" Dat) P.Topic v)
@@ -176,6 +177,7 @@ wordMites word index =
   "магазина" -> nounSg Gen Masc "SHOP" v
   "магазине" -> nounSg Prep Masc "SHOP" v
   "маленький" -> adj Acc A.m P.Size "LITTLE" v
+  "мать" -> xor [nounSg Nom Fem "MOTHER" v, nounSg Acc Fem "MOTHER" v]
   "маша" -> nounSg Nom Fem "NAMED_PERSON" v ++ [semS v0 P.Name "Masha"]
   "меня" -> xor [pronoun Acc A.sg "ME" v, pronoun Gen A.sg "ME" v]
   "мне" -> pronoun Dat A.sg "ME" v

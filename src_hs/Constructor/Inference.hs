@@ -113,7 +113,7 @@ resolve frame = case getType frame of
 
 isNumber frame = any (\f -> sValue P.Number f == Just "true") $ flatten frame
 
-isHuman frame = hasAnyType ["NEIGHBOR", "NEIGHBORS", "CASHIER", "NAMED_PERSON", "EVERYBODY",
+isHuman frame = hasAnyType ["NEIGHBOR", "NEIGHBORS", "CASHIER", "NAMED", "EVERYBODY",
   "ME", "HE", "SHE", "THEY" -- todo pronouns are not necessarily animate
   ] frame
 isAnimate frame = isHuman frame || Just "true" == sValue P.Animate frame

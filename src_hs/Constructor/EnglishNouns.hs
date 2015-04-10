@@ -43,7 +43,7 @@ noun (Just typ) frame = case typ of
   "MONEY" -> "money"
   "MOTHER" -> "mother"
   "MOUTH" -> "mouth"
-  "NAMED_PERSON" -> fromMaybe "??name" $ sValue P.Name frame
+  "NAMED" -> fromMaybe "??name" $ sValue P.Name frame
   "NEIGHBOR" -> "neighbor"
   "NEIGHBORS" -> "neighbors"
   "NOSE" -> "nose"

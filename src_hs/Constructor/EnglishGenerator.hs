@@ -248,7 +248,7 @@ adjectives nounFrame = do
   return $ order `cat` property `cat` state `cat` kind `cat` shopKind `cat` size `cat` quality `cat` gender `cat` color
 
 shouldContrastByGender frame = case (getType frame, sValue P.RusGender frame) of
-  (Just typ, Just gender) | typ /= "NAMED_PERSON" -> let
+  (Just typ, Just gender) | typ /= "NAMED" -> let
     differentGender candidate = case sValue P.RusGender candidate of
       Just g1 -> g1 /= gender
       _ -> False
@@ -334,7 +334,7 @@ determiner frame det nbar = do
       else if isJust (fValue P.Quantifier frame) then ""
       else if hasType "STREET" frame && prefixName frame then streetName frame
       else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING", "MONEY", "COUNTING", "APARTMENTS", "OFFICES", "HOUSES", "CABBAGE", "CARROT", "MARKET"] frame then ""
-      else if hasAnyType ["NAMED_PERSON"] frame then ""
+      else if hasAnyType ["NAMED"] frame then ""
       else if hasType "OPINION" frame && Just True == fmap isVerbEllipsis (usage P.AccordingTo frame) then ""
       else if isElidedNoun frame && skipElidedOne frame || isPlaceholder frame then ""
       else if sValue P.Given frame == Just "true" then "the"

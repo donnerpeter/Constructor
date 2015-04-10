@@ -37,11 +37,11 @@ wordMites word index =
   "быстры" -> shortAdj A.pl P.Quality "FAST" v
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
   "варёную" -> adj Acc A.sg P.Kind "BOILED" v
-  "васе" -> xor [nounSg Dat Masc "NAMED_PERSON" v, nounSg Prep Masc "NAMED_PERSON" v] ++ [semS v0 P.Name "Vasya"]
-  "васи" -> nounSg Gen Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vasya"]
-  "василий" -> nounSg Nom Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vassily"]
-  "васю" -> nounSg Acc Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vasya"]
-  "вася" -> nounSg Nom Masc "NAMED_PERSON" v ++ [semS v0 P.Name "Vasya"]
+  "васе" -> xor [nounSg Dat Masc "NAMED" v, nounSg Prep Masc "NAMED" v] ++ [semS v0 P.Name "Vasya"]
+  "васи" -> nounSg Gen Masc "NAMED" v ++ [semS v0 P.Name "Vasya"]
+  "василий" -> nounSg Nom Masc "NAMED" v ++ [semS v0 P.Name "Vassily"]
+  "васю" -> nounSg Acc Masc "NAMED" v ++ [semS v0 P.Name "Vasya"]
+  "вася" -> nounSg Nom Masc "NAMED" v ++ [semS v0 P.Name "Vasya"]
   "вашей" -> possessive Gen A.f "YOU" v
   "вдруг" -> adverb P.Manner "SUDDENLY" v
   "вдумываясь" -> perfectBackground "THINK" v ++ arg (PP "v" Acc) P.Theme v
@@ -178,7 +178,7 @@ wordMites word index =
   "магазине" -> nounSg Prep Masc "SHOP" v
   "маленький" -> adj Acc A.m P.Size "LITTLE" v
   "мать" -> xor [nounSg Nom Fem "MOTHER" v, nounSg Acc Fem "MOTHER" v]
-  "маша" -> nounSg Nom Fem "NAMED_PERSON" v ++ [semS v0 P.Name "Masha"]
+  "маша" -> nounSg Nom Fem "NAMED" v ++ [semS v0 P.Name "Masha"]
   "меня" -> xor [pronoun Acc A.sg "ME" v, pronoun Gen A.sg "ME" v]
   "мне" -> pronoun Dat A.sg "ME" v
   "мнение" -> nounSg Nom Neu "OPINION" v ++ genHead P.Arg1 v

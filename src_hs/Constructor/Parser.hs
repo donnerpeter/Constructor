@@ -4,7 +4,6 @@ import Constructor.ParsingState
 import Constructor.Lexicon
 import qualified Constructor.Sense as Sense
 import Constructor.EnglishGenerator
-import Constructor.Util
 import Data.Char (toLower)
 import Data.List
 
@@ -29,5 +28,4 @@ parse s =
 translate s = generate $ makeSense s
 
 makeSense s = resultSense $ roots $ parse s
-resultSense trees = Sense.composeSense $ reverse $ map sense trees where
-  emptySense = Sense.makeSense [] []
+resultSense trees = Sense.composeSense $ reverse $ map sense trees

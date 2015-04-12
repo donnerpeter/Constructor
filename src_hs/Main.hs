@@ -1,9 +1,8 @@
+{-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-unused-imports #-}
 import Constructor.Tree
 import Constructor.ParsingState
-import Constructor.Lexicon
 import Constructor.Parser
 import Constructor.EnglishGenerator
-import qualified Constructor.Sense as Sense
 
 import Test.HUnit
 import Control.DeepSeq

@@ -6,13 +6,11 @@ import Constructor.EnglishNouns
 import Constructor.EnglishPronouns
 import Constructor.EnglishVerbs
 import Control.Monad.State
-import Control.Monad
 import Control.Applicative
 import Data.List
 import Data.Char (toUpper)
 import Data.Maybe
 import qualified Data.Set as Set
-import Constructor.Variable
 import Constructor.Util
 import Data.Function (on)
 import qualified Constructor.SemanticProperties as P
@@ -37,6 +35,7 @@ generate sense =
   in stripLastComma text
 
 capitalize (c:rest) = (toUpper c):rest
+capitalize [] = []
 
 getTopFrame frame = if isCP frame && null (allUsages [P.Relative, P.WhenCondition] frame) then upmostSeq frame else Nothing where
   upmostSeq frame =
@@ -199,7 +198,7 @@ adjectives nounFrame = do
           adjective = fun adjFrame
           in return $ negation adjFrame `cat` article `cat` modifiers adjFrame `cat` adjective
         in case value of
-          Just x -> handleSeq adjOrMore value
+          Just _ -> handleSeq adjOrMore value
           Nothing -> return ""
   property <- adjSeq P.Property $ \p -> if hasType "AMAZING" p then "amazing" else ""
   kind <- adjSeq P.Kind $ \p -> case getType p of
@@ -262,6 +261,7 @@ shouldContrastByGender frame = case (getType frame, sValue P.RusGender frame) of
   _ -> False
 
 streetName frame = fromMaybe "" $ fmap streetNameString $ fValue P.VName frame
+
 
 streetNameString frame = case sValue P.Name frame of
  Just "знаменская" -> "Znamenskaya"
@@ -392,7 +392,7 @@ sentence frame = handleSeq singleSentence (Just frame) `catM` return (finish ++ 
 
 genComplement cp = case fValue P.Content cp of
   Nothing -> return ""
-  Just fVerb -> do
+  Just _ -> do
     let prefix = if isFactCP cp && distinguish cp then "that" else ""
         negation = if Just "true" == sValue P.Negated cp then "not" else ""
     s <- sentence cp
@@ -527,7 +527,6 @@ vp fVerb verbForm clauseType = do
   let cp = usage P.Content fVerb
       theme = fValue P.Theme fVerb
       isModality = hasType "modality" fVerb
-      isRaising = hasType "SEEM" fVerb
       fSubject = englishSubject fVerb
       isQuestion = Just True == fmap isQuestionCP cp
       nonSubjectQuestion = isQuestion && (isNothing fSubject || not (fromJust fSubject `elem` flatten (cp >>= fValue P.Questioned)))
@@ -640,9 +639,10 @@ generateArg arg = let
     ToInfinitive nextVerb -> return "to" `catM` vp nextVerb BaseVerb InfiniteClause
     GerundBackground _ back -> return ("," `cat` conjIntroduction back) `catM` vp back Gerund InfiniteClause `catM` return ","
     GerundArg f -> vp f Gerund InfiniteClause
-    AccordingTo f parent _ -> generateAccording parent
+    AccordingTo _ parent _ -> generateAccording parent
     CommaSurrounded a -> return "," `catM` generateArg a `catM` return ","
     Silence _ -> return ""
+    _ -> error $ "Unknown argument " ++ show arg
 
 argOrder arg = case arg of
   PPAdjunct {} -> 2

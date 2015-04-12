@@ -269,8 +269,8 @@ wordMites word index =
   "потому" -> [mite $ TwoWordCxt "потому что" True [ReasonComp v0 False] v0]
   "приуныли" -> finVerb "GET_SAD" "PAST" A.pl v
   "про" -> preposition "pro" Acc v
-  "продавец" -> nounSg Nom Masc "SALESMAN" v ++ genHead P.Place v
-  "продавцом" -> nounSg Instr Masc "SALESMAN" v ++ genHead P.Place v
+  "продавец" -> nounSg Nom Masc "SALESPERSON" v ++ genHead P.Place v
+  "продавцом" -> nounSg Instr Masc "SALESPERSON" v ++ genHead P.Place v
   "просто" -> xor [modifierAdverb "JUST" v, adverb P.Manner "JUST" v]
   "пошел" -> finVerb "GO" "PAST" A.m v ++ [mite $ SemArgHead Obligatory Direction v0]
   "пошёл" -> finVerb "GO" "PAST" A.m v ++ [mite $ SemArgHead Obligatory Direction v0]

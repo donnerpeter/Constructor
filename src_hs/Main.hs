@@ -8,7 +8,6 @@ import Test.HUnit
 import Control.DeepSeq
 import Control.Monad (when)
 import System.CPUTime
-import System.IO.Unsafe
 import System.Console.ANSI
 
 import Constructor.Tests.Testing
@@ -20,17 +19,25 @@ import Constructor.Tests.HybridCoordination
 import Constructor.Tests.Copula
 import Constructor.Tests.OldLadies
 
-createTest (TranslateTest src target time) = TestLabel src $ TestCase $ assertEqual message target timed where
+createTest (TranslateTest src target time) = TestLabel src $ TestCase check where
   trees = roots $ parse src
   sense = resultSense trees
-  result = generate sense
-  timed = unsafePerformIO $ do
-    start <- getCPUTime
-    finish <- result `deepseq` getCPUTime
-    let ms = round $ fromIntegral (finish - start) / 1000 / 1000 / 1000
-    when (ms > time) $ putStrLn $ show src ++ " took " ++ show ms
-    return result
-  message = if length src > 100 then ""  else show sense ++ "\n\n" ++ show trees
+  check = do
+    (result, ms) <- timed $ generate sense
+    when (ms > time) $
+      putStrLn $ show src ++ " took " ++ show ms
+    let message = "Expected: " ++ target ++
+                "\nActual:   " ++ result ++
+                (if length src > 100 then "" else "\n" ++ show sense ++ "\n\n" ++ show trees)
+    when (target /= result) $
+      assertFailure message
+
+timed :: (NFData a) => a -> IO (a, Int)
+timed value = do
+  start <- getCPUTime
+  finish <- value `deepseq` getCPUTime
+  let ms = round $ fromIntegral (finish - start) / 1000 / 1000 / 1000
+  return (value, ms)
 
 allTests = runTestTT $ TestList $ map createTest $
   sonnetTests ++ sonnetVariations ++

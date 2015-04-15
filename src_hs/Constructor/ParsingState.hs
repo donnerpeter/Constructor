@@ -5,17 +5,13 @@ import Data.List
 import Constructor.Mite
 import Constructor.Tree
 import Constructor.Util
-import Constructor.Variable
 import Constructor.InteractionEnv
-import Constructor.Issues (holderIssues)
 import Data.Function (on)
-import qualified Constructor.SemanticProperties as P
 import qualified Constructor.LinkedSet as LS
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import Constructor.Composition
 import Control.Exception (assert)
-import Control.Monad
 import Control.Monad.State
 
 data Sprout = Sprout { sLeftTree:: Tree, sHeadSide:: Side, sMites:: [Mite], sActiveSets:: [[Mite]] } deriving (Show)

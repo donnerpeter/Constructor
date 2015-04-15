@@ -4,7 +4,6 @@ import Constructor.Mite
 import Constructor.Variable
 import qualified Constructor.Agreement as A
 import Constructor.Agreement (agree, commonAgr)
-import Constructor.Tree
 import Constructor.Util
 import Constructor.LexiconUtils
 import Constructor.InteractionEnv
@@ -70,7 +69,7 @@ liftUnclosed side childMites = childMites >>= \m -> case cxt m of
 
 ellipsisLeftVariants env = if null result then [] else mergeRight $ LS.removeDups result where
   result = rightCombined env >>= \m2 -> case cxt m2 of
-    Ellipsis v rightCxt@(Just e2) -> leftCombined env >>= \m1 -> case ellipsisAnchor (cxt m1) of
+    Ellipsis v (Just e2) -> leftCombined env >>= \m1 -> case ellipsisAnchor (cxt m1) of
       Just (anchorCxt, anchorVar, rest) -> let
         elided = suggestDoubleAnchorEllipsis env v anchorCxt e2
         in if null elided then []
@@ -141,9 +140,9 @@ punctuationAware env (m1, m2) =
       (DashSurrounded True False cxt, SurroundingDash _) ->
         mergeLeft $ base12 [mite $ DashSurrounded True True cxt] ++ closeUnclosed LeftSide Satisfied
 
-      (QuestionVariants v kind, DashSurrounded True closed (Argument kind2 child)) | kind == kind2 ->
+      (QuestionVariants v kind, DashSurrounded True _ (Argument kind2 child)) | kind == kind2 ->
         mergeLeft $ base12 [semV v P.Variants child] ++ liftUnclosedCompatible RightSide
-      (QuestionVariants v kind, CommaSurrounded True closed (Argument kind2 child)) | kind == kind2 ->
+      (QuestionVariants v kind, CommaSurrounded True _ (Argument kind2 child)) | kind == kind2 ->
         mergeLeft $ base12 [semV v P.Variants child] ++ liftUnclosedCompatible RightSide
 
       (c, Word _ ".") | Just (cp, rest) <- asClause c ->
@@ -159,7 +158,7 @@ punctuationAware env (m1, m2) =
       (DirectSpeechHead head Nothing, Colon "directSpeech" v) ->
         mergeLeft $ base12 [mite $ DirectSpeechHead head $ Just v, semV head P.Message v] ++ closeUnclosed LeftSide Satisfied
 
-      (DirectSpeechDash v, Sentence cp) ->
+      (DirectSpeechDash _, Sentence cp) ->
         mergeLeft $ base12 [mite $ Sentence cp, semS cp P.DirectSpeech "true"] ++ closeUnclosed RightSide Satisfied
 
       (Colon "elaboration" _, Clause cp) ->
@@ -208,7 +207,7 @@ interactHybrid doInteract headSide headMites childMites = combinations where
   combinations = unwrapHybrid childPairs [[]]
 
 interactQuestionable env leftPairs rightPairs whContext (m1, c1) (m2, c2) =
-    let (left, right, base12) = mergeInfoHelpers m1 m2
+    let (_, _, base12) = mergeInfoHelpers m1 m2
     in case (c1, c2) of
       (ArgHead kind1 relation head, _c) | Just (Argument kind2 arg, rest) <- asNoun _c, kind1 == kind2 ->
         mergeLeft $ base12 [semV head relation arg] ++ reflexive leftPairs rightPairs ++ existentials leftPairs rightPairs ++ rest
@@ -254,14 +253,16 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
     let (left, right, base12) = mergeInfoHelpers m1 m2
     in case (cxt m1, cxt m2) of
       (Adj var2 attr adjCase agr1, c) | Just (AdjHead var nounCase agr2, rest) <- asAdjHead c, adjCase == nounCase && agree agr1 agr2 ->
-        mergeRight $ base12 [semV var attr var2] ++ whPropagation m2 m1 (leftCompatible env m1) ++ negationPropagation var (leftCompatible env m1) ++ rest
+        mergeRight $ base12 [semV var attr var2] ++ whPropagation (leftCompatible env m1) ++ negationPropagation var (leftCompatible env m1) ++ rest
       (c, Adj var2 attr adjCase agr1) | Just (AdjHead var nounCase agr2, rest) <- asAdjHead c, adjCase == nounCase && agree agr1 agr2 ->
-        mergeLeft $ base12 [semV var attr var2] ++ whPropagation m1 m2 (rightCompatible env m2) ++ rest
+        mergeLeft $ base12 [semV var attr var2] ++ whPropagation (rightCompatible env m2) ++ rest
 
-      (Possessive adjCase agr1 child, AdjHead noun nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
-        GenHead attrs -> mergeRight $ withBase [m1,m2,m3] [semV h attr child | (attr, h) <- attrs] ++ Seq.pullThyself (leftCompatible env m1) ++ whPropagation m1 m2 (leftCompatible env m1)
+      (Possessive adjCase agr1 child, AdjHead _ nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
+        GenHead attrs -> mergeRight $
+          withBase [m1,m2,m3] [semV h attr child | (attr, h) <- attrs]
+          ++ Seq.pullThyself (leftCompatible env m1) ++ whPropagation (leftCompatible env m1)
         _ -> []
-      (GenHead attrs, Argument Gen v2) -> left $ [semV v1 attr v2 | (attr, v1) <- attrs] ++ whPropagation m1 m2 (rightCompatible env m2)
+      (GenHead attrs, Argument Gen v2) -> left $ [semV v1 attr v2 | (attr, v1) <- attrs] ++ whPropagation (rightCompatible env m2)
 
       (Relativizer wh, NomHead agr v2 Unsatisfied) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
         Clause cp -> mergeLeft $ withBase [m1,m2,m3] [mite $ Unify v2 wh, mite $ RelativeClause agr cp, semV cp P.Questioned wh]
@@ -290,7 +291,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (PrepHead prep1 kind1 var1, c2) | Just (Argument kind2 var2, rest) <- asNoun c2, kind1 == kind2 ->
         let argMites = base12 ([mite $ Unify var1 var2]
                         ++ xorNonEmpty [[mite $ Argument (PP prep1 kind1) var1], adjunctMites, copulaVariants])
-                       ++ whPropagation m1 m2 (rightCompatible env m2)
+                       ++ whPropagation (rightCompatible env m2)
             adjunctMites = case (prep1, kind1) of
               ("k", Dat) -> semArg Direction P.Goal_to var2
               ("na", Acc) -> semArg Direction P.Goal_on var2
@@ -365,10 +366,10 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (Complementizer cp1, Clause cp2) -> mergeLeft $ base12 [mite $ Unify cp1 cp2] ++ [mite $ Complement cp2]
       (Control slave, ControlledInfinitive inf) -> left [mite $ Unify slave inf]
       (FutureTense agr tense, ControlledInfinitive inf) -> right $ [mite $ Unify tense inf] ++ finiteClause agr True (makeV tense "")
-      (RaisingVerb verb subj, Adj child _ Instr agr) -> left [semV child P.Arg1 subj, semV verb P.Theme child]
+      (RaisingVerb verb subj, Adj child _ Instr _) -> left [semV child P.Arg1 subj, semV verb P.Theme child] --todo raising agreement
 
       (ComparisonAnchor Unsatisfied _, Argument Nom v2) -> left [mite $ ComparisonAnchor Satisfied v2]
-      (Comparativizer more, ShortAdj agr attr v) -> left [mite $ ComparativeAdj attr more, semT more "MORE", semV more P.Theme v, mite $ ComparativeHead more]
+      (Comparativizer more, ShortAdj _ attr v) -> left [mite $ ComparativeAdj attr more, semT more "MORE", semV more P.Theme v, mite $ ComparativeHead more] -- todo synthetic comparative agreement
 
       _ -> []
 
@@ -380,10 +381,10 @@ reflexive headPairs childPairs = headPairs >>= \case
 
 existentials headPairs childPairs = headPairs >>= \case
   (m1, ModalityInfinitive v cp) -> childPairs >>= \case
-    (m2, ExistentialWh whVar tensedVar) -> withBase [m1,m2] [semT cp "situation", mite $ Unify v tensedVar]
+    (m2, ExistentialWh _ tensedVar) -> withBase [m1,m2] [semT cp "situation", mite $ Unify v tensedVar]
     _ -> []
   _ -> []
 
-whPropagation headMite childMite childMites = childMites >>= \m3 -> case cxt m3 of
+whPropagation childMites = childMites >>= \m3 -> case cxt m3 of
   Wh {} -> withBase [m3] [mite $ cxt m3]
   _ -> []

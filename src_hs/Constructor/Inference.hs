@@ -36,7 +36,7 @@ sValue attr frame =
         else if isTrue $ isQualityCopula <$> usage P.Arg1 frame then Just "false"
         else if hasType "CASHIER" frame then
           case find (\cashier -> typeEarlier cashier frame) $ findFrames "CASHIER" $ sense frame of
-             Just prev -> Just "true"
+             Just _ -> Just "true"
              _ -> case find (\shop -> typeEarlier shop frame) $ findFrames "SHOP" $ sense frame of
                Just shop -> sValue P.Given shop
                _ -> Just "true"
@@ -120,8 +120,6 @@ isAnimate frame = isHuman frame || Just "true" == sValue P.Animate frame
 
 isInanimate frame = Just "wh" == getDeclaredType frame && Just "true" /= sValue P.Animate frame
                  || Just True == fmap isNumberString (getType frame)
-
-isFood frame = hasType "CABBAGE" frame
 
 unSeq frame = inner True frame where
   inner allow2 frame = case (usage P.Member1 frame, usage P.Member2 frame) of

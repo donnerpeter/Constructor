@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 module Constructor.EnglishVerbs (
   VerbForm(..), verb,
   haveForm, isGerund, generateVerbs, determineVerbForm,

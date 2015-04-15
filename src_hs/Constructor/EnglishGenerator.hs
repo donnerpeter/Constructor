@@ -196,7 +196,12 @@ adjectives nounFrame = do
         eachAdj adjFrame = let
           article = if isArticleAfterAdjectives nounFrame then indefiniteArticle nounFrame adjective else ""
           adjective = fun adjFrame
-          in return $ negation adjFrame `cat` article `cat` modifiers adjFrame `cat` adjective
+          in do
+            args <- adjArgs adjFrame
+            return $ negation adjFrame `cat` article `cat` modifiers adjFrame `cat` adjective `cat` args
+        adjArgs valFrame = case (attr, getType valFrame) of
+          (P.Quality, Just "SIMILAR_TO") -> np False $ fValue P.Arg2 valFrame
+          _ -> return ""
         in case value of
           Just _ -> handleSeq adjOrMore value
           Nothing -> return ""
@@ -215,6 +220,7 @@ adjectives nounFrame = do
     Just "WOVEN" -> "woven"
     Just "BLIND" -> "blind"
     Just "FALL_OUT" -> "falling"
+    Just "SIMILAR_TO" -> "like"
     _ -> ""
   color <- adjSeq P.Color $ \p -> case getType p of
     Just "GREEN" -> "green"

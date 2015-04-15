@@ -30,7 +30,7 @@ sValue attr frame =
     case attr of
       P.Given ->
         if Just True == fmap (hasAnyType ["SOME", "ONE"]) (fValue P.Determiner frame) then Just "false"
-        else if hasAnyType ["CASE", "HAMMER", "TREES", "BENCH", "FINGER", "WATERMELON", "JAW", "SHAWL"] frame then Just "false"
+        else if hasAnyType ["CASE", "HAMMER", "TREES", "BENCH", "FINGER", "WATERMELON", "JAW", "SHAWL", "SPECIALIST", "GUMBOIL"] frame then Just "false"
         else if isTrue $ isNumberString <$> getType frame then Just "false"
         else if Just "copula" == (usage P.Arg2 (unSeq frame) >>= getDeclaredType) then Just "false"
         else if isTrue $ isQualityCopula <$> usage P.Arg1 frame then Just "false"

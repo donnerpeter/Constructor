@@ -5,8 +5,6 @@ import Constructor.Util
 import Constructor.LexiconUtils
 import qualified Constructor.Agreement as A
 import Constructor.Agreement (Gender(..))
-import Data.Char (ord, chr)
-import Data.Maybe
 import Data.List
 import qualified Constructor.SemanticProperties as P
 
@@ -256,6 +254,7 @@ wordMites word index =
   "подарили" -> finVerb "TO_PRESENT" "PAST" A.pl v ++ directObject v ++ optional (arg Dat P.Receiver v)
   "подвигав" -> perfectBackground "MOVE" v ++ arg Instr P.Arg2 v
   "подвигала" -> finVerb "MOVE" "PAST" A.f v ++ arg Instr P.Arg2 v
+  "подобен" -> shortAdj A.m P.Quality "SIMILAR_TO" v ++ arg Dat P.Arg2 v
   "показались" -> raisingVerb "SEEM" "PAST" A.pl v ++ optional (arg Dat P.Experiencer v)
   "поливать" -> infinitive "TO_WATER" v ++ directObject v
   "помидор" -> nounSg Nom Masc "TOMATO" v
@@ -333,6 +332,7 @@ wordMites word index =
   "соседа" -> nounSg Gen Masc "NEIGHBOR" v
   "соседей" -> xor [nounPl Acc "NEIGHBORS" v, nounPl Gen "NEIGHBORS" v]
   "соседям" -> nounPl Dat "NEIGHBORS" v
+  "специалист" -> nounSg Nom Masc "SPECIALIST" v
   "спора" -> nounSg Gen Masc "ARGUE" v ++ genHead P.Arg1 v
   "спорили" -> finVerb "ARGUE" "PAST" A.pl v
   "спорить" -> infinitive "ARGUE" v
@@ -381,6 +381,7 @@ wordMites word index =
   "умным" -> adj Instr A.m P.Quality "CLEVER" v
   "упал" -> finVerb "FALL" "PAST" A.m v
   "упала" -> finVerb "FALL" "PAST" A.f v
+  "флюсу" -> nounSg Dat Masc "GUMBOIL" v
   "хитрец" -> nounSg Nom Masc "CUNNING_PERSON" v
   "челюсти" -> xor[nounSg Gen Fem "JAW" v, nounPl Nom "JAWS" v, nounPl Acc "JAWS" v]
   "челюсть" -> nounSg Acc Fem "JAW" v

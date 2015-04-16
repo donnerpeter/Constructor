@@ -221,6 +221,7 @@ adjectives nounFrame = do
     Just "BLIND" -> "blind"
     Just "FALL_OUT" -> "falling"
     Just "SIMILAR_TO" -> "like"
+    Just "UNILATERAL" -> "unilateral"
     _ -> ""
   color <- adjSeq P.Color $ \p -> case getType p of
     Just "GREEN" -> "green"
@@ -277,7 +278,7 @@ streetNameString frame = case sValue P.Name frame of
  _ -> ""
 
 fDeterminer frame =
-  if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "JAWS", "ARGUE", "FINGER", "SPEECH", "FAMILY", "EYES", "BROTHER", "SISTER", "CORNER", "CURIOSITY"] frame then fValue P.Arg1 frame
+  if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "JAWS", "ARGUE", "FINGER", "SPEECH", "FAMILY", "EYES", "BROTHER", "SISTER", "CORNER", "CURIOSITY", "PLENITUDE"] frame then fValue P.Arg1 frame
   else if hasAnyType ["OPINION"] frame then fValue P.Arg1 frame
   else if hasAnyType ["WORDS", "BOOK"] frame then fValue P.Author frame
   else if hasAnyType ["ROOMS", "APARTMENTS", "OFFICES", "WINDOWS"] frame then fValue P.Owner frame

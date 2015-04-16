@@ -231,6 +231,7 @@ wordMites word index =
   "одна" -> adj Nom A.f P.Determiner "ONE" v
   "одних" -> nounPl Gen "SOME" v
   "одному" -> adj Dat A.m P.Determiner "ONE" v
+  "одностороння" -> shortAdj A.f P.Quality "UNILATERAL" v
   "окна" -> xor [nounSg Gen Neu "WINDOW" v, nounPl Nom "WINDOWS" v] ++ genHead P.Owner v
   "он" -> pronoun Nom A.m3 "HE" v
   "она" -> pronoun Nom A.f3 "SHE" v
@@ -257,6 +258,7 @@ wordMites word index =
   "подобен" -> shortAdj A.m P.Quality "SIMILAR_TO" v ++ arg Dat P.Arg2 v
   "показались" -> raisingVerb "SEEM" "PAST" A.pl v ++ optional (arg Dat P.Experiencer v)
   "поливать" -> infinitive "TO_WATER" v ++ directObject v
+  "полнота" -> nounSg Nom Fem "PLENITUDE" v ++ genHead P.Arg1 v
   "помидор" -> nounSg Nom Masc "TOMATO" v
   "помнит" -> finVerb "REMEMBER" "PRESENT" A.sg3 v ++ directObject v
   "помнят" -> finVerb "REMEMBER" "PRESENT" A.pl3 v ++ directObject v

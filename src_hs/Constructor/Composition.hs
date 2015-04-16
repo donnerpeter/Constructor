@@ -262,6 +262,11 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
           withBase [m1,m2,m3] [semV h attr child | (attr, h) <- attrs]
           ++ Seq.pullThyself (leftCompatible env m1) ++ whPropagation (leftCompatible env m1)
         _ -> []
+      (AdjHead _ nounCase agr2, Possessive adjCase agr1 child) | adjCase == nounCase && agree agr1 agr2 -> leftCompatible env m1 >>= \m3 -> case cxt m3 of
+        GenHead attrs -> mergeLeft $
+          withBase [m1,m2,m3] [semV h attr child | (attr, h) <- attrs]
+          ++ Seq.pullThyself (leftCompatible env m1) ++ whPropagation (rightCompatible env m2)
+        _ -> []
       (GenHead attrs, Argument Gen v2) -> left $ [semV v1 attr v2 | (attr, v1) <- attrs] ++ whPropagation (rightCompatible env m2)
 
       (Relativizer wh, NomHead agr v2 Unsatisfied) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of

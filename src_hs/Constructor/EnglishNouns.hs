@@ -5,79 +5,30 @@ import Constructor.Inference
 import Data.Maybe
 import Constructor.Util
 import qualified Constructor.SemanticProperties as P
+import Data.Char (toLower)
 
 noun Nothing _ = "??"
 noun (Just typ) frame = case typ of
   "AMAZE" -> "amazement"
-  "APARTMENTS" -> "apartments"
   "ARGUE" -> "argument"
-  "BENCH" -> "bench"
-  "BOOK" -> "book"
-  "BRIGADIER" -> "brigadier"
-  "BROTHER" -> "brother"
-  "CABBAGE" -> "cabbage"
   "CARROT" -> "carrots"
   "CASE" -> "thing"
-  "CASHIER" -> "cashier"
-  "CHILD" -> "child"
-  "CORNER" -> "corner"
   "COUNTING" -> if isJust (usage P.Domain frame) then "count" else "counting"
   "CUNNING_PERSON" -> "cunning person"
-  "CURIOSITY" -> "curiosity"
-  "DAUGHTER" -> "daughter"
-  "EYES" -> "eyes"
-  "FAMILY" -> "family"
   "FINGER" -> if isSingular frame then "finger" else "fingers"
   "GARDEN" -> if (fValue P.VName frame >>= sValue P.Name) == Just "летний" then "Summer Garden" else "garden"
-  "GUMBOIL" -> "gumboil"
-  "HAMMER" -> "hammer"
-  "HE" -> "he"
-  "HOUSE" -> "house"
   "JAW" -> if isSingular frame then "jaw" else "jaws"
-  "JAWS" -> "jaws"
-  "JOY" -> "joy"
-  "LIGHT" -> "light"
   "MARKET" -> "Maltsev market"
-  "MATTER" -> "matter"
-  "ME" -> "me"
-  "MEANING" -> "meaning"
-  "MONEY" -> "money"
-  "MOTHER" -> "mother"
-  "MOUTH" -> "mouth"
   "NAMED" -> fromMaybe "??name" $ sValue P.Name frame
-  "NEIGHBOR" -> "neighbor"
-  "NEIGHBORS" -> "neighbors"
-  "NOSE" -> "nose"
-  "OFFICES" -> "offices"
   "OLD_LADY" -> "old lady"
   "OLD_LADIES" -> "old ladies"
   "OLD_MAN" -> "old man"
-  "OPINION" -> "opinion"
-  "ORDER" -> "order"
-  "OTHERS" -> "others"
-  "PREDICAMENT" -> "predicament"
-  "RELIEF" -> "relief"
   "SALESPERSON" -> case usage P.Arg2 (unSeq frame) of
     Just copula | hasType "copula" copula, Just "Fem" == (fValue P.Arg1 copula >>= sValue P.RusGender) -> "saleswoman"
     _ -> "salesman"
-  "SHAWL" -> "shawl"
   "SHOP" -> "store"
-  "SISTER" -> "sister"
   "SMASHED_ONE" -> "one who was smashed"
-  "SOME" -> "some"
-  "SONNET" -> "sonnet"
-  "SPECIALIST" -> "specialist"
-  "SPEECH" -> "speech"
-  "STREET" -> "street"
   "THIS" -> if Just "DISTRACT" == (usage P.Arg1 frame >>= getType) then "that" else "this"
-  "TOMATO" -> "tomato"
-  "TREES" -> "trees"
-  "WATERMELON" -> "watermelon"
-  "WINDOW" -> "window"
-  "WINDOWS" -> "windows"
-  "WORDS" -> "words"
-  "ROOMS" -> "rooms"
-  "WORK" -> "work"
   _ ->
     if isNumberString typ && renderAsWord frame then case typ of
       "1" -> "one"
@@ -91,7 +42,7 @@ noun (Just typ) frame = case typ of
       "9" -> "nine"
       "10" -> "ten"
       _ -> typ
-    else typ
+    else map toLower typ
 
 renderAsWord frame = not $ isNumber $ Just frame
 

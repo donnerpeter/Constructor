@@ -77,8 +77,8 @@ withNegation sd env m1 m2 m4 f = let
 normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
       leftCombined env >>= \m1 -> let
         fullConj mem1 mem2 = [semV seqV P.Member1 mem1, semV seqV P.Member2 mem2, mite $ Conjunction $ sd {seqHasLeft=True}]
-        handleAdj :: Variable -> Variable -> ArgKind -> Agr -> Agr -> P.VarProperty -> Mite -> (Agr -> Construction) -> [[Mite]]
-        handleAdj mem1 mem2 caze1 agr1 agr2 attr m4 result = let
+        handleAdj :: Variable -> Variable -> Agr -> Agr -> Mite -> (Agr -> Construction) -> [[Mite]]
+        handleAdj mem1 mem2 agr1 agr2 m4 result = let
           adjAgrVariants = [[mite $ result A.pl]]
           unifiedAgrVariants = [[mite $ result (commonAgr agr1 agr2)]]
           allVariants = xorNonEmpty $
@@ -98,7 +98,7 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
           leftRefs  = [m | m@(cxt -> ReflexiveReference _) <- leftCombined env] >>= liftMite
           rightRefs = [m | m@(cxt -> SeqRight(ReflexiveReference _)) <- rightCombined env] >>= liftMite
           in leftRefs ++ rightRefs
-        adjHeadCompanions child kind = if kind `elem` cases then withBase [m2] [mite $ AdjHead seqV kind A.pl3] else []
+        adjHeadCompanions kind = if kind `elem` cases then withBase [m2] [mite $ AdjHead seqV kind A.pl3] else []
         distinguished mite = case cxt mite of
           Argument (PP {}) child -> [semS child P.Distinguished "true"]
           VerbalModifier _ _ child | any isPrepHead (baseMites mite) -> [semS child P.Distinguished "true"]
@@ -109,16 +109,16 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
           (Argument kind mem1, SeqRight c) | Just (Argument kind2 mem2, rest) <- asNoun c, kind == kind2 ->
            withNegation sd env m1 m2 m3 $ \base ->
             [fullConj mem1 mem2 ++ withBase base [mite $ Argument kind seqV] ++ combineThyself ++ (baseMites m3 >>= distinguished) ++ rest
-             ++ adjHeadCompanions mem1 kind ++ argUnifications]
+             ++ adjHeadCompanions kind ++ argUnifications]
 
           (VerbalModifier attr comma mem1, SeqRight (VerbalModifier attr2 comma2 mem2)) | attr2 == attr && comma2 == comma ->
             [fullConj mem1 mem2 ++ withBase [m1,m2, m3] [mite $ VerbalModifier attr comma seqV] ++ (baseMites m3 >>= distinguished)
              ++ argUnifications]
 
           (Possessive caze1 agr1 mem1, SeqRight (Possessive caze2 agr2 mem2)) | caze1 == caze2 && adjAgree agr1 agr2 ->
-            handleAdj mem1 mem2 caze1 agr1 agr2 P.Arg1 m3 $ \newAgr -> Possessive caze1 newAgr seqV
+            handleAdj mem1 mem2 agr1 agr2 m3 $ \newAgr -> Possessive caze1 newAgr seqV
           (Adj mem1 attr caze1 agr1, SeqRight (Adj mem2 _ caze2 agr2)) | caze1 == caze2 && adjAgree agr1 agr2 ->
-            handleAdj mem1 mem2 caze1 agr1 agr2 attr m3 $ \newAgr -> Adj seqV attr caze1 newAgr
+            handleAdj mem1 mem2 agr1 agr2 m3 $ \newAgr -> Adj seqV attr caze1 newAgr
 
           (Complement mem1, SeqRight (Complement mem2)) ->
             [fullConj mem1 mem2 ++ withBase [m1,m2,m3] [mite $ Complement seqV, semS mem2 P.Distinguished "true"]]

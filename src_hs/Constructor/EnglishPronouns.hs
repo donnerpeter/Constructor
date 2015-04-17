@@ -2,7 +2,6 @@ module Constructor.EnglishPronouns where
 
 import Constructor.Sense
 import Constructor.Inference
-import Constructor.Util
 import Data.Maybe
 import qualified Constructor.SemanticProperties as P
 

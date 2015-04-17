@@ -7,7 +7,6 @@ module Constructor.Tree (Tree(..), Unhappy(..), Interactive(..),
 import Data.Maybe
 import Data.List
 import qualified Data.Set as Set
-import qualified Data.Map as Map
 import qualified Constructor.LinkedSet as LS
 import Control.Monad.State
 import Control.Monad.List
@@ -15,7 +14,7 @@ import Constructor.Mite
 import Constructor.Util
 import Constructor.Issues
 import Constructor.Interner
-import Constructor.Sense (makeSense, composeSense, Sense, Fact(..))
+import Constructor.Sense (makeSense, Fact(..))
 
 data Tree = Tree {
   mites::[Mite], left::Maybe Tree, right::Maybe Tree, headSide::Side,
@@ -77,8 +76,6 @@ headTrees tree =
   if isBranch tree then tree:headTrees (if headSide tree == LeftSide then justLeft tree else justRight tree)
   else [tree]
 
-headMites tree = concat $ map mites $ headTrees tree
-
 activeBase activeSet = Set.fromList [mite | activeMite <- Set.elems activeSet, mite <- baseMites activeMite]
 
 isBranch tree = isJust (left tree)
@@ -92,7 +89,7 @@ obtainHolder key defaultValue = do
 
 leafHolders :: [[Mite]] -> [([Mite], Interned IssueHolder)]
 leafHolders candidateSets = pairs where
-  (pairs, i) = runState (mapM each candidateSets) emptyInterner
+  (pairs, _) = runState (mapM each candidateSets) emptyInterner
   each active = let
     facts = [Fact var value | (cxt -> Sem var value) <- active]
     unifications = [(var1, var2) | (cxt -> Unify var1 var2) <- active]
@@ -120,7 +117,7 @@ createLeaf mites candidateSets = head trees where
 
 createBranch mites _leftChild _rightChild headSide candidateSets = listToMaybe allBranchVariants where
   allBranchVariants :: [Tree]
-  (allBranchVariants, i) = runState (runListT computation) emptyInterner
+  (allBranchVariants, _) = runState (runListT computation) emptyInterner
   computation :: ListT (State (Interner [Int] IssueHolder)) Tree
   computation = do
     let lh = leafHolders candidateSets

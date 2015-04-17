@@ -1,10 +1,10 @@
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 module Constructor.Issues (IssueHolder, leafHolder, composeHolders, holderIssues, fatalIssues, holderSense) where
 
 import Constructor.Sense
 import Constructor.Inference
 import Constructor.Util
 import Constructor.Variable
-import Control.Monad
 import Data.Maybe
 import qualified Constructor.SemanticProperties as P
 
@@ -37,7 +37,7 @@ factIssues fact = let
           P.OptativeModality -> requireValType $ \valFrame ->
             if any (not . hasAnyType ["LUCK", "BY_THE_WAY"]) (flatten $ Just valFrame) then fatalIssue "invalid optativeModality" else finalNo
           P.Quantifier -> l $ \sense ->
-            requireType (Just $ frame sense) $ \f ->
+            requireType (Just $ frame sense) $ \_ ->
               requireType (Just $ valFrame sense) $ \valFrame ->
                 if hasType "EYES" (frame sense) && not (hasType "2" valFrame) then finalIssue "suspicious eye count" else finalNo
           P.Condition -> requireValType $ \valFrame ->
@@ -130,7 +130,7 @@ orderingIssues var declaredType = let
   "GO" -> l $ \sense ->
     requireType (fValue P.Source $ frame sense) $ \source ->
       if typeEarlier source $ frame sense then finalIssue "source before GO" else finalNo
-  _ -> l $ \sense -> finalNo
+  _ -> l $ \_ -> finalNo
 
 type IssueProvider = Sense -> IssueOutcome
 data IssueOutcome = IssueOutcome [Issue] Stability deriving (Show)

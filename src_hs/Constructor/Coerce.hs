@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 module Constructor.Coerce (asVerb, asTenseHead, asCopula, asNoun, asNegateable, asClause, asAdjHead) where
 
 import Constructor.Agreement
@@ -8,7 +9,6 @@ import Constructor.Variable
 import Constructor.CopulaData
 import Constructor.Ellipsis
 import Constructor.InteractionEnv
-import Data.List (partition)
 import qualified Constructor.SemanticProperties as P
 
 asVerb :: InteractionEnv -> Mite -> [Mite]
@@ -40,7 +40,7 @@ asTenseHead :: Mite -> [Mite]
 asTenseHead m = case cxt m of
   TenseHead {} -> [m]
   Argument Nom v -> let
-    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead NomNPCopula empty "copula" P.Arg2 Optional v
+    [ch@(cxt -> CopulaHead _), tenseHead] = copulaHead NomNPCopula empty "copula" P.Arg2 Optional v
     in [tenseHead, ch]
   Argument Instr v -> let
     [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead InstrNPCopula empty "copula" P.Arg2 Obligatory v
@@ -57,19 +57,19 @@ asCopula :: Construction -> Maybe (CopulaData, [Mite])
 asCopula = \case
   CopulaHead cd -> Just (cd, [])
   Adj v attr Nom agr -> let
-    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead AdjCopula agr "copula" attr Optional v
+    [(cxt -> CopulaHead cd), tenseHead] = copulaHead AdjCopula agr "copula" attr Optional v
     in Just (cd, [tenseHead])
   ShortAdj agr attr v -> let
-    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead AdjCopula agr "copula" attr Optional v
+    [(cxt -> CopulaHead cd), tenseHead] = copulaHead AdjCopula agr "copula" attr Optional v
     in Just (cd, [tenseHead])
   ComparativeAdj attr v -> let
-    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead AdjCopula empty "copula" attr Optional v
+    [(cxt -> CopulaHead cd), tenseHead] = copulaHead AdjCopula empty "copula" attr Optional v
     in Just (cd, [tenseHead])
   Argument Nom v -> let
-    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead NomNPCopula empty "copula" P.Arg2 Optional v
+    [(cxt -> CopulaHead cd), tenseHead] = copulaHead NomNPCopula empty "copula" P.Arg2 Optional v
     in Just (cd, [tenseHead])
   Argument Instr v -> let
-    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead InstrNPCopula empty "copula" P.Arg2 Obligatory v
+    [(cxt -> CopulaHead cd), tenseHead] = copulaHead InstrNPCopula empty "copula" P.Arg2 Obligatory v
     in Just (cd, [tenseHead] ++ instrCopula cd)
   _ -> Nothing
 

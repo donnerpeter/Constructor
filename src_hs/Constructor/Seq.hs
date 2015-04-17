@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 module Constructor.Seq (seqLeft, seqRight, pullThyself) where
 import Constructor.CopulaData
 import Constructor.Mite
@@ -67,8 +68,8 @@ seqLeft env = {-traceIt "seqLeft" $ -}result where
 withNegation sd env m1 m2 m4 f = let
   requireNegation = seqConj sd == "a"
   negatedVariants sideMites = sideMites >>= \mx -> case cxt mx of
-    Negated v -> f [m1,m2,m4,mx]
-    SeqRight (Negated v) -> f [m1,m2,m4,mx]
+    Negated _ -> f [m1,m2,m4,mx]
+    SeqRight (Negated _) -> f [m1,m2,m4,mx]
     _ -> []
   in if requireNegation then negatedVariants (leftCompatible env m1) ++ negatedVariants (rightCompatible env m4)
      else f [m1,m2,m4]

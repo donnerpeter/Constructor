@@ -4,7 +4,7 @@ module Constructor.ArgumentPlanning (
   isVerbEllipsis, isEllipsisAnchor, reachesEllipsisAnchor,
   allCoordinatedVerbs,
   Position(..), argPosition,
-  isAtLocationCopula, isExclamationCopula, isOwnerCopula,
+  isAtLocationCopula, isExclamationCopula,
   lookAsWatching, pesterAsBoredGerund) where
 import Constructor.Sense
 import Constructor.Inference
@@ -58,7 +58,7 @@ argPosition _ = AfterVerb
 
 arguments fVerb@(getType -> Just typ) = allArgs ++ externalArguments fVerb where
   sens = sense fVerb
-  compareFacts f1@(Fact frame1 val1) f2@(Fact frame2 val2) =
+  compareFacts f1@(Fact _ val1) f2@(Fact _ val2) =
     if f1 == f2 then EQ
     else case (val1, val2) of
       (VarValue _ v1, VarValue _ v2) |
@@ -192,8 +192,6 @@ shouldContrastRelTime fVerb = length (catMaybes $ map (fValue P.RelTime) $ allCo
 isAtLocationCopula fVerb = hasType "copula" fVerb &&
   isJust (fValue P.Location_at fVerb) &&
   Just "SUCH" == (fValue P.Arg2 fVerb >>= fValue P.Determiner >>= getType)
-
-isOwnerCopula fVerb = hasType "copula" fVerb && isJust (fValue P.Owner =<< fValue P.Arg2 fVerb)
 
 isExclamationCopula fVerb = case (getType fVerb, fValue P.Arg1 fVerb, fValue P.Arg2 fVerb) of
   (Just "copula", Just arg1, Just arg2) | Just det2 <- fValue P.Determiner arg2 ->

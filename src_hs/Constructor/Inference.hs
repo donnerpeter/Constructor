@@ -5,7 +5,7 @@ module Constructor.Inference (
   typeEarlier,
   flatten, isNumber, unSeq, unSeq1, unSeq2, seqSiblings, prevSiblings, nextSiblings,
   isHuman, isAnimate, isInanimate,
-  isCP, isFactCP, isQuestionCP, isQualityCopula) where
+  isCP, isFactCP, isQuestionCP, isQualityCopula, isOwnerCopula) where
 
 import Constructor.Sense
 import qualified Constructor.SemanticProperties as P
@@ -30,10 +30,11 @@ sValue attr frame =
     case attr of
       P.Given ->
         if Just True == fmap (hasAnyType ["SOME", "ONE"]) (fValue P.Determiner frame) then Just "false"
-        else if hasAnyType ["CASE", "HAMMER", "TREES", "BENCH", "FINGER", "WATERMELON", "JAW", "SHAWL", "SPECIALIST", "GUMBOIL"] frame then Just "false"
+        else if hasAnyType ["CASE", "HAMMER", "TREES", "BENCH", "FINGER", "JAW", "SHAWL", "SPECIALIST", "GUMBOIL"] frame then Just "false"
         else if isTrue $ isNumberString <$> getType frame then Just "false"
         else if Just "copula" == (usage P.Arg2 (unSeq frame) >>= getDeclaredType) then Just "false"
         else if isTrue $ isQualityCopula <$> usage P.Arg1 frame then Just "false"
+        else if isTrue $ isOwnerCopula <$> usage P.Arg1 frame then Just "false"
         else if hasType "CASHIER" frame then
           case find (\cashier -> typeEarlier cashier frame) $ findFrames "CASHIER" $ sense frame of
              Just _ -> Just "true"
@@ -142,3 +143,5 @@ isQuestionCP frame = isCP frame && isJust (fValue P.Questioned frame)
 
 isQualityCopula frame = hasType "copula" frame && isTrue (hasType "placeholder" <$> arg2) && isTrue (hasType "wh" <$> (fValue P.Quality =<< arg2)) where
   arg2 = fValue P.Arg2 frame
+
+isOwnerCopula fVerb = hasType "copula" fVerb && isJust (fValue P.Owner =<< fValue P.Arg2 fVerb)

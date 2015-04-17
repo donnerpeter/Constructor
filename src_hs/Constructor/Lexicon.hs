@@ -356,6 +356,7 @@ wordMites word index =
   "такой" -> adj Nom A.m P.Determiner "SUCH" v
   "там" -> adverb P.Location "THERE" v
   "танцевать" -> infinitive "DANCE" v
+  "тебя" -> xor [pronoun Acc A.sg "YOU" v, pronoun Gen A.sg "YOU" v]
   "тоже" -> sAdverb P.Also "true" v
   "только" -> modifierAdverb "ONLY" v
   "том" -> adj Prep A.sg P.Determiner "THAT" v
@@ -384,6 +385,7 @@ wordMites word index =
   "упал" -> finVerb "FALL" "PAST" A.m v
   "упала" -> finVerb "FALL" "PAST" A.f v
   "флюсу" -> nounSg Dat Masc "GUMBOIL" v
+  "фонтан" -> nounSg Nom Masc "FOUNTAIN" v
   "хитрец" -> nounSg Nom Masc "CUNNING_PERSON" v
   "челюсти" -> xor[nounSg Gen Fem "JAW" v, nounPl Nom "JAWS" v, nounPl Acc "JAWS" v]
   "челюсть" -> nounSg Acc Fem "JAW" v

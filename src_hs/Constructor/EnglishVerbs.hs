@@ -145,7 +145,7 @@ isGerund fVerb =
 
 determineVerbForm fSubject discoursePast =
   if discoursePast then PastVerb
-  else if Just True == fmap (hasAnyType ["ME", "WE", "THEY"]) fSubject then BaseVerb
+  else if Just True == fmap (hasAnyType ["ME", "WE", "THEY", "YOU"]) fSubject then BaseVerb
   else Sg3Verb
 
 englishSubject fVerb =

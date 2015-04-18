@@ -2,7 +2,6 @@ module Constructor.SemanticProperties where
 
 import GHC.Generics (Generic)
 import Data.Hashable
-import Constructor.Util
 
 data VarProperty = Arg1 | Arg2
                  | Member1 | Member2

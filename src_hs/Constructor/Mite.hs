@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 module Constructor.Mite
  (Mite(Mite, cxt, happy, baseMites), mite,
  xor, xorNonEmpty, withBase, contradict,
@@ -50,9 +51,9 @@ _initMite cxt _contradictors baseMites = let
   else mite
 
 instance Show Mite where
-  show (Mite {cxt=c, happy=h, contradictors=cc, baseMites = b}) =
-    (if h then "" else "!") ++ show c -- ++ (if Set.null cc then "" else "(xor "++(show cc)++")")
-        -- ++ (if null b then "" else "(base " ++ show b ++ "/base)")
+  show m =
+    (if happy m then "" else "!") ++ show (cxt m) -- ++ (if Set.null (contradictors m) then "" else "(xor "++(show $ contradictors m)++")")
+        -- ++ (if null (baseMites m) then "" else "(base " ++ show (baseMites m) ++ "/base)")
 instance Ord Mite where compare m1 m2 = compare (xorKey m1) (xorKey m2)
 instance Eq Mite where m1 == m2 = (xorKey m1) == (xorKey m2)
 

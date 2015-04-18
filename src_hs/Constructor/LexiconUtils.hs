@@ -2,12 +2,8 @@ module Constructor.LexiconUtils where
 import Constructor.CopulaData
 import Constructor.Mite
 import Constructor.Variable
-import Constructor.Util
 import qualified Constructor.Agreement as A
 import Constructor.Agreement (Gender(..))
-import Data.Char (ord, chr)
-import Data.Maybe
-import Data.List
 import qualified Constructor.SemanticProperties as P
 
 nounSg caze gender typ v = pronoun caze (A.Agr (Just gender) (Just A.Sg) (Just 3)) typ v
@@ -67,11 +63,11 @@ caseWhWord kind agr v = whWord agr v ++ [mite $ QuestionVariants (v "") kind, mi
 negatedWh v = [semT (v "") "wh", semS (v "") P.Negated "true", mite $ Negated (v ""), mite $ NegativePronoun (v "")]
 animate v = [semS (v "") P.Animate "true"]
 
-adj caze agr attr value v = adjLike caze agr attr value (Adj (v "") attr caze agr) v
+adj caze agr attr value v = adjLike value (Adj (v "") attr caze agr) v
 
-possessive caze agr value v = adjLike caze agr P.Arg1 value (Possessive caze agr (v "")) v
+possessive caze agr value v = adjLike value (Possessive caze agr (v "")) v
 
-adjLike caze agr attr value adjLikeCxt v = [semT v0 value, mite $ AdverbModifiable v0, mite adjLikeCxt]
+adjLike value adjLikeCxt v = [semT v0 value, mite $ AdverbModifiable v0, mite adjLikeCxt]
   where v0 = v ""
 
 shortAdj agr attr value v = [semT v0 value, mite $ AdverbModifiable v0, mite $ ShortAdj agr attr v0]

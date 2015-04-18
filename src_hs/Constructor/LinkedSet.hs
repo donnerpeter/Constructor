@@ -17,7 +17,7 @@ isEmpty (LinkedSet l _) = null l
 
 elements (LinkedSet l _) = reverse l
 
-member elem (LinkedSet l s) = Set.member elem s
+member elem (LinkedSet _ s) = Set.member elem s
 
 fromList list = addAll list empty
 

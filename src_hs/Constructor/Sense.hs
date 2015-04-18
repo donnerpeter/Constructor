@@ -21,7 +21,7 @@ data EqClasses = EqClasses { baseVars:: Map.Map Variable Variable, eqClasses :: 
 toBase (EqClasses baseVars _) var = baseVars Map.! var
 
 addEqClass :: EqClasses -> EqClass -> (EqClasses, ClassUpdate)
-addEqClass ec@(EqClasses baseVars eqClasses) vars = (EqClasses newBaseVars newClasses, ClassUpdate addedClasses removedClasses) where
+addEqClass (EqClasses baseVars eqClasses) vars = (EqClasses newBaseVars newClasses, ClassUpdate addedClasses removedClasses) where
   basesToUnify = catMaybes $ map (\v -> Map.lookup v baseVars) vars
   mergedClass = sort $ LS.removeDups $ concat (map (\v -> eqClasses Map.! v) basesToUnify) ++ vars
   singleBase = head mergedClass
@@ -48,7 +48,7 @@ data FactMap = FactMap {
 
 type MapGetter a = FactMap -> Map.Map EqClass (LS.LinkedSet a)
 
-composeFactMaps factMaps baseFM varClasses update = FactMap knownVars valueCache usageCache factMaps where
+composeFactMaps factMaps baseFM update = FactMap knownVars valueCache usageCache factMaps where
   knownVars = foldl Set.union Set.empty $ map knownVariables factMaps
   updateCache getter = let
     withoutRemoved = Set.foldl (\m c -> Map.delete c m) (getter baseFM) (removedClasses update)
@@ -122,7 +122,7 @@ composeSense senses = makeSenseInternal _bareFacts _allFrameVars mergedClasses _
   classesToAdd = addedSenses >>= Map.elems . eqClasses . varClasses
   (mergedClasses, compositeUpdate) = foldl folder (varClasses baseSense, ClassUpdate Set.empty Set.empty) classesToAdd
   _allFrameVars = LS.removeDups $ map (toBase mergedClasses) $ (senses >>= allFrameVars)
-  _factMap = composeFactMaps (map factMap senses) (factMap baseSense) mergedClasses compositeUpdate
+  _factMap = composeFactMaps (map factMap senses) (factMap baseSense) compositeUpdate
 
 toFrames sense vars = map (flip Frame sense) vars
 allFrames sense = toFrames sense $ allFrameVars sense

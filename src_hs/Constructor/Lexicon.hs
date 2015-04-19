@@ -108,6 +108,7 @@ wordMites word index =
   "забыли" -> finVerb "FORGET" "PAST" A.pl v ++ optional (xor [compHead P.Arg2 v, directObject v, arg ScalarAdverb P.Order v])
   "завтра" -> adverb P.RelTime "TOMORROW" v
   "закрыты" -> shortAdj A.pl P.State "CLOSED" v
+  "заткни" -> imperativeVerb "SHUT_DOWN" A.sg2 v ++ directObject v
   "зелёный" -> adj Nom A.m P.Color "GREEN" v
   "знает" -> finVerb "KNOW" "PRESENT" A.sg3 v ++ optional (directObject v)
   "знают" -> finVerb "KNOW" "PRESENT" A.pl3 v ++ optional (directObject v)
@@ -364,6 +365,7 @@ wordMites word index =
   "третья" -> adj Nom A.f P.Order "3" v
   "три" -> wordNumber Acc "3" v
   "тут" -> sAdverb P.Emphasis "true" v
+  "ты" -> pronoun Nom A.sg2 "YOU" v
   "у" -> preposition "u" Gen v
   "увидел" -> finVerb "SEE" "PAST" A.m v ++ directObject v ++ optional (arg Instr P.Instrument v)
   "удивительный" -> adj Nom A.m P.Property "AMAZING" v
@@ -385,7 +387,7 @@ wordMites word index =
   "упал" -> finVerb "FALL" "PAST" A.m v
   "упала" -> finVerb "FALL" "PAST" A.f v
   "флюсу" -> nounSg Dat Masc "GUMBOIL" v
-  "фонтан" -> nounSg Nom Masc "FOUNTAIN" v
+  "фонтан" -> xor [nounSg Nom Masc "FOUNTAIN" v, nounSg Acc Masc "FOUNTAIN" v]
   "хитрец" -> nounSg Nom Masc "CUNNING_PERSON" v
   "челюсти" -> xor[nounSg Gen Fem "JAW" v, nounPl Nom "JAWS" v, nounPl Acc "JAWS" v]
   "челюсть" -> nounSg Acc Fem "JAW" v

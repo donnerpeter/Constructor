@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 module Constructor.EnglishVerbs (
   VerbForm(..), verb,
-  haveForm, isGerund, generateVerbs, determineVerbForm,
+  haveForm, isGerund, generateVerbs, determineVerbForm, verbSuffix,
   englishSubject) where
 import Constructor.Sense
 import Constructor.Inference
@@ -66,6 +66,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "SIT" -> if verbForm == BaseVerb then "sit" else if verbForm == PastVerb then "sat" else "sitting"
   "SMASH" -> "smashed into the ground"
   "SMILE" -> "gave us a " ++ (if (fValue P.Manner frame >>= getType) == Just "SADLY" then "sad " else "") ++ "smile"
+  "SHUT_DOWN" -> "shut"
   "STOP" -> "stopped"
   "TAKE_OUT" -> "took"
   "THINK" -> if verbForm == BaseVerb then "think" else "thinking" ++ (if isJust (fValue P.Theme frame) then " carefully" else "")
@@ -154,3 +155,5 @@ englishSubject fVerb =
   else if isOwnerCopula fVerb then fValue P.Owner =<< fValue P.Arg2 fVerb
   else if hasType "PESTER" fVerb then fValue P.Arg2 fVerb
   else fValue P.Arg1 fVerb
+
+verbSuffix fVerb = if hasType "SHUT_DOWN" fVerb then "down" else ""

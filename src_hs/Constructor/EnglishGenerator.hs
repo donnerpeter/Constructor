@@ -628,7 +628,7 @@ vp fVerb verbForm clauseType = do
   let contracted = if not (null shortForm) && null negation && not inverted && contractableSubject && null afterSubject then
                      (subject ++ shortForm) `cat` preAdverb `cat` restVerb
                    else (if inverted then aux `cat` negation `cat` subject else subject `cat` aux `cat` negation) `cat` afterSubject `cat` preAdverb `cat` sVerb
-  return $ beforeCP `cat` sTopicalized `cat` whWord `cat` afterWh `cat` contracted `cat` nonWhWord `cat` controlled `cat` sArgs `cat` stranded `cat` anymore `cat` finalAdverb
+  return $ beforeCP `cat` sTopicalized `cat` whWord `cat` afterWh `cat` contracted `cat` nonWhWord `cat` controlled `cat` sArgs `cat` stranded `cat` verbSuffix fVerb `cat` anymore `cat` finalAdverb
 
 generateArg :: Argument -> State GenerationState String
 generateArg arg = let

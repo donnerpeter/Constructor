@@ -28,6 +28,7 @@ preposition prep nounArg v = [mite $ PrepHead prep nounArg (v "")]
 semPreposition nounArg attr v = [mite $ SemPreposition nounArg (v "noun"), semV (v "") attr (v "noun")]
 finVerb typ time agr v = [semT (v "") typ, semS (v "") P.Time time] ++ finiteClause agr True v
 raisingVerb typ time agr v = [semT (v "") typ, semS (v "") P.Time time, mite $ RaisingVerb (v "") (v "arg1")] ++ finiteClause agr False v
+imperativeVerb typ agr v = [semT (v "") typ, semS (v "") P.Imperative "true"] ++ finiteClause agr True v
 finiteClause agr withSemSubject v =
                      [mite $ NomHead agr (v "arg1") Unsatisfied, mite $ ReflexiveTarget (v "arg1")] ++
                      (if withSemSubject then [semV (v "") P.Arg1 (v "arg1")] else []) ++

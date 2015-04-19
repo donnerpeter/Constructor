@@ -137,6 +137,12 @@ randomStuffTests = [
 --todo  translateTest "Если у тебя есть фонтан, заткни его; дай отдохнуть и фонтану."
 --                "If you have a fountain, shut it down. Let even a fountain have a rest."
 --  ,
+  translateTest "Ты заткни его, заткни фонтан."
+                "You shut it down, shut the fountain down."
+  ,
+--todo  translateTest "Заткните его!"
+--                "Shut it down!"
+--  ,
   translateTest "Специалист подобен флюсу: полнота его одностороння."
                 "A specialist is like a gumboil: his plenitude is unilateral."
   ,

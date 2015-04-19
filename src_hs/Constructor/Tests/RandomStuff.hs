@@ -140,9 +140,9 @@ randomStuffTests = [
   translateTest "Ты заткни его, заткни фонтан."
                 "You shut it down, shut the fountain down."
   ,
---todo  translateTest "Заткните его!"
---                "Shut it down!"
---  ,
+  translateTest "Заткните его!"
+                "Shut it down!"
+  ,
   translateTest "Специалист подобен флюсу: полнота его одностороння."
                 "A specialist is like a gumboil: his plenitude is unilateral."
   ,

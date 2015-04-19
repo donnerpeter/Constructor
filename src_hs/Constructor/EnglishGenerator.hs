@@ -575,7 +575,11 @@ vp fVerb verbForm clauseType = do
                     clauseType == FiniteClause && Just "wh" == (fSubject >>= getType) && Just "true" == (fSubject >>= sValue P.Not_anymore) ||
                     Just "true" == sValue P.Not_anymore fVerb
         in if isAnymore then "anymore" else ""
-  subject <- if thereSubject then return "there" else if Just "WEATHER_BE" == getType fVerb then return "it" else case (fSubject, clauseType) of
+  subject <-
+   if thereSubject then return "there"
+   else if Just "WEATHER_BE" == getType fVerb then return "it"
+   else if Just "true" == sValue P.Imperative fVerb && isNothing (getDeclaredType =<< fSubject) then return ""
+   else case (fSubject, clauseType) of
     (Just f, FiniteClause) ->
       if isVerbEllipsis fVerb && not (reachesEllipsisAnchor fSubject fVerb) then return "it"
       else if isNothing (fSubject >>= getType) && not (isTrue $ isElidedNoun <$> fSubject) then return "someone"

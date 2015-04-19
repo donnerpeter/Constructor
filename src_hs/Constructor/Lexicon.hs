@@ -109,6 +109,7 @@ wordMites word index =
   "завтра" -> adverb P.RelTime "TOMORROW" v
   "закрыты" -> shortAdj A.pl P.State "CLOSED" v
   "заткни" -> imperativeVerb "SHUT_DOWN" A.sg2 v ++ directObject v
+  "заткните" -> imperativeVerb "SHUT_DOWN" A.pl v ++ directObject v
   "зелёный" -> adj Nom A.m P.Color "GREEN" v
   "знает" -> finVerb "KNOW" "PRESENT" A.sg3 v ++ optional (directObject v)
   "знают" -> finVerb "KNOW" "PRESENT" A.pl3 v ++ optional (directObject v)

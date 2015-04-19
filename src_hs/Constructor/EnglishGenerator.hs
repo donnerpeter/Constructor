@@ -37,7 +37,7 @@ generate sense =
 capitalize (c:rest) = (toUpper c):rest
 capitalize [] = []
 
-getTopFrame frame = if isCP frame && null (allUsages [P.Relative, P.WhenCondition] frame) then upmostSeq frame else Nothing where
+getTopFrame frame = if isCP frame && null (allUsages [P.Relative, P.WhenCondition, P.IfCondition] frame) then upmostSeq frame else Nothing where
   upmostSeq frame =
     case usage P.Member1 frame of
       Just p -> upmostSeq p

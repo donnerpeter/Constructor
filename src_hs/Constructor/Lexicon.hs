@@ -71,7 +71,9 @@ wordMites word index =
   "говорят" -> [mite $ VerbalModifier P.AccordingTo True v0, semT v0 "SAY"]
   "грустно" -> adverb P.Manner "SADLY" v
   "гулять" -> infinitive "WALK" v
-  "дал" -> finVerb "GIVE" "PAST" A.m v ++ directObject v ++ optional (arg Dat P.Receiver v)
+  "дай" -> imperativeVerb "LET" A.pl v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")] ++ optional (arg Dat P.Arg2 v)
+  "дал" -> xor [finVerb "GIVE" "PAST" A.m v ++ directObject v ++ optional (arg Dat P.Receiver v),
+                finVerb "LET" "PAST" A.m v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")] ++ optional (arg Dat P.Arg2 v)]
   "дальше" -> [mite $ Argument ScalarAdverb v0, semT v0 "NEXT"]
   "два" -> wordNumber Acc "2" v
   "делал" -> finVerb "DO" "PAST" A.m v ++ directObject v
@@ -242,6 +244,7 @@ wordMites word index =
   "остановились" -> finVerb "STOP" "PAST" A.pl v
   "от" -> preposition "ot" Gen v
   "отвлекло" -> finVerb "DISTRACT" "PAST" A.n v ++ directObject v ++ arg (PP "ot" Gen) P.Theme v
+  "отдохнуть" -> infinitive "REST" v
   "отправился" -> finVerb "GO_OFF" "PAST" A.m v ++ arg (PP "k" Dat) P.Goal_to v
   "офисам" -> nounPl Dat "OFFICES" v ++ genHead P.Owner v
   "очень" -> modifierAdverb "VERY" v
@@ -299,6 +302,7 @@ wordMites word index =
   "сада" -> nounSg Gen Masc "GARDEN" v
   "свалился" -> finVerb "FALL" "PAST" A.m v ++ optional (arg (PP "s" Gen) P.Source v)
   "свет" -> nounSg Nom Masc "LIGHT" v
+  "своему" -> possessive Dat A.m "SELF" v ++ [mite $ ReflexiveReference v0]
   "своим" -> possessive Dat A.pl "SELF" v ++ [mite $ ReflexiveReference v0]
   "своими" -> possessive Instr A.pl "SELF" v ++ [mite $ ReflexiveReference v0]
   "себе" -> pronoun Dat A.empty "SELF" v ++ [mite $ ReflexiveReference v0]
@@ -388,7 +392,8 @@ wordMites word index =
   "упал" -> finVerb "FALL" "PAST" A.m v
   "упала" -> finVerb "FALL" "PAST" A.f v
   "флюсу" -> nounSg Dat Masc "GUMBOIL" v
-  "фонтан" -> xor [nounSg Nom Masc "FOUNTAIN" v, nounSg Acc Masc "FOUNTAIN" v]
+  "фонтан" -> xor [nounSg Nom Masc "FOUNTAIN" v, nounSg Acc Masc "FOUNTAIN" v] ++ genHead P.Owner v
+  "фонтану" -> nounSg Dat Masc "FOUNTAIN" v ++ genHead P.Owner v
   "хитрец" -> nounSg Nom Masc "CUNNING_PERSON" v
   "челюсти" -> xor[nounSg Gen Fem "JAW" v, nounPl Nom "JAWS" v, nounPl Acc "JAWS" v]
   "челюсть" -> nounSg Acc Fem "JAW" v

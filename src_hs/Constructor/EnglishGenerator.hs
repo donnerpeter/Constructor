@@ -281,7 +281,7 @@ fDeterminer frame =
   if hasAnyType ["NEIGHBORS", "AMAZE", "PREDICAMENT", "MOUTH", "NOSE", "JAW", "JAWS", "ARGUE", "FINGER", "SPEECH", "FAMILY", "EYES", "BROTHER", "SISTER", "CORNER", "CURIOSITY", "PLENITUDE"] frame then fValue P.Arg1 frame
   else if hasAnyType ["OPINION"] frame then fValue P.Arg1 frame
   else if hasAnyType ["WORDS", "BOOK"] frame then fValue P.Author frame
-  else if hasAnyType ["ROOMS", "APARTMENTS", "OFFICES", "WINDOWS"] frame then fValue P.Owner frame
+  else if hasAnyType ["ROOMS", "APARTMENTS", "OFFICES", "WINDOWS", "FOUNTAIN"] frame then fValue P.Owner frame
   else if hasAnyType ["CASHIER"] frame then fValue P.Place frame
   else if isElidedNoun frame then fValue P.Arg1 frame
   else Nothing

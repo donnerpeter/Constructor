@@ -99,6 +99,7 @@ arguments fVerb@(getType -> Just typ) = allArgs ++ externalArguments fVerb where
       ("DISTRACT", P.Theme) -> [PPArg "from" value]
       ("THINK", P.Theme) -> [PPArg "about" value]
       ("THINK", P.Topic) -> [PPArg "on" value]
+      ("LET", P.Theme) -> [Adverb AfterVerb "have a rest"]
       ("SEEM", P.Experiencer) -> if isJust (usage P.Content fVerb >>= usage P.Reason) then [] else [PPAdjunct AfterVerb "to" value]
       ("SEEM", P.Theme) ->
         if hasType "LACK" value then [PPArg "void of" (fromJust $ fValue P.Theme value)]

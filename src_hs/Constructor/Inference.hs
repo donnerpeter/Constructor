@@ -35,6 +35,7 @@ sValue attr frame =
         else if Just "copula" == (usage P.Arg2 (unSeq frame) >>= getDeclaredType) then Just "false"
         else if isTrue $ isQualityCopula <$> usage P.Arg1 frame then Just "false"
         else if isTrue $ isOwnerCopula <$> usage P.Arg1 frame then Just "false"
+        else if Just "true" == sValue P.AndEmphasis frame then Just "false"
         else if hasType "CASHIER" frame then
           case find (\cashier -> typeEarlier cashier frame) $ findFrames "CASHIER" $ sense frame of
              Just _ -> Just "true"

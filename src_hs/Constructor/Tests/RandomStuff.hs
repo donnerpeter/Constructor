@@ -134,9 +134,9 @@ randomStuffTests = [
   translateTest "Никто не обнимет необъятного."
                 "Nobody will embrace the unembraceable."
   ,
---todo  translateTest "Если у тебя есть фонтан, заткни его; дай отдохнуть и фонтану."
---                "If you have a fountain, shut it down. Let even a fountain have a rest."
---  ,
+  translateTest "Если у тебя есть фонтан, заткни его; дай отдохнуть и фонтану."
+                "If you have a fountain, shut it down. Let even a fountain have a rest."
+  ,
 --todo  translateTest "Дай мне книгу."
 --                "Give me the book."
 --  ,

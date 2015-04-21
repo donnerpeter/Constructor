@@ -40,8 +40,9 @@ capitalize [] = []
 getTopFrame frame = if isCP frame && null (allUsages [P.Relative, P.WhenCondition, P.IfCondition] frame) then upmostSeq frame else Nothing where
   upmostSeq frame =
     case usage P.Member1 frame of
-      Just p -> upmostSeq p
-      _ -> if isJust $ usage P.Member2 frame then Nothing else Just frame
+      Just p | Just ";" /= sValue P.Conj p -> upmostSeq p
+      _ | Just p <- usage P.Member2 frame -> if Just ";" == sValue P.Conj p then Just frame else Nothing
+      _ -> Just frame
 
 handleSeq :: (Frame -> State GenerationState String) -> Maybe Frame -> State GenerationState String
 handleSeq _ Nothing = return "???seq"
@@ -157,7 +158,8 @@ np_internal nom mayHaveDeterminer frame = do
         in return $ "who" `cat` verb `cat` "smashed"
       else return ""
   let neg = if Just "true" == sValue P.Negated frame && not (hasType "wh" frame) then "not" else ""
-  return $ neg `cat` preQuantifier `cat` unquantified `cat` postQuantifier `cat` relative
+  let emphasis = if Just "true" == sValue P.AndEmphasis frame then "even" else ""
+  return $ neg `cat` emphasis `cat` preQuantifier `cat` unquantified `cat` postQuantifier `cat` relative
 
 isArticleAfterAdjectives mainFrame =
   not (isPlaceholder mainFrame) &&
@@ -386,7 +388,7 @@ sentence frame = handleSeq singleSentence (Just frame) `catM` return (finish ++ 
     if Just "object" == sValue P.SituationKind frame
     then np True content
     else fromMaybe (return " ???sentence") $ liftM clause content
-  finish = if sValue P.Dot frame == Just "true" then "."
+  finish = if sValue P.Dot frame == Just "true" || sValue P.Conj (unSeq frame) == Just ";" then "."
            else if sValue P.Question_mark frame == Just "true" then "?"
            else if sValue P.Exclamation_mark frame == Just "true" then "!"
            else case lastSentence >>= fValue P.Content >>= fValue P.Message of
@@ -408,7 +410,6 @@ genComplement cp = case fValue P.Content cp of
 conjIntroduction fVerb =
    if sValue P.ButEmphasis fVerb == Just "true" then "but"
    else if sValue P.AndEmphasis fVerb == Just "true" then "and"
-   else if any (\arg -> Just "true" == (sValue P.AndEmphasis =<< argumentFrame arg)) $ arguments fVerb then "and"
    else ""
 
 distinguish frame = isNothing (usage P.Member2 frame) || Just "true" == sValue P.Distinguished frame ||

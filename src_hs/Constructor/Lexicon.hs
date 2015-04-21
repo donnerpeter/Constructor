@@ -425,6 +425,7 @@ wordMites word index =
               [mite $ Ellipsis v0 Nothing, semS v0 P.Elided "true"]
              ]
   "," -> xor [[mite $ SurroundingComma v0], conjunction v0 "," True]
+  ";" -> conjunction v0 ";" True
   "\"" -> xor [[mite $ Quote v0 True], [mite $ Quote v0 False]]
   _ ->
     if "ой" `isSuffixOf` word then 

@@ -1,7 +1,7 @@
 module Constructor.Interner (Interned(..), Interner, emptyInterner, intern, internerSize) where
 import qualified Data.Map as Map
 
-data (Ord key) => Interner key value = Interner { enumMap :: Map.Map key Int, enumValues :: [value] }
+data Interner key value = Interner { enumMap :: Map.Map key Int, enumValues :: [value] }
 data Interned value = Interned { internedKey :: Int, internedValue :: value}
 
 intern :: (Ord key, Show key) => Interner key value -> key -> value -> (Interned value, Interner key value)

@@ -145,8 +145,9 @@ isGerund fVerb =
   hasAnyType ["SIT", "WEATHER_BE"] fVerb ||
   hasType "THINK" fVerb && isNothing (fValue P.Topic fVerb)
 
-determineVerbForm fSubject discoursePast =
-  if discoursePast then PastVerb
+determineVerbForm fVerb fSubject discoursePast =
+  if Just "true" == sValue P.Imperative fVerb then BaseVerb
+  else if discoursePast then PastVerb
   else if Just True == fmap (hasAnyType ["ME", "WE", "THEY", "YOU"]) fSubject then BaseVerb
   else Sg3Verb
 

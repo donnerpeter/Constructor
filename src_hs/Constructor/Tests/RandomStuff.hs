@@ -137,9 +137,9 @@ randomStuffTests = [
   translateTest "Если у тебя есть фонтан, заткни его; дай отдохнуть и фонтану."
                 "If you have a fountain, shut it down. Let even a fountain have a rest."
   ,
---todo  translateTest "Дай мне книгу."
---                "Give me the book."
---  ,
+  translateTest "Дай мне книгу."
+                "Give the book to me."
+  ,
   translateTest "Он дал своему фонтану отдохнуть."
                 "He let his fountain have a rest."
   ,

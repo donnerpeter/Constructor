@@ -463,7 +463,7 @@ clause fVerb = do
              Just "AMAZE" -> return "Great was" `catM` np True fSubject
              Just "CUNNING_PERSON" -> return "What" `catM` np True fSubject
              _ -> return "??degree"
-           else vp fVerb (determineVerbForm fSubject $ past state) FiniteClause
+           else vp fVerb (determineVerbForm fVerb fSubject $ past state) FiniteClause
     elaboration <- case fValue P.Elaboration fVerb of
       Just smth -> do s <- sentence smth; return $ (if hasType "HAPPEN" fVerb then "," else ":") `cat` stripFirstComma s
       _ -> return ""

@@ -71,7 +71,8 @@ wordMites word index =
   "говорят" -> [mite $ VerbalModifier P.AccordingTo True v0, semT v0 "SAY"]
   "грустно" -> adverb P.Manner "SADLY" v
   "гулять" -> infinitive "WALK" v
-  "дай" -> imperativeVerb "LET" A.pl v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")] ++ optional (arg Dat P.Arg2 v)
+  "дай" -> xor [imperativeVerb "GIVE" A.sg2 v ++ directObject v ++ optional (arg Dat P.Receiver v),
+                imperativeVerb "LET" A.sg2 v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")] ++ optional (arg Dat P.Arg2 v)]
   "дал" -> xor [finVerb "GIVE" "PAST" A.m v ++ directObject v ++ optional (arg Dat P.Receiver v),
                 finVerb "LET" "PAST" A.m v ++ [mite $ Control (v "theme"), semV v0 P.Theme (v "theme")] ++ optional (arg Dat P.Arg2 v)]
   "дальше" -> [mite $ Argument ScalarAdverb v0, semT v0 "NEXT"]

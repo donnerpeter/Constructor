@@ -143,9 +143,9 @@ randomStuffTests = [
   translateTest "Он дал своему фонтану отдохнуть."
                 "He let his fountain have a rest."
   ,
---todo  translateTest "Дай ребёнку поспать."
---                "Let the child sleep."
---  ,
+  translateTest "Дай ребенку поспать."
+                "Let the child sleep."
+  ,
   translateTest "Ты заткни его, заткни фонтан."
                 "You shut it down, shut the fountain down."
   ,

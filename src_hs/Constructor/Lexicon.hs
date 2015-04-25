@@ -272,6 +272,7 @@ wordMites word index =
   "порядок" -> nounSg Acc Masc "ORDER" v ++ genHead P.Arg1 v
   "после" -> xor [[mite $ Argument ScalarAdverb v0, semT v0 "AFTER"] ++ optional (semPreposition Gen P.Anchor v),
                   adverb P.RelTime "AFTER" v ++ semPreposition Gen P.Anchor v]
+  "поспать" -> infinitive "SLEEP" v
   "потом" -> xor [[mite $ Argument ScalarAdverb v0, semT v0 "NEXT"], adverb P.RelTime "AFTER" v]
   "потому" -> [mite $ TwoWordCxt "потому что" True [ReasonComp v0 False] v0]
   "приуныли" -> finVerb "GET_SAD" "PAST" A.pl v
@@ -295,6 +296,7 @@ wordMites word index =
   "разошлись" -> finVerb "DISPERSE" "PAST" A.pl v ++ arg (PP "po" Dat) P.Goal v
   "раньше" -> xor [[mite $ Argument ScalarAdverb v0, semT v0 "EARLIER"], adverb P.RelTime "BEFORE" v] ++ optional (semPreposition Gen P.Anchor v)
   "ребенок" -> nounSg Nom Masc "CHILD" v
+  "ребенку" -> nounSg Dat Masc "CHILD" v
   "речь" -> nounSg Nom Fem "SPEECH" v ++ genHead P.Arg1 v
   "рта" -> nounSg Gen Masc "MOUTH" v
   "рынок" -> nounSg Acc Masc "MARKET" v

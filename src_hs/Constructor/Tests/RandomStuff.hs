@@ -74,6 +74,9 @@ randomStuffTests = [
 --todo  translateTest "Я видел кассира умнее, чем вы."
 --                "I saw a cashier smarter than you."
 --  ,
+--todo  translateTest "Я видел кассира более умного, чем вы."
+--                "I saw a cashier smarter than you."
+--  ,
 --todo  translateTest "Я ещё не видел кассира умнее, чем вы."
 --                "I haven't yet seen a cashier smarter than you."
 --  ,

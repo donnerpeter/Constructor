@@ -327,7 +327,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (Verb head, Elaboration child) -> left [semV head P.Elaboration child, mite $ Unclosed RightSide [child]]
 
       (emphasized@(ParticleEmphasizeable _), Word _ "же") -> left [mite $ EmptyCxt emphasized]
-      (ComparativeEmphasis _, emphasized@(ComparativeAdj _ v)) -> right [semS v P.Emphasis "true", mite emphasized]
+      (ComparativeEmphasis _, emphasized@(ComparativeAdj _ _ v)) -> right [semS v P.Emphasis "true", mite emphasized]
       (wh@(WhLeaf {}), Word _ "бишь") -> left [mite $ EmptyCxt wh]
       (wh@(WhLeaf {}), Word _ "это") -> left [mite $ EmptyCxt wh]
 
@@ -374,7 +374,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (RaisingVerb verb subj, Adj child _ Instr _) -> left [semV child P.Arg1 subj, semV verb P.Theme child] --todo raising agreement
 
       (ComparisonAnchor Unsatisfied _, Argument Nom v2) -> left [mite $ ComparisonAnchor Satisfied v2]
-      (Comparativizer more, ShortAdj _ attr v) -> left [mite $ ComparativeAdj attr more, semT more "MORE", semV more P.Theme v, mite $ ComparativeHead more] -- todo synthetic comparative agreement
+      (Comparativizer more, ShortAdj agr attr v) -> left [mite $ ComparativeAdj agr attr more, semT more "MORE", semV more P.Theme v, mite $ ComparativeHead more] -- todo synthetic comparative agreement
 
       _ -> []
 

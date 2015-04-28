@@ -75,7 +75,7 @@ shortAdj agr attr value v = [semT v0 value, mite $ AdverbModifiable v0, mite $ S
   where v0 = v ""
 
 comparativeAdj attr value v =
-  [semT v0 value, semT more "MORE", semV more P.Theme v0, mite $ ComparativeAdj attr more, mite $ AdverbModifiable more]
+  [semT v0 value, semT more "MORE", semV more P.Theme v0, mite $ ComparativeAdj A.empty attr more, mite $ AdverbModifiable more]
   ++ optional (xor [arg Gen P.Anchor (makeV v0 "more"), [mite $ ComparativeHead more]])
   where v0 = v ""; more = v "more"
 

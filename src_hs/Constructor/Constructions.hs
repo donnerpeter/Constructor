@@ -49,7 +49,7 @@ data Construction = Word Variable String
                   | Adj Variable P.VarProperty ArgKind Agr
                   | AdjHead Variable ArgKind Agr
                   | ShortAdj Agr P.VarProperty Variable
-                  | ComparativeAdj P.VarProperty Variable
+                  | ComparativeAdj Agr P.VarProperty Variable
                   | ComparativeEmphasis Variable
 
                   -- arguments

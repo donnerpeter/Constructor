@@ -5,10 +5,10 @@ import Constructor.ArgumentPlanning
 import Constructor.EnglishNouns
 import Constructor.EnglishPronouns
 import Constructor.EnglishVerbs
+import Constructor.EnglishAdjectives
 import Control.Monad.State
 import Control.Applicative
 import Data.List
-import Data.Char (toUpper)
 import Data.Maybe
 import qualified Data.Set as Set
 import Constructor.Util
@@ -33,9 +33,6 @@ generate sense =
           return $ output ++ separator ++ start ++ capitalize (stripFirstComma nextSentence)
       text = evalState sentenceState $ GenerationState Set.empty Set.empty False
   in stripLastComma text
-
-capitalize (c:rest) = (toUpper c):rest
-capitalize [] = []
 
 getTopFrame frame = if isCP frame && null (allUsages [P.Relative, P.WhenCondition, P.IfCondition] frame) then upmostSeq frame else Nothing where
   upmostSeq frame =
@@ -172,50 +169,10 @@ isArticleAfterAdjectives mainFrame =
 isPlaceholder frame = hasType "placeholder" frame
 
 isElided frame = Just "true" == sValue P.Elided frame
-isElidedNoun frame = Just "true" == sValue P.ElidedNoun frame
 
 skipElidedOne nounFrame = Just "true" == (sValue P.ConjStrong $ unSeq2 $ unSeq1 nounFrame) && case prevSiblings $ unSeq1 nounFrame of
   first:_ | not (isElidedNoun first) -> True
   _ -> False
-
-adjectiveFrames :: Frame -> [Frame]
-adjectiveFrames nounFrame = catMaybes $ map (\attr -> fValue attr nounFrame) [P.Order, P.Property, P.State, P.Kind, P.Size, P.Quality, P.Color]
-
-adjectiveString nounFrame adjFrame = case getType adjFrame of
-  Nothing -> ""
-  Just s -> case s of
-    "3" -> "third"
-    "4" -> "fourth"
-    "5" -> "fifth"
-    "6" -> "sixth"
-    "AMAZING" -> "amazing"
-    "BIG" -> if hasType "GARDEN" nounFrame then "big" else "great"
-    "BLIND" -> "blind"
-    "BOILED" -> "boiled"
-    "CLEVER" -> "smart"
-    "CLOSED" -> "closed"
-    "COMMERCIAL" -> "commercial"
-    "EXCESSIVE" -> "excessive"
-    "FALL_OUT" -> "falling"
-    "FAST" -> "fast"
-    "GREEN" -> "green"
-    "HUMBLE" -> "humble"
-    "LITTLE" -> "small"
-    "MORE" | Just theme <- fValue P.Theme adjFrame -> case getType theme of
-      Just "CLEVER" -> "smarter"
-      Just "FAST" -> "faster"
-      Just "BIG" -> "larger"
-      Just "GOOD" -> "better"
-      _ -> "more " ++ adjectiveString nounFrame theme
-    "ROASTED" -> "roasted"
-    "SIMILAR_TO" -> "like"
-    "SMASHED" -> if not (isElidedNoun nounFrame) then "smashed" else ""
-    "STUPID" -> "stupid"
-    "UNEMBRACEABLE" -> "unembraceable"
-    "UNILATERAL" -> "unilateral"
-    "WOVEN" -> "woven"
-    "RED" -> "red"
-    _ -> s
 
 generateAdjective nounFrame value = handleSeq eachAdj (Just value) where
   eachAdj adjFrame = let
@@ -230,37 +187,7 @@ generateAdjective nounFrame value = handleSeq eachAdj (Just value) where
       args <- mapCat generateArg $ adjectiveArgs adjFrame
       return $ negation `cat` article `cat` emph `cat` modifiers `cat` adjective `cat` args
 
-adjectiveArgs valFrame = case getType valFrame of
-  Just "SIMILAR_TO" | Just arg2 <- fValue P.Arg2 valFrame -> [NPArg arg2]
-  Just "MORE" | Just a <- fValue P.Anchor valFrame -> [PPArg "than" a]
-  _ -> []
-
-specialAdjectives nounFrame = gender `cat` shopKind where
-  shopKind = if sValue P.Name nounFrame == Just "гастроном" then "grocery" else ""
-  gender =
-        if shouldContrastByGender nounFrame && isHuman nounFrame
-        then case sValue P.RusGender nounFrame of
-          Just "Masc" -> "male"
-          Just "Fem" -> "female"
-          _ -> ""
-        else ""
-
-shouldContrastByGender frame = case (getType frame, sValue P.RusGender frame) of
-  (Just typ, Just gender) | typ /= "NAMED" -> let
-    differentGender candidate = case sValue P.RusGender candidate of
-      Just g1 -> g1 /= gender
-      _ -> False
-    contrastible candidate =
-      if not (isNumber $ Just candidate) && hasType typ candidate && differentGender candidate then
-        case usage P.Arg1 candidate of
-          Just fVerb -> not (isVerbEllipsis fVerb) || isEllipsisAnchor (Just candidate) fVerb
-          _ -> True
-      else False
-    in any contrastible $ allFrames $ sense frame
-  _ -> False
-
 streetName frame = fromMaybe "" $ fmap streetNameString $ fValue P.VName frame
-
 
 streetNameString frame = case sValue P.Name frame of
  Just "знаменская" -> "Znamenskaya"
@@ -348,20 +275,6 @@ indefiniteArticle nounFrame nextText =
 prefixName frame = case fValue P.VName frame of
   Just fName -> earlier fName P.Name frame P.Type
   _ -> False
-
-cat "" t2 = t2
-cat t1 "" = t1
-cat t1 t2 = case t2 of
- [] -> t1
- c:_ -> if c `elem` ",.:;?!\n" then stripLastComma t1 ++ t2 else t1 ++ " " ++ t2
-
-stripLastComma t1 = if "," `isSuffixOf` t1 then take (length t1 - 1) t1 else t1
-stripFirstComma t1 = if ", " `isPrefixOf` t1 then drop 2 t1 else t1
-
-catM :: State GenerationState String -> State GenerationState String -> State GenerationState String
-catM t1 t2 = do s1 <- t1; s2 <- t2; return $ s1 `cat` s2
-
-mapCat f list = foldM (\s arg -> return s `catM` f arg) "" list
 
 frameGenerated frame = do
   state <- get

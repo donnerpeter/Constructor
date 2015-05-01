@@ -88,15 +88,14 @@ handleSeq f (Just frame) =
   else f frame
 
 np nom frame =
-  if isSeq && (frame >>= fValue P.Member2 >>= getType) == Just "STREET" then
-    handleSeq (return . streetName) frame `catM` return "streets"
-  else if Just True == fmap (hasType "STREETS") frame then
-    handleSeq (return . streetNameString) (frame >>= fValue P.VName) `catM` return "streets"
-  else handleSeq (np_internal nom mayHaveDeterminer) frame where
-  isSeq = (frame >>= getType) == Just "seq"
-  isSubj = isJust (frame >>= usage P.Arg1)
-  isAnchor = isJust (frame >>= usage P.Anchor)
-  mayHaveDeterminer = if isTrue $ isNumber <$> frame then isSubj || isAnchor || renderAsWord (fromJust frame) else True
+  if hasType "seq" frame && (fValue P.Member2 frame >>= getType) == Just "STREET" then
+    handleSeq (return . streetName) (Just frame) `catM` return "streets"
+  else if hasType "STREETS" frame then
+    handleSeq (return . streetNameString) (fValue P.VName frame) `catM` return "streets"
+  else handleSeq (np_internal nom mayHaveDeterminer) $ Just frame where
+  isSubj = isJust (usage P.Arg1 frame)
+  isAnchor = isJust (usage P.Anchor frame)
+  mayHaveDeterminer = if isNumber frame then isSubj || isAnchor || renderAsWord frame else True
 
 np_internal :: Bool -> Bool -> Frame -> State GenerationState String
 np_internal nom mayHaveDeterminer frame = do
@@ -123,13 +122,13 @@ np_internal nom mayHaveDeterminer frame = do
       nbar <- case getType frame of
          Just "ORDER" | Just poss <- fValue P.Arg1 frame -> handleSeq (np_internal True False) (Just poss) `catM` return nbar1
          Just "STREET" | not (prefixName frame) -> return nbar1 `catM` return (streetName frame)
-         _ | Just loc <- fValue P.Location_on frame -> return nbar1 `catM` return "on" `catM` np False (Just loc)
-         _ | Just src <- fValue P.Source frame -> return nbar1 `catM` return "from" `catM` np False (Just src)
+         _ | Just loc <- fValue P.Location_on frame -> return nbar1 `catM` return "on" `catM` np False loc
+         _ | Just src <- fValue P.Source frame -> return nbar1 `catM` return "from" `catM` np False src
          _ -> return nbar1
       spec <- if mayHaveDeterminer then determiner frame fDet nbar else return ""
       genitiveComplement <- case fDet of
         Just det | not mayHaveDeterminer || shouldGenerateDeterminer frame det state False ->
-          return "of" `catM` elideableArgument fDet frame
+          return "of" `catM` elideableArgument det frame
         _ -> return ""
       return $ spec `cat` nbar `cat` genitiveComplement
   let fQuantifier = fValue P.Quantifier frame
@@ -287,10 +286,9 @@ sentence :: Frame -> State GenerationState String
 sentence frame = handleSeq singleSentence (Just frame) `catM` return (finish ++ newline) where
   singleSentence frame = do
     frameGenerated frame
-    let content = fValue P.Content frame
-    if Just "object" == sValue P.SituationKind frame
-    then np True content
-    else fromMaybe (return " ???sentence") $ liftM clause content
+    case fValue P.Content frame of
+      Just content -> if Just "object" == sValue P.SituationKind frame then np True content else clause content
+      _ -> return "???sentence"
   finish = if sValue P.Dot frame == Just "true" || sValue P.Conj (unSeq frame) == Just ";" then "."
            else if sValue P.Question_mark frame == Just "true" then "?"
            else if sValue P.Exclamation_mark frame == Just "true" then "!"
@@ -318,15 +316,15 @@ conjIntroduction fVerb =
 distinguish frame = isNothing (usage P.Member2 frame) || Just "true" == sValue P.Distinguished frame ||
   hasType "OPINION" frame && Just "WORDS" == (usage P.Member2 frame >>= fValue P.Member1 >>= getType)
 
-elideableArgument frame parent = if any (\f -> fDeterminer f == frame) (nextSiblings parent) then return "" else np False frame
+elideableArgument frame parent = if any (\f -> fDeterminer f == Just frame) (nextSiblings parent) then return "" else np False frame
 
 generateAccording parent = case fValue P.AccordingTo parent of
   Just source -> do
     let isWh = isQuestioned source
         comma = if isEllipsisAnchor (fValue P.Arg1 parent) parent || isWh then "" else ","
         oneOpinion source = case getType source of
-          Just "OPINION" -> return (if distinguish source then "in" else "") `catM` np False (Just source)
-          Just "WORDS" -> return "according to" `catM` elideableArgument (fValue P.Author source) source
+          Just "OPINION" -> return (if distinguish source then "in" else "") `catM` np False source
+          Just "WORDS" | Just author <- fValue P.Author source -> return "according to" `catM` elideableArgument author source
           Just "SAY" -> return "they say"
           s -> return $ show s
     state <- get
@@ -362,9 +360,9 @@ clause fVerb = do
     let (_prefixAdjuncts, _postfixAdjuncts) = partition (\(SentenceAdjunct _ _ f) -> typeEarlier f fVerb) $ sentenceAdjuncts fVerb
     prefixAdjuncts <- mapCat generateSentenceAdjunct _prefixAdjuncts
     core <- if isQualityCopula fVerb && Just "true" == (sValue P.ExclamativeQuestion =<< cp)
-           then case fSubject >>= getType of
-             Just "AMAZE" -> return "Great was" `catM` np True fSubject
-             Just "CUNNING_PERSON" -> return "What" `catM` np True fSubject
+           then case fSubject of
+             Just subj | hasType "AMAZE" subj -> return "Great was" `catM` np True subj
+             Just subj | hasType "CUNNING_PERSON" subj -> return "What" `catM` np True subj
              _ -> return "??degree"
            else vp fVerb (determineVerbForm fVerb fSubject $ past state) FiniteClause
     elaboration <- case fValue P.Elaboration fVerb of
@@ -379,15 +377,13 @@ clause fVerb = do
             _ -> Nothing
           _ -> Nothing
     comp <- case fComp of
-      Nothing -> return "" 
-      Just cp -> let compVerb = fValue P.Content cp in
-        if not $ isCPOrSeq cp then return ""
-        else if isQuestionCP cp && Just True == fmap (hasType "THINK") compVerb then
-           do
+      Just cp | isCPOrSeq cp -> case fValue P.Content cp of
+        Just compVerb | isQuestionCP cp && hasType "THINK" compVerb, Just topic <- fValue P.Topic compVerb -> do
              frameGenerated cp
-             (return "about their opinion on") `catM` (np False $ fValue P.Topic $ fromJust compVerb)
-        else let comma = if not (hasType "SAY" fVerb) && isFactCP (head $ flatten cp) then "," else ""
+             return "about their opinion on" `catM` np False topic
+        _ -> let comma = if not (hasType "SAY" fVerb) && isFactCP (head $ flatten cp) then "," else ""
              in return comma `catM` handleSeq genComplement fComp
+      _ -> return ""
     externalComp <- fromMaybe (return "") $ fmap generateArg $ getExternalComp fVerb
     controlledComp <-
       if hasType "TO_ORDER" fVerb then
@@ -397,7 +393,7 @@ clause fVerb = do
       else return ""
     postfixAdjuncts <- mapCat generateSentenceAdjunct _postfixAdjuncts
     questionVariants <- case cp >>= fValue P.Questioned >>= fValue P.Variants of
-      Just variants -> return "-" `catM` np ((cp >>= fValue P.Questioned) == fSubject) (Just variants)
+      Just variants -> return "-" `catM` np ((cp >>= fValue P.Questioned) == fSubject) variants
       _ -> return ""
     let noIntro = emphasis `cat` core `cat` controlledComp `cat` postfixAdjuncts `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
     return $ prefixAdjuncts `cat` intro `cat` (if null intro then noIntro else stripFirstComma noIntro)
@@ -491,7 +487,7 @@ vp fVerb verbForm clauseType = do
         if (isJust (msum [fValue P.PerfectBackground fVerb, fValue P.Reason fVerb]) || hasType "copula" fVerb)
         then return $ if sValue P.RusGender f == Just "Masc" then "he" else "she"
         else return ""
-      else np True fSubject
+      else np True f
     _ -> return ""
   beforeCP <- mapCat generateArg cpPrefixArgs
   beforeVP <- mapCat generateArg vpPrefixArgs
@@ -501,7 +497,7 @@ vp fVerb verbForm clauseType = do
     Just arg -> generateArg arg `catM` return (if isExclamationCopula fVerb then "" else ",")
     _ -> return ""
   whWord <- case questionedArg >>= argumentFrame of
-    Just qFrame -> np (hasType "wh" qFrame) (Just qFrame)
+    Just qFrame -> np (hasType "wh" qFrame) qFrame
     _ -> return ""
   nonWhWord <- case existentialWhArg >>= argumentFrame of
     Just frame -> return $
@@ -546,11 +542,11 @@ generateArg arg = let
     else ""
   in case arg of
     Adverb _ s -> return s
-    NPArg f -> np False $ Just f
+    NPArg f -> np False f
     PPArg prep f ->
-      if isJust (getType f) || isElidedNoun f then return (hybridWhPrefix f) `catM` return prep `catM` (np False $ Just f)
+      if isJust (getType f) || isElidedNoun f then return (hybridWhPrefix f) `catM` return prep `catM` (np False f)
       else return ""
-    PPAdjunct _ prep f -> return prep `catM` (np False $ Just f)
+    PPAdjunct _ prep f -> return prep `catM` (np False f)
     ToInfinitive nextVerb -> return "to" `catM` vp nextVerb BaseVerb InfiniteClause
     GerundBackground _ back -> return ("," `cat` conjIntroduction back) `catM` vp back Gerund InfiniteClause `catM` return ","
     GerundArg f -> vp f Gerund InfiniteClause

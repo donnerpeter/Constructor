@@ -48,9 +48,9 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
     else "leaned out"
   "LET" -> "let"
   "LOOK" -> if lookAsWatching frame then "watching" else if verbForm == Sg3Verb then "stares" else "staring"
-  "LOVE" ->
-    if any (hasType "CABBAGE") (flatten $ fValue P.Arg2 frame) then "like"
-    else if verbForm == BaseVerb then "love" else "loves"
+  "LOVE" -> case fValue P.Arg2 frame of
+    Just arg2 | any (hasType "CABBAGE") $ flatten arg2 -> "like"
+    _ -> if verbForm == BaseVerb then "love" else "loves"
   "MOVE" -> if verbForm == Gerund then "moving" else "moved"
   "NEED" -> "need"
   "PESTER" -> "got bored"

@@ -61,7 +61,7 @@ handleSeq f (Just frame) =
         let conj = fromMaybe "" $ sValue P.Conj frame
             firstContent = first >>= fValue P.Content
             secondContent = second >>= fValue P.Content
-            contents = catMaybes $ map (fValue P.Content) $ flatten $ Just frame
+            contents = catMaybes $ map (fValue P.Content) $ flatten frame
             copulas = filter (hasType "copula") contents
             copulaValues = catMaybes $ map (fValue P.Arg2) copulas
             separator = if conj == "but" then
@@ -70,7 +70,7 @@ handleSeq f (Just frame) =
                                   isNothing (firstContent >>= sValue P.Negated)
                             then "and"
                           else if length copulaValues > 1 then
-                            if any (hasType "MORE") $ concatMap flatten $ map (fValue P.Quality) copulaValues then ", but"
+                            if any (hasType "MORE") $ concatMap flatten $ mapMaybe (fValue P.Quality) copulaValues then ", but"
                             else ", and"
                           else if Just True == fmap shouldContrastByGender (firstContent >>= fValue P.Arg1) then ", and"
                           else if Just "true" == (second >>= sValue P.Negated) && Just "true" /= sValue P.ConjStrong frame then "and"
@@ -96,7 +96,7 @@ np nom frame =
   isSeq = (frame >>= getType) == Just "seq"
   isSubj = isJust (frame >>= usage P.Arg1)
   isAnchor = isJust (frame >>= usage P.Anchor)
-  mayHaveDeterminer = if isNumber frame then isSubj || isAnchor || renderAsWord (fromJust frame) else True
+  mayHaveDeterminer = if isTrue $ isNumber <$> frame then isSubj || isAnchor || renderAsWord (fromJust frame) else True
 
 np_internal :: Bool -> Bool -> Frame -> State GenerationState String
 np_internal nom mayHaveDeterminer frame = do
@@ -164,7 +164,7 @@ isArticleAfterAdjectives mainFrame =
   not (isPlaceholder mainFrame) &&
   length adjFrames > 1 && sValue P.Negated (head adjFrames) == Just "true"
   where
-  adjFrames = adjectiveFrames mainFrame >>= flatten . Just
+  adjFrames = adjectiveFrames mainFrame >>= flatten
 
 isPlaceholder frame = hasType "placeholder" frame
 
@@ -211,7 +211,7 @@ isHeavyNP :: GenerationState -> Maybe Frame -> Bool
 isHeavyNP state mNoun = Just True == fmap isHeavyNoun mNoun where
   isHeavyNoun noun =
     if usePronoun state noun then False
-    else if hasType "seq" noun then any (not . isPronoun) (flatten $ Just noun)
+    else if hasType "seq" noun then any (not . isPronoun) (flatten noun)
     else isJust (fValue P.Relative noun) || isJust (fValue P.VName noun) || isHeavyNP state (fDeterminer noun)
 
 shouldGenerateDeterminer noun det state asSpecifier = let
@@ -386,7 +386,7 @@ clause fVerb = do
            do
              frameGenerated cp
              (return "about their opinion on") `catM` (np False $ fValue P.Topic $ fromJust compVerb)
-        else let comma = if not (hasType "SAY" fVerb) && isFactCP (head $ flatten fComp) then "," else ""
+        else let comma = if not (hasType "SAY" fVerb) && isFactCP (head $ flatten cp) then "," else ""
              in return comma `catM` handleSeq genComplement fComp
     externalComp <- fromMaybe (return "") $ fmap generateArg $ getExternalComp fVerb
     controlledComp <-
@@ -402,7 +402,7 @@ clause fVerb = do
     let noIntro = emphasis `cat` core `cat` controlledComp `cat` postfixAdjuncts `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
     return $ prefixAdjuncts `cat` intro `cat` (if null intro then noIntro else stripFirstComma noIntro)
 
-isQuestioned frame = flip any (flatten $ Just frame) $ \frame ->
+isQuestioned frame = flip any (flatten frame) $ \frame ->
   hasType "wh" frame ||
   Just True == fmap isQuestioned (fValue P.Arg1 frame) ||
   Just True == fmap isQuestioned (fValue P.Author frame) ||
@@ -440,7 +440,7 @@ vp fVerb verbForm clauseType = do
       isModality = hasType "modality" fVerb
       fSubject = englishSubject fVerb
       isQuestion = Just True == fmap isQuestionCP cp
-      nonSubjectQuestion = isQuestion && (isNothing fSubject || not (fromJust fSubject `elem` flatten (cp >>= fValue P.Questioned)))
+      nonSubjectQuestion = isQuestion && (isNothing fSubject || not (fromJust fSubject `elem` flatten (fromJust $ cp >>= fValue P.Questioned)))
       inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue P.Question_mark)
       isDoModality = isModality && Just True == fmap (hasType "DO") theme
       thereSubject = clauseType == FiniteClause &&

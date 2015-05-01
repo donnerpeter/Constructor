@@ -33,9 +33,9 @@ factIssues fact = let
         requireValType f = l$ \sense -> requireType (Just $ valFrame sense) f
         in case attr of
           P.AccordingTo -> requireValType $ \valFrame ->
-            if any (not . hasAnyType ["WORDS", "OPINION", "SAY"]) (flatten $ Just valFrame) then fatalIssue "invalid accordingTo" else finalNo
+            if any (not . hasAnyType ["WORDS", "OPINION", "SAY"]) (flatten valFrame) then fatalIssue "invalid accordingTo" else finalNo
           P.OptativeModality -> requireValType $ \valFrame ->
-            if any (not . hasAnyType ["LUCK", "BY_THE_WAY"]) (flatten $ Just valFrame) then fatalIssue "invalid optativeModality" else finalNo
+            if any (not . hasAnyType ["LUCK", "BY_THE_WAY"]) (flatten valFrame) then fatalIssue "invalid optativeModality" else finalNo
           P.Quantifier -> l $ \sense ->
             requireType (Just $ frame sense) $ \_ ->
               requireType (Just $ valFrame sense) $ \valFrame ->
@@ -59,15 +59,15 @@ factIssues fact = let
           P.Topic -> l $ \sense ->
             requireType (Just $ frame sense) $ \frame ->
               requireType (Just $ valFrame sense) $ \valFrame ->
-                if hasType "ASK" frame && any isFactCP (flatten $ Just valFrame) then fatalIssue "asking fact" else finalNo
+                if hasType "ASK" frame && any isFactCP (flatten valFrame) then fatalIssue "asking fact" else finalNo
           _ | attr `elem` [P.Location, P.Location_on, P.Location_in] -> requireValType $ \valFrame ->
             if hasAnyType ["CASE", "COUNTING"] valFrame then fatalIssue "wrong location" else finalNo
           _ -> []
 
-isTypeDefined frame = isJust frame && all (\f -> isJust (getDeclaredType f)) (flatten frame)
+isTypeDefined frame = all (\f -> isJust (getDeclaredType f)) (flatten frame)
 
 requireType mFrame f = case mFrame of
-  Just frame | isTypeDefined mFrame -> f frame
+  Just frame | isTypeDefined frame -> f frame
   _ -> provNo
 
 typeIssues var declaredType = missingSubj ++ missingArg2 ++ inanimateSubj ++ adjCopula ++ other where
@@ -83,7 +83,7 @@ typeIssues var declaredType = missingSubj ++ missingArg2 ++ inanimateSubj ++ adj
   inanimateSubj =
     if declaredType `elem` ["GO", "CAN", "REMEMBER", "KNOW", "copula_talking_about"] then l $ \sense ->
       requireType (fValue P.Arg1 $ frame sense) $ \fSubj ->
-        if not (and $ map isAnimate $ flatten $ Just fSubj) then finalIssue ("inanimate " ++ declaredType ++ " subject") else finalNo
+        if not (and $ map isAnimate $ flatten fSubj) then finalIssue ("inanimate " ++ declaredType ++ " subject") else finalNo
     else []
   adjCopula =
     if declaredType == "copula" then l $ \sense ->
@@ -97,14 +97,14 @@ typeIssues var declaredType = missingSubj ++ missingArg2 ++ inanimateSubj ++ adj
       if Nothing == sDeclaredValue P.Conj (frame sense) then issue "comma-only seq" else finalNo
     "CASHIER" -> l $ \sense ->
       requireType (fValue P.Place $ frame sense) $ \fPlace ->
-        if any (hasType "OTHERS") (flatten $ Just fPlace) then fatalIssue "cashier of other people" else finalNo
+        if any (hasType "OTHERS") (flatten fPlace) then fatalIssue "cashier of other people" else finalNo
     "OPINION" -> l $ \sense ->
       if isNothing (fValue P.Arg1 (frame sense) >>= getType) then issue "opinion without subj" else finalNo
     "WORDS" -> l $ \sense ->
       if isNothing (fValue P.Author (frame sense) >>= getType) then issue "words without author" else finalNo
     "copula_about" -> l $ \sense ->
       requireType (fValue P.Arg1 $ frame sense) $ \fSubj ->
-        if or $ map isAnimate $ flatten $ Just fSubj then fatalIssue ("animate " ++ declaredType ++ " subject") else finalNo
+        if or $ map isAnimate $ flatten fSubj then fatalIssue ("animate " ++ declaredType ++ " subject") else finalNo
     "wh" -> l $ \sense ->
       if isNothing (usage P.Questioned $ frame sense) then issue "non-questioned wh" else finalNo
     "GO" -> l $ \sense ->

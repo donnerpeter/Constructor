@@ -44,7 +44,7 @@ noun (Just typ) frame = case typ of
       _ -> typ
     else map toLower typ
 
-renderAsWord frame = not $ isNumber $ Just frame
+renderAsWord frame = not $ isNumber frame
 
 isSingular frame = case getType frame of
   Just "NEIGHBORS" -> False

@@ -97,10 +97,9 @@ hasAnyType types frame = fromMaybe False $ getType frame >>= \t -> Just $ elem t
 getType frame = sValue P.Type frame
 getDeclaredType frame = sDeclaredValue P.Type frame
 
-flatten Nothing = []
-flatten (Just frame) = if Just "seq" == getDeclaredType frame then flatten (fValue P.Member1 frame) ++ maybeToList (fValue P.Member2 frame) else [frame]
+flatten frame = if Just "seq" == getDeclaredType frame then fromMaybe [] (fmap flatten $ fValue P.Member1 frame) ++ maybeToList (fValue P.Member2 frame) else [frame]
 
-seqSiblings frame = flatten $ Just $ unSeq frame
+seqSiblings frame = flatten $ unSeq frame
 prevSiblings frame = takeWhile (/= frame) $ seqSiblings frame
 nextSiblings frame = tail $ dropWhile (/= frame) $ seqSiblings frame
 

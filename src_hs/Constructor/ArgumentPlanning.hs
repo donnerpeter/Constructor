@@ -17,7 +17,7 @@ import Control.Applicative
 import qualified Constructor.SemanticProperties as P
 import qualified Constructor.LinkedSet as LS
 
-isCPOrSeq frame = any isCP $ flatten $ Just frame
+isCPOrSeq frame = any isCP $ flatten frame
 
 isVerbEllipsis verb = Just "true" == (usage P.Content verb >>= sValue P.Elided)
 
@@ -93,7 +93,7 @@ arguments fVerb@(getType -> Just typ) = allArgs ++ externalArguments fVerb where
       ("FALL", P.Source) -> [PPArg "off" value]
       ("SAY", P.Addressee) -> [NPArg value]
       ("ASK", P.Topic) ->
-        if all isQuestionCP $ flatten $ Just value then []
+        if all isQuestionCP $ flatten value then []
         else [PPArg (if hasType "PREDICAMENT" value then "on" else "about") value]
       ("LACK", P.Theme) -> [NPArg value]
       ("DISTRACT", P.Theme) -> [PPArg "from" value]
@@ -185,7 +185,7 @@ allCoordinatedVerbs fVerb = case usage P.Content fVerb of
     start = max (i - windowSize) 0
     window = take (2 * windowSize) $ drop start allSenseCPs
     sequences = LS.removeDups $ map unSeq window
-    componentCPs = sequences >>= flatten . Just
+    componentCPs = sequences >>= flatten
     in catMaybes $ map (fValue P.Content) componentCPs
 
 shouldContrastRelTime fVerb = length (catMaybes $ map (fValue P.RelTime) $ allCoordinatedVerbs fVerb) > 1

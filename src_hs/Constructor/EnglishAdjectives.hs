@@ -69,7 +69,7 @@ shouldContrastByGender frame = case (getType frame, sValue P.RusGender frame) of
       Just g1 -> g1 /= gender
       _ -> False
     contrastible candidate =
-      if not (isNumber $ Just candidate) && hasType typ candidate && differentGender candidate then
+      if not (isNumber candidate) && hasType typ candidate && differentGender candidate then
         case usage P.Arg1 candidate of
           Just fVerb -> not (isVerbEllipsis fVerb) || isEllipsisAnchor (Just candidate) fVerb
           _ -> True

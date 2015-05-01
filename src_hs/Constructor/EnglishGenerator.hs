@@ -113,13 +113,15 @@ np_internal nom mayHaveDeterminer frame = do
     else if hasType "EVERYTHING" frame then return "everything"
     else if hasType "EVERYBODY" frame then return "everybody"
     else do
-      adjs <- adjectives frame
+      let (preAdjFrames, postAdjFrames) = partition (null . adjectiveArgs) $ adjectiveFrames frame
+      preAdjs  <- mapCat (generateAdjective frame) preAdjFrames
+      postAdjs <- mapCat (generateAdjective frame) postAdjFrames
       let n = if isElidedNoun frame then
                 if skipElidedOne frame || Just True == fmap isPronoun fDet || Just "BLIND" == (getType =<< fValue P.Quality frame)|| Just "UNEMBRACEABLE" == (getType =<< fValue P.Size frame) then ""
                 else if Just "Pl" == sValue P.RusNumber frame then "ones" else "one"
               else if isElided frame || isPlaceholder frame then ""
               else noun (getType frame) frame
-          nbar1 = adjs `cat` n
+          nbar1 = preAdjs `cat` specialAdjectives frame `cat` n `cat` postAdjs
           fDet = fDeterminer frame
       nbar <- case getType frame of
          Just "ORDER" | Just poss <- fValue P.Arg1 frame -> handleSeq (np_internal True False) (Just poss) `catM` return nbar1
@@ -165,7 +167,7 @@ isArticleAfterAdjectives mainFrame =
   not (isPlaceholder mainFrame) &&
   length adjFrames > 1 && sValue P.Negated (head adjFrames) == Just "true"
   where
-  adjFrames = flatten (fValue P.Color mainFrame)
+  adjFrames = adjectiveFrames mainFrame >>= flatten . Just
 
 isPlaceholder frame = hasType "placeholder" frame
 
@@ -176,84 +178,72 @@ skipElidedOne nounFrame = Just "true" == (sValue P.ConjStrong $ unSeq2 $ unSeq1 
   first:_ | not (isElidedNoun first) -> True
   _ -> False
 
-adjectives nounFrame = do
-  let adjSeq attr fun = let
-        value = fValue attr nounFrame
-        negation frame = if Just "true" == sValue P.Negated frame then "not" else ""
-        modifiers frame = if Just "JUST" == sValue P.ModifierAdverb frame then "just"
-                          else if Just "ONLY" == sValue P.ModifierAdverb frame then "only"
-                          else ""
-        adjOrMore frame = do
-          let emph = if Just "true" == sValue P.Emphasis frame then "even" else ""
-          anchor <- case fValue P.Anchor frame of
-            Just a -> return "than" `catM` np False (Just a)
-            _ -> return ""
-          let comparative = case getType =<< fValue P.Theme frame of
-                Just "CLEVER" -> "smarter"
-                Just "FAST" -> "faster"
-                Just "BIG" -> "larger"
-                Just "GOOD" -> "better"
-                _ -> "more"
-          if hasType "MORE" frame then return $ negation frame `cat` emph `cat` modifiers frame `cat` comparative `cat` anchor else eachAdj frame
-        eachAdj adjFrame = let
-          article = if isArticleAfterAdjectives nounFrame then indefiniteArticle nounFrame adjective else ""
-          adjective = fun adjFrame
-          in do
-            args <- adjArgs adjFrame
-            return $ negation adjFrame `cat` article `cat` modifiers adjFrame `cat` adjective `cat` args
-        adjArgs valFrame = case (attr, getType valFrame) of
-          (P.Quality, Just "SIMILAR_TO") -> np False $ fValue P.Arg2 valFrame
-          _ -> return ""
-        in case value of
-          Just _ -> handleSeq adjOrMore value
-          Nothing -> return ""
-  property <- adjSeq P.Property $ \p -> if hasType "AMAZING" p then "amazing" else ""
-  kind <- adjSeq P.Kind $ \p -> case getType p of
-    Just "COMMERCIAL" -> "commercial"
-    Just "ROASTED" -> "roasted"
-    Just "BOILED" -> "boiled"
-    _ -> ""
-  quality <- adjSeq P.Quality $ \p -> case getType p of
-    Just "HUMBLE" -> "humble"
-    Just "CLEVER" -> "smart"
-    Just "FAST" -> "fast"
-    Just "STUPID" -> "stupid"
-    Just "SMASHED" | not (isElidedNoun nounFrame) -> "smashed"
-    Just "WOVEN" -> "woven"
-    Just "BLIND" -> "blind"
-    Just "FALL_OUT" -> "falling"
-    Just "SIMILAR_TO" -> "like"
-    Just "UNILATERAL" -> "unilateral"
-    _ -> ""
-  color <- adjSeq P.Color $ \p -> case getType p of
-    Just "GREEN" -> "green"
-    Just "RED" -> "red"
-    _ -> ""
-  order <- adjSeq P.Order $ \p -> case getType p of
-    Just "3" -> "third"
-    Just "4" -> "fourth"
-    Just "5" -> "fifth"
-    Just "6" -> "sixth"
-    _ -> ""
-  let shopKind = if sValue P.Name nounFrame == Just "гастроном" then "grocery" else ""
-  let gender =
+adjectiveFrames :: Frame -> [Frame]
+adjectiveFrames nounFrame = catMaybes $ map (\attr -> fValue attr nounFrame) [P.Order, P.Property, P.State, P.Kind, P.Size, P.Quality, P.Color]
+
+adjectiveString nounFrame adjFrame = case getType adjFrame of
+  Nothing -> ""
+  Just s -> case s of
+    "3" -> "third"
+    "4" -> "fourth"
+    "5" -> "fifth"
+    "6" -> "sixth"
+    "AMAZING" -> "amazing"
+    "BIG" -> if hasType "GARDEN" nounFrame then "big" else "great"
+    "BLIND" -> "blind"
+    "BOILED" -> "boiled"
+    "CLEVER" -> "smart"
+    "CLOSED" -> "closed"
+    "COMMERCIAL" -> "commercial"
+    "EXCESSIVE" -> "excessive"
+    "FALL_OUT" -> "falling"
+    "FAST" -> "fast"
+    "GREEN" -> "green"
+    "HUMBLE" -> "humble"
+    "LITTLE" -> "small"
+    "MORE" | Just theme <- fValue P.Theme adjFrame -> case getType theme of
+      Just "CLEVER" -> "smarter"
+      Just "FAST" -> "faster"
+      Just "BIG" -> "larger"
+      Just "GOOD" -> "better"
+      _ -> "more " ++ adjectiveString nounFrame theme
+    "ROASTED" -> "roasted"
+    "SIMILAR_TO" -> "like"
+    "SMASHED" -> if not (isElidedNoun nounFrame) then "smashed" else ""
+    "STUPID" -> "stupid"
+    "UNEMBRACEABLE" -> "unembraceable"
+    "UNILATERAL" -> "unilateral"
+    "WOVEN" -> "woven"
+    "RED" -> "red"
+    _ -> s
+
+generateAdjective nounFrame value = handleSeq eachAdj (Just value) where
+  eachAdj adjFrame = let
+    negation = if Just "true" == sValue P.Negated adjFrame then "not" else ""
+    modifiers = if Just "JUST" == sValue P.ModifierAdverb adjFrame then "just"
+                      else if Just "ONLY" == sValue P.ModifierAdverb adjFrame then "only"
+                      else ""
+    emph = if Just "true" == sValue P.Emphasis adjFrame then "even" else ""
+    article = if isArticleAfterAdjectives nounFrame && not (skipElidedOne nounFrame) then indefiniteArticle nounFrame adjective else ""
+    adjective = adjectiveString nounFrame adjFrame
+    in do
+      args <- mapCat generateArg $ adjectiveArgs adjFrame
+      return $ negation `cat` article `cat` emph `cat` modifiers `cat` adjective `cat` args
+
+adjectiveArgs valFrame = case getType valFrame of
+  Just "SIMILAR_TO" | Just arg2 <- fValue P.Arg2 valFrame -> [NPArg arg2]
+  Just "MORE" | Just a <- fValue P.Anchor valFrame -> [PPArg "than" a]
+  _ -> []
+
+specialAdjectives nounFrame = gender `cat` shopKind where
+  shopKind = if sValue P.Name nounFrame == Just "гастроном" then "grocery" else ""
+  gender =
         if shouldContrastByGender nounFrame && isHuman nounFrame
         then case sValue P.RusGender nounFrame of
           Just "Masc" -> "male"
           Just "Fem" -> "female"
           _ -> ""
         else ""
-  size <- adjSeq P.Size $ \p ->
-    if hasType "LITTLE" p then "small"
-    else if hasType "EXCESSIVE" p then "excessive"
-    else if hasType "UNEMBRACEABLE" p then "unembraceable"
-    else if hasType "BIG" p then
-      if hasType "GARDEN" nounFrame then "big" else "great"
-    else ""
-  state <- adjSeq P.State $ \p ->
-    if hasType "CLOSED" p then "closed"
-    else ""
-  return $ order `cat` property `cat` state `cat` kind `cat` shopKind `cat` size `cat` quality `cat` gender `cat` color
 
 shouldContrastByGender frame = case (getType frame, sValue P.RusGender frame) of
   (Just typ, Just gender) | typ /= "NAMED" -> let

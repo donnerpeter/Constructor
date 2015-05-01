@@ -37,11 +37,11 @@ sValue attr frame =
         else if isTrue $ isOwnerCopula <$> usage P.Arg1 frame then Just "false"
         else if Just "true" == sValue P.AndEmphasis frame then Just "false"
         else if hasType "CASHIER" frame then
-          case find (\cashier -> typeEarlier cashier frame) $ findFrames "CASHIER" $ sense frame of
-             Just _ -> Just "true"
-             _ -> case find (\shop -> typeEarlier shop frame) $ findFrames "SHOP" $ sense frame of
-               Just shop -> sValue P.Given shop
-               _ -> Just "true"
+          case () of
+            _ | Just _ <- find (\cashier -> typeEarlier cashier frame) $ findFrames "CASHIER" $ sense frame -> Just "true"
+            _ | Just shop <- find (\shop -> typeEarlier shop frame) $ findFrames "SHOP" $ sense frame -> sValue P.Given shop
+            _ | Just "MORE" <- getType =<< fValue P.Quality frame -> Just "false"
+            _ -> Just "true"
         else if hasType "SHOP" frame then
           if any (\cashier -> typeEarlier cashier frame && Just "copula" /= (usage P.Arg2 cashier >>= getType)) $ findFrames "CASHIER" $ sense frame then Just "true"
           else if isJust $ msum [usage P.Arg1 frame, usage P.Source frame] then Just "true"

@@ -52,6 +52,10 @@ factIssues fact = let
                 if hasAnyType ["WE", "THEY"] frame then finalIssue "relative clause for pronoun"
                 else if Just wh == (fValue P.Content (valFrame sense) >>= fValue P.VTime) then fatalIssue "time relative clause"
                 else finalNo
+          P.Size -> l $ \sense ->
+            requireType (Just $ frame sense) $ \frame ->
+              if hasAnyType ["ME"] frame then finalIssue "sized pronoun"
+              else finalNo
           P.Topic -> l $ \sense ->
             requireType (Just $ frame sense) $ \frame ->
               requireType (Just $ valFrame sense) $ \valFrame ->

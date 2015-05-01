@@ -256,6 +256,8 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
         mergeRight $ base12 [semV var attr var2] ++ whPropagation (leftCompatible env m1) ++ negationPropagation var (leftCompatible env m1) ++ rest
       (c, Adj var2 attr adjCase agr1) | Just (AdjHead var nounCase agr2, rest) <- asAdjHead c, adjCase == nounCase && agree agr1 agr2 ->
         mergeLeft $ base12 [semV var attr var2] ++ whPropagation (rightCompatible env m2) ++ rest
+      (c, ComparativeAdj agr1 attr var2) | Just (AdjHead var _ agr2, rest) <- asAdjHead c, agree agr1 agr2 ->
+        mergeLeft $ base12 [semV var attr var2] ++ whPropagation (rightCompatible env m2) ++ rest
 
       (Possessive adjCase agr1 child, AdjHead _ nounCase agr2) | adjCase == nounCase && agree agr1 agr2 -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
         GenHead attrs -> mergeRight $

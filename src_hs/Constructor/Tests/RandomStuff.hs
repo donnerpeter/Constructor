@@ -70,9 +70,18 @@ randomStuffTests = [
   ,
   translateTest "Сестра кассира пошла в сад"
                 "The cashier's sister went to the garden"
+  ,
+  translateTest "Я видел кассира умнее, чем вы."
+                "I saw a cashier smarter than you."
+  ,
+  translateTest "Я видел кассира умнее вас."
+                "I saw a cashier smarter than you."
+  ,
+  translateTest "Я видел кассира умнее."
+                "I saw a smarter cashier."
 --  ,
---todo  translateTest "Я видел кассира умнее, чем вы."
---                "I saw a cashier smarter than you."
+--todo  translateTest "Я видел кассира и умнее."
+--                "I saw an even smarter cashier."
 --  ,
 --todo  translateTest "Я видел кассира более умного, чем вы."
 --                "I saw a cashier smarter than you."

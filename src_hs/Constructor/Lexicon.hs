@@ -35,6 +35,7 @@ wordMites word index =
   "быстры" -> shortAdj A.pl P.Quality "FAST" v
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
   "варёную" -> adj Acc A.sg P.Kind "BOILED" v
+  "вас" -> xor [pronoun Gen A.empty "YOU" v, pronoun Acc A.empty "YOU" v]
   "васе" -> xor [nounSg Dat Masc "NAMED" v, nounSg Prep Masc "NAMED" v] ++ [semS v0 P.Name "Vasya"]
   "васи" -> nounSg Gen Masc "NAMED" v ++ [semS v0 P.Name "Vasya"]
   "василий" -> nounSg Nom Masc "NAMED" v ++ [semS v0 P.Name "Vassily"]
@@ -145,7 +146,7 @@ wordMites word index =
   "каком" -> adjWh Prep A.m P.Determiner v
   "капусту" -> nounSg Acc Fem "CABBAGE" v
   "кассир" -> nounSg Nom Masc "CASHIER" v ++ genHead P.Place v
-  "кассира" -> nounSg Gen Masc "CASHIER" v ++ genHead P.Place v
+  "кассира" -> xor [nounSg Gen Masc "CASHIER" v, nounSg Acc Masc "CASHIER" v] ++ genHead P.Place v
   "кассирша" -> nounSg Nom Fem "CASHIER" v ++ genHead P.Place v
   "кассирши" -> nounSg Gen Fem "CASHIER" v ++ genHead P.Place v
   "кассиршу" -> nounSg Acc Fem "CASHIER" v ++ genHead P.Place v

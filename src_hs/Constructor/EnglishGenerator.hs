@@ -41,13 +41,10 @@ getTopFrame frame = if isCP frame && null (allUsages [P.Relative, P.WhenConditio
       _ | Just p <- usage P.Member2 frame -> if Just ";" == sValue P.Conj p then Just frame else Nothing
       _ -> Just frame
 
-handleSeq :: (Frame -> State GenerationState String) -> Maybe Frame -> State GenerationState String
-handleSeq _ Nothing = return "???seq"
-handleSeq f (Just frame) =
-  if hasType "seq" frame then do
+handleSeq :: (Frame -> State GenerationState String) -> Frame -> State GenerationState String
+handleSeq f frame = case getType frame of
+  Just "seq" | Just first <- fValue P.Member1 frame, Just second <- fValue P.Member2 frame -> do
       frameGenerated frame
-      let first = fValue P.Member1 frame
-          second = fValue P.Member2 frame
       m1 <- handleSeq f first
       let skipSecond frame = let
             externalFrame = fValue P.Member1 frame >>= fValue P.Content >>= getExternalComp >>= argumentFrame
@@ -59,8 +56,8 @@ handleSeq f (Just frame) =
       if skipSecond frame then return m1 else do
         m2 <- handleSeq f second
         let conj = fromMaybe "" $ sValue P.Conj frame
-            firstContent = first >>= fValue P.Content
-            secondContent = second >>= fValue P.Content
+            firstContent = fValue P.Content first
+            secondContent = fValue P.Content second
             contents = catMaybes $ map (fValue P.Content) $ flatten frame
             copulas = filter (hasType "copula") contents
             copulaValues = catMaybes $ map (fValue P.Arg2) copulas
@@ -73,10 +70,10 @@ handleSeq f (Just frame) =
                             if any (hasType "MORE") $ concatMap flatten $ mapMaybe (fValue P.Quality) copulaValues then ", but"
                             else ", and"
                           else if Just True == fmap shouldContrastByGender (firstContent >>= fValue P.Arg1) then ", and"
-                          else if Just "true" == (second >>= sValue P.Negated) && Just "true" /= sValue P.ConjStrong frame then "and"
+                          else if Just "true" == sValue P.Negated second && Just "true" /= sValue P.ConjStrong frame then "and"
                           else ", but"
                         else if conj == "and" then
-                          if Just True == fmap isCP second && Just True == fmap (hasType "seq") (first >>= lastGeneratedMember) then ", and"
+                          if isCP second && isTrue (hasType "seq" <$> lastGeneratedMember first) then ", and"
                           else if isJust (secondContent >>= fValue P.PerfectBackground) then ", and"
                           else "and"
                         else if conj == "" then
@@ -85,17 +82,14 @@ handleSeq f (Just frame) =
                           else ","
                         else conj
         return $ m1 `cat` separator `cat` (stripFirstComma m2)
-  else f frame
+  _ -> f frame
 
-np nom frame =
-  if hasType "seq" frame && (fValue P.Member2 frame >>= getType) == Just "STREET" then
-    handleSeq (return . streetName) (Just frame) `catM` return "streets"
-  else if hasType "STREETS" frame then
-    handleSeq (return . streetNameString) (fValue P.VName frame) `catM` return "streets"
-  else handleSeq (np_internal nom mayHaveDeterminer) $ Just frame where
-  isSubj = isJust (usage P.Arg1 frame)
-  isAnchor = isJust (usage P.Anchor frame)
-  mayHaveDeterminer = if isNumber frame then isSubj || isAnchor || renderAsWord frame else True
+np nom frame = case getType frame of
+  Just "seq" | (fValue P.Member2 frame >>= getType) == Just "STREET" -> handleSeq (return . streetName) frame `catM` return "streets"
+  Just "STREETS" | Just vName <- fValue P.VName frame -> handleSeq (return . streetNameString) vName `catM` return "streets"
+  _ -> let
+    mayHaveDeterminer = if isNumber frame then not (null $ allUsages [P.Arg1, P.Anchor] frame) || renderAsWord frame else True
+    in handleSeq (np_internal nom mayHaveDeterminer) frame
 
 np_internal :: Bool -> Bool -> Frame -> State GenerationState String
 np_internal nom mayHaveDeterminer frame = do
@@ -120,7 +114,7 @@ np_internal nom mayHaveDeterminer frame = do
           nbar1 = preAdjs `cat` specialAdjectives frame `cat` n `cat` postAdjs
           fDet = fDeterminer frame
       nbar <- case getType frame of
-         Just "ORDER" | Just poss <- fValue P.Arg1 frame -> handleSeq (np_internal True False) (Just poss) `catM` return nbar1
+         Just "ORDER" | Just poss <- fValue P.Arg1 frame -> handleSeq (np_internal True False) poss `catM` return nbar1
          Just "STREET" | not (prefixName frame) -> return nbar1 `catM` return (streetName frame)
          _ | Just loc <- fValue P.Location_on frame -> return nbar1 `catM` return "on" `catM` np False loc
          _ | Just src <- fValue P.Source frame -> return nbar1 `catM` return "from" `catM` np False src
@@ -131,16 +125,18 @@ np_internal nom mayHaveDeterminer frame = do
           return "of" `catM` elideableArgument det frame
         _ -> return ""
       return $ spec `cat` nbar `cat` genitiveComplement
-  let fQuantifier = fValue P.Quantifier frame
   let allOf = if (fValue P.Specifier_all frame >>= getType) == Just "ALL" then "all of" else ""
   let postQuantifier = if not (null allOf) && hasType "WE" frame ||
                           (usage P.Arg1 frame >>= getType) == Just "DISPERSE"
                        then "all" else ""
-  preQuantifier <- case fQuantifier >>= getType of
-    Just "BOTH" -> return "both of"
-    Just typ -> let q = handleSeq (np_internal True False) fQuantifier in
-      if typ == "1" || isNothing (fValue P.Arg1 frame >>= getType) || any (\f -> fDeterminer frame == fDeterminer f) (prevSiblings frame)
-      then q else return (if null allOf || not (null postQuantifier) then "" else "all") `catM` q `catM` return "of"
+  preQuantifier <- case fValue P.Quantifier frame of
+    Just fQuantifier ->
+       if hasType "BOTH" fQuantifier then return "both of"
+       else do
+        q <- handleSeq (np_internal True False) fQuantifier
+        return $
+          if hasType "1" fQuantifier || isNothing (fValue P.Arg1 frame >>= getType) || any (\f -> fDeterminer frame == fDeterminer f) (prevSiblings frame)
+          then q else (if null allOf || not (null postQuantifier) then "" else "all") `cat` q `cat` "of"
     _ -> return $
       if Just "SUCH" == (fValue P.Determiner frame >>= getType) then
         if Just True == fmap isExclamationCopula (usage P.Arg2 frame) then "what" else "such"
@@ -173,7 +169,7 @@ skipElidedOne nounFrame = Just "true" == (sValue P.ConjStrong $ unSeq2 $ unSeq1 
   first:_ | not (isElidedNoun first) -> True
   _ -> False
 
-generateAdjective nounFrame value = handleSeq eachAdj (Just value) where
+generateAdjective nounFrame value = handleSeq eachAdj value where
   eachAdj adjFrame = let
     negation = if Just "true" == sValue P.Negated adjFrame then "not" else ""
     modifiers = if Just "JUST" == sValue P.ModifierAdverb adjFrame then "just"
@@ -248,7 +244,7 @@ determiner frame det nbar = do
   case det of
     Just _det | shouldGenerateDeterminer frame _det state True ->
       let own = if hasType "SELF" _det && hasType "EYES" frame && isNothing (fValue P.Quantifier frame) then "own" else ""
-      in handleSeq genitiveSpecifier det `catM` return own
+      in handleSeq genitiveSpecifier _det `catM` return own
     _ -> return $
       let sDet = fValue P.Determiner frame >>= getType in
       if sDet == Just "THIS" then "this"
@@ -283,7 +279,7 @@ frameGenerated frame = do
   }
 
 sentence :: Frame -> State GenerationState String
-sentence frame = handleSeq singleSentence (Just frame) `catM` return (finish ++ newline) where
+sentence frame = handleSeq singleSentence frame `catM` return (finish ++ newline) where
   singleSentence frame = do
     frameGenerated frame
     case fValue P.Content frame of
@@ -329,7 +325,7 @@ generateAccording parent = case fValue P.AccordingTo parent of
           s -> return $ show s
     state <- get
     if Set.member source (visitedFrames state) then return ""
-    else return comma `catM` handleSeq oneOpinion (Just source) `catM` return comma
+    else return comma `catM` handleSeq oneOpinion source `catM` return comma
   _ -> return ""
 
 getExternalComp fVerb = usage P.Content fVerb >>= usage P.Member1 >>= fValue P.Member2 >>= fValue P.Content >>= \nextVerb ->
@@ -382,7 +378,7 @@ clause fVerb = do
              frameGenerated cp
              return "about their opinion on" `catM` np False topic
         _ -> let comma = if not (hasType "SAY" fVerb) && isFactCP (head $ flatten cp) then "," else ""
-             in return comma `catM` handleSeq genComplement fComp
+             in return comma `catM` handleSeq genComplement cp
       _ -> return ""
     externalComp <- fromMaybe (return "") $ fmap generateArg $ getExternalComp fVerb
     controlledComp <-

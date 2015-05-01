@@ -202,12 +202,11 @@ fDeterminer frame =
 
 usePronoun state frame = Set.member frame (visitedFrames state)
 
-isHeavyNP :: GenerationState -> Maybe Frame -> Bool
-isHeavyNP state mNoun = Just True == fmap isHeavyNoun mNoun where
-  isHeavyNoun noun =
+isHeavyNP :: GenerationState -> Frame -> Bool
+isHeavyNP state noun =
     if usePronoun state noun then False
     else if hasType "seq" noun then any (not . isPronoun) (flatten noun)
-    else isJust (fValue P.Relative noun) || isJust (fValue P.VName noun) || isHeavyNP state (fDeterminer noun)
+    else isJust (fValue P.Relative noun) || isJust (fValue P.VName noun) || isTrue (isHeavyNP state <$> fDeterminer noun)
 
 shouldGenerateDeterminer noun det state asSpecifier = let
   prev = filter (\f -> fDeterminer f == Just det) $ prevSiblings noun
@@ -216,7 +215,7 @@ shouldGenerateDeterminer noun det state asSpecifier = let
   if isNothing (getType det) then False
   else if not (null prev) && Set.member det (visitedFrames state) then False
   else if hasType "OPINION" noun && not (isPronoun det) then not asSpecifier
-  else if isHeavyNP state $ Just det then not asSpecifier
+  else if isHeavyNP state det then not asSpecifier
   else if any (hasType "WORDS") $ prev ++ next then not asSpecifier
   else if null prev then asSpecifier
   else if null next then not asSpecifier

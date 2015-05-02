@@ -8,7 +8,6 @@ data VarProperty = Arg1 | Arg2
                  | Questioned
                  | Variants
                  | Target
-                 | Content
                  | Theme
                  | Topic
                  | Source
@@ -49,7 +48,7 @@ data VarProperty = Arg1 | Arg2
                  deriving (Ord, Eq, Show, Generic)
 
 data StrProperty = Type
-                 | Negated
+                 | Negated | ClauseNegated
                  | Animate
                  | RusNumber | RusPerson | RusGender
                  | Given
@@ -67,7 +66,7 @@ data StrProperty = Type
                  | Also
                  | So_there
                  | ProfessionCopula
-                 | Question_mark | Dot | ParagraphEnd | SectionEnd | Exclamation_mark
+                 | Question_mark | Dot | ParagraphEnd | SectionEnd | Exclamation_mark | Clausal
                  | ExclamativeQuestion
                  | Imperative
                  | Time

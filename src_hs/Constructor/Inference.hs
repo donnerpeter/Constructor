@@ -46,7 +46,7 @@ sValue attr frame =
           if any (\cashier -> typeEarlier cashier frame && Just "copula" /= (usage P.Arg2 cashier >>= getType)) $ findFrames "CASHIER" $ sense frame then Just "true"
           else if isJust $ msum [usage P.Arg1 frame, usage P.Source frame] then Just "true"
           else Just "false"
-        else if isTrue $ isCP <$> usage P.Content frame then Just "false"
+        else if isCP frame then Just "false"
         else Just "true"
       P.Type -> case usage P.Arg1 frame >>= commandingSubject >>= getType of
         Just commandingType -> Just commandingType
@@ -84,13 +84,13 @@ fValue attr frame =
           unVariants frame = unSeq $ fromMaybe frame (usage P.Variants frame)
           in fmap resolve $ msum $ map (fValue P.Receiver) (verbs ++ foregrounds) ++ map (fValue P.Arg1) (verbs ++ foregrounds)
         else Nothing
-      P.AccordingTo | Just caze <- usage P.Content frame >>= usage P.WhenCondition, hasType "CASE" caze -> fValue P.AccordingTo caze
+      P.AccordingTo | Just caze <- usage P.WhenCondition frame, hasType "CASE" caze -> fValue P.AccordingTo caze
       P.Source | Just typ <- getType frame -> let
         antecedents = reverse $ filter (flip typeEarlier frame) $ findFrames typ (sense frame)
         in msum $ map (fDeclaredValue P.Source) antecedents
       _ -> Nothing
 
-commandingSubject frame = msum [usage P.Content frame >>= usage P.Theme, usage P.Content frame >>= usage P.Arg2] >>= fValue P.Arg1
+commandingSubject frame = msum [usage P.Theme frame, usage P.Arg2 frame] >>= fValue P.Arg1
 
 hasType t frame = getType frame == Just t
 hasAnyType types frame = fromMaybe False $ getType frame >>= \t -> Just $ elem t types
@@ -138,7 +138,7 @@ unSeq2 frame = case usage P.Member2 frame of
   Just s -> unSeq2 s
   _ -> frame
 
-isCP frame = hasType "situation" frame
+isCP frame = Just "true" == sValue P.Clausal frame
 
 isFactCP frame = isCP frame && not (isQuestionCP frame)
 isQuestionCP frame = isCP frame && isJust (fValue P.Questioned frame)

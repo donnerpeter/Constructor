@@ -1,7 +1,7 @@
 module Constructor.ArgumentPlanning (
   Argument(..), argumentFrame, arguments,
   isCP, isCPOrSeq, isFactCP, isQuestionCP,
-  isVerbEllipsis, isEllipsisAnchor, reachesEllipsisAnchor,
+  isElided, isEllipsisAnchor, reachesEllipsisAnchor,
   allCoordinatedVerbs,
   Position(..), argPosition,
   isAtLocationCopula, isExclamationCopula,
@@ -19,10 +19,9 @@ import qualified Constructor.LinkedSet as LS
 
 isCPOrSeq frame = any isCP $ flatten frame
 
-isVerbEllipsis verb = Just "true" == (usage P.Content verb >>= sValue P.Elided)
+isElided frame = Just "true" == sValue P.Elided frame
 
-isEllipsisAnchor arg fVerb = isJust arg && (arg == (cp >>= fValue P.EllipsisAnchor1) || arg == (cp >>= fValue P.EllipsisAnchor2)) where
-  cp = usage P.Content fVerb
+isEllipsisAnchor arg fVerb = isJust arg && (arg == fValue P.EllipsisAnchor1 fVerb || arg == fValue P.EllipsisAnchor2 fVerb) where
 
 reachesEllipsisAnchor mArg fVerb = case mArg of
   Nothing -> False
@@ -70,7 +69,7 @@ arguments fVerb@(getType -> Just typ) = allArgs ++ externalArguments fVerb where
   sortedFacts = Data.List.sortBy compareFacts (allFrameFacts fVerb)
   allArgs = sortedFacts >>= \(Fact _ semValue) -> case semValue of
     VarValue attr v -> let value = Frame v sens in
-     if isVerbEllipsis fVerb && not (isEllipsisAnchor (Just value) fVerb) then [] else
+     if isElided fVerb && not (isEllipsisAnchor (Just value) fVerb) then [] else
      case (typ, attr) of
       ("COME_SCALARLY", P.Order) -> case getType value of
         Just "EARLIER" -> case fValue P.Anchor value of
@@ -100,7 +99,7 @@ arguments fVerb@(getType -> Just typ) = allArgs ++ externalArguments fVerb where
       ("THINK", P.Theme) -> [PPArg "about" value]
       ("THINK", P.Topic) -> [PPArg "on" value]
       ("LET", P.Theme) -> [Adverb AfterVerb $ if hasType "SLEEP" value then "sleep" else "have a rest"]
-      ("SEEM", P.Experiencer) -> if isJust (usage P.Content fVerb >>= usage P.Reason) then [] else [PPAdjunct AfterVerb "to" value]
+      ("SEEM", P.Experiencer) -> if isJust$ usage P.Reason fVerb then [] else [PPAdjunct AfterVerb "to" value]
       ("SEEM", P.Theme) ->
         if hasType "LACK" value then [PPArg "void of" (fromJust $ fValue P.Theme value)]
         else if hasType "MEANINGLESS" value then [Adverb AfterVerb "meaningless"]
@@ -156,8 +155,8 @@ arguments fVerb@(getType -> Just typ) = allArgs ++ externalArguments fVerb where
         Just s -> [Adverb BeforeVerb s]
         _ -> []
       (_, P.PerfectBackground) -> [GerundBackground (if typeEarlier value fVerb then BeforeVP else AfterVerb) value]
-      (_, P.Reason) | not (hasType "situation" value) ->
-        if Just "but" == (fmap unSeq1 (usage P.Content fVerb) >>= usage P.Member2 >>= sValue P.Conj)
+      (_, P.Reason) | not (isCP value) ->
+        if Just "but" == (usage P.Member2 (unSeq1 fVerb) >>= sValue P.Conj)
         then [PPAdjunct BeforeVP "out of" value]
         else [CommaSurrounded (PPAdjunct BeforeVP "because of" value)]
       _ -> []
@@ -176,17 +175,14 @@ externalArguments fVerb = according ++ outOf where
     (Just "FALL_OUT", Nothing, Just value) -> [PPArg "of" value]
     _ -> []
 
-allCoordinatedVerbs fVerb = case usage P.Content fVerb of
-  Nothing -> [fVerb]
-  Just cp -> let
-    allSenseCPs = findFrames "situation" (sense fVerb)
-    i = fromJust $ elemIndex cp allSenseCPs
+allCoordinatedVerbs fVerb = let
+    allSenseVerbs = filter isCP $ allFrames $ sense fVerb
+    i = fromJust $ elemIndex fVerb allSenseVerbs
     windowSize = 5
     start = max (i - windowSize) 0
-    window = take (2 * windowSize) $ drop start allSenseCPs
+    window = take (2 * windowSize) $ drop start allSenseVerbs
     sequences = LS.removeDups $ map unSeq window
-    componentCPs = sequences >>= flatten
-    in catMaybes $ map (fValue P.Content) componentCPs
+    in sequences >>= flatten
 
 shouldContrastRelTime fVerb = length (catMaybes $ map (fValue P.RelTime) $ allCoordinatedVerbs fVerb) > 1
 

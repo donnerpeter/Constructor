@@ -10,5 +10,4 @@ instance Show CopulaData where
   show cd = show (copKind cd) ++ " " ++ show (copAgr cd) ++ " " ++ (copType cd) ++ " " ++ show (copula cd) ++ (if copBound cd then " bound" else "")
 
 copula cd = makeV (copVar cd) "cop" ""
-copCP cd = makeV (copVar cd) "cop_cp" ""
 copSubj cd = makeV (copVar cd) "cop_arg1" ""

@@ -39,20 +39,20 @@ interactNodes env = {-traceIt ("    interact") $ -}whResults ++ noWh where
     in case cxt whMite of
       Wh agr whVar -> rightCombined env >>= \clauseMite -> case cxt clauseMite of
         Clause cp -> fillGap cp whVar clauseMite agr
-        ModalityInfinitive _ cp -> fillGap cp whVar clauseMite agr
+        ModalityInfinitive cp -> fillGap cp whVar clauseMite agr
         c | Just (cd, rest) <- asCopula c, copKind cd /= NomNPCopula -> let
-          infos = fillGap (copCP cd) whVar clauseMite (copAgr cd)
+          infos = fillGap (copula cd) whVar clauseMite (copAgr cd)
           in [MergeInfo (mites ++ rest) side | MergeInfo mites side <- infos]
         Argument Nom subj -> leftCompatible env whMite >>= \copulaMite -> case asCopula $ cxt copulaMite of
           Just (cd, rest) -> rightCompatible env clauseMite >>= \adjMite -> case cxt adjMite of
             AdjHead v3 Nom agr | agree (copAgr cd) agr && subj == v3 ->
-              mergeLeft $ completeCopula cd subj ++ rest ++ whLinks [whMite, clauseMite, copulaMite, adjMite] (copCP cd) whVar (copAgr cd)
+              mergeLeft $ completeCopula cd subj ++ rest ++ whLinks [whMite, clauseMite, copulaMite, adjMite] (copula cd) whVar (copAgr cd)
             _ -> []
           _ -> []
         _ -> []
       _ -> []
 
-whLinks base cp whVar agr = withBase base [semV cp P.Questioned whVar, semT cp "situation"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause agr cp], [mite $ TopLevelQuestion cp]]
+whLinks base cp whVar agr = withBase base [semV cp P.Questioned whVar, semS cp P.Clausal "true"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause agr cp], [mite $ TopLevelQuestion cp]]
 
 completeCopula cd subj = [mite $ NomHead (copAgr cd) subj Satisfied, mite $ Unify (copSubj cd) subj, mite $ Handicap (copula cd), mite $ Verb (copula cd)] ++ copulaSem cd
 
@@ -151,8 +151,8 @@ punctuationAware env (m1, m2) =
         mergeRight $ base12 [semS cp P.Exclamation_mark "true", mite $ Sentence cp] ++ liftUnclosedCompatible LeftSide ++ closeUnclosed LeftSide Satisfied ++ rest
       (Sentence cp, Word _ "\n") ->
         mergeRight $ base12 [semS cp P.ParagraphEnd "true"] ++ closeUnclosed LeftSide Satisfied
-      (Argument Nom noun, Word cp "\n\n") ->
-        right [semS cp P.SectionEnd "true", semT cp "situation", semS cp P.SituationKind "object", semV cp P.Content noun]
+      (Argument Nom noun, Word _ "\n\n") ->
+        right [semS noun P.SectionEnd "true", semS noun P.Clausal "true", semS noun P.SituationKind "object"]
       (TopLevelQuestion cp, Word _ "?") -> left [semS cp P.Question_mark "true", mite $ Sentence cp]
 
       (DirectSpeechHead head Nothing, Colon "directSpeech" v) ->
@@ -230,11 +230,11 @@ interactQuestionable env leftPairs rightPairs whContext (m1, c1) (m2, c2) =
       -- todo nom + nomHead/copulaHead duplication
       (Argument Nom v1, _c) | Just (cd, rest) <- asCopula _c -> leftPairs >>= \case
         (m3, AdjHead v3 Nom agr2) | agree (copAgr cd) agr2 && v1 == v3 && not (contradict m1 m3) ->
-          mergeRight $ withBase [m1, m2, m3] $ completeCopula cd v1 ++ rest ++ (if whContext then [] else [mite $ Clause (copCP cd)])
+          mergeRight $ withBase [m1, m2, m3] $ completeCopula cd v1 ++ rest ++ (if whContext then [] else [mite $ Clause (copula cd)])
         _ -> []
       (_c, Argument Nom v2) | Just (cd, rest) <- asCopula _c, copKind cd /= AdjCopula && (copKind cd /= NomNPCopula || whContext) -> rightPairs >>= \case
         (m3, AdjHead v3 Nom agr2) | agree (copAgr cd) agr2 && v2 == v3 && not (contradict m2 m3) ->
-          mergeLeft $ withBase [m1, m2, m3] $ completeCopula cd v2 ++ rest ++ (if whContext then [] else [mite $ Clause (copCP cd)])
+          mergeLeft $ withBase [m1, m2, m3] $ completeCopula cd v2 ++ rest ++ (if whContext then [] else [mite $ Clause (copula cd)])
         _ -> []
 
       (Verb verb, VerbalModifier attr False advP) -> mergeLeft $ base12 [semV verb attr advP] ++ existentials leftPairs rightPairs
@@ -276,7 +276,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
         _ -> []
       -- todo relativizer + nomHead/copulaHead duplication
       (Relativizer wh, _c) | Just (cd, rest) <- asCopula _c, copKind cd /= NomNPCopula && not (agree (copAgr cd) A.n) ->
-        left $ [mite $ Unify (copSubj cd) wh, mite $ RelativeClause (copAgr cd) (copCP cd), semV (copCP cd) P.Questioned wh] ++ rest ++ copulaSem cd
+        left $ [mite $ Unify (copSubj cd) wh, mite $ RelativeClause (copAgr cd) (copula cd), semV (copula cd) P.Questioned wh] ++ rest ++ copulaSem cd
       (Relativizer wh, ArgHead Acc attr v2) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
         Clause cp -> mergeLeft $ withBase [m1,m2,m3] [semV v2 attr wh, mite $ RelativeClause A.empty cp, semV cp P.Questioned wh]
         _ -> []
@@ -358,7 +358,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (NegationModifier v1, Negated v) -> right [mite $ Unify v v1]
       (Negated v, NegationModifier v1) -> left [mite $ Unify v v1]
 
-      (Word _ "не", Complement cp) -> right [semS cp P.Negated "true", mite $ Complement cp]
+      (Word _ "не", Complement cp) -> right [semS cp P.ClauseNegated "true", mite $ Complement cp]
       (Word ne "не", Wh _ v) -> right [mite $ ExistentialWh v ne, semS v P.Negated "true"]
       (Word _ "не", c) | Just (v, rest) <- asNegateable c -> right $ xor [[semS v P.Negated "true", mite $ Negated v], [mite $ PendingNegation v]] ++ rest
       (Word _ "не", Verb v) -> let
@@ -387,8 +387,8 @@ reflexive headPairs childPairs = headPairs >>= \case
     _ -> []
 
 existentials headPairs childPairs = headPairs >>= \case
-  (m1, ModalityInfinitive v cp) -> childPairs >>= \case
-    (m2, ExistentialWh _ tensedVar) -> withBase [m1,m2] [semT cp "situation", mite $ Unify v tensedVar]
+  (m1, ModalityInfinitive v) -> childPairs >>= \case
+    (m2, ExistentialWh _ tensedVar) -> withBase [m1,m2] [semS v P.Clausal "true", mite $ Unify v tensedVar]
     _ -> []
   _ -> []
 

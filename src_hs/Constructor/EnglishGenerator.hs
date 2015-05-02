@@ -47,8 +47,8 @@ handleSeq f frame = case getType frame of
       frameGenerated frame
       m1 <- handleSeq f first
       let skipSecond frame = let
-            externalFrame = fValue P.Member1 frame >>= fValue P.Content >>= getExternalComp >>= argumentFrame
-            secondContent = fValue P.Member2 frame >>= fValue P.Content
+            externalFrame = fValue P.Member1 frame >>= getExternalComp >>= argumentFrame
+            secondContent = fValue P.Member2 frame
             in isJust externalFrame && (externalFrame == secondContent || externalFrame == (secondContent >>= fValue P.Theme))
           lastGeneratedMember seqFrame =
             if not (hasType "seq" seqFrame) || not (skipSecond seqFrame) then Just seqFrame
@@ -56,29 +56,27 @@ handleSeq f frame = case getType frame of
       if skipSecond frame then return m1 else do
         m2 <- handleSeq f second
         let conj = fromMaybe "" $ sValue P.Conj frame
-            firstContent = fValue P.Content first
-            secondContent = fValue P.Content second
-            contents = catMaybes $ map (fValue P.Content) $ flatten frame
+            contents = flatten frame
             copulas = filter (hasType "copula") contents
             copulaValues = catMaybes $ map (fValue P.Arg2) copulas
             separator = if conj == "but" then
-                          if Just "true" == (firstContent >>= sValue P.Irrealis) then ", when"
-                          else if (Just True == fmap isGerund secondContent || Just True == fmap isGerund firstContent) &&
-                                  isNothing (firstContent >>= sValue P.Negated)
+                          if Just "true" == sValue P.Irrealis first then ", when"
+                          else if (isGerund second || isGerund first) &&
+                                  isNothing (sValue P.Negated first)
                             then "and"
                           else if length copulaValues > 1 then
                             if any (hasType "MORE") $ concatMap flatten $ mapMaybe (fValue P.Quality) copulaValues then ", but"
                             else ", and"
-                          else if Just True == fmap shouldContrastByGender (firstContent >>= fValue P.Arg1) then ", and"
+                          else if Just True == (shouldContrastByGender <$> fValue P.Arg1 first) then ", and"
                           else if Just "true" == sValue P.Negated second && Just "true" /= sValue P.ConjStrong frame then "and"
                           else ", but"
                         else if conj == "and" then
                           if isCP second && isTrue (hasType "seq" <$> lastGeneratedMember first) then ", and"
-                          else if isJust (secondContent >>= fValue P.PerfectBackground) then ", and"
+                          else if isJust $ fValue P.PerfectBackground second then ", and"
                           else "and"
                         else if conj == "" then
-                          if isJust (secondContent >>= fValue P.AccordingTo) then "; but"
-                          else if isJust (secondContent >>= sValue P.AndEmphasis) then ""
+                          if isJust $ fValue P.AccordingTo second then "; but"
+                          else if isJust $ sValue P.AndEmphasis second then ""
                           else ","
                         else conj
         return $ m1 `cat` separator `cat` (stripFirstComma m2)
@@ -144,7 +142,7 @@ np_internal nom mayHaveDeterminer frame = do
       else ""
   relative <- case fValue P.Relative frame of
     Just relativeCp -> let rel = sentence relativeCp in
-      if Just "copula" == (fValue P.Content relativeCp >>= getType) then return ", the one" `catM` rel
+      if hasType "copula" relativeCp then return ", the one" `catM` rel
       else rel
     _ ->
       if isElidedNoun frame && Just "SMASHED" == (getType =<< fValue P.Quality frame) then let
@@ -162,8 +160,6 @@ isArticleAfterAdjectives mainFrame =
   adjFrames = adjectiveFrames mainFrame >>= flatten
 
 isPlaceholder frame = hasType "placeholder" frame
-
-isElided frame = Just "true" == sValue P.Elided frame
 
 skipElidedOne nounFrame = Just "true" == (sValue P.ConjStrong $ unSeq2 $ unSeq1 nounFrame) && case prevSiblings $ unSeq1 nounFrame of
   first:_ | not (isElidedNoun first) -> True
@@ -255,7 +251,7 @@ determiner frame det nbar = do
       else if hasType "STREET" frame && prefixName frame then streetName frame
       else if hasAnyType ["SOME", "OTHERS", "THIS", "THAT", "JOY", "RELIEF", "MEANING", "MONEY", "COUNTING", "APARTMENTS", "OFFICES", "HOUSES", "CABBAGE", "CARROT", "MARKET"] frame then ""
       else if hasAnyType ["NAMED"] frame then ""
-      else if hasType "OPINION" frame && Just True == fmap isVerbEllipsis (usage P.AccordingTo frame) then ""
+      else if hasType "OPINION" frame && isTrue (isElided <$> usage P.AccordingTo frame) then ""
       else if isElidedNoun frame && skipElidedOne frame || isPlaceholder frame then ""
       else if sValue P.Given frame == Just "true" then "the"
       else if isArticleAfterAdjectives frame then ""
@@ -279,15 +275,11 @@ frameGenerated frame = do
 
 sentence :: Frame -> State GenerationState String
 sentence frame = handleSeq singleSentence frame `catM` return (finish ++ newline) where
-  singleSentence frame = do
-    frameGenerated frame
-    case fValue P.Content frame of
-      Just content -> if Just "object" == sValue P.SituationKind frame then np True content else clause content
-      _ -> return "???sentence"
+  singleSentence frame = if Just "object" == sValue P.SituationKind frame then np True frame else clause frame
   finish = if sValue P.Dot frame == Just "true" || sValue P.Conj (unSeq frame) == Just ";" then "."
            else if sValue P.Question_mark frame == Just "true" then "?"
            else if sValue P.Exclamation_mark frame == Just "true" then "!"
-           else case lastSentence >>= fValue P.Content >>= fValue P.Message of
+           else case lastSentence >>= fValue P.Message of
              Just message -> if isNothing (getType message) then ":" else ""
              _ -> ""
   newline = if sValue P.ParagraphEnd frame == Just "true" then "\n"
@@ -295,11 +287,9 @@ sentence frame = handleSeq singleSentence frame `catM` return (finish ++ newline
             else ""
   lastSentence = if hasType "seq" frame then fValue P.Member2 frame else Just frame
 
-genComplement cp = case fValue P.Content cp of
-  Nothing -> return ""
-  Just _ -> do
+genComplement cp = do
     let prefix = if isFactCP cp && distinguish cp then "that" else ""
-        negation = if Just "true" == sValue P.Negated cp then "not" else ""
+        negation = if Just "true" == sValue P.ClauseNegated cp then "not" else ""
     s <- sentence cp
     return $ negation `cat` prefix `cat` stripFirstComma s
 
@@ -327,7 +317,7 @@ generateAccording parent = case fValue P.AccordingTo parent of
     else return comma `catM` handleSeq oneOpinion source `catM` return comma
   _ -> return ""
 
-getExternalComp fVerb = usage P.Content fVerb >>= usage P.Member1 >>= fValue P.Member2 >>= fValue P.Content >>= \nextVerb ->
+getExternalComp fVerb = usage P.Member1 fVerb >>= fValue P.Member2 >>= \nextVerb ->
   if fValue P.Arg1 fVerb /= fValue P.Arg1 nextVerb then Nothing
   else if hasType "GO" fVerb && hasType "ASK" nextVerb then Just $ ToInfinitive nextVerb
   else if hasType "LEAN_OUT" fVerb && hasType "BEGIN" nextVerb then case fValue P.Theme nextVerb of
@@ -351,10 +341,9 @@ clause fVerb = do
                    else if (fValue P.RelTime fVerb >>= getType) == Just "BEFORE" && isNothing (fValue P.RelTime fVerb >>= fValue P.Anchor) then "before,"
                    else ""
     let fSubject = englishSubject fVerb
-        cp = usage P.Content fVerb
     let (_prefixAdjuncts, _postfixAdjuncts) = partition (\(SentenceAdjunct _ _ f) -> typeEarlier f fVerb) $ sentenceAdjuncts fVerb
     prefixAdjuncts <- mapCat generateSentenceAdjunct _prefixAdjuncts
-    core <- if isQualityCopula fVerb && Just "true" == (sValue P.ExclamativeQuestion =<< cp)
+    core <- if isQualityCopula fVerb && Just "true" == sValue P.ExclamativeQuestion fVerb
            then case fSubject of
              Just subj | hasType "AMAZE" subj -> return "Great was" `catM` np True subj
              Just subj | hasType "CUNNING_PERSON" subj -> return "What" `catM` np True subj
@@ -372,11 +361,11 @@ clause fVerb = do
             _ -> Nothing
           _ -> Nothing
     comp <- case fComp of
-      Just cp | isCPOrSeq cp -> case fValue P.Content cp of
-        Just compVerb | isQuestionCP cp && hasType "THINK" compVerb, Just topic <- fValue P.Topic compVerb -> do
-             frameGenerated cp
+      Just compVerb | isQuestionCP compVerb && hasType "THINK" compVerb, Just topic <- fValue P.Topic compVerb -> do
+             frameGenerated compVerb
              return "about their opinion on" `catM` np False topic
-        _ -> let comma = if not (hasType "SAY" fVerb) && isFactCP (head $ flatten cp) then "," else ""
+      Just cp | isCPOrSeq cp ->
+             let comma = if not (hasType "SAY" fVerb) && isFactCP (head $ flatten cp) then "," else ""
              in return comma `catM` handleSeq genComplement cp
       _ -> return ""
     externalComp <- fromMaybe (return "") $ fmap generateArg $ getExternalComp fVerb
@@ -387,8 +376,8 @@ clause fVerb = do
           _ -> return ""
       else return ""
     postfixAdjuncts <- mapCat generateSentenceAdjunct _postfixAdjuncts
-    questionVariants <- case cp >>= fValue P.Questioned >>= fValue P.Variants of
-      Just variants -> return "-" `catM` np ((cp >>= fValue P.Questioned) == fSubject) variants
+    questionVariants <- case fValue P.Questioned fVerb >>= fValue P.Variants of
+      Just variants -> return "-" `catM` np (fValue P.Questioned fVerb == fSubject) variants
       _ -> return ""
     let noIntro = emphasis `cat` core `cat` controlledComp `cat` postfixAdjuncts `cat` comp `cat` externalComp `cat` questionVariants `cat` elaboration
     return $ prefixAdjuncts `cat` intro `cat` (if null intro then noIntro else stripFirstComma noIntro)
@@ -410,7 +399,7 @@ sentenceAdjuncts fVerb = condComp ++ reasonComp where
         Just fComp <- msum [fValue P.WhenCondition caze, fValue P.IfCondition caze] -> [SentenceAdjunct "," "only if" fComp]
     _ -> []
   reasonComp = case fValue P.Reason fVerb of
-    Just fComp | hasType "situation" fComp -> [SentenceAdjunct "" "because" fComp]
+    Just fComp | isCP fComp -> [SentenceAdjunct "" "because" fComp]
     _ -> []
 
 generateSentenceAdjunct (SentenceAdjunct separator preposition frame) = do
@@ -419,20 +408,18 @@ generateSentenceAdjunct (SentenceAdjunct separator preposition frame) = do
 
 data ClauseType = FiniteClause | InfiniteClause deriving (Eq)
 
-shouldElideSubject fVerb fSubject = any hasSameSubject prevVerbSiblings where
+shouldElideSubject fVerb fSubject = any hasSameSubject $ prevSiblings fVerb where
   hasSameSubject prevVerb = isTrue $ isSame <$> fSubject <*> englishSubject prevVerb
   isSame f1 f2 = f1 == f2 || getType f1 == getType f2 && hasType "ME" f1
-  prevVerbSiblings = mapMaybe (fValue P.Content) $ fromMaybe [] (prevSiblings <$> usage P.Content fVerb)
 
 vp :: Frame -> VerbForm -> ClauseType -> State GenerationState String
 vp fVerb verbForm clauseType = do
-  let cp = usage P.Content fVerb
-      theme = fValue P.Theme fVerb
+  let theme = fValue P.Theme fVerb
       isModality = hasType "modality" fVerb
       fSubject = englishSubject fVerb
-      isQuestion = Just True == fmap isQuestionCP cp
-      nonSubjectQuestion = isQuestion && (isNothing fSubject || not (fromJust fSubject `elem` flatten (fromJust $ cp >>= fValue P.Questioned)))
-      inverted = nonSubjectQuestion && Just "true" == (cp >>= sValue P.Question_mark)
+      isQuestion = isQuestionCP fVerb
+      nonSubjectQuestion = isQuestion && (isNothing fSubject || not (fromJust fSubject `elem` flatten (fromJust $ fValue P.Questioned fVerb)))
+      inverted = nonSubjectQuestion && Just "true" == (sValue P.Question_mark fVerb)
       isDoModality = isModality && Just True == fmap (hasType "DO") theme
       thereSubject = clauseType == FiniteClause &&
                      isModality &&
@@ -479,7 +466,7 @@ vp fVerb verbForm clauseType = do
    else if Just "true" == sValue P.Imperative fVerb && isNothing (getDeclaredType =<< fSubject) then return ""
    else case (fSubject, clauseType) of
     (Just f, FiniteClause) ->
-      if isVerbEllipsis fVerb && not (reachesEllipsisAnchor fSubject fVerb) then return "it"
+      if isElided fVerb && not (reachesEllipsisAnchor fSubject fVerb) then return "it"
       else if isNothing (fSubject >>= getType) && not (isTrue $ isElidedNoun <$> fSubject) then return "someone"
       else if shouldElideSubject fVerb fSubject then
         if (isJust (msum [fValue P.PerfectBackground fVerb, fValue P.Reason fVerb]) || hasType "copula" fVerb)

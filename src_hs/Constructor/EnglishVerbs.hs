@@ -44,7 +44,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "HELP" -> "help"
   "KNOW" -> if verbForm == Sg3Verb then "knows" else "know"
   "LEAN_OUT" ->
-    if Just True == fmap (hasType "LOOK") (fValue P.Theme =<< fValue P.Content =<< listToMaybe . nextSiblings =<< usage P.Content frame) then "looked out"
+    if Just True == fmap (hasType "LOOK") (fValue P.Theme =<< listToMaybe (nextSiblings frame)) then "looked out"
     else "leaned out"
   "LET" -> "let"
   "LOOK" -> if lookAsWatching frame then "watching" else if verbForm == Sg3Verb then "stares" else "staring"
@@ -61,7 +61,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
            then if verbForm == PastVerb then "told" else "tell"
            else if verbForm == PastVerb then "said" else "say"
   "SEE" -> if verbForm == BaseVerb then "see" else "saw"
-  "SEEM" -> if isJust (usage P.Content frame >>= usage P.Reason) then
+  "SEEM" -> if isJust $ usage P.Reason frame then
      if verbForm == PastVerb then "were" else "is"
      else if verbForm == PastVerb then "seemed" else "seems"
   "SIT" -> if verbForm == BaseVerb then "sit" else if verbForm == PastVerb then "sat" else "sitting"
@@ -99,7 +99,7 @@ doForm verbForm =case verbForm of
 generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModality thereSubject = let
   isFuture = Just "FUTURE" == sValue P.Time fVerb
   isPast = Just "PAST" == sValue P.Time fVerb
-  anchor2 = usage P.Content fVerb >>= fValue P.EllipsisAnchor2
+  anchor2 = fValue P.EllipsisAnchor2 fVerb
   negated = Just "true" == sValue P.Negated fVerb
             && not (Just "true" == (fValue P.Arg1 fVerb >>= sValue P.Negated))
             && not (Just "true" == (fValue P.Arg2 fVerb >>= sValue P.Negated))
@@ -108,7 +108,7 @@ generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModalit
   in
   if reachesEllipsisAnchor fSubject fVerb then
     if fromMaybe False $ isFrameReachable <$> fSubject <*> anchor2 then
-      if Just "true" == (sValue P.Elided =<< fValue P.Content =<< listToMaybe . reverse . prevSiblings =<< usage P.Content fVerb) then ("", "")
+      if isTrue (isElided <$> (listToMaybe $ reverse $ prevSiblings fVerb)) then ("", "")
       else ("", if verbForm == PastVerb then "did" else "does")
     else ("", "-")
   else if hasType "copula_talking_about" fVerb then (beForm fSubject PastVerb, "talking")
@@ -123,7 +123,7 @@ generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModalit
             Just "RAIN" -> "raining"
             _ -> "WEATHER"
           else verb Gerund fVerb
-    elidedBe = isJust (usage P.Content fVerb >>= usage P.Member2)
+    elidedBe = isJust $ usage P.Member2 fVerb
     in if isFuture then ("will", "be " ++ ing) else (if elidedBe then "" else beForm fSubject verbForm, ing)
   else if isModality then
     if isQuestion then

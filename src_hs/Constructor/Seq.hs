@@ -133,7 +133,7 @@ normalSeqVariants m2 sd@(SeqData { seqVar=seqV }) env = xorNonEmpty $
                  in [result]
           (Clause mem1, SeqRight c) | Just (cd, rest) <- asCopula c,  copBound cd -> let
                  unifications = xorNonEmpty $ unifySubjects (leftCompatible env m1) (copAgr cd) (copSubj cd)
-                 result = fullConj mem1 (copCP cd) ++ withBase [m1, m2, m3] [mite $ Clause seqV, mite $ Handicap seqV] ++ copulaSem cd ++ unifications ++ rest
+                 result = fullConj mem1 (copula cd) ++ withBase [m1, m2, m3] [mite $ Clause seqV, mite $ Handicap seqV] ++ copulaSem cd ++ unifications ++ rest
                  in [result]
           (_c1, SeqRight _c2) |
                Just (CopulaData { copKind=kind, copAgr=agr1, copAttr=attr, copVar=mem1, copBound=False, copType=typ }, rest1) <- asCopula _c1,

@@ -165,13 +165,13 @@ reachableFrames origin = visitFrame Set.empty origin where
 
 isFrameReachable src dest = Set.member dest (reachableFrames src)
 
-framesTo :: Frame -> Frame -> Int -> Set.Set Frame
+framesTo :: Frame -> Frame -> Int -> Maybe (Set.Set Frame)
 framesTo src dst maxPathLength = inner Set.empty src where
   sens = sense src
   inner path current = let
     allNeighbors = [toFrame sens v | (Fact {value=(VarValue _ v)}) <- allFrameFacts current]
     newNeighbors = filter (not . flip Set.member path) allNeighbors
     pathWithCurrent = Set.insert current path
-    in if current == dst then path
-       else if Set.size path >= maxPathLength then Set.empty
-       else Set.unions $ map (inner pathWithCurrent) newNeighbors
+    in if current == dst then Just path
+       else if Set.size path >= maxPathLength then Nothing
+       else Just $ Set.unions $ mapMaybe (inner pathWithCurrent) newNeighbors

@@ -39,19 +39,19 @@ copulaHead kind agr copulaType rel tenseRequired var =
   [mite $ CopulaHead (CopulaData kind agr var False copulaType rel), mite $ TenseHead tenseRequired (makeV var "cop" "")]
 
 copulaSem cd = if (copBound cd) then [] else common ++ specific where
-  common = [semV (copula cd) P.Arg1 (copSubj cd), semT (copula cd) (copType cd), semV (copCP cd) P.Content (copula cd), semT (copCP cd) "situation"]
+  common = [semV (copula cd) P.Arg1 (copSubj cd), semT (copula cd) (copType cd), semS (copula cd) P.Clausal "true"]
   ph = makeV (copVar cd) "cop_ph" ""
   specific = case copKind cd of
     NomNPCopula -> [semV (copula cd) (copAttr cd) (copVar cd)]
     InstrNPCopula -> [semV (copula cd) (copAttr cd) (copVar cd)]
     _ -> [semV (copula cd) P.Arg2 ph, semV ph (copAttr cd) (copVar cd), semT ph "placeholder", semV ph P.Target (copSubj cd)]
 
-clause v = [mite $ Verb (v ""), semV (v "cp") P.Content (v ""), semT (v "cp") "situation", mite $ Clause (v "cp"), mite $ ConjEmphasizeable (v "")]
+clause v = [mite $ Verb (v ""), semS (v "") P.Clausal "true", mite $ Clause (v ""), mite $ ConjEmphasizeable (v "")]
 
 infinitive typ v =
   [semT (v "") typ] ++
   xor [[mite $ ControlledInfinitive $ v ""],
-       [mite $ ModalityInfinitive (v "x") (v "cp"), semT (v "x") "modality", semV (v "x") P.Theme (v ""), semV (v "cp") P.Content (v "x"), mite $ Verb (v "x"), mite $ ConjEmphasizeable (v "x"), mite $ TenseHead Optional (v "x")] ++ optional (arg Dat P.Arg1 v),
+       [mite $ ModalityInfinitive (v "x"), semT (v "x") "modality", semV (v "x") P.Theme (v ""), semS (v "x") P.Clausal "true", mite $ Verb (v "x"), mite $ ConjEmphasizeable (v "x"), mite $ TenseHead Optional (v "x")] ++ optional (arg Dat P.Arg1 v),
        semArg Direction P.Goal_action (v "")]
 arg argType relation v = [mite $ ArgHead argType relation (v "")]
 compHead attr v = [mite $ CompHead attr (v "")]

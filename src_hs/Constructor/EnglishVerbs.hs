@@ -51,7 +51,7 @@ verb verbForm frame = if isNothing (getType frame) then "???vp" else
   "LOVE" -> case fValue P.Arg2 frame of
     Just arg2 | any (hasType "CABBAGE") $ flatten arg2 -> "like"
     _ -> if verbForm == BaseVerb then "love" else "loves"
-  "MOVE" -> if verbForm == Gerund then "moving" else "moved"
+  "MOVE" -> if verbForm == Gerund then "moving" else if verbForm == BaseVerb then "move" else "moved"
   "NEED" -> "need"
   "PESTER" -> "got bored"
   "RECALL" -> "recall"

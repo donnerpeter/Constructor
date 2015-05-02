@@ -443,7 +443,10 @@ vp fVerb verbForm clauseType = do
       finalAdverb = case getType fVerb of
         Just "HAPPEN" -> "today"
         Just "copula" | isExclamationCopula fVerb && isAtLocationCopula fVerb -> "here"
-        Just "MOVE" -> (if Just "SLIGHTLY" == (fValue P.Manner fVerb >>= getType) then "slightly" else "") `cat` "back and forth"
+        Just "MOVE" -> let
+          slightly = if Just "SLIGHTLY" == (fValue P.Manner fVerb >>= getType) then "slightly" else ""
+          backForth = if isTrue $ hasAnyType ["NOSE", "JAW"] <$> fValue P.Arg2 fVerb then "back and forth" else ""
+          in slightly `cat` backForth
         _ -> ""
       negation = if sValue P.Negated fVerb == Just "true" && isGerund fVerb then "not" else ""
       allArgs = if isModality then fromMaybe [] (fmap arguments theme) else arguments fVerb

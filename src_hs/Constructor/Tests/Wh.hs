@@ -141,8 +141,11 @@ whTests = [
 --todo  translateTest "Кто пошёл в сад и начал считать деревья?"
 --                "Who went to the garden and started counting trees?"
 --  ,
---todo  translateTest "Чем подвигала кассирша?"
---                "What did the cashier move?"
+--todo  translateTest "Что я помню, а Маша забыла?"
+--                "What do I remember but Masha forgot?"
+  ,
+  translateTest "Чем подвигала кассирша?"
+                "What did the cashier move?"
   ,
   translateTest "Я увидел дом, где они сидят"
                 "I saw the house where they were sitting"

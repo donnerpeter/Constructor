@@ -77,7 +77,7 @@ typeIssues var declaredType = missingSubj ++ missingArg2 ++ inanimateSubj ++ adj
       if isNothing (fValue P.Arg1 (frame sense) >>= sDeclaredValue P.Type) then issue ("unknown " ++ declaredType ++ " subj") else finalNo
     else []
   missingArg2 =
-    if declaredType `elem` ["FORGET", "THINK"] then l $ \sense ->
+    if declaredType `elem` ["FORGET", "THINK", "REMEMBER"] then l $ \sense ->
       if isNothing (fValue P.Arg2 (frame sense) >>= getType) then issue (declaredType ++ " without arg2") else finalNo
     else []
   inanimateSubj =

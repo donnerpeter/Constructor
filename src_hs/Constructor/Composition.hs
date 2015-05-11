@@ -209,9 +209,9 @@ interactHybrid doInteract headSide headMites childMites = combinations where
 interactQuestionable env leftPairs rightPairs whContext (m1, c1) (m2, c2) =
     let (_, _, base12) = mergeInfoHelpers m1 m2
     in case (c1, c2) of
-      (ArgHead kind1 relation head, _c) | Just (Argument kind2 arg, rest) <- asNoun _c, kind1 == kind2 ->
+      (ArgHead _ kind1 relation head, _c) | Just (Argument kind2 arg, rest) <- asNoun _c, kind1 == kind2 ->
         mergeLeft $ base12 [semV head relation arg] ++ reflexive leftPairs rightPairs ++ existentials leftPairs rightPairs ++ rest
-      (_c, ArgHead kind1 relation head) | Just (Argument kind2 arg, rest) <- asNoun _c, kind1 == kind2 ->
+      (_c, ArgHead _ kind1 relation head) | Just (Argument kind2 arg, rest) <- asNoun _c, kind1 == kind2 ->
         mergeRight $ base12 [semV head relation arg] ++ reflexive rightPairs leftPairs ++ existentials rightPairs leftPairs ++ rest
       (SemArgHead _ kind1 head, SemArgument kind2 arg _) | kind1 == kind2 ->
         mergeLeft $ base12 [mite $ SemArgHead Optional kind1 head, mite $ Unify head arg] ++ reflexive leftPairs rightPairs ++ existentials leftPairs rightPairs
@@ -277,7 +277,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       -- todo relativizer + nomHead/copulaHead duplication
       (Relativizer wh, _c) | Just (cd, rest) <- asCopula _c, copKind cd /= NomNPCopula && not (agree (copAgr cd) A.n) ->
         left $ [mite $ Unify (copSubj cd) wh, mite $ RelativeClause (copAgr cd) (copula cd), semV (copula cd) P.Questioned wh] ++ rest ++ copulaSem cd
-      (Relativizer wh, ArgHead Acc attr v2) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
+      (Relativizer wh, ArgHead _ Acc attr v2) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
         Clause cp -> mergeLeft $ withBase [m1,m2,m3] [semV v2 attr wh, mite $ RelativeClause A.empty cp, semV cp P.Questioned wh]
         _ -> []
 
@@ -363,10 +363,7 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
       (Word _ "не", c) | Just (v, rest) <- asNegateable c -> right $ xor [[semS v P.Negated "true", mite $ Negated v], [mite $ PendingNegation v]] ++ rest
       (Word _ "не", Verb v) -> let
         negateDirectObject = rightCombined env >>= \m3 -> case cxt m3 of
-          ArgHead Acc attr v -> let
-            result = withBase [m1,m2,m3] [mite $ ArgHead Gen attr v] ++ colleagues
-            colleagues = concat [withBase [m1,m2,m] [mite (cxt m)] | m <- rightCompatible env m2, contradict m m3]
-            in result
+          ArgHead optional Acc attr v -> withBase [m1,m2,m3] [mite $ ArgHead optional Gen attr v]
           _ -> []
         in mergeRight $ base12 [semS v P.Negated "true", mite $ Negated v] ++ negateDirectObject
 

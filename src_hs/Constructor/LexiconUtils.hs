@@ -51,9 +51,10 @@ clause v = [mite $ Verb (v ""), semS (v "") P.Clausal "true", mite $ Clause (v "
 infinitive typ v =
   [semT (v "") typ] ++
   xor [[mite $ ControlledInfinitive $ v ""],
-       [mite $ ModalityInfinitive (v "x"), semT (v "x") "modality", semV (v "x") P.Theme (v ""), semS (v "x") P.Clausal "true", mite $ Verb (v "x"), mite $ ConjEmphasizeable (v "x"), mite $ TenseHead Optional (v "x")] ++ optional (arg Dat P.Arg1 v),
+       [mite $ ModalityInfinitive (v "x"), semT (v "x") "modality", semV (v "x") P.Theme (v ""), semS (v "x") P.Clausal "true", mite $ Verb (v "x"), mite $ ConjEmphasizeable (v "x"), mite $ TenseHead Optional (v "x")] ++ arg Dat P.Arg1 v,
        semArg Direction P.Goal_action (v "")]
-arg argType relation v = [mite $ ArgHead argType relation (v "")]
+arg argType relation v = [mite $ ArgHead Optional argType relation (v "")]
+obligatoryArg argType relation v = [mite $ ArgHead Obligatory argType relation (v "")]
 compHead attr v = [mite $ CompHead attr (v "")]
 
 semArg argType relation childVar@(Variable index s) = let headVar = Variable index (s ++ "_head") in
@@ -76,7 +77,7 @@ shortAdj agr attr value v = [semT v0 value, mite $ AdverbModifiable v0, mite $ S
 
 comparativeAdj attr value v =
   [semT v0 value, semT more "MORE", semV more P.Theme v0, mite $ ComparativeAdj A.empty attr more, mite $ AdverbModifiable more]
-  ++ optional (xor [arg Gen P.Anchor (makeV v0 "more"), [mite $ ComparativeHead more]])
+  ++ xor [arg Gen P.Anchor (makeV v0 "more"), [mite $ ComparativeHead more]]
   where v0 = v ""; more = v "more"
 
 adjWh caze agr attr v = [mite $ Adj (v "") attr caze agr, semT (v "") "wh", mite $ Wh agr (v "")]

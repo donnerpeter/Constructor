@@ -55,7 +55,7 @@ data Construction = Word Variable String
                   -- arguments
                   | NomHead Agr Variable Satisfied
                   | GenHead [(P.VarProperty, Variable)]
-                  | ArgHead ArgKind P.VarProperty Variable
+                  | ArgHead Optionality ArgKind P.VarProperty Variable
                   | SemArgHead Optionality SemArgKind Variable
                   | PrepHead String ArgKind Variable
                   | Argument ArgKind Variable
@@ -140,6 +140,7 @@ isHappy cxt = case cxt of
   NomHead {} -> True; GenHead {} -> True
   ReflexiveReference {} -> True; ReflexiveTarget {} -> True
   AdjHead {} -> True; NounPhrase {} -> True
+  ArgHead Optional _ _ _ -> True
   SemArgHead Optional _ _ -> True
   TenseHead Optional _ -> True
   QuestionVariants {} -> True

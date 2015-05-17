@@ -145,6 +145,9 @@ var4 = [
   translateTest "2 и 3 они помнят, а 4 и 5 забыли"
                 "They remember 2 and 3, but forgot 4 and 5"
   ,
+  translateTest "2 и 3 помнят, а 4 и 5 забыли"
+                "They remember 2 and 3, but forgot 4 and 5"
+  ,
   -- 4_TheyForgot45
   translateTest "Они забыли 4 и 5"
                 "They forgot 4 and 5"

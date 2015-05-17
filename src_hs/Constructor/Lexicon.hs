@@ -268,6 +268,7 @@ wordMites word index =
   "полнота" -> nounSg Nom Fem "PLENITUDE" v ++ genHead P.Arg1 v
   "помидор" -> nounSg Nom Masc "TOMATO" v
   "помнит" -> finVerb "REMEMBER" "PRESENT" A.sg3 v ++ directObject v
+  "помню" -> finVerb "REMEMBER" "PRESENT" A.sg1 v ++ directObject v
   "помнят" -> finVerb "REMEMBER" "PRESENT" A.pl3 v ++ directObject v
   "помочь" -> infinitive "HELP" v ++ arg Dat P.Arg2 v
   "порядок" -> nounSg Acc Masc "ORDER" v ++ genHead P.Arg1 v

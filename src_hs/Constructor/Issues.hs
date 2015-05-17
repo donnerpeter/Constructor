@@ -38,8 +38,10 @@ factIssues fact = let
             if any (not . hasAnyType ["LUCK", "BY_THE_WAY"]) (flatten valFrame) then fatalIssue "invalid optativeModality" else finalNo
           P.Quantifier -> l $ \sense ->
             requireType (Just $ frame sense) $ \_ ->
-              requireType (Just $ valFrame sense) $ \valFrame ->
-                if hasType "EYES" (frame sense) && not (hasType "2" valFrame) then finalIssue "suspicious eye count" else finalNo
+              if isNumber (frame sense) then finalIssue "quantified number"
+              else requireType (Just $ valFrame sense) $ \valFrame ->
+                if hasType "EYES" (frame sense) && not (hasType "2" valFrame) then finalIssue "suspicious eye count"
+                else finalNo
           P.Condition -> requireValType $ \valFrame ->
             if not (hasType "CASE" valFrame) then fatalIssue "wrong condition" else finalNo
           P.Mood -> requireValType $ \valFrame ->
@@ -81,7 +83,7 @@ typeIssues var declaredType = missingSubj ++ missingArg2 ++ inanimateSubj ++ adj
       if isNothing (fValue P.Arg2 (frame sense) >>= getType) then issue (declaredType ++ " without arg2") else finalNo
     else []
   inanimateSubj =
-    if declaredType `elem` ["GO", "CAN", "REMEMBER", "KNOW", "copula_talking_about"] then l $ \sense ->
+    if declaredType `elem` ["GO", "CAN", "REMEMBER", "FORGET", "KNOW", "copula_talking_about"] then l $ \sense ->
       requireType (fValue P.Arg1 $ frame sense) $ \fSubj ->
         if not (and $ map isAnimate $ flatten fSubj) then finalIssue ("inanimate " ++ declaredType ++ " subject") else finalNo
     else []

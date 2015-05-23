@@ -134,9 +134,9 @@ whTests = [
   ,
   translateTest "Каково его мнение?"
                 "What is his opinion?"
---  ,
---todo  translateTest "Я спросил, каково его мнение."
---                "I asked, what his opinion was."
+  ,
+  translateTest "Я спросил, каково его мнение."
+                "I asked what his opinion was."
   ,
   translateTest "Кто пошёл в сад и начал считать деревья?"
                 "Who went to the garden and started counting trees?"

@@ -98,7 +98,7 @@ doForm verbForm =case verbForm of
 
 generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModality thereSubject = let
   isFuture = Just "FUTURE" == sValue P.Time fVerb
-  isPast = Just "PAST" == sValue P.Time fVerb
+  isPast = Just "PAST" == sValue P.Time fVerb || Just "PAST" == (sValue P.Time =<< usage P.Topic fVerb)
   anchor2 = fValue P.EllipsisAnchor2 fVerb
   negated = Just "true" == sValue P.Negated fVerb
             && not (Just "true" == (fValue P.Arg1 fVerb >>= sValue P.Negated))

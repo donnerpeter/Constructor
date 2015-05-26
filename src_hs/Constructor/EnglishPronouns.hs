@@ -12,10 +12,11 @@ npPronoun nom frame = case getType frame of
   Just "WE" -> if nom then "we" else "us"
   Just "YOU" -> "you"
   Just "THEY" -> if nom then "they" else "them"
-  Just s ->
-    if isHuman $ resolve frame then
-      if s == "HE" then if nom then "he" else "him"
-      else if s == "SHE" then if nom then "she" else "her"
+  Just s | target <- resolve frame ->
+    if isHuman target then
+      if s == "HE" || sValue P.RusGender target == Just "Masc" then if nom then "he" else "him"
+      else if s == "SHE"  || sValue P.RusGender target == Just "Fem" then if nom then "she" else "her"
+      else if sValue P.RusGender target == Just "Neu" then "it"
       else s
     else "it"
   _ -> "???"

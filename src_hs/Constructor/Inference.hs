@@ -55,6 +55,7 @@ sValue attr frame =
             (Just "Pl", Just "3", _) -> Just "THEY"
             (Just "Sg", Just "3", Just "Fem") -> Just "SHE"
             (Just "Sg", Just "3", _) -> Just "HE"
+            (Just "Sg", Just "1", _) -> Just "ME"
             _ -> Nothing
       P.RusNumber -> case sDeclaredValue P.Type frame of
         Just "WE" -> Just "Pl"
@@ -116,7 +117,7 @@ isNumber frame = any (\f -> sValue P.Number f == Just "true") $ flatten frame
 
 isHuman frame =
   if isTrue $ hasType "SHUT_DOWN" <$> usage P.Arg2 frame then False
-  else hasAnyType ["NEIGHBOR", "NEIGHBORS", "CASHIER", "NAMED", "EVERYBODY",
+  else hasAnyType ["NEIGHBOR", "NEIGHBORS", "CASHIER", "NAMED", "EVERYBODY", "OLD_LADY",
   "ME", "HE", "SHE", "THEY" -- todo pronouns are not necessarily animate
   ] frame
 isAnimate frame = isHuman frame || Just "true" == sValue P.Animate frame

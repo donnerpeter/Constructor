@@ -86,7 +86,7 @@ data Construction = Word Variable String
                   -- verbs & clauses
                   | Verb Variable -- finite or infinitive or participle
                   | Clause Variable -- a finite clause, possibly a well-formed copula
-                  | Tense Variable
+                  | Tense Variable Agr
                   | TenseHead Optionality Variable
                   | FutureTense Agr Variable
                   | CopulaHead CopulaData

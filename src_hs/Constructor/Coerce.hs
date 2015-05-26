@@ -36,15 +36,17 @@ asVerb env m = case cxt m of
         in xorNonEmpty $ [copulaCoercion, ellipsis]
       _ -> []
 
-asTenseHead :: Mite -> [Mite]
-asTenseHead m = case cxt m of
+asTenseHead :: Mite -> Agr -> [Mite]
+asTenseHead m tenseAgr = case cxt m of
   TenseHead {} -> [m]
   Argument Nom v -> let
-    [ch@(cxt -> CopulaHead _), tenseHead] = copulaHead NomNPCopula empty "copula" P.Arg2 Optional v
-    in [tenseHead, ch]
+    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead NomNPCopula tenseAgr "copula" P.Arg2 Optional v
+    subj = copSubj cd
+    in [tenseHead, ch] ++ rusNumber tenseAgr subj ++ rusGender tenseAgr subj ++ rusPerson tenseAgr subj
   Argument Instr v -> let
-    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead InstrNPCopula empty "copula" P.Arg2 Obligatory v
-    in [tenseHead, ch] ++ instrCopula cd
+    [ch@(cxt -> CopulaHead cd), tenseHead] = copulaHead InstrNPCopula tenseAgr "copula" P.Arg2 Obligatory v
+    subj = copSubj cd
+    in [tenseHead, ch] ++ instrCopula cd ++ rusNumber tenseAgr subj ++ rusGender tenseAgr subj ++ rusPerson tenseAgr subj
   Adj v attr Instr agr -> reverse $ copulaHead AdjCopula agr "copula" attr Obligatory v
   Adj v attr Nom agr -> reverse $ copulaHead AdjCopula agr "copula" attr Optional v
   ShortAdj agr attr v -> reverse $ copulaHead AdjCopula agr "copula" attr Optional v
@@ -88,7 +90,7 @@ asNoun c = case c of
 
 asNegateable :: Construction -> Maybe (Variable, [Mite])
 asNegateable (NounPhrase v) = Just (v, [])
-asNegateable c@(Tense v) = Just (v, [mite c])
+asNegateable c@(Tense v _) = Just (v, [mite c])
 asNegateable c@(Adj v _ _ _) = Just (v, [mite c])
 asNegateable c@(Possessive _ _ v) = Just (v, [mite c])
 asNegateable c@(ShortAdj _ _ v) = Just (v, [mite c])

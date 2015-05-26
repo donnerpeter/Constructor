@@ -163,6 +163,7 @@ arguments fVerb@(getType -> Just typ) = allArgs ++ externalArguments fVerb where
     StrValue attr value -> case (attr, value) of
       (P.SAnchor, "AGAIN") -> [Adverb AfterVerb "again"]
       (P.SAnchor, "ALREADY") -> [Adverb AfterVerb "already"]
+      (P.SAnchor, "STILL") -> [Adverb AfterVerb "still"]
       (P.Also, "true") | typ /= "CAN" -> [Adverb BeforeVerb "also"]
       _ -> []
 arguments _ = []

@@ -26,11 +26,12 @@ wordMites word index =
   "большой" -> xor[adj Instr A.f P.Size "BIG" v, adj Nom A.m P.Size "BIG" v, adj Acc A.m P.Size "BIG" v]
   "брат" -> nounSg Nom Masc "BROTHER" v ++ genHead P.Arg1 v
   "бригадир" -> nounSg Nom Masc "BRIGADIER" v
-  "будет" -> [semS v0 P.Time "FUTURE"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0], [mite $ FutureTense A.sg3 v0]]
-  "был" -> [mite $ Tense v0, semS v0 P.Time "PAST"]
-  "была" -> [mite $ Tense v0, semS v0 P.Time "PAST"]
-  "были" -> [mite $ Tense v0, semS v0 P.Time "PAST"]
-  "было" -> [semS v0 P.Time "PAST"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0]]
+  "будет" -> [semS v0 P.Time "FUTURE"] ++ xor [[mite $ Tense v0 A.sg3], [mite $ WhAsserter v0], [mite $ FutureTense A.sg3 v0]]
+  "буду" -> [semS v0 P.Time "FUTURE"] ++ xor [[mite $ Tense v0 A.sg1], [mite $ WhAsserter v0], [mite $ FutureTense A.sg1 v0]]
+  "был" -> [mite $ Tense v0 A.m, semS v0 P.Time "PAST"]
+  "была" -> [mite $ Tense v0 A.f, semS v0 P.Time "PAST"]
+  "были" -> [mite $ Tense v0 A.pl, semS v0 P.Time "PAST"]
+  "было" -> [semS v0 P.Time "PAST"] ++ xor [[mite $ Tense v0 A.n], [mite $ WhAsserter v0]]
   "быстрее" -> comparativeAdj P.Quality "FAST" v
   "быстры" -> shortAdj A.pl P.Quality "FAST" v
   "в" -> xor [preposition "v" Acc v, preposition "v" Prep v]
@@ -104,8 +105,8 @@ wordMites word index =
   "ей" -> pronoun Dat A.f "SHE" v
   "ему" -> pronoun Dat A.sg "HE" v
   "если" -> [mite $ ConditionComp v0 "if" False]
-  "есть" -> [semS v0 P.Time "PRESENT"] ++ xor [[mite $ Tense v0], [mite $ WhAsserter v0]]
-  "ещё" -> [mite $ ComparativeEmphasis v0]
+  "есть" -> [semS v0 P.Time "PRESENT"] ++ xor [[mite $ Tense v0 A.empty], [mite $ WhAsserter v0]]
+  "ещё" -> xor [[mite $ ComparativeEmphasis v0], sAdverb P.SAnchor "STILL" v]
   "жареную" -> adj Acc A.sg P.Kind "ROASTED" v
   "забыл" -> finVerb "FORGET" "PAST" A.m v ++ xor [compHead P.Arg2 v, directObject v, arg ScalarAdverb P.Order v]
   "забыла" -> finVerb "FORGET" "PAST" A.f v ++ xor [compHead P.Arg2 v, directObject v, arg ScalarAdverb P.Order v]

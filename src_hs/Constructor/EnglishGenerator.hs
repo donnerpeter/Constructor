@@ -470,7 +470,7 @@ vp fVerb verbForm clauseType = do
       else if isNothing (fSubject >>= getType) && not (isTrue $ isElidedNoun <$> fSubject) then return "someone"
       else if shouldElideSubject fVerb fSubject then
         if (isJust (msum [fValue P.PerfectBackground fVerb, fValue P.Reason fVerb]) || hasType "copula" fVerb)
-        then return $ if sValue P.RusGender f == Just "Masc" then "he" else "she"
+        then return $ npPronoun True f
         else return ""
       else np True f
     _ -> return ""
@@ -542,7 +542,7 @@ generateArg arg = let
 
 argOrder arg = case arg of
   PPAdjunct {} -> 2
-  Adverb _ "already" -> 0
+  Adverb _ s | s `elem` ["already", "still"] -> 0
   NPArg {} -> 0
   CommaSurrounded a -> argOrder a
   _ -> 1

@@ -73,6 +73,9 @@ asCopula = \case
   Argument Instr v -> let
     [(cxt -> CopulaHead cd), tenseHead] = copulaHead InstrNPCopula empty "copula" P.Arg2 Obligatory v
     in Just (cd, [tenseHead] ++ instrCopula cd)
+  VerbalModifier P.Location False v -> let
+    [(cxt -> CopulaHead cd), tenseHead] = copulaHead VerbalModifierCopula empty "copula" P.Location Optional v
+    in Just (cd, [tenseHead])
   _ -> Nothing
 
 asNoun :: Construction -> Maybe (Construction, [Mite])

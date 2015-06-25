@@ -184,9 +184,9 @@ copulaTests = [
 --  ,
 --todo  translateTest "Кто или что это? Кто или что это было?"
 --                "Who or what is this? Who or what was this?"
---  ,
---todo  translateTest "Где это?"
---                "Where is this?"
+  ,
+  translateTest "Где это?"
+                "Where is this?"
 --  ,
 --todo  translateTest "Где и когда это было?"
 --                "Where and when was this?"

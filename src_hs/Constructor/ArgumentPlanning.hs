@@ -131,7 +131,10 @@ arguments fVerb@(getType -> Just typ) = allArgs ++ externalArguments fVerb where
       ("copula_about", P.Arg2) -> [PPArg "about" $ fromJust $ fValue P.Arg2 value]
       ("copula_talking_about", P.Arg2) -> [PPArg "about" $ fromJust $ fValue P.Arg2 value]
       ("copula", P.Arg1) | isOwnerCopula fVerb -> [NPArg value]
-      ("copula", P.Arg2) | Just q <- fValue P.Quality value, hasType "placeholder" value && hasType "wh" q -> [NPArg q]
+      ("copula", P.Arg2) | hasType "placeholder" value -> case () of
+        _ | Just q <- fValue P.Quality value, hasType "wh" q -> [NPArg q]
+        _ | Just q <- fValue P.Location value, hasType "wh" q -> [NPArg q]
+        _ -> [NPArg value]
       ("PESTER", P.Arg2) -> []
       ("PESTER", P.Arg1) -> if pesterAsBoredGerund fVerb then [GerundArg value] else [PPArg "of" value]
       (_, P.Arg2) -> if isCPOrSeq value then [] else [NPArg value]

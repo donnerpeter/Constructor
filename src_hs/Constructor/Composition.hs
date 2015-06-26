@@ -153,7 +153,7 @@ punctuationAware env (m1, m2) =
         mergeRight $ base12 [semS cp P.ParagraphEnd "true"] ++ closeUnclosed LeftSide Satisfied
       (Argument Nom noun, Word _ "\n\n") ->
         right [semS noun P.SectionEnd "true", semS noun P.Clausal "true", semS noun P.SituationKind "object"]
-      (TopLevelQuestion cp, Word _ "?") -> left [semS cp P.Question_mark "true", mite $ Sentence cp]
+      (TopLevelQuestion cp, Word _ "?") -> right [semS cp P.Question_mark "true", mite $ Sentence cp]
 
       (DirectSpeechHead head Nothing, Colon "directSpeech" v) ->
         mergeLeft $ base12 [mite $ DirectSpeechHead head $ Just v, semV head P.Message v] ++ closeUnclosed LeftSide Satisfied

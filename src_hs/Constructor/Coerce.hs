@@ -51,6 +51,7 @@ asTenseHead m tenseAgr = case cxt m of
   Adj v attr Nom agr -> reverse $ copulaHead AdjCopula agr "copula" attr Optional v
   ShortAdj agr attr v -> reverse $ copulaHead AdjCopula agr "copula" attr Optional v
   ComparativeAdj agr attr v -> reverse $ copulaHead AdjCopula agr "copula" attr Optional v
+  VerbalModifier P.Location False v -> reverse $ copulaHead VerbalModifierCopula tenseAgr "copula" P.Location Optional v
   _ -> []
 
 instrCopula cd = [semS (copula cd) P.ProfessionCopula "true", mite $ ConjEmphasizeable (copula cd)]

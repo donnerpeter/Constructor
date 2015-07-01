@@ -28,8 +28,8 @@ suggestDoubleAnchorEllipsis env ellipsisVar e1 e2 = case findClause =<< context 
     sideTrees = subTrees LeftSide tree ++ subTrees RightSide tree
     findSideTree mite = find (\t -> Set.member mite $ allActiveMiteSet t) sideTrees
     mappings = catMaybes [semanticEllipsis oldClause ellipsisVar [mapping1, mapping2] tree |
-       mapping1 <- findOriginals allMites e1,
-       mapping2 <- findOriginals allMites e2,
+       mapping1 <- findOriginals allMites oldClause ellipsisVar e1,
+       mapping2 <- findOriginals allMites oldClause ellipsisVar e2,
        findSideTree (templateMite mapping1) /= findSideTree (templateMite mapping2)]
     in mappings
 
@@ -37,20 +37,20 @@ suggestSingleAnchorEllipsis env ellipsisVar anchor = case findClause =<< context
   [] -> []
   (oldClause, tree):_ -> let
     allMites = Set.elems $ allActiveMiteSet tree
-    mappings = catMaybes [semanticEllipsis oldClause ellipsisVar [mapping] tree | mapping <- findOriginals allMites anchor]
+    mappings = catMaybes [semanticEllipsis oldClause ellipsisVar [mapping] tree | mapping <- findOriginals allMites oldClause ellipsisVar anchor]
     in mappings
 
-data AnchorMapping = AnchorMapping { templateMite:: Mite, templateVar:: Variable, anchorVar:: Variable } deriving (Show)
+data AnchorMapping = AnchorMapping { templateMite:: Mite, templateVar:: Variable, anchorVar:: Variable, anchorMites :: [Mite] } deriving (Show)
 
-checkOriginal ::  Construction -> Mite -> Maybe AnchorMapping
-checkOriginal anchor candidate = case (cxt candidate, anchor) of
-  (VerbalModifier a1 _ v1, VerbalModifier a2 _ v2) | a1 == a2 -> Just $ AnchorMapping candidate v1 v2
-  (Argument kind1 v1, Argument kind2 v2) | kind1 == kind2 -> Just $ AnchorMapping candidate v1 v2
-  (SemArgument kind1 v1 _, SemArgument kind2 v2 _) | kind1 == kind2 -> Just $ AnchorMapping candidate v1 v2
-  (Adj v1 attr1 kind1 _, Adj v2 attr2 kind2 _) | kind1 == kind2 && attr1 == attr2 -> Just $ AnchorMapping candidate v1 v2
+checkOriginal ::  Construction -> Variable -> Variable -> Mite -> Maybe AnchorMapping
+checkOriginal anchor oldClause ellipsisVar candidate = case (cxt candidate, anchor) of
+  (VerbalModifier a1 _ v1, VerbalModifier a2 _ v2) | a1 == a2 -> Just $ AnchorMapping candidate v1 v2 []
+  (Argument kind1 v1, Argument kind2 v2) | kind1 == kind2 -> Just $ AnchorMapping candidate v1 v2 []
+  (SemArgument kind1 _ _, SemArgument kind2 attr2 v2) | kind1 == kind2 -> Just $ AnchorMapping candidate oldClause ellipsisVar [semV ellipsisVar attr2 v2]
+  (Adj v1 attr1 kind1 _, Adj v2 attr2 kind2 _) | kind1 == kind2 && attr1 == attr2 -> Just $ AnchorMapping candidate v1 v2 []
   _ -> Nothing
 
-findOriginals mites anchor = catMaybes $ map (checkOriginal anchor) mites
+findOriginals mites oldClause ellipsisVar anchor = catMaybes $ map (checkOriginal anchor oldClause ellipsisVar) mites
 
 mapVar :: [AnchorMapping] -> Variable -> Variable -> (Variable -> Variable)
 mapVar mappings originalCP ellipsisVar@(Variable varIndex _) _v = case find (\m -> _v == templateVar m) mappings of
@@ -69,7 +69,7 @@ semanticEllipsis _oldCP ellipsisVar mappings prevTree = let
   in do
     toCopy <- framesToCopy prevTree oldCP mappings
     let copyMites = copySkeleton sens toCopy mapVariable $ ellipsisVar:(map anchorVar mappings)
-    return $ ClauseEllipsis singleVerb $ copyMites ++ (mappings >>= unifyVerb)
+    return $ ClauseEllipsis singleVerb $ copyMites ++ (mappings >>= unifyVerb) ++ (mappings >>= anchorMites)
 
 copySkeleton :: Sense -> Set.Set Frame -> (Variable -> Variable) -> [Variable] -> [Mite]
 copySkeleton sense originalFrames mapper anchorVars = Set.elems originalFrames >>= copyFrame where

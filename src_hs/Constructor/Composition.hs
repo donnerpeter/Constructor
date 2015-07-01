@@ -213,10 +213,10 @@ interactQuestionable env leftPairs rightPairs whContext (m1, c1) (m2, c2) =
         mergeLeft $ base12 [semV head relation arg] ++ reflexive leftPairs rightPairs ++ existentials leftPairs rightPairs ++ rest
       (_c, ArgHead _ kind1 relation head) | Just (Argument kind2 arg, rest) <- asNoun _c, kind1 == kind2 ->
         mergeRight $ base12 [semV head relation arg] ++ reflexive rightPairs leftPairs ++ existentials rightPairs leftPairs ++ rest
-      (SemArgHead _ kind1 head, SemArgument kind2 arg _) | kind1 == kind2 ->
-        mergeLeft $ base12 [mite $ SemArgHead Optional kind1 head, mite $ Unify head arg] ++ reflexive leftPairs rightPairs ++ existentials leftPairs rightPairs
-      (SemArgument kind2 arg _, SemArgHead _ kind1 head) | kind1 == kind2 ->
-        mergeRight $ base12 [mite $ SemArgHead Optional kind1 head, mite $ Unify head arg] ++ reflexive rightPairs leftPairs ++ existentials rightPairs leftPairs
+      (SemArgHead _ kind1 head, SemArgument kind2 attr arg) | kind1 == kind2 ->
+        mergeLeft $ base12 [mite $ SemArgHead Optional kind1 head, semV head attr arg] ++ reflexive leftPairs rightPairs ++ existentials leftPairs rightPairs
+      (SemArgument kind2 attr arg, SemArgHead _ kind1 head) | kind1 == kind2 ->
+        mergeRight $ base12 [mite $ SemArgHead Optional kind1 head, semV head attr arg] ++ reflexive rightPairs leftPairs ++ existentials rightPairs leftPairs
 
       (Argument Nom v1, NomHead agr1 v2 Unsatisfied) -> leftPairs >>= \case
         (m3, AdjHead v3 Nom agr2) | agree agr1 agr2 && v1 == v3 && not (contradict m1 m3) ->

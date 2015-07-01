@@ -59,7 +59,7 @@ data Construction = Word Variable String
                   | SemArgHead Optionality SemArgKind Variable
                   | PrepHead String ArgKind Variable
                   | Argument ArgKind Variable
-                  | SemArgument SemArgKind {-head-} Variable {-child-} Variable
+                  | SemArgument SemArgKind P.VarProperty Variable
                   | Possessive ArgKind Agr Variable
 
                   -- adjuncts

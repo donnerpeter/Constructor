@@ -57,8 +57,7 @@ arg argType relation v = [mite $ ArgHead Optional argType relation (v "")]
 obligatoryArg argType relation v = [mite $ ArgHead Obligatory argType relation (v "")]
 compHead attr v = [mite $ CompHead attr (v "")]
 
-semArg argType relation childVar@(Variable index s) = let headVar = Variable index (s ++ "_head") in
-  [mite $ SemArgument argType headVar childVar, semV headVar relation childVar]
+semArg argType relation childVar = [mite $ SemArgument argType relation childVar]
 
 whWord agr v = [mite $ Wh agr (v ""), semT (v "") "wh", mite $ WhLeaf (v "")]
 caseWhWord kind agr v = whWord agr v ++ [mite $ QuestionVariants (v "") kind, mite $ AdjHead (v "") kind agr, mite $ Argument kind (v "")]

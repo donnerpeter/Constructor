@@ -52,9 +52,9 @@ copulaTests = [
   ,
   translateTest "Что это было?"
                 "What was this?"
---  ,
---todo  translateTest "Куда он? Он домой."
---                "Where is he going? He's going home."
+  ,
+  translateTest "Куда он? Он домой."
+                "Where is he going? He's going home."
   ,
   translateTest "Кто он? Он кассир."
                 "Who is he? He's a cashier."

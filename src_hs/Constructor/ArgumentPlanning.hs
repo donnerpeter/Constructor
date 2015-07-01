@@ -130,6 +130,8 @@ arguments fVerb@(getType -> Just typ) = allArgs ++ externalArguments fVerb where
       (s, P.Location_at) | s /= "copula" -> [PPArg "next to" value]
       ("copula_about", P.Arg2) -> [PPArg "about" $ fromJust $ fValue P.Arg2 value]
       ("copula_talking_about", P.Arg2) -> [PPArg "about" $ fromJust $ fValue P.Arg2 value]
+      ("copula_direction", P.Arg2) -> let goal = fromJust $ fValue P.Goal value in
+        if hasType "HOME" goal then [Adverb AfterVerb "home"] else [NPArg goal]
       ("copula", P.Arg1) | isOwnerCopula fVerb -> [NPArg value]
       ("copula", P.Arg2) | hasType "placeholder" value -> case () of
         _ | Just q <- fValue P.Quality value, hasType "wh" q -> [NPArg q]

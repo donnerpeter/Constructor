@@ -17,7 +17,7 @@ asVerb env m = case cxt m of
   _c -> case asCopula _c of
       Just (cd, rest) -> let
         verb = copula cd
-        copulaCoercion = [mite $ Verb verb, mite $ CopulaHead (cd { copBound = True })] ++ copulaSem cd ++ rest
+        copulaCoercion = [mite $ Verb verb, mite $ CopulaHead (cd { copBound = True }), mite $ Handicap (copula cd)] ++ copulaSem cd ++ rest
         raiseToEllipsis anchor var = let
           ellipsisVar = makeV var "ell" ""
           ellipses = suggestSingleAnchorEllipsis env ellipsisVar anchor
@@ -76,6 +76,9 @@ asCopula = \case
     in Just (cd, [tenseHead] ++ instrCopula cd)
   VerbalModifier P.Location False v -> let
     [(cxt -> CopulaHead cd), tenseHead] = copulaHead VerbalModifierCopula empty "copula" P.Location Optional v
+    in Just (cd, [tenseHead])
+  SemArgument Direction attr v -> let
+    [(cxt -> CopulaHead cd), tenseHead] = copulaHead VerbalModifierCopula empty "copula_direction" attr Optional v
     in Just (cd, [tenseHead])
   _ -> Nothing
 

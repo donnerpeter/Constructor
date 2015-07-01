@@ -54,7 +54,7 @@ interactNodes env = {-traceIt ("    interact") $ -}whResults ++ noWh where
 
 whLinks base cp whVar agr = withBase base [semV cp P.Questioned whVar, semS cp P.Clausal "true"] ++ xor [[mite $ Complement cp], [mite $ RelativeClause agr cp], [mite $ TopLevelQuestion cp]]
 
-completeCopula cd subj = [mite $ NomHead (copAgr cd) subj Satisfied, mite $ Unify (copSubj cd) subj, mite $ Handicap (copula cd), mite $ Verb (copula cd)] ++ copulaSem cd
+completeCopula cd subj = [mite $ NomHead (copAgr cd) subj Satisfied, mite $ Unify (copSubj cd) subj, mite $ Verb (copula cd)] ++ copulaSem cd ++ (if copBound cd then [] else [mite $ Handicap (copula cd)])
 
 mergeInfoHelpers m1 m2 = ( \mites -> mergeLeft (base12 mites), \mites -> mergeRight (base12 mites), base12) where
   base12 = withBase [m1,m2]

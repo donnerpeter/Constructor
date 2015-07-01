@@ -112,6 +112,7 @@ generateVerbs fVerb fSubject verbForm inverted isModality isQuestion isDoModalit
       else ("", if verbForm == PastVerb then "did" else "does")
     else ("", "-")
   else if hasType "copula_talking_about" fVerb then (beForm fSubject PastVerb, "talking")
+  else if hasType "copula_direction" fVerb then (beForm fSubject verbForm, "going")
   else if hasAnyType ["copula", "copula_about"] fVerb then
     if isFuture then ("will" ++ negation, "be")
     else if isAtLocationCopula fVerb || isOwnerCopula fVerb then ("", haveForm verbForm)

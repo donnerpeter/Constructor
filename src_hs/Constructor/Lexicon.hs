@@ -296,6 +296,7 @@ wordMites word index =
   "разбившуюся" -> adj Acc A.f P.Quality "SMASHED" v
   "разбилась" -> finVerb "SMASH" "PAST" A.f v
   "разбился" -> finVerb "SMASH" "PAST" A.m v
+  "разные" -> adj Nom A.pl P.Quality "DIFFERENT" v
   "разошлись" -> finVerb "DISPERSE" "PAST" A.pl v ++ arg (PP "po" Dat) P.Goal v
   "раньше" -> xor [[mite $ Argument ScalarAdverb v0, semT v0 "EARLIER"], adverb P.RelTime "BEFORE" v] ++ optional (semPreposition Gen P.Anchor v)
   "ребенок" -> nounSg Nom Masc "CHILD" v

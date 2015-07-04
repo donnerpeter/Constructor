@@ -198,7 +198,7 @@ isAtLocationCopula fVerb = hasType "copula" fVerb &&
 
 isExclamationCopula fVerb = case (getType fVerb, fValue P.Arg1 fVerb, fValue P.Arg2 fVerb) of
   (Just "copula", Just arg1, Just arg2) | Just det2 <- fValue P.Determiner arg2 ->
-    hasType "SUCH" det2 && typeEarlier det2 arg1 && typeEarlier arg1 arg2
+    hasType "SUCH" det2 && typeEarlier det2 arg1 && typeEarlier arg1 arg2 && typeEarlier det2 arg1
   _ -> False
 
 lookAsWatching fVerb = isTrue $ hasType "PESTER" <$> usage P.Arg1 fVerb

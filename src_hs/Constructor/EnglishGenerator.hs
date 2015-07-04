@@ -170,6 +170,7 @@ generateAdjective nounFrame value = handleSeq eachAdj value where
     negation = if Just "true" == sValue P.Negated adjFrame then "not" else ""
     modifiers = if Just "JUST" == sValue P.ModifierAdverb adjFrame then "just"
                       else if Just "ONLY" == sValue P.ModifierAdverb adjFrame then "only"
+                      else if Just "VERY" == sValue P.ModifierAdverb adjFrame then "very"
                       else ""
     emph = if Just "true" == sValue P.Emphasis adjFrame then "even" else ""
     article = if isArticleAfterAdjectives nounFrame && not (skipElidedOne nounFrame) then indefiniteArticle nounFrame adjective else ""

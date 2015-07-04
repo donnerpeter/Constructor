@@ -84,7 +84,7 @@ beForm fSubject verbForm =
     if Just True /= (fmap isSingular fSubject) then "were" else "was"
   else if Just "ME" == (fSubject >>= getType) then "am"
   else if Just "YOU" == (fSubject >>= getType) then "are"
-  else if Just "Pl" == (fSubject >>= sValue P.RusNumber) then "are" else "is"
+  else if Just "Pl" == (fSubject >>= sValue P.RusNumber) || Just "seq" == (fSubject >>= getType) then "are" else "is"
 
 haveForm verbForm = case verbForm of
   PastVerb -> "had"

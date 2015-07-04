@@ -2,16 +2,20 @@ module Constructor.EnglishPronouns where
 
 import Constructor.Sense
 import Constructor.Inference
+import Constructor.Util
+import Control.Applicative
 import Data.Maybe
 import qualified Constructor.SemanticProperties as P
 
 isPronoun frame = hasAnyType ["ME", "YOU", "THEY", "HE", "SHE", "WE", "wh"] frame
 
-npPronoun nom frame = case getType frame of
-  Just "ME" -> if nom then "I" else "me"
-  Just "WE" -> if nom then "we" else "us"
+npPronoun nom frame = let
+  reallyNom = nom && not (isTrue $ hasType "seq" <$> usage P.Member1 frame) in
+  case getType frame of
+  Just "ME" -> if reallyNom then "I" else "me"
+  Just "WE" -> if reallyNom then "we" else "us"
   Just "YOU" -> "you"
-  Just "THEY" -> if nom then "they" else "them"
+  Just "THEY" -> if reallyNom then "they" else "them"
   Just s | target <- resolve frame ->
     if isHuman target then
       if s == "HE" || sValue P.RusGender target == Just "Masc" then if nom then "he" else "him"

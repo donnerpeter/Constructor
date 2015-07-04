@@ -24,6 +24,7 @@ adjectiveString nounFrame adjFrame = case getType adjFrame of
     "CLEVER" -> "smart"
     "CLOSED" -> "closed"
     "COMMERCIAL" -> "commercial"
+    "DIFFERENT" -> "different"
     "EXCESSIVE" -> "excessive"
     "FALL_OUT" -> "falling"
     "FAST" -> "fast"

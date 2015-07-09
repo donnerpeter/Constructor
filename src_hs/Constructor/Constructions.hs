@@ -51,6 +51,7 @@ data Construction = Word Variable String
                   | ShortAdj Agr P.VarProperty Variable
                   | ComparativeAdj Agr P.VarProperty Variable
                   | ComparativeEmphasis Variable
+                  | AdjModifier P.VarProperty Agr ArgKind Variable
 
                   -- arguments
                   | NomHead Agr Variable Satisfied

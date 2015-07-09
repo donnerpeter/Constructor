@@ -271,6 +271,9 @@ interactUnsorted env (m1, m2) = map (propagateUnclosed env) $
         _ -> []
       (GenHead attrs, Argument Gen v2) -> left $ [semV v1 attr v2 | (attr, v1) <- attrs] ++ whPropagation (rightCompatible env m2)
 
+      (AdjModifier attr agr1 caze modV, Adj adjVar adjAttr adjCase agr2) | caze == adjCase && agree agr1 agr2 ->
+        left [semV adjVar attr modV, mite $ Adj adjVar adjAttr adjCase (commonAgr agr1 agr2)]
+
       (Relativizer wh, NomHead agr v2 Unsatisfied) -> rightCompatible env m2 >>= \m3 -> case cxt m3 of
         Clause cp -> mergeLeft $ withBase [m1,m2,m3] [mite $ Unify v2 wh, mite $ RelativeClause agr cp, semV cp P.Questioned wh]
         _ -> []

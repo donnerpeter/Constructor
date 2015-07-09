@@ -366,6 +366,7 @@ wordMites word index =
   "считать" -> infinitive "COUNT" v ++ directObject v
   "та" -> adj Nom A.f P.Determiner "THAT" v
   "так" -> [mite $ TwoWordCxt "так как" True [ReasonComp v0 False] v0]
+  "такие" -> xor [adj Nom A.pl P.Determiner "SUCH" v, [semT v0 "SUCH", mite $ AdjModifier P.Determiner A.pl Nom v0]]
   "такой" -> adj Nom A.m P.Determiner "SUCH" v
   "там" -> adverb P.Location "THERE" v
   "танцевать" -> infinitive "DANCE" v

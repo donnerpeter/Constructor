@@ -295,12 +295,30 @@ copulaTests = [
   ,
   translateTest "Семья кассира не была больше семьи кассирши."
                 "The male cashier's family wasn't larger than the female cashier's family."
---  ,
---todo  translateTest "Я и ты такие разные, ты и я такие разные."
---                "Me and you are so different, you and I are so different."
+  ,
+  translateTest "Я и ты такие разные, ты и я такие разные."
+                "Me and you are so different, you and I are so different."
 --  ,
 --todo  translateTest "Такие мы разные."
 --                "That's how different we are."
+--  ,
+--todo  translateTest "Мы такие же умные, как они."
+--                "We are as smart as them."
+--  ,
+--todo  translateTest "Он не такой умный, как я думал."
+--                "He's not as smart as I thought."
+--  ,
+--todo  translateTest "Он не такой умный, как Вася."
+--                "He's not as smart as Vasya."
+--  ,
+--todo  translateTest "Она такая умная, что мне даже страшно."
+--                "She's so smart that I'm even scared."
+--  ,
+--todo  translateTest "Она настолько умная, что мне даже страшно."
+--                "She's so smart that I'm even scared."
+--  ,
+--todo  translateTest "Она умна настолько, что даже мне страшно."
+--                "She's so smart that even I'm scared."
   ,
   translateTest "Я и ты очень разные."
                 "Me and you are very different."

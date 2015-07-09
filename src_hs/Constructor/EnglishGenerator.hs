@@ -171,6 +171,7 @@ generateAdjective nounFrame value = handleSeq eachAdj value where
     modifiers = if Just "JUST" == sValue P.ModifierAdverb adjFrame then "just"
                       else if Just "ONLY" == sValue P.ModifierAdverb adjFrame then "only"
                       else if Just "VERY" == sValue P.ModifierAdverb adjFrame then "very"
+                      else if Just "SUCH" == (getType =<< fValue P.Determiner adjFrame) then "so"
                       else ""
     emph = if Just "true" == sValue P.Emphasis adjFrame then "even" else ""
     article = if isArticleAfterAdjectives nounFrame && not (skipElidedOne nounFrame) then indefiniteArticle nounFrame adjective else ""

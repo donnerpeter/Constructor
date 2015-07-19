@@ -29,6 +29,7 @@ adjectiveString nounFrame adjFrame = case getType adjFrame of
     "FALL_OUT" -> "falling"
     "FAST" -> "fast"
     "GREEN" -> "green"
+    "HARMFUL" -> "harmful"
     "HUMBLE" -> "humble"
     "LITTLE" -> "small"
     "MORE" | Just theme <- fValue P.Theme adjFrame -> case getType theme of

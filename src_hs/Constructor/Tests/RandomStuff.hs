@@ -56,9 +56,9 @@ randomStuffTests = [
 --todo  translateTest "Курение - это вредно"
 --                "Smoking is harmful"
 --  ,
---todo  translateTest "Курение вредно"
---                "Smoking is harmful"
---  ,
+  translateTest "Курение вредно."
+                "Smoking is harmful."
+  ,
 --todo  translateTest "Чай пить - долго жить"
 --                "To drink tea means to live long"
 --  ,

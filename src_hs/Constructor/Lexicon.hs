@@ -52,6 +52,7 @@ wordMites word index =
   "восьми" -> wordNumber Gen "8" v
   "вот" -> sAdverb P.So_there "true" v
   "всякого" -> adj Gen A.m P.Determiner "ANY" v
+  "вредно" -> shortAdj A.n P.Quality "HARMFUL" v
   "вы" -> pronoun Nom A.empty "YOU" v
   "выбежали" -> finVerb "RUN_OUT" "PAST" A.pl v ++ arg (PP "iz" Gen) P.Source v
   "вываливающиеся" -> adj Nom A.pl P.Quality "FALL_OUT" v ++ arg (PP "iz" Gen) P.Source v
@@ -170,6 +171,7 @@ wordMites word index =
   "кстати" -> [mite $ VerbalModifier P.OptativeModality True v0, semT v0 "BY_THE_WAY"]
   "кто" -> caseWhWord Nom A.sg v ++ animate v
   "куда" -> whWord A.empty v ++ semArg Direction P.Goal v0
+  "курение" -> nounSg Nom Neu "SMOKING" v
   "летний" -> adj Acc A.m P.VName "name" v ++ [semS v0 P.Name "летний"] -- todo летний is not only a name
   "лишенными" -> adj Instr A.pl P.Quality "LACK" v ++ arg Gen P.Theme v
   "лишь" -> xor [modifierAdverb "ONLY" v, [mite $ TwoWordCxt "всего лишь" False [] v0]]
